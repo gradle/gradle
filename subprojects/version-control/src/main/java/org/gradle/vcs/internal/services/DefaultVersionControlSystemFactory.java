@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.vcs.internal;
+package org.gradle.vcs.internal.services;
 
 import org.gradle.api.GradleException;
 import org.gradle.cache.CacheAccess;
@@ -30,6 +30,10 @@ import org.gradle.util.GFileUtils;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.git.GitVersionControlSpec;
 import org.gradle.vcs.git.internal.GitVersionControlSystem;
+import org.gradle.vcs.internal.VcsDirectoryLayout;
+import org.gradle.vcs.internal.VersionControlSystem;
+import org.gradle.vcs.internal.VersionControlSystemFactory;
+import org.gradle.vcs.internal.VersionRef;
 
 import javax.annotation.Nullable;
 import java.io.File;

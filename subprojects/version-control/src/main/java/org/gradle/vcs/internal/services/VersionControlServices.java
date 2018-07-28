@@ -39,12 +39,10 @@ import org.gradle.vcs.internal.DefaultSourceControl;
 import org.gradle.vcs.internal.DefaultVcsMappingFactory;
 import org.gradle.vcs.internal.DefaultVcsMappings;
 import org.gradle.vcs.internal.DefaultVcsMappingsStore;
-import org.gradle.vcs.internal.DefaultVersionControlSystemFactory;
 import org.gradle.vcs.internal.VcsDirectoryLayout;
 import org.gradle.vcs.internal.VcsMappingFactory;
 import org.gradle.vcs.internal.VcsMappingsStore;
 import org.gradle.vcs.internal.VcsResolver;
-import org.gradle.vcs.internal.VersionControlSpecFactory;
 import org.gradle.vcs.internal.VersionControlSystemFactory;
 import org.gradle.vcs.internal.resolver.DefaultVcsVersionWorkingDirResolver;
 import org.gradle.vcs.internal.resolver.OfflineVcsVersionWorkingDirResolver;
@@ -80,7 +78,7 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
     private static class VersionControlBuildTreeServices {
         VcsMappingFactory createVcsMappingFactory(InstantiatorFactory instantiatorFactory, StartParameter startParameter) {
             Instantiator decoratingInstantiator = instantiatorFactory.decorate();
-            return new DefaultVcsMappingFactory(decoratingInstantiator, new VersionControlSpecFactory(decoratingInstantiator, startParameter));
+            return new DefaultVcsMappingFactory(decoratingInstantiator, new DefaultVersionControlSpecFactory(decoratingInstantiator, startParameter));
         }
 
         VcsMappingsStore createVcsMappingsStore(VcsMappingFactory mappingFactory) {
