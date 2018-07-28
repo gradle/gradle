@@ -35,11 +35,11 @@ public interface DomainObjectProvider<T> extends Provider<T> {
     void configure(Action<? super T> action);
 
     /**
-     * The task name referenced by this provider.
+     * The domain object name referenced by this provider.
      * <p>
      * Must be constant for the life of the object.
      *
-     * @return The task name. Never null.
+     * @return The domain object. Never null.
      * @since 4.10
      */
     String getName();
