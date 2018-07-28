@@ -11,7 +11,7 @@ class GreetPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         val greeting = extensions.create("greeting", Greeting::class.java)
         tasks {
-            "greet" {
+            register("greet") {
                 doLast {
                     println(greeting.message)
                 }

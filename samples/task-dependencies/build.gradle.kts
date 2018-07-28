@@ -5,16 +5,16 @@ tasks {
         doLast { println("Hello!") }
     }
 
-    "goodbye" {
+    register("goodbye") {
         dependsOn(hello)  // dependsOn task reference
         doLast { println("Goodbye!") }
     }
 
-    "chat" {
+    register("chat") {
         dependsOn("goodbye") // dependsOn task name
     }
 
-    "mixItUp" {
+    register("mixItUp") {
         dependsOn(hello, "goodbye")
     }
 }

@@ -7,19 +7,19 @@ apply<DocumentationPlugin>()
 val books: NamedDomainObjectContainer<Book> by extensions
 
 books {
-    "quickStart" {
+    register("quickStart") {
         sourceFile = file("src/docs/quick-start")
     }
-    "userGuide" {
+    register("userGuide") {
 
     }
-    "developerGuide" {
+    register("developerGuide") {
 
     }
 }
 
 tasks {
-    "books" {
+    register("books") {
         doLast {
             books.forEach { book ->
                 println("${book.name} -> ${relativePath(book.sourceFile)}")

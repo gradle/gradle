@@ -5,7 +5,7 @@ plugins {
 
 gradlePlugin {
     (plugins) {
-        "greet-plugin" {
+        register("greet-plugin") {
             id = "greet"
             implementationClass = "GreetPlugin"
         }
