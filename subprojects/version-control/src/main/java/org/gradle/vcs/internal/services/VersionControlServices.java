@@ -25,6 +25,16 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionC
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
+import org.gradle.api.invocation.Gradle;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.internal.CleanupActionFactory;
+import org.gradle.initialization.layout.ProjectCacheDir;
+import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.vcs.SourceControl;
+import org.gradle.vcs.VcsMappings;
 import org.gradle.vcs.internal.DefaultSourceControl;
 import org.gradle.vcs.internal.DefaultVcsMappingFactory;
 import org.gradle.vcs.internal.DefaultVcsMappings;
@@ -36,18 +46,12 @@ import org.gradle.vcs.internal.VcsResolver;
 import org.gradle.vcs.internal.VcsWorkingDirectoryRoot;
 import org.gradle.vcs.internal.VersionControlSpecFactory;
 import org.gradle.vcs.internal.VersionControlSystemFactory;
+import org.gradle.vcs.internal.resolver.DefaultVcsVersionWorkingDirResolver;
+import org.gradle.vcs.internal.resolver.OfflineVcsVersionWorkingDirResolver;
+import org.gradle.vcs.internal.resolver.PersistentVcsMetadataCache;
 import org.gradle.vcs.internal.resolver.VcsDependencyResolver;
 import org.gradle.vcs.internal.resolver.VcsVersionSelectionCache;
-import org.gradle.api.invocation.Gradle;
-import org.gradle.cache.CacheRepository;
-import org.gradle.cache.internal.CleanupActionFactory;
-import org.gradle.initialization.layout.ProjectCacheDir;
-import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.vcs.SourceControl;
-import org.gradle.vcs.VcsMappings;
+import org.gradle.vcs.internal.resolver.VcsVersionWorkingDirResolver;
 
 import java.io.File;
 import java.util.Collection;
@@ -100,6 +104,10 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
         VcsWorkingDirectoryRoot createVcsWorkingDirectoryRoot(ProjectCacheDir projectCacheDir) {
             return new VcsWorkingDirectoryRoot(new File(projectCacheDir.getDir(), "vcsWorkingDirs"));
         }
+
+        PersistentVcsMetadataCache createMetadataCache(ProjectCacheDir projectCacheDir, CacheRepository cacheRepository) {
+            return new PersistentVcsMetadataCache(projectCacheDir, cacheRepository);
+        }
     }
 
     private static class VersionControlSettingsServices {
@@ -113,8 +121,14 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
     }
 
     private static class VersionControlBuildServices {
-        VcsDependencyResolver createVcsDependencyResolver(VcsWorkingDirectoryRoot vcsWorkingDirectoryRoot, LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlSystemFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, BuildStateRegistry buildRegistry, VersionParser versionParser, VcsVersionSelectionCache versionSelectionCache) {
-            return new VcsDependencyResolver(vcsWorkingDirectoryRoot, localComponentRegistry, vcsResolver, versionControlSystemFactory, versionSelectorScheme, versionComparator, buildRegistry, versionParser, versionSelectionCache);
+        VcsDependencyResolver createVcsDependencyResolver(VcsWorkingDirectoryRoot vcsWorkingDirectoryRoot, LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlSystemFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, BuildStateRegistry buildRegistry, VersionParser versionParser, VcsVersionSelectionCache versionSelectionCache, PersistentVcsMetadataCache persistentCache, StartParameter startParameter) {
+            VcsVersionWorkingDirResolver workingDirResolver;
+            if (startParameter.isOffline()) {
+                workingDirResolver = new OfflineVcsVersionWorkingDirResolver(versionSelectionCache, persistentCache);
+            } else {
+                workingDirResolver = new DefaultVcsVersionWorkingDirResolver(versionSelectorScheme, versionComparator, vcsWorkingDirectoryRoot, versionParser, versionSelectionCache, persistentCache);
+            }
+            return new VcsDependencyResolver(localComponentRegistry, vcsResolver, versionControlSystemFactory, buildRegistry, workingDirResolver);
         }
 
         ResolverProviderFactory createVcsResolverProviderFactory(VcsDependencyResolver vcsDependencyResolver, VcsResolver vcsResolver) {
