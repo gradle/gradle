@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFac
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionFailureRepositoryBlacklister;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryBlacklister;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
@@ -74,8 +73,6 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DefaultExternalRe
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.artifacts.vcs.VcsDependencyResolver;
-import org.gradle.api.internal.artifacts.vcs.VcsVersionSelectionCache;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
@@ -121,11 +118,7 @@ import org.gradle.internal.resource.transfer.DefaultUriTextResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.internal.SimpleMapInterner;
-import org.gradle.vcs.internal.VcsResolver;
-import org.gradle.vcs.internal.VcsWorkingDirectoryRoot;
-import org.gradle.vcs.internal.VersionControlSystemFactory;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -370,31 +363,6 @@ class DependencyManagementBuildScopeServices {
 
     VersionSelectorScheme createVersionSelectorScheme(VersionComparator versionComparator, VersionParser versionParser) {
         return new CachingVersionSelectorScheme(new DefaultVersionSelectorScheme(versionComparator, versionParser));
-    }
-
-    private static class VcsOrProjectResolverProviderFactory implements ResolverProviderFactory {
-        private final VcsDependencyResolver vcsDependencyResolver;
-        private final VcsResolver vcsResolver;
-
-        private VcsOrProjectResolverProviderFactory(VcsDependencyResolver vcsDependencyResolver, VcsResolver vcsResolver) {
-            this.vcsDependencyResolver = vcsDependencyResolver;
-            this.vcsResolver = vcsResolver;
-        }
-
-        @Override
-        public void create(ResolveContext context, Collection<ComponentResolvers> resolvers) {
-            if (vcsResolver.hasRules()) {
-                resolvers.add(vcsDependencyResolver);
-            }
-        }
-    }
-
-    VcsDependencyResolver createVcsDependencyResolver(VcsWorkingDirectoryRoot vcsWorkingDirectoryRoot,  LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlSystemFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, BuildStateRegistry buildRegistry, VersionParser versionParser, VcsVersionSelectionCache versionSelectionCache) {
-        return new VcsDependencyResolver(vcsWorkingDirectoryRoot, localComponentRegistry, vcsResolver, versionControlSystemFactory, versionSelectorScheme, versionComparator, buildRegistry, versionParser, versionSelectionCache);
-    }
-
-    ResolverProviderFactory createVcsResolverProviderFactory(VcsDependencyResolver vcsDependencyResolver, VcsResolver vcsResolver) {
-        return new VcsOrProjectResolverProviderFactory(vcsDependencyResolver, vcsResolver);
     }
 
     SimpleMapInterner createStringInterner() {

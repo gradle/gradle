@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.vcs;
+package org.gradle.vcs.internal.resolver;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.VersionConstraint;

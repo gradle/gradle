@@ -42,7 +42,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class DefaultVersionControlSystemFactory implements VersionControlSystemFactory, Stoppable {
     private final PersistentCache vcsWorkingDirCache;
 
-    DefaultVersionControlSystemFactory(VcsWorkingDirectoryRoot workingDirectoryRoot, CacheRepository cacheRepository, CleanupActionFactory cleanupActionFactory) {
+    public DefaultVersionControlSystemFactory(VcsWorkingDirectoryRoot workingDirectoryRoot, CacheRepository cacheRepository, CleanupActionFactory cleanupActionFactory) {
         this.vcsWorkingDirCache = cacheRepository
             .cache(workingDirectoryRoot.getDir())
             .withLockOptions(mode(FileLockManager.LockMode.None))
