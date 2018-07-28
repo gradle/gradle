@@ -24,7 +24,6 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CleanupActionFactory;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
-import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal;
 import org.gradle.util.GFileUtils;
@@ -42,9 +41,9 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class DefaultVersionControlSystemFactory implements VersionControlSystemFactory, Stoppable {
     private final PersistentCache vcsWorkingDirCache;
 
-    public DefaultVersionControlSystemFactory(VcsWorkingDirectoryRoot workingDirectoryRoot, CacheRepository cacheRepository, CleanupActionFactory cleanupActionFactory) {
+    public DefaultVersionControlSystemFactory(VcsDirectoryLayout directoryLayout, CacheRepository cacheRepository, CleanupActionFactory cleanupActionFactory) {
         this.vcsWorkingDirCache = cacheRepository
-            .cache(workingDirectoryRoot.getDir())
+            .cache(directoryLayout.getCheckoutDir())
             .withLockOptions(mode(FileLockManager.LockMode.None))
             .withDisplayName("VCS Checkout Cache")
             .withCleanup(cleanupActionFactory.create(new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(1), new ModificationTimeFileAccessTimeJournal(), DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES)))
@@ -106,17 +105,29 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
         }
 
         @Override
-        public File populate(final File versionDir, final VersionRef ref, final VersionControlSpec spec) {
-            return cacheAccess.useCache(new Factory<File>() {
-                @Nullable
+        public void populate(final File workingDir, final VersionRef ref, final VersionControlSpec spec) {
+            cacheAccess.useCache(new Runnable() {
                 @Override
-                public File create() {
-                    GFileUtils.mkdirs(versionDir);
-                    GFileUtils.touch(versionDir);
+                public void run() {
                     try {
-                        return delegate.populate(versionDir, ref, spec);
+                        GFileUtils.mkdirs(workingDir);
+                        delegate.populate(workingDir, ref, spec);
                     } catch (Exception e) {
-                        throw new GradleException(String.format("Could not populate %s from %s.", versionDir, spec.getDisplayName()), e);
+                        throw new GradleException(String.format("Could not populate %s from %s.", workingDir, spec.getDisplayName()), e);
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void reset(final File workingDir, final VersionControlSpec spec) {
+            cacheAccess.useCache(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        delegate.reset(workingDir, spec);
+                    } catch (Exception e) {
+                        throw new GradleException(String.format("Could not reset %s for %s.", workingDir, spec.getDisplayName()), e);
                     }
                 }
             });

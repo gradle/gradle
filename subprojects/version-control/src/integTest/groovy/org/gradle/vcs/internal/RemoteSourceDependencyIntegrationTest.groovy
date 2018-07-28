@@ -170,11 +170,8 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         repoA.expectListVersions()
-        repoA.expectUpdateUnchanged()
         repoB.expectListVersions()
-        repoB.expectUpdateUnchanged()
         repoC.expectListVersions()
-        repoC.expectUpdateUnchanged()
 
         then:
         succeeds('resolve')
@@ -241,11 +238,8 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         repoA.expectListVersions()
-        repoA.expectUpdateUnchanged()
         repoB.expectListVersions()
-        repoB.expectUpdateUnchanged()
         repoC.expectListVersions()
-        repoC.expectUpdateUnchanged()
 
         then:
         succeeds('resolve')

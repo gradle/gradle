@@ -18,6 +18,7 @@ package org.gradle.vcs.internal.resolver;
 
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.util.GFileUtils;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.internal.VersionControlSystem;
 
@@ -36,17 +37,20 @@ public class OfflineVcsVersionWorkingDirResolver implements VcsVersionWorkingDir
     @Nullable
     @Override
     public File selectVersion(ModuleComponentSelector selector, VersionControlSpec spec, VersionControlSystem versionControlSystem) {
-        File workingDirForVersion = inMemoryCache.getWorkingDirForSelector(spec, selector.getVersionConstraint());
-        if (workingDirForVersion == null) {
+        File workingDir = inMemoryCache.getWorkingDirForSelector(spec, selector.getVersionConstraint());
+        if (workingDir == null) {
             // TODO - prevent multiple threads from performing the same selection at the same time
-            workingDirForVersion = persistentCache.getWorkingDirForVersion(spec, selector.getVersionConstraint());
-            if (workingDirForVersion == null) {
+            workingDir = persistentCache.getWorkingDirForSelector(spec, selector.getVersionConstraint());
+            if (workingDir == null) {
                 throw new ModuleVersionResolveException(selector, String.format("Cannot resolve %s from %s in offline mode.", selector.getDisplayName(), spec.getDisplayName()));
             }
 
             // Reuse the same location as last build
-            inMemoryCache.putWorkingDirForVersion(spec, selector.getVersionConstraint(), workingDirForVersion);
+            versionControlSystem.reset(workingDir, spec);
+            // Update timestamp so that working directory is not garbage collected
+            GFileUtils.touch(workingDir.getParentFile());
+            inMemoryCache.putWorkingDirForSelector(spec, selector.getVersionConstraint(), workingDir);
         }
-        return new File(workingDirForVersion, spec.getRootDir());
+        return new File(workingDir, spec.getRootDir());
     }
 }

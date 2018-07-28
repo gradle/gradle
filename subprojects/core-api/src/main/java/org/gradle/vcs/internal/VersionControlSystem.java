@@ -38,11 +38,14 @@ public interface VersionControlSystem {
     Set<VersionRef> getAvailableVersions(VersionControlSpec spec);
 
     /**
-     * Populates a working directory under {@code versionDir} with the latest
-     * state of the version control repository from the {@code spec} and
-     * returns the working directory.
+     * Populates a working directory with the given version fomr the version control repository from the {@code spec}.
      */
-    File populate(File versionDir, VersionRef ref, VersionControlSpec spec);
+    void populate(File workingDir, VersionRef ref, VersionControlSpec spec);
+
+    /**
+     * Resets the given working directory to its state in the VCS.
+     */
+    void reset(File workingDir, VersionControlSpec spec);
 
     /**
      * Returns the default revision for this VCS.

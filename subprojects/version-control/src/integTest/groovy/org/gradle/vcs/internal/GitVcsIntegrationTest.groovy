@@ -329,8 +329,8 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         gitCheckout.file('.git').assertExists()
 
         and:
-        def hashedRepo = hashRepositoryId(repo.id)
-        file(".gradle/vcsWorkingDirs/${hashedRepo}-${commit.id.name}").assertIsDir()
+        def commitDir = checkoutDir(repo.name, commit.id.name, repo.id)
+        commitDir.assertIsDir()
 
         cleanup:
         server.stop()

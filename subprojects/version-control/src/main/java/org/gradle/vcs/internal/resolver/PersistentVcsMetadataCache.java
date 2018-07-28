@@ -21,12 +21,11 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.serialize.BaseSerializerFactory;
-import org.gradle.util.GradleVersion;
 import org.gradle.vcs.VersionControlSpec;
+import org.gradle.vcs.internal.VcsDirectoryLayout;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -37,10 +36,9 @@ public class PersistentVcsMetadataCache implements Stoppable {
     private final PersistentCache cache;
     private final PersistentIndexedCache<String, File> workingDirCache;
 
-    public PersistentVcsMetadataCache(ProjectCacheDir projectCacheDir, CacheRepository cacheRepository) {
-        File metadataCacheDir = new File(projectCacheDir.getDir(), "vcsMetadata/" + GradleVersion.current());
+    public PersistentVcsMetadataCache(VcsDirectoryLayout directoryLayout, CacheRepository cacheRepository) {
         cache = cacheRepository
-            .cache(metadataCacheDir)
+            .cache(directoryLayout.getMetadataDir())
             .withDisplayName("VCS metadata")
             .withLockOptions(mode(FileLockManager.LockMode.None)) // Don't need to lock anything until we use the caches
             .open();
@@ -53,7 +51,7 @@ public class PersistentVcsMetadataCache implements Stoppable {
     }
 
     @Nullable
-    public File getWorkingDirForVersion(final VersionControlSpec spec, final VersionConstraint constraint) {
+    public File getWorkingDirForSelector(final VersionControlSpec spec, final VersionConstraint constraint) {
         return cache.useCache(new Factory<File>() {
             @Nullable
             @Override
@@ -63,7 +61,7 @@ public class PersistentVcsMetadataCache implements Stoppable {
         });
     }
 
-    public void putWorkingDirForVersion(final VersionControlSpec spec, final VersionConstraint constraint, final File workingDirForVersion) {
+    public void putWorkingDirForSelector(final VersionControlSpec spec, final VersionConstraint constraint, final File workingDirForVersion) {
         cache.useCache(new Runnable() {
             @Override
             public void run() {

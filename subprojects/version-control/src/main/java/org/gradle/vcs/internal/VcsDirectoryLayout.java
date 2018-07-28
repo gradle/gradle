@@ -16,16 +16,24 @@
 
 package org.gradle.vcs.internal;
 
+import org.gradle.util.GradleVersion;
+
 import java.io.File;
 
-public class VcsWorkingDirectoryRoot {
-    private final File dir;
+public class VcsDirectoryLayout {
+    private final File checkoutDir;
+    private final File metadataDir;
 
-    public VcsWorkingDirectoryRoot(File dir) {
-        this.dir = dir;
+    public VcsDirectoryLayout(File projectCacheDir) {
+        this.checkoutDir = new File(projectCacheDir, "vcs-1");
+        this.metadataDir = new File(projectCacheDir, GradleVersion.current().getVersion() + "/vcsMetadata");
     }
 
-    public File getDir() {
-        return dir;
+    public File getCheckoutDir() {
+        return checkoutDir;
+    }
+
+    public File getMetadataDir() {
+        return metadataDir;
     }
 }

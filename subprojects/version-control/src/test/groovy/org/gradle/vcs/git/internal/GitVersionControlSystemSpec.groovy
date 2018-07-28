@@ -75,14 +75,12 @@ class GitVersionControlSystemSpec extends Specification {
         def target = tmpDir.file('versionDir')
 
         when:
-        def workingDir = gitVcs.populate(target, repoHead, repoSpec)
+        gitVcs.populate(target, repoHead, repoSpec)
 
         then:
-        workingDir.parent == target.path
-        workingDir.name == 'repo'
-        target.file( 'repo/.git').assertIsDir()
-        target.file( 'repo/source.txt').text == 'Hello world!'
-        target.file( 'repo/dir/another.txt').text == 'Goodbye world!'
+        target.file( '.git').assertIsDir()
+        target.file( 'source.txt').text == 'Hello world!'
+        target.file( 'dir/another.txt').text == 'Goodbye world!'
     }
 
     def 'clone a repository with a submodule'() {
@@ -91,81 +89,50 @@ class GitVersionControlSystemSpec extends Specification {
         def target = tmpDir.file('versionDir')
 
         when:
-        def workingDir = gitVcs.populate(target, repoHead, repoSpec)
-
-        then:
-        workingDir.parent == target.path
-        target.file( 'repo/.git').assertIsDir()
-        target.file( 'repo/submodule/foo.txt').text == "hello from submodule"
-    }
-
-    def 'clone a repository into empty extant workingDir'() {
-        given:
-        def target = tmpDir.file('versionDir')
-        target.file('repo').mkdirs()
-
-        when:
-        def workingDir = gitVcs.populate(target, repoHead, repoSpec)
-
-        then:
-        workingDir.parent == target.path
-        workingDir.name == 'repo'
-        target.file( 'repo/.git').assertIsDir()
-        target.file( 'repo/source.txt').text == 'Hello world!'
-        target.file( 'repo/dir/another.txt').text == 'Goodbye world!'
-    }
-
-    def 'update a cloned repository'() {
-        given:
-        def target = tmpDir.file('versionDir')
-        def newFile = repo.workTree.file('newFile.txt')
-        newFile << 'I am new!'
-        repo.commit('Add newFile.txt')
-        repoHead = GitVersionRef.from(repo.head)
-
-        expect:
-        !target.file('repo/newFile.txt').exists()
-
-        when:
-        def workingDir = gitVcs.populate(target, repoHead, repoSpec)
-
-        then:
-        workingDir.path == target.file('repo').path
-        target.file('repo/newFile.txt').exists()
-    }
-
-    def 'update a cloned repository with submodules'() {
-        given:
-        def target = tmpDir.file('versionDir')
-        submoduleRepo.addSubmodule(submoduleRepo2)
-        repo.addSubmodule(submoduleRepo)
-        repoHead = GitVersionRef.from(repo.head)
         gitVcs.populate(target, repoHead, repoSpec)
 
-        // Modify the submodule origin repository
-        submoduleRepo.workTree.file("foo.txt").text = "goodbye from submodule"
-        submoduleRepo.commit("Change submodule message")
+        then:
+        target.file( '.git').assertIsDir()
+        target.file( 'submodule/foo.txt').text == "hello from submodule"
+    }
 
-        submoduleRepo2.workTree.file("bar.txt").text = "goodbye from another submodule"
-        submoduleRepo2.commit("Change submodule message")
+    def 'reset a cloned repository'() {
+        given:
+        def target = tmpDir.file('versionDir')
+        gitVcs.populate(target, repoHead, repoSpec)
 
-        // Set the submodule in the parent to the latest commit in the origin
-        submoduleRepo.updateSubmodulesToLatest()
-        repo.updateSubmodulesToLatest()
-
-        repoHead = GitVersionRef.from(repo.head)
-
-        expect:
-        target.file('repo/submodule/foo.txt').text == "hello from submodule"
-        target.file('repo/submodule/submodule2/bar.txt').text == "hello from another submodule"
+        def removed = target.file("source.txt")
+        removed.delete()
+        def changed = target.file("dir/another.txt")
+        changed << "changed!"
 
         when:
-        def workingDir = gitVcs.populate(target, repoHead, repoSpec)
+        gitVcs.reset(target, repoSpec)
 
         then:
-        workingDir.path == target.file('repo').path
-        target.file('repo/submodule/foo.txt').text == "goodbye from submodule"
-        target.file('repo/submodule/submodule2/bar.txt').text == "goodbye from another submodule"
+        removed.text == "Hello world!"
+        changed.text == "Goodbye world!"
+    }
+
+    def 'reset a cloned repository with submodules'() {
+        given:
+        submoduleRepo.addSubmodule(submoduleRepo2)
+        repo.addSubmodule(submoduleRepo)
+
+        def target = tmpDir.file('versionDir')
+        gitVcs.populate(target, repoHead, repoSpec)
+
+        def submodule = target.file('submodule/foo.txt')
+        submodule.text == "changed!"
+        def submodule2 = target.file('submodule/submodule2/bar.txt')
+        submodule2.text == "changed!"
+
+        when:
+        gitVcs.reset(target, repoSpec)
+
+        then:
+        submodule.text == "hello from submodule"
+        submodule2.text == "hello from another submodule"
     }
 
     def 'error if working dir is not a repository'() {

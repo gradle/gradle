@@ -33,27 +33,23 @@ public class VcsVersionSelectionCache {
     private final Map<String, File> checkoutDirs = new ConcurrentHashMap<String, File>();
 
     @Nullable
-    public Set<VersionRef> getVersions(VersionControlSpec spec) {
+    public Set<VersionRef> getVersionsForRepo(VersionControlSpec spec) {
         return repositoryVersions.get(spec.getUniqueId());
     }
 
-    public void putVersions(VersionControlSpec spec, Set<VersionRef> versions) {
+    public void putVersionsForRepo(VersionControlSpec spec, Set<VersionRef> versions) {
         repositoryVersions.put(spec.getUniqueId(), ImmutableSet.copyOf(versions));
     }
 
     @Nullable
-    public File getCheckoutDir(VersionControlSpec spec, VersionRef version) {
+    public File getWorkingDirForRevision(VersionControlSpec spec, VersionRef version) {
         String cacheKey = versionCacheKey(spec, version);
         return checkoutDirs.get(cacheKey);
     }
 
-    public void putCheckoutDir(VersionControlSpec spec, VersionRef version, File dir) {
+    public void putWorkingDirForRevision(VersionControlSpec spec, VersionRef version, File dir) {
         String cacheKey = versionCacheKey(spec, version);
         checkoutDirs.put(cacheKey, dir);
-    }
-
-    private String versionCacheKey(VersionControlSpec spec, VersionRef version) {
-        return spec.getUniqueId() + ":" + version.getCanonicalId();
     }
 
     @Nullable
@@ -62,9 +58,13 @@ public class VcsVersionSelectionCache {
         return resolvedVersions.get(cacheKey);
     }
 
-    public void putWorkingDirForVersion(VersionControlSpec spec, VersionConstraint constraint, File workingDir) {
+    public void putWorkingDirForSelector(VersionControlSpec spec, VersionConstraint constraint, File workingDir) {
         String cacheKey = constraintCacheKey(spec, constraint);
         resolvedVersions.put(cacheKey, workingDir);
+    }
+
+    private String versionCacheKey(VersionControlSpec spec, VersionRef version) {
+        return spec.getUniqueId() + ":" + version.getCanonicalId();
     }
 
     private String constraintCacheKey(VersionControlSpec spec, VersionConstraint constraint) {
