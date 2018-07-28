@@ -191,35 +191,45 @@ class ApiType(
     fun isSignificantDeclaration(methodNode: MethodNode): Boolean {
 
         if (methodNode.access.isSynthetic) return false
-        if (delegate.interfaces.isEmpty() && delegate.superName == null) return true
+
+        if (!hasSuperType) return true
 
         fun ArrayDeque<String>.addSuperTypesOf(classNode: ClassNode) {
             classNode.interfaces.forEach { push(it) }
             if (classNode.superName != null) push(classNode.superName)
         }
 
-        val stack = ArrayDeque<String>().apply {
+        val superTypeStack = ArrayDeque<String>().apply {
             addSuperTypesOf(delegate)
         }
+
         val visited = mutableSetOf<String>()
 
-        val predicate = { candidate: MethodNode ->
+        val matchesMethodNode = { candidate: MethodNode ->
             candidate.desc == methodNode.desc && candidate.signature == methodNode.signature
         }
 
-        while (stack.isNotEmpty()) {
-            val next = stack.pop()
+        while (superTypeStack.isNotEmpty()) {
+            val superTypeName = superTypeStack.pop()
 
-            if (!visited.add(next)) continue
+            if (!visited.add(superTypeName)) continue
 
-            val nextSourceName = sourceNameOfBinaryName(binaryNameOfInternalName(next))
-            val nextApiType = context.type(nextSourceName) ?: continue
+            val superType = typeForInternalName(superTypeName) ?: continue
 
-            if (nextApiType.delegate.methods.any(predicate)) return false
+            if (superType.delegate.methods.any(matchesMethodNode)) return false
 
-            stack.addSuperTypesOf(nextApiType.delegate)
+            superTypeStack.addSuperTypesOf(superType.delegate)
         }
         return true
+    }
+
+    private
+    fun typeForInternalName(internalType: String): ApiType? =
+        context.type(sourceNameOfBinaryName(binaryNameOfInternalName(internalType)))
+
+    private
+    val hasSuperType: Boolean by unsafeLazy {
+        delegate.interfaces.isNotEmpty() || delegate.superName != null
     }
 
     private
