@@ -70,7 +70,7 @@ class NamedDomainObjectContainerScope<T : Any>(
         polymorphicDomainObjectContainer().containerWithType(type)
 
     /**
-     * Configure an object by name, without triggering its creation or configuration, failing if there is no such object.
+     * Configures an object by name, without triggering its creation or configuration, failing if there is no such object.
      *
      * @see [NamedDomainObjectContainer.named]
      * @see [DomainObjectProvider.configure]
@@ -87,7 +87,7 @@ class NamedDomainObjectContainerScope<T : Any>(
         container.named(this)
 
     /**
-     * Configure an object by name, without triggering its creation or configuration, failing if there is no such object.
+     * Configures an object by name, without triggering its creation or configuration, failing if there is no such object.
      *
      * @see [PolymorphicDomainObjectContainer.named]
      * @see [DomainObjectProvider.configure]
