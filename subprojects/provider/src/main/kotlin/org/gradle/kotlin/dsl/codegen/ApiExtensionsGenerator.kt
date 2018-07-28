@@ -30,7 +30,7 @@ import java.io.File
 /**
  * Generate source file with Kotlin extensions enhancing the given api for the Gradle Kotlin DSL.
  *
- * @param outputDirectory the directory where the generated source will be written
+ * @param outputDirectory the directory where the generated sources will be written
  * @param packageName the name of the package where the generated members will be added
  * @param sourceFilesBaseName the base name for generated source files
  * @param classPath the api classpath elements
@@ -321,7 +321,7 @@ data class KotlinExtensionFunction(
             list.mapIndexed { index, p ->
                 when {
                     index == list.lastIndex && p.isVarargs && p.type.isKotlinArray -> "vararg `${p.name}`: ${singleTypeArgumentStringOf(p)}"
-                    index == list.size - 2 && list[index + 1].type.isSAM && p.type.isKotlinArray && p.isVarargs -> "vararg `${p.name}`: ${singleTypeArgumentStringOf(p)}"
+                    index == list.size - 2 && list.last().type.isSAM && p.isVarargs && p.type.isKotlinArray -> "vararg `${p.name}`: ${singleTypeArgumentStringOf(p)}"
                     else -> "`${p.name}`: ${p.type.toTypeArgumentString()}"
                 }
             }.joinToString(separator = ", ")
