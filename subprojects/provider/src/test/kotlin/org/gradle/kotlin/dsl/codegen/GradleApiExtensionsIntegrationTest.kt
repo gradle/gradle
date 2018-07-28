@@ -48,9 +48,9 @@ class GradleApiExtensionsIntegrationTest : AbstractIntegrationTest() {
             sourceControl {
                 vcsMappings {
                     withModule("some:thing") {
-                        from(GitVersionControlSpec::class, Action<GitVersionControlSpec> {
+                        from(GitVersionControlSpec::class) {
                             url = uri("")
-                        })
+                        }
                     }
                 }
             }
@@ -71,13 +71,13 @@ class GradleApiExtensionsIntegrationTest : AbstractIntegrationTest() {
             fileTree("dir" to "src", "excludes" to listOf("**/ignore/**", "**/.data/**"))
 
             // Class<T> + Action<T> to KClass<T> + T.() -> Unit
-            tasks.register("foo", Copy::class, Action<Copy> {
+            tasks.register("foo", Copy::class) {
                 from("src")
                 into("dst")
 
                 // Class<T> + Groovy named arguments to KClass<T> + vararg of Pair
                 filter(ReplaceTokens::class, "foo" to "bar")
-            })
+            }
         """)
 
         build("foo", "-I", "init.gradle.kts")
