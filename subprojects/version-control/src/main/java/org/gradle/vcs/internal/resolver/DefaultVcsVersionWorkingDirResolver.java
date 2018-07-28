@@ -47,27 +47,22 @@ public class DefaultVcsVersionWorkingDirResolver implements VcsVersionWorkingDir
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
         this.baseWorkingDir = directoryLayout.getCheckoutDir();
-        this.inMemoryCache = inMemoryCache;
         this.versionParser = versionParser;
+        this.inMemoryCache = inMemoryCache;
         this.persistentCache = persistentCache;
     }
 
     @Nullable
     @Override
     public File selectVersion(ModuleComponentSelector selector, VersionControlSpec spec, VersionControlSystem versionControlSystem) {
-        File workingDir = inMemoryCache.getWorkingDirForSelector(spec, selector.getVersionConstraint());
-        if (workingDir == null) {
-            // TODO - prevent multiple threads from performing the same selection at the same time
-            VersionRef selectedVersion = selectVersionFromRepository(spec, versionControlSystem, selector.getVersionConstraint());
-            if (selectedVersion == null) {
-                return null;
-            }
-
-            workingDir = prepareWorkingDir(baseWorkingDir, spec, versionControlSystem, selectedVersion);
-            inMemoryCache.putWorkingDirForSelector(spec, selector.getVersionConstraint(), workingDir);
-            persistentCache.putWorkingDirForSelector(spec, selector.getVersionConstraint(), selectedVersion, workingDir);
+        VersionRef selectedVersion = selectVersionFromRepository(spec, versionControlSystem, selector.getVersionConstraint());
+        if (selectedVersion == null) {
+            return null;
         }
-        return new File(workingDir, spec.getRootDir());
+
+        File workingDir = prepareWorkingDir(baseWorkingDir, spec, versionControlSystem, selectedVersion);
+        persistentCache.putWorkingDirForSelector(spec, selector.getVersionConstraint(), selectedVersion, workingDir);
+        return workingDir;
     }
 
     private File prepareWorkingDir(File baseWorkingDir, VersionControlSpec spec, VersionControlSystem versionControlSystem, VersionRef selectedVersion) {

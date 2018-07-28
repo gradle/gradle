@@ -85,7 +85,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
             if (spec != null) {
                 VersionControlSystem versionControlSystem = versionControlSystemFactory.create(spec);
 
-                File dependencyWorkingDir = null;
+                File dependencyWorkingDir;
                 try {
                     dependencyWorkingDir = workingDirResolver.selectVersion(depSelector, spec, versionControlSystem);
                 } catch (ModuleVersionResolveException e) {
@@ -97,7 +97,8 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                     return;
                 }
 
-                IncludedBuildState includedBuild = buildRegistry.addImplicitIncludedBuild(((AbstractVersionControlSpec) spec).getBuildDefinition(dependencyWorkingDir));
+                File buildRootDir = new File(dependencyWorkingDir, spec.getRootDir());
+                IncludedBuildState includedBuild = buildRegistry.addImplicitIncludedBuild(((AbstractVersionControlSpec) spec).getBuildDefinition(buildRootDir));
 
                 Collection<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> moduleToProject = includedBuild.getAvailableModules();
                 Pair<ModuleVersionIdentifier, ProjectComponentIdentifier> entry = CollectionUtils.findFirst(moduleToProject, new Spec<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>>() {

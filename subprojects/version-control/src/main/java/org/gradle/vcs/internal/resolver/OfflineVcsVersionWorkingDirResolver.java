@@ -26,32 +26,25 @@ import javax.annotation.Nullable;
 import java.io.File;
 
 public class OfflineVcsVersionWorkingDirResolver implements VcsVersionWorkingDirResolver {
-    private final VcsVersionSelectionCache inMemoryCache;
     private final PersistentVcsMetadataCache persistentCache;
 
-    public OfflineVcsVersionWorkingDirResolver(VcsVersionSelectionCache inMemoryCache, PersistentVcsMetadataCache persistentCache) {
-        this.inMemoryCache = inMemoryCache;
+    public OfflineVcsVersionWorkingDirResolver(PersistentVcsMetadataCache persistentCache) {
         this.persistentCache = persistentCache;
     }
 
     @Nullable
     @Override
     public File selectVersion(ModuleComponentSelector selector, VersionControlSpec spec, VersionControlSystem versionControlSystem) {
-        File workingDir = inMemoryCache.getWorkingDirForSelector(spec, selector.getVersionConstraint());
-        if (workingDir == null) {
-            // TODO - prevent multiple threads from performing the same selection at the same time
-            PersistentVcsMetadataCache.WorkingDir previousWorkingDir = persistentCache.getWorkingDirForSelector(spec, selector.getVersionConstraint());
-            if (previousWorkingDir == null) {
-                throw new ModuleVersionResolveException(selector, String.format("Cannot resolve %s from %s in offline mode.", selector.getDisplayName(), spec.getDisplayName()));
-            }
-
-            // Reuse the same location as last build
-            workingDir = previousWorkingDir.getWorkingDir();
-            versionControlSystem.reset(workingDir, previousWorkingDir.getSelectedVersion(), spec);
-            // Update timestamp so that working directory is not garbage collected
-            GFileUtils.touch(workingDir.getParentFile());
-            inMemoryCache.putWorkingDirForSelector(spec, selector.getVersionConstraint(), workingDir);
+        PersistentVcsMetadataCache.WorkingDir previousWorkingDir = persistentCache.getWorkingDirForSelector(spec, selector.getVersionConstraint());
+        if (previousWorkingDir == null) {
+            throw new ModuleVersionResolveException(selector, String.format("Cannot resolve %s from %s in offline mode.", selector.getDisplayName(), spec.getDisplayName()));
         }
-        return new File(workingDir, spec.getRootDir());
+
+        // Reuse the same location as last build
+        File workingDir = previousWorkingDir.getWorkingDir();
+        versionControlSystem.reset(workingDir, previousWorkingDir.getSelectedVersion(), spec);
+        // Update timestamp so that working directory is not garbage collected
+        GFileUtils.touch(workingDir.getParentFile());
+        return workingDir;
     }
 }
