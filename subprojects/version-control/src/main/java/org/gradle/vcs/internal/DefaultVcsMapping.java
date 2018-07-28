@@ -33,8 +33,6 @@ public class DefaultVcsMapping implements VcsMappingInternal {
         this.specFactory = specFactory;
     }
 
-
-
     @Override
     public ComponentSelector getRequested() {
         return requested;
