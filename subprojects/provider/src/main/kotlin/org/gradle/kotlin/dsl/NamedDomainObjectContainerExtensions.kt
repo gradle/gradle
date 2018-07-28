@@ -91,7 +91,7 @@ class NamedDomainObjectContainerScope<T : Any>(
      * @see [PolymorphicDomainObjectContainer.named]
      */
     operator fun <U : T> String.invoke(type: KClass<U>): DomainObjectProvider<U> =
-        uncheckedCast(polymorphicDomainObjectContainer().named(this).apply {
+        uncheckedCast(this().apply {
             configure {
                 type.safeCast(it)
                     ?: illegalElementType(container, this@invoke, type, it::class)
