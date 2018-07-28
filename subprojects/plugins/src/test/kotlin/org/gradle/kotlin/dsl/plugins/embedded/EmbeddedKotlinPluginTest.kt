@@ -59,7 +59,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
             }
 
             tasks {
-                "assertions" {
+                register("assertions") {
                     doLast {
                         val requiredLibs = listOf("kotlin-stdlib-jdk8-$embeddedKotlinVersion.jar", "kotlin-reflect-$embeddedKotlinVersion.jar")
                         listOf("compileOnly", "testCompileOnly").forEach { configuration ->
