@@ -20,8 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.scan.config.fixtures.BuildScanPluginFixture
 import spock.lang.Unroll
 
-import static org.gradle.util.TextUtil.normaliseFileSeparators
-
 @Unroll
 class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
 
@@ -229,14 +227,12 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
     }
 
     void installVcsMappings() {
-        def mapped = file('repo/mapped')
         settingsFile.text = """
-            import org.gradle.vcs.internal.spec.DirectoryRepositorySpec
             sourceControl {
                 vcsMappings {
                     withModule('external-source:artifact') {
-                        from(DirectoryRepositorySpec) {
-                            sourceDir = file('${normaliseFileSeparators(mapped.absolutePath)}')
+                        from(GitVersionControlSpec) {
+                            // not actually used, doesn't need a real repo
                         }
                     }
                 }

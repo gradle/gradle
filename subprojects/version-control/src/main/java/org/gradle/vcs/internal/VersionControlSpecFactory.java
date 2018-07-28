@@ -23,7 +23,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.git.GitVersionControlSpec;
 import org.gradle.vcs.git.internal.DefaultGitVersionControlSpec;
-import org.gradle.vcs.internal.spec.DirectoryRepositorySpec;
 
 public class VersionControlSpecFactory {
     private final Instantiator instantiator;
@@ -35,10 +34,8 @@ public class VersionControlSpecFactory {
     }
 
     public <T extends VersionControlSpec> T create(Class<T> specType, ClassLoaderScope classLoaderScope) {
-        if (GitVersionControlSpec.class.isAssignableFrom(specType)) {
+        if (specType.isAssignableFrom(GitVersionControlSpec.class)) {
             return Cast.uncheckedCast(instantiator.newInstance(DefaultGitVersionControlSpec.class, rootBuildStartParameter, classLoaderScope));
-        } else if (DirectoryRepositorySpec.class.isAssignableFrom(specType)) {
-            return Cast.uncheckedCast(instantiator.newInstance(DirectoryRepositorySpec.class, rootBuildStartParameter, classLoaderScope));
         }
         throw new IllegalArgumentException(String.format("Do not know how to create an instance of %s.", specType.getName()));
     }

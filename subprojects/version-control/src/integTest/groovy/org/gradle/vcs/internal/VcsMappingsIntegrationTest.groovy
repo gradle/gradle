@@ -17,30 +17,16 @@
 package org.gradle.vcs.internal
 
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import org.gradle.vcs.internal.spec.DirectoryRepositorySpec
+import org.gradle.vcs.fixtures.GitFileRepository
+import org.junit.Rule
 
 class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
-    def setup() {
-        settingsFile << """
-            import ${DirectoryRepositorySpec.canonicalName}
-        """
-    }
+    @Rule
+    GitFileRepository repo = new GitFileRepository('dep', temporaryFolder.getTestDirectory())
+    def commit
 
-    def "can define and use source repositories"() {
-        settingsFile << """
-            sourceControl {
-                vcsMappings {
-                    withModule("org.test:dep") {
-                        from(DirectoryRepositorySpec) {
-                            sourceDir = file("dep")
-                        }
-                    }
-                }
-            }
-        """
-        expect:
-        succeeds("assemble")
-        assertRepoCheckedOut()
+    def setup() {
+        commit = repo.commit('initial')
     }
 
     def "can define source repositories in root of composite build when child build has classpath dependencies"() {
@@ -50,8 +36,8 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("org.test:dep") {
-                        from(DirectoryRepositorySpec) {
-                            sourceDir = file("dep")
+                        from(GitVersionControlSpec) {
+                            url = "${repo.url}"
                         }
                     }
                 }
@@ -83,8 +69,8 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("org.test:dep") {
-                        from(DirectoryRepositorySpec) {
-                            sourceDir = file("dep")
+                        from(GitVersionControlSpec) {
+                            url = "${repo.url}"
                         }
                     }
                 }
@@ -121,7 +107,7 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
         fails('assemble')
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
         failure.assertHasFileName("Settings file '$settingsFile.path'")
-        failure.assertHasLineNumber(7)
+        failure.assertHasLineNumber(5)
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compileClasspath'.")
         failure.assertHasCause("Could not find method foo()")
     }
@@ -152,8 +138,8 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
                 vcsMappings {
                     all { details ->
                         if (details.requested.group == "org.test") {
-                            from(DirectoryRepositorySpec) {
-                                sourceDir = file("dep")
+                            from(GitVersionControlSpec) {
+                                url = "${repo.url}"
                             }
                         }
                     }
@@ -173,14 +159,14 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("unused:dep") {
-                        from(DirectoryRepositorySpec) {
-                            sourceDir = file("does-not-exist")
+                        from(GitVersionControlSpec) {
+                            url = "does-not-exist"
                         }
                     }
                     all { details ->
                         if (details instanceof ModuleVersionSelector && details.requested.group == "unused") {
-                            from(DirectoryRepositorySpec) {
-                                sourceDir = file("does-not-exist")
+                            from(GitVersionControlSpec) {
+                                url = "does-not-exist"
                             }
                         }
                     }
@@ -190,7 +176,6 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
         expect:
         succeeds("assemble")
         assertRepoNotCheckedOut()
-        assertRepoNotCheckedOut("does-not-exist")
     }
 
     def "last vcs mapping rule wins"() {
@@ -198,13 +183,13 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("org.test:dep") {
-                        from(DirectoryRepositorySpec) {
-                            sourceDir = file("does-not-exist")
+                        from(GitVersionControlSpec) {
+                            url = "does-not-exist"
                         }
                     }
                     withModule("org.test:dep") {
-                        from(DirectoryRepositorySpec) {
-                            sourceDir = file("dep")
+                        from(GitVersionControlSpec) {
+                            url = "${repo.url}"
                         }
                     }
                 }
@@ -212,25 +197,6 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
         """
         expect:
         succeeds("assemble")
-        assertRepoCheckedOut()
-        assertRepoNotCheckedOut("does-not-exist")
-    }
-
-    def 'source build does not require a settings script'() {
-        file('dep/settings.gradle').delete()
-        settingsFile << """
-            sourceControl {
-                vcsMappings {
-                    withModule("org.test:dep") {
-                        from(DirectoryRepositorySpec) {
-                            sourceDir = file("dep")
-                        }
-                    }
-                }
-            }
-        """
-        expect:
-        succeeds('assemble')
         assertRepoCheckedOut()
     }
 
@@ -259,8 +225,8 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("org.test:dep") {
-                        from(DirectoryRepositorySpec) {
-                            sourceDir = file("dep")
+                        from(GitVersionControlSpec) {
+                            url = "${repo.url}"
                             plugins {
                                 id "com.example.MyPlugin"
                             }
@@ -311,8 +277,8 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("org.test:dep") {
-                        from(DirectoryRepositorySpec) {
-                            sourceDir = file("dep")
+                        from(GitVersionControlSpec) {
+                            url = "${repo.url}"
                             plugins {
                                 id "com.example.MyPlugin"
                             }
@@ -331,8 +297,8 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("org.test:dep") {
-                        from(DirectoryRepositorySpec) {
-                            sourceDir = file("dep")
+                        from(GitVersionControlSpec) {
+                            url = "${repo.url}"
                             plugins {
                                 id "com.example.DoesNotExist"
                             }
@@ -348,15 +314,22 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
     }
 
     def 'can build from sub-directory of repository'() {
-        file('repoRoot').mkdir()
-        file('dep').renameTo(file('repoRoot/dep'))
+        def subdir = repo.file("subdir")
+        repo.workTree.listFiles().each {
+            if (it.name == '.git') {
+                return
+            }
+            it.copyTo(subdir.file(it.name))
+            it.delete()
+        }
+        commit = repo.commit('updated')
         settingsFile << """
             sourceControl {
                 vcsMappings {
                     withModule('org.test:dep') {
-                        from(DirectoryRepositorySpec) {
-                            sourceDir = file('repoRoot')
-                            rootDir = 'dep'
+                        from(GitVersionControlSpec) {
+                            url = "${repo.url}"
+                            rootDir = 'subdir'
                         }
                     }
                 }
@@ -364,7 +337,7 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
         """
         expect:
         succeeds('assemble')
-        assertRepoCheckedOut('repoRoot')
+        assertRepoCheckedOut()
     }
 
     def 'fails with a reasonable message if rootDir is invalid'() {
@@ -372,8 +345,8 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule('org.test:dep') {
-                        from(DirectoryRepositorySpec) {
-                            sourceDir = file('dep')
+                        from(GitVersionControlSpec) {
+                            url = "${repo.url}"
                             rootDir = null
                         }
                     }
@@ -385,13 +358,13 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
         failure.assertHasCause("rootDir should be non-null")
     }
 
-    void assertRepoCheckedOut(String repoName="dep") {
-        def checkout = checkoutDir(repoName, "fixed", "directory-repo:${file(repoName).absolutePath}")
-        checkout.file("checkedout").assertIsFile()
+    void assertRepoCheckedOut() {
+        def checkout = checkoutDir(repo.name, commit.id.name, repo.id)
+        checkout.file('.git').assertExists()
     }
 
-    void assertRepoNotCheckedOut(String repoName="dep") {
-        def checkout = checkoutDir(repoName, "fixed", "directory-repo:${file(repoName).absolutePath}")
-        checkout.file("checkedout").assertDoesNotExist()
+    void assertRepoNotCheckedOut() {
+        def checkout = checkoutDir(repo.name, commit.id.name, repo.id)
+        checkout.assertDoesNotExist()
     }
 }
