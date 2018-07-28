@@ -173,8 +173,7 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
     }
 
     @Override
-    public Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules() {
-        // TODO: Synchronization
+    public synchronized Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules() {
         if (availableModules == null) {
             Gradle gradle = getConfiguredBuild();
             availableModules = Sets.newLinkedHashSet();

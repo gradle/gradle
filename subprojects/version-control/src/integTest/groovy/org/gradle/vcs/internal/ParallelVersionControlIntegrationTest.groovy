@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.vcs.fixtures.GitHttpRepository
 import org.junit.Rule
-import spock.lang.Ignore
 
 class ParallelVersionControlIntegrationTest extends AbstractIntegrationSpec {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
@@ -66,7 +65,6 @@ class ParallelVersionControlIntegrationTest extends AbstractIntegrationSpec {
         repo.createLightWeightTag('1.2')
     }
 
-    @Ignore
     def "can populate into same dir in parallel"() {
         given:
         settingsFile << """
@@ -80,29 +78,38 @@ class ParallelVersionControlIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        when:
         // Wait for each project to list versions concurrently
         server.expectConcurrent("A", "B", "C", "D")
         // Only one project should clone
         repo.expectListVersions()
         repo.expectCloneSomething()
 
-        expect:
+        then:
+        succeeds('resolve', '--parallel', '--max-workers=4')
+
+        when:
+        // Wait for each project to list versions concurrently
+        server.expectConcurrent("A", "B", "C", "D")
+        // Only one project should list versions
+        repo.expectListVersions()
+
+        then:
         succeeds('resolve', '--parallel', '--max-workers=4')
     }
 
-    @Ignore
     def "can populate from multiple Gradle invocations in parallel"() {
         given:
         settingsFile << """
             include 'A'
         """
 
+        expect:
         // Wait for each build to list versions
         server.expectConcurrent(repo.listVersions(), repo.listVersions())
         // Only one build should clone
         repo.expectCloneSomething()
 
-        expect:
         executer.withTasks('resolve')
         def build1 = executer.start()
 
@@ -111,5 +118,17 @@ class ParallelVersionControlIntegrationTest extends AbstractIntegrationSpec {
 
         build1.waitForFinish()
         build2.waitForFinish()
+
+        // Wait for each build to list versions
+        server.expectConcurrent(repo.listVersions(), repo.listVersions())
+
+        executer.withTasks('resolve')
+        def build3 = executer.start()
+
+        executer.withTasks('resolve')
+        def build4 = executer.start()
+
+        build3.waitForFinish()
+        build4.waitForFinish()
     }
 }

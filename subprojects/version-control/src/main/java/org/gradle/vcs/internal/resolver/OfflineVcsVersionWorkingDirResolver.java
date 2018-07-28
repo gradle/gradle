@@ -42,7 +42,7 @@ public class OfflineVcsVersionWorkingDirResolver implements VcsVersionWorkingDir
 
         // Reuse the same location as last build
         File workingDir = previousWorkingDir.getWorkingDir();
-        versionControlSystem.reset(workingDir, previousWorkingDir.getSelectedVersion(), spec);
+        versionControlSystem.populate(workingDir, previousWorkingDir.getSelectedVersion(), spec);
         // Update timestamp so that working directory is not garbage collected
         GFileUtils.touch(workingDir.getParentFile());
         return workingDir;

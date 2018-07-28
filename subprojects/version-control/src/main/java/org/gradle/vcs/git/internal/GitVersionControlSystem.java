@@ -53,14 +53,11 @@ public class GitVersionControlSystem implements VersionControlSystem {
     public void populate(File workingDir, VersionRef ref, VersionControlSpec spec) {
         GitVersionControlSpec gitSpec = cast(spec);
         LOGGER.info("Populating VCS workingDir {}/{} with ref {}", workingDir.getParentFile().getName(), workingDir.getName(), ref);
-        cloneRepo(workingDir, gitSpec, ref);
-    }
-
-    @Override
-    public void reset(File workingDir, VersionRef ref,  VersionControlSpec spec) {
-        GitVersionControlSpec gitSpec = cast(spec);
-        LOGGER.info("Resetting VCS workingDir {}/{} to ref {}", workingDir.getParentFile().getName(), workingDir.getName(), ref);
-        resetRepo(workingDir, gitSpec, ref);
+        if (workingDir.isDirectory() && workingDir.list().length > 0) {
+            resetRepo(workingDir, gitSpec, ref);
+        } else {
+            cloneRepo(workingDir, gitSpec, ref);
+        }
     }
 
     @Override

@@ -26,6 +26,7 @@ import org.gradle.vcs.VcsMappings;
 public class DefaultVcsMappings implements VcsMappings {
     private final VcsMappingsStore vcsMappings;
     private final Gradle gradle;
+    private final Object lock = new Object();
 
     public DefaultVcsMappings(VcsMappingsStore vcsMappings, Gradle gradle) {
         this.vcsMappings = vcsMappings;
@@ -34,14 +35,33 @@ public class DefaultVcsMappings implements VcsMappings {
 
     @Override
     public VcsMappings all(Action<? super VcsMapping> rule) {
-        vcsMappings.addRule(rule, gradle);
+        vcsMappings.addRule(new DslAccessRule(rule, lock), gradle);
         return this;
     }
 
     @Override
     public VcsMappings withModule(String module, Action<? super VcsMapping> rule) {
-        vcsMappings.addRule(new GavFilteredRule(module, rule), gradle);
+        vcsMappings.addRule(new GavFilteredRule(module, new DslAccessRule(rule, lock)), gradle);
         return this;
+    }
+
+    // Ensure that at most one action that may have access to the mutable state of the build runs at a given time
+    // TODO - move this to a better home and reuse
+    private static class DslAccessRule implements Action<VcsMapping> {
+        private final Object lock;
+        private final Action<? super VcsMapping> delegate;
+
+        DslAccessRule(Action<? super VcsMapping> delegate, Object lock) {
+            this.lock = lock;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void execute(VcsMapping vcsMapping) {
+            synchronized (lock) {
+                delegate.execute(vcsMapping);
+            }
+        }
     }
 
     private static class GavFilteredRule implements Action<VcsMapping> {
