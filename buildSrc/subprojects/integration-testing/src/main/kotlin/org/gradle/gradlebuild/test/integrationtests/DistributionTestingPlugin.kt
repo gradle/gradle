@@ -17,18 +17,14 @@
 package org.gradle.gradlebuild.test.integrationtests
 
 import accessors.base
-import accessors.java
-import accessors.reporting
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.BasePluginConvention
-import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
-import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Sync
 import org.gradle.gradlebuild.packaging.ShadedJar
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanUpDaemons
@@ -51,7 +47,6 @@ class DistributionTestingPlugin : Plugin<Project> {
             setJvmArgsOfTestJvm()
             setSystemPropertiesOfTestJVM(project)
             configureGradleTestEnvironment(rootProject.providers, rootProject.layout, rootProject.base)
-            setDedicatedTestOutputDirectoryPerTask(java, reporting)
             addSetUpAndTearDownActions(gradle)
         }
     }
@@ -73,16 +68,6 @@ class DistributionTestingPlugin : Plugin<Project> {
         // TODO Remove once we go to task specific listeners.
         doLast {
             gradle.removeListener(daemonListener)
-        }
-    }
-
-    private
-    fun DistributionTest.setDedicatedTestOutputDirectoryPerTask(java: JavaPluginConvention, reporting: ReportingExtension) {
-        reports.junitXml.destination = File(java.testResultsDir, name)
-        val htmlDirectory = reporting.baseDirectory.dir(this.name)
-        project.afterEvaluate {
-            // TODO: Replace this with a Provider
-            reports.html.destination = htmlDirectory.get().asFile
         }
     }
 
