@@ -19,8 +19,7 @@ package org.gradle.vcs.internal.resolver;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.Factory;
-import org.gradle.vcs.VersionControlSpec;
-import org.gradle.vcs.internal.VersionControlSystem;
+import org.gradle.vcs.internal.VersionControlRepository;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -42,20 +41,20 @@ public class OncePerBuildInvocationVcsVersionWorkingDirResolver implements VcsVe
 
     @Nullable
     @Override
-    public File selectVersion(final ModuleComponentSelector selector, final VersionControlSpec spec, final VersionControlSystem versionControlSystem) {
+    public File selectVersion(final ModuleComponentSelector selector, final VersionControlRepository repository) {
         // Perform the work per repository
-        return perRepoGuard.guardByKey(spec.getUniqueId(), new Factory<File>() {
+        return perRepoGuard.guardByKey(repository.getUniqueId(), new Factory<File>() {
             @Nullable
             @Override
             public File create() {
-                File workingDir = inMemoryCache.getWorkingDirForSelector(spec, selector.getVersionConstraint());
+                File workingDir = inMemoryCache.getWorkingDirForSelector(repository, selector.getVersionConstraint());
                 if (workingDir == null) {
-                    workingDir = delegate.selectVersion(selector, spec, versionControlSystem);
+                    workingDir = delegate.selectVersion(selector, repository);
                     if (workingDir == null) {
                         return null;
                     }
 
-                    inMemoryCache.putWorkingDirForSelector(spec, selector.getVersionConstraint(), workingDir);
+                    inMemoryCache.putWorkingDirForSelector(repository, selector.getVersionConstraint(), workingDir);
                 }
                 return workingDir;
             }

@@ -26,19 +26,18 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
-import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.git.internal.GitVersionRef;
 import org.gradle.vcs.internal.VcsDirectoryLayout;
+import org.gradle.vcs.internal.VersionControlRepository;
 import org.gradle.vcs.internal.VersionRef;
 
 import javax.annotation.Nullable;
-import java.io.File;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class PersistentVcsMetadataCache implements Stoppable {
     private final PersistentCache cache;
-    private final PersistentIndexedCache<String, WorkingDir> workingDirCache;
+    private final PersistentIndexedCache<String, VersionRef> workingDirCache;
 
     public PersistentVcsMetadataCache(VcsDirectoryLayout directoryLayout, CacheRepository cacheRepository) {
         cache = cacheRepository
@@ -46,7 +45,7 @@ public class PersistentVcsMetadataCache implements Stoppable {
             .withDisplayName("VCS metadata")
             .withLockOptions(mode(FileLockManager.LockMode.None)) // Don't need to lock anything until we use the caches
             .open();
-        workingDirCache = cache.createCache("workingDirs", String.class, new WorkingDirSerializer());
+        workingDirCache = cache.createCache("workingDirs", String.class, new VersionRefSerializer());
     }
 
     @Override
@@ -55,65 +54,45 @@ public class PersistentVcsMetadataCache implements Stoppable {
     }
 
     @Nullable
-    public WorkingDir getWorkingDirForSelector(final VersionControlSpec spec, final VersionConstraint constraint) {
-        return cache.useCache(new Factory<WorkingDir>() {
+    public VersionRef getVersionForSelector(final VersionControlRepository repository, final VersionConstraint constraint) {
+        return cache.useCache(new Factory<VersionRef>() {
             @Nullable
             @Override
-            public WorkingDir create() {
-                return workingDirCache.get(constraintCacheKey(spec, constraint));
+            public VersionRef create() {
+                return workingDirCache.get(constraintCacheKey(repository, constraint));
             }
         });
     }
 
-    public void putWorkingDirForSelector(final VersionControlSpec spec, final VersionConstraint constraint, final VersionRef selectedVersion, final File workingDirForVersion) {
+    public void putVersionForSelector(final VersionControlRepository repository, final VersionConstraint constraint, final VersionRef selectedVersion) {
         cache.useCache(new Runnable() {
             @Override
             public void run() {
-                workingDirCache.put(constraintCacheKey(spec, constraint), new WorkingDir(selectedVersion, workingDirForVersion));
+                workingDirCache.put(constraintCacheKey(repository, constraint), selectedVersion);
             }
         });
     }
 
-    private String constraintCacheKey(VersionControlSpec spec, VersionConstraint constraint) {
+    private String constraintCacheKey(VersionControlRepository repository, VersionConstraint constraint) {
         if (constraint.getBranch() != null) {
-            return spec.getUniqueId() + ":b:" + constraint.getBranch();
+            return repository.getUniqueId() + ":b:" + constraint.getBranch();
         }
-        return spec.getUniqueId() + ":v:" + constraint.getRequiredVersion();
+        return repository.getUniqueId() + ":v:" + constraint.getRequiredVersion();
     }
 
-    private static class WorkingDirSerializer implements Serializer<WorkingDir> {
+    private static class VersionRefSerializer implements Serializer<VersionRef> {
         @Override
-        public void write(Encoder encoder, WorkingDir value) throws Exception {
-            GitVersionRef gitRef = (GitVersionRef) value.selectedVersion;
+        public void write(Encoder encoder, VersionRef value) throws Exception {
+            GitVersionRef gitRef = (GitVersionRef) value;
             encoder.writeString(gitRef.getVersion());
             encoder.writeString(gitRef.getCanonicalId());
-            encoder.writeString(value.workingDir.getAbsolutePath());
         }
 
         @Override
-        public WorkingDir read(Decoder decoder) throws Exception {
+        public VersionRef read(Decoder decoder) throws Exception {
             String version = decoder.readString();
             String canonicalId = decoder.readString();
-            String dir = decoder.readString();
-            return new WorkingDir(GitVersionRef.from(version, canonicalId), new File(dir));
-        }
-    }
-
-    public static class WorkingDir {
-        private final VersionRef selectedVersion;
-        private final File workingDir;
-
-        public WorkingDir(VersionRef selectedVersion, File workingDir) {
-            this.selectedVersion = selectedVersion;
-            this.workingDir = workingDir;
-        }
-
-        public VersionRef getSelectedVersion() {
-            return selectedVersion;
-        }
-
-        public File getWorkingDir() {
-            return workingDir;
+            return GitVersionRef.from(version, canonicalId);
         }
     }
 }
