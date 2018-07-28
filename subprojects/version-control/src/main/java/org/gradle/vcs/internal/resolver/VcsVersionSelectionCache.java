@@ -28,7 +28,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class VcsVersionSelectionCache {
-    private final Map<String, VersionRef> resolvedVersions = new ConcurrentHashMap<String, VersionRef>();
+    private final Map<String, File> resolvedVersions = new ConcurrentHashMap<String, File>();
     private final Map<String, Set<VersionRef>> repositoryVersions = new ConcurrentHashMap<String, Set<VersionRef>>();
     private final Map<String, File> checkoutDirs = new ConcurrentHashMap<String, File>();
 
@@ -57,14 +57,14 @@ public class VcsVersionSelectionCache {
     }
 
     @Nullable
-    public VersionRef getResolvedVersion(VersionControlSpec spec, VersionConstraint constraint) {
+    public File getWorkingDirForSelector(VersionControlSpec spec, VersionConstraint constraint) {
         String cacheKey = constraintCacheKey(spec, constraint);
         return resolvedVersions.get(cacheKey);
     }
 
-    public void putResolvedVersion(VersionControlSpec spec, VersionConstraint constraint, VersionRef versionRef) {
+    public void putWorkingDirForVersion(VersionControlSpec spec, VersionConstraint constraint, File workingDir) {
         String cacheKey = constraintCacheKey(spec, constraint);
-        resolvedVersions.put(cacheKey, versionRef);
+        resolvedVersions.put(cacheKey, workingDir);
     }
 
     private String constraintCacheKey(VersionControlSpec spec, VersionConstraint constraint) {

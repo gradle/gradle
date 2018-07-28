@@ -126,7 +126,7 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         repoC.commit('initial version')
     }
 
-    def "git version lookup and checkout is performed once per version selector per build tree invocation"() {
+    def "git version lookup and checkout is performed once per version selector per build invocation"() {
         repoA.file("build.gradle") << """
             dependencies {
                 compile 'test:testB:1.2'
@@ -152,6 +152,77 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
                 dependencies {
                     compile 'test:testA:1.2'
                     compile 'test:testB:1.2'
+                }
+            }
+        """
+
+        when:
+        repoA.expectListVersions()
+        repoA.expectCloneSomething()
+        repoB.expectListVersions()
+        repoB.expectCloneSomething()
+        repoC.expectListVersions()
+        repoC.expectCloneSomething()
+
+        then:
+        succeeds('resolve')
+        result.assertTasksExecuted(':resolve', ':a:resolve', ':b:resolve', ':testA:jar', ':testB:jar', ':testC:jar')
+
+        when:
+        repoA.expectListVersions()
+        repoA.expectUpdateUnchanged()
+        repoB.expectListVersions()
+        repoB.expectUpdateUnchanged()
+        repoC.expectListVersions()
+        repoC.expectUpdateUnchanged()
+
+        then:
+        succeeds('resolve')
+        result.assertTasksExecuted(':resolve', ':a:resolve', ':b:resolve', ':testA:jar', ':testB:jar', ':testC:jar')
+    }
+
+    def "git version lookup and checkout is performed once per branch selector per build invocation"() {
+        repoA.file("build.gradle") << """
+            dependencies {
+                compile('test:testB') {
+                    versionConstraint.branch = 'release'
+                }
+                compile('test:testC') {
+                    versionConstraint.branch = 'release'
+                }
+            }
+        """
+        repoA.createBranch('release')
+        repoA.checkout('release')
+        repoA.commit('version 1.2')
+        repoA.createLightWeightTag('1.2')
+        repoB.file("build.gradle") << """
+            dependencies {
+                compile('test:testC') {
+                    versionConstraint.branch = 'release'
+                }
+            }
+        """
+        repoB.createBranch('release')
+        repoB.checkout('release')
+        repoB.commit('version 1.2')
+        repoB.createLightWeightTag('1.2')
+        repoC.createBranch('release')
+        repoC.checkout('release')
+        repoC.commit('version 1.2')
+        repoC.createLightWeightTag('1.2')
+        settingsFile << """
+            include 'a', 'b'
+        """
+        buildFile << """
+            allprojects {
+                dependencies {
+                    compile('test:testA') {
+                        versionConstraint.branch = 'release'
+                    }
+                    compile('test:testB') {
+                        versionConstraint.branch = 'release'
+                    }
                 }
             }
         """
