@@ -66,28 +66,28 @@ class NamedDomainObjectContainerScope<T : Any>(
         polymorphicDomainObjectContainer().containerWithType(type)
 
     /**
-     * @see [NamedDomainObjectContainer.maybeCreate]
+     * @see [NamedDomainObjectContainer.named]
      */
-    inline operator fun String.invoke(configuration: T.() -> Unit): T =
-        this().apply(configuration)
+    operator fun String.invoke(configuration: T.() -> Unit): DomainObjectProvider<T> =
+        this().also { it.configure(configuration) }
 
     /**
-     * @see [NamedDomainObjectContainer.maybeCreate]
+     * @see [NamedDomainObjectContainer.named]
      */
-    operator fun String.invoke(): T =
-        container.maybeCreate(this)
+    operator fun String.invoke(): DomainObjectProvider<T> =
+        container.named(this)
 
     /**
-     * @see [PolymorphicDomainObjectContainer.maybeCreate]
+     * @see [PolymorphicDomainObjectContainer.named]
      */
-    inline operator fun <U : T> String.invoke(type: KClass<U>, configuration: U.() -> Unit): U =
-        this(type).apply(configuration)
+    operator fun <U : T> String.invoke(type: KClass<U>, configuration: U.() -> Unit): DomainObjectProvider<U> =
+        this(type).also { it.configure(configuration) }
 
     /**
-     * @see [PolymorphicDomainObjectContainer.maybeCreate]
+     * @see [PolymorphicDomainObjectContainer.named]
      */
-    operator fun <U : T> String.invoke(type: KClass<U>): U =
-        polymorphicDomainObjectContainer().maybeCreate(this, type.java)
+    operator fun <U : T> String.invoke(type: KClass<U>): DomainObjectProvider<U> =
+        polymorphicDomainObjectContainer().withType(type.java).named(this)
 
     /**
      * Cast this to [PolymorphicDomainObjectContainer] or throw [IllegalArgumentException].

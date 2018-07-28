@@ -2,13 +2,16 @@ package org.gradle.kotlin.dsl
 
 import com.nhaarman.mockito_kotlin.*
 
+import org.gradle.api.DomainObjectProvider
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.TaskProvider
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
@@ -94,10 +97,18 @@ class NamedDomainObjectContainerExtensionsTest {
     fun `can configure monomorphic container`() {
 
         val alice = DomainObject()
+        val aliceProvider = mock<DomainObjectProvider<DomainObject>>()
+        whenever(aliceProvider.get()).thenReturn(alice)
+        whenever(aliceProvider.configure(any())).then { it.getArgument<Action<DomainObject>>(0).execute(alice) }
+
         val bob = DomainObject()
+        val bobProvider = mock<DomainObjectProvider<DomainObject>>()
+        whenever(bobProvider.get()).thenReturn(bob)
+        whenever(bobProvider.configure(any())).then { it.getArgument<Action<DomainObject>>(0).execute(bob) }
+
         val container = mock<NamedDomainObjectContainer<DomainObject>> {
-            on { maybeCreate("alice") } doReturn alice
-            on { maybeCreate("bob") } doReturn bob
+            on { named("alice") } doReturn aliceProvider
+            on { named("bob") } doReturn bobProvider
         }
 
         container {
@@ -133,14 +144,32 @@ class NamedDomainObjectContainerExtensionsTest {
     fun `can configure polymorphic container`() {
 
         val alice = DomainObjectBase.Foo()
+        val aliceProvider = mock<DomainObjectProvider<DomainObjectBase.Foo>>()
+        whenever(aliceProvider.get()).thenReturn(alice)
+        whenever(aliceProvider.configure(any())).then { it.getArgument<Action<DomainObjectBase.Foo>>(0).execute(alice) }
+
         val bob = DomainObjectBase.Bar()
+        val bobProvider = mock<DomainObjectProvider<DomainObjectBase.Bar>>()
+        whenever(bobProvider.get()).thenReturn(bob)
+        whenever(bobProvider.configure(any())).then { it.getArgument<Action<DomainObjectBase.Bar>>(0).execute(bob) }
+
         val default: DomainObjectBase = DomainObjectBase.Default()
-        val container = mock<PolymorphicDomainObjectContainer<DomainObjectBase>> {
-            on { maybeCreate("alice", DomainObjectBase.Foo::class.java) } doReturn alice
-            on { maybeCreate("bob", DomainObjectBase.Bar::class.java) } doReturn bob
-            on { maybeCreate("jim") } doReturn default
-            on { maybeCreate("steve") } doReturn default
+        val defaultProvider = mock<DomainObjectProvider<DomainObjectBase>>()
+        whenever(defaultProvider.get()).thenReturn(default)
+        whenever(defaultProvider.configure(any())).then { it.getArgument<Action<DomainObjectBase>>(0).execute(default) }
+
+        val fooContainer = mock<PolymorphicDomainObjectContainer<DomainObjectBase.Foo>> {
+            on { named("alice") } doReturn aliceProvider
         }
+        val barContainer = mock<PolymorphicDomainObjectContainer<DomainObjectBase.Bar>> {
+            on { named("bob") } doReturn bobProvider
+        }
+        val container = mock<PolymorphicDomainObjectContainer<DomainObjectBase>> {
+            on { named("jim") } doReturn defaultProvider
+            on { named("steve") } doReturn defaultProvider
+        }
+        whenever(container.withType(DomainObjectBase.Foo::class.java)).thenReturn(fooContainer)
+        whenever(container.withType(DomainObjectBase.Bar::class.java)).thenReturn(barContainer)
 
         container {
             val a = "alice"(DomainObjectBase.Foo::class) {
@@ -150,10 +179,10 @@ class NamedDomainObjectContainerExtensionsTest {
             val j = "jim" {}
             val s = "steve"() // can invoke without a block, but must invoke
 
-            assertThat(a, sameInstance(alice))
-            assertThat(b, sameInstance(bob))
-            assertThat(j, sameInstance(default))
-            assertThat(s, sameInstance(default))
+            assertThat(a.get(), sameInstance(alice))
+            assertThat(b.get(), sameInstance(bob))
+            assertThat(j.get(), sameInstance(default))
+            assertThat(s.get(), sameInstance(default))
         }
 
         assertThat(
@@ -169,11 +198,18 @@ class NamedDomainObjectContainerExtensionsTest {
     fun `can create and configure tasks`() {
 
         val clean = mock<Delete>()
+        val cleanProvider = mock<TaskProvider<Delete>>()
+        whenever(cleanProvider.get()).thenReturn(clean)
+        whenever(cleanProvider.configure(any())).then { it.getArgument<Action<Delete>>(0).execute(clean) }
+
+        val deleteContainer = mock<TaskCollection<Delete>> {
+            on { named("clean") } doReturn cleanProvider
+        }
         val tasks = mock<TaskContainer> {
             on { create(argThat { equals("clean") }, argThat { equals(Delete::class.java) }, any<Action<Delete>>()) } doReturn clean
             on { getByName("clean") } doReturn clean
-            on { maybeCreate("clean", Delete::class.java) } doReturn clean
         }
+        whenever(tasks.withType(Delete::class.java)).thenReturn(deleteContainer)
 
         tasks {
             create<Delete>("clean") {
