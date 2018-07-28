@@ -14,6 +14,20 @@
  * limitations under the License.
  */
 
+/**
+ * Tuesday:
+ * - Differentiate between `prefer` and `require` in `VersionConstraint`:
+ *     - Push all the way into `.module` files
+ *     - No difference in behaviour at this stage.
+ *     - Display differently in exceptions (and insight report?)
+ * - Merge improvements to `strictly`, `require` and `prefer` into master. No change in behaviour: better reporting.
+ *     - Single update to metadata cache layout
+ * - Provide different resolution of `prefer` vs `require`
+ *     - Come up with a matrix of combinations
+ *     - Add more test coverage to VersionRangeResolveTestScenarios (maybe similar to prefer vs strictly)
+ *     - Implement a hacky solution
+ *     - Consider what to do about `require 4.+ && strictly 4` : Do we have a reject constraint for `require` or special treatment of `prefer`?
+ */
 package org.gradle.resolve.scenarios
 
 import groovy.transform.Canonical
@@ -207,16 +221,19 @@ class VersionRangeResolveTestScenarios {
     public static final StrictPermutationsProvider SCENARIOS_WITH_REJECT = StrictPermutationsProvider.check(
         versions: [FIXED_11, FIXED_12, REJECT_11],
         expectedNoStrict: "12",
+        expectedStrict: [REJECTED, "12", IGNORE]
     ).and(
         versions: [FIXED_11, FIXED_12, REJECT_12],
         expectedNoStrict: REJECTED,
+        expectedStrict: [REJECTED, REJECTED, IGNORE]
     ).and(
         versions: [FIXED_11, FIXED_12, REJECT_13],
         expectedNoStrict: "12",
-
+        expectedStrict: [REJECTED, "12", IGNORE]
     ).and(
         versions: [RANGE_10_14, RANGE_10_12, FIXED_12, REJECT_11],
         expectedNoStrict: "12",
+        expectedStrict: ["12", "12", "12", IGNORE]
     ).and(
         ignore: true, // This will require resolving RANGE_10_14 with the knowledge that FIXED_12 rejects < "12".
         versions: [RANGE_10_14, RANGE_10_12, FIXED_12, REJECT_12],
@@ -224,38 +241,49 @@ class VersionRangeResolveTestScenarios {
     ).and(
         versions: [RANGE_10_14, RANGE_10_12, FIXED_12, REJECT_13],
         expectedNoStrict: "12",
+        expectedStrict: ["12", "12", "12", IGNORE]
     ).and(
         versions: [RANGE_10_12, RANGE_13_14, REJECT_11],
         expectedNoStrict: "13",
+        expectedStrict: [REJECTED, "13", IGNORE]
     ).and(
         versions: [RANGE_10_12, RANGE_13_14, REJECT_12],
         expectedNoStrict: "13",
+        expectedStrict: [REJECTED, "13", IGNORE]
     ).and(
         versions: [RANGE_10_12, RANGE_13_14, REJECT_13],
         expectedNoStrict: REJECTED,
+        expectedStrict: [REJECTED, REJECTED, IGNORE]
     ).and(
         versions: [FIXED_9, RANGE_10_11, RANGE_10_12, REJECT_11],
         expectedNoStrict: "10",
+        expectedStrict: [REJECTED, "10", "10", IGNORE]
     ).and(
         versions: [FIXED_9, RANGE_10_11, RANGE_10_12, REJECT_12],
         expectedNoStrict: "11",
+        expectedStrict: [REJECTED, "11", "11", IGNORE]
     ).and(
         versions: [FIXED_9, RANGE_10_11, RANGE_10_12, REJECT_13],
         expectedNoStrict: "11",
+        expectedStrict: [REJECTED, "11", "11", IGNORE]
     )
 
     public static final StrictPermutationsProvider SCENARIOS_FOUR_DEPENDENCIES = StrictPermutationsProvider.check(
         versions: [FIXED_9, FIXED_10, FIXED_11, FIXED_12],
-        expectedNoStrict: "12"
+        expectedNoStrict: "12",
+        expectedStrict: [REJECTED, REJECTED, REJECTED, "12"]
     ).and(
         versions: [FIXED_10, RANGE_10_11, FIXED_12, RANGE_12_14],
-        expectedNoStrict: "12"
+        expectedNoStrict: "12",
+        expectedStrict: [REJECTED, REJECTED, "12", "12"]
     ).and(
         versions: [FIXED_10, RANGE_10_11, RANGE_10_12, RANGE_13_14],
-        expectedNoStrict: "13"
+        expectedNoStrict: "13",
+        expectedStrict: [REJECTED, REJECTED, REJECTED, "13"]
     ).and(
         versions: [FIXED_9, RANGE_10_11, RANGE_10_12, RANGE_10_14],
-        expectedNoStrict: "11"
+        expectedNoStrict: "11",
+        expectedStrict: [REJECTED, "11", "11", "11"]
     )
     private static RenderableVersion fixed(int version) {
         def vs = new SimpleVersion()
@@ -306,7 +334,7 @@ class VersionRangeResolveTestScenarios {
 
         @Override
         VersionConstraint getVersionConstraint() {
-            new DefaultMutableVersionConstraint(version, false)
+            DefaultMutableVersionConstraint.withVersion(version)
         }
 
         @Override
@@ -325,7 +353,9 @@ class VersionRangeResolveTestScenarios {
 
         @Override
         VersionConstraint getVersionConstraint() {
-            new DefaultMutableVersionConstraint(version, true)
+            def vc = new DefaultMutableVersionConstraint(version)
+            vc.strictly(version)
+            return vc
         }
 
         @Override
@@ -344,7 +374,9 @@ class VersionRangeResolveTestScenarios {
 
         @Override
         VersionConstraint getVersionConstraint() {
-            DefaultImmutableVersionConstraint.of(version)
+            def vc = new DefaultMutableVersionConstraint(version)
+            vc.prefer(version)
+            return vc
         }
 
         @Override
@@ -363,7 +395,7 @@ class VersionRangeResolveTestScenarios {
 
         @Override
         VersionConstraint getVersionConstraint() {
-            DefaultImmutableVersionConstraint.of("", [version])
+            DefaultImmutableVersionConstraint.of("", "", "", [version])
         }
 
         @Override

@@ -67,7 +67,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     }
 
     public String getVersion() {
-        return Strings.emptyToNull(versionConstraint.getPreferredVersion());
+        return Strings.emptyToNull(versionConstraint.getRequiredVersion());
     }
 
     public boolean isForce() {

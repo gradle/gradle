@@ -4,14 +4,14 @@ repositories {
     mavenCentral()
 }
 
-// START SNIPPET groovy-test-dependency
+// tag::groovy-test-dependency[]
 dependencies {
     testCompile 'org.codehaus.groovy:groovy-all:2.4.15'
 }
-// END SNIPPET groovy-test-dependency
+// end::groovy-test-dependency[]
 
-// START SNIPPET bundled-groovy-dependency
+// tag::bundled-groovy-dependency[]
 dependencies {
     compile localGroovy()
 }
-// END SNIPPET bundled-groovy-dependency
+// end::bundled-groovy-dependency[]

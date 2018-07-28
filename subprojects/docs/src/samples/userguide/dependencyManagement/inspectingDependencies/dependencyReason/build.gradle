@@ -1,4 +1,4 @@
-//START SNIPPET dependency-reason
+// tag::dependency-reason[]
 apply plugin: 'java-library'
 
 repositories {
@@ -10,4 +10,4 @@ dependencies {
         because 'we require a JDK 9 compatible bytecode generator'
     }
 }
-//END SNIPPET  dependency-reason
+// end::dependency-reason[]

@@ -173,6 +173,88 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         succeeds ":a", ":d", ":e", ":f", ":g", ":h", ":i", ":all"
     }
 
+    def "reports failure in task constructor when task created"() {
+        settingsFile << """
+            include "child"
+        """
+        file("child/build.gradle") << """
+            class Broken extends DefaultTask {
+                Broken() {
+                    throw new RuntimeException("broken task")
+                }
+            }
+            tasks.create("broken", Broken)
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(4)
+        failure.assertHasDescription("A problem occurred evaluating project ':child'.")
+        failure.assertHasCause("Could not create task ':child:broken'.")
+        failure.assertHasCause("Could not create task of type 'Broken'.")
+        failure.assertHasCause("broken task")
+    }
+
+    def "reports failure in task configuration block when task created"() {
+        settingsFile << """
+            include "child"
+        """
+        file("child/build.gradle") << """
+            tasks.create("broken") {
+                throw new RuntimeException("broken task")
+            }
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(3)
+        failure.assertHasDescription("A problem occurred evaluating project ':child'.")
+        failure.assertHasCause("Could not create task ':child:broken'.")
+        failure.assertHasCause("broken task")
+    }
+
+    def "reports failure in all block when task created"() {
+        settingsFile << """
+            include "child"
+        """
+        file("child/build.gradle") << """
+            tasks.all {
+                throw new RuntimeException("broken task")
+            }
+            tasks.create("broken")
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(3)
+        failure.assertHasDescription("A problem occurred evaluating project ':child'.")
+        failure.assertHasCause("Could not create task ':child:broken'.")
+        failure.assertHasCause("broken task")
+    }
+
+    def "reports failure in task constructor when task replaced"() {
+        settingsFile << """
+            include "child"
+        """
+        file("child/build.gradle") << """
+            class Broken extends DefaultTask {
+                Broken() {
+                    throw new RuntimeException("broken task")
+                }
+            }
+            tasks.create("broken")
+            tasks.replace("broken", Broken)
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(4)
+        failure.assertHasDescription("A problem occurred evaluating project ':child'.")
+        failure.assertHasCause("Could not create task ':child:broken'.")
+        failure.assertHasCause("Could not create task of type 'Broken'.")
+        failure.assertHasCause("broken task")
+    }
+
     def "unsupported task parameter fails with decent error message"() {
         buildFile << "task a(Type:Copy)"
         when:
@@ -261,7 +343,9 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
+        failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("Could not create task of type 'CustomTask'.")
+        failure.assertHasCause("Unable to determine CustomTask_Decorated argument #2: missing parameter value of type int, or no service of type int")
 
         where:
         description   | script
@@ -279,7 +363,9 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
+        failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("Could not create task of type 'CustomTask'.")
+        failure.assertHasCause("Unable to determine CustomTask_Decorated argument #1: missing parameter value of type class java.lang.String, or no service of type class java.lang.String")
 
         where:
         description   | script
@@ -298,6 +384,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
+        failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("constructorArgs must be a List or Object[]")
 
         where:
@@ -318,6 +405,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
+        failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("Could not create task of type 'CustomTask'.")
 
         where:
@@ -336,6 +424,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
+        failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("Received null for CustomTask constructor argument #$position")
 
         where:
@@ -508,7 +597,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         succeeds("help")
 
         then:
-        outputContains("The add() method has been deprecated. Please use the create() or register() method instead.")
+        outputContains("The add() method has been deprecated. This method will cause an error in Gradle 6.0. Please use the create() or register() method instead.")
     }
 
     def "cannot add a pre-created task provider to the task container"() {

@@ -17,7 +17,6 @@
 package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
 
@@ -25,7 +24,7 @@ class SamplesClientModuleDependenciesIntegrationTest extends AbstractIntegration
     @Rule Sample sample = new Sample(temporaryFolder, "clientModuleDependencies")
 
     def setup() {
-        executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
+        useRepositoryMirrors()
     }
 
     def "resolve shared"() {

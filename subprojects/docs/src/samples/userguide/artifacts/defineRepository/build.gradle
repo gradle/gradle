@@ -1,4 +1,4 @@
-//START SNIPPET maven-ivy-repository-no-auth
+// tag::maven-ivy-repository-no-auth[]
 repositories {
     maven {
         url "http://repo.mycompany.com/maven2"
@@ -8,9 +8,9 @@ repositories {
         url "http://repo.mycompany.com/repo"
     }
 }
-//END SNIPPET maven-ivy-repository-no-auth
+// end::maven-ivy-repository-no-auth[]
 
-//START SNIPPET maven-ivy-repository-auth
+// tag::maven-ivy-repository-auth[]
 repositories {
     maven {
         url "sftp://repo.mycompany.com:22/maven2"
@@ -28,9 +28,9 @@ repositories {
         }
     }
 }
-//END SNIPPET maven-ivy-repository-auth
+// end::maven-ivy-repository-auth[]
 
-//START SNIPPET maven-ivy-s3-repository
+// tag::maven-ivy-s3-repository[]
 repositories {
     maven {
         url "s3://myCompanyBucket/maven2"
@@ -52,9 +52,9 @@ repositories {
         }
     }
 }
-//END SNIPPET maven-ivy-s3-repository
+// end::maven-ivy-s3-repository[]
 
-//START SNIPPET maven-ivy-s3-repository-with-iam
+// tag::maven-ivy-s3-repository-with-iam[]
 repositories {
     maven {
         url "s3://myCompanyBucket/maven2"
@@ -70,9 +70,9 @@ repositories {
         }
     }
 }
-//END SNIPPET maven-ivy-s3-repository-with-iam
+// end::maven-ivy-s3-repository-with-iam[]
 
-//START SNIPPET maven-ivy-gcs-repository
+// tag::maven-ivy-gcs-repository[]
 repositories {
     maven {
         url "gcs://myCompanyBucket/maven2"
@@ -82,41 +82,41 @@ repositories {
         url "gcs://myCompanyBucket/ivyrepo"
     }
 }
-//END SNIPPET maven-ivy-gcs-repository
+// end::maven-ivy-gcs-repository[]
 
-//START SNIPPET maven-central
+// tag::maven-central[]
 repositories {
     mavenCentral()
 }
-//END SNIPPET maven-central
+// end::maven-central[]
 
-//START SNIPPET maven-jcenter
+// tag::maven-jcenter[]
 repositories {
     jcenter()
 }
-//END SNIPPET maven-jcenter
+// end::maven-jcenter[]
 
-//START SNIPPET maven-google
+// tag::maven-google[]
 repositories {
     google()
 }
-//END SNIPPET maven-google
+// end::maven-google[]
 
-//START SNIPPET maven-local
+// tag::maven-local[]
 repositories {
     mavenLocal()
 }
-//END SNIPPET maven-local
+// end::maven-local[]
 
-//START SNIPPET maven-like-repo
+// tag::maven-like-repo[]
 repositories {
     maven {
         url "http://repo.mycompany.com/maven2"
     }
 }
-//END SNIPPET maven-like-repo
+// end::maven-like-repo[]
 
-//START SNIPPET maven-like-repo-with-jar-repo
+// tag::maven-like-repo-with-jar-repo[]
 repositories {
     maven {
         // Look for POMs and artifacts, such as JARs, here
@@ -126,9 +126,9 @@ repositories {
         artifactUrls "http://repo.mycompany.com/jars2"
     }
 }
-//END SNIPPET maven-like-repo-with-jar-repo
+// end::maven-like-repo-with-jar-repo[]
 
-//START SNIPPET authenticated-maven-repo
+// tag::authenticated-maven-repo[]
 repositories {
     maven {
         url "http://repo.mycompany.com/maven2"
@@ -138,9 +138,9 @@ repositories {
         }
     }
 }
-//END SNIPPET authenticated-maven-repo
+// end::authenticated-maven-repo[]
 
-//START SNIPPET header-authenticated-maven-repo
+// tag::header-authenticated-maven-repo[]
 repositories {
     maven {
         url "http://repo.mycompany.com/maven2"
@@ -153,50 +153,50 @@ repositories {
         }
     }
 }
-//END SNIPPET header-authenticated-maven-repo
+// end::header-authenticated-maven-repo[]
 
-//START SNIPPET flat-dir
-//START SNIPPET flat-dir-multi
+// tag::flat-dir[]
+// tag::flat-dir-multi[]
 repositories {
     flatDir {
         dirs 'lib'
     }
-//END SNIPPET flat-dir
+// end::flat-dir[]
     flatDir {
         dirs 'lib1', 'lib2'
     }
-//START SNIPPET flat-dir
+// tag::flat-dir[]
 }
-//END SNIPPET flat-dir
-//END SNIPPET flat-dir-multi
+// end::flat-dir[]
+// end::flat-dir-multi[]
 
-//START SNIPPET ivy-repo
+// tag::ivy-repo[]
 repositories {
     ivy {
         url "http://repo.mycompany.com/repo"
     }
 }
-//END SNIPPET ivy-repo
+// end::ivy-repo[]
 
-//START SNIPPET local-ivy-repo
+// tag::local-ivy-repo[]
 repositories {
     ivy {
         // URL can refer to a local directory
         url "../local-repo"
     }
 }
-//END SNIPPET local-ivy-repo
+// end::local-ivy-repo[]
 
-//START SNIPPET ivy-repo-with-maven-layout
+// tag::ivy-repo-with-maven-layout[]
 repositories {
     ivy {
         url "http://repo.mycompany.com/repo"
         layout "maven"
     }
 }
-//END SNIPPET ivy-repo-with-maven-layout
+// end::ivy-repo-with-maven-layout[]
 
-//START SNIPPET ivy-repo-with-pattern-layout
+// tag::ivy-repo-with-pattern-layout[]
 repositories {
     ivy {
         url "http://repo.mycompany.com/repo"
@@ -205,9 +205,9 @@ repositories {
         }
     }
 }
-//END SNIPPET ivy-repo-with-pattern-layout
+// end::ivy-repo-with-pattern-layout[]
 
-//START SNIPPET ivy-repo-with-m2compatible-layout
+// tag::ivy-repo-with-m2compatible-layout[]
 repositories {
     ivy {
         url "http://repo.mycompany.com/repo"
@@ -217,9 +217,9 @@ repositories {
         }
     }
 }
-//END SNIPPET ivy-repo-with-m2compatible-layout
+// end::ivy-repo-with-m2compatible-layout[]
 
-//START SNIPPET ivy-repo-with-custom-pattern
+// tag::ivy-repo-with-custom-pattern[]
 repositories {
     ivy {
         url "http://repo.mycompany.com/repo"
@@ -230,9 +230,9 @@ repositories {
         }
     }
 }
-//END SNIPPET ivy-repo-with-custom-pattern
+// end::ivy-repo-with-custom-pattern[]
 
-//START SNIPPET maven-repo-with-metadata-sources
+// tag::maven-repo-with-metadata-sources[]
 repositories {
     maven {
         url "http://repo.mycompany.com/repo"
@@ -242,9 +242,9 @@ repositories {
         }
     }
 }
-//END SNIPPET maven-repo-with-metadata-sources
+// end::maven-repo-with-metadata-sources[]
 
-//START SNIPPET authenticated-ivy-repo
+// tag::authenticated-ivy-repo[]
 repositories {
     ivy {
         url "http://repo.mycompany.com"
@@ -254,7 +254,7 @@ repositories {
         }
     }
 }
-//END SNIPPET authenticated-ivy-repo
+// end::authenticated-ivy-repo[]
 
 task lookup {
     doLast {
@@ -263,7 +263,7 @@ task lookup {
     }
 }
 
-//START SNIPPET digest-authentication
+// tag::digest-authentication[]
 repositories {
     maven {
         url 'https://repo.mycompany.com/maven2'
@@ -276,9 +276,9 @@ repositories {
         }
     }
 }
-//END SNIPPET digest-authentication
+// end::digest-authentication[]
 
-//START SNIPPET preemptive-authentication
+// tag::preemptive-authentication[]
 repositories {
     maven {
         url 'https://repo.mycompany.com/maven2'
@@ -291,4 +291,4 @@ repositories {
         }
     }
 }
-//END SNIPPET preemptive-authentication
+// end::preemptive-authentication[]

@@ -13,13 +13,13 @@
 // limitations under the License.
 
 [[build_dashboard_plugin]]
-== The Build Dashboard Plugin
+= The Build Dashboard Plugin
 
 
 [NOTE]
 ====
 
-The build dashboard plugin is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+The build dashboard plugin is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
 
 ====
 
@@ -27,51 +27,41 @@ The Build Dashboard plugin can be used to generate a single HTML dashboard that 
 
 
 [[sec:build_dashboard_usage]]
-=== Usage
+== Usage
 
 To use the Build Dashboard plugin, include the following in your build script:
 
-++++
-<sample id="useBuildDashboardPlugin" dir="buildDashboard" title="Using the Build Dashboard plugin">
-            <sourcefile file="build.gradle" snippet="use-build-dashboard-plugin"/>
-        </sample>
-++++
+=== Example: Using the Build Dashboard plugin
 
-Applying the plugin adds the `buildDashboard` task to your project. The task aggregates the reports for all tasks that implement the api:org.gradle.api.reporting.Reporting[] interface from _all projects_ in the build. It is typically only applied to the root project.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/buildDashboard/build.gradle[tag=use-build-dashboard-plugin]
+----
+
+Applying the plugin adds the `buildDashboard` task to your project. The task aggregates the reports for all tasks that implement the link:{groovyDslPath}/org.gradle.api.reporting.Reporting.html[Reporting] interface from _all projects_ in the build. It is typically only applied to the root project.
 
 The `buildDashboard` task does not depend on any other tasks. It will only aggregate the reporting tasks that are independently being executed as part of the build run. To generate the build dashboard, simply include this task in the list of tasks to execute. For example, “`gradle buildDashboard build`” will generate a dashboard for all of the reporting tasks that are dependents of the `build` task.
 
 [[sec:build_dashboard_tasks]]
-=== Tasks
+== Tasks
 
 The Build Dashboard plugin adds the following task to the project:
 
-.Build Dashboard plugin - tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
-
-| `buildDashboard`
-| -
-| api:org.gradle.api.reporting.GenerateBuildDashboard[]
-| Generates build dashboard report.
-|===
-
+`buildDashboard` — link:{groovyDslPath}/org.gradle.api.reporting.GenerateBuildDashboard.html[GenerateBuildDashboard]::
+Generates build dashboard report.
 
 [[sec:build_dashboard_project_layout]]
-=== Project layout
+== Project layout
 
 The Build Dashboard plugin does not require any particular project layout.
 
 [[sec:build_dashboard_dependency_management]]
-=== Dependency management
+== Dependency management
 
 The Build Dashboard plugin does not define any dependency configurations.
 
 [[sec:build_dashboard_configuration]]
-=== Configuration
+== Configuration
 
-You can influence the location of build dashboard plugin generation via api:org.gradle.api.reporting.ReportingExtension[].
+You can influence the location of build dashboard plugin generation via link:{groovyDslPath}/org.gradle.api.reporting.ReportingExtension.html[ReportingExtension].

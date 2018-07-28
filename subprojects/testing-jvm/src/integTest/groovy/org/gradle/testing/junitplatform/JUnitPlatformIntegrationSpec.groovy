@@ -37,7 +37,7 @@ class JUnitPlatformIntegrationSpec extends AbstractIntegrationSpec {
             apply plugin: 'java'
 
             repositories {
-                mavenCentral()
+                ${mavenCentralRepository()} 
             }
             dependencies { 
                 compile 'org.junit.jupiter:junit-jupiter-api:${LATEST_JUPITER_VERSION}','org.junit.jupiter:junit-jupiter-engine:${LATEST_JUPITER_VERSION}'

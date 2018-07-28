@@ -1,6 +1,6 @@
 apply plugin: 'windows-resources'
 
-// START SNIPPET resource-only-library
+// tag::resource-only-library[]
 model {
     components {
         helloRes(NativeLibrarySpec) {
@@ -8,7 +8,7 @@ model {
                 rcCompiler.args "/v"
                 linker.args "/noentry", "/machine:x86"
             }
-            // START SNIPPET windows-resource-set
+            // tag::windows-resource-set[]
             sources {
                 rc {
                     source {
@@ -19,9 +19,9 @@ model {
                     }
                 }
             }
-            // END SNIPPET windows-resource-set
+            // end::windows-resource-set[]
         }
     }
 }
-// END SNIPPET resource-only-library
+// end::resource-only-library[]
 

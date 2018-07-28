@@ -13,82 +13,69 @@
 // limitations under the License.
 
 [[announce_plugin]]
-== The Announce Plugin
+= The Announce Plugin
 
 The Gradle announce plugin allows you to send custom announcements during a build. The following notification systems are supported:
 
-* http://twitter.com[Twitter]
-* http://manpages.ubuntu.com/manpages/zesty/en/man1/notify-send.1.html[notify-send] (Ubuntu)
+* https://twitter.com[Twitter]
+* http://manpages.ubuntu.com/manpages/xenial/man1/notify-send.1.html[notify-send] (Ubuntu)
 * https://sites.google.com/site/snarlapp/home[Snarl] (Windows)
 * http://growl.info/[Growl] (macOS)
 
-
-
 [[sec:announce_usage]]
-=== Usage
+== Usage
 
 To use the announce plugin, apply it to your build script:
 
-++++
-<sample id="useAnnouncePlugin" dir="announce" title="Applying the announce plugin">
-            <sourcefile file="build.gradle" snippet="use-plugin"/>
-        </sample>
-++++
+=== Example: Applying the announce plugin
 
-Next, configure your notification service(s) of choice (see table below for which configuration properties are available):
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/announce/build.gradle[tag=use-plugin]
+----
 
-++++
-<sample id="useAnnouncePlugin" dir="announce" title="Configure the announce plugin">
-            <sourcefile file="build.gradle" snippet="announce-plugin-conf"/>
-        </sample>
-++++
+[[sec:announce_configuration]]
+== Configuration
+
+NOTE: See also the link:{groovyDslPath}/org.gradle.api.plugins.announce.AnnouncePluginExtension.html[AnnouncePluginExtension] class in the API documentation.
+
+Configure your notification service(s) of choice (see table below for which configuration properties are available):
+
+=== Example: Configure the announce plugin
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/announce/build.gradle[tag=announce-plugin-conf]
+----
 
 Finally, send announcements with the `announce` method:
 
-++++
-<sample id="useAnnouncePlugin" dir="announce" title="Using the announce plugin">
-            <sourcefile file="build.gradle" snippet="announce-usage"/>
-        </sample>
-++++
+=== Example: Using the announce plugin
 
-The `announce` method takes two String arguments: The message to be sent, and the notification service to be used. The following table lists supported notification services and their configuration properties.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/announce/build.gradle[tag=announce-usage]
+----
 
-.Announce Plugin Notification Services
-[cols="a,a,a,a", options="header"]
-|===
-| Notification Service
-| Operating System
-| Configuration Properties
-| Further Information
+The `announce` method takes two String arguments: The message to be sent, and the notification service to be used. The following list shows supported notification services and their configuration properties.
 
-| twitter
-| Any
-| username, password
-|
+=== Supported notification services
 
-| snarl
-| Windows
-|
-|
+`twitter`::
+Works on all operating systems. Requires `username` and `password`.
 
-| growl
-| macOS
-|
-|
+`snarl`::
+Windows only. Requires no extra configuration.
 
-| notify-send
-| Ubuntu
-|
-| Requires the notify-send package to be installed. Use `sudo apt-get install libnotify-bin` to install it.
+`growl`::
+macOS only. Requires no extra configuration.
 
-| local
-| Windows, macOS, Ubuntu
-|
-| Automatically chooses between snarl, growl, and notify-send depending on the current operating system.
-|===
+`notify-send`::
+Ubuntu only. Requires the notify-send package to be installed. Use `sudo apt-get install libnotify-bin` to install it.
 
+`local`::
+Automatically chooses between snarl, growl, and notify-send depending on the current operating system.
 
-[[sec:announce_configuration]]
-=== Configuration
-
-See the api:org.gradle.api.plugins.announce.AnnouncePluginExtension[] class in the API documentation.

@@ -1,6 +1,6 @@
 apply plugin: 'java'
 
-// START SNIPPET module_replacement_declaration
+// tag::module_replacement_declaration[]
 dependencies {
     modules {
         module("com.google.collections:google-collections") {
@@ -8,4 +8,4 @@ dependencies {
         }
     }
 }
-// END SNIPPET module_replacement_declaration
+// end::module_replacement_declaration[]

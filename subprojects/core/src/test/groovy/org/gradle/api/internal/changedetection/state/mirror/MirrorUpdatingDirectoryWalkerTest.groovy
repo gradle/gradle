@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state.mirror
 
+import org.apache.tools.ant.DirectoryScanner
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.util.PatternSet
@@ -126,6 +127,27 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
             'root/a/c', 'root/a/c/c.txt',
             'root/a.txt'
         ] as Set
+    }
+
+    def "default excludes are correctly parsed"() {
+        def defaultExcludes = new MirrorUpdatingDirectoryWalker.DefaultExcludes(DirectoryScanner.getDefaultExcludes())
+
+        expect:
+        DirectoryScanner.getDefaultExcludes() as Set == ['**/%*%', '**/.git/**', '**/SCCS', '**/.bzr', '**/.hg/**', '**/.bzrignore', '**/.git', '**/SCCS/**', '**/.hg', '**/.#*', '**/vssver.scc', '**/.bzr/**', '**/._*', '**/#*#', '**/*~', '**/CVS', '**/.hgtags', '**/.svn/**', '**/.hgignore', '**/.svn', '**/.gitignore', '**/.gitmodules', '**/.hgsubstate', '**/.gitattributes', '**/CVS/**', '**/.hgsub', '**/.DS_Store', '**/.cvsignore'] as Set
+
+        ['%some%', 'SCCS', '.bzr', '.bzrignore', '.git', '.hg', '.#anything', '.#', 'vssver.scc', '._something', '#anyt#', '##', 'temporary~', '~'].each {
+            assert defaultExcludes.excludeFile(it)
+        }
+
+        ['.git', '.hg', 'CVS'].each {
+            assert defaultExcludes.excludeDir(it)
+        }
+
+        !defaultExcludes.excludeDir('#some#')
+        !defaultExcludes.excludeDir('.cvsignore')
+
+        !defaultExcludes.excludeFile('.svnsomething')
+        !defaultExcludes.excludeFile('#some')
     }
 
     private static FileSystemSnapshot walkDir(File dir, PatternSet patterns, MirrorUpdatingDirectoryWalker walker, MutableBoolean actuallyFiltered) {

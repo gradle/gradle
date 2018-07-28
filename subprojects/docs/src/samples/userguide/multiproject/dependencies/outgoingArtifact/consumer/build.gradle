@@ -6,8 +6,8 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 }
 
-// START SNIPPET producer-project-dependency
+// tag::producer-project-dependency[]
 dependencies {
     runtime project(':producer')
 }
-// END SNIPPET producer-project-dependency
+// end::producer-project-dependency[]

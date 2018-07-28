@@ -397,10 +397,10 @@ class IvyFileModule extends AbstractModule implements IvyModule {
                     v.name,
                     v.attributes,
                     v.dependencies + dependencies.collect { d ->
-                        new DependencySpec(d.organisation, d.module, d.revision, d.rejects, d.exclusions, d.reason, d.attributes)
+                        new DependencySpec(d.organisation, d.module, d.revision, d.prefers, d.strictly, d.rejects, d.exclusions, d.reason, d.attributes)
                     },
                     v.dependencyConstraints + dependencyConstraints.collect { d ->
-                        new DependencyConstraintSpec(d.organisation, d.module, d.revision, d.rejects, d.reason, d.attributes)
+                        new DependencyConstraintSpec(d.organisation, d.module, d.revision, d.prefers, d.strictly, d.rejects, d.reason, d.attributes)
                     },
                     v.artifacts ?: defaultArtifacts,
                     v.capabilities
@@ -486,13 +486,13 @@ class IvyFileModule extends AbstractModule implements IvyModule {
             def runtimeDependencies = variants.find{ it.name == 'runtime' }?.dependencies
             if (compileDependencies) {
                 compileDependencies.each { dep ->
-                    def depAttrs = [org: dep.group, name: dep.module, rev: dep.prefers, conf: 'compile->default']
+                    def depAttrs = [org: dep.group, name: dep.module, rev: dep.version, conf: 'compile->default']
                     builder.dependency(depAttrs)
                 }
             }
             if (runtimeDependencies) {
                 (runtimeDependencies - compileDependencies).each { dep ->
-                    def depAttrs = [org: dep.group, name: dep.module, rev: dep.prefers, conf: 'runtime->default']
+                    def depAttrs = [org: dep.group, name: dep.module, rev: dep.version, conf: 'runtime->default']
                     builder.dependency(depAttrs)
                 }
             }

@@ -13,35 +13,37 @@
 // limitations under the License.
 
 [[war_plugin]]
-== The War Plugin
+= The War Plugin
 
 The War plugin extends the Java plugin to add support for assembling web application WAR files. It disables the default JAR archive generation of the Java plugin and adds a default WAR archive task.
 
 [[sec:war_usage]]
-=== Usage
+== Usage
 
 To use the War plugin, include the following in your build script:
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="useWarPlugin" dir="webApplication/quickstart" title="Using the War plugin">
-    <sourcefile file="build.gradle" snippet="use-war-plugin"/>
-</sample>
-++++
+=== Example: Using the War plugin
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/webApplication/quickstart/build.gradle[tag=use-war-plugin]
+----
 
 [[sec:war_project_layout]]
-=== Project layout
+== Project layout
 
-In addition to the <<sec:java_project_layout,standard Java project layout>>, the War Plugin adds:
+In addition to the <<java_plugin.adoc#sec:java_project_layout,standard Java project layout>>, the War Plugin adds:
 
 `src/main/webapp`::
 Web application sources
 
 [[sec:war_tasks]]
-=== Tasks
+== Tasks
 
 The War plugin adds and modifies the following tasks:
 
-`war` — type: api:org.gradle.api.tasks.bundling.War[]::
+`war` — link:{groovyDslPath}/org.gradle.api.tasks.bundling.War.html[War]::
 _Depends on_: `compile`
 +
 Assembles the application WAR file.
@@ -51,35 +53,29 @@ _Depends on_: `war`
 
 The War plugin adds the following dependencies to tasks added by the Java plugin;
 
-++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>War plugin - tasks</title>
-    <imageobject>
-        <imagedata fileref="img/warPluginTasks.png"/>
-    </imageobject>
-</figure>
-++++
+.War plugin - tasks
+image::warPluginTasks.png[]
 
 [[sec:war_dependency_management]]
-=== Dependency management
+== Dependency management
 
 The War plugin adds two dependency configurations:
 
  * `providedCompile`
  * `providedRuntime`
- 
+
 These two configurations have the same scope as the respective `compile` and `runtime` configurations, except that they are not added to the WAR archive.
 
 It is important to note that these `provided` configurations work transitively. Let's say you add `commons-httpclient:commons-httpclient:3.0` to any of the provided configurations. This dependency has a dependency on `commons-codec`. Because this is a “provided” configuration, this means that neither of these dependencies will be added to your WAR, even if the `commons-codec` library is an explicit dependency of your `compile` configuration. If you don't want this transitive behavior, simply declare your `provided` dependencies like `commons-httpclient:commons-httpclient:3.0@jar`.
 
 [[sec:war_plugin_publishing]]
-=== Publishing
+== Publishing
 
 `components.web`::
-A api:org.gradle.api.component.SoftwareComponent[] for <<publishing_overview,publishing>> the production WAR created by the `war` task.
+A link:{javadocPath}/org/gradle/api/component/SoftwareComponent.html[SoftwareComponent] for <<publishing_overview.adoc#publishing_overview,publishing>> the production WAR created by the `war` task.
 
 [[sec:war_convention_properties]]
-=== Convention properties
+== Convention properties
 
 `webAppDirName` — `String`::
 _Default value_: `src/main/webapp`
@@ -91,24 +87,26 @@ _Default value_: `$webAppDirName`, e.g. _src/main/webapp_
 +
 The path to the web application source directory.
 
-These properties are provided by a api:org.gradle.api.plugins.WarPluginConvention[] object.
+These properties are provided by a link:{groovyDslPath}/org.gradle.api.plugins.WarPluginConvention.html[WarPluginConvention] object.
 
 [[sec:war_default_settings]]
-=== War
+== War
 
 The default behavior of the `War` task is to copy the content of `src/main/webapp` to the root of the archive. Your `webapp` directory may of course contain a `WEB-INF` sub-directory, which may contain a `web.xml` file. Your compiled classes are compiled to `WEB-INF/classes`. All the dependencies of the `runtime` footnote:[The `runtime` configuration extends the `compile` configuration.] configuration are copied to `WEB-INF/lib`.
 
-The api:org.gradle.api.tasks.bundling.War[] class in the API documentation has additional useful information.
+The link:{groovyDslPath}/org.gradle.api.tasks.bundling.War.html[War] class in the API documentation has additional useful information.
 
 [[sec:war_customizing]]
-=== Customizing
+== Customizing
 
 Here is an example with the most important customization options:
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="webproject" dir="webApplication/customized" title="Customization of war plugin">
-    <sourcefile file="build.gradle" snippet="customization"/>
-</sample>
-++++
+=== Example: Customization of war plugin
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/webApplication/customized/build.gradle[tag=customization]
+----
 
 Of course one can configure the different file-sets with a closure to define excludes and includes.

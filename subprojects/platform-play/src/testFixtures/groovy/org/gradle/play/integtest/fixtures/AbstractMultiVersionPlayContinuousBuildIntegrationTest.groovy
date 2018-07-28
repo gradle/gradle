@@ -35,5 +35,6 @@ abstract class AbstractMultiVersionPlayContinuousBuildIntegrationTest extends Ab
 
     def setup() {
         buildFile << PlayMultiVersionApplicationIntegrationTest.playPlatformConfiguration(version.toString())
+        usePluginRepositoryMirror()
     }
 }

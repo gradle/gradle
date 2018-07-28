@@ -1,4 +1,4 @@
-//START SNIPPET unresolved-transitive-dependencies
+// tag::unresolved-transitive-dependencies[]
 apply plugin: 'java'
 
 repositories {
@@ -8,4 +8,4 @@ repositories {
 dependencies {
     implementation 'log4j:log4j:1.2.15'
 }
-//END SNIPPET unresolved-transitive-dependencies
+// end::unresolved-transitive-dependencies[]

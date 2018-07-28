@@ -5,11 +5,11 @@ subprojects {
 project(':utils')
 project(':api')
 
-//START SNIPPET project-dependencies
+// tag::project-dependencies[]
 project(':web-service') {
     dependencies {
         implementation project(':utils')
         implementation project(':api')
     }
 }
-//END SNIPPET project-dependencies
+// end::project-dependencies[]

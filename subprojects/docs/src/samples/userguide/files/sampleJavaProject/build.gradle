@@ -12,7 +12,7 @@ dependencies {
     implementation 'commons-io:commons-io:2.6'
 }
 
-// START SNIPPET link-task-properties
+// tag::link-task-properties[]
 ext {
     archivesDirPath = "${buildDir}/archives"
 }
@@ -23,9 +23,9 @@ task packageClasses(type: Zip) {
 
     from compileJava
 }
-// END SNIPPET link-task-properties
+// end::link-task-properties[]
 
-// START SNIPPET nested-specs
+// tag::nested-specs[]
 task nestedSpecs(type: Copy) {
     into "${buildDir}/explodedWar"
     exclude '**/*staging*'
@@ -39,4 +39,4 @@ task nestedSpecs(type: Copy) {
         from configurations.runtimeClasspath
     }
 }
-// END SNIPPET nested-specs
+// end::nested-specs[]

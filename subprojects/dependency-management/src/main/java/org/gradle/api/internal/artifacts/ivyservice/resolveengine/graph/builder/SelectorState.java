@@ -65,7 +65,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private final DependencyState dependencyState;
     private final DependencyMetadata firstSeenDependency;
     private final DependencyToComponentIdResolver resolver;
-    private final ResolvedVersionConstraint versionConstraint;
+    private final DefaultResolvedVersionConstraint versionConstraint;
     private final VersionSelectorScheme versionSelectorScheme;
     private final ImmutableAttributesFactory attributesFactory;
     private final Set<ComponentSelectionDescriptorInternal> dependencyReasons = Sets.newLinkedHashSet();
@@ -121,7 +121,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         dependencyReasons.add(dependencyDescriptor);
     }
 
-    private ResolvedVersionConstraint resolveVersionConstraint(ComponentSelector selector) {
+    private DefaultResolvedVersionConstraint resolveVersionConstraint(ComponentSelector selector) {
         if (selector instanceof ModuleComponentSelector) {
             return new DefaultResolvedVersionConstraint(((ModuleComponentSelector) selector).getVersionConstraint(), versionSelectorScheme);
         }
@@ -166,7 +166,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         if (dependencyState.failure != null) {
             idResolveResult.failed(dependencyState.failure);
         } else {
-            ResolvedVersionConstraint mergedConstraint = versionConstraint == null ? null : new DefaultResolvedVersionConstraint(versionConstraint.getPreferredSelector(), allRejects);
+            ResolvedVersionConstraint mergedConstraint = versionConstraint == null ? null : versionConstraint.withRejectSelector(allRejects);
             resolver.resolve(firstSeenDependency, mergedConstraint, idResolveResult);
         }
 

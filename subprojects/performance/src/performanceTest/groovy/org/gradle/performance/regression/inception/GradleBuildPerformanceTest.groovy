@@ -35,6 +35,11 @@ import org.junit.rules.TestName
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
+
+import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.createMirrorInitScript
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
+
 /**
  * Test Gradle's build performance against current Gradle.
  *
@@ -82,7 +87,7 @@ class GradleBuildPerformanceTest extends Specification {
                 super.defaultSpec(builder)
                 builder.workingDirectory = tmpDir.testDirectory
                 if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
-                    builder.invocation.args("-Djava9Home=${System.getProperty('java9Home')}")
+                    builder.invocation.args("-Djava9Home=${System.getProperty('java9Home')}", "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}", "-I", createMirrorInitScript().absolutePath)
                 }
             }
         }

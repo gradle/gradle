@@ -1,4 +1,4 @@
-// START SNIPPET custom-source-set
+// tag::custom-source-set[]
 sourceSets {
     integTest {
         java.srcDir file('src/integTest/java')
@@ -7,9 +7,9 @@ sourceSets {
         runtimeClasspath += output + compileClasspath
     }
 }
-// END SNIPPET custom-source-set
+// end::custom-source-set[]
 
-// START SNIPPET test-task
+// tag::test-task[]
 task integTest(type: Test) {
     description = 'Runs the integration tests.'
     group = 'verification'
@@ -19,4 +19,4 @@ task integTest(type: Test) {
 }
 
 check.dependsOn integTest
-// END SNIPPET test-task
+// end::test-task[]

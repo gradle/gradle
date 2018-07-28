@@ -19,8 +19,8 @@ repositories {
     jcenter()
 }
 
-// START SNIPPET publishDeps
+// tag::publishDeps[]
 task publishDeps {
     dependsOn gradle.includedBuilds*.task(':uploadArchives')
 }
-// END SNIPPET publishDeps
+// end::publishDeps[]

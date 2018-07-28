@@ -19,6 +19,9 @@ package org.gradle.api.internal.tasks.compile.incremental;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JdkJavaCompilerResult;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotData;
@@ -31,6 +34,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.cache.internal.Stash;
 import org.gradle.language.base.internal.compile.Compiler;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -41,11 +45,13 @@ class IncrementalResultStoringCompiler implements Compiler<JavaCompileSpec> {
     private final Compiler<JavaCompileSpec> delegate;
     private final ClasspathSnapshotProvider classpathSnapshotProvider;
     private final Stash<PreviousCompilationData> stash;
+    private final StringInterner interner;
 
-    IncrementalResultStoringCompiler(Compiler<JavaCompileSpec> delegate, ClasspathSnapshotProvider classpathSnapshotProvider, Stash<PreviousCompilationData> stash) {
+    IncrementalResultStoringCompiler(Compiler<JavaCompileSpec> delegate, ClasspathSnapshotProvider classpathSnapshotProvider, Stash<PreviousCompilationData> stash, StringInterner interner) {
         this.delegate = delegate;
         this.classpathSnapshotProvider = classpathSnapshotProvider;
         this.stash = stash;
+        this.interner = interner;
     }
 
     @Override
@@ -68,12 +74,35 @@ class IncrementalResultStoringCompiler implements Compiler<JavaCompileSpec> {
     private AnnotationProcessingData getAnnotationProcessingResult(JavaCompileSpec spec, WorkResult result) {
         Set<AnnotationProcessorDeclaration> processors = spec.getEffectiveAnnotationProcessors();
         if (processors == null || processors.isEmpty()) {
-            return new AnnotationProcessingData(ImmutableMap.<String, Set<String>>of(), ImmutableSet.<String>of(), ImmutableSet.<String>of(), null);
+            return new AnnotationProcessingData();
         }
         if (result instanceof JdkJavaCompilerResult) {
             AnnotationProcessingResult processingResult = ((JdkJavaCompilerResult) result).getAnnotationProcessingResult();
-            return new AnnotationProcessingData(processingResult.getGeneratedTypesWithIsolatedOrigin(), processingResult.getAggregatedTypes(), processingResult.getGeneratedAggregatingTypes(), processingResult.getFullRebuildCause());
+            return convertProcessingResult(processingResult);
         }
         return new AnnotationProcessingData(ImmutableMap.<String, Set<String>>of(), ImmutableSet.<String>of(), ImmutableSet.<String>of(), "the chosen compiler did not support incremental annotation processing");
+    }
+
+    private AnnotationProcessingData convertProcessingResult(AnnotationProcessingResult processingResult) {
+        Map<String, Set<String>> generatedTypesByOrigin = processingResult.getGeneratedTypesWithIsolatedOrigin();
+        Set<String> aggregatedTypes = processingResult.getAggregatedTypes();
+        Set<String> aggregatingTypes = processingResult.getGeneratedAggregatingTypes();
+        return new AnnotationProcessingData(intern(generatedTypesByOrigin), intern(aggregatedTypes), intern(aggregatingTypes), processingResult.getFullRebuildCause());
+    }
+
+    private Set<String> intern(Set<String> types) {
+        Set<String> result = Sets.newHashSet();
+        for (String string : types) {
+            result.add(interner.intern(string));
+        }
+        return result;
+    }
+
+    private Map<String, Set<String>> intern(Map<String, Set<String>> types) {
+        Map<String, Set<String>> result = Maps.newHashMap();
+        for (Map.Entry<String, Set<String>> entry : types.entrySet()) {
+            result.put(interner.intern(entry.getKey()), intern(entry.getValue()));
+        }
+        return result;
     }
 }

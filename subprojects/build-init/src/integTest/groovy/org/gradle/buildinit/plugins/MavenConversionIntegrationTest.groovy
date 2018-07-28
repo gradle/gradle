@@ -15,6 +15,7 @@
  */
 
 package org.gradle.buildinit.plugins
+
 import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
@@ -49,6 +50,7 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
          * */
         m2.generateUserSettingsFile(m2.mavenRepo())
         using m2
+        useRepositoryMirrors()
     }
 
     def "multiModule"() {

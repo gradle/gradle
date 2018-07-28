@@ -33,8 +33,7 @@ public class GroupedOutputFixture {
      */
     private final static String TASK_HEADER = "> Task (:[\\w:]*) ?(FAILED|FROM-CACHE|UP-TO-DATE|SKIPPED|NO-SOURCE)?\\n?";
 
-    private final static String EMBEDDED_BUILD_START = "> :\\w* > :\\w+";
-    private final static String COMPILING_INTO_CACHE = "> :\\w* > Compiling[^\\n]+cache";
+    private final static String EMBEDDED_BUILD_START = "> :\\w* > [:\\w]+";
     private final static String BUILD_STATUS_FOOTER = "BUILD SUCCESSFUL";
     private final static String BUILD_FAILED_FOOTER = "BUILD FAILED";
     private final static String ACTIONABLE_TASKS = "[0-9]+ actionable tasks?:";
@@ -42,7 +41,7 @@ public class GroupedOutputFixture {
     /**
      * Various patterns to detect the end of the task output
      */
-    private final static String END_OF_TASK_OUTPUT = TASK_HEADER + "|" + BUILD_STATUS_FOOTER + "|" + BUILD_FAILED_FOOTER + "|" + EMBEDDED_BUILD_START + "|" + COMPILING_INTO_CACHE + "|" + ACTIONABLE_TASKS + "|\\z";
+    private final static String END_OF_TASK_OUTPUT = TASK_HEADER + "|" + BUILD_STATUS_FOOTER + "|" + BUILD_FAILED_FOOTER + "|" + EMBEDDED_BUILD_START + "|" + ACTIONABLE_TASKS + "|\\z";
 
     /**
      * Pattern to extract task output.

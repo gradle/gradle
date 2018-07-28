@@ -1,10 +1,12 @@
-// START SNIPPET no-description
+// tag::all[]
+// tag::no-description[]
 task copy(type: Copy) {
-// END SNIPPET no-description
+// end::no-description[]
    description 'Copies the resource directory to the target directory.'
-// START SNIPPET no-description
+// tag::no-description[]
    from 'resources'
    into 'target'
    include('**/*.txt', '**/*.xml', '**/*.properties')
 }
-// END SNIPPET no-description
+// end::no-description[]
+// end::all[]

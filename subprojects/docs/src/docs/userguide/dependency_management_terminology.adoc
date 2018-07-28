@@ -1,12 +1,26 @@
+// Copyright 2018 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 [[dependency_management_terminology]]
-== Dependency Management Terminology
+= Dependency Management Terminology
 
 Dependency management comes with a wealth of terminology. Here you can find the most commonly-used terms including references to the user guide to learn about their practical application.
 
 [[sub:terminology_configuration]]
-=== Configuration
+== Configuration
 
-A configuration is a named set of <<sub:terminology_dependency,dependencies>> grouped together for a specific goal: For example the `implementation` configuration represents the set of dependencies required to compile a project. Configurations provide access to the underlying, resolved <<sub:terminology_module,modules>> and their artifacts. For more information, see <<managing_dependency_configurations>>.
+A configuration is a named set of <<#sub:terminology_dependency,dependencies>> grouped together for a specific goal: For example the `implementation` configuration represents the set of dependencies required to compile a project. Configurations provide access to the underlying, resolved <<#sub:terminology_module,modules>> and their artifacts. For more information, see <<managing_dependency_configurations.adoc#managing_dependency_configurations,Managing Dependency Configurations>>.
 
 [NOTE]
 ====
@@ -14,41 +28,41 @@ The word "configuration" is an overloaded term and has a different meaning outsi
 ====
 
 [[sub:terminology_dependency]]
-=== Dependency
+== Dependency
 
-A dependency is a pointer to another piece of software required to build, test or run a <<sub:terminology_module,module>>. For more information, see <<declaring_dependencies>>.
+A dependency is a pointer to another piece of software required to build, test or run a <<#sub:terminology_module,module>>. For more information, see <<declaring_dependencies.adoc#declaring_dependencies,Declaring Dependencies>>.
 
 [[sub:terminology_dependency_constraint]]
-=== Dependency constraint
+== Dependency constraint
 
-A dependency constraint defines requirements that need to be met by a module to make it a valid resolution result for the dependency. For example, a dependency constraint can narrow down the set of supported module versions. Dependency constraints can be used to express such requirements for transitive dependencies. For more information, see <<sec:dependency_constraints>>.
+A dependency constraint defines requirements that need to be met by a module to make it a valid resolution result for the dependency. For example, a dependency constraint can narrow down the set of supported module versions. Dependency constraints can be used to express such requirements for transitive dependencies. For more information, see <<managing_transitive_dependencies.adoc#sec:dependency_constraints,Dependency Constraints>>.
 
 [[sub:terminology_module]]
-=== Module
+== Module
 
-A piece of software that evolves over time e.g. link:https://github.com/google/guava[Google Guava]. Every module has a name. Each release of a module is optimally represented by a <<sub:terminology_module_version,module version>>. For convenient consumption, modules can be hosted in a <<sub:terminology_repository,repository>>.
+A piece of software that evolves over time e.g. link:https://github.com/google/guava[Google Guava]. Every module has a name. Each release of a module is optimally represented by a <<#sub:terminology_module_version,module version>>. For convenient consumption, modules can be hosted in a <<#sub:terminology_repository,repository>>.
 
 [[sub:terminology_module_metadata]]
-=== Module metadata
+== Module metadata
 
-Releases of a <<sub:terminology_module,module>> can provide metadata. Metadata is the data that describes the module in more detail e.g. the coordinates for locating it in a repository, information about the project or required <<sub:terminology_transitive_dependency,transitive dependencies>>. In Maven the metadata file is called `.pom`, in Ivy it is called `ivy.xml`.
+Releases of a <<#sub:terminology_module,module>> can provide metadata. Metadata is the data that describes the module in more detail e.g. the coordinates for locating it in a repository, information about the project or required <<#sub:terminology_transitive_dependency,transitive dependencies>>. In Maven the metadata file is called `.pom`, in Ivy it is called `ivy.xml`.
 
 [[sub:terminology_module_version]]
-=== Module version
+== Module version
 
-A module version represents a distinct set of changes of a released <<sub:terminology_module,module>>. For example `18.0` represents the version of the module with the coordinates `com.google:guava:18.0`. In practice there's no limitation to the scheme of the module version. Timestamps, numbers, special suffixes like `-GA` are all allowed identifiers. The most widely-used versioning strategy is link:https://semver.org/[semantic versioning].
+A module version represents a distinct set of changes of a released <<#sub:terminology_module,module>>. For example `18.0` represents the version of the module with the coordinates `com.google:guava:18.0`. In practice there's no limitation to the scheme of the module version. Timestamps, numbers, special suffixes like `-GA` are all allowed identifiers. The most widely-used versioning strategy is link:https://semver.org/[semantic versioning].
 
 [[sub:terminology_repository]]
-=== Repository
+== Repository
 
-A repository hosts a set of <<sub:terminology_module,modules>>, each of which may provide one or many releases indicated by a <<sub:terminology_module_version,module version>>. The repository can be based on a binary repository product (e.g. Artifactory or Nexus) or a directory structure in the filesystem. For more information, see <<declaring_repositories>>.
+A repository hosts a set of <<#sub:terminology_module,modules>>, each of which may provide one or many releases indicated by a <<#sub:terminology_module_version,module version>>. The repository can be based on a binary repository product (e.g. Artifactory or Nexus) or a directory structure in the filesystem. For more information, see <<declaring_repositories.adoc#declaring_repositories,Declaring Repositories>>.
 
 [[sub:resolution_rule]]
-=== Resolution rule
+== Resolution rule
 
-A resolution rule influences the behavior of how a <<sec:sub:terminology_dependency,dependency>> is resolved. Resolution rules are defined as part of the build logic. For more information, see <<customizing_dependency_resolution_behavior>>.
+A resolution rule influences the behavior of how a <<#sub:terminology_dependency,dependency>> is resolved. Resolution rules are defined as part of the build logic. For more information, see <<customizing_dependency_resolution_behavior.adoc#customizing_dependency_resolution_behavior,Customizing Dependency Resolution Behavior>>.
 
 [[sub:terminology_transitive_dependency]]
-=== Transitive dependency
+== Transitive dependency
 
-A <<sub:terminology_module,module>> can have dependencies on other modules to work properly, so-called transitive dependencies. Releases of a module hosted on a <<sec:terminology_repository,repository>> can provide <<sub:terminology_module_metadata,metadata>> to declare those transitive dependencies. By default, Gradle resolves transitive dependencies automatically. However, the behavior is highly customizable. For more information, see <<managing_transitive_dependencies>>.
+A <<#sub:terminology_module,module>> can have dependencies on other modules to work properly, so-called transitive dependencies. Releases of a module hosted on a <<#sub:terminology_repository,repository>> can provide <<#sub:terminology_module_metadata,metadata>> to declare those transitive dependencies. By default, Gradle resolves transitive dependencies automatically. However, the behavior is highly customizable. For more information, see <<managing_transitive_dependencies.adoc#managing_transitive_dependencies,Managing Transitive Dependencies>>.

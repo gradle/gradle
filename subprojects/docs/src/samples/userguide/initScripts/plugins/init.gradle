@@ -1,7 +1,7 @@
 import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 
-// START SNIPPET init-script-plugin
+// tag::init-script-plugin[]
 
 apply plugin:EnterpriseRepositoryPlugin
 
@@ -32,4 +32,4 @@ class EnterpriseRepositoryPlugin implements Plugin<Gradle> {
         }
     }
 }
-// END SNIPPET init-script-plugin
+// end::init-script-plugin[]

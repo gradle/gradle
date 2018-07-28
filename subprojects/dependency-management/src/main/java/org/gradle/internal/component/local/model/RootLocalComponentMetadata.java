@@ -82,7 +82,9 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
                 boolean strict = dependencyLockingState.mustValidateLockState();
                 for (ModuleComponentIdentifier lockedDependency : dependencyLockingState.getLockedDependencies()) {
                     String lockedVersion = lockedDependency.getVersion();
-                    VersionConstraint versionConstraint = new DefaultMutableVersionConstraint(lockedVersion, strict);
+                    VersionConstraint versionConstraint = strict
+                        ? DefaultMutableVersionConstraint.withStrictVersion(lockedVersion)
+                        : DefaultMutableVersionConstraint.withVersion(lockedVersion);
                     ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(lockedDependency.getGroup(), lockedDependency.getModule()), versionConstraint);
                     result.add(new LocalComponentDependencyMetadata(getComponentId(), selector, getName(), getAttributes(),  ImmutableAttributes.EMPTY, null,
                         Collections.<IvyArtifactName>emptyList(),  Collections.<ExcludeMetadata>emptyList(), false, false, false, true, getLockReason(strict, lockedVersion)));

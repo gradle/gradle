@@ -1,6 +1,6 @@
-// START SNIPPET use-ear-plugin
+// tag::use-ear-plugin[]
 apply plugin: 'ear'
-// END SNIPPET use-ear-plugin
+// end::use-ear-plugin[]
 
 repositories {
     mavenCentral()

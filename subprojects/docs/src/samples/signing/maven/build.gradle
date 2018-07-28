@@ -1,12 +1,12 @@
-// START SNIPPET use-plugin
+// tag::use-plugin[]
 plugins {
-// END SNIPPET use-plugin
+// end::use-plugin[]
     id 'java'
     id 'maven'
-// START SNIPPET use-plugin
+// tag::use-plugin[]
     id 'signing'
 }
-// END SNIPPET use-plugin
+// end::use-plugin[]
 
 
 group = 'gradle'
@@ -17,21 +17,21 @@ project['signing.keyId'] = "24875D73"
 project['signing.password'] = "gradle"
 project['signing.secretKeyRingFile'] = file("secKeyRingFile.gpg").absolutePath
 
-// START SNIPPET sign-archives
+// tag::sign-archives[]
 signing {
     sign configurations.archives
 }
-// END SNIPPET sign-archives
+// end::sign-archives[]
 
-// START SNIPPET sign-pom
+// tag::sign-pom[]
 uploadArchives {
     repositories {
         mavenDeployer {
-// END SNIPPET sign-pom
+// end::sign-pom[]
             repository(url: uri("${buildDir}/repo"))
-// START SNIPPET sign-pom
+// tag::sign-pom[]
             beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
         }
     }
 }
-// END SNIPPET sign-pom
+// end::sign-pom[]

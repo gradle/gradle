@@ -28,6 +28,7 @@ import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
+import org.gradle.internal.serialize.InterningStringSerializer;
 
 import java.io.File;
 
@@ -141,24 +142,6 @@ public class CachingFileHasher implements FileHasher {
         @Override
         public int hashCode() {
             return Objects.hashCode(super.hashCode(), hashCodeSerializer);
-        }
-    }
-
-    private static final class InterningStringSerializer extends AbstractSerializer<String> {
-        private final StringInterner stringInterner;
-
-        private InterningStringSerializer(StringInterner stringInterner) {
-            this.stringInterner = stringInterner;
-        }
-
-        @Override
-        public String read(Decoder decoder) throws Exception {
-            return stringInterner.intern(decoder.readString());
-        }
-
-        @Override
-        public void write(Encoder encoder, String value) throws Exception {
-            encoder.writeString(value);
         }
     }
 }

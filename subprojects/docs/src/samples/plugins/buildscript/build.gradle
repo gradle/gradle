@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// START SNIPPET buildscript_block
+// tag::buildscript_block[]
 buildscript {
     repositories {
         jcenter()
@@ -25,6 +25,6 @@ buildscript {
 }
 
 apply plugin: "com.jfrog.bintray"
-// END SNIPPET buildscript_block
+// end::buildscript_block[]
 
 

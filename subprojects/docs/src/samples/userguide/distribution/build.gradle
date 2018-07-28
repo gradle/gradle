@@ -1,8 +1,8 @@
-// START SNIPPET use-plugin
+// tag::use-plugin[]
 apply plugin: 'distribution'
-// END SNIPPET use-plugin
+// end::use-plugin[]
 
-// START SNIPPET configure-distribution
+// tag::configure-distribution[]
 distributions {
     main {
         baseName = 'someName'
@@ -11,9 +11,9 @@ distributions {
         }
     }
 }
-// END SNIPPET configure-distribution
+// end::configure-distribution[]
 
-// START SNIPPET publish-distribution
+// tag::publish-distribution[]
 apply plugin:'maven'
 
 uploadArchives {
@@ -23,10 +23,10 @@ uploadArchives {
         }
     }
 }
-// END SNIPPET publish-distribution
+// end::publish-distribution[]
 
-// START SNIPPET custom-distribution
+// tag::custom-distribution[]
 distributions {
     custom {}
 }
-// END SNIPPET custom-distribution
+// end::custom-distribution[]

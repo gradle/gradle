@@ -1,9 +1,9 @@
 
-// START SNIPPET use-plugin
+// tag::use-plugin[]
 apply plugin: 'antlr'
-// END SNIPPET use-plugin
+// end::use-plugin[]
 
-// START SNIPPET declare-dependency
+// tag::declare-dependency[]
 repositories {
     mavenCentral()
 }
@@ -11,15 +11,15 @@ repositories {
 dependencies {
     antlr "org.antlr:antlr:3.5.2" // use ANTLR version 3
     // antlr "org.antlr:antlr4:4.5" // use ANTLR version 4
-// END SNIPPET declare-dependency
+// end::declare-dependency[]
     testCompile 'junit:junit:4.12'
-// START SNIPPET declare-dependency
+// tag::declare-dependency[]
 }
-// END SNIPPET declare-dependency
+// end::declare-dependency[]
 
-// START SNIPPET generate-grammar-settings
+// tag::generate-grammar-settings[]
 generateGrammarSource {
     maxHeapSize = "64m"
     arguments += ["-visitor", "-long-messages"]
 }
-// END SNIPPET generate-grammar-settings
+// end::generate-grammar-settings[]

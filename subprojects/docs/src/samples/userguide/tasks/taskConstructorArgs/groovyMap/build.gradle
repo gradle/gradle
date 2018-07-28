@@ -1,6 +1,6 @@
 import javax.inject.Inject
 
-// START SNIPPET inject-task-constructor
+// tag::inject-task-constructor[]
 class CustomTask extends DefaultTask {
     final String message
     final int number
@@ -10,7 +10,7 @@ class CustomTask extends DefaultTask {
         this.message = message
         this.number = number
     }
-// END SNIPPET inject-task-constructor
+// end::inject-task-constructor[]
 
     @TaskAction
     void printIt() {
@@ -18,6 +18,6 @@ class CustomTask extends DefaultTask {
     }
 }
 
-// START SNIPPET groovy-map
+// tag::groovy-map[]
 task myTask(type: CustomTask, constructorArgs: ['hello', 42])
-// END SNIPPET groovy-map
+// end::groovy-map[]

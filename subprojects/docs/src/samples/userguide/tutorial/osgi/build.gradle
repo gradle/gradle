@@ -3,7 +3,7 @@ apply {
    plugin 'java'
 }
 
-// START SNIPPET configure-jar
+// tag::configure-jar[]
 jar {
     manifest { // the manifest of the default jar is of type OsgiManifest
         name = 'overwrittenSpecialOsgiName'
@@ -17,7 +17,7 @@ jar {
 }
 task fooJar(type: Jar) {
     manifest = osgiManifest {
-        instruction 'Bundle-Vendor', 'MyCompany'    
+        instruction 'Bundle-Vendor', 'MyCompany'
     }
 }
-// END SNIPPET configure-jar
+// end::configure-jar[]

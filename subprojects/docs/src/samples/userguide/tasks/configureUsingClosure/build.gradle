@@ -1,9 +1,11 @@
-// START SNIPPET declare-task
+// tag::all[]
+// tag::declare-task[]
 task myCopy(type: Copy)
-// END SNIPPET declare-task
+// end::declare-task[]
 
 myCopy {
    from 'resources'
    into 'target'
    include('**/*.txt', '**/*.xml', '**/*.properties')
 }
+// end::all[]

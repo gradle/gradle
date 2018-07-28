@@ -38,7 +38,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     abstract String getDistributionLabel()
 
     int getLibJarsCount() {
-        194
+        195
     }
 
     def "no duplicate entries"() {

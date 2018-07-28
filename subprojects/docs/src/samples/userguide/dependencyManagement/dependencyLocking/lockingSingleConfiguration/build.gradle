@@ -21,16 +21,16 @@ repositories {
 }
 
 
-//START SNIPPET locking-one
+// tag::locking-one[]
 configurations {
     compileClasspath {
         resolutionStrategy.activateDependencyLocking()
     }
 }
-//END SNIPPET locking-one
+// end::locking-one[]
 
-//START SNIPPET locking-deps
+// tag::locking-deps[]
 dependencies {
     implementation 'org.springframework:spring-beans:[5.0,6.0)'
 }
-//END SNIPPET locking-deps
+// end::locking-deps[]

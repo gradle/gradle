@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[dependency_locking]]
-== Dependency Locking
+= Dependency Locking
 
 Use of dynamic dependency versions (e.g. `1.+` or `[1.0,2.0)`) makes builds non-deterministic.
 This causes builds to break without any obvious change, and worse, can be caused by a transitive dependency that the build author has no control over.
@@ -29,7 +29,7 @@ Now dependencies can be declared against major or minor version range, enabling 
 * Teams that want to always use the latest of their dependencies can use dynamic versions, locking their dependencies only for releases.
 The release tag will contain the lock states, allowing that build to be fully reproducible when bug fixes need to be developed.
 
-Locking is enabled per <<managing_dependency_configurations,dependency configuration>>.
+Locking is enabled per <<managing_dependency_configurations.adoc#managing_dependency_configurations,dependency configuration>>.
 Once enabled, you must create an initial lock state.
 It will cause Gradle to verify that resolution results do not change, resulting in the same selected dependencies even if newer versions are produced.
 Modifications to your build that would impact the resolved set of dependencies will cause it to fail.
@@ -37,41 +37,45 @@ This makes sure that changes, either in published dependencies or build definiti
 
 [NOTE]
 ====
-Dependency locking makes sense only with <<sub:declaring_dependency_with_dynamic_version,dynamic versions>>.
-It will have no impact on <<sub:declaring_dependency_with_changing_version,changing versions>> (like `-SNAPSHOT`) whose coordinates remain the same, though the content may change.
+Dependency locking makes sense only with <<declaring_dependencies.adoc#sub:declaring_dependency_with_dynamic_version,dynamic versions>>.
+It will have no impact on <<declaring_dependencies.adoc#sub:declaring_dependency_with_changing_version,changing versions>> (like `-SNAPSHOT`) whose coordinates remain the same, though the content may change.
 Gradle will even emit a warning when persisting lock state and changing dependencies are present in the resolution result.
 ====
 
-=== Enabling locking on configurations
+== Enabling locking on configurations
 
-Locking of a configuration happens through the api:org.gradle.api.artifacts.ResolutionStrategy[]:
+Locking of a configuration happens through the link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy]:
 
-++++
-<sample id="locking-one" dir="userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration" title="Locking a specific configuration">
-    <sourcefile file="build.gradle" snippet="locking-one"/>
-</sample>
-++++
+=== Example: Locking a specific configuration
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/build.gradle[tag=locking-one]
+----
 
 Or the following, as a way to lock all configurations:
 
-++++
-<sample id="locking-all" dir="userguide/dependencyManagement/dependencyLocking/lockingAllConfigurations" title="Locking all configurations">
-    <sourcefile file="build.gradle" snippet="locking-all"/>
-</sample>
-++++
+=== Example: Locking all configurations
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingAllConfigurations/build.gradle[tag=locking-all]
+----
 
 [NOTE]
 ====
 Only configurations that can be resolved will have lock state attached to them. Applying locking on non resolvable-configurations is simply a no-op.
 ====
 
-=== Generating and updating dependency locks
+== Generating and updating dependency locks
 
 In order to generate or update lock state, you specify the `--write-locks` command line argument in addition to the normal tasks that would trigger configurations to be resolved.
 This will cause the creation of lock state for each resolved configuration in that build execution.
 Note that if lock state existed previously, it is overwritten.
 
-==== Lock all configurations in one build execution
+=== Lock all configurations in one build execution
 
 When locking multiple configurations, you may want to lock them all at once, during a single build execution.
 
@@ -81,15 +85,18 @@ For this, you have two options:
 This will effectively lock all resolvable configurations that have locking enabled.
 Note that in a multi project setup, `dependencies` only is executed on _one_ project, the root one in this case.
 * Declare a custom task that will resolve all configurations
-++++
-<sample id="locking-all" dir="userguide/dependencyManagement/dependencyLocking/lockingAllConfigurations" title="Resolving all configurations">
-    <sourcefile file="build.gradle" snippet="resolve-all"/>
-</sample>
-++++
+
+==== Example: Resolving all configurations
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingAllConfigurations/build.gradle[tag=resolve-all]
+----
 
 That second option, with proper choosing of configurations, can be the only option in the native world, where not all configurations can be resolved on a single platform.
 
-=== Lock state location and format
+== Lock state location and format
 
 Lock state will be preserved in a file located in the folder `gradle/dependency-locks` inside the project or subproject directory.
 Each file is named by the configuration it locks and has the `lockfile` extension.
@@ -97,21 +104,25 @@ Each file is named by the configuration it locks and has the `lockfile` extensio
 The content of the file is a module notation per line, with a header giving some context.
 Module notations are ordered alphabetically, to ease diffs.
 
-++++
-<sample id="locking-all" dir="userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration" title="Lockfile content">
-    <sourcefile file="gradle/dependency-locks/compileClasspath.lockfile"/>
-</sample>
-++++
+=== Example: Lockfile content
+
+[source.multi-language-sample,groovy]
+.gradle/dependency-locks/compileClasspath.lockfile
+----
+include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/gradle/dependency-locks/compileClasspath.lockfile[]
+----
 
 which matches the following dependency declaration:
 
-++++
-<sample id="locking-one" dir="userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration" title="Dynamic dependency declaration">
-    <sourcefile file="build.gradle" snippet="locking-deps"/>
-</sample>
-++++
+=== Example: Dynamic dependency declaration
 
-=== Running a build with lock state present
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/build.gradle[tag=locking-deps]
+----
+
+== Running a build with lock state present
 
 The moment a build needs to resolve a configuration that has locking enabled and it finds a matching lock state,
 it will use it to verify that the given configuration still resolves the same versions.
@@ -124,7 +135,7 @@ The complete validation is as follows:
 ** A version mismatch or missing resolved module causes a build failure
 * Resolution result must not contain extra dependencies compared to the lock state
 
-=== Selectively updating lock state entries
+== Selectively updating lock state entries
 
 In order to update only specific modules of a configuration, you can use the `--update-locks` command line flag.
 It takes a comma (`,`) separated list of module notations.
@@ -146,7 +157,7 @@ The following wildcard notation examples are valid:
 The resolution may cause other module versions to update, as dictated by the Gradle resolution rules.
 ====
 
-=== Disabling dependency locking
+== Disabling dependency locking
 
 . Make sure that the configuration for which you no longer want locking is not configured with locking.
 . Remove the file matching the configurations where you no longer want locking.
@@ -155,12 +166,12 @@ If you only perform the second step above, then locking will effectively no long
 However, if that configuration happens to be resolved in the future at a time where lock state is persisted, it will once again be locked.
 
 [[locking_limitations]]
-=== Locking limitations
+== Locking limitations
 
-* It is currently not possible to lock the <<sec:applying_plugins_buildscript,`classpath` configuration>> used for script plugins.
+* It is currently not possible to lock the <<plugins.adoc#sec:applying_plugins_buildscript,`classpath` configuration>> used for script plugins.
 * Locking can not yet be applied to source dependencies.
 
-=== Nebula locking plugin
+== Nebula locking plugin
 
 This feature is inspired by the https://github.com/nebula-plugins/gradle-dependency-lock-plugin[Nebula Gradle dependency lock plugin].
 

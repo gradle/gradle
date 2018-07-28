@@ -16,6 +16,6 @@ class CustomTask extends DefaultTask {
     }
 }
 
-// START SNIPPET task-container
+// tag::task-container[]
 tasks.create('myTask', CustomTask, 'hello', 42)
-// END SNIPPET task-container
+// end::task-container[]

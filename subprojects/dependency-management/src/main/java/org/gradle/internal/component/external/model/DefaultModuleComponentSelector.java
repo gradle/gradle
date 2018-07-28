@@ -49,13 +49,13 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     public String getDisplayName() {
         String group = moduleIdentifier.getGroup();
         String module = moduleIdentifier.getName();
-        StringBuilder builder = new StringBuilder(group.length() + module.length() + versionConstraint.getPreferredVersion().length() + 2);
+        StringBuilder builder = new StringBuilder(group.length() + module.length() + versionConstraint.getRequiredVersion().length() + 2);
         builder.append(group);
         builder.append(":");
         builder.append(module);
-        if (versionConstraint.getPreferredVersion().length() > 0) {
+        if (versionConstraint.getRequiredVersion().length() > 0) {
             builder.append(":");
-            builder.append(versionConstraint.getPreferredVersion());
+            builder.append(versionConstraint.getRequiredVersion());
         }
         if (versionConstraint.getBranch() != null) {
             builder.append(" (branch: ");
@@ -74,7 +74,7 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     }
 
     public String getVersion() {
-        return versionConstraint.getPreferredVersion();
+        return versionConstraint.getRequiredVersion();
     }
 
     @Override
@@ -99,7 +99,7 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
             ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier) identifier;
             return moduleIdentifier.getName().equals(moduleComponentIdentifier.getModule())
                 && moduleIdentifier.getGroup().equals(moduleComponentIdentifier.getGroup())
-                && versionConstraint.getPreferredVersion().equals(moduleComponentIdentifier.getVersion());
+                && getVersion().equals(moduleComponentIdentifier.getVersion());
         }
 
         return false;

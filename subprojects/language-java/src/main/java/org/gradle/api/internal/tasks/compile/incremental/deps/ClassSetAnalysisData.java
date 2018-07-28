@@ -22,6 +22,7 @@ import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -87,6 +88,12 @@ public class ClassSetAnalysisData {
     }
 
     public static class Serializer extends AbstractSerializer<ClassSetAnalysisData> {
+
+        private final StringInterner interner;
+
+        public Serializer(StringInterner interner) {
+            this.interner = interner;
+        }
 
         @Override
         public ClassSetAnalysisData read(Decoder decoder) throws Exception {
@@ -193,7 +200,7 @@ public class ClassSetAnalysisData {
             int id = decoder.readSmallInt();
             if (id == 0) {
                 id = decoder.readSmallInt();
-                String className = decoder.readString();
+                String className = interner.intern(decoder.readString());
                 classNameMap.put(id, className);
                 return className;
             }

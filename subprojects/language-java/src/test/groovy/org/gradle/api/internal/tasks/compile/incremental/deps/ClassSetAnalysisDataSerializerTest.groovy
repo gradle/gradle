@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.deps
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import it.unimi.dsi.fastutil.ints.IntSet
 import it.unimi.dsi.fastutil.ints.IntSets
+import org.gradle.api.internal.cache.StringInterner
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
 import spock.lang.Specification
@@ -29,7 +30,7 @@ import static org.gradle.api.internal.tasks.compile.incremental.deps.DependentsS
 
 class ClassSetAnalysisDataSerializerTest extends Specification {
 
-    @Subject serializer = new ClassSetAnalysisData.Serializer()
+    @Subject serializer = new ClassSetAnalysisData.Serializer(new StringInterner())
 
     def "serializes"() {
         def data = new ClassSetAnalysisData(["A", "B", "C", "D"] as Set,

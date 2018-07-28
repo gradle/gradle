@@ -36,7 +36,7 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
     private static final VersionSelectorScheme VERSION_SELECTOR_SCHEME = new DefaultVersionSelectorScheme(VERSION_COMPARATOR, VERSION_PARSER);
 
     private final DependencyToComponentIdResolver resolver;
-    private ResolvedVersionConstraint versionConstraint;
+    private DefaultResolvedVersionConstraint versionConstraint;
     public ComponentIdResolveResult resolved;
 
     public TestModuleSelectorState(DependencyToComponentIdResolver resolver, VersionConstraint versionConstraint) {
@@ -71,7 +71,7 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
             return resolved;
         }
 
-        ResolvedVersionConstraint mergedConstraint = new DefaultResolvedVersionConstraint(versionConstraint.getPreferredSelector(), allRejects);
+        ResolvedVersionConstraint mergedConstraint = versionConstraint.withRejectSelector(allRejects);
         resolved = resolveVersion(mergedConstraint);
         return resolved;
     }

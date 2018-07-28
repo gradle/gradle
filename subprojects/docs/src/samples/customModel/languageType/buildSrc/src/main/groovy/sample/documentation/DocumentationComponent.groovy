@@ -19,7 +19,7 @@ package sample.documentation
 import org.gradle.model.Managed
 import org.gradle.platform.base.GeneralComponentSpec
 
-// START SNIPPET component-declaration
+// tag::component-declaration[]
 @Managed
 interface DocumentationComponent extends GeneralComponentSpec {}
-// END SNIPPET component-declaration
+// end::component-declaration[]

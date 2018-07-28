@@ -17,7 +17,6 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.file.TestFile
@@ -32,7 +31,7 @@ class OsgiProjectSampleIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'osgi')
 
     def setup() {
-        executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
+        useRepositoryMirrors()
     }
 
     def "OSGi project samples"() {

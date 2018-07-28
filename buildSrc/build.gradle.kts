@@ -14,29 +14,30 @@
  * limitations under the License.
  */
 
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
+import org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_DEFAULT_URL
 import org.gradle.plugins.ide.idea.model.IdeaModel
+
+import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin
+import org.gradle.kotlin.dsl.plugins.dsl.ProgressiveModeState
+
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 import java.io.File
 import java.util.Properties
-import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
-import org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_DEFAULT_URL
+
 
 buildscript {
-    project.apply {
-        from("$rootDir/../gradle/shared-with-buildSrc/mirrors.gradle.kts")
-    }
+    project.apply(from = "$rootDir/../gradle/shared-with-buildSrc/mirrors.gradle.kts")
 }
 
 plugins {
     `kotlin-dsl`
-    id("org.gradle.kotlin.ktlint-convention") version "0.1.8" apply false
+    id("org.gradle.kotlin.ktlint-convention") version "0.1.10" apply false
 }
 
 subprojects {
 
-    apply { plugin("java-library") }
+    apply(plugin = "java-library")
 
     if (file("src/main/groovy").isDirectory || file("src/test/groovy").isDirectory) {
 
@@ -48,10 +49,8 @@ subprojects {
         applyKotlinProjectConventions()
     }
 
-    apply {
-        plugin("idea")
-        plugin("eclipse")
-    }
+    apply(plugin = "idea")
+    apply(plugin = "eclipse")
 
     configure<IdeaModel> {
         module.name = "buildSrc-${this@subprojects.name}"
@@ -94,7 +93,7 @@ dependencies {
 // TODO Avoid duplication of what defines a CI Server with BuildEnvironment
 val isCiServer: Boolean by extra { "CI" in System.getenv() }
 if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {
-    apply { from("../gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts") }
+    apply(from = "../gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
 }
 
 if (isCiServer) {
@@ -148,7 +147,7 @@ val checkSameDaemonArgs = tasks.register("checkSameDaemonArgs") {
 tasks.named("build").configure { dependsOn(checkSameDaemonArgs) }
 
 fun Project.applyGroovyProjectConventions() {
-    apply { plugin("groovy") }
+    apply(plugin = "groovy")
 
     dependencies {
         compile(localGroovy())
@@ -188,14 +187,19 @@ fun Project.applyGroovyProjectConventions() {
 }
 
 fun Project.applyKotlinProjectConventions() {
-    apply {
-        plugin("kotlin")
-        plugin("org.gradle.kotlin.ktlint-convention")
-    }
+    apply(plugin = "kotlin")
+
+    apply(plugin = "org.gradle.kotlin.ktlint-convention")
 
     tasks.withType<KotlinCompile>().configureEach {
         kotlinOptions {
             freeCompilerArgs += listOf("-Xjsr305=strict")
+        }
+    }
+
+    plugins.withType<KotlinDslPlugin> {
+        kotlinDslPluginOptions {
+            progressive.set(ProgressiveModeState.ENABLED)
         }
     }
 }

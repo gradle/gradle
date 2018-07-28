@@ -16,7 +16,7 @@
 
 package org.gradle.testing.junit
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.Requires
@@ -27,7 +27,7 @@ import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.startsWith
 
-public class JUnitCategoriesIntegrationSpec extends AbstractIntegrationSpec {
+class JUnitCategoriesIntegrationSpec extends AbstractSampleIntegrationTest {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)
 

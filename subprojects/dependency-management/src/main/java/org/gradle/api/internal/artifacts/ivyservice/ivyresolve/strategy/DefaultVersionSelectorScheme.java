@@ -56,15 +56,10 @@ public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
 
     @Override
     public VersionSelector complementForRejection(VersionSelector selector) {
-        if (selector instanceof ExactVersionSelector) {
-            return new VersionRangeSelector("(" + selector.getSelector() + ",)", versionComparator.asVersionComparator(), versionParser);
-        }
-        if (selector instanceof VersionRangeSelector) {
-            VersionRangeSelector vrs = (VersionRangeSelector) selector;
-            if (vrs.getUpperBound() != null) {
-                String lowerBoundInclusion = vrs.isUpperInclusive() ? "(" : "[";
-                return new VersionRangeSelector(lowerBoundInclusion + vrs.getUpperBound() + ",)", versionComparator.asVersionComparator(), versionParser);
-            }
+        // TODO:DAZ We can probably now support more versions with `strictly` but we'll need more test coverage
+        if ((selector instanceof ExactVersionSelector)
+            || (selector instanceof VersionRangeSelector && ((VersionRangeSelector) selector).getUpperBound() != null)) {
+            return new InverseVersionSelector(selector);
         }
         throw new IllegalArgumentException("Version '" + renderSelector(selector) + "' cannot be converted to a strict version constraint.");
     }

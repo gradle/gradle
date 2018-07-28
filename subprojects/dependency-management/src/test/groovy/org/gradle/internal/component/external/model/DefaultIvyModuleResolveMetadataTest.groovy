@@ -60,10 +60,10 @@ class DefaultIvyModuleResolveMetadataTest extends AbstractLazyModuleComponentRes
         def compile = md.getConfiguration("compile")
 
         then:
-        runtime.dependencies*.selector*.versionConstraint.preferredVersion == ["1.1", "1.2", "1.3", "1.5"]
+        runtime.dependencies*.selector*.version == ["1.1", "1.2", "1.3", "1.5"]
         runtime.dependencies.is(runtime.dependencies)
 
-        compile.dependencies*.selector*.versionConstraint.preferredVersion == ["1.2", "1.3", "1.5"]
+        compile.dependencies*.selector*.version == ["1.2", "1.3", "1.5"]
         compile.dependencies.is(compile.dependencies)
     }
 

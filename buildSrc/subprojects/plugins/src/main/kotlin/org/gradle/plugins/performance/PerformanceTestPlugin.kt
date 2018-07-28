@@ -83,9 +83,7 @@ const val performanceExperimentCategory = "org.gradle.performance.categories.Per
 class PerformanceTestPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        apply {
-            plugin("java")
-        }
+        apply(plugin = "java")
 
         val performanceTestSourceSet = createPerformanceTestSourceSet()
         addConfigurationAndDependencies()

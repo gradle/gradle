@@ -27,8 +27,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Action;
-import org.gradle.api.Describable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CleanupProgressMonitor;
@@ -54,7 +52,7 @@ import java.util.zip.ZipFile;
 import static org.apache.commons.io.filefilter.FileFilterUtils.directoryFileFilter;
 import static org.gradle.util.CollectionUtils.single;
 
-public class WrapperDistributionCleanupAction implements Action<CleanupProgressMonitor>, Describable {
+public class WrapperDistributionCleanupAction implements DirectoryCleanupAction {
 
     @VisibleForTesting static final String WRAPPER_DISTRIBUTION_FILE_PATH = "wrapper/dists";
     private static final Logger LOGGER = Logging.getLogger(WrapperDistributionCleanupAction.class);
@@ -89,7 +87,7 @@ public class WrapperDistributionCleanupAction implements Action<CleanupProgressM
         return "Deleting unused Gradle distributions in " + distsDir;
     }
 
-    public void execute(@Nonnull CleanupProgressMonitor progressMonitor) {
+    public boolean execute(@Nonnull CleanupProgressMonitor progressMonitor) {
         long maximumTimestamp = Math.max(0, System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1));
         Set<GradleVersion> usedVersions = this.usedGradleVersions.getUsedGradleVersions();
         Multimap<GradleVersion, File> checksumDirsByVersion = determineChecksumDirsByVersion();
@@ -100,6 +98,7 @@ public class WrapperDistributionCleanupAction implements Action<CleanupProgressM
                 progressMonitor.incrementSkipped(checksumDirsByVersion.get(version).size());
             }
         }
+        return true;
     }
 
     private void deleteDistributions(Collection<File> dirs, long maximumTimestamp, CleanupProgressMonitor progressMonitor) {

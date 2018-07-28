@@ -13,9 +13,9 @@
 // limitations under the License.
 
 [[osgi_plugin]]
-== The OSGi Plugin
+= The OSGi Plugin
 
-The OSGi plugin provides a factory method to create an api:org.gradle.api.plugins.osgi.OsgiManifest[] object. `OsgiManifest` extends api:org.gradle.api.java.archives.Manifest[]. To learn more about generic manifest handling, see <<sub:manifest>>. If the Java plugins is applied, the OSGi plugin replaces the manifest object of the default jar with an `OsgiManifest` object. The replaced manifest is merged into the new one.
+The OSGi plugin provides a factory method to create an link:{javadocPath}/org/gradle/api/plugins/osgi/OsgiManifest.html[OsgiManifest] object. `OsgiManifest` extends link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest]. To learn more about generic manifest handling, see <<java_plugin.adoc#sub:manifest,more about Java manifests>>. If the Java plugins is applied, the OSGi plugin replaces the manifest object of the default jar with an `OsgiManifest` object. The replaced manifest is merged into the new one.
 
 [NOTE]
 ====
@@ -24,80 +24,73 @@ The OSGi plugin makes heavy use of the http://bnd.bndtools.org/[BND tool]. A sep
 
 
 [[sec:osgi_usage]]
-=== Usage
+== Usage
 
 To use the OSGi plugin, include the following in your build script:
 
-++++
-<sample id="useOsgiPlugin" dir="osgi" title="Using the OSGi plugin">
-            <sourcefile file="build.gradle" snippet="use-plugin"/>
-        </sample>
-++++
+=== Example: Using the OSGi plugin
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/osgi/build.gradle[tag=use-plugin]
+----
 
 
 [[sec:osgi_implicitly_applied_plugins]]
-=== Implicitly applied plugins
+== Implicitly applied plugins
 
 Applies the Java base plugin.
 
 [[sec:osgi_tasks]]
-=== Tasks
+== Tasks
 
 The OSGi plugin adds the following tasks to the project:
 
-.OSGi plugin - tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
-
-| `osgiClasses`
-| `classes`
-| api:org.gradle.api.tasks.Sync[]
-| Copies all classes from the main source set to a single directory that is processed by BND.
-|===
+`osgiClasses` — link:{groovyDslPath}/org.gradle.api.tasks.Sync.html[Sync]::
+_Depends on_: `classes`
++
+Copies all classes from the main source set to a single directory that is processed by BND.
 
 
 [[sec:osgi_convention_object]]
-=== Convention object
+== Convention object
 
-The OSGi plugin adds the following convention object: api:org.gradle.api.plugins.osgi.OsgiPluginConvention[]
+The OSGi plugin adds the following convention object: link:{javadocPath}/org/gradle/api/plugins/osgi/OsgiPluginConvention.html[OsgiPluginConvention]
 
 
 [[sec:osgi_convention_properties]]
-==== Convention properties
+=== Convention properties
 
 The OSGi plugin does not add any convention properties to the project.
 
 [[sec:osgi_convention_methods]]
-==== Convention methods
+=== Convention methods
 
 The OSGi plugin adds the following methods. For more details, see the API documentation of the convention object.
 
 .OSGi methods
-[cols="a,a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Method
-| Return Type
-| Description
+| Method | Return Type | Description
 
 | osgiManifest()
-| api:org.gradle.api.plugins.osgi.OsgiManifest[]
+| link:{javadocPath}/org/gradle/api/plugins/osgi/OsgiManifest.html[OsgiManifest]
 | Returns an OsgiManifest object.
 
 | osgiManifest(Closure cl)
-| api:org.gradle.api.plugins.osgi.OsgiManifest[]
+| link:{javadocPath}/org/gradle/api/plugins/osgi/OsgiManifest.html[OsgiManifest]
 | Returns an OsgiManifest object configured by the closure.
 |===
 
 The classes in the classes dir are analyzed regarding their package dependencies and the packages they expose. Based on this the _Import-Package_ and the _Export-Package_ values of the OSGi Manifest are calculated. If the classpath contains jars with an OSGi bundle, the bundle information is used to specify version information for the _Import-Package_ value. Beside the explicit properties of the `OsgiManifest` object you can add instructions.
 
-++++
-<sample id="osgi" dir="userguide/tutorial/osgi" title="Configuration of OSGi MANIFEST.MF file">
-                <sourcefile file="build.gradle" snippet="configure-jar"/>
-            </sample>
-++++
+=== Example: Configuration of OSGi MANIFEST.MF file
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tutorial/osgi/build.gradle[tag=configure-jar]
+----
 
 The first argument of the instruction call is the key of the property. The other arguments form the value. To learn more about the available instructions have a look at the http://bnd.bndtools.org/[BND tool].

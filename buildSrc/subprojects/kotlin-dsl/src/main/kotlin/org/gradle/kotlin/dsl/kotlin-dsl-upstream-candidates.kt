@@ -2,9 +2,7 @@
 // and make available to all Kotlin DSL users
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.Named
 import org.gradle.api.Project
-import org.gradle.api.model.ObjectFactory
 import java.io.File
 import java.util.concurrent.Callable
 
@@ -23,13 +21,6 @@ operator fun File.div(child: String): File =
  */
 fun <T> deferred(value: () -> T): Any =
     Callable { value() }
-
-
-/**
- * See [ObjectFactory.named].
- */
-inline fun <reified T : Named> ObjectFactory.named(name: String): T =
-    named(T::class.java, name)
 
 
 fun Project.stringPropertyOrNull(projectPropertyName: String): String? =

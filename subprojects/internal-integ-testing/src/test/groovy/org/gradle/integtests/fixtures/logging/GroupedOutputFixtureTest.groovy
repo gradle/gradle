@@ -383,6 +383,20 @@ Hello, World!
         groupedOutput.task(':helloWorld').output == 'Hello, World!'
     }
 
+    def "accepts start of sub progress logger as end of group"() {
+        def consoleOutput = """
+> Task :helloWorld
+Hello, World!
+
+> :otherBuild > Doing some work"""
+
+        when:
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
+
+        then:
+        groupedOutput.task(':helloWorld').output == 'Hello, World!'
+    }
+
     def "does not fail with with stack overflow error"() {
         def consoleOutput = """
  [1m> Task :xx:

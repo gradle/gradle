@@ -13,13 +13,13 @@
 // limitations under the License.
 
 [[idea_plugin]]
-== The IDEA Plugin
+= The IDEA Plugin
 
 The IDEA plugin generates files that are used by http://www.jetbrains.com/idea/[IntelliJ IDEA], thus making it possible to open the project from IDEA (`File` - `Open Project`). Both external dependencies (including associated source and Javadoc files) and project dependencies are considered.
 
 [NOTE]
 ====
-If you simply want to load a Gradle project into IntelliJ IDEA, then use the IDE's https://www.jetbrains.com/help/idea/gradle.html#gradle_import[import facility]. You do not need to apply this plugin to import your project into IDEA, although if you do, the import will take account of any extra IDEA configuration you have that doesn't directly modify the generated files — see the <<sec:idea_configuration,Configuration>> section for more details.
+If you simply want to load a Gradle project into IntelliJ IDEA, then use the IDE's https://www.jetbrains.com/help/idea/gradle.html#gradle_import[import facility]. You do not need to apply this plugin to import your project into IDEA, although if you do, the import will take account of any extra IDEA configuration you have that doesn't directly modify the generated files — see the <<#sec:idea_configuration,Configuration>> section for more details.
 ====
 
 What exactly the IDEA plugin generates depends on which other plugins are used:
@@ -27,22 +27,24 @@ What exactly the IDEA plugin generates depends on which other plugins are used:
 *Always*::
 Generates an IDEA module file. Also generates an IDEA project and workspace file if the project is the root project.
 
-*<<java_plugin,Java Plugin>>*::
+*<<java_plugin.adoc#java_plugin,Java Plugin>>*::
 Additionally adds Java configuration to the IDEA module and project files.
 
 One focus of the IDEA plugin is to be open to customization. The plugin provides a standardized set of hooks for adding and removing content from the generated files.
 
 
 [[sec:idea_usage]]
-=== Usage
+== Usage
 
 To use the IDEA plugin, include this in your build script:
 
-++++
-<sample id="useIdeaPlugin" dir="idea" title="Using the IDEA plugin">
-    <sourcefile file="build.gradle" snippet="use-plugin"/>
-</sample>
-++++
+=== Example: Using the IDEA plugin
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/idea/build.gradle[tag=use-plugin]
+----
 
 The IDEA plugin adds a number of tasks to your project. The `idea` task generates an IDEA module file for the project. When the project is the root project, the `idea` task also generates an IDEA project and workspace. The IDEA project includes modules for each of the projects in the Gradle build.
 
@@ -51,14 +53,14 @@ The IDEA plugin also adds an `openIdea` task when the project is the root projec
 The IDEA plugin also adds a `cleanIdea` task to the project. This task deletes the generated files, if present.
 
 [[sec:idea_tasks]]
-=== Tasks
+== Tasks
 
 The IDEA plugin adds the tasks shown below to a project. Notice that the `clean` task does not depend on the `cleanIdeaWorkspace` task. This is because the workspace typically contains a lot of user specific temporary data and it is not desirable to manipulate it outside IDEA.
 
 [[ideatasks]]
 `idea`::
 _Depends on_: `ideaProject`, `ideaModule`, `ideaWorkspace`
-+  
++
 Generates all IDEA configuration files
 
 `openIdea`::
@@ -66,32 +68,32 @@ _Depends on_: `idea`
 +
 Generates all IDEA configuration files and opens the project in IDEA
 
-`cleanIdea` — type: api:org.gradle.api.tasks.Delete[]::
+`cleanIdea` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
 _Depends on_: `cleanIdeaProject`, `cleanIdeaModule`
 +
 Removes all IDEA configuration files
 
-`cleanIdeaProject` — type: api:org.gradle.api.tasks.Delete[]::
+`cleanIdeaProject` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
 Removes the IDEA project file
 
-`cleanIdeaModule` — type: api:org.gradle.api.tasks.Delete[]::
+`cleanIdeaModule` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
 Removes the IDEA module file
 
-`cleanIdeaWorkspace` — type: api:org.gradle.api.tasks.Delete[]::
+`cleanIdeaWorkspace` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
 Removes the IDEA workspace file
 
-`ideaProject` — type: api:org.gradle.plugins.ide.idea.GenerateIdeaProject[]::
+`ideaProject` — link:{groovyDslPath}/org.gradle.plugins.ide.idea.GenerateIdeaProject.html[GenerateIdeaProject]::
 Generates the `.ipr` file. This task is only added to the root project.
 
-`ideaModule` — type: api:org.gradle.plugins.ide.idea.GenerateIdeaModule[]::
+`ideaModule` — link:{groovyDslPath}/org.gradle.plugins.ide.idea.GenerateIdeaModule.html[GenerateIdeaModule]::
 Generates the `.iml` file
 
-`ideaWorkspace` — type: api:org.gradle.plugins.ide.idea.GenerateIdeaWorkspace[]::
+`ideaWorkspace` — link:{groovyDslPath}/org.gradle.plugins.ide.idea.GenerateIdeaWorkspace.html[GenerateIdeaWorkspace]::
 Generates the `.iws` file. This task is only added to the root project.
 
 
 [[sec:idea_configuration]]
-=== Configuration
+== Configuration
 
 The plugin adds some configuration options that allow to customize the IDEA project and module files that it generates. These take the form of both model properties and lower-level mechanisms that modify the generated files directly. For example, you can add source and resource directories, as well as inject your own fragments of XML. The former type of configuration is honored by IDEA's import facility, whereas the latter is not.
 
@@ -99,23 +101,23 @@ Here are the configuration properties you can use:
 
 [[idea-configuration]]
 
-`idea` — type: api:org.gradle.plugins.ide.idea.model.IdeaModel[]::
+`idea` — link:{groovyDslPath}/org.gradle.plugins.ide.idea.model.IdeaModel.html[IdeaModel]::
 Top level element that enables configuration of the idea plugin in a DSL-friendly fashion
 
-`idea.project` — type: api:org.gradle.plugins.ide.idea.model.IdeaProject[]::
+`idea.project` link:{groovyDslPath}/org.gradle.plugins.ide.idea.model.IdeaProject.html[IdeaProject]::
 Allows configuring project information
 
-`idea.module` — type: api:org.gradle.plugins.ide.idea.model.IdeaModule[]::
+`idea.module` link:{groovyDslPath}/org.gradle.plugins.ide.idea.model.IdeaModule.html[IdeaModule]::
 Allows configuring module information
 
-`idea.workspace` — type: api:org.gradle.plugins.ide.idea.model.IdeaWorkspace[]::
+`idea.workspace` link:{groovyDslPath}/org.gradle.plugins.ide.idea.model.IdeaWorkspace.html[IdeaWorkspace]::
 Allows configuring the workspace XML
 
 Follow the links to the types for examples of using these configuration properties.
 
 
 [[sec:idea_customizing_the_generated_files]]
-=== Customizing the generated files
+== Customizing the generated files
 
 The IDEA plugin provides hooks and behavior for customizing the generated content in a more controlled and detailed way. In addition, the `withXml` hook is the only practical way to modify the workspace file because its corresponding domain object is essentially empty.
 
@@ -125,20 +127,20 @@ The tasks recognize existing IDEA files and merge them with the generated conten
 
 
 [[sec:merging_with_idea_files]]
-==== Merging
+=== Merging
 
 Sections of existing IDEA files that are also the target of generated content will be amended or overwritten, depending on the particular section. The remaining sections will be left as-is.
 
 
 [[sec:complete_overwrite_of_idea_files]]
-===== Disabling merging with a complete overwrite
+==== Disabling merging with a complete overwrite
 
 To completely rewrite existing IDEA files, execute a clean task together with its corresponding generation task, like “`gradle cleanIdea idea`” (in that order). If you want to make this the default behavior, add “`tasks.idea.dependsOn(cleanIdea)`” to your build script. This makes it unnecessary to execute the clean task explicitly.
 
 This strategy can also be used for individual files that the plugin would generate. For instance, this can be done for the “`.iml`” file with “`gradle cleanIdeaModule ideaModule`”.
 
 [[sec:hooking_into_the_idea_generation_lifecycle]]
-==== Hooking into the generation lifecycle
+=== Hooking into the generation lifecycle
 
 The plugin provides objects modeling the sections of the metadata files that are generated by Gradle. The generation lifecycle is as follows:
 
@@ -152,69 +154,76 @@ The plugin provides objects modeling the sections of the metadata files that are
 The following are the domain objects used for each of the model types:
 
 [[idea-hooks]]
-api:org.gradle.plugins.ide.idea.model.IdeaProject[]::
+link:{groovyDslPath}/org.gradle.plugins.ide.idea.model.IdeaProject.html[IdeaProject]::
 +
- * `beforeMerged { api:org.gradle.plugins.ide.idea.model.Project[] arg \-> ... }`
- * `whenMerged { api:org.gradle.plugins.ide.idea.model.Project[] arg \-> ... }`
- * `withXml { api:org.gradle.api.XmlProvider[] arg \-> ... }`
+ * `beforeMerged { link:{javadocPath}/org/gradle/plugins/ide/idea/model/Project.html[Project] arg \-> ... }`
+ * `whenMerged { link:{javadocPath}/org/gradle/plugins/ide/idea/model/Project.html[Project] arg \-> ... }`
+ * `withXml { link:{javadocPath}/org/gradle/api/XmlProvider.html[XmlProvider] arg \-> ... }`
 
-api:org.gradle.plugins.ide.idea.model.IdeaModule[]::
- * `beforeMerged { api:org.gradle.plugins.ide.idea.model.Module[] arg \-> ... }`
- * `whenMerged { api:org.gradle.plugins.ide.idea.model.Module[] arg \-> ... }`
- * `withXml { api:org.gradle.api.XmlProvider[] arg \-> ... }`
+link:{javadocPath}/org/gradle/plugins/ide/idea/model/IdeaModule.html[IdeaModule]::
+ * `beforeMerged { link:{javadocPath}/org/gradle/plugins/ide/idea/model/Module.html[Module] arg \-> ... }`
+ * `whenMerged { link:{javadocPath}/org/gradle/plugins/ide/idea/model/Module.html[Module] arg \-> ... }`
+ * `withXml { link:{javadocPath}/org/gradle/api/XmlProvider.html[XmlProvider] arg \-> ... }`
 
-api:org.gradle.plugins.ide.idea.model.IdeaWorkspace[]::
- * `beforeMerged { api:org.gradle.plugins.ide.idea.model.Workspace[] arg \-> ... }`
- * `whenMerged { api:org.gradle.plugins.ide.idea.model.Workspace[] arg \-> ... }`
- * `withXml { api:org.gradle.api.XmlProvider[] arg \-> ... }`
+link:{javadocPath}/org/gradle/plugins/ide/idea/model/IdeaWorkspace.html[IdeaWorkspace]::
+ * `beforeMerged { link:{javadocPath}/org/gradle/plugins/ide/idea/model/Workspace.html[Workspace] arg \-> ... }`
+ * `whenMerged { link:{javadocPath}/org/gradle/plugins/ide/idea/model/Workspace.html[Workspace] arg \-> ... }`
+ * `withXml { link:{javadocPath}/org/gradle/api/XmlProvider.html[XmlProvider] arg \-> ... }`
 
 
 [[sec:partial-rewrite]]
-===== Partial rewrite of existing content
+==== Partial rewrite of existing content
 
-A <<sec:complete-rewrite,complete rewrite>> causes all existing content to be discarded, thereby losing any changes made directly in the IDE. The `beforeMerged` hook makes it possible to overwrite just certain parts of the existing content. The following example removes all existing dependencies from the `Module` domain object:
+A "complete rewrite" causes all existing content to be discarded, thereby losing any changes made directly in the IDE. The `beforeMerged` hook makes it possible to overwrite just certain parts of the existing content. The following example removes all existing dependencies from the `Module` domain object:
 
-++++
-<sample id="partialRewrites" dir="idea" title="Partial Rewrite for Module">
-    <sourcefile file="build.gradle" snippet="module-before-merged"/>
-</sample>
-++++
+=== Example: Partial Rewrite for Module
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/idea/build.gradle[tag=module-before-merged]
+----
 
 The resulting module file will only contain Gradle-generated dependency entries, but not any other dependency entries that may have been present in the original file. (In the case of dependency entries, this is also the default behavior.) Other sections of the module file will be either left as-is or merged. The same could be done for the module paths in the project file:
 
-++++
-<sample id="partialRewritesProject" dir="idea" title="Partial Rewrite for Project">
-    <sourcefile file="build.gradle" snippet="project-before-merged"/>
-</sample>
-++++
+=== Example: Partial Rewrite for Project
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/idea/build.gradle[tag=project-before-merged]
+----
 
 
 [[sec:idea_modify_domain_objects]]
-===== Modifying the fully populated domain objects
+==== Modifying the fully populated domain objects
 
 The `whenMerged` hook allows you to manipulate the fully populated domain objects. Often this is the preferred way to customize IDEA files. Here is how you would export all the dependencies of an IDEA module:
 
-++++
-<sample id="exportDependencies" dir="idea" title="Export Dependencies">
-    <sourcefile file="build.gradle" snippet="module-when-merged"/>
-</sample>
-++++
+=== Example: Export Dependencies
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/idea/build.gradle[tag=module-when-merged]
+----
 
 
 [[sec:idea_modify_xml]]
-===== Modifying the XML representation
+==== Modifying the XML representation
 
 The `withXml` hook allows you to manipulate the in-memory XML representation just before the file gets written to disk. Although Groovy's XML support makes up for a lot, this approach is less convenient than manipulating the domain objects. In return, you get total control over the generated file, including sections not modeled by the domain objects.
 
-++++
-<sample id="projectWithXml" dir="idea" title="Customizing the XML">
-    <sourcefile file="build.gradle" snippet="project-with-xml"/>
-    <test args="idea"/>
-</sample>
-++++
+=== Example: Customizing the XML
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/idea/build.gradle[tag=project-with-xml]
+----
 
 
 [[sec:further_things_to_consider]]
-=== Further things to consider
+== Further things to consider
 
 The paths of dependencies in the generated IDEA files are absolute. If you manually define a path variable pointing to the Gradle dependency cache, IDEA will automatically replace the absolute dependency paths with this path variable. you can configure this path variable via the “`idea.pathVariables`” property, so that it can do a proper merge without creating duplicates.

@@ -8,11 +8,11 @@ dependencies {
     implementation 'org.springframework:spring-web:5.+'
 }
 
-//START SNIPPET dynamic-version-cache-control
+// tag::dynamic-version-cache-control[]
 configurations.all {
     resolutionStrategy.cacheDynamicVersionsFor 10, 'minutes'
 }
-//END SNIPPET dynamic-version-cache-control
+// end::dynamic-version-cache-control[]
 
 task copyLibs(type: Copy) {
     from configurations.compileClasspath

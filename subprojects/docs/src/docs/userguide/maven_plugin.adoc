@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[maven_plugin]]
-== Maven Plugin
+= Maven Plugin
 
 
 [NOTE]
@@ -21,7 +21,7 @@
 
 This chapter describes deploying artifacts to Maven repositories using the _original_ publishing mechanism available in Gradle 1.0: in Gradle 1.3 a new mechanism for publishing was introduced. This new mechanism introduces some new concepts and features that make Gradle publishing even more powerful and is now the preferred option for publishing artifacts.
 
-You can read about the new publishing plugins in <<publishing_ivy>> and <<publishing_maven>>.
+You can read about the new publishing plugins in <<publishing_ivy.adoc#publishing_ivy,Publishing Ivy>> and <<publishing_maven.adoc#publishing_maven,Publishing Maven>>.
 
 ====
 
@@ -29,123 +29,108 @@ The Maven plugin adds support for deploying artifacts to Maven repositories.
 
 
 [[sec:maven_usage]]
-=== Usage
+== Usage
 
 To use the Maven plugin, include the following in your build script:
 
-++++
-<sample id="useMavenPlugin" dir="maven/quickstart" title="Using the Maven plugin">
-            <sourcefile file="build.gradle" snippet="use-plugin"/>
-        </sample>
-++++
+=== Example: Using the Maven plugin
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/maven/quickstart/build.gradle[tag=use-plugin]
+----
 
 
 [[sec:maven_tasks]]
-=== Tasks
+== Tasks
 
 The Maven plugin defines the following tasks:
 
-.Maven plugin - tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
-
-| `install`
-| All tasks that build the associated archives.
-| api:org.gradle.api.tasks.Upload[]
-| Installs the associated artifacts to the local Maven cache, including Maven metadata generation. By default the install task is associated with the `archives` configuration. This configuration has by default only the default jar as an element. To learn more about installing to the local repository, see: <<sub:installing_to_the_local_repository>>
-|===
+`install` — link:{groovyDslPath}/org.gradle.api.tasks.Upload.html[Upload]::
+_Depends on_: All tasks that build the associated archives.
++
+Installs the associated artifacts to the local Maven cache, including Maven metadata generation. By default the install task is associated with the `archives` configuration. This configuration has by default only the default jar as an element. To learn more about installing to the local repository, see <<#sub:installing_to_the_local_repository,Installing to the local repository>>
 
 
 [[sec:maven_dependency_management]]
-=== Dependency management
+== Dependency management
 
 The Maven plugin does not define any dependency configurations.
 
 [[sec:maven_convention_properties]]
-=== Convention properties
+== Convention properties
 
 The Maven plugin defines the following convention properties:
 
-.Maven plugin - properties
-[cols="a,a,a,a", options="header"]
-|===
-| Property name
-| Type
-| Default value
-| Description
+`mavenPomDir` — `File`::
+The directory where the generated POMs are written to. _Default value_: `__${project.buildDir}__/poms`
 
-| `mavenPomDir`
-| `File`
-| `__${project.buildDir}__/poms`
-| The directory where the generated POMs are written to.
+`conf2ScopeMappings` — `link:{javadocPath}/org/gradle/api/artifacts/maven/Conf2ScopeMappingContainer.html[Conf2ScopeMappingContainer]`::
+Instructions for mapping Gradle configurations to Maven scopes. See <<#sub:dependency_mapping,Dependency mapping>>.
 
-| `conf2ScopeMappings`
-| `api:org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer[]`
-| `n/a`
-| Instructions for mapping Gradle configurations to Maven scopes. See <<sub:dependency_mapping>>.
-|===
-
-These properties are provided by a api:org.gradle.api.plugins.MavenPluginConvention[] convention object.
+These properties are provided by a link:{groovyDslPath}/org.gradle.api.plugins.MavenPluginConvention.html[MavenPluginConvention] convention object.
 
 [[sec:maven_convention_methods]]
-=== Convention methods
+== Convention methods
 
 The maven plugin provides a factory method for creating a POM. This is useful if you need a POM without the context of uploading to a Maven repo.
 
-++++
-<sample id="newPom" dir="maven/pomGeneration" title="Creating a standalone pom.">
-            <sourcefile file="build.gradle" snippet="new-pom"/>
-        </sample>
-++++
+=== Example: Creating a standalone pom.
 
-Amongst other things, Gradle supports the same builder syntax as polyglot Maven. To learn more about the Gradle Maven POM object, see api:org.gradle.api.artifacts.maven.MavenPom[]. See also: api:org.gradle.api.plugins.MavenPluginConvention[] 
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/maven/pomGeneration/build.gradle[tag=new-pom]
+----
+
+Amongst other things, Gradle supports the same builder syntax as polyglot Maven. To learn more about the Gradle Maven POM object, see link:{javadocPath}/org/gradle/api/artifacts/maven/MavenPom.html[MavenPom]. See also: link:{groovyDslPath}/org.gradle.api.plugins.MavenPluginConvention.html[MavenPluginConvention]
 
 [[uploading_to_maven_repositories]]
-=== Interacting with Maven repositories
+== Interacting with Maven repositories
 
 
 [[sec:maven_upload_intro]]
-==== Introduction
+=== Introduction
 
 With Gradle you can deploy to remote Maven repositories or install to your local Maven repository. This includes all Maven metadata manipulation and works also for Maven snapshots. In fact, Gradle's deployment is 100 percent Maven compatible as we use the native Maven Ant tasks under the hood.
 
 Deploying to a Maven repository is only half the fun if you don't have a POM. Fortunately Gradle can generate this POM for you using the dependency information it has.
 
 [[sec:deploying_to_a_maven_repository]]
-==== Deploying to a Maven repository
+=== Deploying to a Maven repository
 
 Let's assume your project produces just the default jar file. Now you want to deploy this jar file to a remote Maven repository.
 
-++++
-<sample id="uploadFile" dir="userguide/artifacts/maven" title="Upload of file to remote Maven repository">
-                <sourcefile file="build.gradle" snippet="upload-file"/>
-            </sample>
-++++
+=== Example: Upload of file to remote Maven repository
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/artifacts/maven/build.gradle[tag=upload-file]
+----
 
 That is all. Calling the `uploadArchives` task will generate the POM and deploys the artifact and the POM to the specified repository.
 
-There is more work to do if you need support for protocols other than `file`. In this case the native Maven code we delegate to needs additional libraries. Which libraries are needed depends on what protocol you plan to use. The available protocols and the corresponding libraries are listed in <<wagonLibs>> (those libraries have transitive dependencies which have transitive dependencies).footnote:[It is planned for a future release to provide out-of-the-box support for this] For example, to use the ssh protocol you can do:
+There is more work to do if you need support for protocols other than `file`. In this case the native Maven code we delegate to needs additional libraries. Which libraries are needed depends on what protocol you plan to use. The available protocols and the corresponding libraries are listed in <<#wagonLibs,Protocol JARs for Maven deployment>> (those libraries have transitive dependencies which have transitive dependencies).footnote:[It is planned for a future release to provide out-of-the-box support for this] For example, to use the ssh protocol you can do:
 
-++++
-<sample id="uploadWithSsh" dir="userguide/artifacts/maven" title="Upload of file via SSH">
-                <sourcefile file="build.gradle" snippet="upload-with-ssh"/>
-            </sample>
-++++
+=== Example: Upload of file via SSH
 
-There are many configuration options for the Maven deployer. The configuration is done via a Groovy builder. All the elements of this tree are Java beans. To configure the simple attributes you pass a map to the bean elements. To add bean elements to its parent, you use a closure. In the example above _repository_ and _authentication_ are such bean elements. <<deployerConfig>> lists the available bean elements and a link to the Javadoc of the corresponding class. In the Javadoc you can see the possible attributes you can set for a particular element.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/artifacts/maven/build.gradle[tag=upload-with-ssh]
+----
+
+There are many configuration options for the Maven deployer. The configuration is done via a Groovy builder. All the elements of this tree are Java beans. To configure the simple attributes you pass a map to the bean elements. To add bean elements to its parent, you use a closure. In the example above _repository_ and _authentication_ are such bean elements. <<#deployerConfig,Configuration elements of Maven deployer>> lists the available bean elements and a link to the Javadoc of the corresponding class. In the Javadoc you can see the possible attributes you can set for a particular element.
 
 In Maven you can define repositories and optionally snapshot repositories. If no snapshot repository is defined, releases and snapshots are both deployed to the `repository` element. Otherwise snapshots are deployed to the `snapshotRepository` element.
 
 [[wagonLibs]]
 .Protocol jars for Maven deployment
-[cols="a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Protocol
-| Library
+| Protocol | Library
 
 | http
 | org.apache.maven.wagon:wagon-http:2.2
@@ -168,13 +153,12 @@ In Maven you can define repositories and optionally snapshot repositories. If no
 
 [[deployerConfig]]
 .Configuration elements of the MavenDeployer
-[cols="a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Element
-| Javadoc
+| Element | Javadoc
 
 | root
-| api:org.gradle.api.artifacts.maven.MavenDeployer[]
+| link:{javadocPath}/org/gradle/api/artifacts/maven/MavenDeployer.html[MavenDeployer]
 
 | repository
 | http://www.docjar.com/docs/api/org/apache/maven/artifact/ant/RemoteRepository.html[org.apache.maven.artifact.ant.RemoteRepository]
@@ -197,20 +181,19 @@ In Maven you can define repositories and optionally snapshot repositories. If no
 
 
 [[sub:installing_to_the_local_repository]]
-==== Installing to the local repository
+=== Installing to the local repository
 
 The Maven plugin adds an `install` task to your project. This task depends on all the archives task of the `archives` configuration. It installs those archives to your local Maven repository. If the default location for the local repository is redefined in a Maven `settings.xml`, this is considered by this task.
 
 [[sec:maven_pom_generation]]
-==== Maven POM generation
+=== Maven POM generation
 
 When deploying an artifact to a Maven repository, Gradle automatically generates a POM for it. The `groupId`, `artifactId`, `version` and `packaging` elements used for the POM default to the values shown in the table below. The `dependency` elements are created from the project's dependency declarations.
 
 .Default Values for Maven POM generation
-[cols="a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Maven Element
-| Default Value
+| Maven Element | Default Value
 
 | groupId
 | project.group
@@ -229,68 +212,80 @@ Here, `uploadTask` and `archiveTask` refer to the tasks used for uploading and g
 
 [NOTE]
 ====
- 
+
 When you set the “`archiveTask.baseName`” property to a value other than the default, you'll also have to set `uploadTask.repositories.mavenDeployer.pom.artifactId` to the same value. Otherwise, the project at hand may be referenced with the wrong artifact ID from generated POMs for other projects in the same build.
- 
+
 ====
 
-Generated POMs can be found in `&lt;buildDir&gt;/poms`. They can be further customized via the api:org.gradle.api.artifacts.maven.MavenPom[] API. For example, you might want the artifact deployed to the Maven repository to have a different version or name than the artifact generated by Gradle. To customize these you can do:
+Generated POMs can be found in `&lt;buildDir&gt;/poms`. They can be further customized via the link:{javadocPath}/org/gradle/api/artifacts/maven/MavenPom.html[MavenPom] API. For example, you might want the artifact deployed to the Maven repository to have a different version or name than the artifact generated by Gradle. To customize these you can do:
 
-++++
-<sample id="customizePom" dir="userguide/artifacts/maven" title="Customization of pom">
-                <sourcefile file="build.gradle" snippet="customize-pom"/>
-            </sample>
-++++
+=== Example: Customization of pom
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/artifacts/maven/build.gradle[tag=customize-pom]
+----
 
 To add additional content to the POM, the `pom.project` builder can be used. With this builder, any element listed in the http://maven.apache.org/pom.html[Maven POM reference] can be added.
 
-++++
-<sample id="pomBuilder" dir="userguide/artifacts/maven" title="Builder style customization of pom">
-                <sourcefile file="build.gradle" snippet="builder"/>
-            </sample>
-++++
+=== Example: Builder style customization of pom
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/artifacts/maven/build.gradle[tag=builder]
+----
 
 Note: `groupId`, `artifactId`, `version`, and `packaging` should always be set directly on the `pom` object.
 
-++++
-<sample id="pomBuilder" dir="maven/pomGeneration" title="Modifying auto-generated content">
-                <sourcefile file="build.gradle" snippet="when-configured"/>
-            </sample>
-++++
+=== Example: Modifying auto-generated content
 
-If you have more than one artifact to publish, things work a little bit differently. See <<sub:multiple_artifacts_per_project>>.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/maven/pomGeneration/build.gradle[tag=when-configured]
+----
 
-To customize the settings for the Maven installer (see <<sub:installing_to_the_local_repository>>), you can do:
+If you have more than one artifact to publish, things work a little bit differently. See <<#sub:multiple_artifacts_per_project,Multiple artifacts per project>>.
 
-++++
-<sample id="customizeInstaller" dir="userguide/artifacts/maven" title="Customization of Maven installer">
-                <sourcefile file="build.gradle" snippet="customize-installer"/>
-            </sample>
-++++
+To customize the settings for the Maven installer (see <<#sub:installing_to_the_local_repository,Installing to the local repository>>), you can do:
+
+=== Example: Customization of Maven installer
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/artifacts/maven/build.gradle[tag=customize-installer]
+----
 
 
 [[sub:multiple_artifacts_per_project]]
-===== Multiple artifacts per project
+==== Multiple artifacts per project
 
-Maven can only deal with one artifact per project. This is reflected in the structure of the Maven POM. We think there are many situations where it makes sense to have more than one artifact per project. In such a case you need to generate multiple POMs. In such a case you have to explicitly declare each artifact you want to publish to a Maven repository. The api:org.gradle.api.artifacts.maven.MavenDeployer[] and the MavenInstaller both provide an API for this:
+Maven can only deal with one artifact per project. This is reflected in the structure of the Maven POM. We think there are many situations where it makes sense to have more than one artifact per project. In such a case you need to generate multiple POMs. In such a case you have to explicitly declare each artifact you want to publish to a Maven repository. The link:{javadocPath}/org/gradle/api/artifacts/maven/MavenDeployer.html[MavenDeployer] and the MavenInstaller both provide an API for this:
 
-++++
-<sample id="multiplePoms" dir="userguide/artifacts/maven" title="Generation of multiple poms">
-                    <sourcefile file="build.gradle" snippet="multiple-poms"/>
-                </sample>
-++++
+=== Example: Generation of multiple poms
 
-You need to declare a filter for each artifact you want to publish. This filter defines a boolean expression for which Gradle artifact it accepts. Each filter has a POM associated with it which you can configure. To learn more about this have a look at api:org.gradle.api.artifacts.maven.PomFilterContainer[] and its associated classes.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/artifacts/maven/build.gradle[tag=multiple-poms]
+----
+
+You need to declare a filter for each artifact you want to publish. This filter defines a boolean expression for which Gradle artifact it accepts. Each filter has a POM associated with it which you can configure. To learn more about this have a look at link:{javadocPath}/org/gradle/api/artifacts/maven/PomFilterContainer.html[PomFilterContainer] and its associated classes.
 
 [[sub:dependency_mapping]]
-===== Dependency mapping
+==== Dependency mapping
 
-The Maven plugin configures the default mapping between the Gradle configurations added by the Java and War plugin and the Maven scopes. Most of the time you don't need to touch this and you can safely skip this section. The mapping works like the following. You can map a configuration to one and only one scope. Different configurations can be mapped to one or different scopes. You can also assign a priority to a particular configuration-to-scope mapping. Have a look at api:org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer[] to learn more. To access the mapping configuration you can say:
+The Maven plugin configures the default mapping between the Gradle configurations added by the Java and War plugin and the Maven scopes. Most of the time you don't need to touch this and you can safely skip this section. The mapping works like the following. You can map a configuration to one and only one scope. Different configurations can be mapped to one or different scopes. You can also assign a priority to a particular configuration-to-scope mapping. Have a look at link:{javadocPath}/org/gradle/api/artifacts/maven/Conf2ScopeMappingContainer.html[Conf2ScopeMappingContainer] to learn more. To access the mapping configuration you can say:
 
-++++
-<sample id="mappings" dir="userguide/artifacts/maven" title="Accessing a mapping configuration">
-                    <sourcefile file="build.gradle" snippet="mappings"/>
-                </sample>
-++++
+=== Example: Accessing a mapping configuration
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/artifacts/maven/build.gradle[tag=mappings]
+----
 
 Gradle exclude rules are converted to Maven excludes if possible. Such a conversion is possible if in the Gradle exclude rule the group as well as the module name is specified (as Maven needs both in contrast to Ivy). Per-configuration excludes are also included in the Maven POM, if they are convertible.

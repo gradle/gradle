@@ -1,4 +1,4 @@
-apply { plugin("org.gradle.kotlin.kotlin-dsl") }
+apply(plugin = "org.gradle.kotlin.kotlin-dsl")
 
 dependencies {
     api(project(":integrationTesting"))

@@ -1,17 +1,17 @@
 <project>
-<!-- START SNIPPET set-property -->
+<!-- tag::setproperty[] -->
 <echo>buildDir = ${buildDir}</echo>
-<!-- END SNIPPET set-property -->
+<!-- end::setproperty[] -->
 
-<!-- START SNIPPET get-property -->
+<!-- tag::getproperty[] -->
 <property name="antProp" value="a property defined in an Ant build"/>
-<!-- END SNIPPET get-property -->
+<!-- end::getproperty[] -->
 
-<!-- START SNIPPET set-reference -->
+<!-- tag::setreference[] -->
 <path refid="classpath"/>
-<!-- END SNIPPET set-reference -->
+<!-- end::setreference[] -->
 
-<!-- START SNIPPET get-reference -->
+<!-- tag::getreference[] -->
 <path id="antPath" location="libs"/>
-<!-- END SNIPPET get-reference -->
+<!-- end::getreference[] -->
 </project>

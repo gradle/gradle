@@ -1,4 +1,4 @@
-//START SNIPPET dependencies
+// tag::dependencies[]
 apply plugin: 'java-library'
 
 repositories {
@@ -8,7 +8,7 @@ repositories {
 dependencies {
     implementation 'org.springframework:spring-web:5.0.2.RELEASE'
 }
-//END SNIPPET dependencies
+// end::dependencies[]
 
 task copyLibs(type: Copy) {
     from configurations.compileClasspath
