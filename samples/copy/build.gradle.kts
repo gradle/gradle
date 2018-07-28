@@ -7,7 +7,7 @@ val dataContent = copySpec {
 }
 
 tasks {
-    register("initConfig", Copy::class.java) {
+    register("initConfig", Copy::class) {
 
         val tokens = mapOf("version" to "2.3.1")
         inputs.properties(tokens)
@@ -27,7 +27,7 @@ tasks {
         includeEmptyDirs = false
         with(dataContent)
     }
-    register("clean", Delete::class.java) {
+    register("clean", Delete::class) {
         delete(buildDir)
     }
 }
