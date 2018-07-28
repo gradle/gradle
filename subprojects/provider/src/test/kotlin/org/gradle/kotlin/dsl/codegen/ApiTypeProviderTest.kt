@@ -51,9 +51,9 @@ class ApiTypeProviderTest : AbstractIntegrationTest() {
 
         apiTypeProviderFor(jars).use { api ->
 
-            assertThat(api.type<Test>(), nullValue())
+            assertThat(api.typeOrNull<Test>(), nullValue())
 
-            api.type<PluginCollection<*>>()!!.apply {
+            api.type<PluginCollection<*>>().apply {
 
                 assertThat(sourceName, equalTo("org.gradle.api.plugins.PluginCollection"))
                 assertTrue(isPublic)
@@ -88,7 +88,7 @@ class ApiTypeProviderTest : AbstractIntegrationTest() {
                     }
                 }
             }
-            api.type<ObjectFactory>()!!.apply {
+            api.type<ObjectFactory>().apply {
                 functions.single { it.name == "newInstance" }.apply {
                     parameters.drop(1).single().type.apply {
                         assertThat(sourceName, equalTo("kotlin.Array"))
@@ -106,7 +106,7 @@ class ApiTypeProviderTest : AbstractIntegrationTest() {
 
         apiTypeProviderFor(jars).use { api ->
 
-            api.type<ContentFilterable>()!!.functions.single { it.name == "expand" }.apply {
+            api.type<ContentFilterable>().functions.single { it.name == "expand" }.apply {
                 assertTrue(typeParameters.isEmpty())
                 assertThat(parameters.size, equalTo(1))
                 parameters.single().type.apply {
@@ -124,7 +124,7 @@ class ApiTypeProviderTest : AbstractIntegrationTest() {
         val jars = listOf(withClassJar("some.jar", AbstractCopyTask::class.java, CopySpecSource::class.java))
 
         apiTypeProviderFor(jars).use { api ->
-            val type = api.type<AbstractCopyTask>()!!
+            val type = api.type<AbstractCopyTask>()
 
             assertThat(type.functions.filter { it.name == "filter" }.size, equalTo(4))
 
@@ -141,7 +141,7 @@ class ApiTypeProviderTest : AbstractIntegrationTest() {
         val jars = listOf(withClassJar("some.jar", GenericsVariance::class.java))
 
         apiTypeProviderFor(jars).use { api ->
-            api.type<GenericsVariance>()!!.functions.forEach { function ->
+            api.type<GenericsVariance>().functions.forEach { function ->
                 when (function.name) {
                     "invariant" -> function.parameters.single().assertSingleTypeArgumentWithVariance(Variance.INVARIANT)
                     "covariant" -> function.parameters.single().assertSingleTypeArgumentWithVariance(Variance.COVARIANT)
@@ -163,23 +163,27 @@ class ApiTypeProviderTest : AbstractIntegrationTest() {
 
         apiTypeProviderFor(jars).use { api ->
 
-            assertTrue(api.type<Action<*>>()!!.isSAM)
-            assertTrue(api.type<NamedDomainObjectFactory<*>>()!!.isSAM)
+            assertTrue(api.type<Action<*>>().isSAM)
+            assertTrue(api.type<NamedDomainObjectFactory<*>>().isSAM)
 
-            assertFalse(api.type<ObjectFactory>()!!.isSAM)
-            assertFalse(api.type<PluginCollection<*>>()!!.isSAM)
+            assertFalse(api.type<ObjectFactory>().isSAM)
+            assertFalse(api.type<PluginCollection<*>>().isSAM)
 
             assertTrue(
-                api.type<PluginCollection<*>>()!!.functions
+                api.type<PluginCollection<*>>().functions
                     .filter { it.name == "matching" }
                     .single { it.parameters.single().type.sourceName == Spec::class.qualifiedName }
                     .parameters.single().type.type!!.isSAM)
 
-            assertTrue(api.type<Spec<*>>()!!.isSAM)
+            assertTrue(api.type<Spec<*>>().isSAM)
         }
     }
 
     private
     inline fun <reified T> ApiTypeProvider.type() =
+        typeOrNull<T>()!!
+
+    private
+    inline fun <reified T> ApiTypeProvider.typeOrNull() =
         type(canonicalNameOf<T>())
 }
