@@ -68,17 +68,18 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         }
     }
 
-    void "waiting for process returns quickly if process already completed"() {
+    void "SystemExit"() {
         given:
         def execHandle = handle()
-                .args(args(TestApp.class))
+        .executable("/Users/zhb/.gradle/wrapper/dists/gradle-4.8.1-bin/e8p42vx1m7a3mz9ydmjagn6wn/gradle-4.8.1/bin/gradle")
+                .args("-p", "/Users/zhb/Projects/tmp/hang")
                 .build()
 
-        def handle = execHandle.start()
+        execHandle.start()
+        Thread.sleep(2000)
 
         when:
-        handle.waitForFinish()
-        handle.waitForFinish()
+        System.exit(0)
 
         then:
         execHandle.state == ExecHandleState.SUCCEEDED
