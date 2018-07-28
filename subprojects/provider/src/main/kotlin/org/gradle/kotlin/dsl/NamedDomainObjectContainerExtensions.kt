@@ -70,24 +70,34 @@ class NamedDomainObjectContainerScope<T : Any>(
         polymorphicDomainObjectContainer().containerWithType(type)
 
     /**
+     * Configure an object by name, without triggering its creation or configuration, failing if there is no such object.
+     *
      * @see [NamedDomainObjectContainer.named]
+     * @see [DomainObjectProvider.configure]
      */
     operator fun String.invoke(configuration: T.() -> Unit): DomainObjectProvider<T> =
         this().apply { configure(configuration) }
 
     /**
+     * Locates an object by name, without triggering its creation or configuration, failing if there is no such object.
+     *
      * @see [NamedDomainObjectContainer.named]
      */
     operator fun String.invoke(): DomainObjectProvider<T> =
         container.named(this)
 
     /**
+     * Configure an object by name, without triggering its creation or configuration, failing if there is no such object.
+     *
      * @see [PolymorphicDomainObjectContainer.named]
+     * @see [DomainObjectProvider.configure]
      */
     operator fun <U : T> String.invoke(type: KClass<U>, configuration: U.() -> Unit): DomainObjectProvider<U> =
         this(type).apply { configure(configuration) }
 
     /**
+     * Locates an object by name and type, without triggering its creation or configuration, failing if there is no such object.
+     *
      * @see [PolymorphicDomainObjectContainer.named]
      */
     operator fun <U : T> String.invoke(type: KClass<U>): DomainObjectProvider<U> =
