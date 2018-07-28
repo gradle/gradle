@@ -96,7 +96,7 @@ class GitVersionControlSystemSpec extends Specification {
         target.file( 'submodule/foo.txt').text == "hello from submodule"
     }
 
-    def 'reset a cloned repository'() {
+    def 'reset a cloned repository with dirty working dir'() {
         given:
         def target = tmpDir.file('versionDir')
         gitVcs.populate(target, repoHead, repoSpec)
@@ -107,7 +107,28 @@ class GitVersionControlSystemSpec extends Specification {
         changed << "changed!"
 
         when:
-        gitVcs.reset(target, repoSpec)
+        gitVcs.reset(target, repoHead, repoSpec)
+
+        then:
+        removed.text == "Hello world!"
+        changed.text == "Goodbye world!"
+    }
+
+    def 'reset a cloned repository with local commits'() {
+        given:
+        def target = tmpDir.file('versionDir')
+        gitVcs.populate(target, repoHead, repoSpec)
+
+        def removed = target.file("source.txt")
+        removed.delete()
+        def changed = target.file("dir/another.txt")
+        changed << "changed!"
+
+        def targetRepo = GitFileRepository.init(target)
+        targetRepo.commit('changes')
+
+        when:
+        gitVcs.reset(target, repoHead, repoSpec)
 
         then:
         removed.text == "Hello world!"
@@ -128,7 +149,7 @@ class GitVersionControlSystemSpec extends Specification {
         submodule2.text == "changed!"
 
         when:
-        gitVcs.reset(target, repoSpec)
+        gitVcs.reset(target, repoHead, repoSpec)
 
         then:
         submodule.text == "hello from submodule"

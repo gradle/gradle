@@ -57,10 +57,10 @@ public class GitVersionControlSystem implements VersionControlSystem {
     }
 
     @Override
-    public void reset(File workingDir, VersionControlSpec spec) {
+    public void reset(File workingDir, VersionRef ref,  VersionControlSpec spec) {
         GitVersionControlSpec gitSpec = cast(spec);
-        LOGGER.info("Resetting VCS workingDir {}/{}", workingDir.getParentFile().getName(), workingDir.getName());
-        resetRepo(workingDir, gitSpec);
+        LOGGER.info("Resetting VCS workingDir {}/{} to ref {}", workingDir.getParentFile().getName(), workingDir.getName(), ref);
+        resetRepo(workingDir, gitSpec, ref);
     }
 
     @Override
@@ -131,11 +131,11 @@ public class GitVersionControlSystem implements VersionControlSystem {
         }
     }
 
-    private static void resetRepo(File workingDir, GitVersionControlSpec gitSpec) {
+    private static void resetRepo(File workingDir, GitVersionControlSpec gitSpec, VersionRef ref) {
         Git git = null;
         try {
             git = Git.open(workingDir);
-            git.reset().setMode(ResetCommand.ResetType.HARD).call();
+            git.reset().setMode(ResetCommand.ResetType.HARD).setRef(ref.getCanonicalId()).call();
             updateSubModules(git);
         } catch (IOException e) {
             throw wrapGitCommandException("reset", gitSpec.getUrl(), workingDir, e);
