@@ -55,7 +55,7 @@ class ParallelVersionControlSpec extends AbstractIntegrationSpec {
                     def system = versionControlSystemFactory.create(spec)
                     def ref = system.getDefaultBranch(spec)
                     system.populate(outputDir, ref, spec)
-                    assert new File(outputDir, 'repo/.git').exists()
+                    assert new File(outputDir, '.git').exists()
                 }
             }
             """.stripIndent()

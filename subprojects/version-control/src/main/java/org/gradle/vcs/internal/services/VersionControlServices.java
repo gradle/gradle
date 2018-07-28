@@ -43,7 +43,7 @@ import org.gradle.vcs.internal.DefaultVersionControlSystemFactory;
 import org.gradle.vcs.internal.VcsMappingFactory;
 import org.gradle.vcs.internal.VcsMappingsStore;
 import org.gradle.vcs.internal.VcsResolver;
-import org.gradle.vcs.internal.VcsWorkingDirectoryRoot;
+import org.gradle.vcs.internal.VcsDirectoryLayout;
 import org.gradle.vcs.internal.VersionControlSpecFactory;
 import org.gradle.vcs.internal.VersionControlSystemFactory;
 import org.gradle.vcs.internal.resolver.DefaultVcsVersionWorkingDirResolver;
@@ -53,7 +53,6 @@ import org.gradle.vcs.internal.resolver.VcsDependencyResolver;
 import org.gradle.vcs.internal.resolver.VcsVersionSelectionCache;
 import org.gradle.vcs.internal.resolver.VcsVersionWorkingDirResolver;
 
-import java.io.File;
 import java.util.Collection;
 
 public class VersionControlServices extends AbstractPluginServiceRegistry {
@@ -97,16 +96,16 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
     }
 
     private static class VersionControlBuildSessionServices {
-        VersionControlSystemFactory createVersionControlSystemFactory(VcsWorkingDirectoryRoot vcsWorkingDirectoryRoot, CleanupActionFactory cleanupActionFactory, CacheRepository cacheRepository) {
-            return new DefaultVersionControlSystemFactory(vcsWorkingDirectoryRoot, cacheRepository, cleanupActionFactory);
+        VersionControlSystemFactory createVersionControlSystemFactory(VcsDirectoryLayout directoryLayout, CleanupActionFactory cleanupActionFactory, CacheRepository cacheRepository) {
+            return new DefaultVersionControlSystemFactory(directoryLayout, cacheRepository, cleanupActionFactory);
         }
 
-        VcsWorkingDirectoryRoot createVcsWorkingDirectoryRoot(ProjectCacheDir projectCacheDir) {
-            return new VcsWorkingDirectoryRoot(new File(projectCacheDir.getDir(), "vcsWorkingDirs"));
+        VcsDirectoryLayout createVcsWorkingDirectoryRoot(ProjectCacheDir projectCacheDir) {
+            return new VcsDirectoryLayout(projectCacheDir.getDir());
         }
 
-        PersistentVcsMetadataCache createMetadataCache(ProjectCacheDir projectCacheDir, CacheRepository cacheRepository) {
-            return new PersistentVcsMetadataCache(projectCacheDir, cacheRepository);
+        PersistentVcsMetadataCache createMetadataCache(VcsDirectoryLayout directoryLayout, CacheRepository cacheRepository) {
+            return new PersistentVcsMetadataCache(directoryLayout, cacheRepository);
         }
     }
 
@@ -121,12 +120,12 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
     }
 
     private static class VersionControlBuildServices {
-        VcsDependencyResolver createVcsDependencyResolver(VcsWorkingDirectoryRoot vcsWorkingDirectoryRoot, LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlSystemFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, BuildStateRegistry buildRegistry, VersionParser versionParser, VcsVersionSelectionCache versionSelectionCache, PersistentVcsMetadataCache persistentCache, StartParameter startParameter) {
+        VcsDependencyResolver createVcsDependencyResolver(VcsDirectoryLayout directoryLayout, LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlSystemFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, BuildStateRegistry buildRegistry, VersionParser versionParser, VcsVersionSelectionCache versionSelectionCache, PersistentVcsMetadataCache persistentCache, StartParameter startParameter) {
             VcsVersionWorkingDirResolver workingDirResolver;
             if (startParameter.isOffline()) {
                 workingDirResolver = new OfflineVcsVersionWorkingDirResolver(versionSelectionCache, persistentCache);
             } else {
-                workingDirResolver = new DefaultVcsVersionWorkingDirResolver(versionSelectorScheme, versionComparator, vcsWorkingDirectoryRoot, versionParser, versionSelectionCache, persistentCache);
+                workingDirResolver = new DefaultVcsVersionWorkingDirResolver(versionSelectorScheme, versionComparator, directoryLayout, versionParser, versionSelectionCache, persistentCache);
             }
             return new VcsDependencyResolver(localComponentRegistry, vcsResolver, versionControlSystemFactory, buildRegistry, workingDirResolver);
         }

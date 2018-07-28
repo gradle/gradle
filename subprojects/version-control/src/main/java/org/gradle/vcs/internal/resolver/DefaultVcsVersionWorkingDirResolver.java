@@ -25,8 +25,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.hash.HashUtil;
+import org.gradle.util.GFileUtils;
 import org.gradle.vcs.VersionControlSpec;
-import org.gradle.vcs.internal.VcsWorkingDirectoryRoot;
+import org.gradle.vcs.internal.VcsDirectoryLayout;
 import org.gradle.vcs.internal.VersionControlSystem;
 import org.gradle.vcs.internal.VersionRef;
 
@@ -42,10 +43,10 @@ public class DefaultVcsVersionWorkingDirResolver implements VcsVersionWorkingDir
     private final VcsVersionSelectionCache inMemoryCache;
     private final PersistentVcsMetadataCache persistentCache;
 
-    public DefaultVcsVersionWorkingDirResolver(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VcsWorkingDirectoryRoot baseWorkingDir, VersionParser versionParser, VcsVersionSelectionCache inMemoryCache, PersistentVcsMetadataCache persistentCache) {
+    public DefaultVcsVersionWorkingDirResolver(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VcsDirectoryLayout directoryLayout, VersionParser versionParser, VcsVersionSelectionCache inMemoryCache, PersistentVcsMetadataCache persistentCache) {
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
-        this.baseWorkingDir = baseWorkingDir.getDir();
+        this.baseWorkingDir = directoryLayout.getCheckoutDir();
         this.inMemoryCache = inMemoryCache;
         this.versionParser = versionParser;
         this.persistentCache = persistentCache;
@@ -54,31 +55,37 @@ public class DefaultVcsVersionWorkingDirResolver implements VcsVersionWorkingDir
     @Nullable
     @Override
     public File selectVersion(ModuleComponentSelector selector, VersionControlSpec spec, VersionControlSystem versionControlSystem) {
-        File workingDirForVersion = inMemoryCache.getWorkingDirForSelector(spec, selector.getVersionConstraint());
-        if (workingDirForVersion == null) {
+        File workingDir = inMemoryCache.getWorkingDirForSelector(spec, selector.getVersionConstraint());
+        if (workingDir == null) {
             // TODO - prevent multiple threads from performing the same selection at the same time
             VersionRef selectedVersion = selectVersionFromRepository(spec, versionControlSystem, selector.getVersionConstraint());
             if (selectedVersion == null) {
                 return null;
             }
 
-            workingDirForVersion = populateWorkingDirectory(baseWorkingDir, spec, versionControlSystem, selectedVersion);
-            inMemoryCache.putWorkingDirForVersion(spec, selector.getVersionConstraint(), workingDirForVersion);
-            persistentCache.putWorkingDirForVersion(spec, selector.getVersionConstraint(), workingDirForVersion);
+            workingDir = prepareWorkingDir(baseWorkingDir, spec, versionControlSystem, selectedVersion);
+            inMemoryCache.putWorkingDirForSelector(spec, selector.getVersionConstraint(), workingDir);
+            persistentCache.putWorkingDirForSelector(spec, selector.getVersionConstraint(), workingDir);
         }
-        return new File(workingDirForVersion, spec.getRootDir());
+        return new File(workingDir, spec.getRootDir());
     }
 
-    private File populateWorkingDirectory(File baseWorkingDir, VersionControlSpec spec, VersionControlSystem versionControlSystem, VersionRef selectedVersion) {
+    private File prepareWorkingDir(File baseWorkingDir, VersionControlSpec spec, VersionControlSystem versionControlSystem, VersionRef selectedVersion) {
         // TODO - prevent multiple threads from performing the same checkout at the same time
-        File checkoutDir = inMemoryCache.getCheckoutDir(spec, selectedVersion);
-        if (checkoutDir == null) {
-            String repositoryId = HashUtil.createCompactMD5(spec.getUniqueId());
-            File versionDirectory = new File(baseWorkingDir, repositoryId + "-" + selectedVersion.getCanonicalId());
-            checkoutDir = versionControlSystem.populate(versionDirectory, selectedVersion, spec);
-            inMemoryCache.putCheckoutDir(spec, selectedVersion, checkoutDir);
+        File workingDir = inMemoryCache.getWorkingDirForRevision(spec, selectedVersion);
+        if (workingDir == null) {
+            String versionId = HashUtil.createCompactMD5(spec.getUniqueId() + "-" + selectedVersion.getCanonicalId());
+            workingDir = new File(baseWorkingDir, versionId + "/" + spec.getRepoName());
+            if (!workingDir.exists()) {
+                versionControlSystem.populate(workingDir, selectedVersion, spec);
+            } else {
+                versionControlSystem.reset(workingDir, spec);
+            }
+            // Update timestamp so that working directory is not garbage collected
+            GFileUtils.touch(workingDir.getParentFile());
+            inMemoryCache.putWorkingDirForRevision(spec, selectedVersion, workingDir);
         }
-        return checkoutDir;
+        return workingDir;
     }
 
     private VersionRef selectVersionFromRepository(VersionControlSpec spec, VersionControlSystem versionControlSystem, VersionConstraint constraint) {
@@ -99,10 +106,10 @@ public class DefaultVcsVersionWorkingDirResolver implements VcsVersionWorkingDir
             return null;
         }
 
-        Set<VersionRef> versions = inMemoryCache.getVersions(spec);
+        Set<VersionRef> versions = inMemoryCache.getVersionsForRepo(spec);
         if (versions == null) {
             versions = versionControlSystem.getAvailableVersions(spec);
-            inMemoryCache.putVersions(spec, versions);
+            inMemoryCache.putVersionsForRepo(spec, versions);
         }
         Version bestVersion = null;
         VersionRef bestCandidate = null;

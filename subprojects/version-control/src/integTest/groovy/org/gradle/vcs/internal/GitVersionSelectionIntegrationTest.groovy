@@ -114,8 +114,6 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         repo.commit("v4")
         repo.checkout("master")
         repo.expectListVersions()
-        // TODO - should not need this
-        repo.expectCloneSomething()
         run('checkDeps')
 
         then:
@@ -158,7 +156,6 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         repo.expectListVersions()
-        repo.expectUpdateUnchanged()
         run('checkDeps')
 
         then:
@@ -212,7 +209,6 @@ Required by:
 
         when:
         repo.expectListVersions()
-        repo.expectUpdateUnchanged()
         run('checkDeps')
 
         then:
@@ -318,7 +314,6 @@ Required by:
 
         when:
         repo.expectListVersions()
-        repo.expectUpdateUnchanged()
         run('checkDeps')
 
         then:
@@ -410,7 +405,6 @@ Required by:
 
         when:
         repo.expectListVersions()
-        repo.expectUpdateUnchanged()
         run('checkDeps')
 
         then:
@@ -465,7 +459,6 @@ Required by:
 
         when:
         repo.expectListVersions()
-        repo.expectUpdateUnchanged()
         run('checkDeps')
 
         then:

@@ -178,7 +178,7 @@ class VcsCleanupIntegrationTest extends AbstractIntegrationSpec implements Sourc
     }
 
     TestFile gcFile() {
-        file(".gradle/vcsWorkingDirs/gc.properties")
+        file(".gradle/vcs-1/gc.properties")
     }
 
     void cleanupNow() {
