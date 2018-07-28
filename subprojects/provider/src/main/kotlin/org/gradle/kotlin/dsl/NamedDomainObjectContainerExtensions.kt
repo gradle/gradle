@@ -21,8 +21,12 @@ import org.gradle.api.DomainObjectProvider
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.PolymorphicDomainObjectContainer
 
+import org.gradle.kotlin.dsl.support.illegalElementType
+import org.gradle.kotlin.dsl.support.uncheckedCast
+
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
+import kotlin.reflect.full.safeCast
 
 
 /**
@@ -87,7 +91,12 @@ class NamedDomainObjectContainerScope<T : Any>(
      * @see [PolymorphicDomainObjectContainer.named]
      */
     operator fun <U : T> String.invoke(type: KClass<U>): DomainObjectProvider<U> =
-        polymorphicDomainObjectContainer().withType(type.java).named(this)
+        uncheckedCast(polymorphicDomainObjectContainer().named(this).apply {
+            configure {
+                type.safeCast(it)
+                    ?: illegalElementType(container, this@invoke, type, it::class)
+            }
+        })
 
     /**
      * Cast this to [PolymorphicDomainObjectContainer] or throw [IllegalArgumentException].
