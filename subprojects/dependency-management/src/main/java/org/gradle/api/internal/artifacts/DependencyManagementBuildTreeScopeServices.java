@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
-import org.gradle.api.internal.artifacts.vcs.VcsVersionSelectionCache;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 
 /**
@@ -27,9 +26,5 @@ class DependencyManagementBuildTreeScopeServices {
 
     ResolutionResultsStoreFactory createResolutionResultsStoreFactory(TemporaryFileProvider temporaryFileProvider) {
         return new ResolutionResultsStoreFactory(temporaryFileProvider);
-    }
-
-    VcsVersionSelectionCache createVersionSelectionCache() {
-        return new VcsVersionSelectionCache();
     }
 }
