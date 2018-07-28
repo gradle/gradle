@@ -1,7 +1,7 @@
 package org.gradle.kotlin.dsl
 
 import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.argThat
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 
@@ -39,7 +39,7 @@ class ComponentSelectionRulesTest {
             }
         }
         val configurations = mock<ConfigurationContainer> {
-            on { create(argThat { this == "conf" }, any<Action<Configuration>>()) }.thenAnswer {
+            on { create(eq("conf"), any<Action<Configuration>>()) }.thenAnswer {
                 it.getArgument<Action<Configuration>>(1).execute(conf)
                 conf
             }
