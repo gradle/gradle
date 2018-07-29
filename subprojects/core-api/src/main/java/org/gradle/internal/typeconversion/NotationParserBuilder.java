@@ -23,30 +23,36 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-public class NotationParserBuilder<T> {
-    private TypeInfo<T> resultingType;
+public class NotationParserBuilder<N, T> {
+    private final Class<N> notationType;
+    private final TypeInfo<T> resultingType;
     private String invalidNotationMessage;
     private Object typeDisplayName;
     private boolean implicitConverters = true;
     private boolean allowNullInput;
-    private final Collection<NotationConverter<Object, ? extends T>> notationParsers = new LinkedList<NotationConverter<Object, ? extends T>>();
+    private final Collection<NotationConverter<? super N, ? extends T>> notationParsers = new LinkedList<NotationConverter<? super N, ? extends T>>();
 
-    public static <T> NotationParserBuilder<T> toType(Class<T> resultingType) {
-        return new NotationParserBuilder<T>(new TypeInfo<T>(resultingType));
+    public static <T> NotationParserBuilder<Object, T> toType(Class<T> resultingType) {
+        return new NotationParserBuilder<Object, T>(Object.class, new TypeInfo<T>(resultingType));
     }
 
-    public static <T> NotationParserBuilder<T> toType(TypeInfo<T> resultingType) {
-        return new NotationParserBuilder<T>(resultingType);
+    public static <T> NotationParserBuilder<Object, T> toType(TypeInfo<T> resultingType) {
+        return new NotationParserBuilder<Object, T>(Object.class, resultingType);
     }
 
-    private NotationParserBuilder(TypeInfo<T> resultingType) {
+    public static <N, T> NotationParserBuilder<N, T> builder(Class<N> notationType, Class<T> resultingType) {
+        return new NotationParserBuilder<N, T>(notationType, new TypeInfo<T>(resultingType));
+    }
+
+    private NotationParserBuilder(Class<N> notationType, TypeInfo<T> resultingType) {
+        this.notationType = notationType;
         this.resultingType = resultingType;
     }
 
     /**
      * Specifies the display name for the target type, to use in error messages. By default the target type's simple name is used.
      */
-    public NotationParserBuilder<T> typeDisplayName(final String name) {
+    public NotationParserBuilder<N, T> typeDisplayName(final String name) {
         this.typeDisplayName = name;
         return this;
     }
@@ -54,7 +60,7 @@ public class NotationParserBuilder<T> {
     /**
      * Use only those converters that are explicitly registered, and disable any implicit conversion that may normally be done.
      */
-    public NotationParserBuilder<T> noImplicitConverters() {
+    public NotationParserBuilder<N, T> noImplicitConverters() {
         implicitConverters = false;
         return this;
     }
@@ -66,7 +72,7 @@ public class NotationParserBuilder<T> {
      *
      * TODO - attach the null safety to each converter and infer whether null is a valid input or not.
      */
-    public NotationParserBuilder<T> allowNullInput() {
+    public NotationParserBuilder<N, T> allowNullInput() {
         allowNullInput = true;
         return this;
     }
@@ -74,7 +80,7 @@ public class NotationParserBuilder<T> {
     /**
      * Adds a converter to use to parse notations. Converters are used in the order added.
      */
-    public NotationParserBuilder<T> converter(NotationConverter<Object, ? extends T> converter) {
+    public NotationParserBuilder<N, T> converter(NotationConverter<? super N, ? extends T> converter) {
         this.notationParsers.add(converter);
         return this;
     }
@@ -82,59 +88,71 @@ public class NotationParserBuilder<T> {
     /**
      * Adds a converter that accepts only notations of the given type.
      */
-    public <S> NotationParserBuilder<T> fromType(Class<S> notationType, NotationConverter<? super S, ? extends T> converter) {
+    public <S extends N> NotationParserBuilder<N, T> fromType(Class<S> notationType, NotationConverter<? super S, ? extends T> converter) {
         this.notationParsers.add(new TypeFilteringNotationConverter<Object, S, T>(notationType, converter));
         return this;
     }
 
     /**
-     * Adds a converter that accepts any CharSequence notation.
+     * Adds a converter that accepts any CharSequence notation. Can only be used the notation type is a supertype of String.
      */
-    public NotationParserBuilder<T> fromCharSequence(NotationConverter<? super String, ? extends T> converter) {
+    public NotationParserBuilder<N, T> fromCharSequence(NotationConverter<? super String, ? extends T> converter) {
+        if (!notationType.isAssignableFrom(String.class)) {
+            throw new IllegalArgumentException(String.format("Cannot convert from String when notation is %s.", notationType.getSimpleName()));
+        }
         this.notationParsers.add(new CharSequenceNotationConverter<Object, T>(converter));
         return this;
     }
 
     /**
-     * Adds a converter that accepts any CharSequence notation. Can only be used when the target type is String.
+     * Adds a converter that accepts any CharSequence notation. Can only be used when the target type is String and the notation type is a supertype of String.
      */
-    public NotationParserBuilder<T> fromCharSequence() {
+    public NotationParserBuilder<N, T> fromCharSequence() {
         if (!resultingType.getTargetType().equals(String.class)) {
             throw new UnsupportedOperationException("Can only convert from CharSequence when the target type is String.");
+        }
+        if (!notationType.isAssignableFrom(String.class)) {
+            throw new IllegalArgumentException(String.format("Cannot convert from String when notation is %s.", notationType.getSimpleName()));
         }
         NotationConverter notationParser = new CharSequenceNotationParser();
         fromCharSequence(notationParser);
         return this;
     }
 
-    public NotationParserBuilder<T> invalidNotationMessage(String invalidNotationMessage) {
+    public NotationParserBuilder<N, T> invalidNotationMessage(String invalidNotationMessage) {
         this.invalidNotationMessage = invalidNotationMessage;
         return this;
     }
 
-    public NotationParser<Object, Set<T>> toFlatteningComposite() {
-        return wrapInErrorHandling(new FlatteningNotationParser<T>(create()));
+    public NotationParser<N, Set<T>> toFlatteningComposite() {
+        return wrapInErrorHandling(new FlatteningNotationParser<N, T>(create()));
     }
 
-    public NotationParser<Object, T> toComposite() {
+    public NotationParser<N, T> toComposite() {
         return wrapInErrorHandling(create());
     }
 
-    private <S> NotationParser<Object, S> wrapInErrorHandling(NotationParser<Object, S> parser) {
+    private <S> NotationParser<N, S> wrapInErrorHandling(NotationParser<N, S> parser) {
         if (typeDisplayName == null) {
             typeDisplayName = new LazyDisplayName<T>(resultingType);
         }
-        return new ErrorHandlingNotationParser<Object, S>(typeDisplayName, invalidNotationMessage, allowNullInput, parser);
+        return new ErrorHandlingNotationParser<N, S>(typeDisplayName, invalidNotationMessage, allowNullInput, parser);
     }
 
-    private NotationParser<Object, T> create() {
-        List<NotationConverter<Object, ? extends T>> composites = new LinkedList<NotationConverter<Object, ? extends T>>();
-        if (!resultingType.getTargetType().equals(Object.class) && implicitConverters) {
-            composites.add(new JustReturningConverter<Object, T>(resultingType.getTargetType()));
+    private NotationParser<N, T> create() {
+        List<NotationConverter<? super N, ? extends T>> composites = new LinkedList<NotationConverter<? super N, ? extends T>>();
+        if (notationType.isAssignableFrom(resultingType.getTargetType()) && implicitConverters) {
+            composites.add(new JustReturningConverter<N, T>(resultingType.getTargetType()));
         }
         composites.addAll(this.notationParsers);
 
-        return new NotationConverterToNotationParserAdapter<Object, T>(composites.size() == 1 ? composites.get(0) : new CompositeNotationConverter<Object, T>(composites));
+        NotationConverter<? super N, ? extends T> notationConverter;
+        if (composites.size() == 1) {
+            notationConverter = composites.get(0);
+        } else {
+            notationConverter = new CompositeNotationConverter<N, T>(composites);
+        }
+        return new NotationConverterToNotationParserAdapter<N, T>(notationConverter);
     }
 
     private static class LazyDisplayName<T> implements Describable {

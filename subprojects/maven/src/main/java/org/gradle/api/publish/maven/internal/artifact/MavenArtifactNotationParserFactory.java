@@ -57,14 +57,13 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
 
         MavenArtifactMapNotationConverter mavenArtifactMapNotationConverter = new MavenArtifactMapNotationConverter(sourceNotationParser);
 
-        NotationParserBuilder<MavenArtifact> parserBuilder = NotationParserBuilder
+        return NotationParserBuilder
             .toType(MavenArtifact.class)
             .fromType(AbstractArchiveTask.class, archiveTaskNotationConverter)
             .fromType(PublishArtifact.class, publishArtifactNotationConverter)
             .converter(mavenArtifactMapNotationConverter)
-            .converter(fileNotationConverter);
-
-        return parserBuilder.toComposite();
+            .converter(fileNotationConverter)
+            .toComposite();
     }
 
     private class ArchiveTaskNotationConverter implements NotationConverter<AbstractArchiveTask, MavenArtifact> {

@@ -46,6 +46,7 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
         return NotationParserBuilder
             .toType(Object.class)
             .typeDisplayName("a File or URI")
+            .noImplicitConverters()
             .converter(new FileOrUriNotationConverter())
             .toComposite();
     }

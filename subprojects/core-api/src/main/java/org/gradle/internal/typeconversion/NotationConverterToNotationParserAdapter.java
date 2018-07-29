@@ -19,9 +19,9 @@ package org.gradle.internal.typeconversion;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 
 public class NotationConverterToNotationParserAdapter<N, T> implements NotationParser<N, T> {
-    private final NotationConverter<N, ? extends T> converter;
+    private final NotationConverter<? super N, ? extends T> converter;
 
-    public NotationConverterToNotationParserAdapter(NotationConverter<N, ? extends T> converter) {
+    public NotationConverterToNotationParserAdapter(NotationConverter<? super N, ? extends T> converter) {
         this.converter = converter;
     }
 
