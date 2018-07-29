@@ -61,14 +61,13 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
 
         IvyArtifactMapNotationConverter ivyArtifactMapNotationConverter = new IvyArtifactMapNotationConverter(sourceNotationParser);
 
-        NotationParserBuilder<IvyArtifact> parserBuilder = NotationParserBuilder
+        return NotationParserBuilder
                 .toType(IvyArtifact.class)
                 .converter(archiveTaskNotationConverter)
                 .converter(publishArtifactNotationConverter)
                 .converter(ivyArtifactMapNotationConverter)
-                .converter(fileNotationConverter);
-
-        return parserBuilder.toComposite();
+                .converter(fileNotationConverter)
+                .toComposite();
     }
 
     private class ArchiveTaskNotationConverter extends TypedNotationConverter<AbstractArchiveTask, IvyArtifact> {

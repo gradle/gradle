@@ -21,22 +21,22 @@ import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import java.util.List;
 
 public class CompositeNotationConverter<N, T> implements NotationConverter<N, T> {
-    private final List<NotationConverter<N, ? extends T>> converters;
+    private final List<NotationConverter<? super N, ? extends T>> converters;
 
-    public CompositeNotationConverter(List<NotationConverter<N, ? extends T>> converters) {
+    public CompositeNotationConverter(List<NotationConverter<? super N, ? extends T>> converters) {
         this.converters = converters;
     }
 
     public void convert(N notation, NotationConvertResult<? super T> result) throws TypeConversionException {
         for (int i = 0; !result.hasResult() && i < converters.size(); i++) {
-            NotationConverter<N, ? extends T> converter = converters.get(i);
+            NotationConverter<? super N, ? extends T> converter = converters.get(i);
             converter.convert(notation, result);
         }
     }
 
     @Override
     public void describe(DiagnosticsVisitor visitor) {
-        for (NotationConverter<N, ? extends T> converter : converters) {
+        for (NotationConverter<? super N, ? extends T> converter : converters) {
             converter.describe(visitor);
         }
     }
