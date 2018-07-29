@@ -19,9 +19,11 @@ package org.gradle.vcs.internal;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.initialization.definition.InjectedPluginDependencies;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.vcs.VcsMapping;
 import org.gradle.vcs.VersionControlRepository;
+import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.git.GitVersionControlSpec;
 
 import javax.inject.Inject;
@@ -29,20 +31,36 @@ import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
-class DefaultVersionControlRepository implements VersionControlRepository, Action<VcsMapping> {
-    private final URI uri;
+public class DefaultVersionControlRepository implements VersionControlRepository, Action<VcsMapping> {
     private final NotationParser<String, ModuleIdentifier> notationParser;
-    private Set<ModuleIdentifier> modules = new HashSet<ModuleIdentifier>();
+    private final VersionControlSpec spec;
+    private final Set<ModuleIdentifier> modules = new HashSet<ModuleIdentifier>();
 
     @Inject
-    public DefaultVersionControlRepository(URI uri, NotationParser<String, ModuleIdentifier> notationParser) {
-        this.uri = uri;
+    public DefaultVersionControlRepository(URI url, NotationParser<String, ModuleIdentifier> notationParser, GitVersionControlSpec spec) {
         this.notationParser = notationParser;
+        this.spec = spec;
+        spec.setUrl(url);
     }
 
     @Override
     public void producesModule(String module) {
         modules.add(notationParser.parseNotation(module));
+    }
+
+    @Override
+    public String getRootDir() {
+        return spec.getRootDir();
+    }
+
+    @Override
+    public void setRootDir(String rootDir) {
+        spec.setRootDir(rootDir);
+    }
+
+    @Override
+    public void plugins(Action<? super InjectedPluginDependencies> configuration) {
+        spec.plugins(configuration);
     }
 
     @Override
@@ -52,12 +70,7 @@ class DefaultVersionControlRepository implements VersionControlRepository, Actio
         }
         ModuleComponentSelector moduleSelector = (ModuleComponentSelector) vcsMapping.getRequested();
         if (modules.contains(moduleSelector.getModuleIdentifier())) {
-            vcsMapping.from(GitVersionControlSpec.class, new Action<GitVersionControlSpec>() {
-                @Override
-                public void execute(GitVersionControlSpec spec) {
-                    spec.setUrl(uri);
-                }
-            });
+            vcsMapping.from(spec);
         }
     }
 

@@ -70,6 +70,14 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
+    public RootBuildState getRootBuild() {
+        if (rootBuild == null) {
+            throw new IllegalStateException("Root build is not defined.");
+        }
+        return rootBuild;
+    }
+
+    @Override
     public RootBuildState addRootBuild(BuildDefinition buildDefinition, BuildRequestContext requestContext) {
         if (rootBuild != null) {
             throw new IllegalStateException("Root build already defined.");

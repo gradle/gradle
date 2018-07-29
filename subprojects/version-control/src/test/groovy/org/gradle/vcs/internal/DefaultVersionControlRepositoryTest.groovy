@@ -27,7 +27,8 @@ import spock.lang.Specification
 class DefaultVersionControlRepositoryTest extends Specification {
     def uri = new URI("https://gradle.org/test")
     def notationParser = Stub(NotationParser)
-    def repository = new DefaultVersionControlRepository(uri, notationParser)
+    def spec = Stub(GitVersionControlSpec)
+    def repository = new DefaultVersionControlRepository(uri, notationParser, spec)
     def mapping = Mock(VcsMapping)
 
     def setup() {
@@ -55,7 +56,7 @@ class DefaultVersionControlRepositoryTest extends Specification {
 
         then:
         _ * mapping.requested >> selector
-        1 * mapping.from(GitVersionControlSpec, _)
+        1 * mapping.from(spec)
         0 * mapping._
 
         when:

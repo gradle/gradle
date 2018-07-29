@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
@@ -29,7 +30,9 @@ import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.specs.Spec;
+import org.gradle.initialization.definition.InjectedPluginResolver;
 import org.gradle.internal.Pair;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
@@ -66,14 +69,16 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     private final VcsResolver vcsResolver;
     private final VersionControlRepositoryConnectionFactory versionControlSystemFactory;
     private final VcsVersionWorkingDirResolver workingDirResolver;
+    private final BuildState containingBuild;
     private final BuildStateRegistry buildRegistry;
 
-    public VcsDependencyResolver(LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlRepositoryConnectionFactory versionControlSystemFactory, BuildStateRegistry buildRegistry, VcsVersionWorkingDirResolver workingDirResolver) {
+    public VcsDependencyResolver(LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlRepositoryConnectionFactory versionControlSystemFactory, BuildStateRegistry buildRegistry, VcsVersionWorkingDirResolver workingDirResolver, BuildState containingBuild) {
         this.localComponentRegistry = localComponentRegistry;
         this.vcsResolver = vcsResolver;
         this.versionControlSystemFactory = versionControlSystemFactory;
         this.buildRegistry = buildRegistry;
         this.workingDirResolver = workingDirResolver;
+        this.containingBuild = containingBuild;
     }
 
     @Override
@@ -98,7 +103,8 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                 }
 
                 File buildRootDir = new File(dependencyWorkingDir, spec.getRootDir());
-                IncludedBuildState includedBuild = buildRegistry.addImplicitIncludedBuild(((AbstractVersionControlSpec) spec).getBuildDefinition(buildRootDir));
+                BuildDefinition buildDefinition = toBuildDefinition((AbstractVersionControlSpec) spec, buildRootDir);
+                IncludedBuildState includedBuild = buildRegistry.addImplicitIncludedBuild(buildDefinition);
 
                 Collection<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> moduleToProject = includedBuild.getAvailableModules();
                 Pair<ModuleVersionIdentifier, ProjectComponentIdentifier> entry = CollectionUtils.findFirst(moduleToProject, new Spec<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>>() {
@@ -117,6 +123,11 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                 }
             }
         }
+    }
+
+    private BuildDefinition toBuildDefinition(AbstractVersionControlSpec spec, File buildDirectory) {
+        InjectedPluginResolver resolver = new InjectedPluginResolver(containingBuild.getLoadedSettings().getClassLoaderScope());
+        return BuildDefinition.fromStartParameterForBuild(buildRegistry.getRootBuild().getStartParameter(), buildDirectory, resolver.resolveAll(spec.getInjectedPlugins()));
     }
 
     @Override

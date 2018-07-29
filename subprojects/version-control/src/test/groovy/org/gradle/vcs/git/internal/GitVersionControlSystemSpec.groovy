@@ -18,9 +18,7 @@ package org.gradle.vcs.git.internal
 
 import com.google.common.collect.Maps
 import org.eclipse.jgit.revwalk.RevCommit
-import org.gradle.StartParameter
 import org.gradle.api.GradleException
-import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -62,7 +60,7 @@ class GitVersionControlSystemSpec extends Specification {
         anotherSource << 'Goodbye world!'
         c2 = repo.commit('Second Commit')
         repoHead = GitVersionRef.from(repo.head)
-        repoSpec = new DefaultGitVersionControlSpec(Mock(StartParameter), Mock(ClassLoaderScope))
+        repoSpec = new DefaultGitVersionControlSpec()
         repoSpec.url = repo.url
 
         submoduleRepo.workTree.file("foo.txt") << "hello from submodule"

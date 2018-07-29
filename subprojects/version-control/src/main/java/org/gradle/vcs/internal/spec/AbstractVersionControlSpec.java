@@ -17,25 +17,17 @@
 package org.gradle.vcs.internal.spec;
 
 import com.google.common.base.Preconditions;
-import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.initialization.definition.InjectedPluginDependencies;
-import org.gradle.api.internal.BuildDefinition;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.initialization.definition.DefaultInjectedPluginDependencies;
+import org.gradle.initialization.definition.DefaultInjectedPluginDependency;
 import org.gradle.vcs.VersionControlSpec;
 
-import java.io.File;
+import java.util.List;
 
 public abstract class AbstractVersionControlSpec implements VersionControlSpec {
     private String rootDir = "";
-    private final StartParameter rootBuildStartParameter;
-    private final DefaultInjectedPluginDependencies pluginDependencies;
-
-    protected AbstractVersionControlSpec(StartParameter rootBuildStartParameter, ClassLoaderScope classLoaderScope) {
-        this.rootBuildStartParameter = rootBuildStartParameter;
-        this.pluginDependencies = new DefaultInjectedPluginDependencies(classLoaderScope);
-    }
+    private final DefaultInjectedPluginDependencies pluginDependencies = new DefaultInjectedPluginDependencies();
 
     @Override
     public String getRootDir() {
@@ -53,7 +45,7 @@ public abstract class AbstractVersionControlSpec implements VersionControlSpec {
         configuration.execute(pluginDependencies);
     }
 
-    public BuildDefinition getBuildDefinition(File buildDirectory) {
-        return BuildDefinition.fromStartParameterForBuild(rootBuildStartParameter, buildDirectory, pluginDependencies.getRequests());
+    public List<DefaultInjectedPluginDependency> getInjectedPlugins() {
+        return pluginDependencies.getDependencies();
     }
 }

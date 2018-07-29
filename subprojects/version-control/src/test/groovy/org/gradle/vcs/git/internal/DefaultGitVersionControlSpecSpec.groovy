@@ -16,13 +16,12 @@
 
 package org.gradle.vcs.git.internal
 
-import org.gradle.StartParameter
-import org.gradle.api.internal.initialization.ClassLoaderScope
+
 import org.gradle.vcs.git.GitVersionControlSpec
 import spock.lang.Specification
 
 class DefaultGitVersionControlSpecSpec extends Specification {
-    GitVersionControlSpec spec = new DefaultGitVersionControlSpec(Mock(StartParameter), Mock(ClassLoaderScope))
+    GitVersionControlSpec spec = new DefaultGitVersionControlSpec()
 
     def 'handles file urls'() {
         given:
