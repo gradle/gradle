@@ -56,7 +56,7 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
         for (int i = 0; i < cpt; i++) {
             rejects.add(decoder.readString());
         }
-        return new DefaultImmutableVersionConstraint(required, preferred, strictly, rejects);
+        return new DefaultImmutableVersionConstraint(preferred, required, strictly, rejects);
     }
 
     public void write(Encoder encoder, ModuleComponentSelector value) throws IOException {

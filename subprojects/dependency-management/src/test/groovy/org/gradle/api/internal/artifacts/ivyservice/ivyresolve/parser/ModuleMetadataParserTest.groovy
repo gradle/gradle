@@ -40,12 +40,16 @@ class ModuleMetadataParserTest extends Specification {
         DefaultImmutableVersionConstraint.of()
     }
 
+    VersionConstraint version(String version) {
+        DefaultImmutableVersionConstraint.of(version, version, '', [])
+    }
+
     VersionConstraint requires(String version) {
-        DefaultImmutableVersionConstraint.of((String) version)
+        DefaultImmutableVersionConstraint.of('', version, '', [])
     }
 
     VersionConstraint prefers(String version) {
-        DefaultImmutableVersionConstraint.of('', version, '', [])
+        DefaultImmutableVersionConstraint.of(version,'', '', [])
     }
 
     VersionConstraint strictly(String version) {
@@ -53,11 +57,11 @@ class ModuleMetadataParserTest extends Specification {
     }
 
     VersionConstraint prefersAndStrictly(String prefers, String strictly) {
-        DefaultImmutableVersionConstraint.of('', prefers, strictly, [])
+        DefaultImmutableVersionConstraint.of(prefers, '', strictly, [])
     }
 
     VersionConstraint prefersAndRejects(String version, List<String> rejects) {
-        DefaultImmutableVersionConstraint.of('', version, "", rejects)
+        DefaultImmutableVersionConstraint.of(version, '', "", rejects)
     }
 
     List<Exclude> excludes(String... input) {
@@ -478,9 +482,9 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
-        1 * variant1.addDependency("g1", "m1", requires("v1"), [], null, ImmutableAttributes.EMPTY)
+        1 * variant1.addDependency("g1", "m1", version("v1"), [], null, ImmutableAttributes.EMPTY)
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
-        1 * variant2.addDependency("g2", "m2", requires("v2"), [], null, ImmutableAttributes.EMPTY)
+        1 * variant2.addDependency("g2", "m2", version("v2"), [], null, ImmutableAttributes.EMPTY)
         0 * _
     }
 

@@ -307,7 +307,7 @@ public class ModuleMetadataParser {
             }
         }
         reader.endObject();
-        return DefaultImmutableVersionConstraint.of(requiredVersion, preferredVersion, strictVersion, rejects);
+        return DefaultImmutableVersionConstraint.of(preferredVersion, requiredVersion, strictVersion, rejects);
     }
 
     private ImmutableList<ExcludeMetadata> consumeExcludes(JsonReader reader) throws IOException {

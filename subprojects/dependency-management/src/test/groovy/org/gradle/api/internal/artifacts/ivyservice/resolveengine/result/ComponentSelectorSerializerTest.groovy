@@ -42,8 +42,8 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
 
     private static ImmutableVersionConstraint constraint(String version, String preferredVersion = '', String strictVersion = '', List<String> rejectVersions = []) {
         return new DefaultImmutableVersionConstraint(
-            version,
             preferredVersion,
+            version,
             strictVersion,
             rejectVersions
         )

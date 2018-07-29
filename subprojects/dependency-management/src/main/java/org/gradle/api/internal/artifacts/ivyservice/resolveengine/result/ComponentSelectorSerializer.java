@@ -89,7 +89,7 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         for (int i = 0; i < rejectCount; i++) {
             rejects.add(decoder.readString());
         }
-        return new DefaultImmutableVersionConstraint(requires, prefers, strictly, rejects);
+        return new DefaultImmutableVersionConstraint(prefers, requires, strictly, rejects);
     }
 
     public void write(Encoder encoder, ComponentSelector value) throws IOException {
