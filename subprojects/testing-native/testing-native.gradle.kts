@@ -1,7 +1,7 @@
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,26 +15,29 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id("gradlebuild.strict-compile")
+    id("gradlebuild.classycle")
+}
+
 dependencies {
-    compile project(':core')
-    compile project(':reporting')
-    compile project(':platformBase')
+    compile(project(":core"))
+    compile(project(":platformNative"))
+    compile(project(":languageNative"))
+    compile(project(":testingBase"))
 
-    implementation libraries.commons_io.coordinates
-    implementation libraries.kryo.coordinates
-
-    testFixturesCompile project(':internalIntegTesting')
+    integTestRuntime(project(":ideNative"))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.WORKER
+    moduleType = ModuleType.PLUGIN
 }
 
 testFixtures {
-    from(':core')
-    from(':messaging')
-    from(':platformBase')
-    from(':logging')
-    from(':baseServices')
-    from(':launcher')
+    from(":core")
+    from(":platformNative")
+    from(":diagnostics")
+    from(":platformBase")
+    from(":testingBase")
+    from(":languageNative")
 }

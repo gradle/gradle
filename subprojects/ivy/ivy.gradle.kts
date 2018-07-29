@@ -18,7 +18,7 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    `java-library`
+    id("java-library")
     id("gradlebuild.classycle")
 }
 

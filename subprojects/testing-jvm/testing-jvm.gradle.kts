@@ -22,37 +22,37 @@ plugins {
 }
 
 dependencies {
-    compile project(':core')
-    compile project(':platformJvm')
-    compile project(':languageJava')
-    compile project(':testingBase')
+    compile(project(":core"))
+    compile(project(":platformJvm"))
+    compile(project(":languageJava"))
+    compile(project(":testingBase"))
 
-    implementation libraries.asm.coordinates
-    implementation libraries.commons_io.coordinates
-    implementation libraries.junit.coordinates
-    implementation libraries.testng.coordinates
-    implementation libraries.bsh.coordinates
+    implementation(library("asm"))
+    implementation(library("commons_io"))
+    implementation(library("junit"))
+    implementation(library("testng"))
+    implementation(library("bsh"))
 
-    testCompile ('com.google.inject:guice:2.0') {
-        because 'This is for TestNG'
+    testCompile ("com.google.inject:guice:2.0") {
+        because("This is for TestNG")
     }
 
-    integTestRuntime project(':testingJunitPlatform')
+    integTestRuntime(project(":testingJunitPlatform"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.WORKER
 }
 
-tasks.named("test").configure {
-    exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'
-    exclude 'org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*'
+tasks.withType<Test>().named("test").configure {
+    exclude("org/gradle/api/internal/tasks/testing/junit/ATestClass*.*")
+    exclude("org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*")
 }
 
 testFixtures {
-    from(':core')
-    from(':testingBase')
-    from(':diagnostics')
-    from(':messaging')
-    from(':baseServices')
+    from(":core")
+    from(":testingBase")
+    from(":diagnostics")
+    from(":messaging")
+    from(":baseServices")
 }
