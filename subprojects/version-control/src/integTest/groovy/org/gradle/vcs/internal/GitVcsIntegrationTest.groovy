@@ -158,6 +158,25 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         gitCheckout.file('deeperDep/evenDeeperDep/foo').text == "buzz"
     }
 
+    def 'reports error when badly formed module used'() {
+        given:
+        settingsFile << """
+            rootProject.name = 'test'
+            sourceControl {
+                gitRepository("${repo.url}").producesModule(":not:a:module:")
+            }
+        """
+
+        expect:
+        fails('assemble')
+        failure.assertHasFileName("Settings file '$settingsFile'")
+        failure.assertHasLineNumber(4)
+        failure.assertHasDescription("A problem occurred evaluating settings 'test'.")
+        failure.assertHasCause("""Cannot convert the provided notation to a module identifier: :not:a:module:.
+The following types/formats are supported:
+  - String describing the module in 'group:name' format, for example 'org.gradle:gradle-core'.""")
+    }
+
     @Issue('gradle/gradle-native#206')
     def 'can define and use source repositories with initscript resolution present'() {
         given:

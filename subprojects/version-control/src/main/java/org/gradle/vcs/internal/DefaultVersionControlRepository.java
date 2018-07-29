@@ -17,7 +17,9 @@
 package org.gradle.vcs.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.vcs.VcsMapping;
 import org.gradle.vcs.VersionControlRepository;
 import org.gradle.vcs.git.GitVersionControlSpec;
@@ -29,16 +31,18 @@ import java.util.Set;
 
 class DefaultVersionControlRepository implements VersionControlRepository, Action<VcsMapping> {
     private final URI uri;
-    private Set<String> modules = new HashSet<String>();
+    private final NotationParser<String, ModuleIdentifier> notationParser;
+    private Set<ModuleIdentifier> modules = new HashSet<ModuleIdentifier>();
 
     @Inject
-    public DefaultVersionControlRepository(URI uri) {
+    public DefaultVersionControlRepository(URI uri, NotationParser<String, ModuleIdentifier> notationParser) {
         this.uri = uri;
+        this.notationParser = notationParser;
     }
 
     @Override
-    public void producesModule(String name) {
-        modules.add(name);
+    public void producesModule(String module) {
+        modules.add(notationParser.parseNotation(module));
     }
 
     @Override
@@ -47,9 +51,7 @@ class DefaultVersionControlRepository implements VersionControlRepository, Actio
             return;
         }
         ModuleComponentSelector moduleSelector = (ModuleComponentSelector) vcsMapping.getRequested();
-        // TODO - use a notation parser instead
-        String expected = moduleSelector.getGroup() + ":" + moduleSelector.getModule();
-        if (modules.contains(expected)) {
+        if (modules.contains(moduleSelector.getModuleIdentifier())) {
             vcsMapping.from(GitVersionControlSpec.class, new Action<GitVersionControlSpec>() {
                 @Override
                 public void execute(GitVersionControlSpec spec) {

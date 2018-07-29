@@ -24,8 +24,6 @@ public interface VersionControlRepositoryConnection {
 
     String getUniqueId();
 
-    String getRepoName();
-
     File populate(VersionRef selectedVersion);
 
     VersionRef getBranch(String branch);

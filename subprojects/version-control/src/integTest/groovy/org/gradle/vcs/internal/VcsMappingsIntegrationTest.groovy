@@ -132,6 +132,29 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
         failure.assertHasCause("Could not locate default branch for Git repository at https://bad.invalid.")
     }
 
+    def 'emits sensible error when bad module in vcsMappings block'() {
+        settingsFile << """
+            rootProject.name = 'test'
+            sourceControl {
+                vcsMappings {
+                    withModule("broken") {
+                        from(GitVersionControlSpec) {
+                        }
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails('assemble')
+        failure.assertHasFileName("Settings file '$settingsFile'")
+        failure.assertHasLineNumber(5)
+        failure.assertHasDescription("A problem occurred evaluating settings 'test'.")
+        failure.assertHasCause("""Cannot convert the provided notation to a module identifier: broken.
+The following types/formats are supported:
+  - String describing the module in 'group:name' format, for example 'org.gradle:gradle-core'.""")
+    }
+
     def "can define and use source repositories with all {}"() {
         settingsFile << """
             sourceControl {
