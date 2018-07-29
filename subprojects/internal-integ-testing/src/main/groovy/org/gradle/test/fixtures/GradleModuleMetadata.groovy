@@ -407,7 +407,7 @@ class GradleModuleMetadata {
         }
 
         String getCoords() {
-            return "$group:$module:${prefers ?: ''}"
+            return "$group:$module:${version ?: prefers ?: ''}"
         }
 
         String toString() {

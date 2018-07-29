@@ -207,13 +207,15 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         }
 
         javaLibrary.parsedModuleMetadata.variant('runtime') {
-            dependency('commons-collections:commons-collections:3.2.2') {
+            dependency('commons-collections:commons-collections:') {
                 noMoreExcludes()
+                prefers(null)
                 strictly('3.2.2')
                 rejects()
             }
             dependency('org.springframework:spring-core:2.5.6') {
                 noMoreExcludes()
+                prefers(null)
                 strictly(null)
                 rejects()
             }
@@ -292,7 +294,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                 rejects()
                 noMoreExcludes()
             }
-            constraint('org.tukaani:xz:1.6') {
+            constraint('org.tukaani:xz:') {
+                prefers(null)
                 strictly('1.6')
                 rejects()
             }
@@ -365,8 +368,9 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         }
 
         javaLibrary.parsedModuleMetadata.variant('runtime') {
-            dependency('commons-collections:commons-collections:[3.2, 4)') {
+            dependency('commons-collections:commons-collections:') {
                 noMoreExcludes()
+                prefers '[3.2, 4)'
                 rejects '3.2.1', '[3.2.2,)'
             }
             constraint('commons-logging:commons-logging:') {
