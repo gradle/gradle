@@ -52,8 +52,8 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.util.CollectionUtils;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.internal.VcsResolver;
-import org.gradle.vcs.internal.VersionControlRepository;
-import org.gradle.vcs.internal.VersionControlRepositoryFactory;
+import org.gradle.vcs.internal.VersionControlRepositoryConnection;
+import org.gradle.vcs.internal.VersionControlRepositoryConnectionFactory;
 import org.gradle.vcs.internal.spec.AbstractVersionControlSpec;
 
 import javax.annotation.Nullable;
@@ -64,11 +64,11 @@ import java.util.Collections;
 public class VcsDependencyResolver implements DependencyToComponentIdResolver, ComponentResolvers, ComponentMetaDataResolver, OriginArtifactSelector, ArtifactResolver {
     private final LocalComponentRegistry localComponentRegistry;
     private final VcsResolver vcsResolver;
-    private final VersionControlRepositoryFactory versionControlSystemFactory;
+    private final VersionControlRepositoryConnectionFactory versionControlSystemFactory;
     private final VcsVersionWorkingDirResolver workingDirResolver;
     private final BuildStateRegistry buildRegistry;
 
-    public VcsDependencyResolver(LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlRepositoryFactory versionControlSystemFactory, BuildStateRegistry buildRegistry, VcsVersionWorkingDirResolver workingDirResolver) {
+    public VcsDependencyResolver(LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlRepositoryConnectionFactory versionControlSystemFactory, BuildStateRegistry buildRegistry, VcsVersionWorkingDirResolver workingDirResolver) {
         this.localComponentRegistry = localComponentRegistry;
         this.vcsResolver = vcsResolver;
         this.versionControlSystemFactory = versionControlSystemFactory;
@@ -83,7 +83,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
             VersionControlSpec spec = vcsResolver.locateVcsFor(depSelector);
             // TODO: Need failure handling, e.g., cannot clone repository
             if (spec != null) {
-                VersionControlRepository repository = versionControlSystemFactory.create(spec);
+                VersionControlRepositoryConnection repository = versionControlSystemFactory.create(spec);
 
                 File dependencyWorkingDir;
                 try {

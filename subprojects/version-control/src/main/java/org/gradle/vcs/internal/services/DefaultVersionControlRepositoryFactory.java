@@ -33,8 +33,8 @@ import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.git.GitVersionControlSpec;
 import org.gradle.vcs.git.internal.GitVersionControlSystem;
 import org.gradle.vcs.internal.VcsDirectoryLayout;
-import org.gradle.vcs.internal.VersionControlRepository;
-import org.gradle.vcs.internal.VersionControlRepositoryFactory;
+import org.gradle.vcs.internal.VersionControlRepositoryConnection;
+import org.gradle.vcs.internal.VersionControlRepositoryConnectionFactory;
 import org.gradle.vcs.internal.VersionControlSystem;
 import org.gradle.vcs.internal.VersionRef;
 
@@ -45,7 +45,7 @@ import java.util.Set;
 import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultVersionControlRepositoryFactory implements VersionControlRepositoryFactory, Stoppable {
+public class DefaultVersionControlRepositoryFactory implements VersionControlRepositoryConnectionFactory, Stoppable {
     private final PersistentCache vcsWorkingDirCache;
     private final VcsDirectoryLayout directoryLayout;
 
@@ -60,7 +60,7 @@ public class DefaultVersionControlRepositoryFactory implements VersionControlRep
     }
 
     @Override
-    public VersionControlRepository create(VersionControlSpec spec) {
+    public VersionControlRepositoryConnection create(VersionControlSpec spec) {
         // TODO: Register these mappings somewhere
         VersionControlSystem vcs;
         if (spec instanceof GitVersionControlSpec) {
@@ -76,7 +76,7 @@ public class DefaultVersionControlRepositoryFactory implements VersionControlRep
         vcsWorkingDirCache.close();
     }
 
-    private static final class LockingVersionControlRepository implements VersionControlRepository {
+    private static final class LockingVersionControlRepository implements VersionControlRepositoryConnection {
         private final VcsDirectoryLayout directoryLayout;
         private final VersionControlSpec spec;
         private final VersionControlSystem delegate;

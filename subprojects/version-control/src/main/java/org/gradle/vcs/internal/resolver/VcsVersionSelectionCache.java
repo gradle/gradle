@@ -18,7 +18,7 @@ package org.gradle.vcs.internal.resolver;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.VersionConstraint;
-import org.gradle.vcs.internal.VersionControlRepository;
+import org.gradle.vcs.internal.VersionControlRepositoryConnection;
 import org.gradle.vcs.internal.VersionRef;
 
 import javax.annotation.Nullable;
@@ -33,41 +33,41 @@ public class VcsVersionSelectionCache {
     private final Map<String, File> checkoutDirs = new ConcurrentHashMap<String, File>();
 
     @Nullable
-    public Set<VersionRef> getVersionsForRepo(VersionControlRepository repository) {
+    public Set<VersionRef> getVersionsForRepo(VersionControlRepositoryConnection repository) {
         return repositoryVersions.get(repository.getUniqueId());
     }
 
-    public void putVersionsForRepo(VersionControlRepository repository, Set<VersionRef> versions) {
+    public void putVersionsForRepo(VersionControlRepositoryConnection repository, Set<VersionRef> versions) {
         repositoryVersions.put(repository.getUniqueId(), ImmutableSet.copyOf(versions));
     }
 
     @Nullable
-    public File getWorkingDirForRevision(VersionControlRepository repository, VersionRef version) {
+    public File getWorkingDirForRevision(VersionControlRepositoryConnection repository, VersionRef version) {
         String cacheKey = versionCacheKey(repository, version);
         return checkoutDirs.get(cacheKey);
     }
 
-    public void putWorkingDirForRevision(VersionControlRepository repository, VersionRef version, File dir) {
+    public void putWorkingDirForRevision(VersionControlRepositoryConnection repository, VersionRef version, File dir) {
         String cacheKey = versionCacheKey(repository, version);
         checkoutDirs.put(cacheKey, dir);
     }
 
     @Nullable
-    public File getWorkingDirForSelector(VersionControlRepository repository, VersionConstraint constraint) {
+    public File getWorkingDirForSelector(VersionControlRepositoryConnection repository, VersionConstraint constraint) {
         String cacheKey = constraintCacheKey(repository, constraint);
         return resolvedVersions.get(cacheKey);
     }
 
-    public void putWorkingDirForSelector(VersionControlRepository repository, VersionConstraint constraint, File workingDir) {
+    public void putWorkingDirForSelector(VersionControlRepositoryConnection repository, VersionConstraint constraint, File workingDir) {
         String cacheKey = constraintCacheKey(repository, constraint);
         resolvedVersions.put(cacheKey, workingDir);
     }
 
-    private String versionCacheKey(VersionControlRepository repository, VersionRef version) {
+    private String versionCacheKey(VersionControlRepositoryConnection repository, VersionRef version) {
         return repository.getUniqueId() + ":" + version.getCanonicalId();
     }
 
-    private String constraintCacheKey(VersionControlRepository repository, VersionConstraint constraint) {
+    private String constraintCacheKey(VersionControlRepositoryConnection repository, VersionConstraint constraint) {
         if (constraint.getBranch() != null) {
             return repository.getUniqueId() + ":b:" + constraint.getBranch();
         }

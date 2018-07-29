@@ -28,7 +28,7 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.vcs.git.internal.GitVersionRef;
 import org.gradle.vcs.internal.VcsDirectoryLayout;
-import org.gradle.vcs.internal.VersionControlRepository;
+import org.gradle.vcs.internal.VersionControlRepositoryConnection;
 import org.gradle.vcs.internal.VersionRef;
 
 import javax.annotation.Nullable;
@@ -54,7 +54,7 @@ public class PersistentVcsMetadataCache implements Stoppable {
     }
 
     @Nullable
-    public VersionRef getVersionForSelector(final VersionControlRepository repository, final VersionConstraint constraint) {
+    public VersionRef getVersionForSelector(final VersionControlRepositoryConnection repository, final VersionConstraint constraint) {
         return cache.useCache(new Factory<VersionRef>() {
             @Nullable
             @Override
@@ -64,7 +64,7 @@ public class PersistentVcsMetadataCache implements Stoppable {
         });
     }
 
-    public void putVersionForSelector(final VersionControlRepository repository, final VersionConstraint constraint, final VersionRef selectedVersion) {
+    public void putVersionForSelector(final VersionControlRepositoryConnection repository, final VersionConstraint constraint, final VersionRef selectedVersion) {
         cache.useCache(new Runnable() {
             @Override
             public void run() {
@@ -73,7 +73,7 @@ public class PersistentVcsMetadataCache implements Stoppable {
         });
     }
 
-    private String constraintCacheKey(VersionControlRepository repository, VersionConstraint constraint) {
+    private String constraintCacheKey(VersionControlRepositoryConnection repository, VersionConstraint constraint) {
         if (constraint.getBranch() != null) {
             return repository.getUniqueId() + ":b:" + constraint.getBranch();
         }

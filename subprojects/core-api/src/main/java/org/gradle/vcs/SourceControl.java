@@ -19,6 +19,8 @@ package org.gradle.vcs;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
+import java.net.URI;
+
 /**
  * Configuration related to source dependencies.
  *
@@ -35,4 +37,24 @@ public interface SourceControl {
      * Returns the VCS mappings configuration.
      */
     VcsMappings getVcsMappings();
+
+    /**
+     * Registers a Git repository that contains some components that should be used as dependencies.
+     * A Git repository can safely be registered multiple times.
+     *
+     * @param url The URL of the Git repository.
+     * @return An object that can be used to configure the details of the repository.
+     * @since 4.10
+     */
+    VersionControlRepository gitRepository(URI url);
+
+    /**
+     * Registers a Git repository that contains some components that should be used as dependencies.
+     * A Git repository can safely be registered multiple times.
+     *
+     * @param url The URL of the Git repository.
+     * @param configureAction An action to use to configure the repository.
+     * @since 4.10
+     */
+    void gitRepository(URI url, Action<? super VersionControlRepository> configureAction);
 }
