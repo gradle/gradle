@@ -19,14 +19,20 @@ package org.gradle.vcs.internal
 
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
+import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.vcs.VcsMapping
 import org.gradle.vcs.git.GitVersionControlSpec
 import spock.lang.Specification
 
 class DefaultVersionControlRepositoryTest extends Specification {
     def uri = new URI("https://gradle.org/test")
-    def repository = new DefaultVersionControlRepository(uri)
+    def notationParser = Stub(NotationParser)
+    def repository = new DefaultVersionControlRepository(uri, notationParser)
     def mapping = Mock(VcsMapping)
+
+    def setup() {
+        _ * notationParser.parseNotation(_) >> { String s -> def v = s.split(':'); return DefaultModuleIdentifier.newId(v[0], v[1])}
+    }
 
     def "repository definition does nothing by default"() {
         when:

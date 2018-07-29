@@ -95,11 +95,6 @@ public class DefaultVersionControlRepositoryFactory implements VersionControlRep
         }
 
         @Override
-        public String getRepoName() {
-            return spec.getRepoName();
-        }
-
-        @Override
         public String getUniqueId() {
             return spec.getUniqueId();
         }
@@ -138,9 +133,11 @@ public class DefaultVersionControlRepositoryFactory implements VersionControlRep
                 @Override
                 public File create() {
                     try {
-                        String versionId = HashUtil.createCompactMD5(getUniqueId() + "-" + ref.getCanonicalId());
+                        String repoName = spec.getRepoName();
+                        String prefix = repoName.length() <= 9 ? repoName : repoName.substring(0, 10);
+                        String versionId = prefix + "_" + HashUtil.createCompactMD5(getUniqueId() + "-" + ref.getCanonicalId());
                         File baseDir = new File(directoryLayout.getCheckoutDir(), versionId);
-                        File workingDir = new File(baseDir, getRepoName());
+                        File workingDir = new File(baseDir, repoName);
                         GFileUtils.mkdirs(workingDir);
                         // Update timestamp so that working directory is not garbage collected
                         GFileUtils.touch(baseDir);

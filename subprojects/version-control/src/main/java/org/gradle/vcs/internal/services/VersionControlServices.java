@@ -17,6 +17,8 @@
 package org.gradle.vcs.internal.services;
 
 import org.gradle.StartParameter;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
@@ -25,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.CacheRepository;
@@ -33,6 +36,8 @@ import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.vcs.SourceControl;
 import org.gradle.vcs.VcsMappings;
 import org.gradle.vcs.internal.DefaultSourceControl;
@@ -94,6 +99,14 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
     }
 
     private static class VersionControlBuildSessionServices {
+        NotationParser<String, ModuleIdentifier> createModuleIdParser(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+            return NotationParserBuilder
+                .builder(String.class, ModuleIdentifier.class)
+                .typeDisplayName("a module identifier")
+                .fromCharSequence(new ModuleIdentifierNotationConverter(moduleIdentifierFactory))
+                .toComposite();
+        }
+
         VersionControlRepositoryConnectionFactory createVersionControlSystemFactory(VcsDirectoryLayout directoryLayout, CleanupActionFactory cleanupActionFactory, CacheRepository cacheRepository) {
             return new DefaultVersionControlRepositoryFactory(directoryLayout, cacheRepository, cleanupActionFactory);
         }
@@ -108,12 +121,12 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
     }
 
     private static class VersionControlSettingsServices {
-        VcsMappings createVcsMappings(ObjectFactory objectFactory, VcsMappingsStore vcsMappingsStore, Gradle gradle) {
-            return objectFactory.newInstance(DefaultVcsMappings.class, vcsMappingsStore, gradle);
+        VcsMappings createVcsMappings(ObjectFactory objectFactory, VcsMappingsStore vcsMappingsStore, Gradle gradle, NotationParser<String, ModuleIdentifier> notationParser) {
+            return objectFactory.newInstance(DefaultVcsMappings.class, vcsMappingsStore, gradle, notationParser);
         }
 
-        SourceControl createSourceControl(ObjectFactory objectFactory, FileResolver fileResolver, VcsMappings vcsMappings) {
-            return objectFactory.newInstance(DefaultSourceControl.class, objectFactory, fileResolver, vcsMappings);
+        SourceControl createSourceControl(ObjectFactory objectFactory, FileResolver fileResolver, VcsMappings vcsMappings, NotationParser<String, ModuleIdentifier> notationParser) {
+            return objectFactory.newInstance(DefaultSourceControl.class, objectFactory, fileResolver, vcsMappings, notationParser);
         }
     }
 

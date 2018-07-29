@@ -17,8 +17,10 @@
 package org.gradle.vcs.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.vcs.SourceControl;
 import org.gradle.vcs.VcsMappings;
 import org.gradle.vcs.VersionControlRepository;
@@ -32,13 +34,15 @@ public class DefaultSourceControl implements SourceControl {
     private final ObjectFactory objectFactory;
     private final FileResolver fileResolver;
     private final VcsMappings vcsMappings;
+    private final NotationParser<String, ModuleIdentifier> notationParser;
     private final Map<URI, DefaultVersionControlRepository> repos = new HashMap<URI, DefaultVersionControlRepository>();
 
     @Inject
-    public DefaultSourceControl(ObjectFactory objectFactory, FileResolver fileResolver, VcsMappings vcsMappings) {
+    public DefaultSourceControl(ObjectFactory objectFactory, FileResolver fileResolver, VcsMappings vcsMappings, NotationParser<String, ModuleIdentifier> notationParser) {
         this.objectFactory = objectFactory;
         this.fileResolver = fileResolver;
         this.vcsMappings = vcsMappings;
+        this.notationParser = notationParser;
     }
 
     @Override
@@ -55,7 +59,7 @@ public class DefaultSourceControl implements SourceControl {
     public VersionControlRepository gitRepository(URI url) {
         DefaultVersionControlRepository repo = repos.get(url);
         if (repo == null) {
-            repo = objectFactory.newInstance(DefaultVersionControlRepository.class, url);
+            repo = objectFactory.newInstance(DefaultVersionControlRepository.class, url, notationParser);
             repos.put(url, repo);
             vcsMappings.all(repo.asMappingAction());
         }
