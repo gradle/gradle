@@ -20,6 +20,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.CurrentBuildOperationPreservingRunnable;
 import org.gradle.process.internal.StreamsHandler;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -65,8 +66,12 @@ public class OutputStreamsForwarder implements StreamsHandler {
 
     public void stop() {
         try {
+            standardOutputReader.closeInput();
+            standardErrorReader.closeInput();
             completed.await();
         } catch (InterruptedException e) {
+            throw new UncheckedException(e);
+        } catch (IOException e) {
             throw new UncheckedException(e);
         }
     }

@@ -20,9 +20,12 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.CompositeStoppable;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.concurrent.CountDownLatch;
 
 public class ExecOutputHandleRunner implements Runnable {
@@ -30,6 +33,7 @@ public class ExecOutputHandleRunner implements Runnable {
 
     private final String displayName;
     private final InputStream inputStream;
+    private final FileChannel fileChannel;
     private final OutputStream outputStream;
     private final int bufferSize;
     private final CountDownLatch completed;
@@ -44,6 +48,11 @@ public class ExecOutputHandleRunner implements Runnable {
         this.outputStream = outputStream;
         this.bufferSize = bufferSize;
         this.completed = completed;
+        if (inputStream instanceof FileInputStream) {
+            fileChannel = ((FileInputStream) inputStream).getChannel();
+        } else {
+            fileChannel = null;
+        }
     }
 
     public void run() {
@@ -58,7 +67,7 @@ public class ExecOutputHandleRunner implements Runnable {
         byte[] buffer = new byte[bufferSize];
         try {
             while (true) {
-                int nread = inputStream.read(buffer);
+                int nread = fileChannel == null ? inputStream.read(buffer) : fileChannel.read(ByteBuffer.wrap(buffer));
                 if (nread < 0) {
                     break;
                 }

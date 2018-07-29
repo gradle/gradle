@@ -23,7 +23,7 @@ public class ScalaListBuffer {
     public static <T> Object fromList(ClassLoader cl, List<T> list) {
         try {
             Class<?> bufferClass = cl.loadClass("scala.collection.mutable.ListBuffer");
-            Object buffer = bufferClass.newInstance();
+            Object buffer = bufferClass.getConstructor().newInstance();
             Method bufferPlusEq = bufferClass.getMethod("$plus$eq", Object.class);
 
             for (T elem : list) {
