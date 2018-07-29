@@ -21,7 +21,7 @@ import org.gradle.util.TextUtil
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 
-class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
+class SourceDependencyIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     GitFileRepository first = new GitFileRepository('first', testDirectory)
     @Rule

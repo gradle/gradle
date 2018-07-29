@@ -23,16 +23,16 @@ import org.junit.Rule
 
 class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
     @Rule
-    BlockingHttpServer httpsServer = new BlockingHttpServer()
+    BlockingHttpServer httpServer = new BlockingHttpServer()
     @Rule
-    GitHttpRepository repoA = new GitHttpRepository(httpsServer, 'testA', temporaryFolder.getTestDirectory())
+    GitHttpRepository repoA = new GitHttpRepository(httpServer, 'testA', temporaryFolder.getTestDirectory())
     @Rule
-    GitHttpRepository repoB = new GitHttpRepository(httpsServer, 'testB', temporaryFolder.getTestDirectory())
+    GitHttpRepository repoB = new GitHttpRepository(httpServer, 'testB', temporaryFolder.getTestDirectory())
     @Rule
-    GitHttpRepository repoC = new GitHttpRepository(httpsServer, 'testC', temporaryFolder.getTestDirectory())
+    GitHttpRepository repoC = new GitHttpRepository(httpServer, 'testC', temporaryFolder.getTestDirectory())
 
     def setup() {
-        httpsServer.start()
+        httpServer.start()
         settingsFile << """
             rootProject.name = 'consumer'
             gradle.rootProject {

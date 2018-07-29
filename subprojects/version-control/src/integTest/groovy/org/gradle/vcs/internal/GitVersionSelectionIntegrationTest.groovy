@@ -26,15 +26,15 @@ import spock.lang.Unroll
 
 class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
     @Rule
-    BlockingHttpServer httpsServer = new BlockingHttpServer()
+    BlockingHttpServer httpServer = new BlockingHttpServer()
     @Rule
-    GitHttpRepository repo = new GitHttpRepository(httpsServer, 'dep', temporaryFolder.getTestDirectory())
+    GitHttpRepository repo = new GitHttpRepository(httpServer, 'dep', temporaryFolder.getTestDirectory())
 
     TestFile repoSettingsFile
     def fixture = new ResolveTestFixture(buildFile)
 
     def setup() {
-        httpsServer.start()
+        httpServer.start()
         settingsFile << """
             rootProject.name = 'consumer'
             gradle.rootProject {

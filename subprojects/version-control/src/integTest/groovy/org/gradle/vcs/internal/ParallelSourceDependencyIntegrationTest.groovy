@@ -21,12 +21,12 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.vcs.fixtures.GitHttpRepository
 import org.junit.Rule
 
-class ParallelVersionControlIntegrationTest extends AbstractIntegrationSpec {
-    @Rule BlockingHttpServer server = new BlockingHttpServer()
-    @Rule GitHttpRepository repo = new GitHttpRepository(server, "test", temporaryFolder.getTestDirectory())
+class ParallelSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
+    @Rule BlockingHttpServer httpServer = new BlockingHttpServer()
+    @Rule GitHttpRepository repo = new GitHttpRepository(httpServer, "test", temporaryFolder.getTestDirectory())
 
     def setup() {
-        server.start()
+        httpServer.start()
 
         settingsFile << """
             rootProject.name = 'consumer'
@@ -73,14 +73,14 @@ class ParallelVersionControlIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             subprojects {
                 tasks.resolve.doFirst {
-                    ${server.callFromBuildUsingExpression("project.name")}
+                    ${httpServer.callFromBuildUsingExpression("project.name")}
                 }
             }
         """
 
         when:
         // Wait for each project to list versions concurrently
-        server.expectConcurrent("A", "B", "C", "D")
+        httpServer.expectConcurrent("A", "B", "C", "D")
         // Only one project should clone
         repo.expectListVersions()
         repo.expectCloneSomething()
@@ -90,7 +90,7 @@ class ParallelVersionControlIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         // Wait for each project to list versions concurrently
-        server.expectConcurrent("A", "B", "C", "D")
+        httpServer.expectConcurrent("A", "B", "C", "D")
         // Only one project should list versions
         repo.expectListVersions()
 
@@ -106,7 +106,7 @@ class ParallelVersionControlIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         // Wait for each build to list versions
-        server.expectConcurrent(repo.listVersions(), repo.listVersions())
+        httpServer.expectConcurrent(repo.listVersions(), repo.listVersions())
         // Only one build should clone
         repo.expectCloneSomething()
 
@@ -120,7 +120,7 @@ class ParallelVersionControlIntegrationTest extends AbstractIntegrationSpec {
         build2.waitForFinish()
 
         // Wait for each build to list versions
-        server.expectConcurrent(repo.listVersions(), repo.listVersions())
+        httpServer.expectConcurrent(repo.listVersions(), repo.listVersions())
 
         executer.withTasks('resolve')
         def build3 = executer.start()
