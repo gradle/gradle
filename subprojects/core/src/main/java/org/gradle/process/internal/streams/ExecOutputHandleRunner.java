@@ -92,6 +92,8 @@ public class ExecOutputHandleRunner implements Runnable {
     }
 
     public void closeInput() throws IOException {
+        if (fileChannel != null)
+            fileChannel.close();
         inputStream.close();
     }
 
