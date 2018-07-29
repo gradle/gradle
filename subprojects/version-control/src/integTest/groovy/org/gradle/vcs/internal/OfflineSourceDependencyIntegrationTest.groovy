@@ -22,14 +22,14 @@ import org.gradle.vcs.fixtures.GitHttpRepository
 import org.junit.Rule
 
 
-class OfflineSourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
+class OfflineSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
     @Rule
-    BlockingHttpServer httpsServer = new BlockingHttpServer()
+    BlockingHttpServer httpServer = new BlockingHttpServer()
     @Rule
-    GitHttpRepository repo = new GitHttpRepository(httpsServer, 'dep', temporaryFolder.getTestDirectory())
+    GitHttpRepository repo = new GitHttpRepository(httpServer, 'dep', temporaryFolder.getTestDirectory())
 
     def setup() {
-        httpsServer.start()
+        httpServer.start()
         settingsFile << """
             rootProject.name = 'consumer'
             gradle.rootProject {

@@ -25,7 +25,7 @@ import org.junit.Rule
 
 import java.util.concurrent.TimeUnit
 
-class VcsCleanupIntegrationTest extends AbstractIntegrationSpec implements SourceDependencies {
+class SourceDependencyCleanupIntegrationTest extends AbstractIntegrationSpec implements SourceDependencies {
     @Rule
     GitFileRepository repo = new GitFileRepository("dep", testDirectory)
 
