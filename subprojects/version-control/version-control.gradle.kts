@@ -1,5 +1,7 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,40 +15,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
     id("java-library")
+    id("gradlebuild.strict-compile")
     id("gradlebuild.classycle")
 }
 
 dependencies {
-    api(project(":core"))
-    api(project(":publish"))
-    api(project(":plugins")) // for base plugin to get archives conf
-    api(project(":pluginUse"))
-    api(project(":dependencyManagement"))
+    api(project(":coreApi"))
 
-    implementation(library("ivy"))
+    implementation(project(":core"))
+    implementation(project(":dependencyManagement"))
+    implementation(library("jgit"))
+    implementation(library("commons_httpclient"))
+    implementation(library("jsch"))
 
-    integTestImplementation(project(":ear"))
-    integTestRuntimeOnly(project(":resourcesS3"))
-    integTestRuntimeOnly(project(":resourcesSftp"))
+    testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesCompile(library("jgit"))
+    testFixturesCompile(library("commons_httpclient"))
+    testFixturesCompile(library("jsch"))
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.PLUGIN
+    moduleType = ModuleType.CORE
 }
 
 testFixtures {
     from(":core")
-    from(":modelCore")
-    from(":platformBase")
 }
 
-testFilesCleanup {
-    policy.set(WhenNotEmpty.REPORT)
-}
+
+
+

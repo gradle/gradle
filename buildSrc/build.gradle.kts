@@ -159,7 +159,7 @@ fun Project.applyGroovyProjectConventions() {
         }
     }
 
-    tasks.withType<GroovyCompile>().configureEach {
+    tasks.withType<GroovyCompile>() {
         groovyOptions.apply {
             encoding = "utf-8"
         }
@@ -191,7 +191,7 @@ fun Project.applyKotlinProjectConventions() {
 
     apply(plugin = "org.gradle.kotlin.ktlint-convention")
 
-    tasks.withType<KotlinCompile>().configureEach {
+    tasks.withType<KotlinCompile>() {
         kotlinOptions {
             freeCompilerArgs += listOf("-Xjsr305=strict")
         }

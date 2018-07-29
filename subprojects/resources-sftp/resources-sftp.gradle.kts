@@ -1,5 +1,8 @@
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +16,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
     id("java-library")
+    id("gradlebuild.strict-compile")
     id("gradlebuild.classycle")
 }
 
 dependencies {
+    api(project(":resources"))
     api(project(":core"))
-    api(project(":publish"))
-    api(project(":plugins")) // for base plugin to get archives conf
-    api(project(":pluginUse"))
-    api(project(":dependencyManagement"))
 
-    implementation(library("ivy"))
-
-    integTestImplementation(project(":ear"))
-    integTestRuntimeOnly(project(":resourcesS3"))
-    integTestRuntimeOnly(project(":resourcesSftp"))
-    testFixturesImplementation(project(":internalIntegTesting"))
+    implementation(library("slf4j_api"))
+    implementation(library("guava"))
+    implementation(library("jsch"))
+    implementation(library("jcip"))
+    implementation(library("commons_io"))
 }
 
 gradlebuildJava {
@@ -42,11 +38,13 @@ gradlebuildJava {
 }
 
 testFixtures {
+    from(":dependencyManagement")
+    from(":ivy")
+    from(":maven")
     from(":core")
-    from(":modelCore")
-    from(":platformBase")
 }
 
 testFilesCleanup {
+    // TODO Improve once we have better syntax for lazy properties in Kotlin DSL
     policy.set(WhenNotEmpty.REPORT)
 }

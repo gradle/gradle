@@ -1,5 +1,7 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    id("java-library")
+    id("gradlebuild.strict-compile")
     id("gradlebuild.classycle")
 }
 
 dependencies {
-    api(project(":core"))
-    api(project(":publish"))
-    api(project(":plugins")) // for base plugin to get archives conf
-    api(project(":pluginUse"))
-    api(project(":dependencyManagement"))
+    compile(project(":core"))
+    compile(project(":platformNative"))
+    compile(project(":languageNative"))
+    compile(project(":testingBase"))
 
-    implementation(library("ivy"))
-
-    integTestImplementation(project(":ear"))
-    integTestRuntimeOnly(project(":resourcesS3"))
-    integTestRuntimeOnly(project(":resourcesSftp"))
-    testFixturesImplementation(project(":internalIntegTesting"))
+    integTestRuntime(project(":ideNative"))
 }
 
 gradlebuildJava {
@@ -43,10 +35,9 @@ gradlebuildJava {
 
 testFixtures {
     from(":core")
-    from(":modelCore")
+    from(":platformNative")
+    from(":diagnostics")
     from(":platformBase")
-}
-
-testFilesCleanup {
-    policy.set(WhenNotEmpty.REPORT)
+    from(":testingBase")
+    from(":languageNative")
 }
