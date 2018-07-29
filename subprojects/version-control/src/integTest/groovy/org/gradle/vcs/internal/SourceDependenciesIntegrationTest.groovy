@@ -107,10 +107,6 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
             buildFile << commonConfiguration
         }
         fourth.commit("initial commit")
-
-        executer.beforeExecute {
-            withArgument('--debug')
-        }
     }
 
     def "can use source mappings in nested builds"() {

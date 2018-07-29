@@ -16,9 +16,12 @@
 
 package org.gradle.vcs.internal;
 
-import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.vcs.VersionControlSpec;
 
+import java.net.URI;
+
 public interface VersionControlSpecFactory {
-    <T extends VersionControlSpec> T create(Class<T> specType, ClassLoaderScope classLoaderScope);
+    <T extends VersionControlSpec> T create(Class<T> specType);
+
+    <T extends VersionControlSpec> DefaultVersionControlRepository create(Class<T> specType, URI uri);
 }

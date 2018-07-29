@@ -17,13 +17,11 @@
 package org.gradle.vcs.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.vcs.SourceControl;
 import org.gradle.vcs.VcsMappings;
 import org.gradle.vcs.VersionControlRepository;
+import org.gradle.vcs.git.GitVersionControlSpec;
 
 import javax.inject.Inject;
 import java.net.URI;
@@ -31,18 +29,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultSourceControl implements SourceControl {
-    private final ObjectFactory objectFactory;
     private final FileResolver fileResolver;
     private final VcsMappings vcsMappings;
-    private final NotationParser<String, ModuleIdentifier> notationParser;
+    private final VersionControlSpecFactory specFactory;
     private final Map<URI, DefaultVersionControlRepository> repos = new HashMap<URI, DefaultVersionControlRepository>();
 
     @Inject
-    public DefaultSourceControl(ObjectFactory objectFactory, FileResolver fileResolver, VcsMappings vcsMappings, NotationParser<String, ModuleIdentifier> notationParser) {
-        this.objectFactory = objectFactory;
+    public DefaultSourceControl(FileResolver fileResolver, VcsMappings vcsMappings, VersionControlSpecFactory specFactory) {
         this.fileResolver = fileResolver;
         this.vcsMappings = vcsMappings;
-        this.notationParser = notationParser;
+        this.specFactory = specFactory;
     }
 
     @Override
@@ -59,7 +55,7 @@ public class DefaultSourceControl implements SourceControl {
     public VersionControlRepository gitRepository(URI url) {
         DefaultVersionControlRepository repo = repos.get(url);
         if (repo == null) {
-            repo = objectFactory.newInstance(DefaultVersionControlRepository.class, url, notationParser);
+            repo = specFactory.create(GitVersionControlSpec.class, url);
             repos.put(url, repo);
             vcsMappings.all(repo.asMappingAction());
         }

@@ -18,13 +18,11 @@ package org.gradle.vcs.internal
 
 import org.gradle.api.Action
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.typeconversion.NotationParser
-import org.gradle.util.TestUtil
 import org.gradle.vcs.VcsMappings
 import spock.lang.Specification
 
 class DefaultSourceControlTest extends Specification {
-    def sourceControl = new DefaultSourceControl(TestUtil.objectFactory(), TestFiles.resolver(), Stub(VcsMappings), Stub(NotationParser))
+    def sourceControl = new DefaultSourceControl(TestFiles.resolver(), Stub(VcsMappings), Stub(VersionControlSpecFactory))
 
     def "can register a Git repository"() {
         expect:

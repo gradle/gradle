@@ -16,28 +16,36 @@
 
 package org.gradle.vcs.internal.services;
 
-import org.gradle.StartParameter;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.git.GitVersionControlSpec;
 import org.gradle.vcs.git.internal.DefaultGitVersionControlSpec;
+import org.gradle.vcs.internal.DefaultVersionControlRepository;
 import org.gradle.vcs.internal.VersionControlSpecFactory;
+
+import java.net.URI;
 
 public class DefaultVersionControlSpecFactory implements VersionControlSpecFactory {
     private final ObjectFactory objectFactory;
-    private final StartParameter rootBuildStartParameter;
+    private final NotationParser<String, ModuleIdentifier> notationParser;
 
-    public DefaultVersionControlSpecFactory(ObjectFactory objectFactory, StartParameter rootBuildStartParameter) {
+    public DefaultVersionControlSpecFactory(ObjectFactory objectFactory, NotationParser<String, ModuleIdentifier> notationParser) {
         this.objectFactory = objectFactory;
-        this.rootBuildStartParameter = rootBuildStartParameter;
+        this.notationParser = notationParser;
     }
 
     @Override
-    public <T extends VersionControlSpec> T create(Class<T> specType, ClassLoaderScope classLoaderScope) {
+    public <T extends VersionControlSpec> T create(Class<T> specType) {
         if (specType.isAssignableFrom(GitVersionControlSpec.class)) {
-            return specType.cast(objectFactory.newInstance(DefaultGitVersionControlSpec.class, rootBuildStartParameter, classLoaderScope));
+            return specType.cast(objectFactory.newInstance(DefaultGitVersionControlSpec.class));
         }
         throw new IllegalArgumentException(String.format("Do not know how to create an instance of %s.", specType.getName()));
+    }
+
+    @Override
+    public <T extends VersionControlSpec> DefaultVersionControlRepository create(Class<T> specType, URI uri) {
+        return objectFactory.newInstance(DefaultVersionControlRepository.class, uri, notationParser, create(specType));
     }
 }
