@@ -151,17 +151,12 @@ val groovyBuildScriptProjects = listOf(
     "model-core",
     "model-groovy",
     "build-cache-http",
-    "testing-base",
-    "testing-native",
-    "testing-jvm",
-    "testing-junit-platform",
     "platform-play",
     "test-kit",
     "soak",
     "smoke-test",
     "persistent-cache",
-    "core-api",
-    "version-control")
+    "core-api")
 
 fun buildFileNameFor(projectDirName: String) =
     "$projectDirName${buildFileExtensionFor(projectDirName)}"

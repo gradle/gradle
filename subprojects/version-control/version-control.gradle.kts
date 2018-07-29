@@ -16,21 +16,25 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
-    id 'java-library'
-    id 'gradlebuild.strict-compile'
-    id 'gradlebuild.classycle'
+    id("java-library")
+    id("gradlebuild.strict-compile")
+    id("gradlebuild.classycle")
 }
 
 dependencies {
-    api project(':coreApi')
+    api(project(":coreApi"))
 
-    implementation project(':core')
-    implementation project(':dependencyManagement')
-    implementation libraries.jgit.coordinates, libraries.commons_httpclient.coordinates, libraries.jsch.coordinates
+    implementation(project(":core"))
+    implementation(project(":dependencyManagement"))
+    implementation(library("jgit"))
+    implementation(library("commons_httpclient"))
+    implementation(library("jsch"))
 
-    testFixturesImplementation project(":internalTesting")
-    testFixturesImplementation project(":internalIntegTesting")
-    testFixturesCompile libraries.jgit.coordinates, libraries.commons_httpclient.coordinates, libraries.jsch.coordinates
+    testFixturesImplementation(project(":internalTesting"))
+    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesCompile(library("jgit"))
+    testFixturesCompile(library("commons_httpclient"))
+    testFixturesCompile(library("jsch"))
 }
 
 gradlebuildJava {
@@ -38,5 +42,9 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(':core')
+    from(":core")
 }
+
+
+
+
