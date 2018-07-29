@@ -18,19 +18,22 @@ package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.vcs.fixtures.GitFileRepository
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.vcs.fixtures.GitHttpRepository
 import org.gradle.vcs.fixtures.GitRepository
-import org.gradle.vcs.git.GitVersionControlSpec
 import org.junit.Rule
 
-class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements SourceDependencies {
+abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends AbstractIntegrationSpec implements SourceDependencies {
     @Rule
-    GitFileRepository repo = new GitFileRepository(testDirectory)
+    BlockingHttpServer httpServer = new BlockingHttpServer()
     @Rule
-    GitFileRepository repo2 = new GitFileRepository('repo2', testDirectory)
+    GitHttpRepository repo = new GitHttpRepository(httpServer, "repo", testDirectory)
+    @Rule
+    GitHttpRepository repo2 = new GitHttpRepository(httpServer, "repo2", testDirectory)
     BuildTestFile buildB
 
     def setup() {
+        httpServer.start()
         buildB = new BuildTestFile(repo.workTree, "B")
         buildB.settingsFile << """
             rootProject.name = 'B'
@@ -71,6 +74,11 @@ class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements 
             }
         """
         expect:
+        repo.expectListVersions()
+        repo.expectCloneSomething()
+        assertResolvesTo("foo-1.0.jar")
+
+        repo.expectListVersions()
         assertResolvesTo("foo-1.0.jar")
     }
 
@@ -82,6 +90,11 @@ class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements 
             }
         """
         expect:
+        repo.expectListVersions()
+        repo.expectCloneSomething()
+        assertResolvesTo("B-1.0.jar")
+
+        repo.expectListVersions()
         assertResolvesTo("B-1.0.jar")
     }
 
@@ -94,6 +107,11 @@ class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements 
             }
         """
         expect:
+        repo.expectListVersions()
+        repo.expectCloneSomething()
+        assertResolvesTo("foo-1.0.jar", "bar-1.0.jar")
+
+        repo.expectListVersions()
         assertResolvesTo("foo-1.0.jar", "bar-1.0.jar")
     }
 
@@ -108,6 +126,11 @@ class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements 
         """
         expect:
         // foo should be from the source dependencies and bar should be from the external repo
+        repo.expectListVersions()
+        repo.expectCloneSomething()
+        assertResolvesTo("foo-1.0.jar", "bar-1.0-SNAPSHOT.jar")
+
+        repo.expectListVersions()
         assertResolvesTo("foo-1.0.jar", "bar-1.0-SNAPSHOT.jar")
     }
 
@@ -129,6 +152,11 @@ class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements 
             }
         """
         expect:
+        repo.expectListVersions()
+        repo.expectCloneSomething()
+        assertResolvesTo("foo-1.0.jar", "bar-1.0.jar")
+
+        repo.expectListVersions()
         assertResolvesTo("foo-1.0.jar", "bar-1.0.jar")
     }
 
@@ -160,6 +188,14 @@ class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements 
             }
         """
         expect:
+        repo.expectListVersions()
+        repo.expectCloneSomething()
+        repo2.expectListVersions()
+        repo2.expectCloneSomething()
+        assertResolvesTo("foo-1.0.jar", "bar-2.0.jar")
+
+        repo.expectListVersions()
+        repo2.expectListVersions()
         assertResolvesTo("foo-1.0.jar", "bar-2.0.jar")
     }
 
@@ -178,31 +214,15 @@ class MultiprojectVcsIntegrationTest extends AbstractIntegrationSpec implements 
             }
         """
         expect:
+        repo.expectListVersions()
+        repo.expectCloneSomething()
         fails("resolve")
         failure.assertHasDescription("Could not determine the dependencies of task ':resolve'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':conf'.")
         failure.assertHasCause("Git repository at ${repo.url} did not contain a project publishing the specified dependency.")
     }
 
-    void mappingFor(GitRepository gitRepo = repo, String... coords) {
-        settingsFile << """
-            sourceControl {
-                vcsMappings {
-        """
-        coords.each { coord ->
-            settingsFile << """
-                    withModule("${coord}") {
-                        from(${GitVersionControlSpec.name}) {
-                            url = uri("$gitRepo.url")
-                        }
-                    }
-            """
-        }
-        settingsFile << """
-                }
-            }
-        """
-    }
+    abstract void mappingFor(GitRepository gitRepo = repo, String... coords)
 
     void assertResolvesTo(String... files) {
         def result = "-Presult=" + files.join(',')
