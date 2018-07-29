@@ -31,9 +31,60 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
     @Rule
     GitFileRepository evenDeeperRepo = new GitFileRepository('evenDeeperDep', temporaryFolder.getTestDirectory())
 
-    def 'can define and use source repositories'() {
+    def 'can define and use source repository'() {
         given:
         def commit = repo.commit('initial commit')
+
+        settingsFile << """
+            sourceControl {
+                gitRepository("${repo.url}").producesModule("org.test:dep")
+            }
+        """
+        expect:
+        succeeds('assemble')
+        result.assertTaskExecuted(":dep:compileJava")
+        result.assertTaskExecuted(":compileJava")
+
+        // Git repo is cloned
+        def gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
+        gitCheckout.file('.git').assertExists()
+    }
+
+    def 'can define and use source repository that produces multiple components'() {
+        given:
+        depProject.settingsFile << """
+            include 'dep2', 'dep3'
+        """
+        repo.commit('initial commit')
+        repo.createLightWeightTag('1.2')
+
+        settingsFile << """
+            sourceControl {
+                gitRepository("${repo.url}") {
+                    producesModule("org.test:dep")
+                    producesModule("org.test:dep2")
+                    producesModule("org.test:dep3")
+                }
+            }
+        """
+        buildFile << """
+            dependencies {
+                compile 'org.test:dep2:1.2'
+                compile 'org.test:dep3:1.2'
+            }
+        """
+
+        expect:
+        succeeds('assemble')
+        result.assertTaskExecuted(":dep:compileJava")
+        result.assertTaskExecuted(":dep:dep2:compileJava")
+        result.assertTaskExecuted(":dep:dep3:compileJava")
+        result.assertTaskExecuted(":compileJava")
+    }
+
+    def 'can define and use source repositories using VCS mapping'() {
+        given:
+        repo.commit('initial commit')
 
         settingsFile << """
             sourceControl {
@@ -48,11 +99,8 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         """
         expect:
         succeeds('assemble')
-        result.assertTasksExecuted(":dep:processResources", ":dep:compileJava", ":dep:classes", ":dep:jar", ":processResources", ":compileJava", ":classes", ":jar", ":assemble")
-
-        // Git repo is cloned
-        def gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
-        gitCheckout.file('.git').assertExists()
+        result.assertTaskExecuted(":dep:compileJava")
+        result.assertTaskExecuted(":compileJava")
     }
 
     def 'can define and use source repositories with submodules'() {

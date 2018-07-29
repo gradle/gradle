@@ -23,11 +23,14 @@ import org.gradle.internal.Cast;
 import org.gradle.vcs.VcsMapping;
 import org.gradle.vcs.VcsMappings;
 
+import javax.inject.Inject;
+
 public class DefaultVcsMappings implements VcsMappings {
     private final VcsMappingsStore vcsMappings;
     private final Gradle gradle;
     private final Object lock = new Object();
 
+    @Inject
     public DefaultVcsMappings(VcsMappingsStore vcsMappings, Gradle gradle) {
         this.vcsMappings = vcsMappings;
         this.gradle = gradle;

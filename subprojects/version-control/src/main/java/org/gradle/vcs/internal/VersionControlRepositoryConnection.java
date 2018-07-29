@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.vcs.internal.resolver;
+package org.gradle.vcs.internal;
 
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.vcs.internal.VersionControlRepositoryConnection;
-
-import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Set;
 
-public interface VcsVersionWorkingDirResolver {
-    /**
-     * Attempts to locate a matching version for the selector in the given VCS, returning the working directory to use for the version if found.
-     *
-     * @return The working directory or {@code null} if not found.
-     */
-    @Nullable
-    File selectVersion(ModuleComponentSelector selector, VersionControlRepositoryConnection repository);
+public interface VersionControlRepositoryConnection {
+    String getDisplayName();
+
+    String getUniqueId();
+
+    String getRepoName();
+
+    File populate(VersionRef selectedVersion);
+
+    VersionRef getBranch(String branch);
+
+    VersionRef getDefaultBranch();
+
+    Set<VersionRef> getAvailableVersions();
 }

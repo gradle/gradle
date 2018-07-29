@@ -22,12 +22,15 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.vcs.VersionControlSpec;
 
+import javax.inject.Inject;
+
 public class DefaultVcsMapping implements VcsMappingInternal {
     private final ComponentSelector requested;
     private final VersionControlSpecFactory specFactory;
     private ClassLoaderScope classLoaderScope;
     private VersionControlSpec versionControlSpec;
 
+    @Inject
     public DefaultVcsMapping(ComponentSelector requested, VersionControlSpecFactory specFactory) {
         this.requested = requested;
         this.specFactory = specFactory;

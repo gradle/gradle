@@ -40,7 +40,10 @@ abstract class AbstractVcsIntegrationTest extends AbstractIntegrationSpec implem
         buildTestFixture.withBuildInSubDir()
         depProject = singleProjectBuild("dep") {
             buildFile << """
-                apply plugin: 'java'
+                allprojects {
+                    apply plugin: 'java'
+                    group = 'org.test'
+                }
             """
             file("src/main/java/Dep.java") << "public class Dep {}"
         }

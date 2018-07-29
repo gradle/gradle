@@ -18,7 +18,7 @@ package org.gradle.vcs.internal.resolver;
 
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.vcs.internal.VersionControlRepository;
+import org.gradle.vcs.internal.VersionControlRepositoryConnection;
 import org.gradle.vcs.internal.VersionRef;
 
 import javax.annotation.Nullable;
@@ -33,7 +33,7 @@ public class OfflineVcsVersionWorkingDirResolver implements VcsVersionWorkingDir
 
     @Nullable
     @Override
-    public File selectVersion(ModuleComponentSelector selector, VersionControlRepository repository) {
+    public File selectVersion(ModuleComponentSelector selector, VersionControlRepositoryConnection repository) {
         VersionRef previousVersion = persistentCache.getVersionForSelector(repository, selector.getVersionConstraint());
         if (previousVersion == null) {
             throw new ModuleVersionResolveException(selector, String.format("Cannot resolve %s from %s in offline mode.", selector.getDisplayName(), repository.getDisplayName()));

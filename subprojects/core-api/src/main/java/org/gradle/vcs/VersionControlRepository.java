@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.vcs.internal;
+package org.gradle.vcs;
 
-import java.io.File;
-import java.util.Set;
+import org.gradle.api.Incubating;
 
+/**
+ * Represents the details about a particular VCS repository that may produce zero or more components that can be used during dependency resolution.
+ *
+ * @since 4.10
+ */
+@Incubating
 public interface VersionControlRepository {
-    String getDisplayName();
-
-    String getUniqueId();
-
-    String getRepoName();
-
-    File populate(VersionRef selectedVersion);
-
-    VersionRef getBranch(String branch);
-
-    VersionRef getDefaultBranch();
-
-    Set<VersionRef> getAvailableVersions();
+    /**
+     * Declares that this repository produces (or may produce) the given module.
+     *
+     * @param module The module identity, in "group:module" format.
+     */
+    void producesModule(String module);
 }

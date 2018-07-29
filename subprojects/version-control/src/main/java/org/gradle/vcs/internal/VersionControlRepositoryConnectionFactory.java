@@ -18,6 +18,6 @@ package org.gradle.vcs.internal;
 
 import org.gradle.vcs.VersionControlSpec;
 
-public interface VersionControlRepositoryFactory {
-    VersionControlRepository create(VersionControlSpec spec);
+public interface VersionControlRepositoryConnectionFactory {
+    VersionControlRepositoryConnection create(VersionControlSpec spec);
 }

@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionC
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.vcs.internal.VersionControlRepository;
+import org.gradle.vcs.internal.VersionControlRepositoryConnection;
 import org.gradle.vcs.internal.VersionRef;
 
 import javax.annotation.Nullable;
@@ -48,7 +48,7 @@ public class DefaultVcsVersionWorkingDirResolver implements VcsVersionWorkingDir
 
     @Nullable
     @Override
-    public File selectVersion(ModuleComponentSelector selector, VersionControlRepository repository) {
+    public File selectVersion(ModuleComponentSelector selector, VersionControlRepositoryConnection repository) {
         VersionRef selectedVersion = selectVersionFromRepository(repository, selector.getVersionConstraint());
         if (selectedVersion == null) {
             return null;
@@ -59,7 +59,7 @@ public class DefaultVcsVersionWorkingDirResolver implements VcsVersionWorkingDir
         return workingDir;
     }
 
-    private File prepareWorkingDir(VersionControlRepository repository, VersionRef selectedVersion) {
+    private File prepareWorkingDir(VersionControlRepositoryConnection repository, VersionRef selectedVersion) {
         // TODO - prevent multiple threads from performing the same VCS populate operation at the same time
         File workingDir = inMemoryCache.getWorkingDirForRevision(repository, selectedVersion);
         if (workingDir == null) {
@@ -69,7 +69,7 @@ public class DefaultVcsVersionWorkingDirResolver implements VcsVersionWorkingDir
         return workingDir;
     }
 
-    private VersionRef selectVersionFromRepository(VersionControlRepository repository, VersionConstraint constraint) {
+    private VersionRef selectVersionFromRepository(VersionControlRepositoryConnection repository, VersionConstraint constraint) {
         // TODO: match with status, order versions correctly
 
         if (constraint.getBranch() != null) {

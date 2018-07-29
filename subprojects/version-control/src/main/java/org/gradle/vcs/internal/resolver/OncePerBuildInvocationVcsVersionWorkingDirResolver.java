@@ -19,7 +19,7 @@ package org.gradle.vcs.internal.resolver;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.Factory;
-import org.gradle.vcs.internal.VersionControlRepository;
+import org.gradle.vcs.internal.VersionControlRepositoryConnection;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -41,7 +41,7 @@ public class OncePerBuildInvocationVcsVersionWorkingDirResolver implements VcsVe
 
     @Nullable
     @Override
-    public File selectVersion(final ModuleComponentSelector selector, final VersionControlRepository repository) {
+    public File selectVersion(final ModuleComponentSelector selector, final VersionControlRepositoryConnection repository) {
         // Perform the work per repository
         return perRepoGuard.guardByKey(repository.getUniqueId(), new Factory<File>() {
             @Nullable

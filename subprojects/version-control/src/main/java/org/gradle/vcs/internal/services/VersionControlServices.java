@@ -17,7 +17,6 @@
 package org.gradle.vcs.internal.services;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
@@ -25,12 +24,13 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionC
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CleanupActionFactory;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.vcs.SourceControl;
@@ -43,7 +43,7 @@ import org.gradle.vcs.internal.VcsDirectoryLayout;
 import org.gradle.vcs.internal.VcsMappingFactory;
 import org.gradle.vcs.internal.VcsMappingsStore;
 import org.gradle.vcs.internal.VcsResolver;
-import org.gradle.vcs.internal.VersionControlRepositoryFactory;
+import org.gradle.vcs.internal.VersionControlRepositoryConnectionFactory;
 import org.gradle.vcs.internal.resolver.DefaultVcsVersionWorkingDirResolver;
 import org.gradle.vcs.internal.resolver.OfflineVcsVersionWorkingDirResolver;
 import org.gradle.vcs.internal.resolver.OncePerBuildInvocationVcsVersionWorkingDirResolver;
@@ -76,9 +76,8 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
     }
 
     private static class VersionControlBuildTreeServices {
-        VcsMappingFactory createVcsMappingFactory(InstantiatorFactory instantiatorFactory, StartParameter startParameter) {
-            Instantiator decoratingInstantiator = instantiatorFactory.decorate();
-            return new DefaultVcsMappingFactory(decoratingInstantiator, new DefaultVersionControlSpecFactory(decoratingInstantiator, startParameter));
+        VcsMappingFactory createVcsMappingFactory(ObjectFactory objectFactory, StartParameter startParameter) {
+            return new DefaultVcsMappingFactory(objectFactory, new DefaultVersionControlSpecFactory(objectFactory, startParameter));
         }
 
         VcsMappingsStore createVcsMappingsStore(VcsMappingFactory mappingFactory) {
@@ -95,7 +94,7 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
     }
 
     private static class VersionControlBuildSessionServices {
-        VersionControlRepositoryFactory createVersionControlSystemFactory(VcsDirectoryLayout directoryLayout, CleanupActionFactory cleanupActionFactory, CacheRepository cacheRepository) {
+        VersionControlRepositoryConnectionFactory createVersionControlSystemFactory(VcsDirectoryLayout directoryLayout, CleanupActionFactory cleanupActionFactory, CacheRepository cacheRepository) {
             return new DefaultVersionControlRepositoryFactory(directoryLayout, cacheRepository, cleanupActionFactory);
         }
 
@@ -109,17 +108,17 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
     }
 
     private static class VersionControlSettingsServices {
-        VcsMappings createVcsMappings(Instantiator instantiator, VcsMappingsStore vcsMappingsStore, Gradle gradle) {
-            return instantiator.newInstance(DefaultVcsMappings.class, vcsMappingsStore, gradle);
+        VcsMappings createVcsMappings(ObjectFactory objectFactory, VcsMappingsStore vcsMappingsStore, Gradle gradle) {
+            return objectFactory.newInstance(DefaultVcsMappings.class, vcsMappingsStore, gradle);
         }
 
-        SourceControl createSourceControl(Instantiator instantiator, VcsMappings vcsMappings) {
-            return instantiator.newInstance(DefaultSourceControl.class, vcsMappings);
+        SourceControl createSourceControl(ObjectFactory objectFactory, FileResolver fileResolver, VcsMappings vcsMappings) {
+            return objectFactory.newInstance(DefaultSourceControl.class, objectFactory, fileResolver, vcsMappings);
         }
     }
 
     private static class VersionControlBuildServices {
-        VcsDependencyResolver createVcsDependencyResolver(VcsDirectoryLayout directoryLayout, LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlRepositoryFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, BuildStateRegistry buildRegistry, VersionParser versionParser, VcsVersionSelectionCache versionSelectionCache, PersistentVcsMetadataCache persistentCache, StartParameter startParameter) {
+        VcsDependencyResolver createVcsDependencyResolver(VcsDirectoryLayout directoryLayout, LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlRepositoryConnectionFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, BuildStateRegistry buildRegistry, VersionParser versionParser, VcsVersionSelectionCache versionSelectionCache, PersistentVcsMetadataCache persistentCache, StartParameter startParameter) {
             VcsVersionWorkingDirResolver workingDirResolver;
             if (startParameter.isOffline()) {
                 workingDirResolver = new OfflineVcsVersionWorkingDirResolver(persistentCache);
