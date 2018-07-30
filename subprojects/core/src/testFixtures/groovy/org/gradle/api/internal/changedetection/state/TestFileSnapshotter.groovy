@@ -17,12 +17,12 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTree
+import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 
@@ -33,14 +33,25 @@ class TestFileSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    PhysicalSnapshot snapshotSelf(File file) {
+    PhysicalSnapshot snapshot(File file) {
         if (file.isFile()) {
             return new PhysicalFileSnapshot(file.absolutePath, file.name, Hashing.md5().hashBytes(file.bytes), file.lastModified())
         }
-        if (file.isDirectory()) {
-            return new PhysicalDirectorySnapshot(file.absolutePath, file.name, [], PhysicalDirectorySnapshot.SIGNATURE)
+        if (!file.exists()) {
+            return new PhysicalMissingSnapshot(file.absolutePath, file.name)
         }
-        return new PhysicalMissingSnapshot(file.absolutePath, file.name)
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    FileType getType(File file) {
+        if (!file.exists()) {
+            return FileType.Missing
+        }
+        if (file.isFile()) {
+            return FileType.RegularFile
+        }
+        return FileType.Directory
     }
 
     @Override

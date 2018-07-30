@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
 import org.gradle.internal.classpath.CachedJarFileStore
+import org.gradle.internal.file.FileMetadataSnapshot
 import org.gradle.internal.hash.HashCode
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -46,6 +47,7 @@ class DefaultFileSystemMirrorTest extends Specification {
         def fileSnapshot = Stub(PhysicalFileSnapshot)
         def fileTreeSnapshot = Stub(PhysicalSnapshot)
         def contentHash = HashCode.fromInt(1234)
+        def metadata = Stub(FileMetadataSnapshot)
 
         given:
 
@@ -54,22 +56,22 @@ class DefaultFileSystemMirrorTest extends Specification {
         _ * fileTreeSnapshot.absolutePath >> file.path
 
         expect:
-        mirror.getFile(file.path) == null
-        mirror.getDirectoryTree(file.path) == null
+        mirror.getMetadata(file.path) == null
+        mirror.getSnapshot(file.path) == null
         mirror.getContent(file.path) == null
 
-        mirror.putFile(fileSnapshot)
-        mirror.putDirectory(file.path, fileTreeSnapshot)
+        mirror.putMetadata(file.path, metadata)
+        mirror.putSnapshot(fileSnapshot)
         mirror.putContent(file.path, contentHash)
 
-        mirror.getFile(file.path) == fileSnapshot
-        mirror.getDirectoryTree(file.path) == fileTreeSnapshot
+        mirror.getMetadata(file.path) == metadata
+        mirror.getSnapshot(file.path) == fileSnapshot
         mirror.getContent(file.path) == contentHash
 
         mirror.beforeTaskOutputChanged()
 
-        mirror.getFile(file.path) == null
-        mirror.getDirectoryTree(file.path) == null
+        mirror.getMetadata(file.path) == null
+        mirror.getSnapshot(file.path) == null
         mirror.getContent(file.path) == null
     }
 
@@ -77,6 +79,7 @@ class DefaultFileSystemMirrorTest extends Specification {
         def file = tmpDir.file("a")
         def fileSnapshot = Stub(PhysicalFileSnapshot)
         def fileTreeSnapshot = Stub(PhysicalSnapshot)
+        def metadata = Stub(FileMetadataSnapshot)
         def contentHash = HashCode.fromInt(1234)
         def buildResult = Stub(BuildResult)
         def gradle = Stub(GradleInternal)
@@ -89,22 +92,22 @@ class DefaultFileSystemMirrorTest extends Specification {
         _ * gradle.parent >> null
 
         expect:
-        mirror.getFile(file.path) == null
-        mirror.getDirectoryTree(file.path) == null
+        mirror.getMetadata(file.path) == null
+        mirror.getSnapshot(file.path) == null
         mirror.getContent(file.path) == null
 
-        mirror.putFile(fileSnapshot)
-        mirror.putDirectory(file.path, fileTreeSnapshot)
+        mirror.putMetadata(file.path, metadata)
+        mirror.putSnapshot(fileSnapshot)
         mirror.putContent(file.path, contentHash)
 
-        mirror.getFile(file.path) == fileSnapshot
-        mirror.getDirectoryTree(file.path) == fileTreeSnapshot
+        mirror.getMetadata(file.path) == metadata
+        mirror.getSnapshot(file.path) == fileSnapshot
         mirror.getContent(file.path) == contentHash
 
         mirror.beforeComplete()
 
-        mirror.getFile(file.path) == null
-        mirror.getDirectoryTree(file.path) == null
+        mirror.getMetadata(file.path) == null
+        mirror.getSnapshot(file.path) == null
         mirror.getContent(file.path) == null
     }
 
@@ -112,6 +115,7 @@ class DefaultFileSystemMirrorTest extends Specification {
         def file = cacheDir.file("some/dir/a")
         def fileSnapshot = Stub(PhysicalFileSnapshot)
         def fileTreeSnapshot = Stub(PhysicalSnapshot)
+        def metadata = Stub(FileMetadataSnapshot)
         def contentHash = HashCode.fromInt(1234)
         def buildResult = Stub(BuildResult)
         def gradle = Stub(GradleInternal)
@@ -123,28 +127,28 @@ class DefaultFileSystemMirrorTest extends Specification {
         _ * gradle.parent >> null
 
         expect:
-        mirror.getFile(file.path) == null
-        mirror.getDirectoryTree(file.path) == null
+        mirror.getMetadata(file.path) == null
+        mirror.getSnapshot(file.path) == null
         mirror.getContent(file.path) == null
 
-        mirror.putFile(fileSnapshot)
-        mirror.putDirectory(file.path, fileTreeSnapshot)
+        mirror.putMetadata(file.path, metadata)
+        mirror.putSnapshot(fileSnapshot)
         mirror.putContent(file.path, contentHash)
 
-        mirror.getFile(file.path) == fileSnapshot
-        mirror.getDirectoryTree(file.path) == fileTreeSnapshot
+        mirror.getMetadata(file.path) == metadata
+        mirror.getSnapshot(file.path) == fileSnapshot
         mirror.getContent(file.path) == contentHash
 
         mirror.beforeTaskOutputChanged()
 
-        mirror.getFile(file.path) == fileSnapshot
-        mirror.getDirectoryTree(file.path) == fileTreeSnapshot
+        mirror.getMetadata(file.path) == metadata
+        mirror.getSnapshot(file.path) == fileSnapshot
         mirror.getContent(file.path) == contentHash
 
         mirror.beforeComplete()
 
-        mirror.getFile(file.path) == null
-        mirror.getDirectoryTree(file.path) == null
+        mirror.getMetadata(file.path) == null
+        mirror.getSnapshot(file.path) == null
         mirror.getContent(file.path) == null
     }
 }

@@ -17,8 +17,8 @@
 package org.gradle.api.internal.changedetection.state;
 
 import net.rubygrapefruit.platform.ThreadSafe;
-import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
+import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
@@ -31,17 +31,16 @@ import javax.annotation.Nullable;
 @ThreadSafe
 public interface FileSystemMirror {
     @Nullable
-    PhysicalSnapshot getFile(String absolutePath);
+    PhysicalSnapshot getSnapshot(String absolutePath);
 
-    void putFile(PhysicalSnapshot file);
+    void putSnapshot(PhysicalSnapshot file);
+
+    FileMetadataSnapshot getMetadata(String absolutePath);
+
+    void putMetadata(String absolutePath, FileMetadataSnapshot stat);
 
     @Nullable
     HashCode getContent(String absolutePath);
 
     void putContent(String absolutePath, HashCode contentHash);
-
-    @Nullable
-    FileSystemSnapshot getDirectoryTree(String absolutePath);
-
-    void putDirectory(String absolutePath, FileSystemSnapshot directory);
 }

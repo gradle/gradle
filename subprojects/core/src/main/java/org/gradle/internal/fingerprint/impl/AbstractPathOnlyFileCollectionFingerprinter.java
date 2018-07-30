@@ -19,7 +19,6 @@ package org.gradle.internal.fingerprint.impl;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
@@ -28,8 +27,8 @@ public abstract class AbstractPathOnlyFileCollectionFingerprinter extends Abstra
 
     private final FingerprintingStrategy fingerprintingStrategy;
 
-    public AbstractPathOnlyFileCollectionFingerprinter(FingerprintingStrategy fingerprintingStrategy, StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
-        super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
+    public AbstractPathOnlyFileCollectionFingerprinter(FingerprintingStrategy fingerprintingStrategy, StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
+        super(stringInterner, fileSystemSnapshotter);
         this.fingerprintingStrategy = fingerprintingStrategy;
     }
 

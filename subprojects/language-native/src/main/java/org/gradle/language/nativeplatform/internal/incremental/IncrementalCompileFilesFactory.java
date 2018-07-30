@@ -88,11 +88,12 @@ public class IncrementalCompileFilesFactory {
          * @return true if this source file requires recompilation, false otherwise.
          */
         private boolean visitSourceFile(File sourceFile) {
-            PhysicalSnapshot fileSnapshot = fileSystemSnapshotter.snapshotSelf(sourceFile);
-            if (fileSnapshot.getType() != FileType.RegularFile) {
+            FileType fileType = fileSystemSnapshotter.getType(sourceFile);
+            if (fileType != FileType.RegularFile) {
                 // Skip things that aren't files
                 return false;
             }
+            PhysicalSnapshot fileSnapshot = fileSystemSnapshotter.snapshot(sourceFile);
             HashCode fileContent = fileSnapshot.getHash();
 
             SourceFileState previousState = previous.getState(sourceFile);

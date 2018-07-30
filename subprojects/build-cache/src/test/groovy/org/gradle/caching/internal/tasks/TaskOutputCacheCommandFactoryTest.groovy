@@ -19,7 +19,6 @@ package org.gradle.caching.internal.tasks
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSortedMap
-import com.google.common.collect.Iterables
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskArtifactState
@@ -35,6 +34,7 @@ import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata
 import org.gradle.internal.time.Timer
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -93,18 +93,13 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         1 * packer.unpack(outputProperties, input, _) >> new TaskOutputPacker.UnpackResult(originMetadata, 123, fileSnapshots)
 
         then:
-        1 * fileSystemMirror.putDirectory(_, _) >> { String absolutePath, PhysicalDirectorySnapshot dir ->
-            def basePath = dir.absolutePath.toString()
-            assert absolutePath == basePath
-            assert basePath == outputDir.absolutePath
-            assert Iterables.getOnlyElement(dir.children).absolutePath == outputDirFile.absolutePath
-        }
-        1 * fileSystemMirror.putFile(_ as PhysicalDirectorySnapshot) >> { args ->
+        1 * fileSystemMirror.putMetadata(outputDir.absolutePath, DefaultFileMetadata.directory())
+        1 * fileSystemMirror.putSnapshot(_ as PhysicalDirectorySnapshot) >> { args ->
             PhysicalDirectorySnapshot snapshot = args[0]
             assert snapshot.absolutePath == outputDir.absolutePath
             assert snapshot.name == outputDir.name
         }
-        1 * fileSystemMirror.putFile(_ as PhysicalFileSnapshot) >> { args ->
+        1 * fileSystemMirror.putSnapshot(_ as PhysicalFileSnapshot) >> { args ->
             PhysicalFileSnapshot snapshot = args[0]
             assert snapshot.absolutePath == outputFileSnapshot.absolutePath
             assert snapshot.name == outputFileSnapshot.name

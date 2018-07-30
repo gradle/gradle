@@ -34,19 +34,19 @@ class DefaultFileSystemSnapshotterTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def fileHasher = new TestFileHasher()
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
-    def snapshotter = new DefaultFileSystemSnapshotter(fileHasher, new StringInterner(), TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror)
+    def snapshotter = new DefaultFileSystemSnapshotter(fileHasher, new StringInterner(), TestFiles.fileSystem(), fileSystemMirror)
 
     def "fetches details of a file and caches the result"() {
         def f = tmpDir.createFile("f")
 
         expect:
-        def snapshot = snapshotter.snapshotSelf(f)
+        def snapshot = snapshotter.snapshot(f)
         snapshot.absolutePath == f.path
         snapshot.name == "f"
         snapshot.type == FileType.RegularFile
         snapshot.isContentAndMetadataUpToDate(new PhysicalFileSnapshot(f.path, f.absolutePath, fileHasher.hash(f), TestFiles.fileSystem().stat(f).lastModified))
 
-        def snapshot2 = snapshotter.snapshotSelf(f)
+        def snapshot2 = snapshotter.snapshot(f)
         snapshot2.is(snapshot)
     }
 
@@ -54,12 +54,12 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def d = tmpDir.createDir("d")
 
         expect:
-        def snapshot = snapshotter.snapshotSelf(d)
+        def snapshot = snapshotter.snapshot(d)
         snapshot.absolutePath == d.path
         snapshot.name == "d"
         snapshot.type == FileType.Directory
 
-        def snapshot2 = snapshotter.snapshotSelf(d)
+        def snapshot2 = snapshotter.snapshot(d)
         snapshot2.is(snapshot)
     }
 
@@ -67,12 +67,12 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def f = tmpDir.file("f")
 
         expect:
-        def snapshot = snapshotter.snapshotSelf(f)
+        def snapshot = snapshotter.snapshot(f)
         snapshot.absolutePath == f.path
         snapshot.name == "f"
         snapshot.type == FileType.Missing
 
-        def snapshot2 = snapshotter.snapshotSelf(f)
+        def snapshot2 = snapshotter.snapshot(f)
         snapshot2.is(snapshot)
     }
 
@@ -83,10 +83,10 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         d.createDir("d2")
 
         expect:
-        def snapshot = snapshotter.snapshotDirectoryTree(dirTree(d))
+        def snapshot = snapshotter.snapshot(d)
         getSnapshotInfo(snapshot) == [d.path, 5]
 
-        def snapshot2 = snapshotter.snapshotDirectoryTree(dirTree(d))
+        def snapshot2 = snapshotter.snapshot(d)
         snapshot2.is(snapshot)
     }
 
@@ -94,10 +94,10 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def d = tmpDir.createDir("d")
 
         expect:
-        def snapshot = snapshotter.snapshotDirectoryTree(dirTree(d))
+        def snapshot = snapshotter.snapshot(d)
         getSnapshotInfo(snapshot) == [d.absolutePath, 1]
 
-        def snapshot2 = snapshotter.snapshotDirectoryTree(dirTree(d))
+        def snapshot2 = snapshotter.snapshot(d)
         snapshot2.is(snapshot)
     }
 
@@ -292,9 +292,9 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def m = tmpDir.file("missing")
 
         given:
-        snapshotter.snapshotSelf(f)
-        snapshotter.snapshotSelf(d)
-        snapshotter.snapshotSelf(m)
+        snapshotter.snapshot(f)
+        snapshotter.snapshot(d)
+        snapshotter.snapshot(m)
 
         expect:
         snapshotter.exists(f)

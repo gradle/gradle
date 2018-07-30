@@ -46,15 +46,13 @@ class DefaultClasspathFingerprinterTest extends Specification {
         intern(_) >> { String s -> s }
     }
     def fileSystem = TestFiles.fileSystem()
-    def directoryFileTreeFactory = TestFiles.directoryFileTreeFactory()
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
     def fileHasher = new TestFileHasher()
-    def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(fileHasher, stringInterner, fileSystem, directoryFileTreeFactory, fileSystemMirror)
+    def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(fileHasher, stringInterner, fileSystem, fileSystemMirror)
     InMemoryIndexedCache<HashCode, HashCode> resourceHashesCache = new InMemoryIndexedCache<>(new HashCodeSerializer())
     def cacheService = new DefaultResourceSnapshotterCacheService(resourceHashesCache)
     def fingerprinter = new DefaultClasspathFingerprinter(
         cacheService,
-        directoryFileTreeFactory,
         fileSystemSnapshotter,
         stringInterner)
 

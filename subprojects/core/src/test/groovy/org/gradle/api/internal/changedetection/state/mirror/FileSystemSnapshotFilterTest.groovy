@@ -41,7 +41,7 @@ class FileSystemSnapshotFilterTest extends AbstractProjectBuilderSpec {
             intern(_) >> { String string -> string }
         }
 
-        snapshotter = new DefaultFileSystemSnapshotter(new TestFileHasher(), interner, fileSystem, directoryFileTreeFactory, new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([])))
+        snapshotter = new DefaultFileSystemSnapshotter(new TestFileHasher(), interner, fileSystem, new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([])))
     }
 
     def "filters correctly"() {

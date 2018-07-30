@@ -42,6 +42,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.EmptyFileCollectionFingerprint;
+import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
 
 import java.io.File;
 import java.io.IOException;
@@ -149,7 +150,8 @@ public class TaskOutputCacheCommandFactory {
                 List<FileSystemSnapshot> roots = new ArrayList<FileSystemSnapshot>();
 
                 if (snapshot == null) {
-                    fileSystemMirror.putFile(new PhysicalMissingSnapshot(absolutePath, property.getOutputFile().getName()));
+                    fileSystemMirror.putMetadata(absolutePath, DefaultFileMetadata.missing());
+                    fileSystemMirror.putSnapshot(new PhysicalMissingSnapshot(absolutePath, property.getOutputFile().getName()));
                     propertyFingerprintsBuilder.put(propertyName, EmptyFileCollectionFingerprint.INSTANCE);
                     continue;
                 }
@@ -160,12 +162,12 @@ public class TaskOutputCacheCommandFactory {
                             throw new IllegalStateException(String.format("Only a regular file should be produced by unpacking property '%s', but saw a %s", propertyName, snapshot.getType()));
                         }
                         roots.add(snapshot);
-                        fileSystemMirror.putFile(snapshot);
+                        fileSystemMirror.putSnapshot(snapshot);
                         break;
                     case DIRECTORY:
                         roots.add(snapshot);
-                        fileSystemMirror.putFile(snapshot);
-                        fileSystemMirror.putDirectory(absolutePath, snapshot);
+                        fileSystemMirror.putMetadata(absolutePath, DefaultFileMetadata.directory());
+                        fileSystemMirror.putSnapshot(snapshot);
                         break;
                     default:
                         throw new AssertionError();

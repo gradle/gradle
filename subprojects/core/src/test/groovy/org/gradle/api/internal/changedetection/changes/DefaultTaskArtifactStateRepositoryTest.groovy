@@ -107,8 +107,8 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         def stringInterner = new StringInterner()
         def fileHasher = new TestFileHasher()
         fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
-        FileCollectionFingerprinter inputFileCollectionFingerprinter = new AbsolutePathFileCollectionFingerprinter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(fileHasher, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
-        FileCollectionFingerprinter outputFileCollectionFingerprinter = new OutputFileCollectionFingerprinter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(fileHasher, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
+        FileCollectionFingerprinter inputFileCollectionFingerprinter = new AbsolutePathFileCollectionFingerprinter(stringInterner, new DefaultFileSystemSnapshotter(fileHasher, stringInterner, TestFiles.fileSystem(), fileSystemMirror))
+        FileCollectionFingerprinter outputFileCollectionFingerprinter = new OutputFileCollectionFingerprinter(stringInterner, new DefaultFileSystemSnapshotter(fileHasher, stringInterner, TestFiles.fileSystem(), fileSystemMirror))
         def classLoaderHierarchyHasher = Mock(ConfigurableClassLoaderHierarchyHasher) {
             getClassLoaderHash(_) >> HashCode.fromInt(123)
         }

@@ -26,7 +26,6 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
@@ -44,12 +43,10 @@ import java.util.List;
 @NonNullApi
 public abstract class AbstractFileCollectionFingerprinter implements FileCollectionFingerprinter {
     private final StringInterner stringInterner;
-    private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FileSystemSnapshotter fileSystemSnapshotter;
 
-    public AbstractFileCollectionFingerprinter(StringInterner stringInterner, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter) {
+    public AbstractFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
         this.stringInterner = stringInterner;
-        this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
     }
 
@@ -79,21 +76,8 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
         @Override
         public void visitCollection(FileCollectionInternal fileCollection) {
             for (File file : fileCollection) {
-                PhysicalSnapshot fileSnapshot = fileSystemSnapshotter.snapshotSelf(file);
-                switch (fileSnapshot.getType()) {
-                    case Missing:
-                        roots.add(fileSnapshot);
-                        break;
-                    case RegularFile:
-                        roots.add(fileSnapshot);
-                        break;
-                    case Directory:
-                        // Collect the directory and its contents
-                        visitDirectoryTree(directoryFileTreeFactory.create(file));
-                        break;
-                    default:
-                        throw new AssertionError();
-                }
+                PhysicalSnapshot fileSnapshot = fileSystemSnapshotter.snapshot(file);
+                roots.add(fileSnapshot);
             }
         }
 

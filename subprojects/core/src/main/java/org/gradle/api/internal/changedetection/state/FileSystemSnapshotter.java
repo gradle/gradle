@@ -21,6 +21,7 @@ import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
@@ -43,12 +44,16 @@ public interface FileSystemSnapshotter {
     boolean exists(File file);
 
     /**
+     * Returns the type of the file.
+     */
+    FileType getType(File file);
+
+    /**
      * Returns the current snapshot of the contents and meta-data of the given file.
      * The file may be a regular file, a directory or missing.
-     * When the specified file is a directory, details about the directory itself is returned,
-     * rather than details about the children of the directory.
+     * When the specified file is a directory, details about the directory and its children are returned.
      */
-    PhysicalSnapshot snapshotSelf(File file);
+    PhysicalSnapshot snapshot(File file);
 
     /**
      * Returns a hash of the contents and meta-data of the given file.

@@ -67,23 +67,8 @@ public class MirrorUpdatingDirectoryWalker {
         this.defaultExcludes = new DefaultExcludes(DirectoryScanner.getDefaultExcludes());
     }
 
-    public FileSystemSnapshot walk(final PhysicalSnapshot fileSnapshot) {
-        return walk(fileSnapshot, null, new MutableBoolean(false));
-    }
-
-    public FileSystemSnapshot walk(final PhysicalSnapshot fileSnapshot, @Nullable PatternSet patterns, MutableBoolean hasBeenFiltered) {
-        if (fileSnapshot.getType() == FileType.Missing) {
-            // The root missing file should not be tracked for trees.
-            return FileSystemSnapshot.EMPTY;
-        }
-        if (fileSnapshot.getType() == FileType.RegularFile) {
-            return fileSnapshot;
-        }
-        Path rootPath = Paths.get(fileSnapshot.getAbsolutePath());
-        return walkDir(rootPath, patterns, hasBeenFiltered);
-    }
-
-    private PhysicalSnapshot walkDir(Path rootPath, @Nullable PatternSet patterns, final MutableBoolean hasBeenFiltered) {
+    public PhysicalSnapshot walkDir(String absolutePath, @Nullable PatternSet patterns, final MutableBoolean hasBeenFiltered) {
+        Path rootPath = Paths.get(absolutePath);
         final Spec<FileTreeElement> spec = (patterns == null || patterns.isEmpty()) ? null : patterns.getAsSpec();
         final MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
 

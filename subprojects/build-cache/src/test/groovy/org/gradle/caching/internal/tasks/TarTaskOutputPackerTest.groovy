@@ -58,8 +58,7 @@ class TarTaskOutputPackerTest extends Specification {
     def stringInterner = new StringInterner()
     def packer = new TarTaskOutputPacker(fileSystem, streamHasher, stringInterner)
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
-    def snapshotter = new DefaultFileSystemSnapshotter(new TestFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror)
-    def dirTreeFactory = TestFiles.directoryFileTreeFactory()
+    def snapshotter = new DefaultFileSystemSnapshotter(new TestFileHasher(), stringInterner, TestFiles.fileSystem(), fileSystemMirror)
 
     @Unroll
     def "can pack single task output file with file mode #mode"() {
@@ -360,14 +359,14 @@ class TarTaskOutputPackerTest extends Specification {
                     if (output == null) {
                         return EmptyFileCollectionFingerprint.INSTANCE
                     }
-                    return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshotSelf(output)], AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
+                    return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshot(output)], AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
                 })
             case DIRECTORY:
                 return new PropertyDefinition(new ResolvedTaskOutputFilePropertySpec(name, DIRECTORY, output), {
                     if (output == null) {
                         return EmptyFileCollectionFingerprint.INSTANCE
                     }
-                    return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshotDirectoryTree(dirTreeFactory.create(output))], AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
+                    return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshot(output)], AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
                 })
             default:
                 throw new AssertionError()
