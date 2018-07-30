@@ -195,7 +195,7 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
         add(name, dependency, dependencyConfiguration)
 
     /**
-     * `dependencies` block.
+     * Configures the dependencies.
      */
     inline operator fun invoke(configuration: DependencyHandlerScope.() -> Unit) =
         configuration()
