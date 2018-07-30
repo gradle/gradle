@@ -103,7 +103,7 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
             return findByNameLaterWithoutRules(name);
         }
 
-        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingDomainObjectProvider.class, this, task.getName()));
+        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, task.getName()));
     }
 
     protected abstract class DefaultTaskProvider<I extends Task> extends AbstractProvider<I> implements Named, TaskProvider<I> {
@@ -121,8 +121,19 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         }
 
         @Override
+        public String getName() {
+            return identity.name;
+        }
+
+        @Override
         public String toString() {
             return String.format("provider(task %s, %s)", identity.name, identity.type);
+        }
+    }
+
+    protected abstract class ExistingTaskProvider<I extends T> extends ExistingDomainObjectProvider<I> implements TaskProvider<I> {
+        public ExistingTaskProvider(String name) {
+            super(name);
         }
     }
 }
