@@ -21,11 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionVisitor;
-import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
@@ -33,8 +29,6 @@ import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.internal.serialize.Serializers;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -57,9 +51,7 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
 
     public CurrentFileCollectionFingerprint fingerprint(FileCollection input, FingerprintingStrategy strategy) {
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
-        FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl();
-        fileCollection.visitRootElements(visitor);
-        List<FileSystemSnapshot> roots = visitor.getRoots();
+        List<FileSystemSnapshot> roots = fileSystemSnapshotter.snapshot(fileCollection);
         if (roots.isEmpty()) {
             return EmptyFileCollectionFingerprint.INSTANCE;
         }
@@ -68,33 +60,5 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
 
     protected StringInterner getStringInterner() {
         return stringInterner;
-    }
-
-    private class FileCollectionVisitorImpl implements FileCollectionVisitor {
-        private final List<FileSystemSnapshot> roots = new ArrayList<FileSystemSnapshot>();
-
-        @Override
-        public void visitCollection(FileCollectionInternal fileCollection) {
-            for (File file : fileCollection) {
-                PhysicalSnapshot fileSnapshot = fileSystemSnapshotter.snapshot(file);
-                roots.add(fileSnapshot);
-            }
-        }
-
-        @Override
-        public void visitTree(FileTreeInternal fileTree) {
-            FileSystemSnapshot treeSnapshot = fileSystemSnapshotter.snapshotTree(fileTree);
-            roots.add(treeSnapshot);
-        }
-
-        @Override
-        public void visitDirectoryTree(DirectoryFileTree directoryTree) {
-            FileSystemSnapshot treeSnapshot = fileSystemSnapshotter.snapshotDirectoryTree(directoryTree);
-            roots.add(treeSnapshot);
-        }
-
-        public List<FileSystemSnapshot> getRoots() {
-            return roots;
-        }
     }
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
@@ -29,24 +29,26 @@ import org.gradle.api.internal.changedetection.state.mirror.MirrorUpdatingDirect
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
+import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
-import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Responsible for snapshotting various aspects of the file system.
@@ -130,6 +132,13 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         return result;
     }
 
+    @Override
+    public List<FileSystemSnapshot> snapshot(FileCollectionInternal fileCollection) {
+        FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl();
+        fileCollection.visitRootElements(visitor);
+        return visitor.getRoots();
+    }
+
     private PhysicalSnapshot snapshotAndCache(String absolutePath, File file, @Nullable PatternSet patternSet) {
         FileMetadataSnapshot metadata = fileSystemMirror.getMetadata(absolutePath);
         String internedAbsolutePath = internPath(file);
@@ -171,8 +180,11 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             public HashCode create() {
                 HashCode fileContentHash = fileSystemMirror.getContent(path);
                 if (fileContentHash == null) {
-                    CurrentFileCollectionFingerprint fileCollectionFingerprint = DefaultCurrentFileCollectionFingerprint.from(ImmutableList.<FileSystemSnapshot>of(snapshot(file)), AbsolutePathFingerprintingStrategy.INCLUDE_MISSING);
-                    fileContentHash = fileCollectionFingerprint.getHash();
+                    PhysicalSnapshot snapshot = snapshot(file);
+                    DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
+                    hasher.putString(path);
+                    hasher.putHash(snapshot.getHash());
+                    fileContentHash = hasher.hash();
                     String internedPath = internPath(file);
                     fileSystemMirror.putContent(internedPath, fileContentHash);
                 }
@@ -191,8 +203,8 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
      * If it turns out that a filtered tree has actually not been filtered (i.e. the condition always returned true),
      * then we cache the result as unfiltered tree.
      */
-    @Override
-    public FileSystemSnapshot snapshotDirectoryTree(final DirectoryFileTree dirTree) {
+    @VisibleForTesting
+    FileSystemSnapshot snapshotDirectoryTree(final DirectoryFileTree dirTree) {
         // Could potentially coordinate with a thread that is snapshotting an overlapping directory tree
         final String path = dirTree.getDir().getAbsolutePath();
         final PatternSet patterns = dirTree.getPatterns();
@@ -215,8 +227,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         });
     }
 
-    @Override
-    public FileSystemSnapshot snapshotTree(final FileTreeInternal tree) {
+    private FileSystemSnapshot snapshotTree(final FileTreeInternal tree) {
         final FileSystemSnapshotBuilder builder = new FileSystemSnapshotBuilder(stringInterner);
         tree.visitTreeOrBackingFile(new FileVisitor() {
             @Override
@@ -249,5 +260,33 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
 
     private String internPath(File file) {
         return stringInterner.intern(file.getAbsolutePath());
+    }
+
+    private class FileCollectionVisitorImpl implements FileCollectionVisitor {
+        private final List<FileSystemSnapshot> roots = new ArrayList<FileSystemSnapshot>();
+
+        @Override
+        public void visitCollection(FileCollectionInternal fileCollection) {
+            for (File file : fileCollection) {
+                PhysicalSnapshot fileSnapshot = snapshot(file);
+                roots.add(fileSnapshot);
+            }
+        }
+
+        @Override
+        public void visitTree(FileTreeInternal fileTree) {
+            FileSystemSnapshot treeSnapshot = snapshotTree(fileTree);
+            roots.add(treeSnapshot);
+        }
+
+        @Override
+        public void visitDirectoryTree(DirectoryFileTree directoryTree) {
+            FileSystemSnapshot treeSnapshot = snapshotDirectoryTree(directoryTree);
+            roots.add(treeSnapshot);
+        }
+
+        public List<FileSystemSnapshot> getRoots() {
+            return roots;
+        }
     }
 }

@@ -19,12 +19,12 @@ package org.gradle.api.internal.changedetection.state;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
-import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Provides access to snapshots of the content and metadata of the file system.
@@ -56,20 +56,14 @@ public interface FileSystemSnapshotter {
     PhysicalSnapshot snapshot(File file);
 
     /**
+     * Returns snapshots of the roots of a file collection.
+     */
+    List<FileSystemSnapshot> snapshot(FileCollectionInternal fileCollection);
+
+    /**
      * Returns a hash of the contents and meta-data of the given file.
      * The file may or may not be a regular file, a directory or missing.
      * When the specified file is a directory, the directory and all its children are hashed.
      */
     HashCode snapshotAll(File file);
-
-    /**
-     * Returns the current snapshot of the contents and meta-data of the given directory tree.
-     */
-    FileSystemSnapshot snapshotDirectoryTree(DirectoryFileTree dirTree);
-
-    /**
-     * Returns the current snapshot of the contents and meta-data of the given file tree.
-     * Note: currently does not include the root elements, if any.
-     */
-    FileSystemSnapshot snapshotTree(FileTreeInternal tree);
 }

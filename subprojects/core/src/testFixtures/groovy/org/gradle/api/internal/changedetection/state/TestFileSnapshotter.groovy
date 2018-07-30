@@ -20,8 +20,7 @@ import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
-import org.gradle.api.internal.file.FileTreeInternal
-import org.gradle.api.internal.file.collections.DirectoryFileTree
+import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
@@ -55,18 +54,12 @@ class TestFileSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
+    List<FileSystemSnapshot> snapshot(FileCollectionInternal fileCollection) {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
     HashCode snapshotAll(File file) {
-        throw new UnsupportedOperationException()
-    }
-
-
-    @Override
-    FileSystemSnapshot snapshotDirectoryTree(DirectoryFileTree dirTree) {
-        throw new UnsupportedOperationException()
-    }
-
-    @Override
-    FileSystemSnapshot snapshotTree(FileTreeInternal tree) {
         throw new UnsupportedOperationException()
     }
 }
