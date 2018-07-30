@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.Incubating
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -36,8 +35,6 @@ import org.gradle.api.internal.file.FileCollectionInternal
 
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.PluginAware
-
-import org.gradle.api.provider.PropertyState
 
 import org.gradle.api.tasks.TaskContainer
 
@@ -220,17 +217,6 @@ inline fun <reified T> Project.container(noinline factory: (String) -> T): Named
 
 
 /**
- * Creates a [PropertyState] that holds values of the given type [T].
- *
- * @see [Project.property]
- */
-@Incubating
-@Deprecated("Will be removed in 1.0", replaceWith = ReplaceWith("objects.property()"))
-inline fun <reified T> Project.property(): PropertyState<T> =
-    property(T::class.java)
-
-
-/**
  * Creates a dependency on the API of the current version of the Gradle Kotlin DSL.
  *
  * Includes the Kotlin and Gradle APIs.
@@ -261,11 +247,6 @@ fun isGradleKotlinDslJar(file: File) =
 internal
 fun isGradleKotlinDslJarName(jarName: String) =
     jarName.startsWith("gradle-kotlin-dsl-")
-
-
-@Deprecated("Will be removed in 1.0", ReplaceWith("gradleKotlinDsl()"))
-fun Project.gradleScriptKotlinApi(): Dependency =
-    gradleKotlinDsl()
 
 
 private
