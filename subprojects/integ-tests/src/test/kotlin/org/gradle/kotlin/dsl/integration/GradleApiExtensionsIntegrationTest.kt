@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.codegen
+package org.gradle.kotlin.dsl.integration
 
 import org.gradle.util.GradleVersion
 
-import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 
 import org.hamcrest.CoreMatchers.allOf
@@ -30,7 +29,7 @@ import java.io.File
 import java.util.jar.JarFile
 
 
-class GradleApiExtensionsIntegrationTest : AbstractIntegrationTest() {
+class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     fun `can use Gradle API generated extensions in scripts`() {
@@ -144,7 +143,7 @@ class GradleApiExtensionsIntegrationTest : AbstractIntegrationTest() {
             .listFiles { f -> f.isFile && f.name.startsWith("gradle-kotlin-dsl-extensions-") }.single()
 
         val (generatedSources, generatedClasses) = JarFile(generatedJar)
-            .use { it.entries().toList().map { it.name } }
+            .use { it.entries().toList().map { entry -> entry.name } }
             .filter { it.startsWith("org/gradle/kotlin/dsl/GradleApiKotlinDslExtensions") }
             .groupBy { it.substring(it.lastIndexOf('.')) }
             .let { it[".kt"]!! to it[".class"]!! }
