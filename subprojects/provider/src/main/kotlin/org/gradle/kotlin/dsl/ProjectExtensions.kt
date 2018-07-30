@@ -48,6 +48,9 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 
+/**
+ * Configures the build script classpath for this project.
+ */
 fun Project.buildscript(action: ScriptHandlerScope.() -> Unit): Unit =
     project.buildscript.configureWith(action)
 
@@ -158,6 +161,9 @@ fun Project.repositories(configuration: RepositoryHandler.() -> Unit) =
     repositories.configuration()
 
 
+/**
+ * Configures the repositories for the script dependencies.
+ */
 fun ScriptHandler.repositories(configuration: RepositoryHandler.() -> Unit) =
     repositories.configuration()
 

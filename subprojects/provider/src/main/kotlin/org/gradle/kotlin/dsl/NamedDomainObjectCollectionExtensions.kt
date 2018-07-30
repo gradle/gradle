@@ -100,6 +100,9 @@ fun <T : Any, U : NamedDomainObjectCollection<T>> U.getting(configuration: T.() 
     NamedDomainObjectCollectionDelegateProvider(this, configuration)
 
 
+/**
+ * Enables typed access to container elements via delegated properties.
+ */
 class NamedDomainObjectCollectionDelegateProvider<T>(
     val collection: NamedDomainObjectCollection<T>,
     val configuration: T.() -> Unit
