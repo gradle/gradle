@@ -148,130 +148,104 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         void realize();
         Class<? extends T> getType();
         T getValue();
+        ProviderInternal<? extends T> getDelegate();
     }
 
     // TODO Check for comodification with the ElementSource
-    protected static class RealizedElementCollectionIterator<T> implements Iterator<T> {
+    protected static abstract class AbstractElementCollectionIterator<T, I> implements Iterator<I> {
         final List<Element<T>> backingList;
-        private final Collection<T> values;
+        private final Collection<I> values;
         int nextIndex = -1;
         int previousIndex = -1;
-        T next;
+        Element<T> next;
 
+        AbstractElementCollectionIterator(List<Element<T>> backingList, Collection<I> values) {
+            this.backingList = backingList;
+            this.values = values;
+            updateNext();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return next != null;
+        }
+
+        protected abstract I valueOf(Element<T> element);
+
+        protected abstract boolean isValidCandidate(Element<T> element);
+
+        private void updateNext() {
+            int i = nextIndex + 1;
+            while (i < backingList.size()) {
+                Element<T> candidate = backingList.get(i);
+                if (isValidCandidate(candidate)) {
+                    I value = valueOf(candidate);
+                    if (values.add(value)) {
+                        nextIndex = i;
+                        next = candidate;
+                        return;
+                    }
+                }
+                i++;
+            }
+            nextIndex = i;
+            next = null;
+        }
+
+        @Override
+        public I next() {
+            if (next == null) {
+                throw new NoSuchElementException();
+            }
+            I thisNext = valueOf(next);
+            previousIndex = nextIndex;
+            updateNext();
+            return thisNext;
+        }
+
+        @Override
+        public void remove() {
+            if (previousIndex > -1) {
+                I value = valueOf(backingList.get(previousIndex));
+                backingList.remove(previousIndex);
+                values.remove(value);
+                previousIndex = -1;
+                nextIndex--;
+            } else {
+                throw new IllegalStateException();
+            }
+        }
+    }
+
+    protected static class RealizedElementCollectionIterator<T> extends AbstractElementCollectionIterator<T, T> {
         RealizedElementCollectionIterator(List<Element<T>> backingList, Collection<T> values) {
-            this.backingList = backingList;
-            this.values = values;
-            updateNext();
+            super(backingList, values);
         }
 
         @Override
-        public boolean hasNext() {
-            return next != null;
-        }
-
-        private void updateNext() {
-            int i = nextIndex + 1;
-            while (i < backingList.size()) {
-                Element<T> candidate = backingList.get(i);
-                if (candidate.isRealized()) {
-                    T value = candidate.getValue();
-                    if (values.add(value)) {
-                        nextIndex = i;
-                        next = value;
-                        return;
-                    }
-                }
-                i++;
-            }
-            nextIndex = i;
-            next = null;
+        protected T valueOf(Element<T> element) {
+            return element.getValue();
         }
 
         @Override
-        public T next() {
-            if (next == null) {
-                throw new NoSuchElementException();
-            }
-            T thisNext = next;
-            previousIndex = nextIndex;
-            updateNext();
-            return thisNext;
-        }
-
-        @Override
-        public void remove() {
-            if (previousIndex > -1) {
-                T value = backingList.get(previousIndex).getValue();
-                backingList.remove(previousIndex);
-                values.remove(value);
-                previousIndex = -1;
-                nextIndex--;
-            } else {
-                throw new IllegalStateException();
-            }
+        protected boolean isValidCandidate(Element<T> element) {
+            return element.isRealized();
         }
     }
 
-    // FIXME: Merge implementation with RealizedElementListIterator
-    // TODO Check for comodification with the ElementSource
-    protected static class PendingElementCollectionIterator<T> implements Iterator<ProviderInternal<? extends T>> {
-        final List<Element<T>> backingList;
-        private final Collection<ProviderInternal<? extends T>> values;
-        int nextIndex = -1;
-        int previousIndex = -1;
-        ProviderInternal<? extends T> next;
-
+    protected static class PendingElementCollectionIterator<T> extends AbstractElementCollectionIterator<T, ProviderInternal<? extends T>> {
         PendingElementCollectionIterator(List<Element<T>> backingList, Collection<ProviderInternal<? extends T>> values) {
-            this.backingList = backingList;
-            this.values = values;
-            updateNext();
+            super(backingList, values);
         }
 
         @Override
-        public boolean hasNext() {
-            return next != null;
-        }
-
-        private void updateNext() {
-            int i = nextIndex + 1;
-            while (i < backingList.size()) {
-                Element<T> candidate = backingList.get(i);
-                if (!candidate.isRealized()) {
-                    ProviderInternal<? extends T> value = ((CachingElement<? extends T>)candidate).delegate;
-                    if (values.add(value)) {
-                        nextIndex = i;
-                        next = value;
-                        return;
-                    }
-                }
-                i++;
-            }
-            nextIndex = i;
-            next = null;
+        protected ProviderInternal<? extends T> valueOf(Element<T> element) {
+            return element.getDelegate();
         }
 
         @Override
-        public ProviderInternal<? extends T> next() {
-            if (next == null) {
-                throw new NoSuchElementException();
-            }
-            ProviderInternal<? extends T> thisNext = next;
-            previousIndex = nextIndex;
-            updateNext();
-            return thisNext;
-        }
-
-        @Override
-        public void remove() {
-            if (previousIndex > -1) {
-                ProviderInternal<? extends T> value = ((CachingElement<T>)backingList.get(previousIndex)).delegate;
-                backingList.remove(previousIndex);
-                values.remove(value);
-                previousIndex = -1;
-                nextIndex--;
-            } else {
-                throw new IllegalStateException();
-            }
+        protected boolean isValidCandidate(Element<T> element) {
+            return !element.isRealized();
         }
     }
 
@@ -293,10 +267,12 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             this.delegate = null;
         }
 
+        @Override
         public ProviderInternal<? extends T> getDelegate() {
             return delegate;
         }
 
+        @Override
         public Class<? extends T> getType() {
             if (delegate != null) {
                 return delegate.getType();
