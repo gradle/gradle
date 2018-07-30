@@ -26,6 +26,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 import org.gradle.api.Action;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.process.JavaExecSpec;
 
 /**
@@ -154,8 +155,8 @@ public class PerformanceTest extends DistributionTest {
         //no-op, remove once build configurations have been adjusted to no longer call this
     }
 
-    @Override
-    public void executeTests() {
+    @TaskAction
+    public void executePerformanceTests() {
         try {
             super.executeTests();
         } finally {
@@ -163,7 +164,7 @@ public class PerformanceTest extends DistributionTest {
         }
     }
 
-    private void generatePerformanceReport() {
+    protected void generatePerformanceReport() {
         if (generatePerformanceReport) {
             getProject().javaexec(new Action<JavaExecSpec>() {
                 public void execute(JavaExecSpec spec) {
