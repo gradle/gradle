@@ -16,10 +16,19 @@
 
 package org.gradle.kotlin.dsl.cache
 
-import org.gradle.cache.CacheRepository
+import org.gradle.api.Project
 
+import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheKeyBuilder
 import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
+
+import org.gradle.caching.internal.controller.BuildCacheController
+
+import org.gradle.internal.id.UniqueId
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId
+import org.gradle.internal.time.Time.startTimer
+
+import org.gradle.kotlin.dsl.support.serviceOf
 
 import java.io.File
 
@@ -36,27 +45,97 @@ class ScriptCache(
     private
     val recompileScripts: Boolean,
 
+    private
     val hasBuildCacheIntegration: Boolean
 ) {
 
     fun cacheDirFor(
-        keySpec: CacheKeySpec,
-        properties: Map<String, Any?>? = null,
-        initializer: (File, String) -> Unit
+        cacheKeySpec: CacheKeySpec,
+        scriptTarget: Any? = null,
+        displayName: String = "",
+        initializer: (File) -> Unit
     ): File {
-        val cacheKey = cacheKeyFor(keySpec)
+        val cacheKey = cacheKeyFor(cacheKeySpec)
+
         return cacheRepository.cache(cacheKey)
-            .apply { properties?.let { withProperties(it) } }
             .apply { if (recompileScripts) withValidator { false } }
-            .withInitializer { initializer(it.baseDir, cacheKey) }
-            .open().run {
+            .withProperties(cacheProperties)
+            .withInitializer {
+                initializeCacheDir(
+                    cacheDirOf(it.baseDir).apply { mkdir() },
+                    cacheKey,
+                    scriptTarget,
+                    displayName,
+                    initializer
+                )
+            }.open().run {
                 close()
-                baseDir
+                cacheDirOf(baseDir)
             }
     }
 
     private
+    val cacheProperties = mapOf("version" to "12")
+
+    private
+    fun cacheDirOf(baseDir: File) = File(baseDir, "cache")
+
+    private
     fun cacheKeyFor(spec: CacheKeySpec): String = cacheKeyBuilder.build(spec)
+
+    private
+    fun initializeCacheDir(
+        cacheDir: File,
+        cacheKey: String,
+        scriptTarget: Any?,
+        displayName: String,
+        initializer: (File) -> Unit
+    ) {
+
+        val cacheController =
+            if (hasBuildCacheIntegration) buildCacheControllerOf(scriptTarget)
+            else null
+
+        if (cacheController != null) {
+            val buildCacheKey = ScriptBuildCacheKey(displayName, cacheKey)
+            val existing = cacheController.load(LoadDirectory(cacheDir, buildCacheKey))
+            if (existing === null) {
+
+                val executionTime = executionTimeMillisOf {
+                    initializer(cacheDir)
+                }
+
+                cacheController.store(
+                    StoreDirectory(
+                        cacheDir,
+                        buildCacheKey,
+                        PackMetadata(buildInvocationIdOf(scriptTarget), executionTime)
+                    )
+                )
+            }
+        } else {
+            initializer(cacheDir)
+        }
+    }
+
+    private
+    fun buildCacheControllerOf(scriptTarget: Any?): BuildCacheController? =
+        (scriptTarget as? Project)
+            ?.serviceOf<BuildCacheController>()
+            ?.takeIf { it.isEnabled }
+
+    private
+    fun buildInvocationIdOf(scriptTarget: Any?): UniqueId =
+        (scriptTarget as Project)
+            .gradle.serviceOf<BuildInvocationScopeId>()
+            .id
+}
+
+
+private
+inline fun executionTimeMillisOf(action: () -> Unit) = startTimer().run {
+    action()
+    elapsedMillis
 }
 
 

@@ -25,7 +25,6 @@ import org.gradle.api.internal.plugins.PluginAwareInternal
 
 import org.gradle.cache.CacheOpenException
 import org.gradle.cache.internal.CacheKeyBuilder
-import org.gradle.caching.internal.controller.BuildCacheController
 
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
@@ -34,16 +33,9 @@ import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.id.UniqueId
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
-import org.gradle.internal.scopeids.id.BuildInvocationScopeId
-import org.gradle.internal.time.Time.startTimer
 
-import org.gradle.kotlin.dsl.cache.LoadDirectory
-import org.gradle.kotlin.dsl.cache.PackMetadata
-import org.gradle.kotlin.dsl.cache.ScriptBuildCacheKey
 import org.gradle.kotlin.dsl.cache.ScriptCache
-import org.gradle.kotlin.dsl.cache.StoreDirectory
 
 import org.gradle.kotlin.dsl.execution.EvalOption
 import org.gradle.kotlin.dsl.execution.EvalOptions
@@ -57,7 +49,6 @@ import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.kotlinEap
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
-import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.transitiveClosureOf
 
 import org.gradle.plugin.management.internal.DefaultPluginRequests
@@ -230,55 +221,12 @@ class StandardKotlinScriptEvaluator(
             cacheKeySpec: CacheKeyBuilder.CacheKeySpec,
             initializer: (File) -> Unit
         ): File =
-            scriptCache.cacheDirFor(cacheKeySpec, properties = cacheProperties) { baseDir, cacheKey ->
-                val cacheDir = File(baseDir, "cache").apply { require(mkdir()) }
-                initializeCacheDir(cacheDir, cacheKey, scriptHost, initializer)
-            }.resolve("cache")
-
-        private
-        fun initializeCacheDir(cacheDir: File, cacheKey: String, scriptHost: KotlinScriptHost<*>, initializer: (File) -> Unit) {
-
-            // TODO: Move BuildCacheController integration to ScriptCache
-            val cacheController =
-                if (scriptCache.hasBuildCacheIntegration) buildCacheControllerOf(scriptHost)
-                else null
-
-            if (cacheController != null) {
-                val buildCacheKey = ScriptBuildCacheKey(scriptHost.scriptSource.displayName, cacheKey)
-                val existing = cacheController.load(LoadDirectory(cacheDir, buildCacheKey))
-                if (existing === null) {
-
-                    val executionTime = executionTimeMillisOf {
-                        initializer(cacheDir)
-                    }
-
-                    cacheController.store(
-                        StoreDirectory(
-                            cacheDir,
-                            buildCacheKey,
-                            PackMetadata(buildInvocationIdOf(scriptHost), executionTime)
-                        )
-                    )
-                }
-            } else {
-                initializer(cacheDir)
-            }
-        }
-
-        private
-        fun buildCacheControllerOf(scriptHost: KotlinScriptHost<*>): BuildCacheController? =
-            (scriptHost.target as? Project)
-                ?.serviceOf<BuildCacheController>()
-                ?.takeIf { it.isEnabled }
-
-        private
-        fun buildInvocationIdOf(scriptHost: KotlinScriptHost<*>): UniqueId =
-            (scriptHost.target as Project)
-                .gradle.serviceOf<BuildInvocationScopeId>()
-                .id
-
-        private
-        val cacheProperties = mapOf("version" to "12")
+            scriptCache.cacheDirFor(
+                cacheKeySpec,
+                scriptTarget = scriptHost.target,
+                displayName = scriptHost.scriptSource.displayName,
+                initializer = initializer
+            )
 
         private
         val cacheKeyPrefix =
@@ -305,13 +253,6 @@ class StandardKotlinScriptEvaluator(
         override val implicitImports: List<String>
             get() = this@StandardKotlinScriptEvaluator.implicitImports.list
     }
-}
-
-
-private
-inline fun executionTimeMillisOf(action: () -> Unit) = startTimer().run {
-    action()
-    elapsedMillis
 }
 
 
