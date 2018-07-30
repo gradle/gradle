@@ -28,6 +28,7 @@ import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.*
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.*
 
 abstract class AbstractSmokeTest extends Specification {
+    private static final String MIRROR_INIT_SCRIPT_LOCATION = "org.gradle.smoketests.mirror.init.script"
 
     @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
     File buildFile
@@ -53,7 +54,12 @@ abstract class AbstractSmokeTest extends Specification {
             .withGradleInstallation(IntegrationTestBuildContext.INSTANCE.gradleHomeDir)
             .withTestKitDir(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
             .withProjectDir(testProjectDir.root)
-            .withArguments(tasks.toList() + ['-s', '-I', createMirrorInitScript().absolutePath, "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}".toString()])
+            .withArguments(tasks.toList() + ['-s'] + repoMirrorParameters())
+    }
+
+    private List<String> repoMirrorParameters() {
+        String mirrorInitScriptPath = createMirrorInitScript().absolutePath
+        return ['-I', mirrorInitScriptPath, "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}".toString(), "-D${MIRROR_INIT_SCRIPT_LOCATION}=${mirrorInitScriptPath}".toString()]
     }
 
     protected void useSample(String sampleDirectory) {
