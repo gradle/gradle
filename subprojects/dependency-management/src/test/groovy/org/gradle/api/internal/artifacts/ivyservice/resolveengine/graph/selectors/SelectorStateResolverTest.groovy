@@ -47,7 +47,6 @@ import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
 import org.gradle.util.Path
-import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -58,11 +57,10 @@ import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.RANG
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.RANGE_7_8
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_DEPENDENCY_WITH_REJECT
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_FOUR_DEPENDENCIES
+import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_PREFER
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_THREE_DEPENDENCIES
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_TWO_DEPENDENCIES
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_WITH_REJECT
-import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_PREFER
-
 /**
  * Unit test coverage of dependency resolution of a single module version, given a set of input selectors.
  */
@@ -88,7 +86,6 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_TWO_DEPENDENCIES
     }
 
-    @Ignore // Not yet implemented
     @Unroll
     def "resolve prefer pair #permutation"() {
         given:

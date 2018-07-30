@@ -37,6 +37,12 @@ class VersionRangeResolveTestScenarios {
     public static final FIXED_13 = fixed(13)
     public static final PREFER_11 = prefer(11)
     public static final PREFER_12 = prefer(12)
+    public static final PREFER_13 = prefer(13)
+    public static final PREFER_7_8 = prefer(7, 8)
+    public static final PREFER_10_11 = prefer(10, 11)
+    public static final PREFER_10_12 = prefer(10, 12)
+    public static final PREFER_10_14 = prefer(10, 14)
+    public static final PREFER_14_16 = prefer(14, 16)
     public static final RANGE_7_8 = range(7, 8)
     public static final RANGE_10_11 = range(10, 11)
     public static final RANGE_10_12 = range(10, 12)
@@ -55,25 +61,65 @@ class VersionRangeResolveTestScenarios {
     public static final REJECT_13 = reject(13)
 
     public static final StrictPermutationsProvider SCENARIOS_PREFER = StrictPermutationsProvider.check(
-        versions: [FIXED_11, PREFER_12],
-        expectedNoStrict: "12",
-        expectedStrict: ["11", IGNORE]
+        versions: [PREFER_11, PREFER_12],
+        expectedNoStrict: "12"
     ).and(
-        versions: [FIXED_12, PREFER_11],
-        expectedNoStrict: "12",
-        expectedStrict: ["12", IGNORE]
+        versions: [PREFER_11, PREFER_10_12],
+        expectedNoStrict: "11"
     ).and(
-        versions: [RANGE_10_12, PREFER_11],
+        versions: [PREFER_12, PREFER_10_11],
+        expectedNoStrict: "12"
+    ).and(
+        versions: [PREFER_11, PREFER_12, PREFER_10_14],
+        expectedNoStrict: "12"
+    ).and(
+        versions: [PREFER_10_11, PREFER_10_12, PREFER_10_14],
+        expectedNoStrict: "11"
+    ).and(
+        versions: [PREFER_10_11, PREFER_12, PREFER_10_14],
+        expectedNoStrict: "12"
+    ).and(
+        versions: [PREFER_12, FIXED_11],
         expectedNoStrict: "11",
-        expectedStrict: ["11", IGNORE]
+        expectedStrict: [IGNORE, "11"],
+        ignore: true
     ).and(
-        versions: [RANGE_10_11, PREFER_12],
+        versions: [PREFER_11, FIXED_12],
+        expectedNoStrict: "12",
+        expectedStrict: [IGNORE, "12"]
+    ).and(
+        versions: [PREFER_12, RANGE_10_11],
         expectedNoStrict: "11",
-        expectedStrict: ["11", IGNORE]
+        expectedStrict: [IGNORE, "11"],
+        ignore: true
     ).and(
-        versions: [RANGE_12_14, PREFER_11],
+        versions: [PREFER_12, RANGE_10_12],
+        expectedNoStrict: "12",
+        expectedStrict: [IGNORE, "12"],
+        ignore: true
+    ).and(
+        versions: [PREFER_12, RANGE_10_14],
+        expectedNoStrict: "12",
+        expectedStrict: [IGNORE, "12"]
+    ).and(
+        versions: [PREFER_11, RANGE_12_14],
         expectedNoStrict: "13",
-        expectedStrict: ["13", IGNORE]
+        expectedStrict: [IGNORE, "13"]
+    ).and(
+        versions: [PREFER_11, PREFER_12, RANGE_10_14],
+        expectedNoStrict: "12",
+        expectedStrict: [IGNORE, IGNORE, "12"]
+    ).and(
+        versions: [PREFER_11, PREFER_13, RANGE_10_12],
+        expectedNoStrict: "11",
+        expectedStrict: [IGNORE, IGNORE, "11"],
+        ignore: true
+    ).and(
+        versions: [PREFER_7_8, FIXED_12],  // No version satisfies the range [7,8]
+        expectedNoStrict: FAILED
+    ).and(
+        versions: [PREFER_14_16, FIXED_12], // No version satisfies the range [14,16]
+        expectedNoStrict: FAILED
     )
 
     public static final StrictPermutationsProvider SCENARIOS_TWO_DEPENDENCIES = StrictPermutationsProvider.check(
@@ -280,6 +326,12 @@ class VersionRangeResolveTestScenarios {
     private static RenderableVersion prefer(int version) {
         def vs = new PreferVersion()
         vs.version = "${version}"
+        return vs
+    }
+
+    private static RenderableVersion prefer(int low, int high) {
+        def vs = new PreferVersion()
+        vs.version = "[${low},${high}]"
         return vs
     }
 
