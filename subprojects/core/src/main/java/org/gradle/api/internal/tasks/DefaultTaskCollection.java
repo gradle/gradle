@@ -17,14 +17,11 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Named;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.taskfactory.TaskIdentity;
-import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -106,32 +103,7 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, task.getName()));
     }
 
-    protected abstract class DefaultTaskProvider<I extends Task> extends AbstractProvider<I> implements Named, TaskProvider<I> {
-
-        final TaskIdentity<I> identity;
-        boolean removed = false;
-
-        DefaultTaskProvider(TaskIdentity<I> identity) {
-            this.identity = identity;
-        }
-
-        @Override
-        public Class<I> getType() {
-            return identity.type;
-        }
-
-        @Override
-        public String getName() {
-            return identity.name;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("provider(task %s, %s)", identity.name, identity.type);
-        }
-    }
-
-    protected abstract class ExistingTaskProvider<I extends T> extends ExistingDomainObjectProvider<I> implements TaskProvider<I> {
+    protected class ExistingTaskProvider<I extends T> extends ExistingDomainObjectProvider<I> implements TaskProvider<I> {
         public ExistingTaskProvider(String name) {
             super(name);
         }

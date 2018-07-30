@@ -26,7 +26,6 @@ import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
-import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.metaobject.ConfigureDelegate;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
@@ -107,89 +106,21 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
     protected DomainObjectProvider<T> createDomainObjectProvider(String name, @Nullable Action<? super T> configurationAction) {
         assertCanAdd(name);
         DomainObjectProvider<T> provider = Cast.uncheckedCast(
-            getInstantiator().newInstance(DomainObjectCreatingProvider.class, AbstractNamedDomainObjectContainer.this, name, configurationAction)
+            getInstantiator().newInstance(DomainObjectCreatingProvider.class, AbstractNamedDomainObjectContainer.this, name, getType(), configurationAction)
         );
         addLater(provider);
         return provider;
     }
 
     // Cannot be private due to reflective instantiation
-    public class DomainObjectCreatingProvider<I extends T> extends AbstractDomainObjectProvider<I> {
-        private I object;
-        private Throwable cause;
-        private ImmutableActionSet<I> onCreate;
-
-        public DomainObjectCreatingProvider(String name, @Nullable Action<? super I> configureAction) {
-            super(name);
-            this.onCreate = ImmutableActionSet.<I>empty().mergeFrom(getEventRegister().getAddActions());
-
-            if (configureAction != null) {
-                configure(configureAction);
-            }
+    public class DomainObjectCreatingProvider<I extends T> extends AbstractDomainObjectCreatingProvider<I> {
+        public DomainObjectCreatingProvider(String name, Class<I> type, @Nullable Action<? super I> configureAction) {
+            super(name, type, configureAction);
         }
 
         @Override
-        public boolean isPresent() {
-            return findDomainObject(getName()) != null;
-        }
-
-        public void configure(final Action<? super I> action) {
-            if (object != null) {
-                // Already realized, just run the action now
-                action.execute(object);
-                return;
-            }
-            // Collect any container level add actions then add the object specific action
-            onCreate = onCreate.mergeFrom(getEventRegister().getAddActions()).add(action);
-        }
-
-        @Override
-        public I getOrNull() {
-            if (wasElementRemoved()) {
-                return null;
-            }
-            if (cause != null) {
-                throw createIllegalStateException();
-            }
-            if (object == null) {
-                object = getType().cast(findByNameWithoutRules(getName()));
-                if (object == null) {
-                    try {
-                        // Collect any container level add actions added since the last call to configure()
-                        onCreate = onCreate.mergeFrom(getEventRegister().getAddActions());
-
-                        // Create the domain object
-                        object = (I) doCreate(getName());
-
-                        // Register the domain object
-                        add(object, onCreate);
-                        realized(DomainObjectCreatingProvider.this);
-                    } catch (RuntimeException ex) {
-                        cause = ex;
-                        throw createIllegalStateException();
-                    } finally {
-                        // Discard state that is no longer required
-                        onCreate = ImmutableActionSet.empty();
-                    }
-                }
-            }
-            return object;
-        }
-
-        private boolean wasElementRemoved() {
-            return wasElementRemovedBeforeRealized() || wasElementRemovedAfterRealized();
-        }
-
-        private boolean wasElementRemovedBeforeRealized() {
-            return object == null && findByNameLaterWithoutRules(getName()) == null;
-        }
-
-        private boolean wasElementRemovedAfterRealized() {
-            return object != null && findByNameWithoutRules(getName()) == null;
-        }
-
-        private IllegalStateException createIllegalStateException() {
-            return new IllegalStateException(String.format("Could not create domain object '%s' (%s)", getName(), getType().getSimpleName()), cause);
+        protected I createDomainObject() {
+            return Cast.uncheckedCast(doCreate(getName()));
         }
     }
 }

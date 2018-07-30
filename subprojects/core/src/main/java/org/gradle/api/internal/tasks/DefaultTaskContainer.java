@@ -35,13 +35,13 @@ import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
-import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.metaobject.DynamicObject;
@@ -218,9 +218,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private <T extends Task> void addTask(T task, boolean replaceExisting) {
         String name = task.getName();
 
-        DefaultTaskProvider<? extends Task> placeholderProvider = (DefaultTaskProvider) placeholders.remove(name);
+        TaskProvider<? extends Task> placeholderProvider = placeholders.remove(name);
         if (placeholderProvider != null) {
-            placeholderProvider.removed = true;
             if (!replaceExisting) {
                 if (modelNode != null) {
                     modelNode.removeLink(name);
@@ -234,9 +233,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             if (existing != null) {
                 remove(existing);
             } else {
-                DefaultTaskProvider<? extends Task> taskProvider = (DefaultTaskProvider) findByNameLaterWithoutRules(name);
+                ProviderInternal<? extends Task> taskProvider = findByNameLaterWithoutRules(name);
                 if (taskProvider != null) {
-                    taskProvider.removed = true;
+                    remove(taskProvider);
                 }
             }
         } else if (hasWithName(name)) {
@@ -373,7 +372,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
             @Override
             public TaskProvider<T> call(BuildOperationContext context) {
-                DefaultTaskProvider<T> provider = Cast.uncheckedCast(getInstantiator()
+                TaskProvider<T> provider = Cast.uncheckedCast(getInstantiator()
                     .newInstance(TaskCreatingProvider.class, DefaultTaskContainer.this, identity, configurationAction, constructorArgs)
                 );
                 addLaterInternal(provider);
@@ -655,75 +654,66 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     // Cannot be private due to reflective instantiation
-    public class TaskCreatingProvider<I extends Task> extends DefaultTaskProvider<I> {
+    public class TaskCreatingProvider<I extends Task> extends AbstractDomainObjectCreatingProvider<I> implements TaskProvider<I> {
+        private final TaskIdentity<I> identity;
         private Object[] constructorArgs;
-        private I task;
-        private RuntimeException failure;
-        private ImmutableActionSet<I> onCreate;
+
 
         public TaskCreatingProvider(TaskIdentity<I> identity, @Nullable Action<? super I> configureAction, Object... constructorArgs) {
-            super(identity);
+            super(identity.name, identity.type, configureAction);
+            this.identity = identity;
             this.constructorArgs = constructorArgs;
-            onCreate = ImmutableActionSet.<I>empty().mergeFrom(getEventRegister().getAddActions());
             statistics.lazyTask();
-            if (configureAction != null) {
-                configure(configureAction);
-            }
         }
 
         @Override
-        public void configure(final Action<? super I> action) {
-            if (task != null) {
-                // Already realized, just run the action now
-                crossProjectConfigurator.withCrossProjectConfigurationDisabled(action).execute(task);
-                return;
-            }
-            // Collect any container level add actions then add the task specific action
-            onCreate = onCreate.mergeFrom(getEventRegister().getAddActions()).add(action);
+        protected Action<? super I> wrap(Action action) {
+            return crossProjectConfigurator.withCrossProjectConfigurationDisabled(action);
         }
 
         @Override
-        public I getOrNull() {
-            if (failure != null) {
-                throw failure;
-            }
-            if (task == null) {
-                task = getType().cast(findByNameWithoutRules(getName()));
-                if (task == null) {
-                    buildOperationExecutor.run(new RunnableBuildOperation() {
-                        @Override
-                        public void run(BuildOperationContext context) {
-                            try {
-                                // Collect any container level add actions added since the last call to configure()
-                                onCreate = onCreate.mergeFrom(getEventRegister().getAddActions());
-
-                                // Create the task
-                                task = createTask(identity, constructorArgs);
-                                realized(TaskCreatingProvider.this);
-                                statistics.lazyTaskRealized(getType());
-
-                                // Register the task
-                                add(task, crossProjectConfigurator.withCrossProjectConfigurationDisabled(onCreate));
-                                // TODO removing this stuff from the store should be handled through some sort of decoration
-                                context.setResult(REALIZE_RESULT);
-                            } catch (Throwable ex) {
-                                failure = taskCreationException(getName(), ex);
-                                throw failure;
-                            } finally {
-                                // Discard state that is no longer required
-                                constructorArgs = null;
-                                onCreate = ImmutableActionSet.empty();
-                            }
-                        }
-
-                        @Override
-                        public BuildOperationDescriptor.Builder description() {
-                            return realizeDescriptor(identity, false, false);
-                        }
-                    });
+        protected void tryCreate() {
+            buildOperationExecutor.run(new RunnableBuildOperation() {
+                @Override
+                public void run(BuildOperationContext context) {
+                    try {
+                        TaskCreatingProvider.super.tryCreate();
+                        // TODO removing this stuff from the store should be handled through some sort of decoration
+                        context.setResult(REALIZE_RESULT);
+                    } finally {
+                        constructorArgs = null;
+                    }
                 }
-            }
-            return task;
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return realizeDescriptor(identity, false, false);
+                }
+            });
+        }
+
+        @Override
+        protected boolean wasElementRemoved() {
+            return super.wasElementRemoved() && !isPlaceholderProvider();
+        }
+
+        private boolean isPlaceholderProvider() {
+            return this.equals(placeholders.get(getName()));
+        }
+
+        @Override
+        protected I createDomainObject() {
+            return createTask(identity, constructorArgs);
+        }
+
+        @Override
+        protected void onLazyDomainObjectRealized() {
+            statistics.lazyTaskRealized(getType());
+        }
+
+        @Override
+        protected RuntimeException domainObjectCreationException(Throwable cause) {
+            return taskCreationException(getName(), cause);
         }
     }
 

@@ -717,15 +717,17 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     protected abstract class AbstractDomainObjectProvider<I extends T> extends AbstractProvider<I> implements Named, DomainObjectProvider<I> {
         private final String name;
+        private final Class<I> type;
 
-        protected AbstractDomainObjectProvider(String name) {
+        protected AbstractDomainObjectProvider(String name, Class<I> type) {
             this.name = name;
+            this.type = type;
         }
 
         @Nullable
         @Override
         public Class<I> getType() {
-            return (Class<I>) DefaultNamedDomainObjectCollection.this.getType();
+            return type;
         }
 
         @Override
@@ -746,7 +748,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     protected class ExistingDomainObjectProvider<I extends T> extends AbstractDomainObjectProvider<I> {
         public ExistingDomainObjectProvider(String name) {
-            super(name);
+            super(name, (Class<I>) DefaultNamedDomainObjectCollection.this.getType());
         }
 
         public void configure(Action<? super I> action) {
@@ -760,6 +762,101 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         public I getOrNull() {
             return Cast.uncheckedCast(findByNameWithoutRules(getName()));
+        }
+    }
+
+    public abstract class AbstractDomainObjectCreatingProvider<I extends T> extends AbstractDomainObjectProvider<I> {
+        private I object;
+        private RuntimeException failure;
+        private ImmutableActionSet<I> onCreate;
+
+        public AbstractDomainObjectCreatingProvider(String name, Class<I> type, @Nullable Action<? super I> configureAction) {
+            super(name, type);
+            this.onCreate = ImmutableActionSet.<I>empty().mergeFrom(getEventRegister().getAddActions());
+
+            if (configureAction != null) {
+                configure(configureAction);
+            }
+        }
+
+        @Override
+        public boolean isPresent() {
+            return findDomainObject(getName()) != null;
+        }
+
+        public void configure(final Action<? super I> action) {
+            if (object != null) {
+                // Already realized, just run the action now
+                wrap(action).execute(object);
+                return;
+            }
+            // Collect any container level add actions then add the object specific action
+            onCreate = onCreate.mergeFrom(getEventRegister().getAddActions()).add(action);
+        }
+
+        protected Action<? super I> wrap(Action<? super I> action) {
+            // Do nothing.
+            return action;
+        }
+
+        @Override
+        public I getOrNull() {
+            if (wasElementRemoved()) {
+                return null;
+            }
+            if (failure != null) {
+                throw domainObjectCreationException(failure);
+            }
+            if (object == null) {
+                object = getType().cast(findByNameWithoutRules(getName()));
+                if (object == null) {
+                    tryCreate();
+                }
+            }
+            return object;
+        }
+
+        protected void tryCreate() {
+            try {
+                // Collect any container level add actions added since the last call to configure()
+                onCreate = onCreate.mergeFrom(getEventRegister().getAddActions());
+
+                // Create the domain object
+                object = createDomainObject();
+
+                // Register the domain object
+                add(object, wrap(onCreate));
+                realized(AbstractDomainObjectCreatingProvider.this);
+                onLazyDomainObjectRealized();
+            } catch (Throwable ex) {
+                failure = domainObjectCreationException(ex);
+                throw failure;
+            } finally {
+                // Discard state that is no longer required
+                onCreate = ImmutableActionSet.empty();
+            }
+        }
+
+        protected abstract I createDomainObject();
+
+        protected void onLazyDomainObjectRealized() {
+            // Do nothing.
+        }
+
+        protected boolean wasElementRemoved() {
+            return wasElementRemovedBeforeRealized() || wasElementRemovedAfterRealized();
+        }
+
+        private boolean wasElementRemovedBeforeRealized() {
+            return object == null && findByNameLaterWithoutRules(getName()) == null;
+        }
+
+        private boolean wasElementRemovedAfterRealized() {
+            return object != null && findByNameWithoutRules(getName()) == null;
+        }
+
+        protected RuntimeException domainObjectCreationException(Throwable cause) {
+            return new IllegalStateException(String.format("Could not create domain object '%s' (%s)", getName(), getType().getSimpleName()), cause);
         }
     }
 }
