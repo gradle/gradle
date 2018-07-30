@@ -45,9 +45,6 @@ open class GenerateKotlinDependencyExtensions : DefaultTask() {
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.artifacts.dsl.RepositoryHandler
-
-import org.gradle.api.artifacts.repositories.ArtifactRepository
 
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
@@ -57,14 +54,6 @@ import org.gradle.plugin.use.PluginDependencySpec
  * The version of the Kotlin compiler embedded in gradle-kotlin-dsl (currently _${embeddedKotlinVersion}_).
  */
 val embeddedKotlinVersion = "$embeddedKotlinVersion"
-
-
-/**
- * Adds the remote repository containing the Kotlin libraries embedded in gradle-kotlin-dsl.
- */
-@Deprecated("Will be removed in 1.0")
-fun RepositoryHandler.gradleScriptKotlin(): ArtifactRepository =
-    gradlePluginPortal()
 
 
 /**
@@ -84,11 +73,6 @@ fun DependencyHandler.embeddedKotlin(module: String): Any =
  */
 fun DependencyHandler.kotlin(module: String, version: String? = null): Any =
     "org.jetbrains.kotlin:kotlin-${'$'}module${'$'}{version?.let { ":${'$'}version" } ?: ""}"
-
-
-@Deprecated("Will be removed in 1.0", ReplaceWith("kotlin(module, version)"))
-fun DependencyHandler.kotlinModule(module: String, version: String? = null): Any =
-    kotlin(module, version)
 
 
 /**
@@ -134,8 +118,8 @@ val PluginDependenciesSpec.`kotlin-dsl`: PluginDependencySpec
 
 
 internal
-val licenseHeader = """/*
- * Copyright 2016 the original author or authors.
+const val licenseHeader = """/*
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
