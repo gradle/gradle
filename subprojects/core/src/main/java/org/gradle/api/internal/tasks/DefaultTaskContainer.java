@@ -693,15 +693,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
 
         @Override
-        protected boolean wasElementRemoved() {
-            return super.wasElementRemoved() && !isPlaceholderProvider();
-        }
-
-        private boolean isPlaceholderProvider() {
-            return this.equals(placeholders.get(getName()));
-        }
-
-        @Override
         protected I createDomainObject() {
             return createTask(identity, constructorArgs);
         }

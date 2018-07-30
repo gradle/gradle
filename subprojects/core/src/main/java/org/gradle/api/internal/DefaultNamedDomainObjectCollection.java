@@ -187,6 +187,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         if (t instanceof Named) {
             index.removePending(((Named) t).getName());
         }
+        if (t instanceof AbstractDomainObjectCreatingProvider) {
+            ((AbstractDomainObjectCreatingProvider) t).removedBeforeRealized = true;
+        }
     }
 
     /**
@@ -769,6 +772,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         private I object;
         private RuntimeException failure;
         private ImmutableActionSet<I> onCreate;
+        private boolean removedBeforeRealized = false;
 
         public AbstractDomainObjectCreatingProvider(String name, Class<I> type, @Nullable Action<? super I> configureAction) {
             super(name, type);
@@ -848,7 +852,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         private boolean wasElementRemovedBeforeRealized() {
-            return object == null && findByNameLaterWithoutRules(getName()) == null;
+            return removedBeforeRealized;
         }
 
         private boolean wasElementRemovedAfterRealized() {
