@@ -16,8 +16,13 @@
 
 package org.gradle.cache.internal.locklistener;
 
+import org.gradle.api.Action;
+import org.gradle.cache.FileLockReleasedSignal;
+
+import javax.annotation.Nullable;
+
 public interface FileLockContentionHandler {
-    void start(long lockId, Runnable whenContended);
+    void start(long lockId, Action<FileLockReleasedSignal> whenContended);
 
     void stop(long lockId);
 
@@ -31,5 +36,5 @@ public interface FileLockContentionHandler {
      *
      * @return true if the owner was pinged in this call
      */
-    boolean maybePingOwner(int port, long lockId, String displayName, long timeElapsed);
+    boolean maybePingOwner(int port, long lockId, String displayName, long timeElapsed, @Nullable FileLockReleasedSignal signal);
 }

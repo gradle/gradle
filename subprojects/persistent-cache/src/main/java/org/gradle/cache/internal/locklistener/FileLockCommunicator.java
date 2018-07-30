@@ -28,7 +28,9 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketAddress;
 import java.net.SocketException;
+import java.util.Set;
 
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
@@ -39,7 +41,7 @@ public class FileLockCommunicator {
     private static final byte PROTOCOL_VERSION = 1;
     private final DatagramSocket socket;
     private final InetAddressFactory addressFactory;
-    private boolean stopped;
+    private volatile boolean stopped;
 
     public FileLockCommunicator(InetAddressFactory addressFactory) {
         this.addressFactory = addressFactory;
@@ -110,9 +112,33 @@ public class FileLockCommunicator {
         }
     }
 
+    public void confirmLockRelease(Set<SocketAddress> addresses, long lockId) {
+        byte[] bytes = encodeSafely(lockId);
+        for (SocketAddress address : addresses) {
+            DatagramPacket packet = new DatagramPacket(bytes, bytes.length);
+            packet.setSocketAddress(address);
+            LOGGER.debug("Confirming lock release to Gradle process at port {} for lock with id {}.", packet.getPort(), lockId);
+            try {
+                socket.send(packet);
+            } catch (IOException e) {
+                if (!stopped) {
+                    LOGGER.debug("Failed to confirm lock release to Gradle process at port {} for lock with id {}.", packet.getPort(), lockId);
+                }
+            }
+        }
+    }
+
     public void stop() {
         stopped = true;
         socket.close();
+    }
+
+    private static byte[] encodeSafely(long lockId) {
+        try {
+            return encode(lockId);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to encode lock id: " + lockId, e);
+        }
     }
 
     private static byte[] encode(long lockId) throws IOException {

@@ -16,6 +16,8 @@
 
 package org.gradle.cache.internal.locklistener;
 
+import org.gradle.api.Action;
+import org.gradle.cache.FileLockReleasedSignal;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
@@ -24,8 +26,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.DatagramPacket;
+import java.net.SocketAddress;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -39,11 +44,11 @@ import java.util.concurrent.locks.ReentrantLock;
  * The general strategy is that the Lock Holder keeps locks open as long as there is no Lock Requester. This is,
  * because each lock open/close action requires File I/O which is expensive.
  * <p>
- * The Lock Owner will inform this contention handler that it holds the lock via {@link #start(long, Runnable)}.
+ * The Lock Owner will inform this contention handler that it holds the lock via {@link #start(long, Action)}.
  * There it provides an action that this handler can call to release the lock, in case a release is requested.
  * <p>
  * A Lock Requester will notice that a lock is held by a Lock Holder by failing to lock the lock file.
- * It then turns to this contention via {@link #maybePingOwner(int, long, String, long)}.
+ * It then turns to this contention via {@link #maybePingOwner(int, long, String, long, FileLockReleasedSignal)}.
  * <p>
  * Both Lock Holder and Lock Requester listen on a socket using {@link FileLockCommunicator}. The messages they
  * exchange contain only the lock id. If this contention handler receives such a message it determines if it
@@ -55,11 +60,13 @@ import java.util.concurrent.locks.ReentrantLock;
  *     <li>the contended action to release the lock is started, if it is not running already. The action might already run
  *         if several Lock Requester compete for the same lock or if confirmation took too long and the same Requester retries.</li>
  *     <li>the message is sent back to the Lock Requester to confirm that the lock release is in progress</li>
+ *     <li>when the contended action finishes, i.e. the lock has been released, all Lock Requesters will get another message
+ *         to trigger an immediate retry</li>
  * </ul>
  * <p>
  * If this is the Lock Requester:
  *     <li>the message is interpreted as confirmation and stored. No further messages are sent to the Lock Owner via
- *    {@link #maybePingOwner(int, long, String, long)}.</li>
+ *    {@link #maybePingOwner(int, long, String, long, FileLockReleasedSignal)}.</li>
  * <p>
  * As Lock Requester, the state of the request is always stored per lock (lockId) and Lock Holder (port). The Lock Holder
  * for a lock might change without acquiring the lock if several Lock Requester compete for the same lock.
@@ -70,6 +77,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     private final Lock lock = new ReentrantLock();
 
     private final Map<Long, ContendedAction> contendedActions = new HashMap<Long, ContendedAction>();
+    private final Map<Long, FileLockReleasedSignal> lockReleasedSignals = new HashMap<Long, FileLockReleasedSignal>();
     private final Map<Long, Integer> unlocksRequestedFrom = new HashMap<Long, Integer>();
     private final Map<Long, Integer> unlocksConfirmedFrom = new HashMap<Long, Integer>();
 
@@ -116,6 +124,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
                     if (contendedAction == null) {
                         acceptConfirmationAsLockRequester(lockId, packet.getPort());
                     } else {
+                        contendedAction.addRequester(packet.getSocketAddress());
                         if (!contendedAction.running) {
                             startLockReleaseAsLockHolder(contendedAction);
                         }
@@ -129,16 +138,26 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
 
     private void startLockReleaseAsLockHolder(ContendedAction contendedAction) {
         contendedAction.running = true;
-        unlockActionExecutor.execute(contendedAction.action);
+        unlockActionExecutor.execute(contendedAction);
     }
 
-    private void acceptConfirmationAsLockRequester(long lockId, int port) {
-        unlocksConfirmedFrom.put(lockId, port);
+    private void acceptConfirmationAsLockRequester(Long lockId, Integer port) {
         LOGGER.debug("Gradle process at port {} confirmed unlock request for lock with id {}.", port, lockId);
+        boolean isLockReleaseConfirmation = port.equals(unlocksConfirmedFrom.get(lockId));
+        if (isLockReleaseConfirmation) {
+            FileLockReleasedSignal signal = lockReleasedSignals.get(lockId);
+            if (signal != null) {
+                LOGGER.debug("Triggering lock release signal for lock with id {}.", lockId);
+                signal.trigger();
+            }
+        } else {
+            unlocksConfirmedFrom.put(lockId, port);
+        }
     }
 
-    public void start(long lockId, Runnable whenContended) {
+    public void start(long lockId, Action<FileLockReleasedSignal> whenContended) {
         lock.lock();
+        lockReleasedSignals.remove(lockId);
         unlocksRequestedFrom.remove(lockId);
         unlocksConfirmedFrom.remove(lockId);
         try {
@@ -156,13 +175,13 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
             if (contendedActions.containsKey(lockId)) {
                 throw new UnsupportedOperationException("Multiple contention actions for a given lock are currently not supported.");
             }
-            contendedActions.put(lockId, new ContendedAction(whenContended));
+            contendedActions.put(lockId, new ContendedAction(lockId, whenContended));
         } finally {
             lock.unlock();
         }
     }
 
-    public boolean maybePingOwner(int port, long lockId, String displayName, long timeElapsed) {
+    public boolean maybePingOwner(int port, long lockId, String displayName, long timeElapsed, FileLockReleasedSignal signal) {
         if (Integer.valueOf(port).equals(unlocksConfirmedFrom.get(lockId))) {
             //the unlock was confirmed we are waiting
             return false;
@@ -176,6 +195,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         if (pingSentSuccessfully) {
             lock.lock();
             unlocksRequestedFrom.put(lockId, port);
+            lockReleasedSignals.put(lockId, signal);
             lock.unlock();
         }
         return pingSentSuccessfully;
@@ -233,12 +253,52 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         }
     }
 
-    private static class ContendedAction {
-        private final Runnable action;
+    private class ContendedAction implements Runnable {
+        private final Lock lock = new ReentrantLock();
+        private final long lockId;
+        private final Action<FileLockReleasedSignal> action;
+        private Set<SocketAddress> requesters = new LinkedHashSet<SocketAddress>();
         private boolean running;
 
-        private ContendedAction(Runnable action) {
+        private ContendedAction(long lockId, Action<FileLockReleasedSignal> action) {
+            this.lockId = lockId;
             this.action = action;
         }
+
+        @Override
+        public void run() {
+            action.execute(new FileLockReleasedSignal() {
+                @Override
+                public void trigger() {
+                    Set<SocketAddress> requesters = consumeRequesters();
+                    if (requesters == null) {
+                        throw new IllegalStateException("trigger() has already been called and must at most be called once");
+                    }
+                    communicator.confirmLockRelease(requesters, lockId);
+                }
+            });
+        }
+
+        private void addRequester(SocketAddress contender) {
+            lock.lock();
+            try {
+                if (requesters != null) {
+                    requesters.add(contender);
+                }
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        private Set<SocketAddress> consumeRequesters() {
+            lock.lock();
+            try {
+                return requesters;
+            } finally {
+                requesters = null;
+                lock.unlock();
+            }
+        }
     }
+
 }
