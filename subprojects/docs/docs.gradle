@@ -28,6 +28,8 @@ import org.gradle.gradlebuild.ProjectGroups
 import org.gradle.gradlebuild.PublicApi
 import org.gradle.gradlebuild.docs.PegDown
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.internal.environment.GradleBuildEnvironment
+import org.gradle.gradlebuild.BuildEnvironment
 
 plugins {
     id 'base'
@@ -298,6 +300,15 @@ asciidoctorj {
 
 tasks.withType(AsciidoctorTask).configureEach {
     dependsOn css, samples, defaultImports
+
+    doFirst {
+        // https://github.com/gradle/gradle-private/issues/1352
+        // JRuby has a serious issue that sometimes its native library makes the whole JVM crash
+        // We have to disable daemon for this task as a workaround
+        if (BuildEnvironment.isCiServer) {
+            assert !services.get(GradleBuildEnvironment).longLivingProcess
+        }
+    }
 
     separateOutputDirs = false
     options doctype: 'book'
