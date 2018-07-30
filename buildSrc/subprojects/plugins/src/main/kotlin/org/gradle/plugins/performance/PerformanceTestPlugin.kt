@@ -6,11 +6,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.JavaExec
-import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.testing.junit.JUnitOptions
@@ -249,7 +245,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         create("performanceAdhocTest") {
             systemProperty(PropertyNames.dbUrl, Config.adhocTestDbUrl)
             channel = "adhoc"
-            upToDateWhen { false }
+            outputs.upToDateWhen { false }
         }
     }
 
@@ -427,7 +423,7 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
-    fun PerformanceTest.configureReportProperties(): Unit {
+    fun PerformanceTest.configureReportProperties() {
         reportDir = project.buildDir / Config.performanceTestReportsDir
         channel?.let { channel ->
             systemProperty(PropertyNames.channel, channel)

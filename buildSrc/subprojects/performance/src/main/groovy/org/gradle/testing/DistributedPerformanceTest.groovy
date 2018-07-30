@@ -97,18 +97,6 @@ class DistributedPerformanceTest extends PerformanceTest {
         this.cancellationToken = cancellationToken
     }
 
-    @Nullable
-    @Optional
-    @Input
-    String getBaselineCacheKey() {
-        List baselineList = baselines == null ? [] : baselines.split(',').collect { String it -> it.trim() }
-        if (baselineList.contains('last') || baselineList.contains('nightly')) {
-            // turn off cache if the baseline contains 'nightly' or 'last'
-            return UUID.randomUUID().toString()
-        } else {
-            return baselines
-        }
-    }
 
     @Override
     void addTestListener(TestListener listener) {
