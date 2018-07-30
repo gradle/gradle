@@ -249,6 +249,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         create("performanceAdhocTest") {
             systemProperty(PropertyNames.dbUrl, Config.adhocTestDbUrl)
             channel = "adhoc"
+            upToDateWhen { false }
         }
     }
 

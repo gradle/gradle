@@ -27,11 +27,13 @@ import java.io.File;
 import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.process.JavaExecSpec;
 
 /**
  * A test that checks execution time and memory consumption.
  */
+@CacheableTask
 public class PerformanceTest extends DistributionTest {
 
     private String baselines;
