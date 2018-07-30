@@ -956,4 +956,28 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
         then:
         outputs.recompiledClasses("A", "B", "E", "package-info")
     }
+
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "deletes headers when source file is deleted"() {
+        given:
+        buildFile << """
+            compileJava.options.headerOutputDirectory = file("build/headers/java/main")
+        """
+        def source = java("""class Foo {
+            public native void foo();
+        }""")
+        java("""class Bar {
+            public native void bar();
+        }""")
+
+        succeeds "compileJava"
+
+        when:
+        source.delete()
+        succeeds "compileJava"
+
+        then:
+        file("build/headers/java/main/Foo.h").assertDoesNotExist()
+        file("build/headers/java/main/Bar.h").assertExists()
+    }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -59,6 +58,7 @@ class IncrementalCompilationInitializer {
         addClassesToProcess(spec, recompilationSpec);
         deleteStaleFilesIn(classesToDelete, spec.getDestinationDir());
         deleteStaleFilesIn(classesToDelete, spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory());
+        deleteStaleFilesIn(classesToDelete, spec.getCompileOptions().getHeaderOutputDirectory());
     }
 
     private Iterable<File> narrowDownSourcesToCompile(FileTree sourceTree, PatternSet sourceToCompile) {
@@ -72,8 +72,7 @@ class IncrementalCompilationInitializer {
         spec.setCompileClasspath(classpath);
     }
 
-    @VisibleForTesting
-    void addClassesToProcess(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
+    private void addClassesToProcess(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
         Set<String> classesToProcess = Sets.newHashSet(recompilationSpec.getClassesToProcess());
         classesToProcess.removeAll(recompilationSpec.getClassesToCompile());
         spec.setClasses(classesToProcess);
@@ -89,14 +88,15 @@ class IncrementalCompilationInitializer {
         cleaner.execute();
     }
 
-    @VisibleForTesting
-    void preparePatterns(Collection<String> staleClasses, PatternSet filesToDelete, PatternSet sourceToCompile) {
+    private void preparePatterns(Collection<String> staleClasses, PatternSet filesToDelete, PatternSet sourceToCompile) {
         for (String staleClass : staleClasses) {
             String path = staleClass.replaceAll("\\.", "/");
             filesToDelete.include(path.concat(".class"));
             filesToDelete.include(path.concat(".java"));
+            filesToDelete.include(path.concat(".h"));
             filesToDelete.include(path.concat("$*.class"));
             filesToDelete.include(path.concat("$*.java"));
+            filesToDelete.include(path.concat("$*.h"));
 
             sourceToCompile.include(path.concat(".java"));
             sourceToCompile.include(path.concat("$*.java"));

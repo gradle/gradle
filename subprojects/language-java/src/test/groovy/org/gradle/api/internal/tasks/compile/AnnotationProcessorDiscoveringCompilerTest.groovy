@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile
 
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector
 import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType
@@ -26,7 +27,7 @@ import spock.lang.Specification
 
 class AnnotationProcessorDiscoveringCompilerTest extends Specification {
     JavaCompileSpec spec = new DefaultJavaCompileSpec().with {
-        compileOptions = new CompileOptions(TestUtil.objectFactory())
+        compileOptions = new CompileOptions(Stub(ProjectLayout), TestUtil.objectFactory())
         it
     }
     AnnotationProcessorDetector detector = Stub(AnnotationProcessorDetector)
