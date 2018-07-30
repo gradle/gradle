@@ -13,83 +13,122 @@
 // limitations under the License.
 
 [[task_configuration_avoidance]]
-== Task Configuration Avoidance
+= Task Configuration Avoidance
 
 We are asking early adopters to try out a new API for creating and configuring tasks to iron out any issues and gather feedback. This chapter provides a quick introduction to the feature and explains some guidelines for migrating your build to use the new API. We intend for this new API to eventually replace the existing API through our usual deprecation process over several major releases.
 
 [NOTE]
 ====
-The new Task configuration API is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL or API may change in minor Gradle versions.
+The new Task configuration API is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL or API may change in minor Gradle versions.
 ====
 
 [[sec:what_is_new_task_configuration]]
-=== What is the new API good for?
+== What is the new API good for?
 
 In a nutshell, the new API allows builds to avoid the cost of creating and configuring tasks during Gradle's configuration phase when those tasks will never be executed. We identified task configuration as a contributor to overall configuration time. Configuration time affects every build, so making it faster is good for everyone. For example, if you're only compiling, Gradle doesn't need to also configure code quality, testing and publishing tasks. For tasks that aren't used often by developers, configuration can be expensive (e.g., running `git status` or querying a webservice) and can slow down builds that do not need to execute them. This new API avoids configuring those tasks if they are not needed.
 
-This feature is designed to be backwards compatible when mixed with the old and new APIs, so you can gradually migrate your plugins and build scripts to the new API. Instead of immediately creating a task and running all configuration actions, Gradle exposes a api:org.gradle.api.provider.Provider[] to a task. A task will only be created and configured when the task is required. If at any point, a task registered with the new API is accessed through the old API, the task will be created and configured just as if it had been created with the old API.
+This feature is designed to be backwards compatible when mixed with the old and new APIs, so you can gradually migrate your plugins and build scripts to the new API. Instead of immediately creating a task and running all configuration actions, Gradle exposes a link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider] to a task. A task will only be created and configured when the task is required. If at any point, a task registered with the new API is accessed through the old API, the task will be created and configured just as if it had been created with the old API.
 
 Many built-in Gradle plugins have been converted to use this new API already, so you may see some benefits without changing anything.
 
 [[sec:what_do_we_want]]
-=== What do we want you to do?
+== What do we want you to do?
 
 We've been using this feature in many of the built-in Gradle plugins, internal Gradle projects and the Gradle build itself. Now we would appreciate your help in evaluating it with your builds as well.
 
 We'd like for you to take a few steps:
 
 - Try your build with the latest nightly (see the version number at the top of this page).
-- How many tasks do you see registered with the new API?  See <<sec:how_do_i_know_its_working>> for how to find this.
+- How many tasks do you see registered with the new API?  See <<#sec:how_do_i_know_its_working,How do I know it's working?>> for how to find this.
 - Which task types are most numerous? Which ones are created with the old API? Which ones are registered with the new API, but have been created/configured anyways?
-- Following <<sec:task_configuration_avoidance_migration_guidelines>>, change your build scripts to use the new API to avoid creating/configuring tasks that are from the built-in Gradle plugins. Is there an impact to the number of tasks that are created?
+- Following <<#sec:task_configuration_avoidance_migration_guidelines,Pitfalls and migration guidelines>>, change your build scripts to use the new API to avoid creating/configuring tasks that are from the built-in Gradle plugins. Is there an impact to the number of tasks that are created?
 - Convert some of your custom plugins/tasks to use the new API.  Is there an impact to the number of tasks using the new API and the number of new API tasks that are created?
-- Run the https://github.com/gradle/gradle-profiler[gradle-profiler] to measure the difference between a build with less task configuration and a build where all tasks are configured. What do you see? Use <<sec:new_task_gradle_profiler_scenario,the scenario file below>>.
+- Run the https://github.com/gradle/gradle-profiler[gradle-profiler] to measure the difference between a build with less task configuration and a build where all tasks are configured. What do you see? Use <<#sec:new_task_gradle_profiler_scenario,the scenario file below>>.
 
 [[sec:task_configuration_avoidance_guidelines]]
-=== Guidelines
+== Guidelines
 
 [[sec:how_do_i_defer_creation]]
-==== How do I defer task creation?
+=== How do I defer task creation?
 
-This feature requires build authors to opt-in by migrating task creation from the api:org.gradle.api.tasks.TaskContainer#create(java.lang.String)[] APIs to the api:org.gradle.api.tasks.TaskContainer#register(java.lang.String)[] APIs. The `register(...)` API registers a task to be created at a later time if and only if the task is needed. The `create(...)` API continues to eagerly create and configure tasks when it is called.
+This feature requires build authors to opt-in by migrating task creation from the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.lang.String-[TaskContainer.create(java.lang.String)] APIs to the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-[TaskContainer.register(java.lang.String)] APIs. The `register(...)` API registers a task to be created at a later time if and only if the task is needed. The `create(...)` API continues to eagerly create and configure tasks when it is called.
 
 Using the new creation API may not be enough to avoid all task configuration completely. You may need to change other code that configures tasks by name or by type, as explained in the following sections.
 
 [[sec:how_do_i_defer_configuration]]
-==== How do I defer task configuration?
+=== How do I defer task configuration?
 
-Existing APIs like api:org.gradle.api.DomainObjectCollection#all(org.gradle.api.Action)[] and api:org.gradle.api.DomainObjectCollection#withType(java.lang.Class,org.gradle.api.Action)[] will immediately create and configure any registered tasks. To defer task configuration, you will need to migrate to a new API equivalent. See the <<sec:old_vs_new_configuration_api_overview,table below>> to identify the new API alternative.
+Existing APIs like link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#all-org.gradle.api.Action-[DomainObjectCollection.all(org.gradle.api.Action)] and link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-org.gradle.api.Action-[DomainObjectCollection.withType(java.lang.Class, org.gradle.api.Action)] will immediately create and configure any registered tasks. To defer task configuration, you will need to migrate to a new API equivalent. See the <<#sec:old_vs_new_configuration_api_overview,table below>> to identify the new API alternative.
 
 [[sec:how_do_i_reference_a_task]]
-==== How do I reference a task without creating/configuring it?
+=== How do I reference a task without creating/configuring it?
 
-Calling api:org.gradle.api.provider.Provider#get()[] or looking up a task by name with api:org.gradle.api.tasks.TaskCollection#getByName(java.lang.String)[] will cause the task to be created and configured. Methods like api:org.gradle.api.Task#dependsOn(java.lang.Object...)[] and api:org.gradle.api.file.ConfigurableFileCollection#builtBy(java.lang.Object...)[] work with api:org.gradle.api.tasks.TaskProvider[] in the same way as api:org.gradle.api.Task[], so you do not need to unwrap a `Provider` for explicit dependencies to continue to work.
+Calling link:{javadocPath}/org/gradle/api/provider/Provider.html#get--[Provider.get()] or looking up a task by name with link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#getByName-java.lang.String-[TaskCollection.getByName(java.lang.String)] will cause the task to be created and configured. Methods like link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:dependsOn(java.lang.Object++[]++)[Task.dependsOn(java.lang.Object...)] and link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html#builtBy-java.lang.Object++...++-[ConfigurableFileCollection.builtBy(java.lang.Object++...++)] work with link:{javadocPath}/org/gradle/api/tasks/TaskProvider.html[TaskProvider] in the same way as link:{groovyDslPath}/org.gradle.api.Task.html[Task], so you do not need to unwrap a `Provider` for explicit dependencies to continue to work.
 
-If you are configuring a task by name, you will need to use the new API equivalent. See the <<sec:old_vs_new_configuration_api_overview,table below>> to identify the new API alternative.
+If you are configuring a task by name, you will need to use the new API equivalent. See the <<#sec:old_vs_new_configuration_api_overview,table below>> to identify the new API alternative.
 
 [[sec:how_do_i_get_a_task]]
-==== How to get an instance of a Task?
+=== How to get an instance of a Task?
 
-In the event you still need to get access to a Task instance, you can use api:org.gradle.api.tasks.TaskCollection#named(java.lang.String)[] and call api:org.gradle.api.provider.Provider#get()[].  This will cause the task to be created/configured, but everything should work as it has with the eager APIs.
+In the event you still need to get access to a Task instance, you can use link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#named-java.lang.String-[TaskCollection.named(java.lang.String)] and call link:{javadocPath}/org/gradle/api/provider/Provider.html#get--[Provider.get()].  This will cause the task to be created/configured, but everything should work as it has with the eager APIs.
 
 Please https://github.com/gradle/gradle/issues/5664[contact us] if you find tricky build logic that requires you to get a Task instance.
 
 [[sec:how_do_i_know_its_working]]
-==== How do I know if it's working?
+=== How do I know if it's working?
 
-https://scans.gradle.com/[Build scan] features specific information around task configuration avoidance.
-Navigating to the https://scans.gradle.com/s/yfkcpk4sflk32/performance/configuration[configuration tab under the performance card] gives https://scans.gradle.com/s/yfkcpk4sflk32/performance/configuration#summary-task-totals[task creation metrics].
-As you are migrating to the lazy task APIs, these metrics should evolve toward more task created during task graph calculation as well as an increase in the number of tasks not created.
-If you aren't seeing any improvement, have a look at the troubleshooting section <<task_configuration_avoidance_troubleshooting_where_resolved, Where a task was resolved?>>
+We provide a couple of internal flags to print out information after a build.  This will eventually be captured and displayed in an easier to digest form.
 
-To approximate the time it takes to configure a build without executing tasks, you can run `gradle help`.
-Please use the Gradle Profiler to measure your build as described in <<sec:new_task_gradle_profiler_scenario>>.
+.gradle -Dorg.gradle.internal.tasks.stats help
+----
+Task counts: Old API 188, New API 587, total 775 # 1
+Task counts: created 613, avoided 162, %-lazy 21 # 2
+
+Task types that were created with the old API # 3
+class org.gradle.api.DefaultTask 31
+class org.jetbrains.kotlin.gradle.tasks.KotlinCompile 28
+class org.gradle.api.tasks.JavaExec 24
+class org.jlleitschuh.gradle.ktlint.KtlintCheck 24
+class org.gradle.api.tasks.bundling.Jar 16
+class org.gradle.kotlin.dsl.accessors.tasks.PrintAccessors 16
+class org.gradle.plugin.devel.tasks.ValidateTaskProperties 15
+class org.gradle.another.CoolTask 13
+class org.gradle.plugin.devel.tasks.GeneratePluginDescriptors 10
+class org.gradle.plugin.devel.tasks.PluginUnderTestMetadata 10
+class org.gradle.kotlin.dsl.accessors.tasks.UpdateProjectSchema 1
+
+Task types that were registered with the new API but were created anyways # 4
+class org.gradle.api.DefaultTask 142
+class org.gradle.api.tasks.Delete 106
+class org.gradle.api.tasks.compile.JavaCompile 32
+class org.gradle.language.jvm.tasks.ProcessResources 32
+class org.gradle.api.tasks.testing.Test 16
+class org.gradle.api.tasks.javadoc.Javadoc 16
+class org.gradle.plugins.ide.idea.GenerateIdeaModule 15
+class org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath 15
+class org.gradle.plugins.ide.eclipse.GenerateEclipseJdt 15
+class org.gradle.plugins.ide.eclipse.GenerateEclipseProject 15
+class org.gradle.api.tasks.compile.GroovyCompile 10
+class org.gradle.api.tasks.javadoc.Groovydoc 5
+class org.gradle.api.plugins.quality.Checkstyle 4
+class org.gradle.api.plugins.quality.CodeNarc 2
+----
+1. 188 tasks are created with the old API and 587 tasks are registered with the new API for a total of 775 tasks.
+2. 613 tasks were created and configured and only 162 tasks were avoided (never created or configured). 21% of all tasks were avoided (higher is better).
+3. Lists of the type of tasks that were created with the old API. This is a good list to work down to increase the amount of possible avoidable task configuration.
+4. Lists of the type of tasks that were created with the new API but were created/configured anyways. This is a good list to work down to increase the amount of task configuration that is avoided.
+
+These statistics are printed out once per build. Projects with buildSrc and composite builds will display this information multiple times. In a build that uses the new APIs perfectly, we should see 0 tasks created with the old API and only 1 created/configured task because we are only executing the `help` task. If you run other tasks (like `build`), you should expect many more tasks to be created and configured.
+
+You can use the list of task types to guide which tasks would provide the biggest bang for your buck when you migrate to the new API.
+
+To approximate the time it takes to configure a build without executing tasks, you can run `gradle help`. Please use the Gradle Profiler to measure your build as described <<#sec:new_task_gradle_profiler_scenario,further on>>.
 
 [[sec:task_configuration_avoidance_migration_guidelines]]
 === Migration Guide
 
-The following sections will go through some <<sec:task_configuration_avoidance_general, general guidelines>> to adhere when migrating the build logic as well as <<sec:task_configuration_avoidance_migration_steps, the steps>> we recommend following.
-We also cover some <<sec:task_configuration_avoidance_troubleshooting, troubleshooting>> and <<sec:task_configuration_avoidance_pitfalls, pitfalls>> to help you work around some issues you may encountered during the migration.
+The following sections will go through some <<#sec:task_configuration_avoidance_general, general guidelines>> to adhere when migrating the build logic as well as <<#sec:task_configuration_avoidance_migration_steps, the steps>> we recommend following.
+We also cover some <<#sec:task_configuration_avoidance_troubleshooting, troubleshooting>> and <<#sec:task_configuration_avoidance_pitfalls, pitfalls>> to help you work around some issues you may encountered during the migration.
 
 [[sec:task_configuration_avoidance_general]]
 ==== General
@@ -97,7 +136,7 @@ We also cover some <<sec:task_configuration_avoidance_troubleshooting, troublesh
 The `help` task is the perfect candidate to benchmark your migration process.
 In a completely lazy build, https://scans.gradle.com/s/o7qmlmmrsfxz4/performance/configuration?openScriptsAndPlugins=WzFd[a build scan should show no task created immediately or created during configuration].
 Only a single task, the `help` task, should be created during task graph calculation.
-Be mindful of <<task_configuration_avoidance_pitfall_build_scan_plugin, the pitfall around the lazy API usage in the build scan plugin>>.
+Be mindful of <<#task_configuration_avoidance_pitfall_build_scan_plugin, the pitfall around the lazy API usage in the build scan plugin>>.
 
 2. [[task_configuration_avoidance_guideline_only_mutate_task_object]] **Only mutate the current task inside configuration action.**
 Because the task configuration action can now run immediately, later or never, mutating anything other than the current task will expose flaky-like behavior in your build.
@@ -129,7 +168,7 @@ Using `TaskProvider` helps create an indirection that protects transitive realiz
 ==== Migration Steps
 The first part of the migration process is to go through the code and manually migrate eager task creation and configuration to use lazy APIs.
 The following explores the recommended steps for a successful migration.
-While going through those steps, keep in mind <<task_configuration_avoidance_general, the guidelines>>.
+While going through those steps, keep in mind <<#sec:task_configuration_avoidance_general, the guidelines>>.
 
 1. **Migrate task configuration that affects all tasks (`tasks.all {}`) or subsets by type (`tasks.withType(...) {}`).**
 This will cause your build to create fewer built-in Gradle task types.
@@ -137,20 +176,20 @@ Note that despite some built-in Gradle task aren’t using the lazy APIs, the co
 We recommend using regex code search capability offered by modern IDE.
 For example, the Intellij regex `\.all\s*((\(?\s*\{)|\(\s*new)` will identify every call to `.all` of a `DomainObjectCollection` and subtype.
 We will need to go through those result and identify and migrate only the method calls affecting the `TaskContainer` or `TaskCollection`.
-Be aware of the <<sec:task_configuration_avoidance_pitfalls, common pitfall around deferred configuration>>.
+Be aware of the <<#sec:task_configuration_avoidance_pitfalls, common pitfall around deferred configuration>>.
 
 2. **Migrate tasks configured by name.**
 Just like the previous point, it will cause your build to create fewer built-in Gradle tasks.
 For example, logic that uses `TaskContainer#getByName(String, Closure/Action)` would be converted to `TaskContainer#named(String).configure(Closure/Action)`.
-It also include <<task_configuration_avoidance_pitfalls_hidden_eager_task_realization, task configuration as DSL blocks>>.
-Be aware of the <<sec:task_configuration_avoidance_pitfalls, common pitfall around deferred configuration>>.
+It also include <<#task_configuration_avoidance_pitfalls_hidden_eager_task_realization, task configuration as DSL blocks>>.
+Be aware of the <<#sec:task_configuration_avoidance_pitfalls, common pitfall around deferred configuration>>.
 
 3. **Migrate tasks creation to `register(...)`.**
 It will cause your build to create fewer tasks in general.
-Be aware of the <<sec:task_configuration_avoidance_pitfalls, common pitfall around deferred configuration>>.
+Be aware of the <<#sec:task_configuration_avoidance_pitfalls, common pitfall around deferred configuration>>.
 
 At this point, we should see a decent improvement regarding build configuration.
-We recommend <<sec:new_task_gradle_profiler_scenario, profiling your build and note the improvement>>.
+We recommend <<#sec:how_do_i_know_its_working, profiling your build and note the improvement>>.
 Under some circumstance, you may <<task_configuration_avoidance_troubleshooting_no_improvement, notice no improvement>>.
 It’s unfortunate, and we feel your frustration. Keep reading onto the next section.
 
@@ -160,16 +199,16 @@ It’s unfortunate, and we feel your frustration. Keep reading onto the next sec
 It’s a common issue that happens during the migration.
 Follow these next steps to find out the issue:
   1. Is the build succeed when all tasks are eagerly resolved on creation using the command line flag (`-Dorg.gradle.internal.tasks.eager=true`)?
-  Verify that <<task_configuration_avoidance_guideline_only_mutate_task_object, each task configuration only mutating the task>>.
+  Verify that <<#task_configuration_avoidance_guideline_only_mutate_task_object, each task configuration only mutating the task>>.
 
   2. Was there any build logic accidentally deleted?
-  Verify <<task_configuration_avoidance_guideline_prefer_small_incremental_change, your change log>> for disparity in the configuration that may have been deleted.
+  Verify <<#task_configuration_avoidance_guideline_prefer_small_incremental_change, your change log>> for disparity in the configuration that may have been deleted.
 
   3. It may be a real issue.
   For example, https://github.com/gradle/gradle-native/issues/737[the issue of `FileCollection` using `TaskProvider` was a real discrepancy] found while migrating a build to lazy task API.
   As a rule of thumb, a `TaskProvider` should be accepted everywhere a `Task` instance is accepted.
 
-* [[task_configuration_avoidance_troubleshooting_where_resolved]] **Where a task was resolved?**
+* **Where a task was resolved?**
 As we keep developing the feature, more reporting, and troubleshooting information will be made available to answer this question.
 In the meantime, https://gradle.com/enterprise/releases/2018.3#reduce-configuration-time-by-leveraging-task-creation-avoidance[build scan is the best way to answer this question].
 Follow these steps:
@@ -178,29 +217,16 @@ Follow these steps:
   Execute the Gradle command using the `--scan` flag.
 
   b. Navigate to the configuration performance tab.
-+
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Navigate to configuration performance tab in build scan</title>
-    <imageobject>
-        <imagedata fileref="img/taskConfigurationAvoidance-navigate-to-performance.png" />
-    </imageobject>
-</figure>
-+++++
++.Navigate to configuration performance tab in build scan
+image::taskConfigurationAvoidance-navigate-to-performance.png[]
 +
     1. Navigate to the performance card from the left side menu.
     2. Navigate to the configuration tab from the top of the performance card.
 
   c. All the information requires will be presented.
 +
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Configuration performance tab in build scan annotated</title>
-    <imageobject>
-        <imagedata fileref="img/taskConfigurationAvoidance-performance-annotated.png" />
-    </imageobject>
-</figure>
-+++++
+.Configuration performance tab in build scan annotated
+image::taskConfigurationAvoidance-performance-annotated.png[]
 +
     1. Total tasks present when each task are created or not.
       - Created immediately represent all the task created using the eager task APIs.
@@ -224,7 +250,8 @@ The first step is to have a look at the statistics to see how much more the buil
 If the statistic shows the build is completely lazy (work-avoided) https://github.com/gradle/gradle/issues/5664[please contact us] so we can discuss where this feature falls short and improve it for the next Gradle version.
 
 [[sec:task_configuration_avoidance_pitfalls]]
-==== Pitfalls
+=== Pitfalls
+
 * **Lazy task configuration is an opt-in feature.**
 Any eager realization of a task will mitigate the benefit of this new API.
 In the far future, eager realizations will become an error, until them, it’s up to the build author to avoid eager realization.
@@ -315,7 +342,7 @@ Even though this issue wasn't released with Gradle 4.9, you should reference the
 * [[task_configuration_avoidance_pitfall_build_scan_plugin]] **The build scan plugin `buildScanPublishPrevious` task is eager until version 1.15.** Upgrade the build scan plugin in your build to use the latest version.
 
 [[sec:old_vs_new_configuration_api_overview]]
-=== Old vs New API overview
+== Old vs New API overview
 
 [NOTE]
 ====
@@ -333,55 +360,55 @@ Even though this issue wasn't released with Gradle 4.9, you should reference the
 .2+| There is not a shorthand Groovy DSL for using the new API.
 | Use: `tasks.register("myTask", MyTask) {}`
 
-| Instead of: api:org.gradle.api.tasks.TaskContainer#create(java.util.Map)[]
+| Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.util.Map-[TaskContainer.create(java.util.Map)]
 .2+| Use one of the alternatives below.
 | Use: No direct equivalent.
 
-| Instead of: api:org.gradle.api.tasks.TaskContainer#create(java.util.Map,groovy.lang.Closure)[]
+| Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.util.Map-groovy.lang.Closure-[TaskContainer.create(java.util.Map, groovy.lang.Closure)]
 .2+| Use one of the alternatives below.
 | Use: No direct equivalent.
 
-| Instead of: api:org.gradle.api.tasks.TaskContainer#create(java.lang.String)[]
+| Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.lang.String-[TaskContainer.create(java.lang.String)]
 .2+| This returns a `TaskProvider` instead of a `Task`.
-| Use: api:org.gradle.api.tasks.TaskContainer#register(java.lang.String)[]
+| Use: link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-[TaskContainer.register(java.lang.String)]
 
-| Instead of: api:org.gradle.api.tasks.TaskContainer#create(java.lang.String,groovy.lang.Closure)[]
+| Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.lang.String-groovy.lang.Closure-[TaskContainer.create(java.lang.String, groovy.lang.Closure)]
 .2+| This returns a `TaskProvider` instead of a `Task`.
-| Use: api:org.gradle.api.tasks.TaskContainer#register(java.lang.String,org.gradle.api.Action)[]
+| Use: link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-org.gradle.api.Action-[TaskContainer.register(java.lang.String, org.gradle.api.Action)]
 
-| Instead of: api:org.gradle.api.tasks.TaskContainer#create(java.lang.String,java.lang.Class)[]
+| Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.lang.String-java.lang.Class-[TaskContainer.create(java.lang.String, java.lang.Class)]
 .2+| This returns a `TaskProvider` instead of a `Task`.
-| Use: api:org.gradle.api.tasks.TaskContainer#register(java.lang.String,java.lang.Class)[]
+| Use: link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-[TaskContainer.register(java.lang.String, java.lang.Class)]
 
-| Instead of: api:org.gradle.api.tasks.TaskContainer#create(java.lang.String,java.lang.Class,org.gradle.api.Action)[]
+| Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.lang.String-java.lang.Class-org.gradle.api.Action-[TaskContainer.create(java.lang.String, java.lang.Class, org.gradle.api.Action)]
 .2+| This returns a `TaskProvider` instead of a `Task`.
-| Use: api:org.gradle.api.tasks.TaskContainer#register(java.lang.String,java.lang.Class,org.gradle.api.Action)[]
+| Use: link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-org.gradle.api.Action-[TaskContainer.register(java.lang.String, java.lang.Class, org.gradle.api.Action)]
 
-| Instead of: api:org.gradle.api.tasks.TaskContainer#create(java.lang.String,java.lang.Class,java.lang.Object...)[]
+| Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.lang.String-java.lang.Class-java.lang.Object++...++-[TaskContainer.create(java.lang.String, java.lang.Class, java.lang.Object...)]
 .2+| This returns a `TaskProvider` instead of a `Task`.
-| Use: api:org.gradle.api.tasks.TaskContainer#register(java.lang.String,java.lang.Class,java.lang.Object...)[]
+| Use: link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-java.lang.Object++...++-[TaskContainer.register(java.lang.String, java.lang.Class, java.lang.Object...)]
 
-| Instead of: api:org.gradle.api.tasks.TaskCollection#getByName(java.lang.String)[]
+| Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#getByName-java.lang.String-[TaskCollection.getByName(java.lang.String)]
 .2+| This returns a `TaskProvider` instead of a `Task`.
-| Use: api:org.gradle.api.tasks.TaskCollection#named(java.lang.String)[]
+| Use: link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#named-java.lang.String-[TaskCollection.named(java.lang.String)]
 
-| Instead of: api:org.gradle.api.tasks.TaskCollection#getByName(java.lang.String,groovy.lang.Closure)[]
+| Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#getByName-java.lang.String-groovy.lang.Closure-[TaskCollection.getByName(java.lang.String, groovy.lang.Closure)]
 .2+| This returns a `TaskProvider` instead of a `Task`.
 | Use: `named(java.lang.String).configure(Action)`
 
-| Instead of: api:org.gradle.api.tasks.TaskContainer#getByPath(java.lang.String)[]
+| Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#getByPath-java.lang.String-[TaskContainer.getByPath(java.lang.String)]
 .2+| Accessing tasks from another project requires a specific ordering of project evaluation.
 | Use: No direct equivalent.
 
-| Instead of: api:org.gradle.api.NamedDomainObjectCollection#findByName(java.lang.String)[]
+| Instead of: link:{javadocPath}/org/gradle/api/NamedDomainObjectCollection.html#findByName-java.lang.String-[NamedDomainObjectCollection.findByName(java.lang.String)]
 .2+| `named(String)` is the closest equivalent, but will fail if the task does not exist. Using `findByName(String)` will cause tasks registered with the new API to be created/configured.
 | Use: No direct equivalent.
 
-| Instead of: api:org.gradle.api.tasks.TaskContainer#findByPath(java.lang.String)[]
+| Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#findByPath-java.lang.String-[TaskContainer.findByPath(java.lang.String)]
 .2+| See `getByPath(String)` above.
 | Use: No direct equivalent.
 
-| Instead of: api:org.gradle.api.tasks.TaskCollection#withType(java.lang.Class)[]
+| Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-[TaskCollection.withType(java.lang.Class)]
 .2+| This is OK to use because it does not require tasks to be created immediately.
 | Use: _OK_
 
@@ -389,25 +416,25 @@ Even though this issue wasn't released with Gradle 4.9, you should reference the
 .2+| This returns a `TaskProvider` instead of a `Task`.
 | Use: `withType(java.lang.Class).named(java.lang.String)`
 
-| Instead of: api:org.gradle.api.DomainObjectCollection#withType(java.lang.Class,org.gradle.api.Action)[]
+| Instead of: link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-org.gradle.api.Action-[DomainObjectCollection.withType(java.lang.Class, org.gradle.api.Action)]
 .2+| This returns `void`, so it cannot be chained.
 | Use: `withType(java.lang.Class).configureEach(org.gradle.api.Action)`
 
-| Instead of: api:org.gradle.api.DomainObjectCollection#all(org.gradle.api.Action)[]
+| Instead of: link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#all-org.gradle.api.Action-[DomainObjectCollection.all(org.gradle.api.Action)]
 .2+| This returns `void`, so it cannot be chained.
-| Use: api:org.gradle.api.DomainObjectCollection#configureEach(org.gradle.api.Action)[]
+| Use: link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#configureEach-org.gradle.api.Action-[DomainObjectCollection.configureEach(org.gradle.api.Action)]
 
-| Instead of: api:org.gradle.api.NamedDomainObjectSet#findAll(groovy.lang.Closure)[]
+| Instead of: link:{javadocPath}/org/gradle/api/NamedDomainObjectSet.html#findAll-groovy.lang.Closure-[NamedDomainObjectSet.findAll(groovy.lang.Closure)]
 .2+| Avoid calling this method. `matching(Spec)` and `configureEach(Action)` are more appropriate in most cases.
 | Use: _OK_, with issues.
 
-| Instead of: api:org.gradle.api.tasks.TaskCollection#matching(groovy.lang.Closure)[]
+| Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#matching-groovy.lang.Closure-[TaskCollection.matching(groovy.lang.Closure)]
 .2+| This is OK to use because it does not require tasks to be created immediately.
 | Use: _OK_
 
-| Instead of: api:org.gradle.api.tasks.TaskCollection#getAt(java.lang.String)[]
+| Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#getAt-java.lang.String-[TaskCollection.getAt(java.lang.String)]
 .2+| Avoid calling this directly as it's a Groovy convenience method. The alternative returns a `TaskProvider` instead of a `Task`.
-| Use: api:org.gradle.api.tasks.TaskCollection#named(java.lang.String)[]
+| Use: link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#named-java.lang.String-[TaskCollection.named(java.lang.String)]
 
 | Instead of: `iterator()` or implicit iteration over the `Task` collection
 .2+| Avoid doing this as it requires creating and configuring all tasks. See `findAll(Closure)` above.
@@ -417,20 +444,20 @@ Even though this issue wasn't released with Gradle 4.9, you should reference the
 .2+| Avoid calling this. The behavior of `remove` with the new API may change in the future.
 | Use: _OK_, with issues.
 
-| Instead of: api:org.gradle.api.tasks.TaskContainer#replace(java.lang.String)[]
+| Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#replace-java.lang.String-[TaskContainer.replace(java.lang.String)]
 .2+| Avoid calling this. The behavior of `replace` with the new API may change in the future.
 | Use: _OK_, with issues.
 
-| Instead of: api:org.gradle.api.tasks.TaskContainer#replace(java.lang.String,java.lang.Class)[]
+| Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#replace-java.lang.String-java.lang.Class-[TaskContainer.replace(java.lang.String, java.lang.Class)]
 .2+| Avoid calling this. The behavior of `replace` with the new API may change in the future.
 | Use: _OK_, with issues.
 
 |===
 
 [[sec:new_task_gradle_profiler_scenario]]
-=== Profiling with a Gradle Profiler Scenario File
+== Profiling with a Gradle Profiler Scenario File
 
-The https://github.com/gradle/gradle-profiler#gradle-profiler[Gradle Profiler] is a tool to measure build times for Gradle builds in a predictable and reproducible manner. The tool automates collecting profiling and benchmark information from a Gradle build and mitigates environmental impacts to measuring build time (like JIT warmups and cached dependencies). Clone and build `gradle-profiler` locally.
+The https://github.com/gradle/gradle-profiler[Gradle Profiler] is a tool to measure build times for Gradle builds in a predictable and reproducible manner. The tool automates collecting profiling and benchmark information from a Gradle build and mitigates environmental impacts to measuring build time (like JIT warmups and cached dependencies). Clone and build `gradle-profiler` locally.
 
 To measure the impact of the new API on your build, we've included a sample scenario file you can use. This scenario runs `gradle help` on your build with a special flag to enable/disable the new API to make it easier to measure improvements. `gradle help` approximates the time it takes Gradle to configure your build by running only a single, simple task.
 

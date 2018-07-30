@@ -28,6 +28,8 @@ import java.util.Collection;
  * A registry of all the builds present in a build tree.
  */
 public interface BuildStateRegistry {
+    RootBuildState getRootBuild();
+
     /**
      * Creates the root build of the build tree.
      */

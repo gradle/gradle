@@ -7,17 +7,17 @@ Root project
       | Type:   	org.gradle.platform.base.ComponentSpecContainer
       | Creator: 	ComponentBasePlugin.PluginRules#components(ComponentSpecContainer)
       | Rules:
-         ⤷ components { ... } @ build.gradle line 42, column 5
+         ⤷ components { ... } @ build.gradle line 53, column 5
          ⤷ MyPlugin#mutateMyComponents(ModelMap<MyComponentInternal>)
     + my
           | Type:   	MyComponent
-          | Creator: 	components { ... } @ build.gradle line 42, column 5 > create(my)
+          | Creator: 	components { ... } @ build.gradle line 53, column 5 > create(my)
           | Rules:
              ⤷ MyPlugin#mutateMyComponents(ModelMap<MyComponentInternal>) > all()
         + publicData
               | Type:   	java.lang.String
               | Value:  	Some PUBLIC data
-              | Creator: 	components { ... } @ build.gradle line 42, column 5 > create(my)
+              | Creator: 	components { ... } @ build.gradle line 53, column 5 > create(my)
 + tasks
       | Type:   	org.gradle.model.ModelMap<org.gradle.api.Task>
       | Creator: 	Project.<init>.tasks()

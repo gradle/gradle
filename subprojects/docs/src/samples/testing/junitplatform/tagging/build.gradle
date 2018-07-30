@@ -9,11 +9,11 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.1.0'
 }
 
-// START SNIPPET test-tags
+// tag::test-tags[]
 test {
     useJUnitPlatform {
         includeTags 'fast'
         excludeTags 'slow'
     }
 }
-// END SNIPPET test-tags
+// end::test-tags[]

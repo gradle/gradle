@@ -33,6 +33,9 @@ import org.junit.Rule;
 
 import java.io.File;
 
+import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY;
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl;
+
 public abstract class AbstractIntegrationTest {
     @Rule
     public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
@@ -139,5 +142,23 @@ public abstract class AbstractIntegrationTest {
 
     public static String mavenCentralRepository() {
         return RepoScriptBlockUtil.mavenCentralRepository();
+    }
+
+    public void useRepositoryMirrors() {
+        executer.beforeExecute(new Action<GradleExecuter>() {
+            @Override
+            public void execute(GradleExecuter gradleExecuter) {
+                executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript());
+            }
+        });
+    }
+
+    public void usePluginRepositoryMirror() {
+        executer.beforeExecute(new Action<GradleExecuter>() {
+            @Override
+            public void execute(GradleExecuter gradleExecuter) {
+                executer.withArgument("-D" + PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY + "=" + gradlePluginRepositoryMirrorUrl());
+            }
+        });
     }
 }

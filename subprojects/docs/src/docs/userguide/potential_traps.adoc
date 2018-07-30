@@ -12,35 +12,48 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[appendix]
 [[potential_traps]]
-== Potential Traps
+= Potential Traps
 
 
 [[sec:groovy_script_variables]]
-=== Groovy script variables
+== Groovy script variables
 
 For Gradle users it is important to understand how Groovy deals with script variables. Groovy has two types of script variables. One with a local scope and one with a script-wide scope.
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="scope" dir="userguide/tutorial/groovyScope" title="Variables scope: local and script wide">
-            <sourcefile file="scope.groovy"/>
-            <output executable="groovy" args="scope.groovy" />
-        </sample>
-++++
+=== Example: Variables scope: local and script wide
+
+[source,groovy]
+.scope.groovy
+----
+include::{samplesPath}/userguide/tutorial/groovyScope/scope.groovy[]
+----
+
+.Output of `groovy scope.groovy`
+----
+> groovy scope.groovy
+include::{samplesPath}/userguide/tutorial/groovyScope/scope.out[]
+----
 
 Variables which are declared with a type modifier are visible within closures but not visible within methods.
 
 [[sec:configuration_and_execution_phase]]
-=== Configuration and execution phase
+== Configuration and execution phase
 
-It is important to keep in mind that Gradle has a distinct configuration and execution phase (see <<build_lifecycle>>).
+It is important to keep in mind that Gradle has a distinct configuration and execution phase (see <<build_lifecycle.adoc#build_lifecycle,Build Lifecycle>>).
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="mkdirTrap" dir="userguide/tutorial/mkdirTrap" title="Distinct configuration and execution phase">
-            <sourcefile file="build.gradle"/>
-            <output args="-q compile"/>
-        </sample>
-++++
+=== Example: Distinct configuration and execution phase
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tutorial/mkdirTrap/build.gradle[]
+----
+
+.Output of **`gradle -q compile`**
+----
+> gradle -q compile
+include::{samplesPath}/userguide/tutorial/mkdirTrap/mkdirTrap.out[]
+----
 
 As the creation of the directory happens during the configuration phase, the `clean` task removes the directory during the execution phase.

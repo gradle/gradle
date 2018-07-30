@@ -1,37 +1,37 @@
 apply plugin: 'war'
-// START SNIPPET use-eclipse-plugin
+// tag::use-eclipse-plugin[]
 apply plugin: 'eclipse'
-// END SNIPPET use-eclipse-plugin
-// START SNIPPET use-eclipse-wtp-plugin
+// end::use-eclipse-plugin[]
+// tag::use-eclipse-wtp-plugin[]
 apply plugin: 'eclipse-wtp'
-// END SNIPPET use-eclipse-wtp-plugin
-// START SNIPPET module-before-merged
-// START SNIPPET module-when-merged
+// end::use-eclipse-wtp-plugin[]
+// tag::module-before-merged[]
+// tag::module-when-merged[]
 eclipse.classpath.file {
-// END SNIPPET module-when-merged
+// end::module-when-merged[]
     beforeMerged { classpath ->
         classpath.entries.removeAll { entry -> entry.kind == 'lib' || entry.kind == 'var' }
     }
-// END SNIPPET module-before-merged
-// START SNIPPET module-when-merged
+// end::module-before-merged[]
+// tag::module-when-merged[]
     whenMerged { classpath ->
         classpath.entries.findAll { entry -> entry.kind == 'lib' }*.exported = false
     }
-// START SNIPPET module-before-merged
+// tag::module-before-merged[]
 }
-// END SNIPPET module-before-merged
-// END SNIPPET module-when-merged
+// end::module-before-merged[]
+// end::module-when-merged[]
 
-// START SNIPPET project-before-merged
+// tag::project-before-merged[]
 eclipse.project.file.beforeMerged { project ->
     project.natures.clear()
 }
-// END SNIPPET project-before-merged
+// end::project-before-merged[]
 
-// START SNIPPET wtp-with-xml
+// tag::wtp-with-xml[]
 apply plugin: 'eclipse-wtp'
 
 eclipse.wtp.facet.file.withXml { provider ->
     provider.asNode().fixed.find { it.@facet == 'jst.java' }.@facet = 'jst2.java'
 }
-// END SNIPPET wtp-with-xml
+// end::wtp-with-xml[]

@@ -28,6 +28,8 @@ class DefaultDependencyConstraintTest extends Specification {
         dependencyConstraint.name == "gradle-core"
         dependencyConstraint.version == "4.4-beta2"
         dependencyConstraint.versionConstraint.preferredVersion == "4.4-beta2"
+        dependencyConstraint.versionConstraint.requiredVersion == "4.4-beta2"
+        dependencyConstraint.versionConstraint.strictVersion == ""
         dependencyConstraint.versionConstraint.rejectedVersions == []
     }
 

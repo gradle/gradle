@@ -121,9 +121,6 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     }
 
     public AbstractExecHandleBuilder listener(ExecHandleListener listener) {
-        if (listeners == null) {
-            throw new IllegalArgumentException("listeners == null!");
-        }
         this.listeners.add(listener);
         return this;
     }

@@ -4,7 +4,7 @@ repositories {
     mavenCentral()
 }
 
-// START SNIPPET groovy-dependency
+// tag::groovy-dependency[]
 repositories {
     flatDir { dirs 'lib' }
 }
@@ -20,4 +20,4 @@ dependencies {
         }
     }
 }
-// END SNIPPET groovy-dependency
+// end::groovy-dependency[]

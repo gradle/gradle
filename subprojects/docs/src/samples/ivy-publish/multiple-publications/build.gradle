@@ -21,7 +21,7 @@ project(':project1') {
     }
 
 
-    // START SNIPPET customize-identity
+    // tag::customize-identity[]
     publishing {
         publications {
             ivy(IvyPublication) {
@@ -36,23 +36,23 @@ project(':project1') {
             }
         }
     }
-    // END SNIPPET customize-identity
+    // end::customize-identity[]
 }
 
 project(':project2') {
-    // START SNIPPET multiple-publications
+    // tag::multiple-publications[]
     task apiJar(type: Jar) {
         baseName = 'publishing-api'
         from sourceSets.main.output
         exclude '**/impl/**'
     }
-    // END SNIPPET multiple-publications
+    // end::multiple-publications[]
 
     dependencies {
        compile 'commons-collections:commons-collections:3.2.2', project(':project1')
     }
 
-    // START SNIPPET multiple-publications
+    // tag::multiple-publications[]
     publishing {
         publications {
             impl(IvyPublication) {
@@ -63,7 +63,7 @@ project(':project2') {
                 from components.java
             }
             api(IvyPublication) {
-    // END SNIPPET multiple-publications
+    // end::multiple-publications[]
                 configurations {
                     'default' {
                         extend 'compile'
@@ -74,12 +74,12 @@ project(':project2') {
                     conf = 'compile'
                 }
 
-    // START SNIPPET multiple-publications
+    // tag::multiple-publications[]
                 organisation = 'org.gradle.sample'
                 module = 'project2-api'
                 revision = '2'
             }
         }
     }
-    // END SNIPPET multiple-publications
+    // end::multiple-publications[]
 }

@@ -34,7 +34,7 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
                 '17'()
             }
             'org:bar:1.0' {
-                dependsOn(group: 'org', artifact: 'foo', version: '15', rejects: ['(15,)'], reason: 'what not')
+                dependsOn(group: 'org', artifact: 'foo', version: '15', strictly: '15', reason: 'what not')
             }
         }
 
@@ -58,8 +58,8 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
-   Dependency path ':test:unspecified' --> 'org:foo' prefers '17'
-   Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo' prefers '15', rejects '(15,)' because of the following reason: what not""")
+   Dependency path ':test:unspecified' --> 'org:foo:17'
+   Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo' strictly '15' because of the following reason: what not""")
 
     }
 
@@ -73,7 +73,7 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
                 '1.3'()
             }
             'org:bar:1.0' {
-                dependsOn(group: 'org', artifact: 'foo', version: '[1.1,1.3]', rejects: [']1.3,)'])
+                dependsOn(group: 'org', artifact: 'foo', version: '[1.1,1.3]', strictly: '[1.1,1.3]')
             }
         }
 
@@ -117,37 +117,43 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
     @Issue("gradle/gradle#4186")
     def "should choose highest when multiple prefer versions disagree"() {
         repository {
+            'org:bar:1' {
+                dependsOn(group: 'org', artifact: 'foo', prefers: '1.1')
+            }
+            'org:baz:1' {
+                dependsOn(group: 'org', artifact: 'foo', prefers: '1.0')
+            }
             'org:foo' {
-                '1.0.0'()
-                '1.1.0'()
-                '1.2.0'()
-                '2.0.0'()
+                '1.0'()
+                '1.1'()
+                '1.2'()
+                '2.0'()
             }
         }
 
         buildFile << """
             dependencies {
-                constraints {
-                    conf('org:foo') {
-                        version { prefer '1.1.0' }
-                    }
-                    conf('org:foo') {
-                        version { prefer '1.0.0' }
-                    }
-                }
-                conf 'org:foo:[1.0.0,2.0.0)'
+                conf 'org:bar:1'
+                conf 'org:baz:1'
+                conf 'org:foo:[1.0,2.0)'
             }
         """
 
         when:
         repositoryInteractions {
+            'org:bar:1' {
+                expectResolve()
+            }
+            'org:baz:1' {
+                expectResolve()
+            }
             'org:foo' {
                 expectVersionListing()
-                '1.1.0' {
+                '1.1' {
                     expectGetMetadata()
                     expectGetArtifact()
                 }
-                '1.2.0' {
+                '1.2' {
                     expectGetMetadata()
                 }
             }
@@ -157,9 +163,13 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:1.0.0", "org:foo:1.1.0")
-                edge("org:foo:1.1.0", "org:foo:1.1.0")
-                edge("org:foo:[1.0.0,2.0.0)", "org:foo:1.1.0")
+                module('org:bar:1') {
+                    edge("org:foo:1.1", "org:foo:1.1")
+                }
+                module('org:baz:1') {
+                    edge("org:foo:1.0", "org:foo:1.1")
+                }
+                edge("org:foo:[1.0,2.0)", "org:foo:1.1")
             }
         }
     }
@@ -170,7 +180,7 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
             'org:foo:15'()
             'org:foo:17'()
             'org:bar:1.0' {
-                dependsOn(group: 'org', artifact: 'foo', version: '15', rejects: ['(15,)'])
+                dependsOn(group: 'org', artifact: 'foo', version: '15', strictly: '15')
             }
         }
 
@@ -199,8 +209,8 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
-   Dependency path ':test:unspecified' --> 'org:foo' prefers '17', rejects '(17,)'
-   Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo' prefers '15', rejects '(15,)'""")
+   Dependency path ':test:unspecified' --> 'org:foo' strictly '17'
+   Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo' strictly '15'""")
 
     }
 
@@ -236,8 +246,8 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
-   Dependency path ':test:unspecified' --> 'org:foo' prefers '1.1'
-   Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo' prefers '1.0', rejects '1.1'""")
+   Dependency path ':test:unspecified' --> 'org:foo:1.1'
+   Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo:1.0' rejects '1.1'""")
     }
 
     @Unroll
@@ -272,8 +282,8 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
-   Dependency path ':test:unspecified' --> 'org:foo' prefers '1.1'
-   Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo' prefers '1.0', rejects any of "${rejects.collect {"'$it'"}.join(', ')}\"""")
+   Dependency path ':test:unspecified' --> 'org:foo:1.1'
+   Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo:1.0' rejects any of "${rejects.collect {"'$it'"}.join(', ')}\"""")
 
         where:
         rejects << [
@@ -314,7 +324,7 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
 
         then:
         failure.assertHasCause("""Module 'org:foo' has been rejected:
-   Dependency path ':test:unspecified' --> 'org:foo' prefers '1.0'
+   Dependency path ':test:unspecified' --> 'org:foo:1.0'
    Constraint path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo' rejects all versions""")
 
     }
@@ -324,7 +334,7 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
         repository {
             'org' {
                 'a:1.0' {
-                    dependsOn (group: 'org', artifact: 'b', version: '1.0', rejects: ['(1.0,)'], reason: 'Not following semantic versioning')
+                    dependsOn (group: 'org', artifact: 'b', version: '1.0', strictly: '1.0', reason: 'Not following semantic versioning')
                 }
                 'b' {
                     '1.0'()
@@ -370,11 +380,11 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:b' that satisfies the version constraints: 
-   Dependency path ':test:unspecified' --> 'org:a:1.0' --> 'org:b' prefers '1.0', rejects '(1.0,)' because of the following reason: Not following semantic versioning
-   Dependency path ':test:unspecified' --> 'org:c:1.0' --> 'org:b' prefers '1.1'""")
+   Dependency path ':test:unspecified' --> 'org:a:1.0' --> 'org:b' strictly '1.0' because of the following reason: Not following semantic versioning
+   Dependency path ':test:unspecified' --> 'org:c:1.0' --> 'org:b:1.1'""")
 
         and:
-        failure.assertHasNoCause("Dependency path ':test:unspecified' --> 'org:d:1.0' --> 'org:c:1.0' --> 'org:b' prefers '1.1'")
+        failure.assertHasNoCause("Dependency path ':test:unspecified' --> 'org:d:1.0' --> 'org:c:1.0' --> 'org:b:1.1'")
     }
 
     def "handles dependency cycles"() {
@@ -382,7 +392,7 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
         repository {
             'org' {
                 'a:1.0' {
-                    dependsOn (group: 'org', artifact: 'b', version: '1.0', rejects: ['(1.0,)'], reason: 'Not following semantic versioning')
+                    dependsOn (group: 'org', artifact: 'b', version: '1.0', strictly: '1.0', reason: 'Not following semantic versioning')
                 }
                 'b' {
                     '1.0'()
@@ -429,11 +439,11 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:b' that satisfies the version constraints: 
-   Dependency path ':test:unspecified' --> 'org:a:1.0' --> 'org:b' prefers '1.0', rejects '(1.0,)' because of the following reason: Not following semantic versioning
-   Dependency path ':test:unspecified' --> 'org:c:1.0' --> 'org:b' prefers '1.1'""")
+   Dependency path ':test:unspecified' --> 'org:a:1.0' --> 'org:b' strictly '1.0' because of the following reason: Not following semantic versioning
+   Dependency path ':test:unspecified' --> 'org:c:1.0' --> 'org:b:1.1'""")
 
         and:
-        failure.assertHasNoCause("Dependency path ':test:unspecified' --> 'org:d:1.0' --> 'org:c:1.0' --> 'org:b' prefers '1.1'")
+        failure.assertHasNoCause("Dependency path ':test:unspecified' --> 'org:d:1.0' --> 'org:c:1.0' --> 'org:b:1.1'")
     }
 
 }

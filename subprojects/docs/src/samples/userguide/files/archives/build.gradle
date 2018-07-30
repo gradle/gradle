@@ -1,11 +1,11 @@
-// START SNIPPET unpack-archive-example
+// tag::unpack-archive-example[]
 task unpackFiles(type: Copy) {
     from zipTree("src/resources/thirdPartyResources.zip")
     into "${buildDir}/resources"
 }
-// END SNIPPET unpack-archive-example
+// end::unpack-archive-example[]
 
-// START SNIPPET zip
+// tag::zip[]
 apply plugin: 'java'
 
 task zip(type: Zip) {
@@ -14,9 +14,9 @@ task zip(type: Zip) {
         from configurations.runtime
     }
 }
-// END SNIPPET zip
+// end::zip[]
 
-// START SNIPPET tar
+// tag::tar[]
 apply plugin: 'java'
 
 task tar(type: Tar) {
@@ -25,12 +25,12 @@ task tar(type: Tar) {
         from configurations.runtime
     }
 }
-// END SNIPPET tar
+// end::tar[]
 
-// START SNIPPET reproducible
+// tag::reproducible[]
 tasks.withType(AbstractArchiveTask) {
     preserveFileTimestamps = false
     reproducibleFileOrder = true
 }
-// END SNIPPET reproducible
+// end::reproducible[]
 

@@ -13,37 +13,40 @@
 // limitations under the License.
 
 [[build_announcements_plugin]]
-== The Build Announcements Plugin
+= The Build Announcements Plugin
 
 
 [NOTE]
 ====
- 
-The build announcements plugin is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
- 
+
+The build announcements plugin is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+
 ====
 
-The build announcements plugin uses the <<announce_plugin,announce>> plugin to send local announcements on important events in the build.
+The build announcements plugin uses the <<announce_plugin.adoc#announce_plugin,announce>> plugin to send local announcements on important events in the build.
 
 
 [[sec:build_announcements_usage]]
-=== Usage
+== Usage
 
 To use the build announcements plugin, include the following in your build script:
 
-++++
-<sample id="useBuildAnnouncementsPlugin" dir="announce" title="Using the build announcements plugin">
-            <sourcefile file="build.gradle" snippet="use-build-announcements-plugin"/>
-        </sample>
-++++
+=== Example: Using the build announcements plugin
 
-That's it. If you want to tweak where the announcements go, you can configure the <<announce_plugin,announce>> plugin to change the local announcer.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/announce/build.gradle[tag=use-build-announcements-plugin]
+----
+
+That's it. If you want to tweak where the announcements go, you can configure the <<announce_plugin.adoc#announce_plugin,announce>> plugin to change the local announcer.
 
 You can also apply the plugin from an init script:
 
-++++
-<sample id="useBuildAnnouncementsPlugin" dir="announce" title="Using the build announcements plugin from an init script">
-            <sourcefile file="init.gradle"/>
-            <test args="-I init.gradle"/>
-        </sample>
-++++
+=== Example: Using the build announcements plugin from an init script
+
+[source.multi-language-sample,groovy]
+.init.gradle
+----
+include::{samplesPath}/announce/init.gradle[]
+----

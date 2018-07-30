@@ -50,6 +50,8 @@ abstract class AbstractModuleDependencySpec extends Specification {
         dependency.name == "gradle-core"
         dependency.version == "4.4-beta2"
         dependency.versionConstraint.preferredVersion == "4.4-beta2"
+        dependency.versionConstraint.requiredVersion == "4.4-beta2"
+        dependency.versionConstraint.strictVersion == ""
         dependency.versionConstraint.rejectedVersions == []
         dependency.transitive
         dependency.artifacts.isEmpty()

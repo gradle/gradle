@@ -440,9 +440,9 @@ org:foo:1.0 FAILED
    Failures:
       - Could not resolve org:foo:1.0.:
           - Cannot find a version of 'org:foo' that satisfies the version constraints: 
-               Dependency path ':insight-test:unspecified' --> 'org:foo' prefers '1.+'
+               Dependency path ':insight-test:unspecified' --> 'org:foo:1.+'
                Constraint path ':insight-test:unspecified' --> 'org:foo' prefers '1.1'
-               Constraint path ':insight-test:unspecified' --> 'org:foo' prefers '1.0', rejects '(1.0,)' because of the following reason: dependency was locked to version '1.0'
+               Constraint path ':insight-test:unspecified' --> 'org:foo' strictly '1.0' because of the following reason: dependency was locked to version '1.0'
 
 org:foo:1.0 FAILED
 \\--- lockedConf
@@ -2292,7 +2292,7 @@ org:bar: FAILED
    Failures:
       - Could not resolve org:bar.:
           - Module 'org:bar' has been rejected:
-               Dependency path ':insight-test:unspecified' --> 'org:bar' prefers '[1.0,)'
+               Dependency path ':insight-test:unspecified' --> 'org:bar:[1.0,)'
                Constraint path ':insight-test:unspecified' --> 'org:bar' rejects all versions because of the following reason: Nope, you won't use this
 
 org:bar FAILED
@@ -2309,8 +2309,8 @@ org:foo: (via constraint) FAILED
    Failures:
       - Could not resolve org:foo.:
           - Cannot find a version of 'org:foo' that satisfies the version constraints: 
-               Dependency path ':insight-test:unspecified' --> 'org:foo' prefers '[1.0,)'
-               Constraint path ':insight-test:unspecified' --> 'org:foo' prefers '', rejects any of "'1.0', '1.1', '1.2'"
+               Dependency path ':insight-test:unspecified' --> 'org:foo:[1.0,)'
+               Constraint path ':insight-test:unspecified' --> 'org:foo:' rejects any of "'1.0', '1.1', '1.2'"
 
 org:foo FAILED
 \\--- compileClasspath

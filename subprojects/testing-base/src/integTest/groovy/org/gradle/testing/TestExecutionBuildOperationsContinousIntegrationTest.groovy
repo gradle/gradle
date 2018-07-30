@@ -49,6 +49,10 @@ class TestExecutionBuildOperationsContinousIntegrationTest extends AbstractConti
         afterExecute*.execute(executer)
     }
 
+    def setup() {
+        useRepositoryMirrors()
+    }
+
     def "emits test operations for continuous builds"() {
         given:
         resources.maybeCopy('TestExecutionBuildOperationsIntegrationTest/emitsBuildOperationsForJUnitTests')

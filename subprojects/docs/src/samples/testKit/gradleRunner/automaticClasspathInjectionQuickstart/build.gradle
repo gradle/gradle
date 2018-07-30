@@ -1,4 +1,4 @@
-// START SNIPPET automatic-classpath
+// tag::automatic-classpath[]
 apply plugin: 'groovy'
 apply plugin: 'java-gradle-plugin'
 
@@ -7,7 +7,7 @@ dependencies {
         exclude module: 'groovy-all'
     }
 }
-// END SNIPPET automatic-classpath
+// end::automatic-classpath[]
 
 repositories {
     mavenCentral()

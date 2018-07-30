@@ -1,4 +1,4 @@
-//START SNIPPET custom-configuration
+// tag::custom-configuration[]
 configurations {
     jasper
 }
@@ -21,4 +21,4 @@ task preCompileJsps {
                    outputDir: file("$buildDir/compiled-jsps"))
     }
 }
-//END SNIPPET custom-configuration
+// end::custom-configuration[]

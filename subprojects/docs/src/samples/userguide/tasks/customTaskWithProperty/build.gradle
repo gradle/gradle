@@ -1,4 +1,4 @@
-// START SNIPPET add-property
+// tag::add-property[]
 class GreetingTask extends DefaultTask {
     String greeting = 'hello from GreetingTask'
 
@@ -15,4 +15,4 @@ task hello(type: GreetingTask)
 task greeting(type: GreetingTask) {
     greeting = 'greetings from GreetingTask'
 }
-// END SNIPPET add-property
+// end::add-property[]

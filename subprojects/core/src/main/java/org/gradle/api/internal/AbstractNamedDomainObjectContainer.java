@@ -17,11 +17,11 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.DomainObjectProvider;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Namer;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.Actions;
@@ -95,18 +95,18 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
     }
 
     @Override
-    public Provider<T> register(String name) throws InvalidUserDataException {
+    public DomainObjectProvider<T> register(String name) throws InvalidUserDataException {
         return createDomainObjectProvider(name, null);
     }
 
     @Override
-    public Provider<T> register(String name, Action<? super T> configurationAction) throws InvalidUserDataException {
+    public DomainObjectProvider<T> register(String name, Action<? super T> configurationAction) throws InvalidUserDataException {
         return createDomainObjectProvider(name, configurationAction);
     }
 
-    protected Provider<T> createDomainObjectProvider(String name, @Nullable Action<? super T> configurationAction) {
+    protected DomainObjectProvider<T> createDomainObjectProvider(String name, @Nullable Action<? super T> configurationAction) {
         assertCanAdd(name);
-        Provider<T> provider = Cast.uncheckedCast(
+        DomainObjectProvider<T> provider = Cast.uncheckedCast(
             getInstantiator().newInstance(DomainObjectCreatingProvider.class, AbstractNamedDomainObjectContainer.this, name, configurationAction)
         );
         addLater(provider);

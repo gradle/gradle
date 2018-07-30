@@ -13,95 +13,100 @@
 // limitations under the License.
 
 [[artifact_management]]
-== Legacy publishing
+= Legacy publishing
 
-[NOTE]
-====
-
-This chapter describes the _original_ publishing mechanism available in Gradle 1.0, which has since been superseded by <<publishing_overview,an alternative model>>. The approach detailed in this chapter — based on api:org.gradle.api.tasks.Upload[] tasks — should not be used in new builds. We cover it in order to help users work with and update existing builds that use it.
-
-====
-
+NOTE: This chapter describes the _original_ publishing mechanism available in Gradle 1.0, which has since been superseded by <<publishing_overview.adoc#publishing_overview,an alternative model>>. The approach detailed in this chapter — based on link:{groovyDslPath}/org.gradle.api.tasks.Upload.html[Upload] tasks — should not be used in new builds. We cover it in order to help users work with and update existing builds that use it.
 
 [[sec:introduction]]
-=== Introduction
+== Introduction
 
 This chapter is about how you declare the outgoing artifacts of your project, and how to work with them (e.g. upload them). We define the artifacts of the projects as the files the project provides to the outside world. This might be a library or a ZIP distribution or any other file. A project can publish as many artifacts as it wants.
 
 [[sec:artifacts_and_configurations]]
-=== Artifacts and configurations
+== Artifacts and configurations
 
 Like dependencies, artifacts are grouped by configurations. In fact, a configuration can contain both artifacts and dependencies at the same time.
 
-For each configuration in your project, Gradle provides the tasks `upload__ConfigurationName__` and `build__ConfigurationName__`.footnote:[To be exact, the Base plugin provides those tasks. This plugin is automatically applied if you use the Java plugin.] Execution of these tasks will build or upload the artifacts belonging to the respective configuration.
+For each configuration in your project, Gradle provides the tasks `upload__ConfigurationName__` and `build__ConfigurationName__` when the <<base_plugin.adoc#base_plugin,base plugin>> is applied.
+Execution of these tasks will build or upload the artifacts belonging to the respective configuration.
 
-<<tab:configurations>> shows the configurations added by the Java plugin. Two of the configurations are relevant for the usage with artifacts. The `archives` configuration is the standard configuration to assign your artifacts to. The Java plugin automatically assigns the default jar to this configuration. We will talk more about the `runtime` configuration in <<project_libraries>>. As with dependencies, you can declare as many custom configurations as you like and assign artifacts to them.
+<<java_plugin.adoc#tab:configurations, This listing>> shows the configurations added by the Java plugin. Two of the configurations are relevant for the usage with artifacts. The `archives` configuration is the standard configuration to assign your artifacts to. The Java plugin automatically assigns the default jar to this configuration. We will talk more about the `runtime` configuration <<#project_libraries, further on>>. As with dependencies, you can declare as many custom configurations as you like and assign artifacts to them.
 
 [[sec:declaring_artifacts]]
-=== Declaring artifacts
+== Declaring artifacts
 
 
 [[sec:archive_task_artifacts]]
-==== Archive task artifacts
+=== Archive task artifacts
 
 You can use an archive task to define an artifact:
 
-++++
-<sample id="archiveTaskArtifact" dir="userguide/artifacts/uploading" title="Defining an artifact using an archive task">
-                <sourcefile file="build.gradle" snippet="archive-artifact"/>
-            </sample>
-++++
+=== Example: Defining an artifact using an archive task
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/artifacts/uploading/build.gradle[tag=archive-artifact]
+----
 
 It is important to note that the custom archives you are creating as part of your build are not automatically assigned to any configuration. You have to explicitly do this assignment.
 
 [[sec:file_artifacts]]
-==== File artifacts
+=== File artifacts
 
 You can also use a file to define an artifact:
 
-++++
-<sample id="fileArtifact" dir="userguide/artifacts/uploading" title="Defining an artifact using a file">
-                <sourcefile file="build.gradle" snippet="file-artifact"/>
-            </sample>
-++++
+=== Example: Defining an artifact using a file
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/artifacts/uploading/build.gradle[tag=file-artifact]
+----
 
 Gradle will figure out the properties of the artifact based on the name of the file. You can customize these properties:
 
-++++
-<sample id="fileArtifact" dir="userguide/artifacts/uploading" title="Customizing an artifact">
-                <sourcefile file="build.gradle" snippet="customized-file-artifact"/>
-            </sample>
-++++
+=== Example: Customizing an artifact
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/artifacts/uploading/build.gradle[tag=customized-file-artifact]
+----
 
 There is a map-based syntax for defining an artifact using a file. The map must include a `file` entry that defines the file. The map may include other artifact properties:
 
-++++
-<sample id="fileArtifact" dir="userguide/artifacts/uploading" title="Map syntax for defining an artifact using a file">
-                <sourcefile file="build.gradle" snippet="map-file-artifact"/>
-            </sample>
-++++
+=== Example: Map syntax for defining an artifact using a file
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/artifacts/uploading/build.gradle[tag=map-file-artifact]
+----
 
 
 [[sec:publishing_artifacts]]
-=== Publishing artifacts
+== Publishing artifacts
 
-We have said that there is a specific upload task for each configuration. Before you can do an upload, you have to configure the upload task and define where to publish the artifacts to. The repositories you have defined (as described in <<declaring_repositories>>) are not automatically used for uploading. In fact, some of those repositories only allow downloading artifacts, not uploading. Here is an example of how you can configure the upload task of a configuration:
+We have said that there is a specific upload task for each configuration. Before you can do an upload, you have to configure the upload task and define where to publish the artifacts to. The repositories you have defined (as described in <<declaring_repositories.adoc#declaring_repositories,Declaring Repositories>>) are not automatically used for uploading. In fact, some of those repositories only allow downloading artifacts, not uploading. Here is an example of how you can configure the upload task of a configuration:
 
-++++
-<sample id="uploading" dir="userguide/artifacts/uploading" title="Configuration of the upload task">
-            <sourcefile file="build.gradle" snippet="uploading"/>
-        </sample>
-++++
+=== Example: Configuration of the upload task
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/artifacts/uploading/build.gradle[tag=uploading]
+----
 
 As you can see, you can either use a reference to an existing repository or create a new repository.
 
 If an upload repository is defined with multiple patterns, Gradle must choose a pattern to use for uploading each file. By default, Gradle will upload to the pattern defined by the `url` parameter, combined with the optional `layout` parameter. If no `url` parameter is supplied, then Gradle will use the first defined `artifactPattern` for uploading, or the first defined `ivyPattern` for uploading Ivy files, if this is set.
 
-Uploading to a Maven repository is described in <<uploading_to_maven_repositories>>.
+Uploading to a Maven repository is described in <<maven_plugin.adoc#uploading_to_maven_repositories, this section>>.
 
 [[project_libraries]]
-=== More about project libraries
+== More about project libraries
 
 If your project is supposed to be used as a library, you need to define what are the artifacts of this library and what are the dependencies of these artifacts. The Java plugin adds a `runtime` configuration for this purpose, with the implicit assumption that the `runtime` dependencies are the dependencies of the artifact you want to publish. Of course this is fully customizable. You can add your own custom configuration or let the existing configurations extend from other configurations. You might have a different group of artifacts which have a different set of dependencies. This mechanism is very powerful and flexible.
 
-If someone wants to use your project as a library, she simply needs to declare which configuration of the dependency to depend on. A Gradle dependency offers the `configuration` property to declare this. If this is not specified, the `default` configuration is used (see <<managing_dependency_configurations>>). Using your project as a library can either happen from within a multi-project build or by retrieving your project from a repository. In the latter case, an `ivy.xml` descriptor in the repository is supposed to contain all the necessary information. If you work with Maven repositories you don't have the flexibility as described above. For how to publish to a Maven repository, see the section <<uploading_to_maven_repositories>>.
+If someone wants to use your project as a library, she simply needs to declare which configuration of the dependency to depend on. A Gradle dependency offers the `configuration` property to declare this. If this is not specified, the `default` configuration is used (see <<managing_dependency_configurations.adoc#managing_dependency_configurations, Managing Dependency Configurations>>). Using your project as a library can either happen from within a multi-project build or by retrieving your project from a repository. In the latter case, an `ivy.xml` descriptor in the repository is supposed to contain all the necessary information. If you work with Maven repositories you don't have the flexibility as described above. For how to publish to a Maven repository, see the section <<maven_plugin.adoc#uploading_to_maven_repositories,Uploading to Maven repositories>>.

@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-// START SNIPPET http-build-cache
+// tag::http-build-cache[]
 buildCache {
     remote(HttpBuildCache) {
         url = 'https://example.com:8123/cache/'
     }
 }
-// END SNIPPET http-build-cache
+// end::http-build-cache[]
 
-// START SNIPPET allow-untrusted-server
+// tag::allow-untrusted-server[]
 buildCache {
     remote(HttpBuildCache) {
         url = 'https://example.com:8123/cache/'
         allowUntrustedServer = true
     }
 }
-// END SNIPPET allow-untrusted-server
+// end::allow-untrusted-server[]

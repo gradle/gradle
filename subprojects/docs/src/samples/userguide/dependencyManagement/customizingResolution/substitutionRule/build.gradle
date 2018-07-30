@@ -1,16 +1,16 @@
 
-//START SNIPPET module_to_project_substitution
+// tag::module_to_project_substitution[]
 configurations.all {
     resolutionStrategy.dependencySubstitution {
         substitute module("org.utils:api") with project(":api") because "we work with the unreleased development version"
         substitute module("org.utils:util:2.5") with project(":util")
     }
 }
-//END SNIPPET module_to_project_substitution
-//START SNIPPET project_to_module_substitution
+// end::module_to_project_substitution[]
+// tag::project_to_module_substitution[]
 configurations.all {
     resolutionStrategy.dependencySubstitution {
         substitute project(":api") with module("org.utils:api:1.3") because "we use a stable version of utils"
     }
 }
-//END SNIPPET project_to_module_substitution
+// end::project_to_module_substitution[]

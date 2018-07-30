@@ -1,16 +1,16 @@
 
-// START SNIPPET add-action
-// START SNIPPET define-task
+// tag::add-action[]
+// tag::define-task[]
 class GreetingTask extends DefaultTask {
-// END SNIPPET define-task
+// end::define-task[]
     @TaskAction
     def greet() {
         println 'hello from GreetingTask'
     }
-// START SNIPPET define-task
+// tag::define-task[]
 }
-// END SNIPPET define-task
+// end::define-task[]
 
 // Create a task using the task type
 task hello(type: GreetingTask)
-// END SNIPPET add-action
+// end::add-action[]

@@ -7,14 +7,14 @@ interface Person {
     void setLastName(String n)
 }
 
-// START SNIPPET configure-rule
+// tag::configure-rule[]
 model {
     person {
         println "configuring person"
         lastName = "Smith"
     }
 }
-// END SNIPPET configure-rule
+// end::configure-rule[]
 model {
     person(Person) {
         firstName = "John"

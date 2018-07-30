@@ -51,8 +51,7 @@ open class TestFixturesPlugin : Plugin<Project> {
 
         apply(plugin = "java")
 
-        //TODO:kotlin-dsl - revert to reified syntax after nightly upgrade
-        extensions.create("testFixtures", TestFixturesExtension::class.java)
+        extensions.create<TestFixturesExtension>("testFixtures")
 
         if (file("src/testFixtures").isDirectory) {
             configureAsProducer()

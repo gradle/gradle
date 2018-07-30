@@ -17,14 +17,28 @@
 package org.gradle.vcs.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.vcs.SourceControl;
 import org.gradle.vcs.VcsMappings;
+import org.gradle.vcs.VersionControlRepository;
+import org.gradle.vcs.git.GitVersionControlSpec;
+
+import javax.inject.Inject;
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DefaultSourceControl implements SourceControl {
+    private final FileResolver fileResolver;
     private final VcsMappings vcsMappings;
+    private final VersionControlSpecFactory specFactory;
+    private final Map<URI, DefaultVersionControlRepository> repos = new HashMap<URI, DefaultVersionControlRepository>();
 
-    public DefaultSourceControl(VcsMappings vcsMappings) {
+    @Inject
+    public DefaultSourceControl(FileResolver fileResolver, VcsMappings vcsMappings, VersionControlSpecFactory specFactory) {
+        this.fileResolver = fileResolver;
         this.vcsMappings = vcsMappings;
+        this.specFactory = specFactory;
     }
 
     @Override
@@ -35,5 +49,31 @@ public class DefaultSourceControl implements SourceControl {
     @Override
     public VcsMappings getVcsMappings() {
         return vcsMappings;
+    }
+
+    @Override
+    public VersionControlRepository gitRepository(URI url) {
+        DefaultVersionControlRepository repo = repos.get(url);
+        if (repo == null) {
+            repo = specFactory.create(GitVersionControlSpec.class, url);
+            repos.put(url, repo);
+            vcsMappings.all(repo.asMappingAction());
+        }
+        return repo;
+    }
+
+    // Mix in to Groovy DSL
+    public VersionControlRepository gitRepository(String uri) {
+        return gitRepository(fileResolver.resolveUri(uri));
+    }
+
+    @Override
+    public void gitRepository(URI url, Action<? super VersionControlRepository> configureAction) {
+        configureAction.execute(gitRepository(url));
+    }
+
+    // Mix in to Groovy DSL
+    public void gitRepository(String uri, Action<? super VersionControlRepository> configureAction) {
+        gitRepository(fileResolver.resolveUri(uri), configureAction);
     }
 }

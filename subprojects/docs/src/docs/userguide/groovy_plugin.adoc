@@ -13,88 +13,68 @@
 // limitations under the License.
 
 [[groovy_plugin]]
-== The Groovy Plugin
+= The Groovy Plugin
 
 The Groovy plugin extends the Java plugin to add support for Groovy projects. It can deal with Groovy code, mixed Groovy and Java code, and even pure Java code (although we don't necessarily recommend to use it for the latter). The plugin supports _joint compilation_, which allows you to freely mix and match Groovy and Java code, with dependencies in both directions. For example, a Groovy class can extend a Java class that in turn extends a Groovy class. This makes it possible to use the best language for the job, and to rewrite any class in the other language if needed.
 
 
 [[sec:groovy_usage]]
-=== Usage
+== Usage
 
 To use the Groovy plugin, include the following in your build script:
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="useGroovyPlugin" dir="groovy/quickstart" title="Using the Groovy plugin">
-            <sourcefile file="build.gradle" snippet="use-plugin"/>
-        </sample>
-++++
+=== Example: Using the Groovy plugin
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/groovy/quickstart/build.gradle[tag=use-plugin]
+----
 
 
 [[sec:groovy_tasks]]
-=== Tasks
+== Tasks
 
 The Groovy plugin adds the following tasks to the project.
 
-.Groovy plugin - tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+`compileGroovy` — link:{groovyDslPath}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]::
+_Depends on_: `compileJava`
++
+Compiles production Groovy source files.
 
-| `compileGroovy`
-| `compileJava`
-| api:org.gradle.api.tasks.compile.GroovyCompile[]
-| Compiles production Groovy source files.
+`compileTestGroovy` — link:{groovyDslPath}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]::
+_Depends on_: `compileTestJava`
++
+Compiles test Groovy source files.
 
-| `compileTestGroovy`
-| `compileTestJava`
-| api:org.gradle.api.tasks.compile.GroovyCompile[]
-| Compiles test Groovy source files.
+`compile__SourceSet__Groovy` — link:{groovyDslPath}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]::
+_Depends on_: `compile__SourceSet__Java`
++
+Compiles the given source set's Groovy source files.
 
-| `compile__SourceSet__Groovy`
-| `compile__SourceSet__Java`
-| api:org.gradle.api.tasks.compile.GroovyCompile[]
-| Compiles the given source set's Groovy source files.
-
-| `groovydoc`
-| -
-| api:org.gradle.api.tasks.javadoc.Groovydoc[]
-| Generates API documentation for the production Groovy source files.
-|===
+`groovydoc` — link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Groovydoc.html[Groovydoc]::
++
+Generates API documentation for the production Groovy source files.
 
 The Groovy plugin adds the following dependencies to tasks added by the Java plugin.
 
 .Groovy plugin - additional task dependencies
-[cols="a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Task name
-| Depends on
-| `classes`
-| `compileGroovy`
-
-| `testClasses`
-| `compileTestGroovy`
-
-| `__sourceSet__Classes`
-| `compile__SourceSet__Groovy`
+| Task name | Depends on
+| `classes` | `compileGroovy`
+| `testClasses` | `compileTestGroovy`
+| `__sourceSet__Classes` | `compile__SourceSet__Groovy`
 |===
 
-++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-            <title>Groovy plugin - tasks</title>
-            <imageobject>
-                <imagedata fileref="img/groovyPluginTasks.png"/>
-            </imageobject>
-        </figure>
-++++
+.Groovy plugin - tasks
+image::groovyPluginTasks.png[]
 
 
 [[sec:groovy_project_layout]]
-=== Project layout
+== Project layout
 
-The Groovy plugin assumes the project layout shown in <<groovylayout>>. All the Groovy source directories can contain Groovy _and_ Java code. The Java source directories may only contain Java source code.footnote:[We are using the same conventions as introduced by Russel Winder's Gant tool (https://gant.github.io/[]).] None of these directories need to exist or have anything in them; the Groovy plugin will simply compile whatever it finds.
+The Groovy plugin assumes the project layout shown in <<#groovylayout,Groovy Layout>>. All the Groovy source directories can contain Groovy _and_ Java code. The Java source directories may only contain Java source code.footnote:[Gradle uses the same conventions as introduced by Russel Winder's link:https://gant.github.io/[Gant tool].] None of these directories need to exist or have anything in them; the Groovy plugin will simply compile whatever it finds.
 
 [[groovylayout]]
 include::javaProjectMainLayout.adoc[]
@@ -114,56 +94,66 @@ Groovy source files for the given source set. May also contain Java source files
 
 
 [[sec:changing_groovy_project_layout]]
-==== Changing the project layout
+=== Changing the project layout
 
 Just like the Java plugin, the Groovy plugin allows you to configure custom locations for Groovy production and test source files.
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="customGroovySourceLayout" dir="groovy/customizedLayout" title="Custom Groovy source layout">
-                <sourcefile file="build.gradle" snippet="custom-source-locations"/>
-            </sample>
-++++
+=== Example: Custom Groovy source layout
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/groovy/customizedLayout/build.gradle[tag=custom-source-locations]
+----
 
 
 [[sec:groovy_dependency_management]]
-=== Dependency management
+== Dependency management
 
 Because Gradle's build language is based on Groovy, and parts of Gradle are implemented in Groovy, Gradle already ships with a Groovy library. Nevertheless, Groovy projects need to explicitly declare a Groovy dependency. This dependency will then be used on compile and runtime class paths. It will also be used to get hold of the Groovy compiler and Groovydoc tool, respectively.
 
 If Groovy is used for production code, the Groovy dependency should be added to the `compile` configuration:
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="quickstartGroovyDependency" dir="groovy/quickstart" title="Configuration of Groovy dependency">
-            <sourcefile file="build.gradle" snippet="groovy-dependency"/>
-        </sample>
-++++
+=== Example: Configuration of Groovy dependency
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/groovy/quickstart/build.gradle[tag=groovy-dependency]
+----
 
 If Groovy is only used for test code, the Groovy dependency should be added to the `testCompile` configuration:
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="groovyTestDependency" dir="userguide/groovy/groovyDependency" title="Configuration of Groovy test dependency">
-            <sourcefile file="build.gradle" snippet="groovy-test-dependency"/>
-        </sample>
-++++
+=== Example: Configuration of Groovy test dependency
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/groovy/groovyDependency/build.gradle[tag=groovy-test-dependency]
+----
 
 To use the Groovy library that ships with Gradle, declare a `localGroovy()` dependency. Note that different Gradle versions ship with different Groovy versions; as such, using `localGroovy()` is less safe then declaring a regular Groovy dependency.
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="bundledGroovyDependency" dir="userguide/groovy/groovyDependency" title="Configuration of bundled Groovy dependency">
-            <sourcefile file="build.gradle" snippet="bundled-groovy-dependency"/>
-        </sample>
-++++
+=== Example: Configuration of bundled Groovy dependency
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/groovy/groovyDependency/build.gradle[tag=bundled-groovy-dependency]
+----
 
 The Groovy library doesn't necessarily have to come from a remote repository. It could also come from a local `lib` directory, perhaps checked in to source control:
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="groovyFileDependency" dir="userguide/tutorial/groovyWithFlatDir" title="Configuration of Groovy file dependency">
-            <sourcefile file="build.gradle" snippet="groovy-dependency"/>
-        </sample>
-++++
+=== Example: Configuration of Groovy file dependency
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/tutorial/groovyWithFlatDir/build.gradle[tag=groovy-dependency]
+----
 
 [[sec:automatic_configuration_of_groovyclasspath]]
-=== Automatic configuration of groovyClasspath
+== Automatic configuration of groovyClasspath
 
 The `GroovyCompile` and `Groovydoc` tasks consume Groovy code in two ways: on their `classpath`, and on their `groovyClasspath`. The former is used to locate classes referenced by the source code, and will typically contain the Groovy library along with other libraries. The latter is used to load and execute the Groovy compiler and Groovydoc tool, respectively, and should only contain the Groovy library and its dependencies.
 
@@ -176,75 +166,62 @@ Unless a task's `groovyClasspath` is configured explicitly, the Groovy (base) pl
 Note that the “`-indy`” variation of each jar refers to the version with `invokedynamic` support.
 
 [[sec:groovy_convention_properties]]
-=== Convention properties
+== Convention properties
 
 The Groovy plugin does not add any convention properties to the project.
 
 [[sec:groovy_source_set_properties]]
-=== Source set properties
+== Source set properties
 
 The Groovy plugin adds the following convention properties to each source set in the project. You can use these properties in your build script as though they were properties of the source set object.
 
-.Groovy plugin - source set properties
-[cols="a,a,a,a", options="header"]
-|===
-| Property name
-| Type
-| Default value
-| Description
+=== Groovy Plugin — source set properties
 
-|  `groovy`
-|  api:org.gradle.api.file.SourceDirectorySet[] (read-only)
-| Not null
-| The Groovy source files of this source set. Contains all `.groovy` and `.java` files found in the Groovy source directories, and excludes all other types of files.
+`groovy` — link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet] (read-only)::
+_Default value_: Not null
++
+The Groovy source files of this source set. Contains all `.groovy` and `.java` files found in the Groovy source directories, and excludes all other types of files.
 
-|  `groovy.srcDirs`
-|  `Set&lt;File&gt;`. Can set using anything described in <<sec:specifying_multiple_files>>.
-|  `[__projectDir__/src/__name__/groovy]`
-| The source directories containing the Groovy source files of this source set. May also contain Java source files for joint compilation.
+`groovy.srcDirs` — `Set&lt;File&gt;`::
+_Default value_: `[__projectDir__/src/__name__/groovy]`
++
+The source directories containing the Groovy source files of this source set. May also contain Java source files for joint compilation. Can set using anything described in <<working_with_files.adoc#sec:specifying_multiple_files,Specifying Multiple Files>>.
 
-|  `allGroovy`
-|  api:org.gradle.api.file.FileTree[] (read-only)
-| Not null
-| All Groovy source files of this source set. Contains only the `.groovy` files found in the Groovy source directories.
-|===
+`allGroovy` — link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree] (read-only)::
+_Default value_: Not null
++
+All Groovy source files of this source set. Contains only the `.groovy` files found in the Groovy source directories.
 
-These properties are provided by a convention object of type api:org.gradle.api.tasks.GroovySourceSet[].
+These properties are provided by a convention object of type link:{groovyDslPath}/org.gradle.api.tasks.GroovySourceSet.html[GroovySourceSet].
 
 The Groovy plugin also modifies some source set properties:
 
-.Groovy plugin - source set properties
-[cols="a,a", options="header"]
+=== Groovy Plugin - modified source set properties
+
+[%header%autowidth,compact]
 |===
-| Property name
-| Change
-
-|  `allJava`
-| Adds all `.java` files found in the Groovy source directories.
-
-|  `allSource`
-| Adds all source files found in the Groovy source directories.
+| Property name | Change
+| `allJava` | Adds all `.java` files found in the Groovy source directories.
+| `allSource` | Adds all source files found in the Groovy source directories.
 |===
 
 
 [[sec:groovyCompile]]
-=== GroovyCompile
+== GroovyCompile
 
-The Groovy plugin adds a api:org.gradle.api.tasks.compile.GroovyCompile[] task for each source set in the project. The task type extends the `JavaCompile` task (see <<sec:compile>>). The `GroovyCompile` task supports most configuration options of the official Groovy compiler.
+The Groovy plugin adds a link:{groovyDslPath}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile] task for each source set in the project. The task type extends the `JavaCompile` task (see <<building_java_projects.adoc#sec:compile, the relevant Java Plugin section>>). The `GroovyCompile` task supports most configuration options of the official Groovy compiler.
 
 .Groovy plugin - GroovyCompile properties
-[cols="a,a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Task Property
-| Type
-| Default Value
+| Task Property | Type | Default Value
 
 |  `classpath`
-| api:org.gradle.api.file.FileCollection[]
+| link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection]
 | `__sourceSet__.compileClasspath`
 
 |  `source`
-| api:org.gradle.api.file.FileTree[]. Can set using anything described in <<sec:specifying_multiple_files>>.
+| link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree]. Can set using anything described in <<working_with_files.adoc#sec:specifying_multiple_files,Specifying Multiple Files>>.
 | `__sourceSet__.groovy`
 
 |  `destinationDir`
@@ -252,18 +229,26 @@ The Groovy plugin adds a api:org.gradle.api.tasks.compile.GroovyCompile[] task f
 | `__sourceSet__.groovy.outputDir`
 
 |  `groovyClasspath`
-| api:org.gradle.api.file.FileCollection[]
+| link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection]
 | `groovy` configuration if non-empty; Groovy library found on `classpath` otherwise
 |===
 
 
 [[sec:groovy_cross_compilation]]
-=== Compiling and testing for Java 6 or Java 7
+== Compiling and testing for Java 6 or Java 7
 
-The Groovy compiler will always be executed with the same version of Java that was used to start Gradle. You should set `sourceCompatibility` and `targetCompatibility` to `1.6` or `1.7`. If you also have Java source files, you can follow the same steps as for the <<sec:java_cross_compilation,Java plugin>> to ensure the correct Java compiler is used.
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="groovyCrossCompilation" dir="groovy/crossCompilation" title="Configure Java 6 build for Groovy">
-                <sourcefile file="gradle.properties"/>
-                <sourcefile file="build.gradle" snippet="groovy-cross-compilation"/>
-            </sample>
-++++
+The Groovy compiler will always be executed with the same version of Java that was used to start Gradle. You should set `sourceCompatibility` and `targetCompatibility` to `1.6` or `1.7`. If you also have Java source files, you can follow the same steps as for the <<building_java_projects.adoc#sec:java_cross_compilation,Java plugin>> to ensure the correct Java compiler is used.
+
+=== Example: Configure Java 6 build for Groovy
+
+[source]
+.gradle.properties
+----
+include::{samplesPath}/groovy/crossCompilation/gradle.properties[]
+----
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/groovy/crossCompilation/build.gradle[tag=groovy-cross-compilation]
+----

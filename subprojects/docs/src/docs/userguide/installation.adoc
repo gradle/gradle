@@ -13,17 +13,17 @@
 // limitations under the License.
 
 [[installation]]
-== Installing Gradle
+= Installing Gradle
 
 You can install the Gradle build tool on Linux, macOS, or Windows.
 This document covers installing using a package manager like SDKMAN!, Homebrew, or Scoop, as well as manual installation.
 
-Use of the <<sec:upgrading_wrapper,Gradle Wrapper>> is the recommended way to upgrade Gradle.
+Use of the <<gradle_wrapper.adoc#sec:upgrading_wrapper,Gradle Wrapper>> is the recommended way to upgrade Gradle.
 
-You can find all releases and their checksums on the link:https://gradle.org/releases[releases page].
+You can find all releases and their checksums on the link:{website}/releases[releases page].
 
 [[sec:prerequisites]]
-=== Prerequisites
+== Prerequisites
 Gradle runs on all major operating systems and requires only a link:http://www.oracle.com/technetwork/java/javase/downloads/index.html[Java JDK] version 7 or higher to run. To check, run `java -version`. You should see something like this:
 
 ----
@@ -37,7 +37,7 @@ Gradle ships with its own Groovy library, therefore Groovy does not need to be i
 
 Gradle uses whatever JDK it finds in your path. Alternatively, you can set the `JAVA_HOME` environment variable to point to the installation directory of the desired JDK.
 
-=== Installing with a package manager
+== Installing with a package manager
 
 link:http://sdkman.io[SDKMAN!] is a tool for managing parallel versions of multiple Software Development Kits on most Unix-based systems.
 
@@ -69,23 +69,23 @@ link:https://www.macports.org[MacPorts] is a system for managing tools on macOS:
 ❯ sudo port install gradle
 ----
 
-<<sec:installation_next_steps,↓ Proceed to next steps>>
+<<#sec:installation_next_steps,↓ Proceed to next steps>>
 
 
-=== Installing manually
+== Installing manually
 
-==== Step 1. link:https://gradle.org/releases[Download] the latest Gradle distribution
+=== Step 1. link:{website}/releases[Download] the latest Gradle distribution
 
 The distribution ZIP file comes in two flavors:
 
  - Binary-only (bin)
  - Complete (all) with docs and sources
 
-Need to work with an older version? See the link:https://gradle.org/releases[releases page].
+Need to work with an older version? See the link:{website}/releases[releases page].
 
-==== Step 2. Unpack the distribution
+=== Step 2. Unpack the distribution
 
-===== Linux & MacOS users
+==== Linux & MacOS users
 
 Unzip the distribution zip file in the directory of your choosing, e.g.:
 
@@ -97,7 +97,7 @@ Unzip the distribution zip file in the directory of your choosing, e.g.:
 LICENSE  NOTICE  bin  getting-started.html  init.d  lib  media
 ----
 
-===== Microsoft Windows users
+==== Microsoft Windows users
 
 Create a new directory `C:\Gradle` with **File Explorer**.
 
@@ -105,11 +105,11 @@ Open a second **File Explorer** window and go to the directory where the Gradle 
 
 Alternatively you can unpack the Gradle distribution ZIP into `C:\Gradle` using an archiver tool of your choice.
 
-==== Step 3. Configure your system environment
+=== Step 3. Configure your system environment
 
 For running Gradle, firstly add the environment variable `GRADLE_HOME`. This should point to the unpacked files from the Gradle website. Next add `__GRADLE_HOME__/bin` to your `PATH` environment variable. Usually, this is sufficient to run Gradle.
 
-===== Linux & MacOS users
+==== Linux & MacOS users
 
 Configure your `PATH` environment variable to include the `bin` directory of the unzipped distribution, e.g.:
 
@@ -118,17 +118,17 @@ Configure your `PATH` environment variable to include the `bin` directory of the
 ❯ export PATH=$PATH:/opt/gradle/gradle-{gradleVersion}/bin
 ----
 
-===== Microsoft Windows users
+==== Microsoft Windows users
 
 In **File Explorer** right-click on the `This PC` (or `Computer`) icon, then click `Properties` -> `Advanced System Settings` -> `Environmental Variables`.
 
 Under `System Variables` select `Path`, then click `Edit`. Add an entry for `C:\Gradle\gradle-{gradleVersion}\bin`. Click OK to save.
 
-<<sec:installation_next_steps,↓ Proceed to next steps>>
+<<#sec:installation_next_steps,↓ Proceed to next steps>>
 
 
 [[sec:running_and_testing_your_installation]]
-=== Verifying installation
+== Verifying installation
 
 Open a console (or a Windows command prompt) and run `gradle -v` to run gradle and display the version, e.g.:
 
@@ -149,17 +149,17 @@ JVM:          1.8.0_151 (Oracle Corporation 25.151-b12)
 OS:           Mac OS X 10.13.3 x86_64
 ----
 
-If you run into any trouble, see the <<sec:troubleshooting_installation,section on troubleshooting installation>>.
+If you run into any trouble, see the <<troubleshooting.adoc#sec:troubleshooting_installation,section on troubleshooting installation>>.
 
-You can verify the integrity of the Gradle distribution by downloading the SHA-256 file (available from the link:https://gradle.org/releases[releases page]) and following these <<sec:verification,verification instructions>>.
+You can verify the integrity of the Gradle distribution by downloading the SHA-256 file (available from the link:{website}/releases[releases page]) and following these <<gradle_wrapper.adoc#sec:verification,verification instructions>>.
 
 [[sec:installation_next_steps]]
-=== Next steps
+== Next steps
 
 Now that you have Gradle installed, use these resources for getting started:
 
  * Create your first Gradle project by following the link:https://guides.gradle.org/creating-new-gradle-builds/[Creating New Gradle Builds] tutorial.
- * Sign up for a link:https://gradle.org/training/intro-to-gradle/[live introductory Gradle training] with a core engineer.
- * Learn how to achieve common tasks through the <<command_line_interface,command-line interface>>.
- * <<build_environment,Configure Gradle execution>>, such as use of an HTTP proxy for downloading dependencies.
+ * Sign up for a link:{website}/training/intro-to-gradle/[live introductory Gradle training] with a core engineer.
+ * Learn how to achieve common tasks through the <<command_line_interface.adoc#command_line_interface,command-line interface>>.
+ * <<build_environment.adoc#build_environment,Configure Gradle execution>>, such as use of an HTTP proxy for downloading dependencies.
  * Subscribe to the link:https://newsletter.gradle.com/[Gradle Newsletter] for monthly release and community updates.

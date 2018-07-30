@@ -198,6 +198,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
                 assert dependencies.size() == 1
                 dependencies[0].version {
                     it.strictly "2.0"
+                    it.reject "[3.0,)"
                 }
             } else {
                 assert dependencies.empty
@@ -211,7 +212,8 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         then:
         if (supportedInMetadata(metadataType)) {
             assert dependencies[0].selector.version == "2.0"
-            assert dependencies[0].selector.versionConstraint.rejectedVersions[0] == "(2.0,)"
+            assert dependencies[0].selector.versionConstraint.strictVersion == "2.0"
+            assert dependencies[0].selector.versionConstraint.rejectedVersions[0] == "[3.0,)"
             assert dependencies[0].pending == addAllDependenciesAsConstraints()
         } else {
             assert dependencies.empty

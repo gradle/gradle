@@ -43,7 +43,7 @@ public interface PluginServiceRegistry {
     void registerGradleUserHomeServices(ServiceRegistration registration);
 
     /**
-     * Called once per build session to register any build session scoped services.  These services are reused across builds when in
+     * Called once per build session to register any build session scoped services.  These services are reused across build invocations when in
      * continuous mode. They are closed at the end of the build session.
      *
      * <p>Global and shared services are visible to build session scope services, but not vice versa</p>
@@ -51,38 +51,37 @@ public interface PluginServiceRegistry {
     void registerBuildSessionServices(ServiceRegistration registration);
 
     /**
-     * Called once per build tree to register any build tree scoped services.  These services are recreated when in
-     * continuous mode and shared between nested builds. They are closed when the outer most build ends.
+     * Called once per build invocation on a build tree to register any build tree scoped services to use during that build invocation.  These services are recreated when in continuous mode and shared across all nested builds. They are closed when the build invocation is completed.
      *
-     * <p>Global and shared services are visible to build tree scope services, but not vice versa</p>
+     * <p>Global, user home and build session services are visible to build tree scope services, but not vice versa.</p>
      */
     void registerBuildTreeServices(ServiceRegistration registration);
 
     /**
-     * Called once per build, to register any build scoped services. These services are closed at the end of the build.
+     * Called once per build invocation on a build, to register any build scoped services to use during that build invocation. These services are closed at the end of the build invocation.
      *
-     * <p>Global, shared, build session scoped and execution services are visible to the build scope services, but not vice versa.</p>
+     * <p>Global, user home, build session and build tree services are visible to the build scope services, but not vice versa.</p>
      */
     void registerBuildServices(ServiceRegistration registration);
 
     /**
-     * Called once per build, to register any {@link org.gradle.api.initialization.Settings} scoped services. These services are closed at the end of the build.
+     * Called once per build invocation on a build, to register any {@link org.gradle.api.initialization.Settings} scoped services. These services are closed at the end of the build invocation.
      *
-     * <p>Global, shared, build session, build tree and build scoped services are visible to the settings scope services, but not vice versa.</p>
+     * <p>Global, user home, build session, build tree and build scoped services are visible to the settings scope services, but not vice versa.</p>
      */
     void registerSettingsServices(ServiceRegistration registration);
 
     /**
-     * Called once per build, to register any {@link org.gradle.api.invocation.Gradle} scoped services. These services are closed at the end of the build.
+     * alled once per build invocation on a build, to register any {@link org.gradle.api.invocation.Gradle} scoped services. These services are closed at the end of the build invocation.
      *
-     * <p>Global, shared, build session and build scoped services are visible to the gradle scope services, but not vice versa.</p>
+     * <p>Global, user home, build session, build tree and and build scoped services are visible to the gradle scope services, but not vice versa.</p>
      */
     void registerGradleServices(ServiceRegistration registration);
 
     /**
-     * Called once per project per build, to register any project scoped services. These services are closed at the end of the build.
+     * Called once per project per build invocation, to register any project scoped services. These services are closed at the end of the build invocation.
      *
-     * <p>Global, shared, build session, build and gradle scoped services are visible to the project scope services, but not vice versa.</p>
+     * <p>Global, user home, build session, build tree, build and gradle scoped services are visible to the project scope services, but not vice versa.</p>
      */
     void registerProjectServices(ServiceRegistration registration);
 

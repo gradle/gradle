@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-// START SNIPPET apply-plugin
+// tag::apply-plugin[]
 apply plugin: 'c'
-// END SNIPPET apply-plugin
+// end::apply-plugin[]
 
-// START SNIPPET libraries
+// tag::libraries[]
 model {
     components {
         hello(NativeLibrarySpec)
     }
 }
-// END SNIPPET libraries
+// end::libraries[]
 
-// START SNIPPET executables
+// tag::executables[]
 model {
     components {
         main(NativeExecutableSpec) {
@@ -36,9 +36,9 @@ model {
         }
     }
 }
-// END SNIPPET executables
+// end::executables[]
 
-// START SNIPPET compiler-args
+// tag::compiler-args[]
 model {
     binaries {
         all {
@@ -54,9 +54,9 @@ model {
         }
     }
 }
-// END SNIPPET compiler-args
+// end::compiler-args[]
 
-// START SNIPPET all-shared-libraries
+// tag::all-shared-libraries[]
 // For any shared library binaries built with Visual C++,
 // define the DLL_EXPORT macro
 model {
@@ -69,6 +69,6 @@ model {
         }
     }
 }
-// END SNIPPET all-shared-libraries
+// end::all-shared-libraries[]
 
 

@@ -33,12 +33,12 @@ task dists {
     dependsOn docs
 }
 
-// START SNIPPET add-task-to-report
+// tag::add-task-to-report[]
 dists {
     description = 'Builds the distribution'
     group = 'build'
 }
-// END SNIPPET add-task-to-report
+// end::add-task-to-report[]
 
 subprojects {
     configurations {
@@ -60,9 +60,9 @@ subprojects {
 }
 
 project(':api') {
-// START SNIPPET project-description
+// tag::project-description[]
 description = 'The shared API for the application'
-// END SNIPPET project-description
+// end::project-description[]
     dependencies {
         compile "org.codehaus.groovy:groovy-all:2.4.15"
         testCompile "junit:junit:4.12"

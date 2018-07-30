@@ -1,4 +1,4 @@
-// START SNIPPET custom-task-class
+// tag::custom-task-class[]
 package org.example;
 
 import java.io.File;
@@ -33,17 +33,17 @@ public class ProcessTemplates extends DefaultTask {
 
     // + setter methods for the above - assume we’ve defined them
 
-// END SNIPPET custom-task-class
+// end::custom-task-class[]
     public void setTemplateEngine(TemplateEngineType type) { this.templateEngine = type; }
     public void setSourceFiles(FileCollection files) { this.sourceFiles = files; }
     public void setTemplateData(TemplateData model) { this.templateData = model; }
     public void setOutputDir(File dir) { this.outputDir = dir; }
 
-// START SNIPPET custom-task-class
+// tag::custom-task-class[]
     @TaskAction
     public void processTemplates() {
         // ...
-// END SNIPPET custom-task-class
+// end::custom-task-class[]
         getProject().copy(new Action<CopySpec>() {
             public void execute(CopySpec spec) {
                 spec.into(outputDir).
@@ -51,7 +51,7 @@ public class ProcessTemplates extends DefaultTask {
                     expand(new HashMap<String, String>(templateData.getVariables()));
             }
         });
-// START SNIPPET custom-task-class
+// tag::custom-task-class[]
     }
 }
-// END SNIPPET custom-task-class
+// end::custom-task-class[]

@@ -13,7 +13,7 @@ repositories {
     mavenCentral()
 }
 
-// START SNIPPET test-logic-classpath
+// tag::test-logic-classpath[]
 // Write the plugin's classpath to a file to share with the tests
 task createClasspathManifest {
     def outputDir = file("$buildDir/$name")
@@ -31,4 +31,4 @@ task createClasspathManifest {
 dependencies {
     testRuntime files(createClasspathManifest)
 }
-// END SNIPPET test-logic-classpath
+// end::test-logic-classpath[]

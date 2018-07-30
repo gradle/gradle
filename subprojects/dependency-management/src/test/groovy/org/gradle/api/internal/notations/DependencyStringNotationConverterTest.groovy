@@ -36,7 +36,9 @@ class DependencyStringNotationConverterTest extends Specification {
         d.name == 'gradle-core'
         d.group == 'org.gradle'
         d.version == '4.4-beta2'
+        d.versionConstraint.requiredVersion == '4.4-beta2'
         d.versionConstraint.preferredVersion == '4.4-beta2'
+        d.versionConstraint.strictVersion == ''
         d.versionConstraint.rejectedVersions == []
 
         !d.force
@@ -55,7 +57,9 @@ class DependencyStringNotationConverterTest extends Specification {
         d.name == 'gradle-core'
         d.group == 'org.gradle'
         d.version == '10'
+        d.versionConstraint.requiredVersion == '10'
         d.versionConstraint.preferredVersion == '10'
+        d.versionConstraint.strictVersion == ''
         d.versionConstraint.rejectedVersions == []
 
         !d.force
@@ -74,7 +78,9 @@ class DependencyStringNotationConverterTest extends Specification {
         d.name == 'gradle-core'
         d.group == 'org.gradle'
         d.version == '10'
+        d.versionConstraint.requiredVersion == '10'
         d.versionConstraint.preferredVersion == '10'
+        d.versionConstraint.strictVersion == ''
         d.versionConstraint.rejectedVersions == []
         d.transitive
 
@@ -96,7 +102,9 @@ class DependencyStringNotationConverterTest extends Specification {
         d.group == 'org.gradle'
         d.name == 'gradle-core'
         d.version == '1.0'
+        d.versionConstraint.requiredVersion == '1.0'
         d.versionConstraint.preferredVersion == '1.0'
+        d.versionConstraint.strictVersion == ''
         d.versionConstraint.rejectedVersions == []
         d.transitive
 
@@ -112,7 +120,9 @@ class DependencyStringNotationConverterTest extends Specification {
         d.group == null
         d.name == 'foo'
         d.version == '1.0'
+        d.versionConstraint.requiredVersion == '1.0'
         d.versionConstraint.preferredVersion == '1.0'
+        d.versionConstraint.strictVersion == ''
         d.versionConstraint.rejectedVersions == []
         d.transitive
 
@@ -128,7 +138,9 @@ class DependencyStringNotationConverterTest extends Specification {
         d.group == 'hey'
         d.name == 'foo'
         d.version == null
+        d.versionConstraint.requiredVersion == ''
         d.versionConstraint.preferredVersion == ''
+        d.versionConstraint.strictVersion == ''
         d.versionConstraint.rejectedVersions == []
         d.transitive
 
@@ -144,7 +156,9 @@ class DependencyStringNotationConverterTest extends Specification {
         d.group == null
         d.name == 'foo'
         d.version == null
+        d.versionConstraint.requiredVersion == ''
         d.versionConstraint.preferredVersion == ''
+        d.versionConstraint.strictVersion == ''
         d.versionConstraint.rejectedVersions == []
         d.transitive
 
@@ -163,7 +177,9 @@ class DependencyStringNotationConverterTest extends Specification {
         d.name == 'gradle-core'
         d.group == 'org.gradle'
         d.version == '10'
+        d.versionConstraint.requiredVersion == '10'
         d.versionConstraint.preferredVersion == '10'
+        d.versionConstraint.strictVersion == ''
         d.versionConstraint.rejectedVersions == []
         d.transitive
 
@@ -181,7 +197,9 @@ class DependencyStringNotationConverterTest extends Specification {
         d.name == 'gradle-core'
         d.group == 'org.gradle'
         d.version == '10@jar'
+        d.versionConstraint.requiredVersion == '10@jar'
         d.versionConstraint.preferredVersion == '10@jar'
+        d.versionConstraint.strictVersion == ''
         d.versionConstraint.rejectedVersions == []
         d.transitive
 

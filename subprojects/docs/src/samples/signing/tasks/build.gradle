@@ -5,7 +5,7 @@ project.ext['signing.keyId'] = "24875D73"
 project.ext['signing.password'] = "gradle"
 project.ext['signing.secretKeyRingFile'] = file("secKeyRingFile.gpg").absolutePath
 
-// START SNIPPET sign-task
+// tag::sign-task[]
 task stuffZip (type: Zip) {
     baseName = "stuff"
     from "src/stuff"
@@ -14,4 +14,4 @@ task stuffZip (type: Zip) {
 signing {
     sign stuffZip
 }
-// END SNIPPET sign-task
+// end::sign-task[]

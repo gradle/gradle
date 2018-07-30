@@ -1,4 +1,4 @@
-// START SNIPPET after-evaluate
+// tag::after-evaluate[]
 allprojects {
     afterEvaluate { project ->
         if (project.hasTests) {
@@ -11,7 +11,7 @@ allprojects {
         }
     }
 }
-// END SNIPPET after-evaluate
+// end::after-evaluate[]
 
 allprojects {
     ext.hasTests = false

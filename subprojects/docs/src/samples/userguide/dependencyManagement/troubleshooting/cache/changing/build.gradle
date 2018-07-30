@@ -11,11 +11,11 @@ dependencies {
     implementation 'org.springframework:spring-web:5.0.3.BUILD-SNAPSHOT'
 }
 
-//START SNIPPET changing-module-cache-control
+// tag::changing-module-cache-control[]
 configurations.all {
     resolutionStrategy.cacheChangingModulesFor 4, 'hours'
 }
-//END SNIPPET changing-module-cache-control
+// end::changing-module-cache-control[]
 
 task copyLibs(type: Copy) {
     from configurations.compileClasspath

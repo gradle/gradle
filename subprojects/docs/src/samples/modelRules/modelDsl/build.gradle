@@ -23,36 +23,36 @@ class PersonRules extends RuleSource {
 
 apply plugin: PersonRules
 
-// START SNIPPET configure-rule
-// START SNIPPET create-rule
-// START SNIPPET rule-inputs
-// START SNIPPET create-rule-no-config
-// START SNIPPET managed-type-nested-config-rule
+// tag::configure-rule[]
+// tag::create-rule[]
+// tag::rule-inputs[]
+// tag::create-rule-no-config[]
+// tag::managed-type-nested-config-rule[]
 model {
-// END SNIPPET create-rule
-// END SNIPPET rule-inputs
-// END SNIPPET create-rule-no-config
-// END SNIPPET managed-type-nested-config-rule
+// end::create-rule[]
+// end::rule-inputs[]
+// end::create-rule-no-config[]
+// end::managed-type-nested-config-rule[]
     person {
         lastName = "Smith"
     }
-// END SNIPPET configure-rule
-// START SNIPPET managed-type-nested-config-rule
+// end::configure-rule[]
+// tag::managed-type-nested-config-rule[]
     person {
         address {
             city = "Melbourne"
         }
     }
-// END SNIPPET managed-type-nested-config-rule
-// START SNIPPET create-rule
+// end::managed-type-nested-config-rule[]
+// tag::create-rule[]
     person(Person) {
         firstName = "John"
     }
-// END SNIPPET create-rule
-// START SNIPPET create-rule-no-config
+// end::create-rule[]
+// tag::create-rule-no-config[]
     barry(Person)
-// END SNIPPET create-rule-no-config
-// START SNIPPET rule-inputs
+// end::create-rule-no-config[]
+// tag::rule-inputs[]
     tasks {
         hello(Task) {
             def p = $.person
@@ -61,38 +61,38 @@ model {
             }
         }
     }
-// START SNIPPET create-rule-no-config
-// START SNIPPET configure-rule
-// START SNIPPET create-rule
-// START SNIPPET managed-type-nested-config-rule
+// tag::create-rule-no-config[]
+// tag::configure-rule[]
+// tag::create-rule[]
+// tag::managed-type-nested-config-rule[]
 }
-// END SNIPPET create-rule
-// END SNIPPET create-rule-no-config
-// END SNIPPET configure-rule
-// END SNIPPET rule-inputs
-// END SNIPPET managed-type-nested-config-rule
+// end::create-rule[]
+// end::create-rule-no-config[]
+// end::configure-rule[]
+// end::rule-inputs[]
+// end::managed-type-nested-config-rule[]
 
-// START SNIPPET model-map-nested-configure-rule
-// START SNIPPET model-map-nested-create-rule
-// START SNIPPET model-map-all-rule
+// tag::model-map-nested-configure-rule[]
+// tag::model-map-nested-create-rule[]
+// tag::model-map-all-rule[]
 model {
     people {
-// END SNIPPET model-map-nested-create-rule
-// END SNIPPET model-map-all-rule
+// end::model-map-nested-create-rule[]
+// end::model-map-all-rule[]
         john {
             lastName = "Smith"
         }
-// END SNIPPET model-map-nested-configure-rule
-// START SNIPPET model-map-nested-create-rule
+// end::model-map-nested-configure-rule[]
+// tag::model-map-nested-create-rule[]
         john(Person) {
             firstName = "John"
         }
-// END SNIPPET model-map-nested-create-rule
-// START SNIPPET model-map-all-rule
+// end::model-map-nested-create-rule[]
+// tag::model-map-all-rule[]
         all {
             println "configuring $it"
         }
-// END SNIPPET model-map-all-rule
+// end::model-map-all-rule[]
         barry(Person) {
             firstName = "Barry"
             lastName = "Barry"
@@ -107,11 +107,11 @@ model {
                 }
             }
         }
-// START SNIPPET model-map-nested-create-rule
-// START SNIPPET model-map-nested-configure-rule
-// START SNIPPET model-map-all-rule
+// tag::model-map-nested-create-rule[]
+// tag::model-map-nested-configure-rule[]
+// tag::model-map-all-rule[]
     }
 }
-// END SNIPPET model-map-nested-configure-rule
-// END SNIPPET model-map-nested-create-rule
-// END SNIPPET model-map-all-rule
+// end::model-map-nested-configure-rule[]
+// end::model-map-nested-create-rule[]
+// end::model-map-all-rule[]

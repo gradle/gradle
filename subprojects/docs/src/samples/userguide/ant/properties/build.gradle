@@ -1,25 +1,25 @@
-//START SNIPPET set-property
+// tag::set-property[]
 ant.buildDir = buildDir
 ant.properties.buildDir = buildDir
 ant.properties['buildDir'] = buildDir
 ant.property(name: 'buildDir', location: buildDir)
-//END SNIPPET set-property
+// end::set-property[]
 
 ant.importBuild 'build.xml'
 
-//START SNIPPET get-property
+// tag::get-property[]
 println ant.antProp
 println ant.properties.antProp
 println ant.properties['antProp']
-//END SNIPPET get-property
+// end::get-property[]
 
-//START SNIPPET set-reference
+// tag::set-reference[]
 ant.path(id: 'classpath', location: 'libs')
 ant.references.classpath = ant.path(location: 'libs')
 ant.references['classpath'] = ant.path(location: 'libs')
-//END SNIPPET set-reference
+// end::set-reference[]
 
-//START SNIPPET get-reference
+// tag::get-reference[]
 println ant.references.antPath
 println ant.references['antPath']
-//END SNIPPET get-reference
+// end::get-reference[]

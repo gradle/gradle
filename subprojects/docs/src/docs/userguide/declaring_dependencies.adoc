@@ -13,51 +13,49 @@
 // limitations under the License.
 
 [[declaring_dependencies]]
-== Declaring Dependencies
+= Declaring Dependencies
 
-Gradle builds can declare dependencies on modules hosted in repositories, files and other Gradle projects. You can find examples for common scenarios in this section. For more information, see the <<dependency_types,full reference on all types of dependencies>>.
+Gradle builds can declare dependencies on modules hosted in repositories, files and other Gradle projects. You can find examples for common scenarios in this section. For more information, see the <<dependency_types.adoc#dependency_types,full reference on all types of dependencies>>.
 
-Every dependency needs to be assigned to a configuration when declared in a build script. For more information on the purpose and syntax of configurations, see <<managing_dependency_configurations>>.
+Every dependency needs to be assigned to a configuration when declared in a build script. For more information on the purpose and syntax of configurations, see <<managing_dependency_configurations.adoc#managing_dependency_configurations,Managing Dependency Configurations>>.
 
 [[sec:declaring_dependency_to_module]]
-=== Declaring a dependency to a module
+== Declaring a dependency to a module
 
-Modern software projects rarely build code in isolation. Projects reference modules for the purpose of reusing existing and proven functionality. Upon resolution, selected versions of modules are downloaded from dedicated repositories and stored in the <<dependency_cache,dependency cache>> to avoid unnecessary network traffic.
+Modern software projects rarely build code in isolation. Projects reference modules for the purpose of reusing existing and proven functionality. Upon resolution, selected versions of modules are downloaded from dedicated repositories and stored in the <<dependency_cache.adoc#dependency_cache,dependency cache>> to avoid unnecessary network traffic.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Resolving dependencies from remote repositories</title>
-    <imageobject>
-        <imagedata fileref="img/dependency-management-dependencies-to-modules.png" width="150mm" />
-    </imageobject>
-</figure>
-+++++
+.Resolving dependencies from remote repositories
+image::dependency-management-dependencies-to-modules.png[]
 
 [[sub:declaring_dependency_with_version]]
-==== Declaring a concrete version of a dependency
+=== Declaring a concrete version of a dependency
 
 A typical example for such a library in a Java project is the link:https://projects.spring.io/spring-framework/[Spring framework]. The following code snippet declares a compile-time dependency on the Spring web module by its coordinates: `org.springframework:spring-web:5.0.2.RELEASE`. Gradle resolves the module including its transitive dependencies from the link:https://search.maven.org/[Maven Central repository] and uses it to compile Java source code. The version attribute of the dependency coordinates points to a _concrete version_ indicating that the underlying artifacts do not change over time. The use of concrete versions ensure reproducibility for the aspect of dependency resolution.
 
-++++
-<sample id="dependencies-concrete-version" dir="userguide/dependencyManagement/declaringDependencies/concreteVersion" title="Declaring a dependency with a concrete version">
-    <sourcefile file="build.gradle" snippet="dependencies"/>
-</sample>
-++++
+=== Example: Declaring a dependency with a concrete version
 
-A Gradle project can define other types of repositories hosting modules. You can learn more about the syntax and API in the section on <<declaring_repositories,declaring repositories>>. Refer to <<java_plugin>> for a deep dive on declaring dependencies for a Java project. The resolution behavior for dependencies is <<customizing_dependency_resolution_behavior,highly customizable>>.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/declaringDependencies/concreteVersion/build.gradle[tag=dependencies]
+----
 
-==== Declaring a dependency without version
+A Gradle project can define other types of repositories hosting modules. You can learn more about the syntax and API in the section on <<declaring_repositories.adoc#declaring_repositories,declaring repositories>>. Refer to <<java_plugin.adoc#java_plugin, the chapter on the Java Plugin>> for a deep dive on declaring dependencies for a Java project. The resolution behavior for dependencies is <<customizing_dependency_resolution_behavior.adoc#customizing_dependency_resolution_behavior,highly customizable>>.
 
-A recommended practice for larger projects is to declare dependencies without versions and use <<sec:dependency_constraints,dependency constraints>> for version declaration. The advantage is that dependency constrains allow you to manage versions of all dependencies, including transitive ones, in one place.
+=== Declaring a dependency without version
 
-++++
-<sample id="dependencies-without-version" dir="userguide/dependencyManagement/declaringDependencies/withoutVersion" title="Declaring a dependency without version">
-    <sourcefile file="build.gradle" snippet="dependencies-without-version"/>
-</sample>
-++++
+A recommended practice for larger projects is to declare dependencies without versions and use <<managing_transitive_dependencies.adoc#sec:dependency_constraints,dependency constraints>> for version declaration. The advantage is that dependency constrains allow you to manage versions of all dependencies, including transitive ones, in one place.
+
+=== Example: Declaring a dependency without version
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/declaringDependencies/withoutVersion/build.gradle[tag=dependencies-without-version]
+----
 
 [[sub:declaring_dependency_with_dynamic_version]]
-==== Declaring a dynamic version
+=== Declaring a dynamic version
 
 Projects might adopt a more aggressive approach for consuming dependencies to modules. For example you might want to always integrate the latest version of a dependency to consume cutting edge features at any given time. A _dynamic version_ allows for resolving the latest version or the latest version of a version range for a given module.
 
@@ -66,94 +64,88 @@ Projects might adopt a more aggressive approach for consuming dependencies to mo
 Using dynamic versions in a build bears the risk of potentially breaking it. As soon as a new version of the dependency is released that contains an incompatible API change your source code might stop compiling.
 ====
 
-++++
-<sample id="dependencies-dynamic-version" dir="userguide/dependencyManagement/declaringDependencies/dynamicVersion" title="Declaring a dependency with a dynamic version">
-    <sourcefile file="build.gradle" snippet="dependencies"/>
-</sample>
-++++
+=== Example: Declaring a dependency with a dynamic version
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/declaringDependencies/dynamicVersion/build.gradle[tag=dependencies]
+----
 
 A link:https://scans.gradle.com/[build scan] can effectively visualize dynamic dependency versions and their respective, selected versions.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Dynamic dependencies in build scan</title>
-    <imageobject>
-        <imagedata fileref="img/dependency-management-dynamic-dependency-build-scan.png" width="135mm" />
-    </imageobject>
-</figure>
-+++++
+.Dynamic dependencies in build scan
+image::dependency-management-dynamic-dependency-build-scan.png[]
 
-By default, Gradle caches dynamic versions of dependencies for 24 hours. Within this time frame, Gradle does not try to resolve newer versions from the declared repositories. The <<sub:dynamic_versions_and_changing_modules,threshold can be configured>> as needed for example if you want to resolve new versions earlier.
+By default, Gradle caches dynamic versions of dependencies for 24 hours. Within this time frame, Gradle does not try to resolve newer versions from the declared repositories. The <<troubleshooting_dependency_resolution.adoc#sub:dynamic_versions_and_changing_modules,threshold can be configured>> as needed for example if you want to resolve new versions earlier.
 
 [[sub:declaring_dependency_with_changing_version]]
-==== Declaring a changing version
+=== Declaring a changing version
 
 A team might decide to implement a series of features before releasing a new version of the application or library. A common strategy to allow consumers to integrate an unfinished version of their artifacts early and often is to release a module with a so-called _changing version_. A changing version indicates that the feature set is still under active development and hasn't released a stable version for general availability yet.
 
 In Maven repositories, changing versions are commonly referred to as link:https://maven.apache.org/guides/getting-started/index.html#What_is_a_SNAPSHOT_version[snapshot versions]. Snapshot versions contain the suffix `-SNAPSHOT`. The following example demonstrates how to declare a snapshot version on the Spring dependency.
 
-++++
-<sample id="dependencies-changing-version" dir="userguide/dependencyManagement/declaringDependencies/changingVersion" title="Declaring a dependency with a changing version">
-    <sourcefile file="build.gradle" snippet="dependencies"/>
-</sample>
-++++
+=== Example: Declaring a dependency with a changing version
 
-By default, Gradle caches changing versions of dependencies for 24 hours. Within this time frame, Gradle does not try to resolve newer versions from the declared repositories. The <<sub:dynamic_versions_and_changing_modules,threshold can be configured>> as needed for example if you want to resolve new snapshot versions earlier.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/declaringDependencies/changingVersion/build.gradle[tag=dependencies]
+----
 
-Gradle is flexible enough to treat any version as changing version e.g. if you wanted to model snapshot behavior for an Ivy module. All you need to do is to set the property api:org.gradle.api.artifacts.ExternalModuleDependency#setChanging(boolean)[] to `true`.
+By default, Gradle caches changing versions of dependencies for 24 hours. Within this time frame, Gradle does not try to resolve newer versions from the declared repositories. The <<troubleshooting_dependency_resolution.adoc#sub:dynamic_versions_and_changing_modules,threshold can be configured>> as needed for example if you want to resolve new snapshot versions earlier.
+
+Gradle is flexible enough to treat any version as changing version e.g. if you wanted to model snapshot behavior for an Ivy module. All you need to do is to set the property link:{javadocPath}/org/gradle/api/artifacts/ExternalModuleDependency.html#setChanging-boolean-[ExternalModuleDependency.setChanging(boolean)] to `true`.
 
 [[sec:declaring_file_dependency]]
-=== Declaring a file dependency
+== Declaring a file dependency
 
-Projects sometimes do not rely on a binary repository product e.g. JFrog Artifactory or Sonatype Nexus for hosting and resolving external dependencies. It's common practice to host those dependencies on a shared drive or check them into version control alongside the project source code. Those dependencies are referred to as _file dependencies_, the reason being that they represent a file without any <<sub:terminology_module_metadata,metadata>> (like information about transitive dependencies, the origin or its author) attached to them.
+Projects sometimes do not rely on a binary repository product e.g. JFrog Artifactory or Sonatype Nexus for hosting and resolving external dependencies. It's common practice to host those dependencies on a shared drive or check them into version control alongside the project source code. Those dependencies are referred to as _file dependencies_, the reason being that they represent a file without any <<dependency_management_terminology.adoc#sub:terminology_module_metadata,metadata>> (like information about transitive dependencies, the origin or its author) attached to them.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Resolving file dependencies from the local file system and a shared drive</title>
-    <imageobject>
-        <imagedata fileref="img/dependency-management-file-dependencies.png" width="140mm" />
-    </imageobject>
-</figure>
-+++++
+.Resolving file dependencies from the local file system and a shared drive
+image::dependency-management-file-dependencies.png[]
 
 The following example resolves file dependencies from the directories `ant`, `libs` and `tools`.
 
-++++
-<sample id="file-dependencies" dir="userguide/dependencyManagement/declaringDependencies/fileDependencies" title="Declaring multiple file dependencies">
-    <sourcefile file="build.gradle" snippet="file-dependencies"/>
-</sample>
-++++
+=== Example: Declaring multiple file dependencies
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/declaringDependencies/fileDependencies/build.gradle[tag=file-dependencies]
+----
 
 As you can see in the code example, every dependency has to define its exact location in the file system.
-The most prominent methods for creating a file reference are api:org.gradle.api.Project#files(java.lang.Object...)[], api:org.gradle.api.file.ProjectLayout#files(java.lang.Object...)[], api:org.gradle.api.file.ProjectLayout#configurableFiles(java.lang.Object...)[], and api:org.gradle.api.Project#fileTree(java.lang.Object)[]
-Alternatively, you can also define the source directory of one or many file dependencies in the form of a <<sec:flat_dir_resolver,flat directory repository>>.
+The most prominent methods for creating a file reference are
+link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)],
+link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object++...++-[ProjectLayout.files(java.lang.Object...)],
+link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#configurableFiles-java.lang.Object++...++-[ProjectLayout.configurableFiles(java.lang.Object...)], and
+link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[Project.fileTree(java.lang.Object)]
+Alternatively, you can also define the source directory of one or many file dependencies in the form of a <<repository_types.adoc#sec:flat_dir_resolver,flat directory repository>>.
 
 [[sec:declaring_project_dependency]]
-=== Declaring a project dependency
+== Declaring a project dependency
 
 Software projects often break up software components into modules to improve maintainability and prevent strong coupling. Modules can define dependencies between each other to reuse code within the same project.
 
-Gradle can model dependencies between modules. Those dependencies are called _project dependencies_ because each module is represented by a Gradle project. At runtime, the build automatically ensures that project dependencies are built in the correct order and added to the classpath for compilation. The chapter <<multi_project_builds>> discusses how to set up and configure multi-project builds in more detail.
+Gradle can model dependencies between modules. Those dependencies are called _project dependencies_ because each module is represented by a Gradle project. At runtime, the build automatically ensures that project dependencies are built in the correct order and added to the classpath for compilation. The chapter <<multi_project_builds.adoc#multi_project_builds,Authoring Multi-Project Builds>> discusses how to set up and configure multi-project builds in more detail.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Dependencies between projects</title>
-    <imageobject>
-        <imagedata fileref="img/dependency-management-project-dependencies.png" width="100mm" />
-    </imageobject>
-</figure>
-+++++
+.Dependencies between projects
+image::dependency-management-project-dependencies.png[]
 
-The following example declares the dependencies on the `utils` and `api` project from the `web-service` project. The method api:org.gradle.api.Project#project(java.lang.String)[] creates a reference to a specific subproject by path.
+The following example declares the dependencies on the `utils` and `api` project from the `web-service` project. The method link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:project(java.lang.String)[Project.project(java.lang.String)] creates a reference to a specific subproject by path.
 
-++++
-<sample id="project-dependencies" dir="userguide/dependencyManagement/declaringDependencies/projectDependencies" title="Declaring project dependencies">
-    <sourcefile file="build.gradle" snippet="project-dependencies"/>
-</sample>
-++++
+=== Example: Declaring project dependencies
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/declaringDependencies/projectDependencies/build.gradle[tag=project-dependencies]
+----
 
 [[sub:resolve_specific_artifacts_from_dependency]]
-=== Resolving specific artifacts from a module dependency
+== Resolving specific artifacts from a module dependency
 
 Whenever Gradle tries to resolve a module from a Maven or Ivy repository, it looks for a metadata file and the default artifact file, a JAR. The build fails if none of these artifact files can be resolved. Under certain conditions, you might want to tweak the way Gradle resolves artifacts for a dependency.
 
@@ -165,11 +157,13 @@ Gradle is a polyglot build tool and not limited to just resolving Java libraries
 
 link:https://developers.google.com/speed/libraries/[Google Hosted Libraries] is a distribution platform for popular, open-source JavaScript libraries. With the help of the artifact-only notation you can download a JavaScript library file e.g. JQuery. The `@` character separates the dependency's coordinates from the artifact's file extension.
 
-++++
-<sample id="artifact-only-dependency-declaration" dir="userguide/dependencyManagement/declaringDependencies/artifactOnly" title="Resolving a JavaScript artifact for a declared dependency">
-    <sourcefile file="build.gradle" snippet="artifact-only-dependency-declaration"/>
-</sample>
-++++
+=== Example: Resolving a JavaScript artifact for a declared dependency
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/declaringDependencies/artifactOnly/build.gradle[tag=artifact-only-dependency-declaration]
+----
 
 Some modules ship different "flavors" of the same artifact or they publish multiple artifacts that belong to a specific module version but have a different purpose. It's common for a Java library to publish the artifact with the compiled class files, another one with just the source code in it and a third one containing the Javadocs.
 
@@ -177,8 +171,10 @@ In JavaScript, a library may exist as uncompressed or minified artifact. In Grad
 
 Let's say we wanted to download the minified artifact of the JQuery library instead of the uncompressed file. You can provide the classifier `min` as part of the dependency declaration.
 
-++++
-<sample id="artifact-only-dependency-declaration-with-classifier" dir="userguide/dependencyManagement/declaringDependencies/artifactOnlyWithClassifier" title="Resolving a JavaScript artifact with classifier for a declared dependency">
-    <sourcefile file="build.gradle" snippet="artifact-only-dependency-declaration"/>
-</sample>
-++++
+=== Example: Resolving a JavaScript artifact with classifier for a declared dependency
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/declaringDependencies/artifactOnlyWithClassifier/build.gradle[tag=artifact-only-dependency-declaration]
+----

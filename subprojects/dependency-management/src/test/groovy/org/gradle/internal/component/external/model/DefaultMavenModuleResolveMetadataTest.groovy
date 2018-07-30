@@ -61,10 +61,10 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentR
         def compile = md.getConfiguration("compile")
 
         then:
-        runtime.dependencies*.selector*.versionConstraint.preferredVersion == ["1.1", "1.2"]
+        runtime.dependencies*.selector*.version == ["1.1", "1.2"]
         runtime.dependencies.is(runtime.dependencies)
 
-        compile.dependencies*.selector*.versionConstraint.preferredVersion == ["1.1"]
+        compile.dependencies*.selector*.version == ["1.1"]
         compile.dependencies.is(compile.dependencies)
     }
 

@@ -81,7 +81,7 @@ class DefaultVersionSelectorSchemeTest extends Specification {
     }
 
     @Unroll
-    def "can compute rejection selector for strict dependency versions"() {
+    def "computes rejection selector for strict dependency version"() {
         given:
         def normal = matcher.parseSelector(selector)
 
@@ -89,18 +89,14 @@ class DefaultVersionSelectorSchemeTest extends Specification {
         def reject = matcher.complementForRejection(normal)
 
         then:
+        reject instanceof InverseVersionSelector
         reject.selector == complement
 
         where:
-        selector | complement
-        '20'     | '(20,)'
-        '[3,10]' | '(10,)'
-        '[3,10)' | '[10,)'
-        '(3,10]' | '(10,)'
-        '(3,10)' | '[10,)'
-        '(,10]'  | '(10,)'
-        '(,10)'  | '[10,)'
-
+        selector         | complement
+        '20'             | '!(20)'
+        '[3,10]'         | '!([3,10])'
+        '(,10)'          | '!((,10))'
     }
 
     @Unroll

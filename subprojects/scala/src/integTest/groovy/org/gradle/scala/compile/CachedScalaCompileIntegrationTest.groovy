@@ -19,6 +19,8 @@ package org.gradle.scala.compile
 import org.gradle.api.tasks.compile.AbstractCachedCompileIntegrationTest
 import org.gradle.scala.ScalaCompilationFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegrationTest {
     String compilationTask = ':compileScala'
@@ -191,6 +193,98 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         executedAndNotSkipped compilationTask
         assertAllRecompiled(classes.allClassesLastModified, old(classes.allClassesLastModified))
         classes.analysisFile.assertIsFile()
+    }
+
+    def "stale outputs are cleaned up before the first compilation after loading from cache"() {
+        createJavaClass("Class1")
+        def source2 = createJavaClass("Class2", "proto")
+        def class1 = scalaClassFile('Class1.class')
+        def class2 = scalaClassFile('proto/Class2.class')
+
+        when:
+        withBuildCache().run(compilationTask)
+        then:
+        class1.isFile()
+        class2.isFile()
+        file(compiledFile).isFile()
+
+        when:
+        run("clean")
+        withBuildCache().run(compilationTask)
+        then:
+        skipped(compilationTask)
+
+        when:
+        assert source2.delete()
+        withBuildCache().run(compilationTask)
+        then:
+        executedAndNotSkipped(compilationTask)
+        class1.exists()
+        !class2.exists()
+        !class2.parentFile.exists()
+
+        when:
+        createJavaClass("Class2", "proto")
+        withBuildCache().run(compilationTask)
+        then:
+        skipped(compilationTask)
+
+        when:
+        assert source2.delete()
+        createJavaClass("Class3")
+        withBuildCache().run(compilationTask)
+        then:
+        executedAndNotSkipped(compilationTask)
+        !class2.exists()
+    }
+
+    @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9) // Zinc cannot do incremental compilation on Java 9, yet
+    def "zinc handles removal of stale output files after loading from cache"() {
+        createJavaClass("Class1")
+        def source2 = createJavaClass("Class2")
+        def source3 = createJavaClass("Class3", "proto")
+        def class1 = scalaClassFile('Class1.class')
+        def class2 = scalaClassFile('Class2.class')
+        def class3 = scalaClassFile('proto/Class3.class')
+
+        when:
+        withBuildCache().run(compilationTask)
+        then:
+        class1.isFile()
+        class2.isFile()
+        class3.isFile()
+        file(compiledFile).isFile()
+
+        when:
+        run("clean")
+        withBuildCache().run(compilationTask)
+        then:
+        skipped(compilationTask)
+
+        when:
+        assert source3.delete()
+        withBuildCache().run(compilationTask)
+        then: 'Gradle cleans up the stale class file'
+        executedAndNotSkipped(compilationTask)
+        class1.exists()
+        class2.exists()
+        !class3.exists()
+        !class3.parentFile.exists()
+
+        when:
+        assert source2.delete()
+        withBuildCache().run(compilationTask)
+        then: 'Zinc cleans up the stale class file'
+        executedAndNotSkipped(compilationTask)
+        class1.exists()
+        !class2.exists()
+        !class3.exists()
+    }
+
+    TestFile createJavaClass(String className, String packageName = null) {
+        TestFile sourceFile = file("src/main/scala/${packageName?.replace('.', '/') ?: ""}/${className}.java")
+        sourceFile.text = "${packageName != null ? "package ${packageName}; " : ""}class ${className} {}"
+        return sourceFile
     }
 
     private void cleanBuildDir() {

@@ -9,7 +9,7 @@ task sourcesJar(type: Jar) {
     from sourceSets.main.allJava
 }
 
-// START SNIPPET publishing
+// tag::publishing[]
 publishing {
     publications {
         binary(IvyPublication) {
@@ -32,9 +32,9 @@ publishing {
         }
     }
 }
-// END SNIPPET publishing
+// end::publishing[]
 
-// START SNIPPET task-config
+// tag::task-config[]
 tasks.withType(PublishToIvyRepository) {
     onlyIf {
         if (repository == publishing.repositories.external)
@@ -44,9 +44,9 @@ tasks.withType(PublishToIvyRepository) {
         return false
     }
 }
-// END SNIPPET task-config
+// end::task-config[]
 
-// START SNIPPET shorthand-tasks
+// tag::shorthand-tasks[]
 task publishToExternalRepository {
     group "publishing"
     description "Publishes all Ivy publications to Ivy repository 'external'."
@@ -61,4 +61,4 @@ task publishToInternalRepository {
         it.repository == publishing.repositories.internal
     }
 }
-// END SNIPPET shorthand-tasks
+// end::shorthand-tasks[]

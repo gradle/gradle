@@ -308,5 +308,4 @@ fun Project.buildCacheConfiguration() =
     (gradle as GradleInternal).settings.buildCache
 
 fun Configuration.usage(named: String) =
-    //TODO:kotlin-dsl - revert to reified syntax after nightly upgrade
-    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, named))
+    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(named))

@@ -84,8 +84,12 @@ public class GitHttpRepository implements TestRule, GitRepository {
         return backingRepo.createLightWeightTag(tagName);
     }
 
+    public BlockingHttpServer.ExpectedRequest listVersions() {
+        return server.get(backingRepo.getName() + "/info/refs", getRefsAction());
+    }
+
     public void expectListVersions() {
-        server.expect(server.get(backingRepo.getName() + "/info/refs", getRefsAction()));
+        server.expect(listVersions());
     }
 
     public void expectCloneSomething() {

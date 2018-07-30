@@ -483,14 +483,16 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertApiDependencies('org.test:dep1:X', 'org.test:dep2:X')
     }
 
-    def "can publish java-library with strict dependencies"() {
+    def "can publish java-library with strict and prefer dependencies"() {
         requiresExternalDependencies = true
 
         given:
         createBuildScripts("""
 
             dependencies {
-                api "org.springframework:spring-core:2.5.6"
+                api("org.springframework:spring-core") {
+                    version { prefer '2.5.6' }
+                }
                 implementation("commons-collections:commons-collections") {
                     version { strictly '3.2.2' }
                 }
@@ -516,20 +518,27 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         and:
         javaLibrary.parsedModuleMetadata.variant('api') {
-            dependency('org.springframework:spring-core:2.5.6') {
+            dependency('org.springframework:spring-core:') {
                 noMoreExcludes()
+                prefers('2.5.6')
+                strictly(null)
                 rejects()
             }
             noMoreDependencies()
         }
 
         javaLibrary.parsedModuleMetadata.variant('runtime') {
-            dependency('commons-collections:commons-collections:3.2.2') {
+            dependency('commons-collections:commons-collections:') {
+                // TODO:DAZ Validate the 'required' version
                 noMoreExcludes()
-                rejects '(3.2.2,)'
+                prefers(null)
+                strictly('3.2.2')
+                rejects()
             }
-            dependency('org.springframework:spring-core:2.5.6') {
+            dependency('org.springframework:spring-core:') {
                 noMoreExcludes()
+                prefers('2.5.6')
+                strictly(null)
                 rejects()
             }
             noMoreDependencies()
@@ -551,7 +560,9 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 implementation "org.apache.commons:commons-compress:1.5"
                 constraints {
                     api "commons-logging:commons-logging:1.1"
-                    implementation "commons-logging:commons-logging:1.2"
+                    implementation("commons-logging:commons-logging") {
+                        version { prefer "1.2" }
+                    }
                     implementation("org.tukaani:xz") {
                         version { strictly "1.6" }
                     }
@@ -594,13 +605,21 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 noMoreExcludes()
             }
             constraint('commons-logging:commons-logging:1.1') { rejects() }
-            constraint('commons-logging:commons-logging:1.2') { rejects() }
+            constraint('commons-logging:commons-logging:') {
+                prefers('1.2')
+                strictly(null)
+                rejects()
+            }
 
             dependency('org.apache.commons:commons-compress:1.5') {
                 rejects()
                 noMoreExcludes()
             }
-            constraint('org.tukaani:xz:1.6') { rejects('(1.6,)') }
+            constraint('org.tukaani:xz:') {
+                prefers(null)
+                strictly('1.6')
+                rejects()
+            }
 
             noMoreDependencies()
         }
@@ -691,9 +710,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                         }
                     }
                 }
-                implementation("commons-collections:commons-collections") {
+                implementation("commons-collections:commons-collections:[3.2, 4)") {
                     version { 
-                        prefer '[3.2, 4)'
                         reject '3.2.1', '[3.2.2,)'
                     }
                 }

@@ -8,13 +8,13 @@ dependencies {
     testCompile 'org.testng:testng:6.9.4'
 }
 
-// START SNIPPET test-config
+// tag::test-config[]
 test {
     useTestNG {
         groupByInstances = true
     }
 }
-// END SNIPPET test-config
+// end::test-config[]
 
 test.testLogging {
     showStandardStreams = true

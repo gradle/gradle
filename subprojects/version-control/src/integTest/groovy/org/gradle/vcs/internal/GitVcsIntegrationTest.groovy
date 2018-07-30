@@ -16,12 +16,14 @@
 
 package org.gradle.vcs.internal
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 import spock.lang.Issue
 
-class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
+class GitVcsIntegrationTest extends AbstractIntegrationSpec implements SourceDependencies {
     @Rule
     GitFileRepository repo = new GitFileRepository('dep', temporaryFolder.getTestDirectory())
 
@@ -30,10 +32,57 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
 
     @Rule
     GitFileRepository evenDeeperRepo = new GitFileRepository('evenDeeperDep', temporaryFolder.getTestDirectory())
+    BuildTestFile depProject
 
-    def 'can define and use source repositories'() {
+    def setup() {
+        buildFile << """
+            apply plugin: 'java'
+            group = 'org.gradle'
+            version = '2.0'
+            
+            dependencies {
+                compile "org.test:dep:latest.integration"
+            }
+        """
+        file("src/main/java/Main.java") << """
+            public class Main {
+                Dep dep = null;
+            }
+        """
+        buildTestFixture.withBuildInSubDir()
+        depProject = singleProjectBuild("dep") {
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                    group = 'org.test'
+                }
+            """
+            file("src/main/java/Dep.java") << "public class Dep {}"
+        }
+    }
+
+    def 'can define and use source repository'() {
         given:
         def commit = repo.commit('initial commit')
+
+        settingsFile << """
+            sourceControl {
+                gitRepository("${repo.url}").producesModule("org.test:dep")
+            }
+        """
+        expect:
+        succeeds('assemble')
+        result.assertTaskExecuted(":dep:compileJava")
+        result.assertTaskExecuted(":compileJava")
+
+        // Git repo is cloned
+        def gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
+        gitCheckout.file('.git').assertExists()
+    }
+
+    def 'can define and use source repositories using VCS mapping'() {
+        given:
+        repo.commit('initial commit')
 
         settingsFile << """
             sourceControl {
@@ -48,9 +97,8 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         """
         expect:
         succeeds('assemble')
-        // Git repo is cloned
-        def gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
-        gitCheckout.file('.git').assertExists()
+        result.assertTaskExecuted(":dep:compileJava")
+        result.assertTaskExecuted(":compileJava")
     }
 
     def 'can define and use source repositories with submodules'() {
@@ -106,6 +154,25 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         // Submodule is updated
         gitCheckout.file('deeperDep/foo').text == "baz"
         gitCheckout.file('deeperDep/evenDeeperDep/foo').text == "buzz"
+    }
+
+    def 'reports error when badly formed module used'() {
+        given:
+        settingsFile << """
+            rootProject.name = 'test'
+            sourceControl {
+                gitRepository("${repo.url}").producesModule(":not:a:module:")
+            }
+        """
+
+        expect:
+        fails('assemble')
+        failure.assertHasFileName("Settings file '$settingsFile'")
+        failure.assertHasLineNumber(4)
+        failure.assertHasDescription("A problem occurred evaluating settings 'test'.")
+        failure.assertHasCause("""Cannot convert the provided notation to a module identifier: :not:a:module:.
+The following types/formats are supported:
+  - String describing the module in 'group:name' format, for example 'org.gradle:gradle-core'.""")
     }
 
     @Issue('gradle/gradle-native#206')
@@ -327,8 +394,8 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         gitCheckout.file('.git').assertExists()
 
         and:
-        def hashedRepo = hashRepositoryId(repo.id)
-        file(".gradle/vcsWorkingDirs/${hashedRepo}-${commit.id.name}").assertIsDir()
+        def commitDir = checkoutDir(repo.name, commit.id.name, repo.id)
+        commitDir.assertIsDir()
 
         cleanup:
         server.stop()

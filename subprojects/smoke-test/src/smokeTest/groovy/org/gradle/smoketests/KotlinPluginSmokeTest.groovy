@@ -16,6 +16,8 @@
 
 package org.gradle.smoketests
 
+import spock.lang.Unroll
+
 import static AndroidPluginsSmokeTest.STABLE_ANDROID_2X_VERSION
 import static AndroidPluginsSmokeTest.STABLE_ANDROID_3X_VERSION
 import static org.gradle.smoketests.AndroidPluginsSmokeTest.assertAndroidHomeSet
@@ -23,22 +25,27 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class KotlinPluginSmokeTest extends AbstractSmokeTest {
     // https://blog.jetbrains.com/kotlin/
-    private kotlinVersion = '1.2.50'
+    private static kotlinVersion = '1.2.51'
     private androidBuildToolsVersion = AndroidPluginsSmokeTest.ANDROID_BUILD_TOOLS_VERSION
 
-    def 'kotlin plugin'() {
+    @Unroll
+    def 'kotlin #version plugin'() {
         given:
         useSample("kotlin-example")
-        replaceVariablesInBuildFile(kotlinVersion: this.kotlinVersion)
+        replaceVariablesInBuildFile(kotlinVersion: version)
 
         when:
         def result = runner('run').forwardOutput().build()
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS
+
+        where:
+        version << [ '1.2.21', '1.2.31', '1.2.41', kotlinVersion ]
     }
 
-    def 'kotlin android plugin'() {
+    @Unroll
+    def 'kotlin android #androidPluginVersion plugin'() {
         given:
         assertAndroidHomeSet()
         useSample("android-kotlin-example")

@@ -13,33 +13,35 @@
 // limitations under the License.
 
 [[java_gradle_plugin]]
-== Gradle Plugin Development Plugin
+= Gradle Plugin Development Plugin
 
 
 [NOTE]
 ====
 
-The Java Gradle plugin development plugin is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+The Java Gradle plugin development plugin is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
 
 ====
 
-The Java Gradle Plugin development plugin can be used to assist in the development of Gradle plugins. It automatically applies the <<java_plugin,Java>> plugin, adds the `gradleApi()` dependency to the compile configuration and performs validation of plugin metadata during `jar` task execution.
+The Java Gradle Plugin development plugin can be used to assist in the development of Gradle plugins. It automatically applies the <<java_plugin.adoc#java_plugin,Java>> plugin, adds the `gradleApi()` dependency to the compile configuration and performs validation of plugin metadata during `jar` task execution.
 
-The plugin also integrates with <<test_kit,TestKit>>, a library that aids in writing and executing functional tests for plugin code. It automatically adds the `gradleTestKit()` dependency to the test compile configuration and generates a plugin classpath manifest file consumed by a `GradleRunner` instance if found. Please refer to <<sub:test-kit-automatic-classpath-injection>> for more on its usage, configuration options and samples.
+The plugin also integrates with <<test_kit.adoc#test_kit,TestKit>>, a library that aids in writing and executing functional tests for plugin code. It automatically adds the `gradleTestKit()` dependency to the test compile configuration and generates a plugin classpath manifest file consumed by a `GradleRunner` instance if found. Please refer to <<test_kit.adoc#sub:test-kit-automatic-classpath-injection,Automatic classpath injection with the Plugin Development Plugin>> for more on its usage, configuration options and samples.
 
 
 [[sec:gradle_plugin_dev_usage]]
-=== Usage
+== Usage
 
 To use the Java Gradle Plugin Development plugin, include the following in your build script:
 
-++++
-<sample id="useJavaGradlePluginPlugin" dir="javaGradlePlugin" title="Using the Java Gradle Plugin Development plugin">
-            <sourcefile file="build.gradle" snippet="use-java-gradle-plugin-plugin"/>
-        </sample>
-++++
+=== Example: Using the Java Gradle Plugin Development plugin
 
-Applying the plugin automatically applies the <<java_plugin,Java>> plugin and adds the `gradleApi()` dependency to the compile configuration. It also adds some validations to the build.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/javaGradlePlugin/build.gradle[tag=use-java-gradle-plugin-plugin]
+----
+
+Applying the plugin automatically applies the <<java_plugin.adoc#java_plugin,Java>> plugin and adds the `gradleApi()` dependency to the compile configuration. It also adds some validations to the build.
 
 The following validations are performed:
 
@@ -52,14 +54,16 @@ Any failed validations will result in a warning message.
 
 For each plugin you are developing, add an entry to the `gradlePlugin {}` script block:
 
-++++
-<sample id="gradlePluginBlock" dir="javaGradlePlugin" title="Using the gradlePlugin {} block.">
-            <sourcefile file="build.gradle" snippet="gradle-plugin-block"/>
-        </sample>
-++++
+=== Example: Using the gradlePlugin {} block.
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/javaGradlePlugin/build.gradle[tag=gradle-plugin-block]
+----
 
 The `gradlePlugin {}` block defines the plugins being built by the project including the `id` and `implementationClass` of the plugin. From this data about the plugins being developed, Gradle can automatically:
 
 * Generate the plugin descriptor in the `jar` file's `META-INF` directory.
-* Configure the <<publishing_maven,Maven>> or <<publishing_ivy,Ivy Publish Plugins>> to publish a <<sec:plugin_markers,Plugin Marker Artifact>> for each plugin.
-* Moreover, if the https://plugins.gradle.org/docs/publish-plugin[Plugin Publishing Plugin] is applied, it will publish each plugin using the same name, plugin id, display name, and description to the Gradle Plugin Portal (see https://guides.gradle.org/publishing-plugins-to-gradle-plugin-portal/[Publishing Plugins to Gradle Plugin Portal] for details).
+* Configure the <<publishing_maven.adoc#publishing_maven,Maven>> or <<publishing_ivy.adoc#publishing_ivy,Ivy Publish Plugins>> publishing plugins to publish a <<plugins.adoc#sec:plugin_markers,Plugin Marker Artifact>> for each plugin.
+* Moreover, if the link:https://plugins.gradle.org/docs/publish-plugin[Plugin Publishing Plugin] is applied, it will publish each plugin using the same name, plugin id, display name, and description to the Gradle Plugin Portal (see link:https://guides.gradle.org/publishing-plugins-to-gradle-plugin-portal/[Publishing Plugins to Gradle Plugin Portal] for details).

@@ -12,7 +12,7 @@ dependencies {
     scm 'some:unresolved:2.5'
 }
 
-//START SNIPPET walk-task
+// tag::walk-task[]
 task walkDependencyGraph(type: DependencyGraphWalk) {
     dependsOn configurations.scm
 }
@@ -47,4 +47,4 @@ class DependencyGraphWalk extends DefaultTask {
         '     ' * level
     }
 }
-//END SNIPPET walk-task
+// end::walk-task[]

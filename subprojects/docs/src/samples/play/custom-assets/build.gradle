@@ -36,7 +36,7 @@ dependencies {
     playTest "com.google.guava:guava:17.0"
 }
 
-// START SNIPPET custom-assets
+// tag::custom-assets[]
 model {
     components {
         play {
@@ -71,4 +71,4 @@ class AddCopyrights extends SourceTask {
         }
     }
 }
-// END SNIPPET custom-assets
+// end::custom-assets[]

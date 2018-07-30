@@ -17,11 +17,11 @@
         "-//Puppy Crawl//DTD Check Configuration 1.2//EN"
         "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
 <module name="Checker">
-    <!-- START SNIPPET use-config-loc -->
-    <module name="SuppressionFilter">
-        <property name="file" value="${config_loc}/suppressions.xml"/>
-    </module>
-    <!-- END SNIPPET use-config-loc -->
+<!-- tag::use-config-loc[] -->
+<module name="SuppressionFilter">
+    <property name="file" value="${config_loc}/suppressions.xml"/>
+</module>
+<!-- end::use-config-loc[] -->
     <module name="TreeWalker">
         <!-- Naming -->
         <module name="ClassTypeParameterName"/>

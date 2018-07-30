@@ -24,6 +24,9 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
+import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.*
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.*
+
 abstract class AbstractSmokeTest extends Specification {
 
     @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
@@ -50,7 +53,7 @@ abstract class AbstractSmokeTest extends Specification {
             .withGradleInstallation(IntegrationTestBuildContext.INSTANCE.gradleHomeDir)
             .withTestKitDir(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
             .withProjectDir(testProjectDir.root)
-            .withArguments(tasks.toList() + ['-s'])
+            .withArguments(tasks.toList() + ['-s', '-I', createMirrorInitScript().absolutePath, "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}".toString()])
     }
 
     protected void useSample(String sampleDirectory) {

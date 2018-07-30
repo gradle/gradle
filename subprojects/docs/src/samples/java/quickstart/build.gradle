@@ -1,11 +1,11 @@
-// START SNIPPET use-plugin
+// tag::use-plugin[]
 apply plugin: 'java'
-// END SNIPPET use-plugin
-// START SNIPPET use-eclipse-plugin
+// end::use-plugin[]
+// tag::use-eclipse-plugin[]
 apply plugin: 'eclipse'
-// END SNIPPET use-eclipse-plugin
+// end::use-eclipse-plugin[]
 
-// START SNIPPET customization
+// tag::customization[]
 version = '1.0'
 jar {
     manifest {
@@ -13,28 +13,28 @@ jar {
                    'Implementation-Version': version
     }
 }
-// END SNIPPET customization
+// end::customization[]
 
-// START SNIPPET repo
+// tag::repo[]
 repositories {
     mavenCentral()
 }
-// END SNIPPET repo
+// end::repo[]
 
-// START SNIPPET dependencies
+// tag::dependencies[]
 dependencies {
     compile group: 'commons-collections', name: 'commons-collections', version: '3.2.2'
     testCompile group: 'junit', name: 'junit', version: '4.+'
 }
-// END SNIPPET dependencies
+// end::dependencies[]
 
-// START SNIPPET task-customization
+// tag::task-customization[]
 test {
     systemProperties 'property': 'value'
 }
-// END SNIPPET task-customization
+// end::task-customization[]
 
-// START SNIPPET upload
+// tag::upload[]
 uploadArchives {
     repositories {
        flatDir {
@@ -42,4 +42,4 @@ uploadArchives {
        }
     }
 }
-// END SNIPPET upload
+// end::upload[]

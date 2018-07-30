@@ -1,17 +1,17 @@
-// START SNIPPET use-and-configure-plugin
+// tag::use-and-configure-plugin[]
 plugins {
     id 'java-gradle-plugin'
     id 'groovy'
-// END SNIPPET use-and-configure-plugin
+// end::use-and-configure-plugin[]
     id 'maven-publish'
-// START SNIPPET use-and-configure-plugin
+// tag::use-and-configure-plugin[]
 }
 
-// END SNIPPET use-and-configure-plugin
+// end::use-and-configure-plugin[]
 group = 'org.gradle'
 version = '1.0-SNAPSHOT'
 
-// START SNIPPET use-and-configure-plugin
+// tag::use-and-configure-plugin[]
 gradlePlugin {
     plugins {
         simplePlugin {
@@ -20,7 +20,7 @@ gradlePlugin {
         }
     }
 }
-// END SNIPPET use-and-configure-plugin
+// end::use-and-configure-plugin[]
 
 publishing {
     repositories {

@@ -69,7 +69,7 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
 
     @Override
     public String getVersion() {
-        return Strings.emptyToNull(versionConstraint.getPreferredVersion());
+        return Strings.emptyToNull(versionConstraint.getRequiredVersion());
     }
 
     @Override

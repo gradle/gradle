@@ -13,235 +13,203 @@
 // limitations under the License.
 
 [[standard_plugins]]
-== Standard Gradle plugins
+= Standard Gradle plugins
 
 There are a number of plugins included in the Gradle distribution. These are listed below.
 
 
 [[sec:language_plugins]]
-=== Language plugins
+== Language plugins
 
 These plugins add support for various languages which can be compiled for and executed in the JVM.
 
-.Language plugins
-[cols="a,a,a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Plugin Id
-| Automatically applies
-| Works with
-| Description
+| Plugin Id | Automatically applies | Description
 
-| <<java_plugin, `java` >>
+| <<java_plugin.adoc#java_plugin, `java`>>
 | `java-base`
-| -
-| Adds Java compilation, testing and bundling capabilities to a project. It serves as the basis for many of the other Gradle plugins. See also <<tutorial_java_projects>>.
+| Adds Java compilation, testing and bundling capabilities to a project. It serves as the basis for many of the other Gradle plugins. See also <<tutorial_java_projects.adoc#tutorial_java_projects,this tutorial on Java projects>>.
 
-| <<groovy_plugin, `groovy` >>
+| <<groovy_plugin.adoc#groovy_plugin, `groovy`>>
 | `java`, `groovy-base`
-| -
-| Adds support for building Groovy projects. See also <<tutorial_groovy_projects>>.
+| Adds support for building Groovy projects. See also <<tutorial_groovy_projects.adoc#tutorial_groovy_projects,this tutorial for Groovy projects>>.
 
-| <<scala_plugin, `scala` >>
+| <<scala_plugin.adoc#scala_plugin, `scala`>>
 | `java`, `scala-base`
-| -
 | Adds support for building Scala projects.
 
-| <<antlr_plugin, `antlr` >>
+| <<antlr_plugin.adoc#antlr_plugin, `antlr`>>
 | `java`
-| -
 | Adds support for generating parsers using http://www.antlr.org/[Antlr].
 |===
 
 
 [[sec:incubating_language_plugins]]
-=== Incubating language plugins
+== Incubating language plugins
 
 These plugins add support for various languages:
 
-.Language plugins
-[cols="a,a,a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Plugin Id
-| Automatically applies
-| Works with
-| Description
+| Plugin Id | Automatically applies | Description
 
-| <<native_software, `assembler` >>
-| -
+| <<native_software.adoc#native_software, `assembler`>>
 | -
 | Adds native assembly language capabilities to a project.
 
-| <<native_software, `c` >>
-| -
+| <<native_software.adoc#native_software, `c`>>
 | -
 | Adds C source compilation capabilities to a project.
 
-| <<native_software, `cpp` >>
-| -
+| <<native_software.adoc#native_software, `cpp`>>
 | -
 | Adds C++ source compilation capabilities to a project.
 
-| <<native_software, `objective-c` >>
-| -
+| <<native_software.adoc#native_software, `objective-c`>>
 | -
 | Adds Objective-C source compilation capabilities to a project.
 
-| <<native_software, `objective-cpp` >>
-| -
+| <<native_software.adoc#native_software, `objective-cpp`>>
 | -
 | Adds Objective-C++ source compilation capabilities to a project.
 
-| <<native_software, `windows-resources` >>
-| -
+| <<native_software.adoc#native_software, `windows-resources`>>
 | -
 | Adds support for including Windows resources in native binaries.
 |===
 
 
 [[sec:integration_plugins]]
-=== Integration plugins
+== Integration plugins
 
 These plugins provide some integration with various runtime technologies.
 
-.Integration plugins
-[cols="a,a,a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Plugin Id
-| Automatically applies
-| Works with
-| Description
+| Plugin Id | Automatically applies | Works with | Description
 
-| <<application_plugin, `application` >>
+| <<application_plugin.adoc#application_plugin, `application`>>
 | `java`, `distribution`
 | -
 | Adds tasks for running and bundling a Java project as a command-line application.
 
-| <<ear_plugin, `ear` >>
+| <<ear_plugin.adoc#ear_plugin, `ear`>>
 | -
 | `java`
 | Adds support for building J2EE applications.
 
-| <<publishing_ivy, `ivy-publish` >>
+| <<publishing_ivy.adoc#publishing_ivy, `ivy-publish`>>
 | -
 | `application`, `distribution`, `java`, `war`
 | Provides a new DSL to support publishing artifacts to Ivy repositories, which improves on the existing DSL.
 
-| <<publishing_maven, `maven-publish` >>
+| <<publishing_maven.adoc#publishing_maven, `maven-publish`>>
 | -
 | `application`, `distribution`, `java`, `war`
 | Provides a new DSL to support publishing artifacts to Maven repositories, which improves on the existing DSL.
 
-| <<maven_plugin, `maven` >>
+| <<maven_plugin.adoc#maven_plugin, `maven`>>
 | -
 | `java`, `war`
-| Adds support for publishing artifacts to Maven repositories using the _original_ publishing mechanism available in Gradle 1.0. See also <<artifact_management>>.
+| Adds support for publishing artifacts to Maven repositories using the _original_ publishing mechanism available in Gradle 1.0. See also <<artifact_management.adoc#artifact_management,Legacy Publishing>>.
 
-| <<osgi_plugin, `osgi` >>
+| <<osgi_plugin.adoc#osgi_plugin, `osgi`>>
 | `java-base`
 | `java`
 | Adds support for building OSGi bundles.
 
-| <<war_plugin, `war` >>
+| <<war_plugin.adoc#war_plugin, `war`>>
 | `java`
 | -
-| Adds support for assembling web application WAR files. See also <<web_project_tutorial>>.
+| Adds support for assembling web application WAR files.
 |===
 
 
 [[sec:incubating_integration_plugins]]
-=== Incubating integration plugins
+== Incubating integration plugins
 
 These plugins provide some integration with various runtime technologies.
 
-.Incubating integration plugins
-[cols="a,a,a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Plugin Id
-| Automatically applies
-| Works with
-| Description
+| Plugin Id | Automatically applies | Description
 
-| <<distribution_plugin, `distribution` >>
-| -
+| <<distribution_plugin.adoc#distribution_plugin, `distribution`>>
 | -
 | Adds support for building ZIP and TAR distributions.
 
-| <<java_library_distribution_plugin, `java-library-distribution` >>
+| <<java_library_distribution_plugin.adoc#java_library_distribution_plugin, `java-library-distribution`>>
 | `java`, `distribution`
-| -
 | Adds support for building ZIP and TAR distributions for a Java library.
 |===
 
 
 [[sec:software_development_plugins]]
-=== Software development plugins
+== Software development plugins
 
 These plugins provide help with your software development process.
 
-.Software development plugins
-[cols="a,a,a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Plugin Id
-| Automatically applies
-| Works with
-| Description
+| Plugin Id | Automatically applies | Works with | Description
 
-| <<announce_plugin, `announce` >>
+| <<announce_plugin.adoc#announce_plugin, `announce`>>
 | -
 | -
 | Publish messages to your favourite platforms, such as Twitter or Growl.
 
-| <<build_announcements_plugin, `build-announcements` >>
+| <<build_announcements_plugin.adoc#build_announcements_plugin, `build-announcements`>>
 | announce
 | -
 | Sends local announcements to your desktop about interesting events in the build lifecycle.
 
-| <<checkstyle_plugin, `checkstyle` >>
+| <<checkstyle_plugin.adoc#checkstyle_plugin, `checkstyle`>>
 | `java-base`
 | -
 | Performs quality checks on your project's Java source files using http://checkstyle.sourceforge.net/index.html[Checkstyle] and generates reports from these checks.
 
-| <<codenarc_plugin, `codenarc` >>
+| <<codenarc_plugin.adoc#codenarc_plugin, `codenarc`>>
 | `groovy-base`
 | -
 | Performs quality checks on your project's Groovy source files using http://codenarc.sourceforge.net/index.html[CodeNarc] and generates reports from these checks.
 
-| <<eclipse_plugin, `eclipse` >>
+| <<eclipse_plugin.adoc#eclipse_plugin, `eclipse`>>
 | -
 | `java`,`groovy`, `scala`
-| Generates files that are used by http://eclipse.org[Eclipse IDE], thus making it possible to import the project into Eclipse. See also <<tutorial_java_projects>>.
+| Generates files that are used by http://eclipse.org[Eclipse IDE], thus making it possible to import the project into Eclipse. See also <<tutorial_java_projects.adoc#tutorial_java_projects,this tutorial for Java projects>>.
 
-| <<eclipse_plugin, `eclipse-wtp` >>
+| <<eclipse_plugin.adoc#eclipse_plugin, `eclipse-wtp`>>
 | -
 | `ear`, `war`
-| Does the same as the eclipse plugin plus generates eclipse WTP (Web Tools Platform) configuration files. After importing to eclipse your war/ear projects should be configured to work with WTP. See also <<tutorial_java_projects>>.
+| Does the same as the eclipse plugin plus generates eclipse WTP (Web Tools Platform) configuration files. After importing to eclipse your war/ear projects should be configured to work with WTP. See also <<tutorial_java_projects.adoc#tutorial_java_projects,this tutorial for Java projects>>.
 
-| <<findbugs_plugin, `findbugs` >>
+| <<findbugs_plugin.adoc#findbugs_plugin, `findbugs`>>
 | `java-base`
 | -
 | Performs quality checks on your project's Java source files using http://findbugs.sourceforge.net[FindBugs] and generates reports from these checks.
 
-| <<idea_plugin, `idea` >>
+| <<idea_plugin.adoc#idea_plugin, `idea`>>
 | -
 | `java`
 | Generates files that are used by http://www.jetbrains.com/idea/index.html[Intellij IDEA IDE], thus making it possible to import the project into IDEA.
 
-| <<jdepend_plugin, `jdepend` >>
+| <<jdepend_plugin.adoc#jdepend_plugin, `jdepend`>>
 | `java-base`
 | -
 | Performs quality checks on your project's source files using http://clarkware.com/software/JDepend.html[JDepend] and generates reports from these checks.
 
-| <<pmd_plugin, `pmd` >>
+| <<pmd_plugin.adoc#pmd_plugin, `pmd`>>
 | `java-base`
 | -
 | Performs quality checks on your project's Java source files using http://pmd.sourceforge.net[PMD] and generates reports from these checks.
 
-| <<project_reports_plugin, `project-report` >>
+| <<project_report_plugin.adoc#project_report_plugin, `project-report`>>
 | `reporting-base`
 | -
 | Generates reports containing useful information about your Gradle build.
 
-| <<signing_plugin, `signing` >>
+| <<signing_plugin.adoc#signing_plugin, `signing`>>
 | base
 | -
 | Adds the ability to digitally sign built files and artifacts.
@@ -249,39 +217,36 @@ These plugins provide help with your software development process.
 
 
 [[sec:incubating_software_development_plugins]]
-=== Incubating software development plugins
+== Incubating software development plugins
 
 These plugins provide help with your software development process.
 
 .Software development plugins
-[cols="a,a,a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Plugin Id
-| Automatically applies
-| Works with
-| Description
+| Plugin Id | Automatically applies | Works with | Description
 
-| <<build_dashboard_plugin, `build-dashboard` >>
+| <<build_dashboard_plugin.adoc#build_dashboard_plugin, `build-dashboard`>>
 | reporting-base
 | -
 | Generates build dashboard report.
 
-| <<native_software, `cunit` >>
+| <<native_software.adoc#native_software, `cunit`>>
 | -
 | -
 | Adds support for running http://cunit.sourceforge.net[CUnit] tests.
 
-| <<jacoco_plugin, `jacoco` >>
+| <<jacoco_plugin.adoc#jacoco_plugin, `jacoco`>>
 | reporting-base
 | java
 | Provides integration with the http://www.eclemma.org/jacoco/[JaCoCo] code coverage library for Java.
 
-| <<native_software, `visual-studio` >>
+| <<native_software.adoc#native_software, `visual-studio`>>
 | -
 | native language plugins
 | Adds integration with Visual Studio.
 
-| <<java_gradle_plugin, `java-gradle-plugin` >>
+| <<java_gradle_plugin.adoc#java_gradle_plugin, `java-gradle-plugin`>>
 | java
 |
 | Assists with development of Gradle plugins by providing standard plugin build configuration and validation.
@@ -289,23 +254,16 @@ These plugins provide help with your software development process.
 
 
 [[sec:base_plugins]]
-=== Base plugins
+== Base plugins
 
 These plugins form the basic building blocks which the other plugins are assembled from. They are available for you to use in your build files, and are listed here for completeness. However, be aware that they are not yet considered part of Gradle's public API. As such, these plugins are not documented in the user guide. You might refer to their API documentation to learn more about them.
 
-.Base plugins
-[cols="a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Plugin Id
-| Description
+| Plugin Id | Description
 
 | base
-| Adds the standard lifecycle tasks and configures reasonable defaults for the archive tasks:
-
-* adds build __ConfigurationName__ tasks. Those tasks assemble the artifacts belonging to the specified configuration.
-* adds upload __ConfigurationName__ tasks. Those tasks assemble and upload the artifacts belonging to the specified configuration.
-* configures reasonable default values for all archive tasks (e.g. tasks that inherit from api:org.gradle.api.tasks.bundling.AbstractArchiveTask[]). For example, the archive tasks are tasks of types: api:org.gradle.api.tasks.bundling.Jar[], api:org.gradle.api.tasks.bundling.Tar[], api:org.gradle.api.tasks.bundling.Zip[]. Specifically, `destinationDir`, `baseName` and `version` properties of the archive tasks are preconfigured with defaults. This is extremely useful because it drives consistency across projects; the consistency regarding naming conventions of archives and their location after the build completed.
-
+| Adds the standard lifecycle tasks and configures reasonable defaults for the archive tasks. See <<base_plugin.adoc#base_plugin,Base Plugin>>.
 
 | java-base
 | Adds the source sets concept to the project. Does not add any particular source sets.
@@ -322,6 +280,6 @@ These plugins form the basic building blocks which the other plugins are assembl
 
 
 [[sec:third_party_plugins]]
-=== Third party plugins
+== Third party plugins
 
 You can find a list of external plugins at the http://plugins.gradle.org/[Gradle Plugins site].

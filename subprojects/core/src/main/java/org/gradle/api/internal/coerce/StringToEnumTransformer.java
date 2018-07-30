@@ -78,8 +78,7 @@ public class StringToEnumTransformer implements MethodArgumentsTransformer, Prop
 
     static public <T extends Enum<T>> T toEnumValue(Class<T> enumType, CharSequence charSequence) {
         return NotationParserBuilder
-                .toType(enumType)
-                .noImplicitConverters()
+                .builder(CharSequence.class, enumType)
                 .fromCharSequence(new EnumFromCharSequenceNotationParser<T>(enumType))
                 .toComposite()
                 .parseNotation(charSequence);

@@ -163,7 +163,7 @@ class TestCapability implements Capability {
         api.dependencies[1].coords == 'group.b:utils:0.01'
     }
 
-    def "publishes component with strict dependencies"() {
+    def "publishes component with strict and prefer dependencies"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
             apply plugin: 'maven-publish'
@@ -184,7 +184,12 @@ class TestCapability implements Capability {
                         strictly '1.0'
                     }
                 }
-                implementation("org:bar:2.0")
+                implementation("org:bar") {
+                    version {
+                        prefer '2.0'
+                    }
+                }
+                implementation("org:baz:3.0")
             }
 
             publishing {
@@ -207,17 +212,28 @@ class TestCapability implements Capability {
         module.assertPublished()
         module.parsedModuleMetadata.variants.size() == 1
         def variant = module.parsedModuleMetadata.variants[0]
-        variant.dependencies.size() == 2
+        variant.dependencies.size() == 3
 
         variant.dependencies[0].group == 'org'
         variant.dependencies[0].module == 'foo'
-        variant.dependencies[0].version == '1.0'
-        variant.dependencies[0].rejectsVersion == ['(1.0,)']
+        variant.dependencies[0].version == null
+        variant.dependencies[0].prefers == null
+        variant.dependencies[0].strictly == '1.0'
+        variant.dependencies[0].rejectsVersion == []
 
         variant.dependencies[1].group == 'org'
         variant.dependencies[1].module == 'bar'
-        variant.dependencies[1].version == '2.0'
+        variant.dependencies[1].version == null
+        variant.dependencies[1].prefers == '2.0'
+        variant.dependencies[1].strictly == null
         variant.dependencies[1].rejectsVersion == []
+
+        variant.dependencies[2].group == 'org'
+        variant.dependencies[2].module == 'baz'
+        variant.dependencies[2].version == '3.0'
+        variant.dependencies[2].prefers == null
+        variant.dependencies[2].strictly == null
+        variant.dependencies[2].rejectsVersion == []
     }
 
     def "publishes component with dependency constraints"() {
@@ -320,7 +336,8 @@ class TestCapability implements Capability {
 
         variant.dependencies[0].group == 'org'
         variant.dependencies[0].module == 'foo'
-        variant.dependencies[0].version == '1.0'
+        variant.dependencies[0].version == null
+        variant.dependencies[0].prefers == '1.0'
         variant.dependencies[0].rejectsVersion == ['1.1', '[1.3,1.4]']
 
         variant.dependencies[1].group == 'org'

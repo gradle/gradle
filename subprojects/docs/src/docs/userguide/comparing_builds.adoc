@@ -13,13 +13,13 @@
 // limitations under the License.
 
 [[comparing_builds]]
-== Comparing Builds
+= Comparing Builds
 
 
 [NOTE]
 ====
 
-Build comparison support is an <<feature_lifecycle,incubating>> feature. This means that it is incomplete and not yet at regular Gradle production quality. This also means that this Gradle User Guide chapter is a work in progress.
+Build comparison support is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature. This means that it is incomplete and not yet at regular Gradle production quality. This also means that this Gradle User Guide chapter is a work in progress.
 
 ====
 
@@ -33,7 +33,7 @@ By comparing builds in these scenarios you can make an informed decision about t
 
 
 [[sec:definition_of_terms]]
-=== Definition of terms
+== Definition of terms
 
 The following are the terms used for build comparison and their definitions.
 
@@ -57,29 +57,29 @@ A build outcome that cannot be understood by the host build. This can occur when
 
 
 [[sec:current_capabilities]]
-=== Current Capabilities
+== Current Capabilities
 
-As this is an <<feature_lifecycle,incubating>> feature, a limited set of the eventual functionality has been implemented at this time.
+As this is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature, a limited set of the eventual functionality has been implemented at this time.
 
 
 [[sec:supported_builds]]
-==== Supported builds
+=== Supported builds
 
 Only support for comparing Gradle builds is available at this time. Both the source and target build must execute with Gradle newer or equal to version `1.0`. The host build must be at least version `1.2`. If the host build is run with version `3.0` or newer, source and target builds must be at least version `1.2`. If the host build is run with a version older than `2.0`, source and target builds must be older than version `3.0`. So if you for example want to compare a build under version `1.1` with a build under version `3.0`, you have to execute the host build with a `2.x` version.
 
 Future versions will provide support for executing builds from other build systems such as Apache Ant or Apache Maven, as well as support for executing arbitrary processes (e.g. shell script based builds)
 
 [[sec:supported_build_outcomes]]
-==== Supported build outcomes
+=== Supported build outcomes
 
 Only support for comparing build outcomes that are `zip` archives is supported at this time. This includes `jar`, `war` and `ear` archives.
 
 Future versions will provide support for comparing outcomes such as test execution (i.e. which tests were executed, which tests failed, etc.)
 
 [[sec:comparing_gradle_builds]]
-=== Comparing Gradle Builds
+== Comparing Gradle Builds
 
-The `compare-gradle-builds` plugin can be used to facilitate a comparison between two Gradle builds. The plugin adds a api:org.gradle.api.plugins.buildcomparison.gradle.CompareGradleBuilds[] task named “`compareGradleBuilds`” to the project. The configuration of this task specifies what is to be compared. By default, it is configured to compare the current build with itself using the current Gradle version by executing the tasks: “`clean assemble`”.
+The `compare-gradle-builds` plugin can be used to facilitate a comparison between two Gradle builds. The plugin adds a link:{groovyDslPath}/org.gradle.api.plugins.buildcomparison.gradle.CompareGradleBuilds.html[CompareGradleBuilds] task named “`compareGradleBuilds`” to the project. The configuration of this task specifies what is to be compared. By default, it is configured to compare the current build with itself using the current Gradle version by executing the tasks: “`clean assemble`”.
 
 [source,groovy]
 ----
@@ -107,7 +107,7 @@ The example above specifies a comparison between two different projects using tw
 
 
 [[sec:trying_gradle_upgrades]]
-==== Trying Gradle upgrades
+=== Trying Gradle upgrades
 
 You can use the build comparison functionality to very quickly try a new Gradle version with your build.
 
@@ -126,7 +126,7 @@ compareGradleBuilds {
 Then simply execute the `compareGradleBuilds` task. You will see the console output of the “source” and “target” builds as they are executing.
 
 [[sec:the_comparison_result]]
-==== The comparison “result”
+=== The comparison “result”
 
 If there are any differences between the _compared outcomes_, the task will fail. The location of the HTML report providing insight into the comparison will be given. If all compared outcomes are found to be identical, and there are no uncompared outcomes, and there are no unknown build outcomes, the task will succeed.
 
@@ -142,8 +142,8 @@ compareGradleBuilds {
 
 
 [[sec:which_archives_are_compared]]
-==== Which archives are compared?
+=== Which archives are compared?
 
-For an archive to be a candidate for comparison, it must be added as an artifact of the archives configuration. Take a look at <<artifact_management>> for more information on how to configure and add artifacts.
+For an archive to be a candidate for comparison, it must be added as an artifact of the archives configuration. Take a look at <<artifact_management.adoc#artifact_management,Legacy Publishing>> for more information on how to configure and add artifacts.
 
-The archive must also have been produced by a api:org.gradle.api.tasks.bundling.Zip[], api:org.gradle.api.tasks.bundling.Jar[], api:org.gradle.api.tasks.bundling.War[], api:org.gradle.plugins.ear.Ear[] task. Future versions of Gradle will support increased flexibility in this area.
+The archive must also have been produced by a link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html[Zip], link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar], link:{groovyDslPath}/org.gradle.api.tasks.bundling.War.html[War], link:{groovyDslPath}/org.gradle.plugins.ear.Ear.html[Ear] task. Future versions of Gradle will support increased flexibility in this area.

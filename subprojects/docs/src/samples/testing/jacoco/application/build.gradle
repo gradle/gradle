@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// START SNIPPET application-configuration
+// tag::application-configuration[]
 apply plugin: "application"
 apply plugin: "jacoco"
 
@@ -28,7 +28,7 @@ task applicationCodeCoverageReport(type:JacocoReport){
     executionData run
     sourceSets sourceSets.main
 }
-// END SNIPPET application-configuration
+// end::application-configuration[]
 
 repositories {
     mavenCentral()

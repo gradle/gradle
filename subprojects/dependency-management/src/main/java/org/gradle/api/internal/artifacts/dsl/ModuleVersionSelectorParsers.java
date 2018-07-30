@@ -35,7 +35,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 
 public class ModuleVersionSelectorParsers {
 
-    private static final NotationParserBuilder<ModuleVersionSelector> BUILDER = NotationParserBuilder
+    private static final NotationParserBuilder<Object, ModuleVersionSelector> BUILDER = NotationParserBuilder
             .toType(ModuleVersionSelector.class)
             .fromCharSequence(new StringConverter())
             .converter(new MapConverter());
@@ -48,7 +48,7 @@ public class ModuleVersionSelectorParsers {
         return builder().toComposite();
     }
 
-    private static NotationParserBuilder<ModuleVersionSelector> builder() {
+    private static NotationParserBuilder<Object, ModuleVersionSelector> builder() {
         return BUILDER;
     }
 

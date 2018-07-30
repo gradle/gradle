@@ -51,7 +51,7 @@ class ReverseFiles extends SourceTask {
 
     @TaskAction
     void reverseFiles() {
-        // START SNIPPET wait-for-completion
+        // tag::wait-for-completion[]
         // Create and submit a unit of work for each file
         source.each { file ->
             workerExecutor.submit(ReverseFile.class) { config ->
@@ -64,7 +64,7 @@ class ReverseFiles extends SourceTask {
         // Wait for all asynchronous work to complete before continuing
         workerExecutor.await()
         logger.lifecycle("Created ${outputDir.listFiles().size()} reversed files in ${project.relativePath(outputDir)}")
-        // END SNIPPET wait-for-completion
+        // end::wait-for-completion[]
     }
 }
 

@@ -1,4 +1,4 @@
-//START SNIPPET accessing-metadata-artifact
+// tag::accessing-metadata-artifact[]
 apply plugin: 'java-library'
 
 repositories {
@@ -28,4 +28,4 @@ task printGuavaMetadata {
         }
     }
 }
-//END SNIPPET accessing-metadata-artifact
+// end::accessing-metadata-artifact[]

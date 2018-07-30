@@ -18,18 +18,21 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Rule
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.registry.ModelRegistry
@@ -44,12 +47,16 @@ class DefaultTaskContainerTest extends Specification {
     private taskFactory = Mock(ITaskFactory)
     def modelRegistry = Mock(ModelRegistry)
     private project = Mock(ProjectInternal, name: "<project>") {
+        identityPath(_) >> { String name ->
+            Path.path(":project").child(name)
+        }
         getGradle() >> Mock(GradleInternal) {
             getIdentityPath() >> Path.path(":")
         }
     }
     private taskCount = 1;
     private accessListener = Mock(ProjectAccessListener)
+    private BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
     private container = new DefaultTaskContainerFactory(
         modelRegistry,
         DirectInstantiator.INSTANCE,
@@ -57,7 +64,8 @@ class DefaultTaskContainerTest extends Specification {
         project,
         accessListener,
         new TaskStatistics(),
-        new TestBuildOperationExecutor()
+        buildOperationExecutor,
+        new BuildOperationCrossProjectConfigurator(buildOperationExecutor)
     ).create()
 
     void 'cannot create task with no name'() {
@@ -210,6 +218,71 @@ class DefaultTaskContainerTest extends Specification {
         then:
         added == task
         1 * action.execute(task)
+    }
+
+    void "create by map wraps task creation failure"() {
+        given:
+        def failure = new RuntimeException()
+
+        taskFactory.create(_ as TaskIdentity) >> { throw failure }
+
+        when:
+        container.create(name: "task")
+
+        then:
+        def e = thrown(GradleException)
+        e.message == "Could not create task ':project:task'."
+        e.cause == failure
+    }
+
+    void "create wraps task creation failure"() {
+        given:
+        def failure = new RuntimeException()
+
+        taskFactory.create(_ as TaskIdentity) >> { throw failure }
+
+        when:
+        container.create("task")
+
+        then:
+        def e = thrown(GradleException)
+        e.message == "Could not create task ':project:task'."
+        e.cause == failure
+    }
+
+    void "create with action wraps task creation failure"() {
+        given:
+        def failure = new RuntimeException()
+        def action = Mock(Action)
+
+        taskFactory.create(_ as TaskIdentity) >> { throw failure }
+
+        when:
+        container.create("task", action)
+
+        then:
+        def e = thrown(GradleException)
+        e.message == "Could not create task ':project:task'."
+        e.cause == failure
+    }
+
+    void "create wraps task configuration failure"() {
+        given:
+        def failure = new RuntimeException()
+        def action = Mock(Action)
+        def task = task("task")
+
+        taskFactory.create(_ as TaskIdentity) >> task
+        action.execute(task) >> { throw failure }
+
+        when:
+        container.all(action)
+        container.create("task", action)
+
+        then:
+        def e = thrown(GradleException)
+        e.message == "Could not create task ':project:task'."
+        e.cause == failure
     }
 
     void "replaces task by name"() {
@@ -786,8 +859,8 @@ class DefaultTaskContainerTest extends Specification {
         provider.get()
 
         then:
-        def ex = thrown(IllegalStateException)
-        ex.message == "Could not create task 'task' (DefaultTask)"
+        def ex = thrown(GradleException)
+        ex.message == "Could not create task ':project:task'."
         ex.cause.message == "Failing creation rule"
 
         and:
@@ -809,9 +882,8 @@ class DefaultTaskContainerTest extends Specification {
         provider.get()
 
         then:
-        ex = thrown(IllegalStateException)
-        ex.message == "Could not create task 'task' (DefaultTask)"
-        ex.cause.message == "Failing creation rule"
+        def ex2 = thrown(GradleException)
+        ex2.is(ex)
         0 * _
     }
 
@@ -828,8 +900,8 @@ class DefaultTaskContainerTest extends Specification {
         provider.get()
 
         then:
-        def ex = thrown(IllegalStateException)
-        ex.message == "Could not create task 'task' (DefaultTask)"
+        def ex = thrown(GradleException)
+        ex.message == "Could not create task ':project:task'."
         ex.cause.message == "Failing creation rule"
 
         and:
@@ -844,37 +916,18 @@ class DefaultTaskContainerTest extends Specification {
 
         when:
         creationProvider.get() == task
+
         then:
-        ex = thrown(IllegalStateException)
-        ex.message == "Could not create task 'task' (DefaultTask)"
-        ex.cause.message == "Failing creation rule"
+        def ex2 = thrown(GradleException)
+        ex2.is(ex)
 
         when:
         provider.get()
 
         then:
-        ex = thrown(IllegalStateException)
-        ex.message == "Could not create task 'task' (DefaultTask)"
-        ex.cause.message == "Failing creation rule"
+        def ex3 = thrown(GradleException)
+        ex3.is(ex)
         0 * _
-    }
-
-    void "fails task creation when task instantiation is unsuccessful"() {
-        def action = Mock(Action)
-
-        when:
-        container.create("task", DefaultTask, action)
-
-        then:
-        def ex = thrown(RuntimeException)
-        ex.message == "Failing constructor"
-
-        and:
-        container.findByName("task") == null
-
-        and:
-        1 * taskFactory.create(_ as TaskIdentity) >> { throw new RuntimeException("Failing constructor") }
-        0 * action.execute(_)
     }
 
     void "fails later creation upon realizing through register provider when task instantiation is unsuccessful"() {
@@ -890,8 +943,8 @@ class DefaultTaskContainerTest extends Specification {
         provider.get()
 
         then:
-        def ex = thrown(IllegalStateException)
-        ex.message == "Could not create task 'task' (DefaultTask)"
+        def ex = thrown(GradleException)
+        ex.message == "Could not create task ':project:task'."
         ex.cause.message == "Failing constructor"
 
         and:
@@ -905,18 +958,17 @@ class DefaultTaskContainerTest extends Specification {
 
         when:
         container.findByName("task")
+
         then:
-        ex = thrown(IllegalStateException)
-        ex.message == "Could not create task 'task' (DefaultTask)"
-        ex.cause.message == "Failing constructor"
+        def ex2 = thrown(GradleException)
+        ex2.is(ex)
 
         when:
         provider.getOrNull()
 
         then:
-        ex = thrown(IllegalStateException)
-        ex.message == "Could not create task 'task' (DefaultTask)"
-        ex.cause.message == "Failing constructor"
+        def ex3 = thrown(GradleException)
+        ex3.is(ex)
         0 * _
     }
 
@@ -932,54 +984,28 @@ class DefaultTaskContainerTest extends Specification {
         provider.get()
 
         then:
-        def ex = thrown(IllegalStateException)
-        ex.message == "Could not create task 'task' (DefaultTask)"
+        def ex = thrown(GradleException)
+        ex.message == "Could not create task ':project:task'."
         ex.cause.message == "Failing constructor"
+
         and:
         provider.isPresent()
         creationProvider.isPresent()
 
         when:
         container.findByName("task")
+
         then:
-        ex = thrown(IllegalStateException)
-        ex.message == "Could not create task 'task' (DefaultTask)"
-        ex.cause.message == "Failing constructor"
+        def ex2 = thrown(GradleException)
+        ex2.is(ex)
 
         when:
         provider.getOrNull()
+
         then:
-        ex = thrown(IllegalStateException)
-        ex.message == "Could not create task 'task' (DefaultTask)"
-        ex.cause.message == "Failing constructor"
+        def ex3 = thrown(GradleException)
+        ex3.is(ex)
         0 * _
-    }
-
-    void "fails task creation when task configuration via withType is unsuccessful"() {
-        def action = Mock(Action)
-        def task = task("task")
-
-        given:
-        container.withType(DefaultTask, action)
-
-        when:
-        container.create("task", DefaultTask)
-
-        then:
-        def ex = thrown(RuntimeException)
-        ex.message == "Failing withType configuration rule"
-
-        and:
-        container.findByName("task") != null
-        container.findByName("task") == task
-
-        and:
-        container.withType(DefaultTask).named("task").isPresent()
-        container.withType(DefaultTask).named("task").get() == task
-
-        and:
-        1 * taskFactory.create(_ as TaskIdentity) >> task
-        1 * action.execute(_) >> { throw new RuntimeException("Failing withType configuration rule") }
     }
 
     void "fails later creation when task configuration via withType is unsuccessful"() {
@@ -994,8 +1020,8 @@ class DefaultTaskContainerTest extends Specification {
         container.register("task", DefaultTask)
 
         then:
-        def ex = thrown(IllegalStateException)
-        ex.message == "Could not create task 'task' (DefaultTask)"
+        def ex = thrown(GradleException)
+        ex.message == "Could not create task ':project:task'."
         ex.cause.message == "Failing withType configuration rule"
 
         and:
@@ -1022,8 +1048,9 @@ class DefaultTaskContainerTest extends Specification {
         container.create("task", DefaultTask)
 
         then:
-        def ex = thrown(RuntimeException)
-        ex.message == "Failing configureEach configuration rule"
+        def ex = thrown(GradleException)
+        ex.message == "Could not create task ':project:task'."
+        ex.cause.message == "Failing configureEach configuration rule"
 
         and:
         container.findByName("task") != null
@@ -1050,8 +1077,8 @@ class DefaultTaskContainerTest extends Specification {
         provider.get()
 
         then:
-        def ex = thrown(IllegalStateException)
-        ex.message == "Could not create task 'task' (DefaultTask)"
+        def ex = thrown(GradleException)
+        ex.message == "Could not create task ':project:task'."
         ex.cause.message == "Failing configureEach configuration rule"
 
         and:
@@ -1073,9 +1100,8 @@ class DefaultTaskContainerTest extends Specification {
         provider.get()
 
         then:
-        ex = thrown(IllegalStateException)
-        ex.message == "Could not create task 'task' (DefaultTask)"
-        ex.cause.message == "Failing configureEach configuration rule"
+        def ex2 = thrown(GradleException)
+        ex2.is(ex)
         0 * _
     }
 
@@ -1093,8 +1119,8 @@ class DefaultTaskContainerTest extends Specification {
         when:
         provider.get()
         then:
-        def ex = thrown(IllegalStateException)
-        ex.message == "Could not create task 'task' (DefaultTask)"
+        def ex = thrown(GradleException)
+        ex.message == "Could not create task ':project:task'."
         ex.cause.message == "Failing configureEach configuration rule"
         and:
         provider.isPresent()
@@ -1104,16 +1130,15 @@ class DefaultTaskContainerTest extends Specification {
         when:
         creationProvider.get()
         then:
-        ex = thrown(IllegalStateException)
-        ex.message == "Could not create task 'task' (DefaultTask)"
-        ex.cause.message == "Failing configureEach configuration rule"
+        def ex2 = thrown(GradleException)
+        ex2.is(ex)
 
         when:
         provider.get()
         then:
-        ex = thrown(IllegalStateException)
-        ex.message == "Could not create task 'task' (DefaultTask)"
-        ex.cause.message == "Failing configureEach configuration rule"
+        def ex3 = thrown(GradleException)
+        ex3.is(ex)
+
         0 * _
     }
 
