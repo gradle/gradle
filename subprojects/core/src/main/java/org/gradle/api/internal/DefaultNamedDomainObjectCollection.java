@@ -805,7 +805,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
                 return null;
             }
             if (failure != null) {
-                throw domainObjectCreationException(failure);
+                throw failure;
             }
             if (object == null) {
                 object = getType().cast(findByNameWithoutRules(getName()));
