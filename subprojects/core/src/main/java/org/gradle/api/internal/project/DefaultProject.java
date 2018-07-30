@@ -797,7 +797,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
             }
         };
         if (recursive) {
-            allprojects(action);
+            doAllprojects(action);
         } else {
             action.execute(this);
         }
