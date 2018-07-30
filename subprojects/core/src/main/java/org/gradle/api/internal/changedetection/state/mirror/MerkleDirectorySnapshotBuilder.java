@@ -18,6 +18,8 @@ package org.gradle.api.internal.changedetection.state.mirror;
 
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hashing;
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
@@ -27,6 +29,7 @@ import java.util.Deque;
 import java.util.List;
 
 public class MerkleDirectorySnapshotBuilder implements PhysicalSnapshotVisitor {
+    private static final HashCode DIR_SIGNATURE = Hashing.md5().hashString("DIR");
 
     private final RelativePathSegmentsTracker relativePathSegmentsTracker = new RelativePathSegmentsTracker();
     private final Deque<List<PhysicalSnapshot>> levelHolder = new ArrayDeque<List<PhysicalSnapshot>>();
@@ -87,7 +90,7 @@ public class MerkleDirectorySnapshotBuilder implements PhysicalSnapshotVisitor {
             Collections.sort(children, PhysicalSnapshot.BY_NAME);
         }
         BuildCacheHasher hasher = new DefaultBuildCacheHasher();
-        hasher.putHash(PhysicalDirectorySnapshot.SIGNATURE);
+        hasher.putHash(DIR_SIGNATURE);
         for (PhysicalSnapshot child : children) {
             hasher.putString(child.getName());
             hasher.putHash(child.getHash());

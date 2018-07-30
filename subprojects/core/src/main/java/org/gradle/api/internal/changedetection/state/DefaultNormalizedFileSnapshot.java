@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
@@ -30,7 +29,7 @@ public class DefaultNormalizedFileSnapshot extends AbstractNormalizedFileSnapsho
     }
 
     public DefaultNormalizedFileSnapshot(String normalizedPath, PhysicalSnapshot snapshot) {
-        this(normalizedPath, snapshot.getType(), snapshot.getType() == FileType.Directory ? PhysicalDirectorySnapshot.SIGNATURE : snapshot.getHash());
+        this(normalizedPath, snapshot.getType(), snapshot.getType() == FileType.Directory ? DIR_SIGNATURE : snapshot.getHash());
     }
 
     @Override

@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state.mirror;
 
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hashing;
 
 import java.util.List;
 
@@ -26,8 +25,6 @@ import java.util.List;
  * A file snapshot which can have children (i.e. a directory).
  */
 public class PhysicalDirectorySnapshot extends AbstractPhysicalSnapshot implements PhysicalSnapshot {
-    public static final HashCode SIGNATURE = Hashing.md5().hashString(PhysicalDirectorySnapshot.class.getName());
-
     private final List<PhysicalSnapshot> children;
     private final HashCode contentHash;
 

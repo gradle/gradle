@@ -37,7 +37,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
         builder.addFile(new File(basePath, "one/two/some.txt"), ["one", "two", "some.txt"] as String[], fileSnapshot('one/two', 'some.txt'))
         builder.addDir(new File(basePath, "three"), ["three"] as String[])
         builder.addFile(new File(basePath, "three/four.txt"), ["three", "four.txt"] as String[], fileSnapshot("three", "four.txt"))
-        Map<String, HashCode> files = [:]
+        Set<String> files = [] as Set
         Set<String> relativePaths = [] as Set
         def result = builder.build()
         result.accept(new PhysicalSnapshotVisitor() {
@@ -48,7 +48,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
                 def isRoot = relativePathTracker.root
                 relativePathTracker.enter(directorySnapshot)
                 if (!isRoot) {
-                    files[directorySnapshot.absolutePath] = PhysicalDirectorySnapshot.SIGNATURE
+                    files.add(directorySnapshot.absolutePath)
                     relativePaths.add(relativePathTracker.relativePath.join("/"))
                 }
                 return true
@@ -56,7 +56,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
 
             @Override
             void visit(PhysicalSnapshot fileSnapshot) {
-                files[fileSnapshot.absolutePath] = fileSnapshot.hash
+                files.add(fileSnapshot.absolutePath)
                 relativePathTracker.enter(fileSnapshot)
                 relativePaths.add(relativePathTracker.relativePath.join("/"))
                 relativePathTracker.leave()
@@ -69,7 +69,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
         })
 
         then:
-        normalizeFileSeparators(files.keySet()) == normalizeFileSeparators(expectedRelativePaths.collect { "${basePath}/$it".toString() } as Set)
+        normalizeFileSeparators(files) == normalizeFileSeparators(expectedRelativePaths.collect { "${basePath}/$it".toString() } as Set)
         relativePaths == expectedRelativePaths as Set
     }
 

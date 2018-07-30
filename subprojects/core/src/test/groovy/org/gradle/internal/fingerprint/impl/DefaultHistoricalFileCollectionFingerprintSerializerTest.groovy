@@ -19,9 +19,8 @@ package org.gradle.internal.fingerprint.impl
 import com.google.common.collect.ImmutableMultimap
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot
 import org.gradle.internal.file.FileType
+import org.gradle.internal.fingerprint.NormalizedFileSnapshot
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.SerializerSpec
 
@@ -34,14 +33,14 @@ class DefaultHistoricalFileCollectionFingerprintSerializerTest extends Serialize
         def hash = HashCode.fromInt(1234)
 
         def rootHashes = ImmutableMultimap.of(
-        "/1", PhysicalMissingSnapshot.SIGNATURE,
+        "/1", NormalizedFileSnapshot.MISSING_FILE_SIGNATURE,
         "/2", HashCode.fromInt(5678),
         "/3", HashCode.fromInt(1234))
         when:
         def out = serialize(new DefaultHistoricalFileCollectionFingerprint(
-            '/1': new DefaultNormalizedFileSnapshot("1", FileType.Directory, PhysicalDirectorySnapshot.SIGNATURE),
+            '/1': new DefaultNormalizedFileSnapshot("1", FileType.Directory, NormalizedFileSnapshot.DIR_SIGNATURE),
             '/2': IgnoredPathFingerprint.create(FileType.RegularFile, hash),
-            '/3': new DefaultNormalizedFileSnapshot("/3", FileType.Missing, PhysicalMissingSnapshot.SIGNATURE),
+            '/3': new DefaultNormalizedFileSnapshot("/3", FileType.Missing, NormalizedFileSnapshot.DIR_SIGNATURE),
             strategy, rootHashes
         ), serializer)
 
@@ -50,7 +49,7 @@ class DefaultHistoricalFileCollectionFingerprintSerializerTest extends Serialize
         out.snapshots['/1'].with {
             type == FileType.Directory
             normalizedPath == "1"
-            normalizedContentHash == PhysicalDirectorySnapshot.SIGNATURE
+            normalizedContentHash == NormalizedFileSnapshot.DIR_SIGNATURE
         }
         out.snapshots['/2'].with {
             type == FileType.RegularFile
@@ -60,7 +59,7 @@ class DefaultHistoricalFileCollectionFingerprintSerializerTest extends Serialize
         out.snapshots['/3'].with {
             type == FileType.Missing
             normalizedPath == "/3"
-            normalizedContentHash == PhysicalMissingSnapshot.SIGNATURE
+            normalizedContentHash == NormalizedFileSnapshot.MISSING_FILE_SIGNATURE
         }
         out.compareStrategy == strategy
         out.rootHashes == rootHashes
@@ -74,11 +73,11 @@ class DefaultHistoricalFileCollectionFingerprintSerializerTest extends Serialize
         DefaultHistoricalFileCollectionFingerprint out = serialize(new DefaultHistoricalFileCollectionFingerprint(
             "/3": new DefaultNormalizedFileSnapshot('3', FileType.RegularFile, HashCode.fromInt(1234)),
             "/2": new DefaultNormalizedFileSnapshot('/2', FileType.RegularFile, HashCode.fromInt(5678)),
-            "/1": new DefaultNormalizedFileSnapshot('1', FileType.Missing, PhysicalMissingSnapshot.SIGNATURE),
+            "/1": new DefaultNormalizedFileSnapshot('1', FileType.Missing, NormalizedFileSnapshot.MISSING_FILE_SIGNATURE),
             FingerprintCompareStrategy.ABSOLUTE, ImmutableMultimap.of(
             "/3", HashCode.fromInt(1234),
             "/2", HashCode.fromInt(5678),
-            "/1", PhysicalMissingSnapshot.SIGNATURE)
+            "/1", NormalizedFileSnapshot.MISSING_FILE_SIGNATURE)
         ), serializer)
 
         then:
