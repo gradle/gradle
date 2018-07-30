@@ -92,11 +92,10 @@ public class MirrorUpdatingDirectoryWalker {
                 @Override
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
                     String name = stringInterner.intern(dir.getFileName().toString());
-                    if (builder.isRoot() || (!defaultExcludes.excludeDir(name) && isAllowed(dir, name, true, attrs, builder.getRelativePathSegmentsTracker()))) {
+                    if (builder.isRoot() || isAllowed(dir, name, true, attrs, builder.getRelativePathSegmentsTracker())) {
                         builder.preVisitDirectory(internedAbsolutePath(dir), name);
                         return FileVisitResult.CONTINUE;
                     } else {
-                        hasBeenFiltered.set(true);
                         return FileVisitResult.SKIP_SUBTREE;
                     }
                 }
@@ -104,7 +103,7 @@ public class MirrorUpdatingDirectoryWalker {
                 @Override
                 public FileVisitResult visitFile(Path file, @Nullable BasicFileAttributes attrs) {
                     String name = stringInterner.intern(file.getFileName().toString());
-                    if (!defaultExcludes.excludeFile(name) && isAllowed(file, name, false, attrs, builder.getRelativePathSegmentsTracker())) {
+                    if (isAllowed(file, name, false, attrs, builder.getRelativePathSegmentsTracker())) {
                         if (attrs == null) {
                             throw new GradleException(String.format("Cannot read file '%s': not authorized.", file));
                         }
@@ -113,8 +112,6 @@ public class MirrorUpdatingDirectoryWalker {
                             throw new GradleException(String.format("Could not list contents of '%s'. Couldn't follow symbolic link.", file));
                         }
                         addFileSnapshot(file, name, attrs);
-                    } else {
-                        hasBeenFiltered.set(true);
                     }
                     return FileVisitResult.CONTINUE;
                 }
@@ -159,12 +156,22 @@ public class MirrorUpdatingDirectoryWalker {
                 }
 
                 private boolean isAllowed(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, RelativePathSegmentsTracker relativePath) {
+                    if (isDirectory) {
+                        if (defaultExcludes.excludeDir(name)) {
+                            return false;
+                        }
+                    } else if (defaultExcludes.excludeFile(name)) {
+                        return false;
+                    }
                     if (spec == null) {
                         return true;
                     }
                     relativePath.enter(name);
                     boolean allowed = spec.isSatisfiedBy(new PathBackedFileTreeElement(path, name, isDirectory, attrs, relativePath.getRelativePath(), fileSystem));
                     relativePath.leave();
+                    if (!allowed) {
+                        hasBeenFiltered.set(true);
+                    }
                     return allowed;
                 }
             });
