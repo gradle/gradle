@@ -519,6 +519,22 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     Task task(String name, Closure configureClosure);
 
     /**
+     * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
+     * action is executed to configure the task.</p> <p>After the task is added to the project, it is made
+     * available as a property of the project, so that you can reference the task by name in your build file.  See <a
+     * href="#properties">here</a> for more details</p>
+     *
+     * @param name The name of the task to be created
+     * @param configureAction The action to use to configure the created task.
+     * @return The newly created task object
+     * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @see TaskContainer#create(String, Action)
+     * @since 4.10
+     */
+    @Incubating
+    Task task(String name, Action<? super Task> configureAction);
+
+    /**
      * <p>Returns the path of this project.  The path is the fully qualified name of the project.</p>
      *
      * @return The path. Never returns null.
