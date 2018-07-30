@@ -421,7 +421,7 @@ Failing to specify the region-specific endpoint for buckets requiring V4 signatu
 [[sub:s3_cross_account]]
 ==== AWS S3 Cross Account Access
 
-Some organizations may have multiple AWS accounts, e.g. one for each team. The repository bucket's account is often different from the artifact publisher's and consumers'. The bucket owner needs to be able to grant consumer accounts access to the uploaded objects. This is done by adding the `bucket-owner-full-control` link:https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl[Canned ACL] to the uploaded objects. Gradle will do this in every upload. Make sure the publisher has the required IAM permissions (`PutObject` and `PutObjectAcl`). You can read more at link:https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-access-control.html[AWS S3 Access Permissions].
+Some organizations may have multiple AWS accounts, e.g. one for each team. The AWS account of the bucket owner is often different from the artifact publisher and consumers. The bucket owner needs to be able to grant the consumers access otherwise the artifacts will only be usable by the publisher's account. This is done by adding the `bucket-owner-full-control` link:https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl[Canned ACL] to the uploaded objects. Gradle will do this in every upload. Make sure the publisher has the required IAM permission, `PutObjectAcl` (and `PutObjectVersionAcl` if bucket versioning is enabled), either directly or via an assumed IAM Role (depending on your case). You can read more at link:https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-access-control.html[AWS S3 Access Permissions].
 
 [[sub:gcs_configuration_properties]]
 === Google Cloud Storage configuration properties

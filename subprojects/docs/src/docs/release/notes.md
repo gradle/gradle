@@ -89,7 +89,7 @@ Instances of this class are intended to be created only by the `base` plugin and
 
 Instances of this class are intended to be created only by the `project-reports` plugin and should not be created directly. Creating instances using the constructor of `ProjectReportsPluginConvention` will become an error in Gradle 5.0. The class itself is not deprecated and it is still be possible to use the instances created by the `project-reports` plugin.
 
-### Adding tasks via TaskContainer.add() and TaskContainer.addAll() 
+### Adding tasks via TaskContainer.add() and TaskContainer.addAll()
 
 These methods have been deprecated and the `create()` or `register()` methods should be used instead.
 
@@ -113,6 +113,28 @@ The following hooks are disallowed when called from these new APIs:
 - `project.gradle.allprojects(Action)`
 
 If you attempt to call any of these methods an exception will be thrown. Gradle restricts these APIs because mixing these APIs with lazy configuration can cause hard to diagnose build failures and complexity.
+
+### Cross Account AWS S3 Artifact Publishing
+
+S3 [repository transport protocols](https://docs.gradle.org/current/userguide/repository_types.html#sub:supported_transport_protocols) allows gradle to publish artifacts to an AWS S3 bucket. Starting with this release, every artifats uploaded to an S3 bucket will be equipped with `bucket-owner-full-control` ACL. Make sure the used AWS credential can do `PutObjectAcl` and `s3:PutObjectVersionAcl` to ensure successful artifacts uploads.
+```json
+{
+   "Version":"2012-10-17",
+   "Statement":[
+    // ...
+      {
+         "Effect":"Allow",
+         "Action":[
+            "s3:PutObject", // necessary for uploading objects
+            "s3:PutObjectAcl", // required starting with this release
+            "s3:PutObjectVersionAcl", // required if S3 bucket versioning is enabled
+         ],
+         "Resource":"arn:aws:s3:::myCompanyBucket/*"
+      }
+   ]
+}
+```
+See the User guide section on the “[Repository Types](userguide/repository_types.html#sub:s3_cross_account)” for more information.
 
 ## External contributions
 
