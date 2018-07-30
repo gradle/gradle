@@ -121,12 +121,21 @@ class KotlinClosure2<in T : Any?, in U : Any?, V : Any>(
 }
 
 
+/**
+ * Enables function invocation syntax on [Closure] references.
+ */
 operator fun <T> Closure<T>.invoke(): T = call()
 
 
+/**
+ * Enables function invocation syntax on [Closure] references.
+ */
 operator fun <T> Closure<T>.invoke(x: Any?): T = call(x)
 
 
+/**
+ * Enables function invocation syntax on [Closure] references.
+ */
 operator fun <T> Closure<T>.invoke(vararg xs: Any?): T = call(*xs)
 
 
@@ -167,6 +176,9 @@ interface GroovyBuilderScope : GroovyObject {
 
     companion object {
 
+        /**
+         * Creates a [GroovyBuilderScope] for the given [value].
+         */
         fun of(value: Any): GroovyBuilderScope =
             when (value) {
                 is GroovyObject -> GroovyBuilderScopeForGroovyObject(value)
@@ -174,22 +186,43 @@ interface GroovyBuilderScope : GroovyObject {
             }
     }
 
+    /**
+     * The delegate of this [GroovyBuilderScope].
+     */
     val delegate: Any
 
+    /**
+     * Invokes with Groovy semantics and [arguments].
+     */
     operator fun String.invoke(vararg arguments: Any?): Any?
 
+    /**
+     * Invokes with Groovy semantics and no arguments.
+     */
     operator fun String.invoke(): Any? =
         invoke(*emptyArray<Any>())
 
+    /**
+     * Invokes with Groovy semantics, [arguments] and provides a nested [GroovyBuilderScope].
+     */
     operator fun <T> String.invoke(vararg arguments: Any?, builder: GroovyBuilderScope.() -> T): Any? =
         invoke(*arguments, closureFor(builder))
 
+    /**
+     * Invokes with Groovy semantics, no arguments, and provides a nested [GroovyBuilderScope].
+     */
     operator fun <T> String.invoke(builder: GroovyBuilderScope.() -> T): Any? =
         invoke(closureFor(builder))
 
+    /**
+     * Invokes with Groovy semantics, named [keywordArguments], and provides a nested [GroovyBuilderScope].
+     */
     operator fun <T> String.invoke(vararg keywordArguments: Pair<String, Any?>, builder: GroovyBuilderScope.() -> T): Any? =
         invoke(keywordArguments.toMap(), closureFor(builder))
 
+    /**
+     * Invokes with Groovy semantics and named [keywordArguments].
+     */
     operator fun String.invoke(vararg keywordArguments: Pair<String, Any?>): Any? =
         invoke(keywordArguments.toMap())
 

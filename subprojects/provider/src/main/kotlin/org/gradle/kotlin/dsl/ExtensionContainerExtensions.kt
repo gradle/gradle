@@ -56,6 +56,9 @@ inline fun <reified T : Any> ExtensionContainer.getByName(name: String) =
     }
 
 
+/**
+ * Delegated property getter that locates extensions.
+ */
 inline operator fun <reified T : Any> ExtensionContainer.getValue(thisRef: Any?, property: KProperty<*>): T =
     getByName<T>(property.name)
 

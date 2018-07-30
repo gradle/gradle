@@ -35,6 +35,9 @@ val ExtensionAware.extra: ExtraPropertiesExtension
     get() = extensions.extraProperties
 
 
+/**
+ * Provides property delegate for typed access to extra properties.
+ */
 operator fun ExtraPropertiesExtension.provideDelegate(receiver: Any?, property: KProperty<*>): MutablePropertyDelegate =
     if (property.returnType.isMarkedNullable) NullableExtraPropertyDelegate(this, property.name)
     else NonNullExtraPropertyDelegate(this, property.name)
@@ -92,6 +95,9 @@ operator fun <T> ExtraPropertiesExtension.invoke(initialValue: T): InitialValueE
     InitialValueExtraPropertyDelegateProvider(this, initialValue)
 
 
+/**
+ * Enables typed access to extra properties with initial value.
+ */
 class InitialValueExtraPropertyDelegateProvider<T>(
     val extra: ExtraPropertiesExtension,
     val initialValue: T

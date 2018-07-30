@@ -36,18 +36,50 @@ inline fun <reified T : Any> Convention.getPluginByName(name: String): T =
     } ?: throw IllegalStateException("A convention named '$name' could not be found.")
 
 
-inline fun <reified T : Any> Convention.getPlugin() =
+/**
+ * Locates the plugin convention object with the given type.
+ *
+ * @param T the convention plugin type
+ * @return the convention plugin
+ * @throws [IllegalStateException] when there is no such object contained in this convention, or when there are multiple such objects
+ * @see [Convention.getPlugin]
+ */
+inline fun <reified T : Any> Convention.getPlugin(): T =
     getPlugin(T::class)
 
 
+/**
+ * Locates the plugin convention object with the given type.
+ *
+ * @param conventionType the convention plugin type
+ * @return the convention plugin
+ * @throws [IllegalStateException] when there is no such object contained in this convention, or when there are multiple such objects
+ * @see [Convention.getPlugin]
+ */
 fun <T : Any> Convention.getPlugin(conventionType: KClass<T>): T =
     getPlugin(conventionType.java)
 
 
-inline fun <reified T : Any> Convention.findPlugin() =
+/**
+ * Locates the plugin convention object with the given type.
+ *
+ * @param T the convention plugin type.
+ * @return the convention plugin, or null if there is no such convention plugin
+ * @throws [IllegalStateException] when there are multiple matching objects
+ * @see [Convention.findPlugin]
+ */
+inline fun <reified T : Any> Convention.findPlugin(): T? =
     findPlugin(T::class)
 
 
+/**
+ * Locates the plugin convention object with the given type.
+ *
+ * @param conventionType the convention plugin type.
+ * @return the convention plugin, or null if there is no such convention plugin
+ * @throws [IllegalStateException] when there are multiple matching objects
+ * @see [Convention.findPlugin]
+ */
 fun <T : Any> Convention.findPlugin(conventionType: KClass<T>): T? =
     findPlugin(conventionType.java)
 
@@ -67,6 +99,6 @@ inline fun <ConventionType : Any, ReturnType> Any.withConvention(
     function: ConventionType.() -> ReturnType
 ): ReturnType =
     when (this) {
-        is HasConvention -> convention.getPlugin(conventionType).run(function)
+        is HasConvention -> convention.getPlugin(conventionType.java).run(function)
         else -> throw IllegalStateException("Object `$this` doesn't support conventions!")
     }

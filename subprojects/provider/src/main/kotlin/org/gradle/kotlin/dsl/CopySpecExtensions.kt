@@ -21,10 +21,19 @@ import org.gradle.api.file.CopySpec
 import java.io.FilterReader
 
 
-// Interim extensions until those methods are added to CopySpec
+/**
+ * Adds a content filter to be used during the copy.
+ *
+ * @see [CopySpec.filter]
+ */
 inline fun <reified T : FilterReader> CopySpec.filter(vararg properties: Pair<String, Any?>) =
     filter(mapOf(*properties), T::class.java)
 
 
+/**
+ * Adds a content filter to be used during the copy.
+ *
+ * @see [CopySpec.filter]
+ */
 inline fun <reified T : FilterReader> CopySpec.filter(properties: Map<String, Any?>) =
     filter(properties, T::class.java)
