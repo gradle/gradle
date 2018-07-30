@@ -164,7 +164,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def result = toList(container)
 
         then:
-        result == iterationOrder(b, c, a, d)
+        result == iterationOrder(b, a, d, c)
 
         and:
         1 * provider1.get() >> a
@@ -256,7 +256,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def result2 = toList(container)
 
         then:
-        result2 == iterationOrder(c, d, a)
+        result2 == iterationOrder(c, a, d)
         0 * provider._
     }
 
@@ -285,7 +285,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def result2 = toList(container)
 
         then:
-        result2 == iterationOrder(c, d, a)
+        result2 == iterationOrder(c, a, d)
         1 * provider.get() >> a
         0 * provider._
     }

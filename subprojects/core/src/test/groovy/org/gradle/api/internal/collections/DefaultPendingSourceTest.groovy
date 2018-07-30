@@ -29,6 +29,9 @@ class DefaultPendingSourceTest extends Specification {
 
     def setup() {
         pending.onRealize(realize)
+        _ * provider1.get() >> "provider1"
+        _ * provider2.get() >> "provider2"
+        _ * provider3.get() >> "provider3"
     }
 
     def "realizes pending elements on flush"() {
@@ -39,9 +42,9 @@ class DefaultPendingSourceTest extends Specification {
         pending.realizePending()
 
         then:
-        1 * realize.execute(provider1)
-        1 * realize.execute(provider2)
-        1 * realize.execute(provider3)
+        1 * realize.execute("provider1")
+        1 * realize.execute("provider2")
+        1 * realize.execute("provider3")
 
         and:
         pending.isEmpty()
@@ -59,9 +62,9 @@ class DefaultPendingSourceTest extends Specification {
         pending.realizePending(SomeType.class)
 
         then:
-        1 * realize.execute(provider1)
-        0 * realize.execute(provider2)
-        1 * realize.execute(provider3)
+        1 * realize.execute("provider1")
+        0 * realize.execute("provider2")
+        1 * realize.execute("provider3")
 
         and:
         pending.size() == 1
@@ -95,9 +98,9 @@ class DefaultPendingSourceTest extends Specification {
         pending.realizePending()
 
         then:
-        0 * realize.execute(provider1)
-        1 * realize.execute(provider2)
-        1 * realize.execute(provider3)
+        0 * realize.execute("provider1")
+        1 * realize.execute("provider2")
+        1 * realize.execute("provider3")
 
         and:
         pending.isEmpty()
@@ -118,27 +121,6 @@ class DefaultPendingSourceTest extends Specification {
 
         then:
         0 * realize.execute()
-    }
-
-    def "can handle realizing elements that modify the list of pending elements"() {
-        def pending1Called = false
-
-        given:
-        pending.addPending(provider1)
-        pending.onRealize(new Action<ProviderInternal>() {
-            @Override
-            void execute(ProviderInternal providerInternal) {
-                pending1Called = true
-                pending.addPending(provider2)
-            }
-        })
-
-        when:
-        pending.realizePending()
-
-        then:
-        pending1Called
-        !pending.isEmpty()
     }
 
     class BaseType {}

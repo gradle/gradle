@@ -81,6 +81,11 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     }
 
     @Override
+    public boolean addRealized(T element) {
+        return values.add(element);
+    }
+
+    @Override
     public boolean remove(Object o) {
         return values.remove(o);
     }
@@ -102,17 +107,22 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     }
 
     @Override
-    public void addPending(ProviderInternal<? extends T> provider) {
-        pending.addPending(provider);
+    public boolean addPending(ProviderInternal<? extends T> provider) {
+        return pending.addPending(provider);
     }
 
     @Override
-    public void removePending(ProviderInternal<? extends T> provider) {
-        pending.removePending(provider);
+    public boolean removePending(ProviderInternal<? extends T> provider) {
+        return pending.removePending(provider);
     }
 
     @Override
-    public void onRealize(Action<ProviderInternal<? extends T>> action) {
+    public void onRealize(Action<T> action) {
         pending.onRealize(action);
+    }
+
+    @Override
+    public void realizeExternal(ProviderInternal<? extends T> provider) {
+        pending.realizeExternal(provider);
     }
 }

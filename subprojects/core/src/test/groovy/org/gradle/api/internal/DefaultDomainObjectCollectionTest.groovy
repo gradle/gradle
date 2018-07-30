@@ -18,6 +18,7 @@ package org.gradle.api.internal
 
 import org.gradle.api.Action
 import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSource
+import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.specs.Spec
 
 import static org.gradle.util.WrapUtil.toList
@@ -286,6 +287,33 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         then:
         1 * action.execute("b")
         0 * action._
+
+        and:
+        toList(container) == ["a"]
+    }
+
+    def callsRemoveActionWhenObjectRemovedUsingIteratorNoFlushAndLastElementIsUnrealized() {
+        def action = Mock(Action)
+        def provider = Mock(ProviderInternal)
+        _ * provider.get() >> "c"
+
+        container.whenObjectRemoved(action)
+        container.add("a")
+        container.add("b")
+        container.addLater(provider)
+
+        def iterator = container.iteratorNoFlush()
+        while(iterator.hasNext()) { iterator.next() }
+
+        when:
+        iterator.remove()
+
+        then:
+        1 * action.execute("b")
+        0 * action._
+
+        and:
+        toList(container) == ["a", "c"]
     }
 
     def allCallsActionForEachExistingObject() {

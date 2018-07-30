@@ -54,10 +54,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         this.type = type;
         this.store = store;
         this.eventRegister = eventRegister;
-        this.store.onRealize(new Action<ProviderInternal<? extends T>>() {
+        this.store.onRealize(new Action<T>() {
             @Override
-            public void execute(ProviderInternal<? extends T> provider) {
-                doAdd(provider.get(), eventRegister.getAddActions());
+            public void execute(T value) {
+                doAddRealized(value, eventRegister.getAddActions());
             }
         });
     }
@@ -67,7 +67,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     protected void realized(ProviderInternal<? extends T> provider) {
-        getStore().removePending(provider);
+        getStore().realizeExternal(provider);
     }
 
     public Class<? extends T> getType() {
@@ -228,6 +228,16 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     private <I extends T> boolean doAdd(I toAdd, Action<? super I> notification) {
         if (getStore().add(toAdd)) {
+            didAdd(toAdd);
+            notification.execute(toAdd);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private <I extends T> boolean doAddRealized(I toAdd, Action<? super I> notification) {
+        if (getStore().addRealized(toAdd)) {
             didAdd(toAdd);
             notification.execute(toAdd);
             return true;
