@@ -38,11 +38,22 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      *
      * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
      *
-     * @param provider A {@link Provider} that can provider the element when required.
+     * @param provider A {@link Provider} that can provide the element when required.
      * @since 4.8
      */
     @Incubating
     void addLater(Provider<? extends T> provider);
+
+    /**
+     * Adds an element to this collection, given a {@link Provider} of {@link Iterable} that will provide the elements when required.
+     *
+     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
+     *
+     * @param provider A {@link Provider} of {@link Iterable} that can provide the elements when required.
+     * @since 4.10
+     */
+    @Incubating
+    void addAllLater(Provider<? extends Iterable<T>> provider);
 
     /**
      * Returns a collection containing the objects in this collection of the given type.  The returned collection is

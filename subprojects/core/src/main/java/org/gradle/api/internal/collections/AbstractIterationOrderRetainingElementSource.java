@@ -18,11 +18,14 @@ package org.gradle.api.internal.collections;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
+import org.gradle.api.internal.provider.Collector;
+import org.gradle.api.internal.provider.Collectors.*;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -52,12 +55,16 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
     @Override
     public int size() {
-        return inserted.size();
+        int count = 0;
+        for (Element<T> element : inserted) {
+            count += element.size();
+        }
+        return count;
     }
 
     @Override
     public int estimatedSize() {
-        return inserted.size();
+        return size();
     }
 
     @Override
@@ -77,10 +84,10 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
     @Override
     public boolean remove(Object o) {
-        Iterator<Element<T>> iterator = inserted.iterator();
+        Iterator<T> iterator = iteratorNoFlush();
         while (iterator.hasNext()) {
-            Element<? extends T> provider = iterator.next();
-            if (provider.isRealized() && provider.getValue().equals(o)) {
+            T value = iterator.next();
+            if (value.equals(o)) {
                 iterator.remove();
                 return true;
             }
@@ -117,15 +124,23 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     Element<T> cachingElement(ProviderInternal<? extends T> provider) {
-        return new CachingElement<T>(provider, realizeAction);
+        return new Element<T>(provider.getType(), new ElementFromProvider<T>(provider), realizeAction);
+    }
+
+    Element<T> cachingElement(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+        return new Element<T>(provider.getElementType(), new ElementsFromCollectionProvider<T>(provider), realizeAction);
     }
 
     @Override
     public boolean removePending(ProviderInternal<? extends T> provider) {
+        return removeByProvider(provider);
+    }
+
+    private boolean removeByProvider(ProviderInternal<?> provider) {
         Iterator<Element<T>> iterator = inserted.iterator();
         while (iterator.hasNext()) {
             Element<T> next = iterator.next();
-            if (next.caches(provider)) {
+            if (next.isProvidedBy(provider)) {
                 iterator.remove();
                 return true;
             }
@@ -134,29 +149,26 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     @Override
-    public void onRealize(final Action<T> action) {
-        this.realizeAction = action;
+    public boolean removePendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+        return removeByProvider(provider);
     }
 
-    protected interface Element<T> {
-        boolean isRealized();
-        boolean caches(ProviderInternal<? extends T> provider);
-        void realize();
-        Class<? extends T> getType();
-        T getValue();
-        boolean isDuplicate();
-        void setDuplicate(boolean isDuplicate);
+    @Override
+    public void onRealize(final Action<T> action) {
+        this.realizeAction = action;
     }
 
     // TODO Check for comodification with the ElementSource
     protected static class RealizedElementCollectionIterator<T> implements Iterator<T> {
         final List<Element<T>> backingList;
-        final Spec<Element<T>> acceptanceSpec;
+        final Spec<ValuePointer<T>> acceptanceSpec;
         int nextIndex = -1;
+        int nextSubIndex = -1;
         int previousIndex = -1;
+        int previousSubIndex = -1;
         T next;
 
-        RealizedElementCollectionIterator(List<Element<T>> backingList, Spec<Element<T>> acceptanceSpec) {
+        RealizedElementCollectionIterator(List<Element<T>> backingList, Spec<ValuePointer<T>> acceptanceSpec) {
             this.backingList = backingList;
             this.acceptanceSpec = acceptanceSpec;
             updateNext();
@@ -168,14 +180,27 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         }
 
         private void updateNext() {
-            int i = nextIndex + 1;
+            if (nextIndex == -1) {
+                nextIndex = 0;
+            }
+
+            int i = nextIndex;
             while (i < backingList.size()) {
                 Element<T> candidate = backingList.get(i);
-                if (candidate.isRealized() && acceptanceSpec.isSatisfiedBy(candidate)) {
-                    T value = candidate.getValue();
-                        nextIndex = i;
-                        next = value;
-                        return;
+                if (candidate.isRealized()) {
+                    List<T> collected = collectFrom(candidate);
+                    int j = nextSubIndex + 1;
+                    while (j < collected.size()) {
+                        T value = collected.get(j);
+                        if (acceptanceSpec.isSatisfiedBy(new ValuePointer<T>(candidate, j))) {
+                            nextIndex = i;
+                            nextSubIndex = j;
+                            next = value;
+                            return;
+                        }
+                        j++;
+                    }
+                    nextSubIndex = -1;
                 }
                 i++;
             }
@@ -190,87 +215,97 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             }
             T thisNext = next;
             previousIndex = nextIndex;
+            previousSubIndex = nextSubIndex;
             updateNext();
             return thisNext;
+        }
+
+        List<T> collectFrom(Element<T> element) {
+            List<T> collected = Lists.newArrayList();
+            element.collectInto(collected);
+            return collected;
         }
 
         @Override
         public void remove() {
             if (previousIndex > -1) {
-                backingList.remove(previousIndex);
+                Element<T> element = backingList.get(previousIndex);
+                List<T> collected = collectFrom(element);
+                if (collected.size() > 1) {
+                    element.remove(collected.get(previousSubIndex));
+                    nextSubIndex--;
+                } else {
+                    backingList.remove(previousIndex);
+                    nextIndex--;
+                }
                 previousIndex = -1;
-                nextIndex--;
+                previousSubIndex = -1;
             } else {
                 throw new IllegalStateException();
             }
         }
     }
 
-    protected static class CachingElement<T> implements Element<T> {
-        private final ProviderInternal<? extends T> delegate;
-        private T value;
+    protected static class Element<T> extends TypedCollector<T> {
+        private List<T> cache = Lists.newArrayList();
+        private List<T> removed = Lists.newArrayList();
+        private List<Integer> duplicates = Lists.newArrayList();
         private boolean realized;
         private final Action<T> realizeAction;
-        private boolean duplicate;
 
-        CachingElement(final ProviderInternal<? extends T> delegate, Action<T> realizeAction) {
-            this.delegate = delegate;
+        Element(Class<? extends T> type, Collector<T> delegate, Action<T> realizeAction) {
+            super(type, delegate);
             this.realizeAction = realizeAction;
         }
 
-        CachingElement(T value) {
-            this.value = value;
-            this.realized = true;
+        Element(T value) {
+            super(null, new SingleElement<T>(value));
             this.realizeAction = null;
-            this.delegate = null;
+            realize();
         }
 
-        public Class<? extends T> getType() {
-            if (delegate != null) {
-                return delegate.getType();
-            } else {
-                return null;
-            }
-        }
-
-        @Override
         public boolean isRealized() {
             return realized;
         }
 
-        @Override
         public void realize() {
-            if (value == null && delegate != null) {
-                value = delegate.get();
+            if (cache.isEmpty()) {
+                super.collectInto(cache);
+                cache.removeAll(removed);
                 realized = true;
                 if (realizeAction != null) {
-                    realizeAction.execute(value);
+                    for (T element : cache) {
+                        realizeAction.execute(element);
+                    }
                 }
             }
         }
 
-        @Nullable
         @Override
-        public T getValue() {
+        public void collectInto(Collection<T> collection) {
             if (!realized) {
                 realize();
             }
-            return value;
+            collection.addAll(cache);
         }
 
         @Override
-        public boolean caches(ProviderInternal<? extends T> provider) {
-            return Objects.equal(delegate, provider);
+        public boolean maybeCollectInto(Collection<T> collection) {
+            collectInto(collection);
+            return true;
         }
 
-        @Override
-        public boolean isDuplicate() {
-            return duplicate;
+        public boolean remove(T value) {
+            removed.add(value);
+            return cache.remove(value);
         }
 
-        @Override
-        public void setDuplicate(boolean isDuplicate) {
-            this.duplicate = isDuplicate;
+        public boolean isDuplicate(int index) {
+            return duplicates.contains(index);
+        }
+
+        public void setDuplicate(int index) {
+            duplicates.add(index);
         }
 
         @Override
@@ -281,14 +316,32 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            IterationOrderRetainingSetElementSource.CachingElement that = (IterationOrderRetainingSetElementSource.CachingElement) o;
+            Element that = (Element) o;
             return Objects.equal(delegate, that.delegate) &&
-                Objects.equal(value, that.value);
+                Objects.equal(cache, that.cache);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(delegate, value);
+            return Objects.hashCode(delegate, cache);
+        }
+    }
+
+    protected static class ValuePointer<T> {
+        private final Element<T> element;
+        private final Integer index;
+
+        public ValuePointer(Element<T> element, Integer index) {
+            this.element = element;
+            this.index = index;
+        }
+
+        public Element<T> getElement() {
+            return element;
+        }
+
+        public Integer getIndex() {
+            return index;
         }
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 
 import java.util.Collection;
@@ -114,6 +115,16 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     @Override
     public boolean removePending(ProviderInternal<? extends T> provider) {
         return pending.removePending(provider);
+    }
+
+    @Override
+    public boolean addPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+        return pending.addPendingCollection(provider);
+    }
+
+    @Override
+    public boolean removePendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+        return pending.removePendingCollection(provider);
     }
 
     @Override
