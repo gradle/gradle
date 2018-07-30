@@ -77,7 +77,7 @@ public class MirrorUpdatingDirectoryWalker {
                 @Override
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
                     String name = stringInterner.intern(dir.getFileName().toString());
-                    if (builder.isRoot() || isAllowed(dir, name, true, attrs, builder.getRelativePathSegmentsTracker())) {
+                    if (builder.isRoot() || isAllowed(dir, name, true, attrs, builder.getRelativePath())) {
                         builder.preVisitDirectory(internedAbsolutePath(dir), name);
                         return FileVisitResult.CONTINUE;
                     } else {
@@ -88,7 +88,7 @@ public class MirrorUpdatingDirectoryWalker {
                 @Override
                 public FileVisitResult visitFile(Path file, @Nullable BasicFileAttributes attrs) {
                     String name = stringInterner.intern(file.getFileName().toString());
-                    if (isAllowed(file, name, false, attrs, builder.getRelativePathSegmentsTracker())) {
+                    if (isAllowed(file, name, false, attrs, builder.getRelativePath())) {
                         if (attrs == null) {
                             throw new GradleException(String.format("Cannot read file '%s': not authorized.", file));
                         }
@@ -106,7 +106,7 @@ public class MirrorUpdatingDirectoryWalker {
                     // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue
                     // so we include all the other files apart from the loop.
                     // This way, we include each file only once.
-                    if (isNotFileSystemLoopException(exc) && isAllowed(file, file.getFileName().toString(), false, null, builder.getRelativePathSegmentsTracker())) {
+                    if (isNotFileSystemLoopException(exc) && isAllowed(file, file.getFileName().toString(), false, null, builder.getRelativePath())) {
                         throw new GradleException(String.format("Could not read path '%s'.", file), exc);
                     }
                     return FileVisitResult.CONTINUE;
@@ -140,7 +140,7 @@ public class MirrorUpdatingDirectoryWalker {
                     return stringInterner.intern(file.toString());
                 }
 
-                private boolean isAllowed(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, RelativePathSegmentsTracker relativePath) {
+                private boolean isAllowed(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath) {
                     if (isDirectory) {
                         if (defaultExcludes.excludeDir(name)) {
                             return false;
@@ -151,9 +151,7 @@ public class MirrorUpdatingDirectoryWalker {
                     if (spec == null) {
                         return true;
                     }
-                    relativePath.enter(name);
-                    boolean allowed = spec.isSatisfiedBy(new PathBackedFileTreeElement(path, name, isDirectory, attrs, relativePath.getRelativePath(), fileSystem));
-                    relativePath.leave();
+                    boolean allowed = spec.isSatisfiedBy(new PathBackedFileTreeElement(path, name, isDirectory, attrs, relativePath, fileSystem));
                     if (!allowed) {
                         hasBeenFiltered.set(true);
                     }
@@ -307,7 +305,14 @@ public class MirrorUpdatingDirectoryWalker {
 
         @Override
         public RelativePath getRelativePath() {
-            return new RelativePath(!isDirectory, Iterables.toArray(relativePath, String.class));
+            String[] segments = new String[Iterables.size(relativePath) + 1];
+            int i = 0;
+            for (String segment : relativePath) {
+                segments[i] = segment;
+                i++;
+            }
+            segments[i] = name;
+            return new RelativePath(!isDirectory, segments);
         }
 
         @Override

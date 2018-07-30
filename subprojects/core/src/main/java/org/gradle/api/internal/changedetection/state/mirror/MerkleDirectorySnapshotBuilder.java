@@ -109,8 +109,8 @@ public class MerkleDirectorySnapshotBuilder implements PhysicalSnapshotVisitor {
         return relativePathSegmentsTracker.isRoot();
     }
 
-    public RelativePathSegmentsTracker getRelativePathSegmentsTracker() {
-        return relativePathSegmentsTracker;
+    public Iterable<String> getRelativePath() {
+        return relativePathSegmentsTracker.getRelativePath();
     }
 
     @Nullable
