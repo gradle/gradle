@@ -213,6 +213,11 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
 
         @Override
+        public boolean addRealized(T element) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public boolean remove(Object o) {
             throw new UnsupportedOperationException();
         }
@@ -277,7 +282,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
 
         @Override
-        public void addPending(ProviderInternal<? extends T> provider) {
+        public boolean addPending(ProviderInternal<? extends T> provider) {
             throw new UnsupportedOperationException();
         }
 
@@ -287,7 +292,12 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
 
         @Override
-        public void onRealize(Action<ProviderInternal<? extends T>> action) {
+        public void onRealize(Action<T> action) {
+
+        }
+
+        @Override
+        public void realizeExternal(ProviderInternal<? extends T> provider) {
 
         }
     }

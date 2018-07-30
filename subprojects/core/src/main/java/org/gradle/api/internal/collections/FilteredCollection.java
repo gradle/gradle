@@ -38,6 +38,11 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
     }
 
     @Override
+    public boolean addRealized(S o) {
+        throw new UnsupportedOperationException(String.format("Cannot add '%s' to '%s' as it is a filtered collection", o, this));
+    }
+
+    @Override
     public void clear() {
         throw new UnsupportedOperationException(String.format("Cannot clear '%s' as it is a filtered collection", this));
     }
@@ -186,8 +191,8 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
     }
 
     @Override
-    public void addPending(ProviderInternal<? extends S> provider) {
-        collection.addPending(provider);
+    public boolean addPending(ProviderInternal<? extends S> provider) {
+        return collection.addPending(provider);
     }
 
     @Override
@@ -196,5 +201,10 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
     }
 
     @Override
-    public void onRealize(Action<ProviderInternal<? extends S>> action) { }
+    public void onRealize(Action<S> action) { }
+
+    @Override
+    public void realizeExternal(ProviderInternal<? extends S> provider) {
+        collection.realizeExternal(provider);
+    }
 }
