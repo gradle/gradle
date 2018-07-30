@@ -63,4 +63,8 @@ The Gradle dependency cache uses file-based locking to ensure that it can safely
 [[sub:cache_cleanup]]
 === Cache Cleanup
 
-Gradle keeps track of which artifacts in the dependency cache are accessed. Using this information, the cache is periodically (at most every 24 hours) scanned for artifacts that have not been used for more than 30 days. Obsolete artifacts are then deleted to ensure the cache does not grow indefinitely.
+Gradle keeps track of which files in its caches are accessed. Using this information, caches are periodically (at most every 24 hours) scanned for files that have not been used for more than a certain amount of days. Depending on whether a file can be recreated locally or would have to be downloaded from a remote repository again, it will be deleted after 7 or 30 days of not being accessed, respectively.
+
+Moreover, shared versioned cache directories (e.g. `jars-*`) are checked periodically (at most every 24 hours) for whether they are still in use. If there's no Gradle version that still uses them, they are deleted.
+
+Dependency cache cleanup is performed in the background when the Gradle daemon is stopped or shuts down. If using `--no-daemon`, it runs in the foreground after the build session with a visual progress indicator.
