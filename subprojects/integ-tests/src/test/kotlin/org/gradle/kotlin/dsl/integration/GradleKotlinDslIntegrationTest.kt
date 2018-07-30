@@ -839,7 +839,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
             gradlePlugin {
                 (plugins) {
-                    "my" {
+                    register("my") {
                         id = "my"
                         implementationClass = "my.MyPlugin"
                     }

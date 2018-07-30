@@ -23,7 +23,7 @@ open class GreetingPlugin : Plugin<Project> {
 
         // Add a task that uses the configuration
         tasks {
-            "hello"(Greeting::class) {
+            register("hello", Greeting::class) {
                 group = "Greeting"
                 message.set(greeting.message)
                 outputFiles.setFrom(greeting.outputFiles)

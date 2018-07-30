@@ -29,7 +29,7 @@ publishing {
         }
     }
     (publications) {
-        "mavenJava"(MavenPublication::class) {
+        register("mavenJava", MavenPublication::class) {
             from(components["java"])
             artifact(sourcesJar)
         }

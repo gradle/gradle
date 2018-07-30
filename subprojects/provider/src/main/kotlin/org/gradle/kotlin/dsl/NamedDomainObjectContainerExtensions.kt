@@ -21,8 +21,12 @@ import org.gradle.api.DomainObjectProvider
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.PolymorphicDomainObjectContainer
 
+import org.gradle.kotlin.dsl.support.illegalElementType
+import org.gradle.kotlin.dsl.support.uncheckedCast
+
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
+import kotlin.reflect.full.safeCast
 
 
 /**
@@ -66,28 +70,43 @@ class NamedDomainObjectContainerScope<T : Any>(
         polymorphicDomainObjectContainer().containerWithType(type)
 
     /**
-     * @see [NamedDomainObjectContainer.maybeCreate]
+     * Configures an object by name, without triggering its creation or configuration, failing if there is no such object.
+     *
+     * @see [NamedDomainObjectContainer.named]
+     * @see [DomainObjectProvider.configure]
      */
-    inline operator fun String.invoke(configuration: T.() -> Unit): T =
-        this().apply(configuration)
+    operator fun String.invoke(configuration: T.() -> Unit): DomainObjectProvider<T> =
+        this().apply { configure(configuration) }
 
     /**
-     * @see [NamedDomainObjectContainer.maybeCreate]
+     * Locates an object by name, without triggering its creation or configuration, failing if there is no such object.
+     *
+     * @see [NamedDomainObjectContainer.named]
      */
-    operator fun String.invoke(): T =
-        container.maybeCreate(this)
+    operator fun String.invoke(): DomainObjectProvider<T> =
+        container.named(this)
 
     /**
-     * @see [PolymorphicDomainObjectContainer.maybeCreate]
+     * Configures an object by name, without triggering its creation or configuration, failing if there is no such object.
+     *
+     * @see [PolymorphicDomainObjectContainer.named]
+     * @see [DomainObjectProvider.configure]
      */
-    inline operator fun <U : T> String.invoke(type: KClass<U>, configuration: U.() -> Unit): U =
-        this(type).apply(configuration)
+    operator fun <U : T> String.invoke(type: KClass<U>, configuration: U.() -> Unit): DomainObjectProvider<U> =
+        this(type).apply { configure(configuration) }
 
     /**
-     * @see [PolymorphicDomainObjectContainer.maybeCreate]
+     * Locates an object by name and type, without triggering its creation or configuration, failing if there is no such object.
+     *
+     * @see [PolymorphicDomainObjectContainer.named]
      */
-    operator fun <U : T> String.invoke(type: KClass<U>): U =
-        polymorphicDomainObjectContainer().maybeCreate(this, type.java)
+    operator fun <U : T> String.invoke(type: KClass<U>): DomainObjectProvider<U> =
+        uncheckedCast(this().apply {
+            configure {
+                type.safeCast(it)
+                    ?: illegalElementType(container, this@invoke, type, it::class)
+            }
+        })
 
     /**
      * Cast this to [PolymorphicDomainObjectContainer] or throw [IllegalArgumentException].
