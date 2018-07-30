@@ -25,7 +25,6 @@ import org.gradle.api.internal.plugins.PluginAwareInternal
 
 import org.gradle.cache.CacheOpenException
 import org.gradle.cache.internal.CacheKeyBuilder
-import org.gradle.caching.internal.controller.BuildCacheController
 
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
@@ -36,10 +35,7 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 
-import org.gradle.kotlin.dsl.cache.LoadDirectory
-import org.gradle.kotlin.dsl.cache.ScriptBuildCacheKey
 import org.gradle.kotlin.dsl.cache.ScriptCache
-import org.gradle.kotlin.dsl.cache.StoreDirectory
 
 import org.gradle.kotlin.dsl.execution.EvalOption
 import org.gradle.kotlin.dsl.execution.EvalOptions
@@ -53,7 +49,6 @@ import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.kotlinEap
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
-import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.transitiveClosureOf
 
 import org.gradle.plugin.management.internal.DefaultPluginRequests
@@ -226,35 +221,12 @@ class StandardKotlinScriptEvaluator(
             cacheKeySpec: CacheKeyBuilder.CacheKeySpec,
             initializer: (File) -> Unit
         ): File =
-            scriptCache.cacheDirFor(cacheKeySpec, properties = cacheProperties) { baseDir, cacheKey ->
-
-                val cacheDir =
-                    File(baseDir, "cache").apply { require(mkdir()) }
-
-                // TODO: Move BuildCacheController integration to ScriptCache
-                val cacheController =
-                    if (scriptCache.hasBuildCacheIntegration) buildCacheControllerOf(scriptHost) else null
-
-                if (cacheController != null) {
-                    val buildCacheKey = ScriptBuildCacheKey(scriptHost.scriptSource.displayName, cacheKey)
-                    val existing = cacheController.load(LoadDirectory(cacheDir, buildCacheKey))
-                    if (existing == null) {
-                        initializer(cacheDir)
-                        cacheController.store(StoreDirectory(cacheDir, buildCacheKey))
-                    }
-                } else {
-                    initializer(cacheDir)
-                }
-            }.resolve("cache")
-
-        private
-        fun buildCacheControllerOf(scriptHost: KotlinScriptHost<*>) =
-            (scriptHost.target as? Project)
-                ?.serviceOf<BuildCacheController>()
-                ?.takeIf { it.isEnabled }
-
-        private
-        val cacheProperties = mapOf("version" to "12")
+            scriptCache.cacheDirFor(
+                cacheKeySpec,
+                scriptTarget = scriptHost.target,
+                displayName = scriptHost.scriptSource.displayName,
+                initializer = initializer
+            )
 
         private
         val cacheKeyPrefix =

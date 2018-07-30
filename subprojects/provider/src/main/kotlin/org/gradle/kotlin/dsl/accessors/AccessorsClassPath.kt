@@ -72,7 +72,7 @@ fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath) =
     configuredProjectSchemaOf(project)?.let { projectSchema ->
         val cacheDir =
             scriptCacheOf(project)
-                .cacheDirFor(cacheKeyFor(projectSchema)) { baseDir, _ ->
+                .cacheDirFor(cacheKeyFor(projectSchema)) { baseDir ->
                     buildAccessorsJarFor(projectSchema, classPath, outputDir = baseDir)
                 }
         AccessorsClassPath(

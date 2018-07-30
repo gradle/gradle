@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl.cache
 
+import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
+
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand
@@ -25,6 +27,7 @@ import java.io.InputStream
 import java.io.OutputStream
 
 
+internal
 class ScriptBuildCacheKey(
     private val displayName: String,
     private val cacheKey: String
@@ -39,19 +42,20 @@ class ScriptBuildCacheKey(
 /**
  * Loads a directory previously stored by [StoreDirectory] from the build cache.
  */
+internal
 class LoadDirectory(
     private val directory: File,
     private val cacheKey: BuildCacheKey
-) : BuildCacheLoadCommand<Unit> {
+) : BuildCacheLoadCommand<OriginTaskExecutionMetadata> {
 
     override fun getKey(): BuildCacheKey = cacheKey
 
-    override fun load(inputStream: InputStream): BuildCacheLoadCommand.Result<Unit> {
+    override fun load(inputStream: InputStream): BuildCacheLoadCommand.Result<OriginTaskExecutionMetadata>? {
 
-        val entryCount = unpack(inputStream, directory)
+        val (metadata, entryCount) = unpack(inputStream, directory)
 
-        return object : BuildCacheLoadCommand.Result<Unit> {
-            override fun getMetadata() = Unit
+        return object : BuildCacheLoadCommand.Result<OriginTaskExecutionMetadata> {
+            override fun getMetadata() = OriginTaskExecutionMetadata(metadata.buildInvocationId, metadata.executionTimeMillis)
             override fun getArtifactEntryCount(): Long = entryCount
         }
     }
@@ -61,16 +65,18 @@ class LoadDirectory(
 /**
  * Stores a directory in the build cache.
  */
+internal
 class StoreDirectory(
     private val directory: File,
-    private val cacheKey: BuildCacheKey
+    private val cacheKey: BuildCacheKey,
+    private val metadata: PackMetadata
 ) : BuildCacheStoreCommand {
 
     override fun getKey(): BuildCacheKey = cacheKey
 
     override fun store(outputStream: OutputStream): BuildCacheStoreCommand.Result {
 
-        val entryCount = pack(directory, outputStream)
+        val entryCount = pack(directory, metadata, outputStream)
 
         return BuildCacheStoreCommand.Result { entryCount }
     }

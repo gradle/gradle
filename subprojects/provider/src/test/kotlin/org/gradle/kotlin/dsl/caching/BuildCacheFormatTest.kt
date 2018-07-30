@@ -16,6 +16,9 @@
 
 package org.gradle.kotlin.dsl.caching
 
+import org.gradle.internal.id.UniqueId
+
+import org.gradle.kotlin.dsl.cache.PackMetadata
 import org.gradle.kotlin.dsl.cache.pack
 import org.gradle.kotlin.dsl.cache.unpack
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
@@ -52,10 +55,11 @@ class BuildCacheFormatTest : TestWithTempFiles() {
         }
 
         // when:
+        val metadata = PackMetadata(UniqueId.generate(), 42L)
         val inputDir = file("input")
         val (packedEntryCount, bytes) =
             ByteArrayOutputStream().use { it ->
-                pack(inputDir, it) to it.toByteArray()
+                pack(inputDir, metadata, it) to it.toByteArray()
             }
         assertThat(
             packedEntryCount,
@@ -64,11 +68,19 @@ class BuildCacheFormatTest : TestWithTempFiles() {
 
         // then:
         val outputDir = file("output").apply { mkdir() }
-        val unpackedEntryCount = unpack(ByteArrayInputStream(bytes), outputDir)
+        val (unpackedMetadata, unpackedEntryCount) =
+            unpack(ByteArrayInputStream(bytes), outputDir)
+
         assertThat(
             unpackedEntryCount,
             equalTo(packedEntryCount)
         )
+
+        assertThat(
+            unpackedMetadata,
+            equalTo(metadata)
+        )
+
         assertThat(
             filesIn(inputDir),
             equalTo(filesIn(outputDir))
