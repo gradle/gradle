@@ -1420,20 +1420,33 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         getProvider.present
     }
 
-    void "can remove eager created task without breaking TaskProvider"() {
+    void "can remove eager created task and named provider update his state"() {
         given:
         taskFactory.create(_ as TaskIdentity) >> task("task", CustomTask)
 
         and:
         def customTask = container.create("task", CustomTask)
-        def getProvider = container.named("task")
+
+        when:
+        def provider = container.named("task")
+
+        then:
+        provider.present
+        provider.get() == customTask
 
         when:
         container.remove(customTask)
 
         then:
-        getProvider.get() == customTask
-        getProvider.present
+        !provider.present
+        provider.orNull == null
+
+        when:
+        provider.get()
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "No value has been specified for this provider."
     }
 
     void "lazy task that is realized and then removed is not recreated on iteration"() {
