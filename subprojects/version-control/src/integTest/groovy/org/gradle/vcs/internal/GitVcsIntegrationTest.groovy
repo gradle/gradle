@@ -16,12 +16,14 @@
 
 package org.gradle.vcs.internal
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 import spock.lang.Issue
 
-class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
+class GitVcsIntegrationTest extends AbstractIntegrationSpec implements SourceDependencies {
     @Rule
     GitFileRepository repo = new GitFileRepository('dep', temporaryFolder.getTestDirectory())
 
@@ -30,6 +32,34 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
 
     @Rule
     GitFileRepository evenDeeperRepo = new GitFileRepository('evenDeeperDep', temporaryFolder.getTestDirectory())
+    BuildTestFile depProject
+
+    def setup() {
+        buildFile << """
+            apply plugin: 'java'
+            group = 'org.gradle'
+            version = '2.0'
+            
+            dependencies {
+                compile "org.test:dep:latest.integration"
+            }
+        """
+        file("src/main/java/Main.java") << """
+            public class Main {
+                Dep dep = null;
+            }
+        """
+        buildTestFixture.withBuildInSubDir()
+        depProject = singleProjectBuild("dep") {
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                    group = 'org.test'
+                }
+            """
+            file("src/main/java/Dep.java") << "public class Dep {}"
+        }
+    }
 
     def 'can define and use source repository'() {
         given:
@@ -48,38 +78,6 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         // Git repo is cloned
         def gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
         gitCheckout.file('.git').assertExists()
-    }
-
-    def 'can define and use source repository that produces multiple components'() {
-        given:
-        depProject.settingsFile << """
-            include 'dep2', 'dep3'
-        """
-        repo.commit('initial commit')
-        repo.createLightWeightTag('1.2')
-
-        settingsFile << """
-            sourceControl {
-                gitRepository("${repo.url}") {
-                    producesModule("org.test:dep")
-                    producesModule("org.test:dep2")
-                    producesModule("org.test:dep3")
-                }
-            }
-        """
-        buildFile << """
-            dependencies {
-                compile 'org.test:dep2:1.2'
-                compile 'org.test:dep3:1.2'
-            }
-        """
-
-        expect:
-        succeeds('assemble')
-        result.assertTaskExecuted(":dep:compileJava")
-        result.assertTaskExecuted(":dep:dep2:compileJava")
-        result.assertTaskExecuted(":dep:dep3:compileJava")
-        result.assertTaskExecuted(":compileJava")
     }
 
     def 'can define and use source repositories using VCS mapping'() {
