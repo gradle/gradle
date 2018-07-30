@@ -299,7 +299,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
                 // NOTE: When removing provider, we don't need to fireObjectRemoved as they were never added in the first place.
                 didRemove(providerInternal);
                 return true;
-            } else if (getType().isAssignableFrom(providerInternal.getType())) {
+            } else if (getType().isAssignableFrom(providerInternal.getType()) && providerInternal.isPresent()) {
                 // The provider is of compatible type and the element was either already realized or we are removing a provider to the element
                 o = providerInternal.get();
             }
