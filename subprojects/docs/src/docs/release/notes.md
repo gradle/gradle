@@ -117,7 +117,7 @@ If you attempt to call any of these methods an exception will be thrown. Gradle 
 ### Cross Account AWS S3 Artifact Publishing
 
 S3 [repository transport protocols](https://docs.gradle.org/current/userguide/repository_types.html#sub:supported_transport_protocols) allows gradle to publish artifacts to an AWS S3 bucket. Starting with this release, every artifats uploaded to an S3 bucket will be equipped with `bucket-owner-full-control` ACL. Make sure the used AWS credential can do `PutObjectAcl` and `s3:PutObjectVersionAcl` to ensure successful artifacts uploads.
-```json
+```javascript
 {
    "Version":"2012-10-17",
    "Statement":[
@@ -127,7 +127,7 @@ S3 [repository transport protocols](https://docs.gradle.org/current/userguide/re
          "Action":[
             "s3:PutObject", // necessary for uploading objects
             "s3:PutObjectAcl", // required starting with this release
-            "s3:PutObjectVersionAcl", // required if S3 bucket versioning is enabled
+            "s3:PutObjectVersionAcl" // if S3 bucket versioning is enabled
          ],
          "Resource":"arn:aws:s3:::myCompanyBucket/*"
       }
