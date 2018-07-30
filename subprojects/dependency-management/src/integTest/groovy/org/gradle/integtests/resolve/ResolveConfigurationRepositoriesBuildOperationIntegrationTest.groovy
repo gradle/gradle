@@ -53,7 +53,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         def repos = op.details.repositories
         repos.size() == 1
         repos.first() == augmentMapWithProperties(expectedRepo, [
-            URL: expectedRepo.name == 'MavenLocal' ? m2.mavenRepo().uri.toString() : mavenHttpRepo.uri.toString(),
+            URL: expectedRepo.name == 'MavenLocal' ? new File(m2.mavenRepo().uri).absolutePath : mavenHttpRepo.uri.toString(),
             DIRS: [buildFile.parentFile.file('fooDir').absolutePath]
         ])
 

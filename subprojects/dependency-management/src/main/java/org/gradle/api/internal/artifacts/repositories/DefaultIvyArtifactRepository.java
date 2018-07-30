@@ -171,8 +171,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             m2Compatible = false;
         }
 
-        URI url = getUrl();
-        return new IvyRepositoryDescriptor.Builder(getName(), url == null ? null : url.toASCIIString())
+        return new IvyRepositoryDescriptor.Builder(getName(), getUrl())
             .setAuthenticated(getConfiguredCredentials() != null)
             .setAuthenticationSchemes(getAuthenticationSchemes())
             .setMetadataSources(metadataSources.asList())

@@ -18,8 +18,11 @@ package org.gradle.api.internal.artifacts.repositories.descriptor;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.Transformer;
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.util.CollectionUtils;
 
+import java.net.URI;
 import java.util.Collection;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -31,15 +34,15 @@ public final class MavenRepositoryDescriptor extends UrlRepositoryDescriptor {
         ARTIFACT_URLS,
     }
 
-    public final ImmutableList<String> artifactUrls;
+    public final ImmutableList<URI> artifactUrls;
 
     private MavenRepositoryDescriptor(
         String name,
-        String url,
+        URI url,
         ImmutableList<String> metadataSources,
         boolean authenticated,
         ImmutableList<String> authenticationSchemes,
-        ImmutableList<String> artifactUrls
+        ImmutableList<URI> artifactUrls
     ) {
         super(name, url, metadataSources, authenticated, authenticationSchemes);
         this.artifactUrls = artifactUrls;
@@ -53,18 +56,23 @@ public final class MavenRepositoryDescriptor extends UrlRepositoryDescriptor {
     @Override
     protected void addProperties(ImmutableSortedMap.Builder<String, Object> builder) {
         super.addProperties(builder);
-        builder.put(Property.ARTIFACT_URLS.name(), artifactUrls);
+        builder.put(Property.ARTIFACT_URLS.name(), CollectionUtils.collect(artifactUrls, new Transformer<Object, URI>() {
+            @Override
+            public Object transform(URI uri) {
+                return maybeFileFromUrl(uri);
+            }
+        }));
     }
 
     public static class Builder extends UrlRepositoryDescriptor.Builder<Builder> {
 
-        private ImmutableList<String> artifactUrls;
+        private ImmutableList<URI> artifactUrls;
 
-        public Builder(String name, String url) {
+        public Builder(String name, URI url) {
             super(name, url);
         }
 
-        public Builder setArtifactUrls(Collection<String> artifactUrls) {
+        public Builder setArtifactUrls(Collection<URI> artifactUrls) {
             this.artifactUrls = ImmutableList.copyOf(artifactUrls);
             return this;
         }
