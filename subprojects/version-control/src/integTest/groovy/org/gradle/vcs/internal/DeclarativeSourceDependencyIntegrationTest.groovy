@@ -16,7 +16,7 @@
 
 package org.gradle.vcs.internal
 
-class DeclarativeSourceDependencyMultiprojectIntegrationTest extends AbstractSourceDependencyMultiprojectIntegrationTest {
+class DeclarativeSourceDependencyIntegrationTest extends AbstractSourceDependencyIntegrationTest {
     @Override
     void mappingFor(String gitRepo, String coords, String repoDef) {
         settingsFile << """

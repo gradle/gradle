@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.vcs.fixtures.GitHttpRepository
-import org.gradle.vcs.fixtures.GitRepository
 import org.junit.Rule
 
 abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends AbstractIntegrationSpec implements SourceDependencies {
@@ -31,6 +30,12 @@ abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends Abstr
     @Rule
     GitHttpRepository repo2 = new GitHttpRepository(httpServer, "repo2", testDirectory)
     BuildTestFile buildB
+
+    void mappingFor(GitHttpRepository gitRepo, String coords) {
+        mappingFor(gitRepo.url.toString(), coords, "")
+    }
+
+    abstract void mappingFor(String gitRepo, String coords, String repoDef = "")
 
     def setup() {
         httpServer.start()
@@ -67,7 +72,7 @@ abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends Abstr
     }
 
     def "can resolve subproject of multi-project source dependency"() {
-        mappingFor("org.test:foo")
+        mappingFor(repo, "org.test:foo")
         buildFile << """
             dependencies {
                 conf 'org.test:foo:latest.integration'
@@ -83,7 +88,7 @@ abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends Abstr
     }
 
     def "can resolve root of multi-project source dependency"() {
-        mappingFor("org.test:B")
+        mappingFor(repo, "org.test:B")
         buildFile << """
             dependencies {
                 conf 'org.test:B:latest.integration'
@@ -99,7 +104,8 @@ abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends Abstr
     }
 
     def "can resolve multiple projects of multi-project source dependency"() {
-        mappingFor("org.test:foo", "org.test:bar")
+        mappingFor(repo, "org.test:foo")
+        mappingFor(repo, "org.test:bar")
         buildFile << """
             dependencies {
                 conf 'org.test:foo:latest.integration'
@@ -117,7 +123,7 @@ abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends Abstr
 
     def "only resolves a single project of multi-project source dependency"() {
         mavenRepo.module("org.test", "bar", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
-        mappingFor("org.test:foo")
+        mappingFor(repo, "org.test:foo")
         buildFile << """
             dependencies {
                 conf 'org.test:foo:latest.integration'
@@ -144,7 +150,7 @@ abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends Abstr
             }
         """
         repo.commit('updated')
-        mappingFor("org.test:foo")
+        mappingFor(repo, "org.test:foo")
         buildFile << """
             dependencies {
                 conf 'org.test:foo:latest.integration'
@@ -207,7 +213,7 @@ abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends Abstr
             }
         """
         repo.commit("updated")
-        mappingFor("org.test:foo")
+        mappingFor(repo, "org.test:foo")
         buildFile << """
             dependencies {
                 conf 'org.test:foo:latest.integration'
@@ -221,8 +227,6 @@ abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends Abstr
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':conf'.")
         failure.assertHasCause("Git repository at ${repo.url} did not contain a project publishing the specified dependency.")
     }
-
-    abstract void mappingFor(GitRepository gitRepo = repo, String... coords)
 
     void assertResolvesTo(String... files) {
         def result = "-Presult=" + files.join(',')

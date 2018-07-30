@@ -16,28 +16,65 @@
 
 package org.gradle.vcs.internal
 
-import org.gradle.vcs.fixtures.GitRepository
+
 import org.gradle.vcs.git.GitVersionControlSpec
 
-
-class MappingSourceDependencyIntegrationTest extends AbstractSourceDependencyMultiprojectIntegrationTest {
-    void mappingFor(GitRepository gitRepo = repo, String... coords) {
+class MappingSourceDependencyIntegrationTest extends AbstractSourceDependencyIntegrationTest {
+    @Override
+    void mappingFor(String gitRepo, String coords, String repoDef) {
         settingsFile << """
             sourceControl {
                 vcsMappings {
-        """
-        coords.each { coord ->
-            settingsFile << """
-                    withModule("${coord}") {
+                    withModule("${coords}") {
                         from(${GitVersionControlSpec.name}) {
-                            url = uri("$gitRepo.url")
+                            url = uri("$gitRepo")
+                            ${repoDef}
                         }
                     }
-            """
-        }
-        settingsFile << """
                 }
             }
         """
+    }
+
+    def 'emits sensible error when bad code is in vcsMappings block'() {
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    all { details ->
+                        foo()
+                    }
+                }
+            }
+        """
+        expect:
+        fails('assemble')
+        failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
+        failure.assertHasFileName("Settings file '$settingsFile.path'")
+        failure.assertHasLineNumber(5)
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':compileClasspath'.")
+        failure.assertHasCause("Could not find method foo()")
+    }
+
+    def 'emits sensible error when bad module in vcsMappings block'() {
+        settingsFile << """
+            rootProject.name = 'test'
+            sourceControl {
+                vcsMappings {
+                    withModule("broken") {
+                        from(GitVersionControlSpec) {
+                        }
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails('assemble')
+        failure.assertHasFileName("Settings file '$settingsFile'")
+        failure.assertHasLineNumber(5)
+        failure.assertHasDescription("A problem occurred evaluating settings 'test'.")
+        failure.assertHasCause("""Cannot convert the provided notation to a module identifier: broken.
+The following types/formats are supported:
+  - String describing the module in 'group:name' format, for example 'org.gradle:gradle-core'.""")
     }
 }
