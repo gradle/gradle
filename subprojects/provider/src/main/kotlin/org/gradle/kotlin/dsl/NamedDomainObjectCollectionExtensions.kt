@@ -142,5 +142,7 @@ inline operator fun <T : Any, reified U : T> NamedDomainObjectCollection<T>.getV
     }
 
 
-//TODO:kotlin-eap - this extension shouldn't be necessary
+/**
+ * Required due to [KT-25810](https://youtrack.jetbrains.com/issue/KT-25810).
+ */
 operator fun <T : Any> T.provideDelegate(receiver: Any?, property: KProperty<*>): T = this
