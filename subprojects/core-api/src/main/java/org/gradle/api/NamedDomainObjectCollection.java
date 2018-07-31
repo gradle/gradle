@@ -18,6 +18,7 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.Internal;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -230,9 +231,11 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
     DomainObjectProvider<T> named(String name) throws UnknownDomainObjectException;
 
     /**
-     * TODO:
-     * @return
+     * Provides access to the schema of all created or registered named domain objects in this collection.
+     *
+     * @since 4.10
      */
+    @Internal
     @Incubating
     NamedDomainObjectCollectionSchema<NamedDomainObjectCollectionSchema.NamedDomainObjectSchema> getSchema();
 }
