@@ -616,6 +616,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         forceDelete(sourceFile2)
+        executer.expectDeprecationWarning()
         succeeds newTaskPath
 
         then:
