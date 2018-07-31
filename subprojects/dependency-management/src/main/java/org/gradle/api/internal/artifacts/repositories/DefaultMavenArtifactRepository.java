@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
@@ -57,7 +58,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
-import org.gradle.util.CollectionUtils;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -196,17 +196,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     @Override
     protected RepositoryDescriptor createDescriptor() {
-        URI url = getUrl();
-        return new MavenRepositoryDescriptor.Builder(getName(), url == null ? null : url.toASCIIString())
+        return new MavenRepositoryDescriptor.Builder(getName(), getUrl())
             .setAuthenticated(getConfiguredCredentials() != null)
             .setAuthenticationSchemes(getAuthenticationSchemes())
             .setMetadataSources(metadataSources.asList())
-            .setArtifactUrls(CollectionUtils.collect(getArtifactUrls(), new Transformer<String, URI>() {
-                @Override
-                public String transform(URI uri) {
-                    return uri.toASCIIString();
-                }
-            }))
+            .setArtifactUrls(Sets.newHashSet(getArtifactUrls()))
             .create();
     }
 
