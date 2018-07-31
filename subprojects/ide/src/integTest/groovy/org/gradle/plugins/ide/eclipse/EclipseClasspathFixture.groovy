@@ -125,7 +125,7 @@ class EclipseClasspathFixture {
         }
 
         void assertHasJar(File jar) {
-            assert entry.@path == jar.absolutePath.replace(File.separator, '/')
+            assert entry.@path == jar.path.replace(File.separator, '/')
         }
 
         void assertHasJar(String jar) {
@@ -137,7 +137,7 @@ class EclipseClasspathFixture {
         }
 
         void assertHasSource(File jar) {
-            assert entry.@sourcepath == jar.absolutePath.replace(File.separator, '/')
+            assert entry.@sourcepath == jar.path.replace(File.separator, '/')
         }
 
         String getSourcePath() {
@@ -153,7 +153,7 @@ class EclipseClasspathFixture {
         }
 
         private String cachePath(String group, String module, String version) {
-            return Pattern.quote("${userHomeDir.absolutePath.replace(File.separator, '/')}") + "/caches/${CacheLayout.ROOT.getKey()}/${CacheLayout.FILE_STORE.getKey()}/" + Pattern.quote("${group}/${module}/${version}/") + "\\w+/"
+            return Pattern.quote("${userHomeDir.path.replace(File.separator, '/')}") + "/caches/${CacheLayout.ROOT.getKey()}/${CacheLayout.FILE_STORE.getKey()}/" + Pattern.quote("${group}/${module}/${version}/") + "\\w+/"
         }
 
         void assertHasNoSource() {

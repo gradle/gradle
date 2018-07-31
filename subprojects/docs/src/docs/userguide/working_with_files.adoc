@@ -334,10 +334,10 @@ See how we're using the `compileJava` task as the source of the files to package
 Using a task directly as an argument like this relies on it having <<more_about_tasks.adoc#sec:task_inputs_outputs,defined outputs>>, so it won't always be possible. In addition, this example could be improved further by relying on the Java plugin's convention for `destinationDir` rather than overriding it, but it does demonstrate the use of project properties.
 
 [[sec:single_file_paths]]
-=== Single file
+=== Single files and directories
 
 Gradle provides the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method for specifying the location of a single file or directory.
-Relative paths are resolved relative to the project directory, absolute paths remain unchanged.
+Relative paths are resolved relative to the project directory, while absolute paths remain unchanged.
 
 [CAUTION]
 ====

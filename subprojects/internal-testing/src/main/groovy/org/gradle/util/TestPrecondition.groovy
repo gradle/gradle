@@ -47,7 +47,7 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
         !UNKNOWN_OS.fulfilled && JavaVersion.current() < JavaVersion.VERSION_1_9
     }),
     WORKING_DIR({
-        !UNKNOWN_OS.fulfilled
+        !UNKNOWN_OS.fulfilled && JavaVersion.current() < JavaVersion.VERSION_11
     }),
     PROCESS_ID({
         !UNKNOWN_OS.fulfilled
