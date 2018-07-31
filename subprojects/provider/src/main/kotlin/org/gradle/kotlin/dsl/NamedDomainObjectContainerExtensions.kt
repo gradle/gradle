@@ -21,12 +21,8 @@ import org.gradle.api.DomainObjectProvider
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.PolymorphicDomainObjectContainer
 
-import org.gradle.kotlin.dsl.support.illegalElementType
-import org.gradle.kotlin.dsl.support.uncheckedCast
-
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
-import kotlin.reflect.full.safeCast
 
 
 /**
@@ -93,7 +89,7 @@ class NamedDomainObjectContainerScope<T : Any>(
      * @see [DomainObjectProvider.configure]
      */
     operator fun <U : T> String.invoke(type: KClass<U>, configuration: U.() -> Unit): DomainObjectProvider<U> =
-        this(type).apply { configure(configuration) }
+        container.named(this, type, configuration)
 
     /**
      * Locates an object by name and type, without triggering its creation or configuration, failing if there is no such object.
@@ -101,12 +97,7 @@ class NamedDomainObjectContainerScope<T : Any>(
      * @see [PolymorphicDomainObjectContainer.named]
      */
     operator fun <U : T> String.invoke(type: KClass<U>): DomainObjectProvider<U> =
-        uncheckedCast(this().apply {
-            configure {
-                type.safeCast(it)
-                    ?: illegalElementType(container, this@invoke, type, it::class)
-            }
-        })
+        container.named(this, type)
 
     /**
      * Cast this to [PolymorphicDomainObjectContainer] or throw [IllegalArgumentException].

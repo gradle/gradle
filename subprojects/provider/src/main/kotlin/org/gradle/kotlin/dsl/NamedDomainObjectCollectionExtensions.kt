@@ -16,14 +16,64 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.DomainObjectProvider
 import org.gradle.api.NamedDomainObjectCollection
 import org.gradle.api.UnknownDomainObjectException
 
 import org.gradle.kotlin.dsl.support.illegalElementType
+import org.gradle.kotlin.dsl.support.uncheckedCast
 
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.safeCast
+
+
+/**
+ * Locates an object by name and type, without triggering its creation or configuration, failing if there is no such object.
+ *
+ * @see [NamedDomainObjectCollection.named]
+ */
+@Suppress("extension_shadowed_by_member")
+inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.named(name: String): DomainObjectProvider<T> =
+    named(name, T::class)
+
+
+/**
+ * Locates an object by name and type, without triggering its creation or configuration, failing if there is no such object.
+ *
+ * @see [NamedDomainObjectCollection.named]
+ */
+fun <T : Any> NamedDomainObjectCollection<out Any>.named(name: String, type: KClass<T>): DomainObjectProvider<T> =
+    uncheckedCast(named(name).apply {
+        configure {
+            type.safeCast(it)
+                ?: throw illegalElementType(this@named, name, type, it::class)
+        }
+    })
+
+
+/**
+ * Configures an object by name and type, without triggering its creation or configuration, failing if there is no such object.
+ *
+ * @see [NamedDomainObjectCollection.named]
+ * @see [DomainObjectProvider.configure]
+ */
+inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.named(name: String, noinline configuration: T.() -> Unit): DomainObjectProvider<T> =
+    named<T>(name).apply {
+        configure(configuration)
+    }
+
+
+/**
+ * Configures an object by name and type, without triggering its creation or configuration, failing if there is no such object.
+ *
+ * @see [NamedDomainObjectCollection.named]
+ * @see [DomainObjectProvider.configure]
+ */
+fun <T : Any> NamedDomainObjectCollection<out Any>.named(name: String, type: KClass<T>, configuration: T.() -> Unit): DomainObjectProvider<T> =
+    named(name, type).apply {
+        configure(configuration)
+    }
 
 
 /**

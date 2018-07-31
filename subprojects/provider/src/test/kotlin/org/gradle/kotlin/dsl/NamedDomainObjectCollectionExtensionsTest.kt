@@ -1,8 +1,11 @@
 package org.gradle.kotlin.dsl
 
+import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 
+import org.gradle.api.Action
+import org.gradle.api.DomainObjectProvider
 import org.gradle.api.NamedDomainObjectCollection
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.PolymorphicDomainObjectContainer
@@ -18,11 +21,12 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 import java.util.regex.Pattern
+import kotlin.reflect.KClass
 
 
 class NamedDomainObjectCollectionExtensionsTest {
 
-    data class DomainObject(var foo: String? = null)
+    data class DomainObject(var foo: String? = null, var bar: String? = null)
 
     @Test
     fun `can access existing element via indexer`() {
@@ -34,6 +38,43 @@ class NamedDomainObjectCollectionExtensionsTest {
         assertThat(
             container["domainObject"],
             sameInstance(element))
+    }
+
+    @Test
+    fun `can lazily access and configure existing element by name and type`() {
+
+        val fooObject = DomainObject()
+        val fooProvider = mockDomainObjectProviderFor(fooObject)
+
+        val barObject = DomainObject()
+        val barProvider = mockDomainObjectProviderFor(barObject)
+
+        val container = mock<NamedDomainObjectContainer<DomainObject>> {
+            on { named("foo") } doReturn fooProvider
+            on { named("bar") } doReturn barProvider
+            on { getByName("foo") } doReturn fooObject
+            on { getByName("bar") } doReturn barObject
+        }
+
+        container.named<DomainObject>("foo").configure {
+            it.foo = "reified access"
+        }
+        container.named<DomainObject>("foo") {
+            bar = "reified configuration"
+        }
+
+        container.named("bar", DomainObject::class).configure {
+            it.foo = "typed access"
+        }
+        container.named("bar", DomainObject::class) {
+            bar = "typed configuration"
+        }
+
+        assertThat(container["foo"].foo, equalTo("reified access"))
+        assertThat(container["foo"].bar, equalTo("reified configuration"))
+
+        assertThat(container["bar"].foo, equalTo("typed access"))
+        assertThat(container["bar"].bar, equalTo("typed configuration"))
     }
 
     @Test
@@ -248,16 +289,37 @@ class NamedDomainObjectCollectionExtensionsTest {
     @Test
     fun `accessing existing element with wrong type gives proper error message`() {
 
+        val obj = Object()
+        val provider = mockDomainObjectProviderFor<Any>(obj)
         val container = mock<NamedDomainObjectCollection<Any>> {
-            on { getByName("domainObject") } doReturn Object()
+            on { named("domainObject") } doReturn provider
+            on { getByName("domainObject") } doReturn obj
         }
-        val domainObject: DomainObject by container
 
-        val error = assertFailsWith(IllegalArgumentException::class) {
+        fun assertFailsWithIllegalElementType(type: KClass<*>, block: () -> Unit) {
+            val error = assertFailsWith(IllegalArgumentException::class, block)
+            assertThat(
+                error.message,
+                matches("Element 'domainObject' of type 'java\\.lang\\.Object' from container '${Pattern.quote(container.toString())}' cannot be cast to '${Pattern.quote(type.qualifiedName)}'\\."))
+        }
+
+        assertFailsWithIllegalElementType(DomainObject::class) {
+            container.named<DomainObject>("domainObject").get()
+        }
+
+        val domainObject: DomainObject by container
+        assertFailsWithIllegalElementType(DomainObject::class) {
             println(domainObject)
         }
-        assertThat(
-            error.message,
-            matches("Element 'domainObject' of type 'java\\.lang\\.Object' from container '${Pattern.quote(container.toString())}' cannot be cast to '${Pattern.quote(DomainObject::class.qualifiedName)}'\\."))
     }
 }
+
+
+private
+inline fun <reified T : Any> mockDomainObjectProviderFor(domainObject: T): DomainObjectProvider<T> =
+    mock {
+        on { get() } doReturn domainObject
+        on { configure(any()) }.thenAnswer {
+            it.getArgument<Action<T>>(0).execute(domainObject)
+        }
+    }
