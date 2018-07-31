@@ -379,6 +379,12 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
                                 @Override
                                 public TypeOf<?> getPublicType() {
+                                    // TODO: This returns the wrong public type for domain objects
+                                    // created with the eager APIs or added directly to the container.
+                                    // This can leak internal types.
+                                    // We do not currently keep track of the type used when creating
+                                    // a domain object (via create) or the type of the container when
+                                    // a domain object is added directly (via add).
                                     return TypeOf.typeOf(new DslObject(e.getValue()).getDeclaredType());
                                 }
                             };
