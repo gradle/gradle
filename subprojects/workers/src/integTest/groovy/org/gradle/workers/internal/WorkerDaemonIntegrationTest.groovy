@@ -60,6 +60,7 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
         GradleContextualExecuter.isLongLivingProcess() || gradle.standardOutput.contains("Shutdown working dir: " + executer.gradleUserHomeDir.file("workers").getAbsolutePath())
     }
 
+    @Requires(TestPrecondition.WORKING_DIR)
     def "sets the working directory to the specified directory during worker execution"() {
         withRunnableClassInBuildScript()
         buildFile << """
