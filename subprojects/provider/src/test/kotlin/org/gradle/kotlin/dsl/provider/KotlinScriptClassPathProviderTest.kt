@@ -18,6 +18,7 @@ import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 
 import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.startsWith
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
@@ -36,7 +37,13 @@ class KotlinScriptClassPathProviderTest : AbstractIntegrationTest() {
 
         val buildOperationExecutor = mock<BuildOperationExecutor> {
             on { run(any()) }.thenAnswer {
-                it.getArgument<RunnableBuildOperation>(0).run(mock())
+                it.getArgument<RunnableBuildOperation>(0).let { operation ->
+                    operation.description().build().let { description ->
+                        assertThat(description.displayName, startsWith("Generate $generatedKotlinExtensions"))
+                        assertThat(description.progressDisplayName, startsWith("Generating ${generatedKotlinExtensions.name}"))
+                    }
+                    operation.run(mock())
+                }
             }
         }
 
