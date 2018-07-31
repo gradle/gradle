@@ -95,6 +95,27 @@ fun applyDefaultSettings(buildType: BuildType, os: OS = OS.linux, timeout: Int =
             param("env.LC_ALL", "en_US.UTF-8")
         }
     }
+
+    param("env.CI_REQUIRES_INVESTIGATION", "true")
+    param("env.GRADLE_OPTS", "-XX:MaxPermSize=512m")
+    param("env.REPO_MIRROR_URLS", "jcenter:http://dev12.gradle.org:8081/artifactory/jcenter," +
+        "mavencentral:http://dev12.gradle.org:8081/artifactory/repo1," +
+        "typesafemaven:http://dev12.gradle.org:8081/artifactory/typesafe-maven-releases," +
+        "typesafeivy:http://dev12.gradle.org:8081/artifactory/typesafe-ivy-releases," +
+        "google:http://dev12.gradle.org:8081/artifactory/google," +
+        "lightbendmaven:http://dev12.gradle.org:8081/artifactory/typesafe-maven-releases," +
+        "lightbendivy:http://dev12.gradle.org:8081/artifactory/typesafe-ivy-releases," +
+        "springreleases:http://dev12.gradle.org:8081/artifactory/spring-releases/," +
+        "springsnapshots:http://dev12.gradle.org:8081/artifactory/spring-snapshots/," +
+        "restlet:http://dev12.gradle.org:8081/artifactory/restlet/," +
+        "gradle-snapshots:http://dev12.gradle.org:8081/artifactory/gradle-snapshots/," +
+        "gradle-releases:http://dev12.gradle.org:8081/artifactory/gradle-releases/," +
+        "gradle:http://dev12.gradle.org:8081/artifactory/gradle-repo/," +
+        "jboss:http://dev12.gradle.org:8081/artifactory/jboss/," +
+        "gradleplugins:http://dev12.gradle.org:8081/artifactory/gradle-plugins/," +
+        "gradlejavascript:http://dev12.gradle.org:8081/artifactory/gradle-javascript/," +
+        "kotlindev:http://dev12.gradle.org:8081/artifactory/kotlin-dev/," +
+        "kotlineap:http://dev12.gradle.org:8081/artifactory/kotlin-eap/")
 }
 
 fun BuildFeatures.publishBuildStatusToGithub() {
