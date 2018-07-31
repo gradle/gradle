@@ -53,7 +53,7 @@ class StandardJarGenerationProgressMonitorProvider(
     private
     fun progressLoggerFor(outputJar: File, progressMessage: String): ProgressLogger =
         progressLoggerFactory.newOperation(JarGenerationProgressMonitorProvider::class.java).apply {
-            description = progressMessage
+            description = "Generate ${outputJar.name}"
             started(progressMessage)
         }
 }
