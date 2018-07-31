@@ -78,14 +78,15 @@ class NamedDomainObjectContainerExtensionsTest {
         val martyProvider = mockDomainObjectProviderFor<DomainObjectBase>(marty)
         val doc = DomainObjectBase.Bar()
         val docProvider = mockDomainObjectProviderFor<DomainObjectBase>(doc)
+        val docProviderAsBarProvider = uncheckedCast<DomainObjectProvider<DomainObjectBase.Bar>>(docProvider)
         val container = mock<PolymorphicDomainObjectContainer<DomainObjectBase>> {
             on { getByName("alice") } doReturn alice
             on { maybeCreate("alice", DomainObjectBase.Foo::class.java) } doReturn alice
-            on { create(argThat { equals("bob") }, argThat { equals(DomainObjectBase.Bar::class.java) }, any<Action<DomainObjectBase.Bar>>()) } doReturn bob
+            on { create(eq("bob"), eq(DomainObjectBase.Bar::class.java), any<Action<DomainObjectBase.Bar>>()) } doReturn bob
             on { create("john", DomainObjectBase.Default::class.java) } doReturn default
             on { named("marty") } doReturn martyProvider
-            on { register(argThat { equals("doc") }, argThat { equals(DomainObjectBase.Bar::class.java) }) } doReturn docProvider
-            on { register(argThat { equals("doc") }, argThat { equals(DomainObjectBase.Bar::class.java) }, any<Action<DomainObjectBase.Default>>()) }.thenAnswer {
+            on { register(eq("doc"), eq(DomainObjectBase.Bar::class.java)) } doReturn docProviderAsBarProvider
+            on { register(eq("doc"), eq(DomainObjectBase.Bar::class.java), any<Action<DomainObjectBase>>()) }.thenAnswer {
                 it.getArgument<Action<DomainObjectBase>>(2).execute(doc)
                 docProvider
             }
@@ -256,7 +257,7 @@ class NamedDomainObjectContainerExtensionsTest {
         }
 
         val tasks = mock<TaskContainer> {
-            on { create(argThat { equals("clean") }, argThat { equals(Delete::class.java) }, any<Action<Delete>>()) } doReturn clean
+            on { create(eq("clean"), eq(Delete::class.java), any<Action<Delete>>()) } doReturn clean
             on { getByName("clean") } doReturn clean
             on { named("clean") } doReturn uncheckedCast<TaskProvider<Task>>(cleanProvider)
         }
