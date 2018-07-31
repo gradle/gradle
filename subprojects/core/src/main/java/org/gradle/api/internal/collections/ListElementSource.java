@@ -18,15 +18,22 @@ package org.gradle.api.internal.collections;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.specs.Spec;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
 public class ListElementSource<T> extends AbstractIterationOrderRetainingElementSource<T> implements IndexedElementSource<T> {
+
+    private final Spec<Element<T>> alwaysAccept = new Spec<Element<T>>() {
+        @Override
+        public boolean isSatisfiedBy(Element<T> element) {
+            return true;
+        }
+    };
+
     @Override
     public Iterator<T> iterator() {
         realizePending();
@@ -40,7 +47,7 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
 
     @Override
     public ListIterator<T> listIterator() {
-        return new RealizedElementListIterator<T>(getInserted(), new ArrayList<T>());
+        return new RealizedElementListIterator<T>(getInserted(), alwaysAccept);
     }
 
     @Override
@@ -75,6 +82,11 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
     @Override
     public boolean add(T element) {
         return getInserted().add(new CachingElement<T>(element));
+    }
+
+    @Override
+    public boolean addRealized(T value) {
+        return true;
     }
 
     @Override
@@ -128,8 +140,8 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
         int listNextIndex = 0;
         int listPreviousIndex = -1;
 
-        RealizedElementListIterator(List<Element<T>> backingList, Collection<T> values) {
-            super(backingList, values);
+        RealizedElementListIterator(List<Element<T>> backingList, Spec<Element<T>> acceptanceSpec) {
+            super(backingList, acceptanceSpec);
         }
 
         @Override
@@ -141,7 +153,7 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
             int i = previousIndex - 1;
             while (i >= 0) {
                 Element<T> candidate = backingList.get(i);
-                if (candidate.isRealized()) {
+                if (candidate.isRealized() && acceptanceSpec.isSatisfiedBy(candidate)) {
                     T value = candidate.getValue();
                     previousIndex = i;
                     previous = value;

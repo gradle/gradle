@@ -16,23 +16,30 @@
 
 package org.gradle.api.internal.collections;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Iterators;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.specs.Spec;
 
-import java.util.HashSet;
 import java.util.Iterator;
 
 public class IterationOrderRetainingSetElementSource<T> extends AbstractIterationOrderRetainingElementSource<T> {
+    private final Spec<Element<T>> noDuplicates = new Spec<Element<T>>() {
+        @Override
+        public boolean isSatisfiedBy(Element<T> element) {
+            return !element.isDuplicate();
+        }
+    };
 
     @Override
     public Iterator<T> iterator() {
         realizePending();
-        return new RealizedElementCollectionIterator<T>(getInserted(), new HashSet<T>());
+        return new RealizedElementCollectionIterator<T>(getInserted(), noDuplicates);
     }
 
     @Override
     public Iterator<T> iteratorNoFlush() {
-        return new RealizedElementCollectionIterator<T>(getInserted(), new HashSet<T>());
+        return new RealizedElementCollectionIterator<T>(getInserted(), noDuplicates);
     }
 
     @Override
@@ -42,6 +49,25 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
             return true;
         } else {
             return false;
+        }
+    }
+
+    @Override
+    public boolean addRealized(T value) {
+        markDuplicates(value);
+        return true;
+    }
+
+    private void markDuplicates(T value) {
+        boolean seen = false;
+        for (Element<T> element : getInserted()) {
+            if (element.isRealized() && Objects.equal(element.getValue(), value)) {
+                if (seen) {
+                    element.setDuplicate(true);
+                } else {
+                    seen = true;
+                }
+            }
         }
     }
 

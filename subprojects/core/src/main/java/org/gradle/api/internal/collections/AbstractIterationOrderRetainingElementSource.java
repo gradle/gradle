@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Iterators;
 import org.gradle.api.Action;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.specs.Spec;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -75,11 +76,6 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     @Override
-    public boolean addRealized(T element) {
-        return true;
-    }
-
-    @Override
     public boolean remove(Object o) {
         Iterator<Element<T>> iterator = inserted.iterator();
         while (iterator.hasNext()) {
@@ -104,18 +100,18 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
     @Override
     public void realizePending() {
-        for (Element<T> provider : inserted) {
-            if (!provider.isRealized()) {
-                provider.realize();
+        for (Element<T> element : inserted) {
+            if (!element.isRealized()) {
+                element.realize();
             }
         }
     }
 
     @Override
     public void realizePending(Class<?> type) {
-        for (Element<T> provider : inserted) {
-            if (!provider.isRealized() && (provider.getType() == null || type.isAssignableFrom(provider.getType()))) {
-                provider.realize();
+        for (Element<T> element : inserted) {
+            if (!element.isRealized() && (element.getType() == null || type.isAssignableFrom(element.getType()))) {
+                element.realize();
             }
         }
     }
@@ -148,19 +144,21 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         void realize();
         Class<? extends T> getType();
         T getValue();
+        boolean isDuplicate();
+        void setDuplicate(boolean isDuplicate);
     }
 
     // TODO Check for comodification with the ElementSource
     protected static class RealizedElementCollectionIterator<T> implements Iterator<T> {
         final List<Element<T>> backingList;
-        private final Collection<T> values;
+        final Spec<Element<T>> acceptanceSpec;
         int nextIndex = -1;
         int previousIndex = -1;
         T next;
 
-        RealizedElementCollectionIterator(List<Element<T>> backingList, Collection<T> values) {
+        RealizedElementCollectionIterator(List<Element<T>> backingList, Spec<Element<T>> acceptanceSpec) {
             this.backingList = backingList;
-            this.values = values;
+            this.acceptanceSpec = acceptanceSpec;
             updateNext();
         }
 
@@ -173,13 +171,11 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             int i = nextIndex + 1;
             while (i < backingList.size()) {
                 Element<T> candidate = backingList.get(i);
-                if (candidate.isRealized()) {
+                if (candidate.isRealized() && acceptanceSpec.isSatisfiedBy(candidate)) {
                     T value = candidate.getValue();
-                    if (values.add(value)) {
                         nextIndex = i;
                         next = value;
                         return;
-                    }
                 }
                 i++;
             }
@@ -201,9 +197,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         @Override
         public void remove() {
             if (previousIndex > -1) {
-                T value = backingList.get(previousIndex).getValue();
                 backingList.remove(previousIndex);
-                values.remove(value);
                 previousIndex = -1;
                 nextIndex--;
             } else {
@@ -217,6 +211,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         private T value;
         private boolean realized;
         private final Action<T> realizeAction;
+        private boolean duplicate;
 
         CachingElement(final ProviderInternal<? extends T> delegate, Action<T> realizeAction) {
             this.delegate = delegate;
@@ -266,6 +261,16 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         @Override
         public boolean caches(ProviderInternal<? extends T> provider) {
             return Objects.equal(delegate, provider);
+        }
+
+        @Override
+        public boolean isDuplicate() {
+            return duplicate;
+        }
+
+        @Override
+        public void setDuplicate(boolean isDuplicate) {
+            this.duplicate = isDuplicate;
         }
 
         @Override
