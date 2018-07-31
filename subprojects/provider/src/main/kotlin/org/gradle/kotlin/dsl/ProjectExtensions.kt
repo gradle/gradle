@@ -25,12 +25,9 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 
-import org.gradle.api.file.FileCollection
-
 import org.gradle.api.initialization.dsl.ScriptHandler
 
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
-import org.gradle.api.internal.file.DefaultFileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 
 import org.gradle.api.plugins.Convention
@@ -38,8 +35,8 @@ import org.gradle.api.plugins.PluginAware
 
 import org.gradle.api.tasks.TaskContainer
 
+import org.gradle.kotlin.dsl.provider.fileCollectionOf
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
-import org.gradle.kotlin.dsl.provider.kotlinScriptClassPathProviderOf
 import org.gradle.kotlin.dsl.support.configureWith
 
 import java.io.File
@@ -238,13 +235,6 @@ fun Project.gradleKotlinDsl(): Dependency =
     )
 
 
-fun Project.gradleKotlinDslJars(): FileCollection =
-    fileCollectionOf(
-        kotlinScriptClassPathProviderOf(project).gradleKotlinDslJars.asFiles.filter(::isGradleKotlinDslJar),
-        "gradleKotlinDsl"
-    )
-
-
 internal
 fun isGradleKotlinDslJar(file: File) =
     isGradleKotlinDslJarName(file.name)
@@ -253,8 +243,3 @@ fun isGradleKotlinDslJar(file: File) =
 internal
 fun isGradleKotlinDslJarName(jarName: String) =
     jarName.startsWith("gradle-kotlin-dsl-")
-
-
-private
-fun fileCollectionOf(files: Collection<File>, name: String): FileCollection =
-    DefaultFileCollectionFactory().fixed(name, files)

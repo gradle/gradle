@@ -29,6 +29,8 @@ import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript
 
+import org.gradle.kotlin.dsl.provider.gradleKotlinDslJarsOf
+
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.serviceOf
 
@@ -61,7 +63,7 @@ private
 fun Project.enableScriptCompilation() {
 
     dependencies {
-        "kotlinCompilerPluginClasspath"(gradleKotlinDslJars())
+        "kotlinCompilerPluginClasspath"(gradleKotlinDslJarsOf(project))
         "kotlinCompilerPluginClasspath"(gradleApi())
     }
 

@@ -20,10 +20,12 @@ import org.gradle.api.Project
 
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.SelfResolvingDependency
+import org.gradle.api.file.FileCollection
 
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.api.internal.file.DefaultFileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 
 import org.gradle.internal.classloader.ClassLoaderVisitor
@@ -31,9 +33,11 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.kotlin.dsl.codegen.generateApiExtensionsJar
-import org.gradle.kotlin.dsl.isGradleKotlinDslJarName
 import org.gradle.kotlin.dsl.support.ProgressMonitor
 import org.gradle.kotlin.dsl.support.serviceOf
+
+import org.gradle.kotlin.dsl.isGradleKotlinDslJar
+import org.gradle.kotlin.dsl.isGradleKotlinDslJarName
 
 import org.gradle.util.GFileUtils.moveFile
 
@@ -50,6 +54,18 @@ fun gradleKotlinDslOf(project: Project): List<File> =
     kotlinScriptClassPathProviderOf(project).run {
         gradleKotlinDsl.asFiles
     }
+
+
+fun gradleKotlinDslJarsOf(project: Project): FileCollection =
+    fileCollectionOf(
+        kotlinScriptClassPathProviderOf(project).gradleKotlinDslJars.asFiles.filter(::isGradleKotlinDslJar),
+        "gradleKotlinDsl"
+    )
+
+
+internal
+fun fileCollectionOf(files: Collection<File>, name: String): FileCollection =
+    DefaultFileCollectionFactory().fixed(name, files)
 
 
 internal
