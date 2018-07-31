@@ -231,11 +231,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (replaceExisting) {
             Task existing = findByNameWithoutRules(name);
             if (existing != null) {
-                remove(existing);
+                removeInternal(existing);
             } else {
                 ProviderInternal<? extends Task> taskProvider = findByNameLaterWithoutRules(name);
                 if (taskProvider != null) {
-                    remove(taskProvider);
+                    removeInternal(taskProvider);
                 }
             }
         } else if (hasWithName(name)) {
@@ -594,6 +594,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public boolean remove(Object o) {
         warnAboutRemoveMethodDeprecation("remove(Object)");
+        return super.remove(o);
+    }
+
+    private boolean removeInternal(Object o) {
         return super.remove(o);
     }
 
