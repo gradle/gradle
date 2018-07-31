@@ -1412,9 +1412,10 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         provider.get() == customTask
 
         when:
-        container.remove(customTask)
+        def didRemoved = container.remove(customTask)
 
         then:
+        didRemoved
         !provider.present
         provider.orNull == null
 
