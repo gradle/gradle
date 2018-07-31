@@ -363,7 +363,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Override
-    public NamedDomainObjectCollectionSchema<NamedDomainObjectCollectionSchema.NamedDomainObjectSchema> getSchema() {
+    public NamedDomainObjectCollectionSchema<NamedDomainObjectCollectionSchema.NamedDomainObjectSchema> getCollectionSchema() {
         return new NamedDomainObjectCollectionSchema<NamedDomainObjectCollectionSchema.NamedDomainObjectSchema>() {
             @Override
             public Iterator<NamedDomainObjectSchema> iterator() {

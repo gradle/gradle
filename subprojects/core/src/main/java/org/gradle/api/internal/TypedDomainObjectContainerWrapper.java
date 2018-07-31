@@ -150,8 +150,8 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
     }
 
     @Override
-    public NamedDomainObjectCollectionSchema<NamedDomainObjectCollectionSchema.NamedDomainObjectSchema> getSchema() {
-        return delegate.getSchema();
+    public NamedDomainObjectCollectionSchema<NamedDomainObjectCollectionSchema.NamedDomainObjectSchema> getCollectionSchema() {
+        return delegate.getCollectionSchema();
     }
 
     public U getAt(String name) throws UnknownDomainObjectException {

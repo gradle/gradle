@@ -237,5 +237,5 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      */
     @Internal
     @Incubating
-    NamedDomainObjectCollectionSchema<NamedDomainObjectCollectionSchema.NamedDomainObjectSchema> getSchema();
+    NamedDomainObjectCollectionSchema<NamedDomainObjectCollectionSchema.NamedDomainObjectSchema> getCollectionSchema();
 }

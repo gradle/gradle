@@ -286,7 +286,7 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
     }
 
     @Override
-    public NamedDomainObjectCollectionSchema<NamedDomainObjectCollectionSchema.NamedDomainObjectSchema> getSchema() {
-        return delegate.getSchema();
+    public NamedDomainObjectCollectionSchema<NamedDomainObjectCollectionSchema.NamedDomainObjectSchema> getCollectionSchema() {
+        return delegate.getCollectionSchema();
     }
 }
