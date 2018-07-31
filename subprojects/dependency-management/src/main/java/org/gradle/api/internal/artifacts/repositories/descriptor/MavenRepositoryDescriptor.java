@@ -18,9 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.descriptor;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.Transformer;
 import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.util.CollectionUtils;
 
 import java.net.URI;
 import java.util.Collection;
@@ -56,12 +54,7 @@ public final class MavenRepositoryDescriptor extends UrlRepositoryDescriptor {
     @Override
     protected void addProperties(ImmutableSortedMap.Builder<String, Object> builder) {
         super.addProperties(builder);
-        builder.put(Property.ARTIFACT_URLS.name(), CollectionUtils.collect(artifactUrls, new Transformer<Object, URI>() {
-            @Override
-            public Object transform(URI uri) {
-                return maybeFileFromUrl(uri);
-            }
-        }));
+        builder.put(Property.ARTIFACT_URLS.name(), artifactUrls);
     }
 
     public static class Builder extends UrlRepositoryDescriptor.Builder<Builder> {

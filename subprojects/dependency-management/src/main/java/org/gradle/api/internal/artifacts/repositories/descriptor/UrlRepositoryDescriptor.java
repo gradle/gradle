@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-import java.io.File;
 import java.net.URI;
 import java.util.List;
 
@@ -55,27 +54,10 @@ abstract class UrlRepositoryDescriptor extends RepositoryDescriptor {
 
     @Override
     protected void addProperties(ImmutableSortedMap.Builder<String, Object> builder) {
-        builder.put(Property.URL.name(), maybeFileFromUrl(url));
+        builder.put(Property.URL.name(), url);
         builder.put(Property.METADATA_SOURCES.name(), metadataSources);
         builder.put(Property.AUTHENTICATED.name(), authenticated);
         builder.put(Property.AUTHENTICATION_SCHEMES.name(), authenticationSchemes);
-    }
-
-    protected static Object maybeFileFromUrl(URI urlValue) {
-        if (urlValue == null) {
-            return null;
-        } else {
-            if ("file".equals(urlValue.getScheme())) {
-                try {
-                    return new File(urlValue);
-                } catch (IllegalArgumentException ex) {
-                    // fallback to String representation
-                    return urlValue.toASCIIString();
-                }
-            } else {
-                return urlValue.toASCIIString();
-            }
-        }
     }
 
     static abstract class Builder<T extends Builder<T>> {
