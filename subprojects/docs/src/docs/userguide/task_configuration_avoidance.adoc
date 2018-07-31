@@ -164,6 +164,12 @@ Although realizing a task within a lazy configuration action may not have any im
 The lazy task API is an opt-in feature, meaning someone may be realizing task eagerly which would cause the realization to realize other tasks transitively.
 Using `TaskProvider` helps create an indirection that protects transitive realization.
 
+8. Some APIs may be disallowed if you try to access them from the new API's configuration blocks. For example,
+link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:afterEvaluate(org.gradle.api.Action)[`Project.afterEvaluate()`]
+cannot be called when configuring a task registered with the new API. Since `afterEvaluate` is used to delay configuring a `Project`, mixing delayed configuration
+with the new API can cause hard to track down configuration errors because tasks registered with the new API are not always configured, but an `afterEvaluate` block
+may be expected to always execute.
+
 [[sec:task_configuration_avoidance_migration_steps]]
 ==== Migration Steps
 The first part of the migration process is to go through the code and manually migrate eager task creation and configuration to use lazy APIs.
@@ -349,6 +355,7 @@ Even though this issue wasn't released with Gradle 4.9, you should reference the
 * Methods that take a `groovy.lang.Closure` are covered in the new API with methods taking `org.gradle.api.Action`.
 * More convenience methods may be added in the future based on user feedback.
 * Some old API methods may never have a direct replacement in the new API.
+* Some APIs may be restricted when accessed in a lazy configuration block.
 ====
 
 [cols="a,a", options="header"]
