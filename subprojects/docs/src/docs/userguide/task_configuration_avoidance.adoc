@@ -176,6 +176,11 @@ The first part of the migration process is to go through the code and manually m
 The following explores the recommended steps for a successful migration.
 While going through those steps, keep in mind <<#sec:task_configuration_avoidance_general, the guidelines>>.
 
+[NOTE]
+====
+Migrating plugin code as follow will lock the runtime to Gradle 4.9 and above. Plugin authors should refer to <<sec:task_configuration_avoidance_backward_compatibility_migration>> section.
+====
+
 1. **Migrate task configuration that affects all tasks (`tasks.all {}`) or subsets by type (`tasks.withType(...) {}`).**
 This will cause your build to create fewer built-in Gradle task types.
 Note that despite some built-in Gradle task aren’t using the lazy APIs, the configuration affecting those task type should still be migrated.
@@ -346,6 +351,25 @@ The following https://github.com/gradle/gradle-native/issues/730[issue is tracki
 Even though this issue wasn't released with Gradle 4.9, you should reference the `jar` task lazily.
 
 * [[task_configuration_avoidance_pitfall_build_scan_plugin]] **The build scan plugin `buildScanPublishPrevious` task is eager until version 1.15.** Upgrade the build scan plugin in your build to use the latest version.
+
+[[sec:task_configuration_avoidance_backward_compatibility_migration]]
+==== How to keep backward compatibility for plugin authors?
+
+Plugin authors may have additional obligation regarding backward compatibility.
+This section explains two ways for plugin authors to keep their plugins backward compatible with older version of Gradle.
+
+[NOTE]
+====
+Although allowing your plugin to be backward compatible is good for the users, it is still recommended to move compatibility forward to Gradle 4.9+ sooner rather than later.
+====
+
+The first method is to compile your plugin against the Gradle 4.9 API and https://github.com/melix/jmh-gradle-plugin/blob/a034aa88805b7a06fa9c5a825d573554b2aa23e2/src/main/groovy/me/champeau/gradle/JMHPlugin.groovy#L289-L296[conditionally call the right APIs], i.e. `TaskContainer#create` vs. `TaskContainer#register` where required.
+This method is highly preferred to the alternative.
+
+The second method is to use Java reflection to cop with the fact that the APIs are unavailable during compilation.
+This method as several performance pitfalls that may be undesired for your users.
+
+It is highly recommended to have sufficient cross-version test coverage using <<test_kit, TestKit>>.
 
 [[sec:old_vs_new_configuration_api_overview]]
 == Old vs New API overview
