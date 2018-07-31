@@ -647,6 +647,10 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     public void allprojects(Action<? super Project> action) {
         assertMethodExecutionAllowed("Project#allprojects(Action)");
+        doAllprojects(action);
+    }
+
+    private void doAllprojects(Action<? super Project> action) {
         getProjectConfigurator().allprojects(getAllprojects(), action);
     }
 
@@ -793,7 +797,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
             }
         };
         if (recursive) {
-            allprojects(action);
+            doAllprojects(action);
         } else {
             action.execute(this);
         }
@@ -818,7 +822,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
             }
         };
         if (recursive) {
-            allprojects(action);
+            doAllprojects(action);
         } else {
             action.execute(this);
         }

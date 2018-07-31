@@ -1057,4 +1057,36 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
+
+    def "can query all task for given name of subprojects"() {
+        settingsFile << "include 'a', 'b', 'c'"
+        buildFile << """
+            subprojects {
+                tasks.register('foo')
+            }
+            tasks.register('allFoo') {
+                dependsOn getTasksByName('foo', true)
+            }
+        """
+
+        expect:
+        succeeds "allFoo"
+        result.assertTasksExecuted(":allFoo", ":a:foo", ":b:foo", ":c:foo")
+    }
+
+    def "can query all task"() {
+        settingsFile << "include 'a', 'b', 'c'"
+        buildFile << """
+            subprojects {
+                tasks.register('foo')
+            }
+            tasks.register('allFoo') {
+                dependsOn getAllTasks(true).values()*.findAll { !(it.project == rootProject) }
+            }
+        """
+
+        expect:
+        succeeds "allFoo"
+        result.assertTasksExecuted(":allFoo", ":a:foo", ":b:foo", ":c:foo")
+    }
 }
