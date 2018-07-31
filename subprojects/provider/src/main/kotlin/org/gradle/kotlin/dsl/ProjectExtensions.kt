@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.DefaultTask
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -131,18 +130,6 @@ inline fun <reified type : Task> Project.task(name: String) =
 
 
 fun <T : Task> Project.task(name: String, type: KClass<T>, configuration: T.() -> Unit) =
-    createTask(name, type, configuration)
-
-
-/**
- * Creates a [Task] with the given [name] and [DefaultTask] type, configures it with the given [configuration] action,
- * and adds it to this project tasks container.
- */
-fun Project.task(name: String, configuration: Task.() -> Unit): DefaultTask =
-    createTask(name, DefaultTask::class, configuration)
-
-
-fun <T : Task> Project.createTask(name: String, type: KClass<T>, configuration: T.() -> Unit): T =
     tasks.create(name, type.java, configuration)
 
 
