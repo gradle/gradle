@@ -334,14 +334,17 @@ See how we're using the `compileJava` task as the source of the files to package
 Using a task directly as an argument like this relies on it having <<more_about_tasks.adoc#sec:task_inputs_outputs,defined outputs>>, so it won't always be possible. In addition, this example could be improved further by relying on the Java plugin's convention for `destinationDir` rather than overriding it, but it does demonstrate the use of project properties.
 
 [[sec:single_file_paths]]
-=== Single file paths
+=== Single file
 
-One of the great quandaries when developing a build is how to specify file locations when the build may be executed from an arbitrary directory — not necessarily in the project — and may be run on any number of different systems with incompatible directory layouts. The standard Java mechanism for specifying a file path runs into trouble in these situations:
+Gradle provides the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method for specifying the location of a single file or directory.
+Relative paths are resolved relative to the project directory, absolute paths remain unchanged.
 
- * `new File(relative path)` generates a path relative to the current working directory, which could be anywhere
- * `new File(absolute path)` will fail if the file system doesn't have the requisite path.
+[CAUTION]
+====
+Never use `new File(relative path)`, as this creates a path relative to the current working directory, which could be anywhere.
+====
 
-Gradle solves this problem by providing the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method, which generates a path relative to the _project_ directory (unless the given path is absolute, in which case it is used as is). Here are some examples of using the `file()` method with different types of argument:
+Here are some examples of using the `file()` method with different types of argument:
 
 === Example: Locating files
 
