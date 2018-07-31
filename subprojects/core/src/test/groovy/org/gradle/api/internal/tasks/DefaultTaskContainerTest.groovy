@@ -1470,12 +1470,8 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
     final SomeTask c = factory.create("c", SomeTask)
     final SomeOtherTask d = factory.create("d", SomeOtherTask)
 
-    static class SomeTask extends DefaultTask {
-        SomeTask() {}
-    }
-    static class SomeOtherTask extends DefaultTask {
-        SomeOtherTask() {}
-    }
+    static class SomeTask extends DefaultTask {}
+    static class SomeOtherTask extends DefaultTask {}
 
     final Class<SomeTask> type = SomeTask
     final Class<SomeOtherTask> otherType = SomeOtherTask
@@ -1653,7 +1649,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         0 * action.execute(_)
     }
 
-    def "will not query register provider when clearing"() {
+    def "will not query register providers when clearing"() {
         given:
         def provider1 = container.register("a", type)
         def provider2 = container.register("b", type)
