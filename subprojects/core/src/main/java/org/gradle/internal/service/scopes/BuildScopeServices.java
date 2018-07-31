@@ -87,7 +87,6 @@ import org.gradle.configuration.DefaultScriptPluginFactory;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.ScriptPluginFactorySelector;
-import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.project.BuildScriptProcessor;
 import org.gradle.configuration.project.ConfigureActionsProjectEvaluator;
@@ -305,10 +304,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, instantiator, buildOperationExecutor, listenerBuildOperations);
         defaultScriptPluginFactory.setScriptPluginFactory(scriptPluginFactorySelector);
         return scriptPluginFactorySelector;
-    }
-
-    protected ListenerBuildOperationDecorator createListenerBuildOperations(BuildOperationExecutor buildOperationExecutor) {
-        return new DefaultListenerBuildOperationDecorator(buildOperationExecutor);
     }
 
     private DefaultScriptPluginFactory defaultScriptPluginFactory() {

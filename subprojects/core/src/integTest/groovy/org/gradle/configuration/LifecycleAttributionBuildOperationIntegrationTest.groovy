@@ -55,8 +55,13 @@ class LifecycleAttributionBuildOperationIntegrationTest extends AbstractIntegrat
     private void run() {
         def args = initFile.exists() ? ['-I', initFile.name, 'help'] : ['help']
         succeeds(*args)
+
         // useful for inspecting ops when things go wrong
         operations.debugTree({ op -> !op.hasDetailsOfType(RegisterTaskBuildOperationType.Details) })
+
+        // verify that we don't get any duplicates in these
+        sanityCheckApplicationIds()
+
         if (notEmpty(initFile)) {
             initScriptAppId = findScriptApplicationId(targetsGradle())
         }
@@ -387,6 +392,7 @@ class LifecycleAttributionBuildOperationIntegrationTest extends AbstractIntegrat
     }
 
     def 'nested afterEvaluate listeners are attributed to the correct registrant'() {
+        given:
         def addGradleListeners = { String source -> """
             gradle.afterProject { project ->
                 println "gradle.afterProject(Closure) from $source"
@@ -442,6 +448,7 @@ class LifecycleAttributionBuildOperationIntegrationTest extends AbstractIntegrat
     }
 
     def 'taskGraph whenReady action listeners are attributed to the correct registrant'() {
+        given:
         def addGradleListeners = { String source -> """
             gradle.addListener(new TaskExecutionGraphListener() {
                 void graphPopulated(TaskExecutionGraph graph) {
@@ -491,6 +498,7 @@ class LifecycleAttributionBuildOperationIntegrationTest extends AbstractIntegrat
     }
 
     def 'listeners that implement multiple interfaces are decorated correctly'() {
+        given:
         def addGradleListeners = { String source -> """
             class ComboListener implements BuildListener, ProjectEvaluationListener, TaskExecutionGraphListener {
                 void buildStarted(Gradle gradle) {
@@ -556,9 +564,10 @@ class LifecycleAttributionBuildOperationIntegrationTest extends AbstractIntegrat
     }
 
     def 'no extra executions for composite builds'() {
-        // This is basically shaking out internal listener registration that isn't using InternalListener.
-        // There are a lost of listeners registered through the methods that we've decorated in the composite build
-        // code
+        // This test does two things:
+        // - shake out internal listener registration that isn't using InternalListener.
+        //   There are a lost of listeners registered through the methods that we've decorated in the composite build code
+        // - sanity check application ids for the multi-build case
         given:
         file('buildSrc/build.gradle') << """            
         """
@@ -621,6 +630,7 @@ class LifecycleAttributionBuildOperationIntegrationTest extends AbstractIntegrat
     }
 
     def 'decorated listener can be removed'() {
+        given:
         initFile << """
             def listener = new BuildAdapter() {
                 void projectsLoaded(Gradle ignored) {
@@ -637,6 +647,22 @@ class LifecycleAttributionBuildOperationIntegrationTest extends AbstractIntegrat
         def projectsLoaded = operations.only(NotifyProjectsLoadedBuildOperationType)
         // listener should have been removed
         verifyExpectedNumberOfExecuteListenerChildren(projectsLoaded, 0)
+    }
+
+    def 'application ids are unique across gradleBuild builds'() {
+        given:
+        initFile << ""
+        file('gb/build.gradle') << ""
+        buildFile << """
+            tasks.help.dependsOn tasks.create('gb', GradleBuild) { gbTask ->
+                dir = 'gb'
+                buildFile = file('gb/build.gradle')
+                gbTask.tasks = ['help']
+            }
+        """
+
+        expect:
+        run()
     }
 
     private static void verifyExpectedNumberOfExecuteListenerChildren(BuildOperationRecord op, int expectedChildren) {
@@ -740,5 +766,12 @@ class LifecycleAttributionBuildOperationIntegrationTest extends AbstractIntegrat
 
     private static void applyScript(TestFile targetBuildFile, TestFile scriptFile) {
         targetBuildFile << "apply from: rootProject.file('${scriptFile.name}')\n"
+    }
+
+    private void sanityCheckApplicationIds() {
+        // verify that these are unique for each script / plugin application
+        def pluginAppliedOps = operations.all(ApplyPluginBuildOperationType)
+        def scriptAppliedOps = operations.all(ApplyScriptPluginBuildOperationType)
+        assert ((pluginAppliedOps + scriptAppliedOps)*.details*.applicationId as Set).size() == pluginAppliedOps.size() + scriptAppliedOps.size()
     }
 }
