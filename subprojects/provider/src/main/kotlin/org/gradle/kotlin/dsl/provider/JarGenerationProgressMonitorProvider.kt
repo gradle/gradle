@@ -52,8 +52,7 @@ class StandardJarGenerationProgressMonitorProvider(
     private
     fun progressLoggerFor(outputJar: File): ProgressLogger =
         progressLoggerFactory.newOperation(JarGenerationProgressMonitorProvider::class.java).apply {
-            description = "Gradle Kotlin DSL JARs generation"
-            loggingHeader = "Generating JAR file '${outputJar.name}'"
+            description = "Generating ${outputJar.name}"
             started()
         }
 }
