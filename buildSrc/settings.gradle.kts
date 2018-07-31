@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-apply(from = "$rootDir/../gradle/shared-with-buildSrc/mirrors.gradle.kts")
-
-fun RepositoryHandler.kotlinDev(): MavenArtifactRepository {
-    val mirrorUrl = gradle.startParameter.projectProperties.get("repositoryMirrors.kotlindev")
-    return maven(url = mirrorUrl ?: "https://dl.bintray.com/kotlin/kotlin-dev")
-}
+fun RepositoryHandler.kotlinDev() =
+    maven(url = "https://dl.bintray.com/kotlin/kotlin-dev")
 
 pluginManagement {
     repositories {
         kotlinDev()
         gradlePluginPortal()
+    }
+}
+
+gradle.rootProject {
+    allprojects {
+        repositories {
+            kotlinDev()
+        }
     }
 }
 
