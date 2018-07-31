@@ -27,7 +27,7 @@ import java.util.Properties
 
 
 buildscript {
-    project.apply(from = "$rootDir/../gradle/shared-with-buildSrc/mirrors.gradle.kts")
+    project.apply(from = "$rootDir/../gradle/shared-with-buildSrc/configure-repositories-with-mirrors.gradle.kts")
 }
 
 plugins {
@@ -74,7 +74,7 @@ subprojects {
         }
     }
 }
-var pluginPortalUrl = (project.rootProject.extensions.extraProperties.get("repositoryMirrors") as Map<String, String>).get("gradleplugins")
+var pluginPortalUrl = gradle.startParameter.projectProperties.get("repositoryMirrors.gradleplugins")
 
 allprojects {
     repositories {

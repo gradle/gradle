@@ -25,7 +25,7 @@ import org.gradle.gradlebuild.ProjectGroups.pluginProjects
 import org.gradle.gradlebuild.ProjectGroups.publishedProjects
 
 buildscript {
-    project.apply(from = "$rootDir/gradle/shared-with-buildSrc/mirrors.gradle.kts")
+    project.apply(from = "$rootDir/gradle/shared-with-buildSrc/configure-repositories-with-mirrors.gradle.kts")
 }
 
 plugins {
