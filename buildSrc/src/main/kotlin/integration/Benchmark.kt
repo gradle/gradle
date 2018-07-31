@@ -23,9 +23,9 @@ import criterion.Result
 import criterion.benchmark
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.internal.tasks.options.Option
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.options.Option
 
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.GradleConnector.newConnector
@@ -189,7 +189,6 @@ open class Benchmark : DefaultTask() {
     fun resultFileFor(sampleName: String) =
         File(effectiveResultDir, "$sampleName.jsonl")
 
-    @get:Internal
     private
     val effectiveResultDir by lazy {
         resultDir ?: File(project.buildDir, "benchmark")
@@ -211,13 +210,11 @@ open class Benchmark : DefaultTask() {
             "%.6f".format(it.ms)
         }
 
-    @get:Internal
     private
     val ISO8601Now by lazy {
         OffsetDateTime.now(ZoneId.of("UTC")).toString()
     }
 
-    @get:Internal
     private
     val commitHash by lazy {
         println("Attempting to determine current commit hash via environment variable")
