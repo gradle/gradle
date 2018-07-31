@@ -315,7 +315,7 @@ class NamedDomainObjectCollectionExtensionsTest {
 }
 
 
-private
+internal
 inline fun <reified T : Any> mockDomainObjectProviderFor(domainObject: T): DomainObjectProvider<T> =
     mock {
         on { get() } doReturn domainObject

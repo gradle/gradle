@@ -31,10 +31,14 @@ class NamedDomainObjectContainerExtensionsTest {
         val alice = DomainObject()
         val bob = DomainObject()
         val john = DomainObject()
+        val marty = mockDomainObjectProviderFor(DomainObject())
+        val doc = mockDomainObjectProviderFor(DomainObject())
         val container = mock<NamedDomainObjectContainer<DomainObject>> {
             on { getByName("alice") } doReturn alice
             on { create("bob") } doReturn bob
             on { maybeCreate("john") } doReturn john
+            on { named("marty") } doReturn marty
+            on { register("doc") } doReturn doc
         }
 
         // regular syntax
@@ -46,6 +50,9 @@ class NamedDomainObjectContainerExtensionsTest {
         }
         container.maybeCreate("john")
 
+        container.named("marty")
+        container.register("doc")
+
         // invoke syntax
         container {
             getByName("alice") {
@@ -55,6 +62,9 @@ class NamedDomainObjectContainerExtensionsTest {
                 it.foo = "bob-foo"
             }
             maybeCreate("john")
+
+            named("marty")
+            register("doc")
         }
     }
 
@@ -64,11 +74,22 @@ class NamedDomainObjectContainerExtensionsTest {
         val alice = DomainObjectBase.Foo()
         val bob = DomainObjectBase.Bar()
         val default = DomainObjectBase.Default()
+        val marty = DomainObjectBase.Foo()
+        val martyProvider = mockDomainObjectProviderFor<DomainObjectBase>(marty)
+        val doc = DomainObjectBase.Bar()
+        val docProvider = mockDomainObjectProviderFor<DomainObjectBase>(doc)
+        val docProviderAsBarProvider = uncheckedCast<DomainObjectProvider<DomainObjectBase.Bar>>(docProvider)
         val container = mock<PolymorphicDomainObjectContainer<DomainObjectBase>> {
             on { getByName("alice") } doReturn alice
             on { maybeCreate("alice", DomainObjectBase.Foo::class.java) } doReturn alice
-            on { create(argThat { equals("bob") }, argThat { equals(DomainObjectBase.Bar::class.java) }, any<Action<DomainObjectBase.Bar>>()) } doReturn bob
+            on { create(eq("bob"), eq(DomainObjectBase.Bar::class.java), any<Action<DomainObjectBase.Bar>>()) } doReturn bob
             on { create("john", DomainObjectBase.Default::class.java) } doReturn default
+            on { named("marty") } doReturn martyProvider
+            on { register(eq("doc"), eq(DomainObjectBase.Bar::class.java)) } doReturn docProviderAsBarProvider
+            on { register(eq("doc"), eq(DomainObjectBase.Bar::class.java), any<Action<DomainObjectBase>>()) }.thenAnswer {
+                it.getArgument<Action<DomainObjectBase>>(2).execute(doc)
+                docProvider
+            }
         }
 
         // regular syntax
@@ -81,6 +102,16 @@ class NamedDomainObjectContainerExtensionsTest {
         }
         container.create("john")
 
+        container.named("marty", DomainObjectBase.Foo::class) {
+            foo = "marty-foo"
+        }
+        container.named<DomainObjectBase.Foo>("marty") {
+            foo = "marty-foo-2"
+        }
+        container.register<DomainObjectBase.Bar>("doc") {
+            bar = true
+        }
+
         // invoke syntax
         container {
             getByName<DomainObjectBase.Foo>("alice") {
@@ -91,6 +122,16 @@ class NamedDomainObjectContainerExtensionsTest {
                 bar = true
             }
             create("john")
+
+            named("marty", DomainObjectBase.Foo::class) {
+                foo = "marty-foo"
+            }
+            named<DomainObjectBase.Foo>("marty") {
+                foo = "marty-foo-2"
+            }
+            register<DomainObjectBase.Bar>("doc") {
+                bar = true
+            }
         }
     }
 
@@ -216,7 +257,7 @@ class NamedDomainObjectContainerExtensionsTest {
         }
 
         val tasks = mock<TaskContainer> {
-            on { create(argThat { equals("clean") }, argThat { equals(Delete::class.java) }, any<Action<Delete>>()) } doReturn clean
+            on { create(eq("clean"), eq(Delete::class.java), any<Action<Delete>>()) } doReturn clean
             on { getByName("clean") } doReturn clean
             on { named("clean") } doReturn uncheckedCast<TaskProvider<Task>>(cleanProvider)
         }
