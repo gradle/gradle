@@ -29,7 +29,6 @@ import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.internal.classloader.ClasspathHasher
 
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
-import org.gradle.internal.operations.BuildOperationExecutor
 
 import org.gradle.kotlin.dsl.cache.ScriptCache
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
@@ -49,7 +48,6 @@ object BuildServices {
         classLoaderScopeRegistry: ClassLoaderScopeRegistry,
         dependencyFactory: DependencyFactory,
         jarCache: GeneratedGradleJarCache,
-        buildOperationExecutor: BuildOperationExecutor,
         progressLoggerFactory: ProgressLoggerFactory
     ) =
 
@@ -59,7 +57,6 @@ object BuildServices {
             classLoaderScopeRegistry.coreAndPluginsScope,
             gradleApiJarsProviderFor(dependencyFactory),
             versionedJarCacheFor(jarCache),
-            buildOperationExecutor,
             StandardJarGenerationProgressMonitorProvider(progressLoggerFactory))
 
     @Suppress("unused")

@@ -31,10 +31,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.internal.classloader.ClassLoaderVisitor
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.operations.BuildOperationContext
-import org.gradle.internal.operations.BuildOperationDescriptor
-import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.RunnableBuildOperation
 
 import org.gradle.kotlin.dsl.codegen.generateApiExtensionsJar
 import org.gradle.kotlin.dsl.support.ProgressMonitor
@@ -99,7 +95,6 @@ class KotlinScriptClassPathProvider(
     val coreAndPluginsScope: ClassLoaderScope,
     val gradleApiJarsProvider: JarsProvider,
     val jarCache: JarCache,
-    val buildOperationExecutor: BuildOperationExecutor,
     val progressMonitorProvider: JarGenerationProgressMonitorProvider
 ) {
 
@@ -166,22 +161,9 @@ class KotlinScriptClassPathProvider(
     private
     fun produceFrom(id: String, generate: JarGeneratorWithProgress): File =
         jarCache(id) { outputFile ->
-            buildOperationExecutor.run(object : RunnableBuildOperation {
-
-                override fun run(context: BuildOperationContext) =
-                    generateWithProgress(outputFile, generate)
-
-                override fun description(): BuildOperationDescriptor.Builder =
-                    BuildOperationDescriptor
-                        .displayName("Generate $outputFile")
-                        .progressDisplayName("Generating ${outputFile.name}")
-            })
-        }
-
-    private
-    fun generateWithProgress(outputFile: File, generate: JarGeneratorWithProgress) =
-        progressMonitorFor(outputFile, 3).use { progressMonitor ->
-            generateAtomically(outputFile) { generate(it, progressMonitor::onProgress) }
+            progressMonitorFor(outputFile, 3).use { progressMonitor ->
+                generateAtomically(outputFile) { generate(it, progressMonitor::onProgress) }
+            }
         }
 
     private

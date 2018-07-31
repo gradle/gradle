@@ -12,13 +12,10 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.Clas
 import org.gradle.api.internal.classpath.Module
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.RunnableBuildOperation
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 
 import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.startsWith
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
@@ -35,18 +32,6 @@ class KotlinScriptClassPathProviderTest : AbstractIntegrationTest() {
 
         val apiMetadataModule = mockGradleApiMetadataModule()
 
-        val buildOperationExecutor = mock<BuildOperationExecutor> {
-            on { run(any()) }.thenAnswer {
-                it.getArgument<RunnableBuildOperation>(0).let { operation ->
-                    operation.description().build().let { description ->
-                        assertThat(description.displayName, startsWith("Generate $generatedKotlinExtensions"))
-                        assertThat(description.progressDisplayName, startsWith("Generating ${generatedKotlinExtensions.name}"))
-                    }
-                    operation.run(mock())
-                }
-            }
-        }
-
         val kotlinExtensionsMonitor = mock<ProgressMonitor>(name = "kotlinExtensionsMonitor")
         val progressMonitorProvider = mock<JarGenerationProgressMonitorProvider> {
             on { progressMonitorFor(generatedKotlinExtensions, 3) } doReturn kotlinExtensionsMonitor
@@ -58,7 +43,6 @@ class KotlinScriptClassPathProviderTest : AbstractIntegrationTest() {
             coreAndPluginsScope = mock(),
             gradleApiJarsProvider = { listOf(gradleApiJar) },
             jarCache = { id, generator -> existing("$id.jar").apply(generator) },
-            buildOperationExecutor = buildOperationExecutor,
             progressMonitorProvider = progressMonitorProvider)
 
         assertThat(

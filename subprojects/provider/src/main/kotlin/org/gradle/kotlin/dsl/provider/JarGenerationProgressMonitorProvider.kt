@@ -36,8 +36,9 @@ class StandardJarGenerationProgressMonitorProvider(
 ) : JarGenerationProgressMonitorProvider {
 
     override fun progressMonitorFor(outputJar: File, totalWork: Int): ProgressMonitor {
-        val progressLogger = progressLoggerFor(outputJar)
-        val progressFormatter = PercentageProgressFormatter("Generating", totalWork)
+        val progressMessage = "Generating ${outputJar.name}"
+        val progressLogger = progressLoggerFor(outputJar, progressMessage)
+        val progressFormatter = PercentageProgressFormatter(progressMessage, totalWork)
         return object : ProgressMonitor {
             override fun onProgress() {
                 progressLogger.progress(progressFormatter.incrementAndGetProgress())
@@ -50,9 +51,9 @@ class StandardJarGenerationProgressMonitorProvider(
     }
 
     private
-    fun progressLoggerFor(outputJar: File): ProgressLogger =
+    fun progressLoggerFor(outputJar: File, progressMessage: String): ProgressLogger =
         progressLoggerFactory.newOperation(JarGenerationProgressMonitorProvider::class.java).apply {
-            description = "Generating ${outputJar.name}"
-            started()
+            description = progressMessage
+            started(progressMessage)
         }
 }
