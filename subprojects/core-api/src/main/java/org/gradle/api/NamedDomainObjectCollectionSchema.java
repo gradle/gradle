@@ -21,12 +21,16 @@ import org.gradle.api.reflect.TypeOf;
 /**
  * Schema of named domain object collections.
  *
- * @param <T> Schema of types contained in the collection.
  * @since 4.10
  * @see NamedDomainObjectCollection
  */
 @Incubating
-public interface NamedDomainObjectCollectionSchema<T extends NamedDomainObjectCollectionSchema.NamedDomainObjectSchema> extends Iterable<T> {
+public interface NamedDomainObjectCollectionSchema {
+    /**
+     * Returns an iterable of the schemas for each element in the collection.
+     */
+    Iterable<? extends NamedDomainObjectSchema> getElements();
+
     /**
      * Schema of a named domain object.
      *

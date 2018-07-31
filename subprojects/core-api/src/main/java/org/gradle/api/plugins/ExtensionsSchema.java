@@ -26,7 +26,13 @@ import org.gradle.api.reflect.TypeOf;
  * @since 4.5
  */
 @Incubating
-public interface ExtensionsSchema extends NamedDomainObjectCollectionSchema<ExtensionsSchema.ExtensionSchema> {
+public interface ExtensionsSchema extends NamedDomainObjectCollectionSchema, Iterable<ExtensionsSchema.ExtensionSchema> {
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    Iterable<ExtensionSchema> getElements();
 
     /**
      * Schema of an extension.

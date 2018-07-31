@@ -150,7 +150,7 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
     }
 
     @Override
-    public NamedDomainObjectCollectionSchema<NamedDomainObjectCollectionSchema.NamedDomainObjectSchema> getCollectionSchema() {
+    public NamedDomainObjectCollectionSchema getCollectionSchema() {
         return delegate.getCollectionSchema();
     }
 

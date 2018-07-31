@@ -16,7 +16,7 @@
 package org.gradle.api.internal;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Iterators;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
@@ -363,12 +363,12 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Override
-    public NamedDomainObjectCollectionSchema<NamedDomainObjectCollectionSchema.NamedDomainObjectSchema> getCollectionSchema() {
-        return new NamedDomainObjectCollectionSchema<NamedDomainObjectCollectionSchema.NamedDomainObjectSchema>() {
+    public NamedDomainObjectCollectionSchema getCollectionSchema() {
+        return new NamedDomainObjectCollectionSchema() {
             @Override
-            public Iterator<NamedDomainObjectSchema> iterator() {
-                return Iterators.concat(
-                    Iterators.transform(index.asMap().entrySet().iterator(), new Function<Map.Entry<String, T>, NamedDomainObjectSchema>() {
+            public Iterable<? extends NamedDomainObjectSchema> getElements() {
+                return Iterables.concat(
+                    Iterables.transform(index.asMap().entrySet(), new Function<Map.Entry<String, T>, NamedDomainObjectSchema>() {
                         @Override
                         public NamedDomainObjectSchema apply(final Map.Entry<String, T> e) {
                             return new NamedDomainObjectSchema() {
@@ -390,7 +390,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
                             };
                         }
                     }),
-                    Iterators.transform(index.getPendingAsMap().entrySet().iterator(), new Function<Map.Entry<String, ProviderInternal<? extends T>>, NamedDomainObjectSchema>() {
+                    Iterables.transform(index.getPendingAsMap().entrySet(), new Function<Map.Entry<String, ProviderInternal<? extends T>>, NamedDomainObjectSchema>() {
                         @Override
                         public NamedDomainObjectSchema apply(final Map.Entry<String, ProviderInternal<? extends T>> e) {
                             return new NamedDomainObjectSchema() {
