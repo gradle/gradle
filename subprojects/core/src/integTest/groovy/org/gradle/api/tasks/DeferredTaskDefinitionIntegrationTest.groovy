@@ -895,13 +895,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         ["Project#afterEvaluate(Action)"   , "afterEvaluate new Action<Project>() { void execute(Project p) {} }"],
         ["Project#beforeEvaluate(Closure)" , "beforeEvaluate {}"],
         ["Project#beforeEvaluate(Action)"  , "beforeEvaluate new Action<Project>() { void execute(Project p) {} }"],
-        ["Project#subprojects(Closure)"    , "subprojects {}"],
-        ["Project#subprojects(Action)"     , "subprojects new Action<Project>() { void execute(Project p) {} }"],
-        ["Project#allprojects(Closure)"    , "allprojects {}"],
-        ["Project#allprojects(Action)"     , "allprojects new Action<Project>() { void execute(Project p) {} }"],
-        ["Project#project(String, Closure)", "project(':nested') {}"],
-        ["Project#project(String, Action)" , "project(':nested', new Action<Project>() { void execute(Project p) {} })"],
-        ["Project#allprojects(Action)"     , "gradle.allprojects new Action<Project>() { void execute(Project p) {} }"],
     ]
 
     @Unroll
