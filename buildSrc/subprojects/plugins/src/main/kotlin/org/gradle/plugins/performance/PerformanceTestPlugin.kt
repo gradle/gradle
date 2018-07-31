@@ -312,7 +312,6 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         val result = tasks.register(name, DistributedPerformanceTest::class.java) {
             configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask)
-            configureForAnyDistributedPerformanceTestTask(this)
             scenarioList = buildDir / Config.performanceTestScenarioListFileName
             scenarioReport = buildDir / Config.performanceTestScenarioReportFileName
             buildTypeId = stringPropertyOrNull(PropertyNames.buildTypeId)
@@ -415,6 +414,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             dependsOn(prepareSamplesTask)
 
             configureReportProperties()
+            registerTemplateInputsToPerformanceTest()
 
             mustRunAfter(tasks.withType<ProjectGeneratorTask>())
             mustRunAfter(tasks.withType<RemoteProject>())
@@ -431,15 +431,15 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.configureForAnyDistributedPerformanceTestTask(task: DistributedPerformanceTest) {
-        task.apply {
+    fun PerformanceTest.registerTemplateInputsToPerformanceTest() {
+        apply {
             val registerInputs: (Task) -> Unit = { prepareSampleTask ->
                 val prepareSampleTaskInputs = prepareSampleTask.inputs.properties.mapKeys { entry -> "${prepareSampleTask.name}_${entry.key}" }
-                task.inputs.properties(prepareSampleTaskInputs)
+                inputs.properties(prepareSampleTaskInputs)
             }
-            tasks.withType<ProjectGeneratorTask>().forEach(registerInputs)
-            tasks.withType<RemoteProject>().forEach(registerInputs)
-            tasks.withType<JavaExecProjectGeneratorTask>().forEach(registerInputs)
+            project.tasks.withType<ProjectGeneratorTask>().forEach(registerInputs)
+            project.tasks.withType<RemoteProject>().forEach(registerInputs)
+            project.tasks.withType<JavaExecProjectGeneratorTask>().forEach(registerInputs)
         }
     }
 
