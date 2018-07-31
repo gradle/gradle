@@ -242,7 +242,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      */
     @Suppress("unused")
     fun files(vararg paths: Any): ConfigurableFileCollection =
-        operations.files(paths)
+        operations.configurableFiles(paths)
 
     /**
      * Creates a [ConfigurableFileCollection] containing the given files.
@@ -254,7 +254,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      */
     @Suppress("unused")
     fun files(paths: Any, configuration: ConfigurableFileCollection.() -> Unit): ConfigurableFileCollection =
-        operations.files(paths).also(configuration)
+        operations.configurableFiles(paths).also(configuration)
 
     /**
      * Creates a new [ConfigurableFileTree] using the given base directory.

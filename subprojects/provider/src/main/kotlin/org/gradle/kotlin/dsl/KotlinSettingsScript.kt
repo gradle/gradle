@@ -243,7 +243,7 @@ abstract class SettingsScriptApi(settings: Settings) : Settings by settings {
      */
     @Suppress("unused")
     fun files(vararg paths: Any): ConfigurableFileCollection =
-        fileOperations.files(paths)
+        fileOperations.configurableFiles(paths)
 
     /**
      * Creates a [ConfigurableFileCollection] containing the given files.
@@ -255,7 +255,7 @@ abstract class SettingsScriptApi(settings: Settings) : Settings by settings {
      */
     @Suppress("unused")
     fun files(paths: Any, configuration: ConfigurableFileCollection.() -> Unit): ConfigurableFileCollection =
-        fileOperations.files(paths).also(configuration)
+        fileOperations.configurableFiles(paths).also(configuration)
 
     /**
      * Creates a new [ConfigurableFileTree] using the given base directory.
@@ -427,7 +427,7 @@ abstract class SettingsScriptApi(settings: Settings) : Settings by settings {
      * @param configuration the block to configure an {@link ObjectConfigurationAction} with before “executing” it
      */
     open fun apply(configuration: ObjectConfigurationAction.() -> Unit) =
-        settings.apply({ it.configuration() })
+        settings.apply(configuration)
 }
 
 
