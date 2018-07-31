@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
@@ -22,6 +24,7 @@ import org.gradle.api.DomainObjectProvider;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectCollection;
+import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.Namer;
 import org.gradle.api.Rule;
 import org.gradle.api.UnknownDomainObjectException;
@@ -33,6 +36,7 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Cast;
@@ -356,6 +360,49 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     protected DynamicObject getElementsAsDynamicObject() {
         return elementsDynamicObject;
+    }
+
+    @Override
+    public NamedDomainObjectCollectionSchema<NamedDomainObjectCollectionSchema.NamedDomainObjectSchema> getSchema() {
+        return new NamedDomainObjectCollectionSchema<NamedDomainObjectCollectionSchema.NamedDomainObjectSchema>() {
+            @Override
+            public Iterator<NamedDomainObjectSchema> iterator() {
+                return Iterators.concat(
+                    Iterators.transform(index.asMap().entrySet().iterator(), new Function<Map.Entry<String, T>, NamedDomainObjectSchema>() {
+                        @Override
+                        public NamedDomainObjectSchema apply(final Map.Entry<String, T> e) {
+                            return new NamedDomainObjectSchema() {
+                                @Override
+                                public String getName() {
+                                    return e.getKey();
+                                }
+
+                                @Override
+                                public TypeOf<?> getPublicType() {
+                                    return TypeOf.typeOf(new DslObject(e.getValue()).getDeclaredType());
+                                }
+                            };
+                        }
+                    }),
+                    Iterators.transform(index.getPendingAsMap().entrySet().iterator(), new Function<Map.Entry<String, ProviderInternal<? extends T>>, NamedDomainObjectSchema>() {
+                        @Override
+                        public NamedDomainObjectSchema apply(final Map.Entry<String, ProviderInternal<? extends T>> e) {
+                            return new NamedDomainObjectSchema() {
+                                @Override
+                                public String getName() {
+                                    return e.getKey();
+                                }
+
+                                @Override
+                                public TypeOf<?> getPublicType() {
+                                    return TypeOf.typeOf(e.getValue().getType());
+                                }
+                            };
+                        }
+                    })
+                );
+            }
+        };
     }
 
     /**

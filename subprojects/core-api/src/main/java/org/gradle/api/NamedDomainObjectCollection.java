@@ -229,4 +229,10 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
     @Incubating
     DomainObjectProvider<T> named(String name) throws UnknownDomainObjectException;
 
+    /**
+     * TODO:
+     * @return
+     */
+    @Incubating
+    NamedDomainObjectCollectionSchema<NamedDomainObjectCollectionSchema.NamedDomainObjectSchema> getSchema();
 }
