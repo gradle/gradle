@@ -62,259 +62,259 @@ class VersionRangeResolveTestScenarios {
 
     public static final StrictPermutationsProvider SCENARIOS_PREFER = StrictPermutationsProvider.check(
         versions: [PREFER_11, PREFER_12],
-        expectedNoStrict: "12"
+        expected: "12"
     ).and(
         versions: [PREFER_11, PREFER_10_12],
-        expectedNoStrict: "11"
+        expected: "11"
     ).and(
         versions: [PREFER_12, PREFER_10_11],
-        expectedNoStrict: "12"
+        expected: "12"
     ).and(
         versions: [PREFER_11, PREFER_12, PREFER_10_14],
-        expectedNoStrict: "12"
+        expected: "12"
     ).and(
         versions: [PREFER_10_11, PREFER_10_12, PREFER_10_14],
-        expectedNoStrict: "11"
+        expected: "11"
     ).and(
         versions: [PREFER_10_11, PREFER_12, PREFER_10_14],
-        expectedNoStrict: "12"
+        expected: "12"
     ).and(
         versions: [PREFER_12, FIXED_11],
-        expectedNoStrict: "11",
+        expected: "11",
         expectedStrict: [IGNORE, "11"],
         ignore: true
     ).and(
         versions: [PREFER_11, FIXED_12],
-        expectedNoStrict: "12",
+        expected: "12",
         expectedStrict: [IGNORE, "12"]
     ).and(
         versions: [PREFER_12, RANGE_10_11],
-        expectedNoStrict: "11",
+        expected: "11",
         expectedStrict: [IGNORE, "11"],
         ignore: true
     ).and(
         versions: [PREFER_12, RANGE_10_12],
-        expectedNoStrict: "12",
+        expected: "12",
         expectedStrict: [IGNORE, "12"],
         ignore: true
     ).and(
         versions: [PREFER_12, RANGE_10_14],
-        expectedNoStrict: "12",
+        expected: "12",
         expectedStrict: [IGNORE, "12"]
     ).and(
         versions: [PREFER_11, RANGE_12_14],
-        expectedNoStrict: "13",
+        expected: "13",
         expectedStrict: [IGNORE, "13"]
     ).and(
         versions: [PREFER_11, PREFER_12, RANGE_10_14],
-        expectedNoStrict: "12",
+        expected: "12",
         expectedStrict: [IGNORE, IGNORE, "12"]
     ).and(
         versions: [PREFER_11, PREFER_13, RANGE_10_12],
-        expectedNoStrict: "11",
+        expected: "11",
         expectedStrict: [IGNORE, IGNORE, "11"],
         ignore: true
     ).and(
         versions: [PREFER_7_8, FIXED_12],  // No version satisfies the range [7,8]
-        expectedNoStrict: FAILED
+        expected: FAILED
     ).and(
         versions: [PREFER_14_16, FIXED_12], // No version satisfies the range [14,16]
-        expectedNoStrict: FAILED
+        expected: FAILED
     )
 
     public static final StrictPermutationsProvider SCENARIOS_TWO_DEPENDENCIES = StrictPermutationsProvider.check(
         versions: [FIXED_7, FIXED_13],
-        expectedNoStrict: "13",
+        expected: "13",
         expectedStrict: [REJECTED, "13"]
     ).and(
         versions: [FIXED_12, FIXED_13],
-        expectedNoStrict: "13",
+        expected: "13",
         expectedStrict: [REJECTED, "13"]
     ).and(
         versions: [FIXED_12, RANGE_10_11],
-        expectedNoStrict: "12",
+        expected: "12",
         expectedStrict: ["12", REJECTED]
     ).and(
         versions: [FIXED_12, RANGE_10_14],
-        expectedNoStrict: "12",
+        expected: "12",
         expectedStrict: ["12", "12"]
     ).and(
         versions: [FIXED_12, RANGE_13_14],
-        expectedNoStrict: "13",
+        expected: "13",
         expectedStrict: [REJECTED, "13"]
     ).and(
         versions: [FIXED_12, RANGE_7_8],  // No version satisfies the range [7,8]
-        expectedNoStrict: FAILED,
+        expected: FAILED,
         expectedStrict: [FAILED, FAILED]
     ).and(
         versions: [FIXED_12, RANGE_14_16], // No version satisfies the range [14,16]
-        expectedNoStrict: FAILED,
+        expected: FAILED,
         expectedStrict: [FAILED, FAILED]
     ).and(
         versions: [RANGE_10_11, FIXED_10],
-        expectedNoStrict: "10",
+        expected: "10",
         expectedStrict: ["10", "10"]
     ).and(
         versions: [RANGE_10_14, FIXED_13],
-        expectedNoStrict: "13",
+        expected: "13",
         expectedStrict: ["13", "13"]
     ).and(
         versions: [RANGE_10_14, RANGE_10_11],
-        expectedNoStrict: "11",
+        expected: "11",
         expectedStrict: ["11", "11"]
     ).and(
         versions: [RANGE_10_14, RANGE_10_16],
-        expectedNoStrict: "13",
+        expected: "13",
         expectedStrict: ["13", "13"]
     ).and(
         versions: [DYNAMIC_PLUS, FIXED_11],
-        expectedNoStrict: "13",
+        expected: "13",
         expectedStrict: [IGNORE, "11"]
     ).and(
         versions: [DYNAMIC_PLUS, RANGE_10_12],
-        expectedNoStrict: "13",
+        expected: "13",
         expectedStrict: [IGNORE, "12"]
     ).and(
         versions: [DYNAMIC_PLUS, RANGE_10_16],
-        expectedNoStrict: "13",
+        expected: "13",
         expectedStrict: [IGNORE, "13"]
     ).and(
         versions: [DYNAMIC_LATEST, FIXED_11],
-        expectedNoStrict: "13",
+        expected: "13",
         expectedStrict: [IGNORE, "11"]
     ).and(
         versions: [DYNAMIC_LATEST, RANGE_10_12],
-        expectedNoStrict: "13",
+        expected: "13",
         expectedStrict: [IGNORE, "12"]
     ).and(
         versions: [DYNAMIC_LATEST, RANGE_10_16],
-        expectedNoStrict: "13",
+        expected: "13",
         expectedStrict: [IGNORE, "13"]
     )
 
     public static final StrictPermutationsProvider SCENARIOS_DEPENDENCY_WITH_REJECT = StrictPermutationsProvider.check(
         versions: [FIXED_12, REJECT_11],
-        expectedNoStrict: "12"
+        expected: "12"
     ).and(
         versions: [FIXED_12, REJECT_12],
-        expectedNoStrict: REJECTED
+        expected: REJECTED
     ).and(
         versions: [FIXED_12, REJECT_13],
-        expectedNoStrict: "12"
+        expected: "12"
     ).and(
         versions: [RANGE_10_12, REJECT_11],
-        expectedNoStrict: "12"
+        expected: "12"
     ).and(
         versions: [RANGE_10_12, REJECT_12],
-        expectedNoStrict: "11"
+        expected: "11"
     ).and(
         versions: [RANGE_10_12, REJECT_13],
-        expectedNoStrict: "12"
+        expected: "12"
     )
 
     public static final StrictPermutationsProvider SCENARIOS_THREE_DEPENDENCIES = StrictPermutationsProvider.check(
         versions: [FIXED_10, FIXED_12, FIXED_13],
-        expectedNoStrict: "13",
+        expected: "13",
         expectedStrict: [REJECTED, REJECTED, "13"]
     ).and(
         versions: [FIXED_10, FIXED_12, RANGE_10_14],
-        expectedNoStrict: "12",
+        expected: "12",
         expectedStrict: [REJECTED, "12", "12"]
     ).and(
         versions: [FIXED_10, RANGE_10_11, RANGE_10_14],
-        expectedNoStrict: "10",
+        expected: "10",
         expectedStrict: ["10", "10", "10"]
     ).and(
         versions: [FIXED_10, RANGE_10_11, RANGE_13_14],
-        expectedNoStrict: "13",
+        expected: "13",
         expectedStrict: [REJECTED, REJECTED, "13"]
     ).and(
         versions: [FIXED_10, RANGE_11_12, RANGE_10_14],
-        expectedNoStrict: "12",
+        expected: "12",
         expectedStrict: [REJECTED, "12", "12"]
     ).and(
         versions: [RANGE_10_11, RANGE_10_12, RANGE_10_14],
-        expectedNoStrict: "11",
+        expected: "11",
         expectedStrict: ["11", "11", "11"]
     ).and(
         versions: [RANGE_10_11, RANGE_10_12, RANGE_13_14],
-        expectedNoStrict: "13",
+        expected: "13",
         expectedStrict: [REJECTED, REJECTED, "13"]
     ).and(
         versions: [FIXED_10, FIXED_10, FIXED_12],
-        expectedNoStrict: "12",
+        expected: "12",
         expectedStrict: [REJECTED, REJECTED, "12"]
     ).and(
         versions: [FIXED_10, FIXED_12, RANGE_12_14],
-        expectedNoStrict: "12",
+        expected: "12",
         expectedStrict: [REJECTED, "12", "12"]
     )
 
     public static final StrictPermutationsProvider SCENARIOS_WITH_REJECT = StrictPermutationsProvider.check(
         versions: [FIXED_11, FIXED_12, REJECT_11],
-        expectedNoStrict: "12",
+        expected: "12",
         expectedStrict: [REJECTED, "12", IGNORE]
     ).and(
         versions: [FIXED_11, FIXED_12, REJECT_12],
-        expectedNoStrict: REJECTED,
+        expected: REJECTED,
         expectedStrict: [REJECTED, REJECTED, IGNORE]
     ).and(
         versions: [FIXED_11, FIXED_12, REJECT_13],
-        expectedNoStrict: "12",
+        expected: "12",
         expectedStrict: [REJECTED, "12", IGNORE]
     ).and(
         versions: [RANGE_10_14, RANGE_10_12, FIXED_12, REJECT_11],
-        expectedNoStrict: "12",
+        expected: "12",
         expectedStrict: ["12", "12", "12", IGNORE]
     ).and(
         ignore: true, // This will require resolving RANGE_10_14 with the knowledge that FIXED_12 rejects < "12".
         versions: [RANGE_10_14, RANGE_10_12, FIXED_12, REJECT_12],
-        expectedNoStrict: "13",
+        expected: "13",
     ).and(
         versions: [RANGE_10_14, RANGE_10_12, FIXED_12, REJECT_13],
-        expectedNoStrict: "12",
+        expected: "12",
         expectedStrict: ["12", "12", "12", IGNORE]
     ).and(
         versions: [RANGE_10_12, RANGE_13_14, REJECT_11],
-        expectedNoStrict: "13",
+        expected: "13",
         expectedStrict: [REJECTED, "13", IGNORE]
     ).and(
         versions: [RANGE_10_12, RANGE_13_14, REJECT_12],
-        expectedNoStrict: "13",
+        expected: "13",
         expectedStrict: [REJECTED, "13", IGNORE]
     ).and(
         versions: [RANGE_10_12, RANGE_13_14, REJECT_13],
-        expectedNoStrict: REJECTED,
+        expected: REJECTED,
         expectedStrict: [REJECTED, REJECTED, IGNORE]
     ).and(
         versions: [FIXED_9, RANGE_10_11, RANGE_10_12, REJECT_11],
-        expectedNoStrict: "10",
+        expected: "10",
         expectedStrict: [REJECTED, "10", "10", IGNORE]
     ).and(
         versions: [FIXED_9, RANGE_10_11, RANGE_10_12, REJECT_12],
-        expectedNoStrict: "11",
+        expected: "11",
         expectedStrict: [REJECTED, "11", "11", IGNORE]
     ).and(
         versions: [FIXED_9, RANGE_10_11, RANGE_10_12, REJECT_13],
-        expectedNoStrict: "11",
+        expected: "11",
         expectedStrict: [REJECTED, "11", "11", IGNORE]
     )
 
     public static final StrictPermutationsProvider SCENARIOS_FOUR_DEPENDENCIES = StrictPermutationsProvider.check(
         versions: [FIXED_9, FIXED_10, FIXED_11, FIXED_12],
-        expectedNoStrict: "12",
+        expected: "12",
         expectedStrict: [REJECTED, REJECTED, REJECTED, "12"]
     ).and(
         versions: [FIXED_10, RANGE_10_11, FIXED_12, RANGE_12_14],
-        expectedNoStrict: "12",
+        expected: "12",
         expectedStrict: [REJECTED, REJECTED, "12", "12"]
     ).and(
         versions: [FIXED_10, RANGE_10_11, RANGE_10_12, RANGE_13_14],
-        expectedNoStrict: "13",
+        expected: "13",
         expectedStrict: [REJECTED, REJECTED, REJECTED, "13"]
     ).and(
         versions: [FIXED_9, RANGE_10_11, RANGE_10_12, RANGE_10_14],
-        expectedNoStrict: "11",
+        expected: "11",
         expectedStrict: [REJECTED, "11", "11", "11"]
     )
     private static RenderableVersion fixed(int version) {
@@ -457,12 +457,12 @@ class VersionRangeResolveTestScenarios {
 
         StrictPermutationsProvider and(Map config) {
             assert config.versions
-            assert config.expectedNoStrict
+            assert config.expected
 
             ++batchCount
             if (!config.ignore) {
                 List<RenderableVersion> versions = config.versions
-                String expected = config.expectedNoStrict
+                String expected = config.expected
                 List<String> expectedStrict = config.expectedStrict
                 List<Batch> iterations = []
                 String batchName = config.description ?: "#${batchCount} (${versions})"
