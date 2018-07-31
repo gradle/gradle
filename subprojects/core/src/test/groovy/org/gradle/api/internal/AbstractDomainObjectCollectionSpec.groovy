@@ -691,8 +691,10 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         given:
         _ * provider1.type >> type
         _ * provider1.get() >> a
+        _ * provider1.present >> true
         _ * provider2.type >> type
         _ * provider2.get() >> b
+        _ * provider2.present >> true
         _ * provider3.type >> otherType
         container.addLater(provider1)
         container.addLater(provider2)
@@ -759,6 +761,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         given:
         _ * provider1.type >> type
         _ * provider1.get() >> a
+        _ * provider1.present >> true
         _ * provider2.type >> otherType
         container.addLater(provider1)
         container.addLater(provider2)
@@ -1009,6 +1012,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         given:
         _ * provider1.type >> type
         _ * provider1.get() >> a
+        _ * provider1.present >> true
         _ * provider2.type >> otherType
         container.addLater(provider1)
         container.addLater(provider2)

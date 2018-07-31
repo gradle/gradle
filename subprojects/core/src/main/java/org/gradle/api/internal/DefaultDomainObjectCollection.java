@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
@@ -305,7 +306,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     private boolean doRemove(Object o) {
         if (o instanceof ProviderInternal) {
             ProviderInternal<? extends T> providerInternal = Cast.uncheckedCast(o);
-            if (getStore().removePending(providerInternal)) {
+            if (removeFirst(getStore().iteratorPending(), providerInternal)) {
                 // NOTE: When removing provider, we don't need to fireObjectRemoved as they were never added in the first place.
                 didRemove(providerInternal);
                 return true;
@@ -324,6 +325,16 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         } else {
             return false;
         }
+    }
+
+    private static <T> boolean removeFirst(Iterator<ProviderInternal<? extends T>> iterator, ProviderInternal<? extends T> target) {
+        while (iterator.hasNext()) {
+            if (Objects.equal(iterator.next(), target)) {
+                iterator.remove();
+                return true;
+            }
+        }
+        return false;
     }
 
     protected void didRemove(T t) {
