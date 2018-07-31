@@ -628,7 +628,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                 assert false : "This should not be realized"
             }
              
-            def schema = tasks.collectionSchema.collectEntries { e ->
+            def schema = tasks.collectionSchema.elements.collectEntries { e ->
                 [ e.name, e.publicType.simpleName ]
             }
             assert schema.size() == 4
