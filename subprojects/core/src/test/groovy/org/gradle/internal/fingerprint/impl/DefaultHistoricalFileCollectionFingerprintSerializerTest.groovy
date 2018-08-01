@@ -37,7 +37,7 @@ class DefaultHistoricalFileCollectionFingerprintSerializerTest extends Serialize
             '/1': new DefaultNormalizedFileSnapshot("1", FileType.Directory, PhysicalDirectorySnapshot.SIGNATURE),
             '/2': IgnoredPathFingerprint.create(FileType.RegularFile, hash),
             '/3': new DefaultNormalizedFileSnapshot("/3", FileType.Missing, PhysicalMissingSnapshot.SIGNATURE),
-            strategy, identifier
+            strategy
         ), serializer)
 
         then:
@@ -69,7 +69,7 @@ class DefaultHistoricalFileCollectionFingerprintSerializerTest extends Serialize
             "/3": new DefaultNormalizedFileSnapshot('3', FileType.RegularFile, HashCode.fromInt(1234)),
             "/2": new DefaultNormalizedFileSnapshot('/2', FileType.RegularFile, HashCode.fromInt(5678)),
             "/1": new DefaultNormalizedFileSnapshot('1', FileType.Missing, PhysicalMissingSnapshot.SIGNATURE),
-            FingerprintCompareStrategy.ABSOLUTE, identifier
+            FingerprintCompareStrategy.ABSOLUTE
         ), serializer)
 
         then:
