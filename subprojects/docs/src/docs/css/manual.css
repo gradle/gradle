@@ -1579,6 +1579,32 @@ div.screenshot {
     margin: 1.5em 0 0;
 }
 
+.docs-navigation li.main-link {
+    font-weight: 500;
+    margin-bottom: 0.2em;
+}
+
+.docs-navigation li.main-link a {
+    display: inline;
+}
+
+.docs-navigation ul.manual-formats {
+    display: inline-block;
+}
+
+.docs-navigation ul.manual-formats > li {
+    display: inline-block;
+    background-color: #EEEEEE;
+    padding: 0.1em 0.4em;
+    margin-right: 0.4em;
+}
+
+.docs-navigation ul.manual-formats > li a {
+    font-size: 0.8rem;
+    font-weight: normal;
+    color: #888;
+}
+
 @media screen and (min-width: 45rem) {
     .main-content {
         display: flex;
