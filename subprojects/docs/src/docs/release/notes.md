@@ -45,6 +45,15 @@ Caching has always been one of the strong suits of Gradle. Over time, more and m
 Now it is possible to define a custom HTTP header to authorize access to a Maven repository. This enables Gradle to access private Gitlab and TFS repositories
 used as Maven repositories or any OAuth2 protected Maven repositories.
 
+### Environment variables kept up-to-date on Java 9+
+
+Early previews of Java 9 failed when Gradle tried to update the environment variables of the daemon to match the client that requested the build.
+The final Java 9 version added ways to work around this, but Gradle was not updated accordingly, meaning that environment variables always had the same value as when the daemon was started.
+This has now been fixed and the environment variables of the daemon will match the variables of the client again.
+Changes to the PATH will be visible to `Exec` tasks and calling `System.getenv` will yield the expected result.
+
+However, we strongly recommend that build and plugin authors use Gradle properties instead of `System.getenv` for a more idiomatic end user experience.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

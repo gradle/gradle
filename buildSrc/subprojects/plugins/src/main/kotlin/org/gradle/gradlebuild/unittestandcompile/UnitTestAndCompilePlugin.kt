@@ -158,6 +158,10 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
                 // enable class unloading
                 jvmArgs("-XX:+UseConcMarkSweepGC", "-XX:+CMSClassUnloadingEnabled")
             }
+            if (javaInstallationForTest.javaVersion.isJava9Compatible) {
+                //allow embedded executer to modify environment variables
+                jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
+            }
             // Includes JVM vendor and major version
             inputs.property("javaInstallation", javaInstallationForTest.displayName)
             doFirst {
