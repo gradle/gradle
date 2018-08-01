@@ -20,9 +20,9 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -44,9 +44,10 @@ public interface FileSystemSnapshotter {
     boolean exists(File file);
 
     /**
-     * Returns the type of the file.
+     * Returns the hash of the content of the file if the file is a regular file and {@code null} otherwise.
      */
-    FileType getType(File file);
+    @Nullable
+    HashCode getContentHash(File file);
 
     /**
      * Returns the current snapshot of the contents and meta-data of the given file.
@@ -61,9 +62,11 @@ public interface FileSystemSnapshotter {
     List<FileSystemSnapshot> snapshot(FileCollectionInternal fileCollection);
 
     /**
-     * Returns a hash of the contents and meta-data of the given file.
-     * The file may or may not be a regular file, a directory or missing.
-     * When the specified file is a directory, the directory and all its children are hashed.
+     * Returns a hash of the contents of the given file.
+     * The file may be a regular file, a directory or missing.
+     *
+     * The absolute path and the hash of the snapshot of the file are added to the combined hash.
+     * See {@link #snapshot(File)} and {@link PhysicalSnapshot#getHash()} for how the hash of the snapshot of the file is determined.
      */
     HashCode snapshotAll(File file);
 }

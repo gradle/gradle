@@ -25,7 +25,6 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
@@ -114,16 +113,15 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
             // TODO - don't calculate the same value concurrently
             V value = cache.get(file);
             if (value == null) {
-                FileType fileType = fileSystemSnapshotter.getType(file);
-                if (fileType == FileType.RegularFile) {
-                    HashCode contentHash = fileSystemSnapshotter.snapshot(file).getHash();
+                HashCode contentHash = fileSystemSnapshotter.getContentHash(file);
+                if (contentHash != null) {
                     value = contentCache.get(contentHash);
                     if (value == null) {
-                        value = calculator.calculate(file, fileType);
+                        value = calculator.calculate(file, true);
                         contentCache.put(contentHash, value);
                     }
                 } else {
-                    value = calculator.calculate(file, fileType);
+                    value = calculator.calculate(file, false);
                 }
                 cache.put(file, value);
             }

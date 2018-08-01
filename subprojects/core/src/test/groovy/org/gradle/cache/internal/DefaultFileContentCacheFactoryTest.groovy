@@ -26,7 +26,6 @@ import org.gradle.cache.CacheDecorator
 import org.gradle.cache.CrossProcessCacheAccess
 import org.gradle.cache.MultiProcessSafePersistentIndexedCache
 import org.gradle.internal.event.DefaultListenerManager
-import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -72,7 +71,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         interaction {
             snapshotRegularFile(file)
         }
-        1 * calculator.calculate(file, FileType.RegularFile) >> 12
+        1 * calculator.calculate(file, true) >> 12
         0 * _
 
         when:
@@ -94,8 +93,8 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemSnapshotter.getType(file) >> FileType.Directory
-        1 * calculator.calculate(file, FileType.Directory) >> 12
+        1 * fileSystemSnapshotter.getContentHash(file) >> null
+        1 * calculator.calculate(file, false) >> 12
         0 * _
 
         when:
@@ -120,7 +119,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         interaction {
             snapshotRegularFile(file)
         }
-        1 * calculator.calculate(file, FileType.RegularFile) >> 12
+        1 * calculator.calculate(file, true) >> 12
         0 * _
 
         when:
@@ -147,7 +146,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         interaction {
             snapshotRegularFile(file)
         }
-        1 * calculator.calculate(file, FileType.RegularFile) >> 12
+        1 * calculator.calculate(file, true) >> 12
         0 * _
 
         when:
@@ -178,7 +177,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         interaction {
             snapshotRegularFile(file)
         }
-        1 * calculator.calculate(file, FileType.RegularFile) >> 12
+        1 * calculator.calculate(file, true) >> 12
         0 * _
 
         when:
@@ -206,8 +205,8 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemSnapshotter.getType(file) >> FileType.Directory
-        1 * calculator.calculate(file, FileType.Directory) >> 12
+        1 * fileSystemSnapshotter.getContentHash(file) >> null
+        1 * calculator.calculate(file, false) >> 12
         0 * _
 
         when:
@@ -218,8 +217,8 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 10
 
         and:
-        1 * fileSystemSnapshotter.getType(file) >> FileType.Directory
-        1 * calculator.calculate(file, FileType.Directory) >> 10
+        1 * fileSystemSnapshotter.getContentHash(file) >> null
+        1 * calculator.calculate(file, false) >> 10
         0 * _
     }
 
@@ -237,7 +236,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         interaction {
             snapshotRegularFile(file, HashCode.fromInt(123))
         }
-        1 * calculator.calculate(file, FileType.RegularFile) >> 12
+        1 * calculator.calculate(file, true) >> 12
         0 * _
 
         when:
@@ -251,13 +250,11 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         interaction {
             snapshotRegularFile(file, HashCode.fromInt(321))
         }
-        1 * calculator.calculate(file, FileType.RegularFile) >> 10
+        1 * calculator.calculate(file, true) >> 10
         0 * _
     }
 
     def snapshotRegularFile(File file, HashCode hashCode = HashCode.fromInt(123)) {
-        def snapshot = new PhysicalFileSnapshot(file.getAbsolutePath(), file.getName(), hashCode, 0)
-        1 * fileSystemSnapshotter.getType(file) >> FileType.RegularFile
-        1 * fileSystemSnapshotter.snapshot(file) >> snapshot
+        1 * fileSystemSnapshotter.getContentHash(file) >> hashCode
     }
 }

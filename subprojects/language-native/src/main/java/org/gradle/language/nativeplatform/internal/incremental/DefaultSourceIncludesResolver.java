@@ -350,8 +350,8 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             }
 
             File candidate = new File(searchDir, includePath);
-            FileType fileType = fileSystemSnapshotter.getType(candidate);
-            includeFile = fileType == FileType.RegularFile ? new SystemIncludeFile(candidate, includePath, fileSystemSnapshotter.snapshot(candidate).getHash()) : MISSING_INCLUDE_FILE;
+            HashCode contentHash = fileSystemSnapshotter.getContentHash(candidate);
+            includeFile = contentHash != null ? new SystemIncludeFile(candidate, includePath, contentHash) : MISSING_INCLUDE_FILE;
             contents.put(includePath, includeFile);
             return includeFile;
         }

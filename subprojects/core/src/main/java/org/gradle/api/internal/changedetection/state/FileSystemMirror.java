@@ -35,6 +35,7 @@ public interface FileSystemMirror {
 
     void putSnapshot(PhysicalSnapshot file);
 
+    @Nullable
     FileMetadataSnapshot getMetadata(String absolutePath);
 
     void putMetadata(String absolutePath, FileMetadataSnapshot stat);

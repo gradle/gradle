@@ -93,26 +93,28 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    public FileType getType(final File file) {
+    public HashCode getContentHash(final File file) {
         final String absolutePath = file.getAbsolutePath();
-        FileMetadataSnapshot metadata = fileSystemMirror.getMetadata(absolutePath);
-        if (metadata != null) {
-            return metadata.getType();
-        }
         PhysicalSnapshot snapshot = fileSystemMirror.getSnapshot(absolutePath);
         if (snapshot != null) {
-            return snapshot.getType();
+            return snapshot.getType() == FileType.RegularFile ? snapshot.getHash() : null;
         }
-        return producingSnapshots.guardByKey(absolutePath, new Factory<FileType>() {
+        FileMetadataSnapshot metadata = fileSystemMirror.getMetadata(absolutePath);
+        if (metadata != null && metadata.getType() != FileType.RegularFile) {
+            return null;
+        }
+
+        return producingSnapshots.guardByKey(absolutePath, new Factory<HashCode>() {
+            @Nullable
             @Override
-            public FileType create() {
-                FileMetadataSnapshot metadata = fileSystemMirror.getMetadata(absolutePath);
-                if (metadata == null) {
-                    metadata = fileSystem.stat(file);
-                    String internedAbsolutePath = stringInterner.intern(absolutePath);
-                    fileSystemMirror.putMetadata(internedAbsolutePath, metadata);
+            public HashCode create() {
+                String internedAbsolutePath = internPath(file);
+                FileMetadataSnapshot metadata = statAndCache(internedAbsolutePath, file);
+                if (metadata.getType() != FileType.RegularFile) {
+                    return null;
                 }
-                return metadata.getType();
+                PhysicalSnapshot snapshot = snapshotAndCache(internedAbsolutePath, file, metadata, null);
+                return snapshot.getHash();
             }
         });
     }
@@ -125,7 +127,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             result = producingSnapshots.guardByKey(absolutePath, new Factory<PhysicalSnapshot>() {
                 @Override
                 public PhysicalSnapshot create() {
-                    return snapshotAndCache(absolutePath, file, null);
+                    return snapshotAndCache(file, null);
                 }
             });
         }
@@ -139,13 +141,22 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         return visitor.getRoots();
     }
 
-    private PhysicalSnapshot snapshotAndCache(String absolutePath, File file, @Nullable PatternSet patternSet) {
-        FileMetadataSnapshot metadata = fileSystemMirror.getMetadata(absolutePath);
+    private PhysicalSnapshot snapshotAndCache(File file, @Nullable PatternSet patternSet) {
         String internedAbsolutePath = internPath(file);
+        FileMetadataSnapshot metadata = statAndCache(internedAbsolutePath, file);
+        return snapshotAndCache(internedAbsolutePath, file, metadata, patternSet);
+    }
+
+    private FileMetadataSnapshot statAndCache(String internedAbsolutePath, File file) {
+        FileMetadataSnapshot metadata = fileSystemMirror.getMetadata(internedAbsolutePath);
         if (metadata == null) {
             metadata = fileSystem.stat(file);
             fileSystemMirror.putMetadata(internedAbsolutePath, metadata);
         }
+        return metadata;
+    }
+
+    private PhysicalSnapshot snapshotAndCache(String internedAbsolutePath, File file, FileMetadataSnapshot metadata, @Nullable PatternSet patternSet) {
         PhysicalSnapshot physicalSnapshot = fileSystemMirror.getSnapshot(internedAbsolutePath);
         if (physicalSnapshot == null) {
             MutableBoolean hasBeenFiltered = new MutableBoolean(false);
@@ -218,7 +229,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             public FileSystemSnapshot create() {
                 PhysicalSnapshot snapshot = fileSystemMirror.getSnapshot(path);
                 if (snapshot == null) {
-                    snapshot = snapshotAndCache(path, dirTree.getDir(), patterns);
+                    snapshot = snapshotAndCache(dirTree.getDir(), patterns);
                     return snapshot.getType() == FileType.Missing ? FileSystemSnapshot.EMPTY : snapshot;
                 } else {
                     return filterSnapshot(snapshot, patterns);

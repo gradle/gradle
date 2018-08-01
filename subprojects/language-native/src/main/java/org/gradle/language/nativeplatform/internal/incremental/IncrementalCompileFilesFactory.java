@@ -18,8 +18,6 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
@@ -88,13 +86,11 @@ public class IncrementalCompileFilesFactory {
          * @return true if this source file requires recompilation, false otherwise.
          */
         private boolean visitSourceFile(File sourceFile) {
-            FileType fileType = fileSystemSnapshotter.getType(sourceFile);
-            if (fileType != FileType.RegularFile) {
+            HashCode fileContent = fileSystemSnapshotter.getContentHash(sourceFile);
+            if (fileContent == null) {
                 // Skip things that aren't files
                 return false;
             }
-            PhysicalSnapshot fileSnapshot = fileSystemSnapshotter.snapshot(sourceFile);
-            HashCode fileContent = fileSnapshot.getHash();
 
             SourceFileState previousState = previous.getState(sourceFile);
 
