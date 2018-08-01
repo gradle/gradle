@@ -106,6 +106,111 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("> Transform lib2.jar (project :lib) with FileSizer") == 1
     }
 
+    def "early discovered chained transform is only run once per transform"() {
+        given:
+        settingsFile << """
+            include 'app1'
+            include 'app2'
+        """
+        buildFile << """
+            def color = Attribute.of('color', String)
+    
+            allprojects {
+                dependencies {
+                    attributesSchema {
+                        attribute(color)
+                    }
+                }
+                configurations {
+                    compile {
+                        attributes.attribute color, 'blue'
+                    }
+                }
+                task resolveRed {
+                    def red = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(color, 'red') }
+                    }.artifacts
+
+                    inputs.files red.artifactFiles
+                }
+                task resolveYellow {
+                    def yellow = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(color, 'yellow') }
+                    }.artifacts
+
+                    inputs.files yellow.artifactFiles
+                }
+            }
+
+            configure([project(':app1'), project(':app2')]) {
+
+                dependencies {
+                    compile project(':lib')
+                    
+                    registerTransform {
+                        from.attribute(Attribute.of('color', String), "blue")
+                        to.attribute(Attribute.of('color', String), "green")
+                        artifactTransform(MakeBlueToGreenThings)
+                    }
+                    registerTransform {
+                        from.attribute(Attribute.of('color', String), "green")
+                        to.attribute(Attribute.of('color', String), "red")
+                        artifactTransform(MakeGreenToRedThings)
+                    }
+                    registerTransform {
+                        from.attribute(Attribute.of('color', String), "green")
+                        to.attribute(Attribute.of('color', String), "yellow")
+                        artifactTransform(MakeGreenToYellowThings)
+                    }
+                }
+            }
+
+            class MakeGreenToRedThings extends ArtifactTransform {
+                List<File> transform(File input) {
+                    assert outputDirectory.directory && outputDirectory.list().length == 0
+                    def output = new File(outputDirectory, input.name + ".red")
+                    println "Transforming \${input.name} to \${output.name}"
+                    println "Input exists: \${input.exists()}"
+                    output.text = String.valueOf(input.length())
+                    return [output]
+                }
+            }
+
+            class MakeGreenToYellowThings extends ArtifactTransform {
+                List<File> transform(File input) {
+                    assert outputDirectory.directory && outputDirectory.list().length == 0
+                    def output = new File(outputDirectory, input.name + ".yellow")
+                    println "Transforming \${input.name} to \${output.name}"
+                    println "Input exists: \${input.exists()}"
+                    output.text = String.valueOf(input.length())
+                    return [output]
+                }
+            }
+
+            class MakeBlueToGreenThings extends ArtifactTransform {
+                List<File> transform(File input) {
+                    assert outputDirectory.directory && outputDirectory.list().length == 0
+                    def output = new File(outputDirectory, input.name + ".green")
+                    println "Transforming \${input.name} to \${output.name}"
+                    println "Input exists: \${input.exists()}"
+                    output.text = String.valueOf(input.length())
+                    return [output]
+                }
+            }
+        """ << withJarTasks()
+
+        when:
+        run ":app1:resolveRed", ":app2:resolveYellow"
+
+        then:
+        output.count("> Transform lib1.jar (project :lib) with MakeBlueToGreenThings") == 1
+        output.count("> Transform lib2.jar (project :lib) with MakeBlueToGreenThings") == 1
+        output.count("> Transform lib1.jar.green with MakeGreenToYellowThings") == 1
+        output.count("> Transform lib2.jar.green with MakeGreenToYellowThings") == 1
+        output.count("> Transform lib1.jar.green with MakeGreenToRedThings") == 1
+        output.count("> Transform lib2.jar.green with MakeGreenToRedThings") == 1
+    }
+
     def "each file is transformed once per set of configuration parameters"() {
         given:
         buildFile << declareAttributes() << """

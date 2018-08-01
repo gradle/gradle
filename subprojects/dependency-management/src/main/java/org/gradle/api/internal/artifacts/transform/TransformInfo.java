@@ -38,7 +38,6 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -51,23 +50,12 @@ public abstract class TransformInfo extends WorkInfo {
     protected List<File> result;
     protected Throwable failure;
 
-    public static TransformInfo from(
-        List<UserCodeBackedTransformer> transformerChain,
-        BuildableSingleResolvedArtifactSet artifact
-    ) {
-        Iterator<UserCodeBackedTransformer> iterator = transformerChain.iterator();
-        TransformInfo current;
-        TransformInfo previous = null;
-        do {
-            UserCodeBackedTransformer transformer = iterator.next();
-            if (previous == null) {
-                current = new InitialTransformInfo(transformer, artifact);
-            } else {
-                current = new ChainedTransformInfo(transformer, previous);
-            }
-            previous = current;
-        } while (iterator.hasNext());
-        return current;
+    public static TransformInfo chained(List<UserCodeBackedTransformer> transformerChain, TransformInfo previous) {
+        return new ChainedTransformInfo(transformerChain.get(transformerChain.size() - 1), previous);
+    }
+
+    public static TransformInfo initial(UserCodeBackedTransformer initial, BuildableSingleResolvedArtifactSet artifact) {
+        return new InitialTransformInfo(initial, artifact);
     }
 
     protected TransformInfo(UserCodeBackedTransformer artifactTransformer) {
