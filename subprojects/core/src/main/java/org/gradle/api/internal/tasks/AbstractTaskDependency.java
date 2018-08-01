@@ -27,7 +27,7 @@ import java.util.Set;
 
 @NonNullApi
 public abstract class AbstractTaskDependency implements TaskDependencyInternal {
-    private static WorkDependencyResolver<Task> IGNORE_ARTIFACT_TRANSFORM_RESOLVER = new WorkDependencyResolver<Task>() {
+    private static final WorkDependencyResolver<Task> IGNORE_ARTIFACT_TRANSFORM_RESOLVER = new WorkDependencyResolver<Task>() {
         @Override
         public boolean resolve(Task task, Object node, Action<? super Task> resolveAction) {
             // Ignore artifact transforms
