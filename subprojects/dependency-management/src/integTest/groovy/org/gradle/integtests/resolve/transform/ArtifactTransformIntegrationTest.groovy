@@ -1749,7 +1749,7 @@ Found the following transforms:
             gradle.taskGraph.whenReady { taskGraph ->
                 taskGraph.allTasks.each { task ->
                     task.taskDependencies.getDependencies(task).each { dependency ->
-                        println "> Dependency: \${dependency}"
+                        println "> Dependency: \${task} -> \${dependency}"
                     }
                 }
             }
@@ -1760,7 +1760,7 @@ Found the following transforms:
 
         then:
         output.count("> Dependency:") == 1
-        output.contains("> Dependency: task ':app:resolve'")
+        output.contains("> Dependency: task ':app:dependent' -> task ':app:resolve'")
     }
 
     def declareTransform(String transformImplementation) {

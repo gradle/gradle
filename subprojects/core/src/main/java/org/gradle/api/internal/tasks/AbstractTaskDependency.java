@@ -27,7 +27,7 @@ import java.util.Set;
 
 @NonNullApi
 public abstract class AbstractTaskDependency implements TaskDependencyInternal {
-    private static WorkDependencyResolver<Task> ARTIFACT_TRANSFORM_RESOLVER = new WorkDependencyResolver<Task>() {
+    private static WorkDependencyResolver<Task> IGNORE_ARTIFACT_TRANSFORM_RESOLVER = new WorkDependencyResolver<Task>() {
         @Override
         public boolean resolve(Task task, Object node, Action<? super Task> resolveAction) {
             // Ignore artifact transforms
@@ -38,7 +38,7 @@ public abstract class AbstractTaskDependency implements TaskDependencyInternal {
     @Override
     public Set<? extends Task> getDependencies(@Nullable Task task) {
         CachingTaskDependencyResolveContext<Task> context = new CachingTaskDependencyResolveContext<Task>(
-            Arrays.asList(WorkDependencyResolver.TASK_AS_TASK, ARTIFACT_TRANSFORM_RESOLVER));
+            Arrays.asList(WorkDependencyResolver.TASK_AS_TASK, IGNORE_ARTIFACT_TRANSFORM_RESOLVER));
         return context.getDependencies(task, this);
     }
 }
