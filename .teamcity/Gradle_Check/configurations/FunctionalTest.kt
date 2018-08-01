@@ -30,7 +30,7 @@ class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProject
                             + buildScanValues.map { buildScanCustomValue(it.key, it.value) }
                     ).joinToString(separator = " "),
             timeout = testCoverage.testType.timeout,
-            daemon = useDaemon)
+            daemon = useDaemon && testCoverage.testType != TestType.noDaemon)
 
     params {
         param("env.JAVA_HOME", "%${testCoverage.os}.${testCoverage.buildJvmVersion}.oracle.64bit%")
