@@ -23,7 +23,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionsSchema;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
-import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -40,7 +39,6 @@ import java.util.Map;
 
 import static java.lang.String.format;
 import static org.gradle.api.reflect.TypeOf.typeOf;
-import static org.gradle.internal.Cast.uncheckedCast;
 
 public class DefaultConvention implements Convention, ExtensionContainerInternal {
     private static final TypeOf<ExtraPropertiesExtension> EXTRA_PROPERTIES_EXTENSION_TYPE = typeOf(ExtraPropertiesExtension.class);
@@ -125,7 +123,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         if (extension instanceof Class) {
             create(name, (Class<?>) extension);
         } else {
-            addWithDefaultPublicType(extension.getClass(), name, extension);
+            addWithDefaultPublicType(name, extension);
         }
     }
 
@@ -142,7 +140,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     @Override
     public <T> T create(String name, Class<T> instanceType, Object... constructionArguments) {
         T instance = instantiate(instanceType, constructionArguments);
-        addWithDefaultPublicType(instanceType, name, instance);
+        addWithDefaultPublicType(name, instance);
         return instance;
     }
 
@@ -236,28 +234,8 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         add(name, value);
     }
 
-    private void addWithDefaultPublicType(Class<?> defaultType, String name, Object extension) {
-        add(preferredPublicTypeOf(extension, defaultType), name, extension);
-    }
-
-    private TypeOf<Object> preferredPublicTypeOf(Object extension, Class<?> defaultType) {
-        if (extension instanceof HasPublicType) {
-            return uncheckedCast(((HasPublicType) extension).getPublicType());
-        }
-        return TypeOf.<Object>typeOf(firstNonSyntheticClassOf(defaultType));
-    }
-
-    private Class<?> firstNonSyntheticClassOf(Class<?> clazz) {
-        if (!clazz.isSynthetic()) {
-            return clazz;
-        }
-        Class<?> next;
-        while ((next = clazz.getSuperclass()) != null) {
-            if (!next.isSynthetic()) {
-                return next;
-            }
-        }
-        return clazz;
+    private void addWithDefaultPublicType(String name, Object extension) {
+        add(new DslObject(extension).getPublicType(), name, extension);
     }
 
     private <T> T instantiate(Class<? extends T> instanceType, Object[] constructionArguments) {

@@ -16,11 +16,18 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.internal.*;
+import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.HasConvention;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.reflect.HasPublicType;
+import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.metaobject.DynamicObject;
+
+import static org.gradle.internal.Cast.uncheckedCast;
 
 /**
  * Provides a unified, typed, interface to an enhanced DSL object.
@@ -77,6 +84,26 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
             return object.getClass().getSuperclass();
         }
         return object.getClass();
+    }
+
+    public TypeOf<Object> getPublicType() {
+        if (object instanceof HasPublicType) {
+            return uncheckedCast(((HasPublicType) object).getPublicType());
+        }
+        return TypeOf.<Object>typeOf(firstNonSyntheticClassOf(getDeclaredType()));
+    }
+
+    private Class<?> firstNonSyntheticClassOf(Class<?> clazz) {
+        if (!clazz.isSynthetic()) {
+            return clazz;
+        }
+        Class<?> next;
+        while ((next = clazz.getSuperclass()) != null) {
+            if (!next.isSynthetic()) {
+                return next;
+            }
+        }
+        return clazz;
     }
 
     private static <T> T toType(Object delegate, Class<T> type) {
