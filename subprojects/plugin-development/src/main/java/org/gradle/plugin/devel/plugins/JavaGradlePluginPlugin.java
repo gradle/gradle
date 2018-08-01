@@ -24,7 +24,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.CopySpec;
@@ -39,7 +38,6 @@ import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.SourceSet;
@@ -234,13 +232,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             public void execute(Copy processResources) {
                 CopySpec copyPluginDescriptors = processResources.getRootSpec().addChild();
                 copyPluginDescriptors.into("META-INF/gradle-plugins");
-                copyPluginDescriptors.from(generatePluginDescriptors.map(new Transformer<File, GeneratePluginDescriptors>() {
-                    @Override
-                    public File transform(GeneratePluginDescriptors generatePluginDescriptors) {
-                        return generatePluginDescriptors.getOutputDirectory();
-                    }
-                }));
-                processResources.dependsOn(generatePluginDescriptors);
+                copyPluginDescriptors.from(generatePluginDescriptors);
             }
         });
     }
@@ -394,16 +386,11 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             DependencyHandler dependencies = project.getDependencies();
             Set<SourceSet> testSourceSets = extension.getTestSourceSets();
             project.getNormalization().getRuntimeClasspath().ignore(PluginUnderTestMetadata.METADATA_FILE_NAME);
-            final Provider<FileCollection> pluginClasspath = pluginClasspathTask.map(new Transformer<FileCollection, PluginUnderTestMetadata>() {
-                @Override
-                public FileCollection transform(PluginUnderTestMetadata pluginUnderTestMetadata) {
-                    return pluginUnderTestMetadata.getPluginClasspath();
-                }
-            });
+
             project.getTasks().withType(Test.class).configureEach(new Action<Test>() {
                 @Override
                 public void execute(Test test) {
-                    test.getInputs().files(pluginClasspath)
+                    test.getInputs().files(pluginClasspathTask.get().getPluginClasspath())
                         .withPropertyName("pluginClasspath")
                         .withNormalizer(ClasspathNormalizer.class);
                 }
