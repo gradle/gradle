@@ -104,7 +104,7 @@ public class GradlePomModuleDescriptorBuilder {
         doAddDependency(dep, dep.isOptional(), false);
     }
 
-    public void addOptionalDependency(PomDependencyMgt dep) {
+    public void addConstraint(PomDependencyMgt dep) {
         doAddDependency(dep, true, true);
     }
 
