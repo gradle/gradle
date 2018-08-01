@@ -22,13 +22,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     @Test
     fun `gradle kotlin dsl api dependency is added`() {
 
-        withBuildScript("""
-
-            plugins {
-                `kotlin-dsl`
-            }
-
-        """)
+        withKotlinDslPlugin()
 
         withFile("src/main/kotlin/code.kt", """
 
@@ -198,13 +192,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     @Test
     fun `sam-with-receiver kotlin compiler plugin is applied to production code`() {
 
-        withBuildScript("""
-
-            plugins {
-                `kotlin-dsl`
-            }
-
-        """)
+        withKotlinDslPlugin()
 
         withFile("src/main/kotlin/code.kt", """
 
@@ -318,6 +306,8 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                 `kotlin-dsl`
             }
 
+            $repositoriesBlock
+
             $buildSrcScript
         """)
 
@@ -352,6 +342,19 @@ class KotlinDslPluginTest : AbstractPluginTest() {
             }
 
          """)
+    }
+
+    private
+    fun withKotlinDslPlugin() {
+        withBuildScript("""
+
+            plugins {
+                `kotlin-dsl`
+            }
+
+            $repositoriesBlock
+
+        """)
     }
 
     private

@@ -181,6 +181,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             apply<org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins>()
 
+            $repositoriesBlock
         """)
     }
 
@@ -416,6 +417,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     }
                 }
             }
+
+            $repositoriesBlock
         """)
 
         withFile("buildSrc/src/main/kotlin/foo/FooPlugin.kt", """
@@ -468,6 +471,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     }
                 }
             }
+
+            $repositoriesBlock
         """)
 
         withFile("buildSrc/src/main/kotlin/plugins/MyPlugin.kt", """
@@ -560,6 +565,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     }
                 }
             }
+
+            $repositoriesBlock
         """)
 
         withFile("buildSrc/src/main/kotlin/plugins/MyPlugin.kt", """

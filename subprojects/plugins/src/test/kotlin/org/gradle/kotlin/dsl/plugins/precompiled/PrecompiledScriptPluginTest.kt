@@ -273,6 +273,8 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
                     $applyPrecompiledScriptPlugins
 
+                    $repositoriesBlock
+
                     publishing {
                         repositories {
                             maven(url = "../repository")
@@ -359,6 +361,8 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
             }
 
             $applyPrecompiledScriptPlugins
+
+            $repositoriesBlock
         """
 
     private

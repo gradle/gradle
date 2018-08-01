@@ -845,6 +845,8 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                     }
                 }
             }
+
+            $repositoriesBlock
         """)
 
         withFile("buildSrc/src/main/kotlin/my/MyPlugin.kt", """

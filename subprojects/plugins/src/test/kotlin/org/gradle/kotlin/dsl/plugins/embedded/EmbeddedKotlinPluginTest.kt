@@ -250,6 +250,8 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
                 `embedded-kotlin`
             }
 
+            $repositoriesBlock
+
         """)
 
         withFile("src/main/kotlin/source.kt", """var foo = "bar"""")

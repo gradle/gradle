@@ -92,7 +92,10 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
                 `kotlin-dsl`
                 `java-gradle-plugin`
             }
+
             apply<org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins>()
+
+            $repositoriesBlock
         """)
 
         withFile("buildSrc/src/main/kotlin/foo/FooTask.kt", """
