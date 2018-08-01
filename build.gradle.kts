@@ -42,6 +42,9 @@ defaultTasks("assemble")
 
 base.archivesBaseName = "gradle"
 
+println("The mirror property is ${System.getProperty("org.gradle.internal.plugins.portal.url.override")}")
+println("The mirror env is ${System.getenv("ORG_GRADLE_PROJECT_org.gradle.internal.plugins.portal.url.override")}")
+
 buildTypes {
     create("sanityCheck") {
         tasks(
