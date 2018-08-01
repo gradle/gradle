@@ -136,7 +136,7 @@ inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.getByName(name
  *
  * `tasks { val jar by getting }`
  */
-inline val <T : Any, U : NamedDomainObjectCollection<in T>> U.getting: U
+inline val <T : Any, U : NamedDomainObjectCollection<out T>> U.getting: U
     get() = this
 
 
@@ -158,10 +158,8 @@ class NamedDomainObjectCollectionDelegateProvider<T>(
     val configuration: T.() -> Unit
 ) {
 
-    operator fun provideDelegate(thisRef: Any?, property: kotlin.reflect.KProperty<*>): NamedDomainObjectCollection<T> =
-        collection.apply {
-            getByName(property.name).apply(configuration)
-        }
+    operator fun provideDelegate(thisRef: Any?, property: kotlin.reflect.KProperty<*>) =
+        collection.named(property.name).apply { configure(configuration) }
 }
 
 
@@ -181,12 +179,20 @@ operator fun <T : Any> NamedDomainObjectCollection<T>.get(name: String): T =
 /**
  * Allows a [NamedDomainObjectCollection] to be used as a property delegate.
  *
- * @throws [UnknownDomainObjectException] upon property access when there is no such object in the given collection.
- *
- * @see [NamedDomainObjectCollection.getByName]
+ * @see [NamedDomainObjectCollection.named]
  */
-inline operator fun <T : Any, reified U : T> NamedDomainObjectCollection<T>.getValue(thisRef: Any?, property: KProperty<*>): U =
-    getByName(property.name).let {
+operator fun <T : Any> NamedDomainObjectCollection<T>.provideDelegate(thisRef: Any?, property: KProperty<*>): NamedDomainObjectProvider<T> =
+    named(property.name)
+
+
+/**
+ * Allows a [NamedDomainObjectProvider] to be used as a property delegate.
+ *
+ * @see [NamedDomainObjectProvider.get]
+ */
+@Suppress("nothing_to_inline", "unchecked_cast")
+inline operator fun <T : Any, reified U : T> NamedDomainObjectProvider<out T>.getValue(thisRef: Any?, property: KProperty<*>): U =
+    get().let {
         it as? U
             ?: throw illegalElementType(this, property.name, U::class, it::class)
     }
