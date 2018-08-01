@@ -40,6 +40,7 @@ import org.gradle.internal.Actions
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.resource.TextResource
+
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
@@ -293,9 +294,15 @@ println 'hi'
             }
 
             @Override
+            String getStage() {
+                return "STAGE"
+            }
+
+            @Override
             public Transformer getTransformer() {
                 return visitor
             }
+
 
             @Override
             public String getExtractedData() {
@@ -340,6 +347,11 @@ println 'hi'
             @Override
             public String getId() {
                 return "id"
+            }
+
+            @Override
+            String getStage() {
+                return "STAGE"
             }
 
             @Override
