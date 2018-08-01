@@ -69,13 +69,7 @@ class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boo
             model.subProjects.forEach { subProject ->
                 if (subProject.containsSlowTests) {
                     FunctionalTestProject.missingTestCoverage.forEach { testConfig ->
-                        if (subProject.unitTests && testConfig.testType.unitTests) {
-                            buildType(FunctionalTest(model, testConfig, subProject.name, subProject.useDaemon, stage))
-                        } else if (subProject.functionalTests && testConfig.testType.functionalTests) {
-                            buildType(FunctionalTest(model, testConfig, subProject.name, subProject.useDaemon, stage))
-                        } else if (subProject.crossVersionTests && testConfig.testType.crossVersionTests) {
-                            buildType(FunctionalTest(model, testConfig, subProject.name, subProject.useDaemon, stage))
-                        }
+                        configureBuildType(model, testConfig, stage, subProject)
                     }
                 }
             }

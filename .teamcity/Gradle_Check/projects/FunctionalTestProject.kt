@@ -4,9 +4,7 @@ import configurations.FunctionalTest
 import configurations.shouldBeSkipped
 import jetbrains.buildServer.configs.kotlin.v2018_1.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2018_1.Project
-import model.CIBuildModel
-import model.Stage
-import model.TestCoverage
+import model.*
 
 class FunctionalTestProject(model: CIBuildModel, testConfig: TestCoverage, stage: Stage) : Project({
     this.uuid = testConfig.asId(model)
@@ -22,13 +20,7 @@ class FunctionalTestProject(model: CIBuildModel, testConfig: TestCoverage, stage
             return@forEach
         }
 
-        if (subProject.unitTests && testConfig.testType.unitTests) {
-            buildType(FunctionalTest(model, testConfig, subProject.name, subProject.useDaemon, stage))
-        } else if (subProject.functionalTests && testConfig.testType.functionalTests) {
-            buildType(FunctionalTest(model, testConfig, subProject.name, subProject.useDaemon, stage))
-        } else if (subProject.crossVersionTests && testConfig.testType.crossVersionTests) {
-            buildType(FunctionalTest(model, testConfig, subProject.name, subProject.useDaemon, stage))
-        }
+        configureBuildType(model, testConfig, stage, subProject)
     }
 }){
     companion object {
@@ -37,5 +29,17 @@ class FunctionalTestProject(model: CIBuildModel, testConfig: TestCoverage, stage
         private fun addMissingTestCoverage(coverage: TestCoverage) {
             this.missingTestCoverage.add(coverage)
         }
+    }
+}
+
+fun Project.configureBuildType(model: CIBuildModel, testConfig: TestCoverage, stage: Stage, subProject: GradleSubproject) {
+    val useDaemon = subProject.useDaemon && testConfig.testType != TestType.noDaemon
+
+    if (subProject.unitTests && testConfig.testType.unitTests) {
+        buildType(FunctionalTest(model, testConfig, subProject.name, useDaemon, stage))
+    } else if (subProject.functionalTests && testConfig.testType.functionalTests) {
+        buildType(FunctionalTest(model, testConfig, subProject.name, useDaemon, stage))
+    } else if (subProject.crossVersionTests && testConfig.testType.crossVersionTests) {
+        buildType(FunctionalTest(model, testConfig, subProject.name, useDaemon, stage))
     }
 }
