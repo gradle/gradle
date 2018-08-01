@@ -71,12 +71,21 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
     private List<T> resolveSelectors(List<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
         if (selectors.size() == 1) {
             ResolvableSelectorState selectorState = selectors.get(0);
-            ComponentIdResolveResult resolved = selectorState.resolve(allRejects);
-            T selected = SelectorStateResolverResults.componentForIdResolveResult(componentFactory, resolved, selectorState);
-            return Collections.singletonList(selected);
+            return resolveSingleSelector(selectorState, allRejects);
         }
 
-        return buildResolveResults(selectors, allRejects);
+        List<T> results = buildResolveResults(selectors, allRejects);
+        if (results.isEmpty()) {
+            // Every selector was empty: simply 'resolve' one of them
+            return resolveSingleSelector(selectors.get(0), allRejects);
+        }
+        return results;
+    }
+
+    private List<T> resolveSingleSelector(ResolvableSelectorState selectorState, VersionSelector allRejects) {
+        ComponentIdResolveResult resolved = selectorState.resolve(allRejects);
+        T selected = SelectorStateResolverResults.componentForIdResolveResult(componentFactory, resolved, selectorState);
+        return Collections.singletonList(selected);
     }
 
     /**
@@ -87,11 +96,12 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
     private List<T> buildResolveResults(List<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
         SelectorStateResolverResults results = new SelectorStateResolverResults(selectors.size());
         for (ResolvableSelectorState selector : selectors) {
-
-            // For a 'reject-only' selector, don't need to resolve
-//            if (isRejectOnly(dep)) {
-//                continue;
-//            }
+            // If this selector doesn't specify a prefer/require version, then ignore it here.
+            // This will avoid resolving 'reject' selectors, too.
+            if (isEmpty(selector)) {
+                selector.markResolved();
+                continue;
+            }
 
             // Check already resolved results for a compatible version, and use it for this dependency rather than re-resolving.
             if (results.alreadyHaveResolution(selector)) {
@@ -104,7 +114,16 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
 
             results.registerResolution(selector, resolved);
         }
+
         return results.getResolved(componentFactory);
+    }
+
+    private boolean isEmpty(ResolvableSelectorState selector) {
+        ResolvedVersionConstraint versionConstraint = selector.getVersionConstraint();
+        if (versionConstraint != null) {
+            return versionConstraint.getPreferredSelector().getSelector().isEmpty();
+        }
+        return false;
     }
 
     private VersionSelector createAllRejects(List<? extends ResolvableSelectorState> selectors) {
