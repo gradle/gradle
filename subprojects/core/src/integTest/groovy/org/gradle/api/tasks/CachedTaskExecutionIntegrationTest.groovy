@@ -409,7 +409,8 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
             "classLoaderHash",
             "actionType",
             "actionClassLoaderHash",
-            "inputPropertyHash for 'classpath'",
+            "inputValuePropertyHash for 'options.fork'",
+            "inputFilePropertyHash for 'classpath'",
             "outputPropertyName",
         ].each {
             assert output.contains("Appending ${it} to build cache key:")
