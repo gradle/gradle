@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.compile
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration
@@ -38,7 +39,7 @@ class AnnotationProcessorPathFactoryTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     AnnotationProcessorDetector detector = Mock(AnnotationProcessorDetector)
-    CompileOptions options = new CompileOptions(Mock(ObjectFactory))
+    CompileOptions options = new CompileOptions(Stub(ProjectLayout), Mock(ObjectFactory))
     AnnotationProcessorPathFactory factory = new AnnotationProcessorPathFactory(TestFiles.fileCollectionFactory(), detector)
 
     def "uses path defined on Java compile options, as a FileCollection"() {

@@ -29,15 +29,20 @@ public abstract class CleaningJavaCompilerSupport<T extends JavaCompileSpec> imp
     public WorkResult execute(T spec) {
         StaleClassCleaner cleaner = createCleaner(spec);
 
-        cleaner.addDirToClean(spec.getDestinationDir());
-        File generatedSourcesDirectory = spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory();
-        if (generatedSourcesDirectory != null) {
-            cleaner.addDirToClean(generatedSourcesDirectory);
-        }
+        addDirectory(cleaner, spec.getDestinationDir());
+        MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
+        addDirectory(cleaner, compileOptions.getAnnotationProcessorGeneratedSourcesDirectory());
+        addDirectory(cleaner, compileOptions.getHeaderOutputDirectory());
         cleaner.execute();
 
         Compiler<? super T> compiler = getCompiler();
         return compiler.execute(spec);
+    }
+
+    private void addDirectory(StaleClassCleaner cleaner, File dir) {
+        if (dir != null) {
+            cleaner.addDirToClean(dir);
+        }
     }
 
     protected abstract Compiler<T> getCompiler();

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.scala
 
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.compile.CompileOptions
@@ -34,7 +35,7 @@ class NormalizingScalaCompilerTest extends Specification {
         spec.sourceFiles = files("Source1.java", "Source2.java", "Source3.java")
         spec.compileClasspath = [new File("Dep1.jar"), new File("Dep2.jar")]
         spec.zincClasspath = files("zinc.jar", "zinc-dep.jar")
-        spec.compileOptions = new CompileOptions(TestUtil.objectFactory())
+        spec.compileOptions = new CompileOptions(Stub(ProjectLayout), TestUtil.objectFactory())
         spec.scalaCompileOptions = new BaseScalaCompileOptions()
     }
 
