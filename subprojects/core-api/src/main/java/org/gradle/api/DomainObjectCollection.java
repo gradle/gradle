@@ -45,7 +45,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
     void addLater(Provider<? extends T> provider);
 
     /**
-     * Adds an element to this collection, given a {@link Provider} of {@link Iterable} that will provide the elements when required.
+     * Adds elements to this collection, given a {@link Provider} of {@link Iterable} that will provide the elements when required.
      *
      * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
      *

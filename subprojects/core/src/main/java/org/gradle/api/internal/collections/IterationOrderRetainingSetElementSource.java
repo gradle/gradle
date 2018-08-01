@@ -18,7 +18,6 @@ package org.gradle.api.internal.collections;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
@@ -65,8 +64,7 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
         boolean seen = false;
         for (Element<T> element : getInserted()) {
             if (element.isRealized()) {
-                List<T> collected = Lists.newArrayList();
-                element.collectInto(collected);
+                List<T> collected = element.getValues();
                 for (int index = 0; index < collected.size(); index++) {
                     if (Objects.equal(collected.get(index), value)) {
                         if (seen) {

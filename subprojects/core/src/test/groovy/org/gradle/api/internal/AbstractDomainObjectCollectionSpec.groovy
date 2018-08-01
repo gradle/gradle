@@ -225,6 +225,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         result == iterationOrder(b, a, d, c)
 
         and:
+        _ * provider1.size() >> 2
         1 * provider1.get() >> [a, d]
         0 * _
     }
@@ -650,6 +651,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         toList(container)
 
         then:
+        _ * provider3.size() >> 2
         1 * provider3.get() >> [b, d]
         1 * action.execute(b)
         1 * action.execute(d)
@@ -672,6 +674,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         container.configureEach(action)
 
         then:
+        _ * providerOfIterable.size() >> 2
         1 * action.execute(a)
         1 * action.execute(b)
         1 * action.execute(c)
@@ -747,10 +750,12 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         then:
         _ * provider1.elementType >> type
+        _ * provider1.size() >> 2
         1 * provider1.get() >> [a, c]
         1 * action.execute(a)
         1 * action.execute(c)
         _ * provider2.elementType >> otherType
+        _ * provider2.size() >> 1
         1 * provider2.get() >> [d]
         0 * _
 

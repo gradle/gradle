@@ -188,7 +188,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             while (i < backingList.size()) {
                 Element<T> candidate = backingList.get(i);
                 if (candidate.isRealized()) {
-                    List<T> collected = collectFrom(candidate);
+                    List<T> collected = candidate.getValues();
                     int j = nextSubIndex + 1;
                     while (j < collected.size()) {
                         T value = collected.get(j);
@@ -220,17 +220,11 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             return thisNext;
         }
 
-        List<T> collectFrom(Element<T> element) {
-            List<T> collected = Lists.newArrayList();
-            element.collectInto(collected);
-            return collected;
-        }
-
         @Override
         public void remove() {
             if (previousIndex > -1) {
                 Element<T> element = backingList.get(previousIndex);
-                List<T> collected = collectFrom(element);
+                List<T> collected = element.getValues();
                 if (collected.size() > 1) {
                     element.remove(collected.get(previousSubIndex));
                     nextSubIndex--;
@@ -247,9 +241,9 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     protected static class Element<T> extends TypedCollector<T> {
-        private List<T> cache = Lists.newArrayList();
-        private List<T> removed = Lists.newArrayList();
-        private List<Integer> duplicates = Lists.newArrayList();
+        private List<T> cache;
+        private final List<T> removed = Lists.newArrayList();
+        private final List<Integer> duplicates = Lists.newArrayList();
         private boolean realized;
         private final Action<T> realizeAction;
 
@@ -269,7 +263,8 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         }
 
         public void realize() {
-            if (cache.isEmpty()) {
+            if (cache == null) {
+                cache = new ArrayList<T>(delegate.size());
                 super.collectInto(cache);
                 cache.removeAll(removed);
                 realized = true;
@@ -295,9 +290,19 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             return true;
         }
 
+        List<T> getValues() {
+            if (!realized) {
+                realize();
+            }
+            return cache;
+        }
+
         public boolean remove(T value) {
             removed.add(value);
-            return cache.remove(value);
+            if (cache != null) {
+                return cache.remove(value);
+            }
+            return true;
         }
 
         public boolean isDuplicate(int index) {

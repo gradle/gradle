@@ -160,7 +160,7 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
             while (i >= 0) {
                 Element<T> candidate = backingList.get(i);
                 if (candidate.isRealized()) {
-                    List<T> collected = collectFrom(candidate);
+                    List<T> collected = candidate.getValues();
                     if (previousSubIndex == -1) {
                         previousSubIndex = collected.size();
                     }
@@ -186,7 +186,7 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
         @Override
         public T next() {
             T value = super.next();
-            previous = collectFrom(backingList.get(previousIndex)).get(previousSubIndex);
+            previous = backingList.get(previousIndex).getValues().get(previousSubIndex);
             listNextIndex++;
             listPreviousIndex++;
             return value;
@@ -229,7 +229,7 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
             Element<T> element = new Element<T>(t);
             backingList.add(nextIndex, element);
             nextIndex++;
-            previous = collectFrom(element).get(0);
+            previous = element.getValues().get(0);
             previousIndex = nextIndex;
             previousSubIndex = 0;
         }
