@@ -56,7 +56,11 @@ import java.util.TreeSet;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 public class TestFile extends File {
@@ -340,7 +344,7 @@ public class TestFile extends File {
      * }
      * </pre>
      */
-    public TestFile create(@DelegatesTo(TestWorkspaceBuilder.class) Closure structure) {
+    public TestFile create(@DelegatesTo(value = TestWorkspaceBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure structure) {
         assertTrue(isDirectory() || mkdirs());
         new TestWorkspaceBuilder(this).apply(structure);
         return this;
