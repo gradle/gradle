@@ -703,6 +703,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
+    public void addAllLater(Provider<? extends Iterable<Task>> provider) {
+        throw new UnsupportedOperationException("Adding a task provider directly to the task container is not supported.  Use the register() method instead.");
+    }
+
+    @Override
     public boolean addInternal(Task task) {
         return super.add(task);
     }
