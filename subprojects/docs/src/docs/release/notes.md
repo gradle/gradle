@@ -33,34 +33,22 @@ The following are the newly deprecated items in this Gradle release. If you have
 <!--
 ### Example deprecation
 -->
-=======
-### Creating instances of JavaPluginConvention
 
-Instances of this class are intended to be created only by the `java-base` plugin and should not be created directly. Creating instances using the constructor of `JavaPluginConvention` will become an error in Gradle 5.0. The class itself is not deprecated and it is still be possible to use the instances created by the `java-base` plugin.
+## Potential breaking changes
 
-### Creating instances of ApplicationPluginConvention
+<!--
+### Example breaking change
+-->
 
-Instances of this class are intended to be created only by the `application` plugin and should not be created directly. Creating instances using the constructor of `ApplicationPluginConvention` will become an error in Gradle 5.0. The class itself is not deprecated and it is still be possible to use the instances created by the `application` plugin.
+## External contributions
 
-### Creating instances of WarPluginConvention
+We would like to thank the following community members for making contributions to this release of Gradle.
 
-Instances of this class are intended to be created only by the `war` plugin and should not be created directly. Creating instances using the constructor of `WarPluginConvention` will become an error in Gradle 5.0. The class itself is not deprecated and it is still be possible to use the instances created by the `war` plugin.
+<!--
+ - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
+-->
 
-### Creating instances of EarPluginConvention
-
-Instances of this class are intended to be created only by the `ear` plugin and should not be created directly. Creating instances using the constructor of `EarPluginConvention` will become an error in Gradle 5.0. The class itself is not deprecated and it is still be possible to use the instances created by the `ear` plugin.
-
-### Creating instances of BasePluginConvention
-
-Instances of this class are intended to be created only by the `base` plugin and should not be created directly. Creating instances using the constructor of `BasePluginConvention` will become an error in Gradle 5.0. The class itself is not deprecated and it is still be possible to use the instances created by the `base` plugin.
-
-### Creating instances of ProjectReportsPluginConvention
-
-Instances of this class are intended to be created only by the `project-reports` plugin and should not be created directly. Creating instances using the constructor of `ProjectReportsPluginConvention` will become an error in Gradle 5.0. The class itself is not deprecated and it is still be possible to use the instances created by the `project-reports` plugin.
-
-### Adding tasks via TaskContainer.add() and TaskContainer.addAll()
-
-These methods have been deprecated and the `create()` or `register()` methods should be used instead.
+We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
 ## Known issues
 
