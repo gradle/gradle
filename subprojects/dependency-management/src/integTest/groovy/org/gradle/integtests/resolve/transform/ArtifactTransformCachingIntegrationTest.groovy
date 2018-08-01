@@ -84,6 +84,28 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         transformationPosition2 < taskPosition
     }
 
+    def "early-discovered transform is only run once per transform"() {
+        given:
+        settingsFile << """
+            include 'util2'
+        """
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks()
+        buildFile << """
+            project(':util2') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+        """
+
+        when:
+        succeeds ":util:resolve", ":util2:resolve"
+
+        then:
+        output.count("> Transform lib1.jar (project :lib) with FileSizer") == 1
+        output.count("> Transform lib2.jar (project :lib) with FileSizer") == 1
+    }
+
     def "each file is transformed once per set of configuration parameters"() {
         given:
         buildFile << declareAttributes() << """
