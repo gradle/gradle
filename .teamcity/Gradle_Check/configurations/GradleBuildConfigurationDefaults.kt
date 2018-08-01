@@ -45,7 +45,8 @@ fun gradleParameters(os: OS = OS.linux, daemon: Boolean = true): List<String> =
         """-I "%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts"""",
         java7Homes[os]!!,
         java9Homes[os]!!,
-        "-Dorg.gradle.internal.tasks.createops")
+        "-Dorg.gradle.internal.tasks.createops",
+        "-Dorg.gradle.internal.plugins.portal.url.override=http://dev12.gradle.org:8081/artifactory/gradle-plugins/")
 
 
 val m2CleanScriptUnixLike = """
