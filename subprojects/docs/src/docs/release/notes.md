@@ -110,6 +110,11 @@ The following hooks are disallowed when called from these new APIs:
 
 If you attempt to call any of these methods an exception will be thrown. Gradle restricts these APIs because mixing these APIs with lazy configuration can cause hard to diagnose build failures and complexity.
 
+### Changes to the Java Gradle Plugin plugin
+
+- `PluginUnderTestMetadata` and `GeneratePluginDescriptors` were updated to use the Provider API.
+- All setters were removed and can be replaced with calls to the new Property `set(...)` method.
+
 ## External contributions
 
 
