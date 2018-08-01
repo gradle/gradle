@@ -205,12 +205,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             public void execute(final GeneratePluginDescriptors generatePluginDescriptors) {
                 generatePluginDescriptors.setGroup(PLUGIN_DEVELOPMENT_GROUP);
                 generatePluginDescriptors.setDescription(GENERATE_PLUGIN_DESCRIPTORS_TASK_DESCRIPTION);
-                generatePluginDescriptors.getDeclarations().set(project.provider(new Callable<Iterable<? extends PluginDeclaration>>() {
-                    @Override
-                    public Iterable<? extends PluginDeclaration> call() throws Exception {
-                        return extension.getPlugins();
-                    }
-                }));
+                generatePluginDescriptors.getDeclarations().set(extension.getPlugins());
                 generatePluginDescriptors.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir(generatePluginDescriptors.getName()));
             }
         });
