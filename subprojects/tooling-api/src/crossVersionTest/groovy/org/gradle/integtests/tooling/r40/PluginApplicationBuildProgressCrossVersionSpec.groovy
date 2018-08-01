@@ -366,7 +366,6 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
 
         def applyBuildGradle = events.operation("Apply script build.gradle to root project 'multi'")
 
-        applyBuildGradle.children.size() == 1
         applyBuildGradle.child("Execute 'subprojects {}' action").child("Cross-configure project :a").child("Apply plugin org.gradle.java to project ':a'")
         applyBuildGradle.child("Execute 'subprojects {}' action").child("Cross-configure project :b").child("Apply plugin org.gradle.java to project ':b'")
     }
@@ -392,7 +391,6 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
 
         def applyBuildGradle = events.operation("Apply script build.gradle to root project 'multi'")
 
-        applyBuildGradle.children.size() == 1
         applyBuildGradle.child("Cross-configure project :a").child("Apply plugin org.gradle.java to project ':a'")
     }
 
@@ -417,7 +415,6 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
 
         def applyBuildGradle = events.operation("Apply script build.gradle to root project 'multi'")
 
-        applyBuildGradle.children.size() == 1
         applyBuildGradle.child("Cross-configure project :b").child("Apply plugin org.gradle.java to project ':b'")
     }
 

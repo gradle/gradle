@@ -89,7 +89,7 @@ Instances of this class are intended to be created only by the `base` plugin and
 
 Instances of this class are intended to be created only by the `project-reports` plugin and should not be created directly. Creating instances using the constructor of `ProjectReportsPluginConvention` will become an error in Gradle 5.0. The class itself is not deprecated and it is still be possible to use the instances created by the `project-reports` plugin.
 
-### Adding tasks via TaskContainer.add() and TaskContainer.addAll() 
+### Adding tasks via TaskContainer.add() and TaskContainer.addAll()
 
 These methods have been deprecated and the `create()` or `register()` methods should be used instead.
 
@@ -98,6 +98,39 @@ These methods have been deprecated and the `create()` or `register()` methods sh
 ### Kotlin DSL breakages
 
 - `project.java.sourceSets` is now `project.sourceSets`
+
+### Restricting cross-configuration and lifecycle hooks from lazy configuration APIs
+
+In Gradle 4.9, we [introduced a new API](https://blog.gradle.org/preview-avoiding-task-configuration-time) for creating and configuring tasks.
+
+The following hooks are disallowed when called from these new APIs:
+
+- `project.afterEvaluate(Action)` and `project.afterEvaluate(Closure)`
+- `project.beforeEvaluate(Action)` and `project.beforeEvaluate(Closure)`
+
+If you attempt to call any of these methods an exception will be thrown. Gradle restricts these APIs because mixing these APIs with lazy configuration can cause hard to diagnose build failures and complexity.
+
+### Cross Account AWS S3 Artifact Publishing
+
+The S3 [repository transport protocol](userguide/repository_types.html#sub:supported_transport_protocols) allows Gradle to publish artifacts to AWS S3 buckets. Starting with this release, every artifact uploaded to an S3 bucket will be equipped with `bucket-owner-full-control` canned ACL. Make sure the used AWS credentials can do `s3:PutObjectAcl` and `s3:PutObjectVersionAcl` to ensure successful artifacts uploads.
+
+    {
+        "Version":"2012-10-17",
+        "Statement":[
+            // ...
+            {
+                "Effect":"Allow",
+                "Action":[
+                    "s3:PutObject", // necessary for uploading objects
+                    "s3:PutObjectAcl", // required starting with this release
+                    "s3:PutObjectVersionAcl" // if S3 bucket versioning is enabled
+                ],
+                "Resource":"arn:aws:s3:::myCompanyBucket/*"
+            }
+        ]
+    }
+
+See the User guide section on “[Repository Types](userguide/repository_types.html#sub:s3_cross_account)” for more information.
 
 ## External contributions
 
@@ -119,6 +152,7 @@ We love getting contributions from the Gradle community. For information on cont
 - [Mészáros Máté Róbert](https://github.com/mrmeszaros) - Fix typo in userguide java plugin configuration image (gradle/gradle#6011)
 - [Paul Wellner Bou](https://github.com/paulwellnerbou) - Authorization for Maven repositories with custom HTTP headers (gradle/gradle#5571)
 - [Kenzie Togami](https://github.com/kenzierocks) - Docs are unclear on how JavaExec parses --args (gradle/gradle#6056)
+- [Salvian Reynaldi](https://github.com/salvianreynaldi) - Give S3 bucket owner full control over the published Maven artifacts (gradle/gradle#5329)
 
 ## Known issues
 

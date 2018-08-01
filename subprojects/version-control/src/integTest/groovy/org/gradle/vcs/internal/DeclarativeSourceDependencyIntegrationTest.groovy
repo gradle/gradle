@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.vcs.internal;
+package org.gradle.vcs.internal
 
-import java.io.File;
-
-public class VcsWorkingDirectoryRoot {
-    private final File dir;
-
-    public VcsWorkingDirectoryRoot(File dir) {
-        this.dir = dir;
-    }
-
-    public File getDir() {
-        return dir;
+class DeclarativeSourceDependencyIntegrationTest extends AbstractSourceDependencyIntegrationTest {
+    @Override
+    void mappingFor(String gitRepo, String coords, String repoDef) {
+        settingsFile << """
+            sourceControl {
+                gitRepository("${gitRepo}") {
+                    producesModule("${coords}")
+                    ${repoDef}
+                }
+            }
+        """
     }
 }

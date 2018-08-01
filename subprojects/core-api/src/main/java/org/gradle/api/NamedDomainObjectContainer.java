@@ -92,7 +92,7 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
      * @since 4.10
      */
     @Incubating
-    Provider<T> register(String name, Action<? super T> configurationAction) throws InvalidUserDataException;
+    DomainObjectProvider<T> register(String name, Action<? super T> configurationAction) throws InvalidUserDataException;
 
     /**
      * Defines a new object, which will be created when it is required. A object is 'required' when the object is located using query methods such as {@link NamedDomainObjectCollection#getByName(java.lang.String)} or when {@link Provider#get()} is called on the return value of this method.
@@ -105,6 +105,5 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
      * @since 4.10
      */
     @Incubating
-    Provider<T> register(String name) throws InvalidUserDataException;
-
+    DomainObjectProvider<T> register(String name) throws InvalidUserDataException;
 }

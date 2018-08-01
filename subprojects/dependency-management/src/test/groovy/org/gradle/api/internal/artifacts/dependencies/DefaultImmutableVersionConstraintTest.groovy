@@ -26,14 +26,14 @@ class DefaultImmutableVersionConstraintTest extends Specification {
 
         expect:
         v.requiredVersion == '1.0'
-        v.preferredVersion == ''
+        v.preferredVersion == '1.0'
         v.strictVersion == ''
         v.rejectedVersions == []
     }
 
     def "can create an immutable version constraint with rejects"() {
         given:
-        def v = new DefaultImmutableVersionConstraint('1.0', '1.1', '1.1.1', ['1.2','2.0'])
+        def v = new DefaultImmutableVersionConstraint('1.1', '1.0', '1.1.1', ['1.2', '2.0'])
 
         expect:
         v.requiredVersion == '1.0'
@@ -44,7 +44,7 @@ class DefaultImmutableVersionConstraintTest extends Specification {
 
     def "cannot mutate rejection list"() {
         given:
-        def v = new DefaultImmutableVersionConstraint('1.0', '1.1', '1.1.1', ['1.2','2.0'])
+        def v = new DefaultImmutableVersionConstraint('1.1', '1.0', '1.1.1', ['1.2', '2.0'])
 
         when:
         v.rejectedVersions.add('3.0')
@@ -55,21 +55,21 @@ class DefaultImmutableVersionConstraintTest extends Specification {
 
     def "cannot use null as any version"() {
         when:
-        new DefaultImmutableVersionConstraint(null, '1.1', '1.1', ['1.2','2.0'])
+        new DefaultImmutableVersionConstraint('1.1', null, '1.1', ['1.2', '2.0'])
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == 'Required version must not be null'
 
         when:
-        new DefaultImmutableVersionConstraint('1.0', null, '1.0', ['1.2','2.0'])
+        new DefaultImmutableVersionConstraint(null, '1.0', '1.0', ['1.2', '2.0'])
 
         then:
         e = thrown(IllegalArgumentException)
         e.message == 'Preferred version must not be null'
 
         when:
-        new DefaultImmutableVersionConstraint('1.0', '1.0', null, ['1.2','2.0'])
+        new DefaultImmutableVersionConstraint('1.0', '1.0', null, ['1.2', '2.0'])
 
         then:
         e = thrown(IllegalArgumentException)
@@ -103,7 +103,7 @@ class DefaultImmutableVersionConstraintTest extends Specification {
         v.rejectedVersions.empty
 
         when:
-        v = new DefaultImmutableVersionConstraint('', '', '', ['1.1','2.0'])
+        v = new DefaultImmutableVersionConstraint('', '', '', ['1.1', '2.0'])
 
         then:
         v.preferredVersion == ''
@@ -113,7 +113,7 @@ class DefaultImmutableVersionConstraintTest extends Specification {
 
     def "cannot use null as rejected versions"() {
         when:
-        def v = new DefaultImmutableVersionConstraint('1.0', '', '', null)
+        def v = new DefaultImmutableVersionConstraint('', '1.0', '', null)
 
         then:
         def e = thrown(IllegalArgumentException)

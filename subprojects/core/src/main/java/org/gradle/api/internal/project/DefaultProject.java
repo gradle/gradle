@@ -976,21 +976,25 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void beforeEvaluate(Action<? super Project> action) {
+        assertMutatingMethodAllowed("Project#beforeEvaluate(Action)");
         evaluationListener.add("beforeEvaluate", action);
     }
 
     @Override
     public void afterEvaluate(Action<? super Project> action) {
+        assertMutatingMethodAllowed("Project#afterEvaluate(Action)");
         evaluationListener.add("afterEvaluate", action);
     }
 
     @Override
     public void beforeEvaluate(Closure closure) {
+        assertMutatingMethodAllowed("Project#beforeEvaluate(Closure)");
         evaluationListener.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", closure));
     }
 
     @Override
     public void afterEvaluate(Closure closure) {
+        assertMutatingMethodAllowed("Project#afterEvaluate(Closure)");
         evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", closure));
     }
 
@@ -1403,5 +1407,9 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return nextBatch.isEmpty()
             ? null
             : nextBatch.getSource();
+    }
+
+    private void assertMutatingMethodAllowed(String methodName) {
+        getProjectConfigurator().assertCrossProjectConfigurationAllowed(methodName, this);
     }
 }

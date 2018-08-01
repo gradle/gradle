@@ -614,4 +614,30 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("Adding a task provider directly to the task container is not supported.")
     }
+
+    def "can extract schema from task container"() {
+        given:
+        buildFile << """
+            class Foo extends DefaultTask {}
+            tasks.create("foo", Foo)
+            tasks.register("bar", Foo) {
+                assert false : "This should not be realized"
+            }
+            tasks.create("builtInTask", Copy)
+            tasks.register("defaultTask") {
+                assert false : "This should not be realized"
+            }
+             
+            def schema = tasks.collectionSchema.elements.collectEntries { e ->
+                [ e.name, e.publicType.simpleName ]
+            }
+            assert schema.size() == 4
+            assert schema["foo"] == "Foo"
+            assert schema["bar"] == "Foo"
+            assert schema["builtInTask"] == "Copy"
+            assert schema["defaultTask"] == "DefaultTask"
+        """
+        expect:
+        succeeds("help")
+    }
 }

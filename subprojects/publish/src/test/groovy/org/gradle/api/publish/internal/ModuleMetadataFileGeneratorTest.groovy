@@ -55,7 +55,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
     }
 
     VersionConstraint prefersAndRejects(String version, List<String> rejects) {
-        DefaultImmutableVersionConstraint.of(version, version, "", rejects)
+        DefaultImmutableVersionConstraint.of(version, "", "", rejects)
     }
 
     @Rule
@@ -322,7 +322,6 @@ class ModuleMetadataFileGeneratorTest extends Specification {
           "group": "g2",
           "module": "m2",
           "version": {
-            "requires": "v2",
             "prefers": "v2",
             "rejects": [
               "v3",
@@ -480,7 +479,6 @@ class ModuleMetadataFileGeneratorTest extends Specification {
           "group": "g2",
           "module": "m2",
           "version": {
-            "requires": "v2",
             "prefers": "v2",
             "rejects": [
               "v3",

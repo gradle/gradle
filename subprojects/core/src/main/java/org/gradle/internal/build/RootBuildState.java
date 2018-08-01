@@ -16,6 +16,7 @@
 
 package org.gradle.internal.build;
 
+import org.gradle.StartParameter;
 import org.gradle.api.Transformer;
 import org.gradle.internal.invocation.BuildController;
 
@@ -23,6 +24,11 @@ import org.gradle.internal.invocation.BuildController;
  * Represents the root build of a build tree.
  */
 public interface RootBuildState extends BuildState {
+    /**
+     * Returns the start parameter used to define this build.
+     */
+    StartParameter getStartParameter();
+
     /**
      * Runs a single invocation of this build, executing the given action and returning the result. Should be called once only for a given build instance.
      */

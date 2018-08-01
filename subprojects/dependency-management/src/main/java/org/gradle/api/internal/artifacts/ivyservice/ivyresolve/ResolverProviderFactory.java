@@ -17,8 +17,11 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.internal.artifacts.ResolveContext;
 
-public interface ResolverProviderFactory {
-    boolean canCreate(ResolveContext context);
+import java.util.Collection;
 
-    ComponentResolvers create(ResolveContext context);
+public interface ResolverProviderFactory {
+    /**
+     * Create any applicable resolvers and add to the given collection.
+     */
+    void create(ResolveContext context, Collection<ComponentResolvers> resolvers);
 }

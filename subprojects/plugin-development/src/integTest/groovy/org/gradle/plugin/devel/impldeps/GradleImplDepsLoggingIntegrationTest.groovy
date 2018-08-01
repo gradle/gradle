@@ -23,16 +23,16 @@ class GradleImplDepsLoggingIntegrationTest extends BaseGradleImplDepsIntegration
         requireOwnGradleUserHomeDir()
     }
 
-    def "Generating shaded JARs is logged with console #console"() {
+    def "Generating Gradle API jar is logged with rich console"() {
         given:
-        executer.withArgument("--console=$console")
+        executer.withArgument("--console=rich")
         buildFile << """
             configurations {
                 gradleImplDeps
             }
 
             dependencies {
-                gradleImplDeps gradleApi(), gradleTestKit()
+                gradleImplDeps gradleApi()
             }
 
             task resolveDependencies {
@@ -47,12 +47,6 @@ class GradleImplDepsLoggingIntegrationTest extends BaseGradleImplDepsIntegration
 
         then:
         def gradleVersion = GradleVersion.current().version
-        output.contains("Generating JAR file 'gradle-api-${gradleVersion}.jar'")
-        output.contains("Generating JAR file 'gradle-test-kit-${gradleVersion}.jar'")
-
-        where:
-        console  | placeholder
-        "plain"  | _
-        "rich"   | _
+        output.contains("Generating gradle-api-${gradleVersion}.jar")
     }
 }

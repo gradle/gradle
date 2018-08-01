@@ -27,5 +27,4 @@ class DependencyManagementBuildTreeScopeServices {
     ResolutionResultsStoreFactory createResolutionResultsStoreFactory(TemporaryFileProvider temporaryFileProvider) {
         return new ResolutionResultsStoreFactory(temporaryFileProvider);
     }
-
 }

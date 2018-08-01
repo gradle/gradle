@@ -25,12 +25,14 @@ import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.registry.ModelRegistry
@@ -53,6 +55,7 @@ class DefaultTaskContainerTest extends Specification {
     }
     private taskCount = 1;
     private accessListener = Mock(ProjectAccessListener)
+    private BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
     private container = new DefaultTaskContainerFactory(
         modelRegistry,
         DirectInstantiator.INSTANCE,
@@ -60,7 +63,8 @@ class DefaultTaskContainerTest extends Specification {
         project,
         accessListener,
         new TaskStatistics(),
-        new TestBuildOperationExecutor()
+        buildOperationExecutor,
+        new BuildOperationCrossProjectConfigurator(buildOperationExecutor)
     ).create()
 
     void 'cannot create task with no name'() {
@@ -479,9 +483,12 @@ class DefaultTaskContainerTest extends Specification {
         0 * rule._
     }
 
-    void "can query task name and type from task provider after registration"() {
+    void "can query task name and type from task provider after registration without realizing it"() {
+        def action = Mock(Action)
+
         given:
         def provider = null
+        container.configureEach(action)
 
         when:
         provider = container.register("a")
@@ -489,6 +496,7 @@ class DefaultTaskContainerTest extends Specification {
         then:
         provider.type == DefaultTask
         provider.name == "a"
+        0 * action.execute(_)
 
         when:
         provider = container.register("b", Mock(Action))
@@ -496,6 +504,7 @@ class DefaultTaskContainerTest extends Specification {
         then:
         provider.type == DefaultTask
         provider.name == "b"
+        0 * action.execute(_)
 
         when:
         provider = container.register("c", CustomTask)
@@ -503,6 +512,7 @@ class DefaultTaskContainerTest extends Specification {
         then:
         provider.type == CustomTask
         provider.name == "c"
+        0 * action.execute(_)
 
         when:
         provider = container.register("d", CustomTask, Mock(Action))
@@ -510,6 +520,7 @@ class DefaultTaskContainerTest extends Specification {
         then:
         provider.type == CustomTask
         provider.name == "d"
+        0 * action.execute(_)
 
         when:
         provider = container.register("e", CustomTask, "some", "constructor", "args")
@@ -517,6 +528,7 @@ class DefaultTaskContainerTest extends Specification {
         then:
         provider.type == CustomTask
         provider.name == "e"
+        0 * action.execute(_)
     }
 
     void "can define task to create and configure later given name and type"() {

@@ -48,6 +48,8 @@ public interface ElementSource<T> extends Iterable<T>, WithEstimatedSize, Pendin
 
     boolean add(T element);
 
+    boolean addRealized(T element);
+
     void clear();
 
     boolean remove(Object o);

@@ -49,13 +49,14 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     public String getDisplayName() {
         String group = moduleIdentifier.getGroup();
         String module = moduleIdentifier.getName();
+        String version = getVersion();
         StringBuilder builder = new StringBuilder(group.length() + module.length() + versionConstraint.getRequiredVersion().length() + 2);
         builder.append(group);
         builder.append(":");
         builder.append(module);
-        if (versionConstraint.getRequiredVersion().length() > 0) {
+        if (version.length() > 0) {
             builder.append(":");
-            builder.append(versionConstraint.getRequiredVersion());
+            builder.append(version);
         }
         if (versionConstraint.getBranch() != null) {
             builder.append(" (branch: ");
@@ -74,7 +75,9 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     }
 
     public String getVersion() {
-        return versionConstraint.getRequiredVersion();
+        return versionConstraint.getRequiredVersion().isEmpty()
+            ? versionConstraint.getPreferredVersion()
+            : versionConstraint.getRequiredVersion();
     }
 
     @Override

@@ -16,145 +16,208 @@
 
 package org.gradle.api.internal.collections;
 
-import org.gradle.api.Action;
+import com.google.common.collect.Lists;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.specs.Spec;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.NoSuchElementException;
 
-public class ListElementSource<T> implements IndexedElementSource<T> {
-    private final List<T> values = new ArrayList<T>();
-    private final PendingSource<T> pending = new DefaultPendingSource<T>();
+public class ListElementSource<T> extends AbstractIterationOrderRetainingElementSource<T> implements IndexedElementSource<T> {
 
-    @Override
-    public boolean isEmpty() {
-        return values.isEmpty() && pending.isEmpty();
-    }
-
-    @Override
-    public boolean constantTimeIsEmpty() {
-        return values.isEmpty() && pending.isEmpty();
-    }
-
-    @Override
-    public int size() {
-        return values.size() + pending.size();
-    }
-
-    @Override
-    public int estimatedSize() {
-        return values.size() + pending.size();
-    }
+    private final Spec<Element<T>> alwaysAccept = new Spec<Element<T>>() {
+        @Override
+        public boolean isSatisfiedBy(Element<T> element) {
+            return true;
+        }
+    };
 
     @Override
     public Iterator<T> iterator() {
-        pending.realizePending();
-        return values.iterator();
+        realizePending();
+        return listIterator();
     }
 
     @Override
     public Iterator<T> iteratorNoFlush() {
-        return values.iterator();
+        return listIterator();
     }
 
     @Override
     public ListIterator<T> listIterator() {
-        return values.listIterator();
+        return new RealizedElementListIterator<T>(getInserted(), alwaysAccept);
     }
 
     @Override
     public ListIterator<T> listIterator(int index) {
-        return values.listIterator(index);
-    }
-
-    @Override
-    public boolean contains(Object element) {
-        pending.realizePending();
-        return values.contains(element);
-    }
-
-    @Override
-    public boolean containsAll(Collection<?> elements) {
-        pending.realizePending();
-        return values.containsAll(elements);
+        return Lists.newArrayList(listIterator()).listIterator(index);
     }
 
     @Override
     public List<? extends T> subList(int fromIndex, int toIndex) {
-        return values.subList(fromIndex, toIndex);
+        return Lists.newArrayList(listIterator()).subList(fromIndex, toIndex);
+    }
+
+    private List<T> asList() {
+        return Lists.newArrayList(listIterator());
     }
 
     @Override
     public T get(int index) {
-        return values.get(index);
+        return asList().get(index);
     }
 
     @Override
     public int indexOf(Object o) {
-        return values.indexOf(o);
+        return asList().indexOf(o);
     }
 
     @Override
     public int lastIndexOf(Object o) {
-        return values.lastIndexOf(o);
+        return asList().lastIndexOf(o);
     }
 
     @Override
     public boolean add(T element) {
-        return values.add(element);
+        return getInserted().add(new CachingElement<T>(element));
+    }
+
+    @Override
+    public boolean addRealized(T value) {
+        return true;
+    }
+
+    @Override
+    public boolean addPending(ProviderInternal<? extends T> provider) {
+        return getInserted().add(cachingElement(provider));
+    }
+
+    private ListIterator<T> iteratorAt(int index) {
+        ListIterator<T> iterator = listIterator();
+        while(iterator.previousIndex() < index && iterator.hasNext()) {
+            iterator.next();
+        }
+        return iterator;
     }
 
     @Override
     public void add(int index, T element) {
-        values.add(index, element);
+        ListIterator<T> iterator = iteratorAt(index - 1);
+        if (iterator.nextIndex() == index) {
+            iterator.add(element);
+        } else {
+            throw new IndexOutOfBoundsException();
+        }
     }
 
     @Override
     public T set(int index, T element) {
-        return values.set(index, element);
-    }
-
-    @Override
-    public boolean remove(Object o) {
-        return values.remove(o);
+        ListIterator<T> iterator = iteratorAt(index - 1);
+        if (!iterator.hasNext()) {
+            throw new IndexOutOfBoundsException();
+        }
+        T previous = iterator.next();
+        iterator.set(element);
+        return previous;
     }
 
     @Override
     public T remove(int index) {
-        return values.remove(index);
+        ListIterator<T> iterator = iteratorAt(index - 1);
+        if (!iterator.hasNext()) {
+            throw new IndexOutOfBoundsException();
+        }
+        T previous = iterator.next();
+        iterator.remove();
+        return previous;
     }
 
-    @Override
-    public void clear() {
-        pending.clear();
-        values.clear();
-    }
+    // TODO Check for comodification with the ElementSource
+    private static class RealizedElementListIterator<T> extends RealizedElementCollectionIterator<T> implements ListIterator<T> {
+        T previous;
+        int listNextIndex = 0;
+        int listPreviousIndex = -1;
 
-    @Override
-    public void realizePending() {
-        pending.realizePending();
-    }
+        RealizedElementListIterator(List<Element<T>> backingList, Spec<Element<T>> acceptanceSpec) {
+            super(backingList, acceptanceSpec);
+        }
 
-    @Override
-    public void realizePending(Class<?> type) {
-        pending.realizePending(type);
-    }
+        @Override
+        public boolean hasPrevious() {
+            return previous != null;
+        }
 
-    @Override
-    public void addPending(ProviderInternal<? extends T> provider) {
-        pending.addPending(provider);
-    }
+        private void updatePrevious() {
+            int i = previousIndex - 1;
+            while (i >= 0) {
+                Element<T> candidate = backingList.get(i);
+                if (candidate.isRealized() && acceptanceSpec.isSatisfiedBy(candidate)) {
+                    T value = candidate.getValue();
+                    previousIndex = i;
+                    previous = value;
+                    return;
+                }
+                i--;
+            }
+            previousIndex = -1;
+            previous = null;
+        }
 
-    @Override
-    public void removePending(ProviderInternal<? extends T> provider) {
-        pending.removePending(provider);
-    }
+        @Override
+        public T next() {
+            T value = super.next();
+            previous = backingList.get(previousIndex).getValue();
+            listNextIndex++;
+            listPreviousIndex++;
+            return value;
+        }
 
-    @Override
-    public void onRealize(Action<ProviderInternal<? extends T>> action) {
-        pending.onRealize(action);
+        @Override
+        public T previous() {
+            if (previous == null) {
+                throw new NoSuchElementException();
+            }
+            nextIndex = previousIndex;
+            next = previous;
+            updatePrevious();
+            listNextIndex--;
+            listPreviousIndex--;
+            return next;
+        }
+
+        @Override
+        public int nextIndex() {
+            return listNextIndex;
+        }
+
+        @Override
+        public int previousIndex() {
+            return listPreviousIndex;
+        }
+
+        @Override
+        public void set(T t) {
+            if (previousIndex < 0) {
+                throw new IllegalStateException();
+            }
+            backingList.set(previousIndex, new CachingElement<T>(t));
+        }
+
+        @Override
+        public void add(T t) {
+            CachingElement<T> element = new CachingElement<T>(t);
+            backingList.add(nextIndex, element);
+            nextIndex++;
+            previous = element.getValue();
+            previousIndex = nextIndex;
+        }
+
+        @Override
+        public void remove() {
+            super.remove();
+            previous = null;
+        }
     }
 }

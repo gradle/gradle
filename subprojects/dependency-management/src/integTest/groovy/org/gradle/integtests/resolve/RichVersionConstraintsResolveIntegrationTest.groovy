@@ -164,10 +164,10 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:bar:1') {
-                    edge("org:foo", "org:foo:1.1")
+                    edge("org:foo:1.1", "org:foo:1.1")
                 }
                 module('org:baz:1') {
-                    edge("org:foo", "org:foo:1.1")
+                    edge("org:foo:1.0", "org:foo:1.1")
                 }
                 edge("org:foo:[1.0,2.0)", "org:foo:1.1")
             }

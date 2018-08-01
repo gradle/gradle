@@ -84,6 +84,10 @@
                 <td>annotationProcessorGeneratedSourcesDirectory</td>
                 <td><literal>null</literal></td>
             </tr>
+            <tr>
+                <td>headerOutputDirectory</td>
+                <td><literal>null</literal></td>
+            </tr>
         </table>
     </section>
     <section>

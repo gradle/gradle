@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFac
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionFailureRepositoryBlacklister;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryBlacklister;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
@@ -74,7 +73,6 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DefaultExternalRe
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.artifacts.vcs.VcsDependencyResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
@@ -120,9 +118,6 @@ import org.gradle.internal.resource.transfer.DefaultUriTextResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.internal.SimpleMapInterner;
-import org.gradle.vcs.internal.VcsResolver;
-import org.gradle.vcs.internal.VcsWorkingDirectoryRoot;
-import org.gradle.vcs.internal.VersionControlSystemFactory;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -319,6 +314,7 @@ class DependencyManagementBuildScopeServices {
                                                                 DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                 VersionComparator versionComparator,
                                                                 List<ResolverProviderFactory> resolverFactories,
+                                                                ProjectDependencyResolver projectDependencyResolver,
                                                                 ModuleExclusions moduleExclusions,
                                                                 BuildOperationExecutor buildOperationExecutor,
                                                                 ComponentSelectorConverter componentSelectorConverter,
@@ -329,6 +325,7 @@ class DependencyManagementBuildScopeServices {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
             resolverFactories,
+            projectDependencyResolver,
             resolveIvyFactory,
             dependencyDescriptorFactory,
             versionComparator,
@@ -368,40 +365,9 @@ class DependencyManagementBuildScopeServices {
         return new CachingVersionSelectorScheme(new DefaultVersionSelectorScheme(versionComparator, versionParser));
     }
 
-    private static class VcsOrProjectResolverProviderFactory implements ResolverProviderFactory {
-        private final VcsDependencyResolver vcsDependencyResolver;
-        private final ProjectDependencyResolver projectDependencyResolver;
-        private final VcsResolver vcsResolver;
-
-        private VcsOrProjectResolverProviderFactory(VcsDependencyResolver vcsDependencyResolver, ProjectDependencyResolver projectDependencyResolver, VcsResolver vcsResolver) {
-            this.vcsDependencyResolver = vcsDependencyResolver;
-            this.projectDependencyResolver = projectDependencyResolver;
-            this.vcsResolver = vcsResolver;
-        }
-
-        @Override
-        public boolean canCreate(ResolveContext context) {
-            return true;
-        }
-
-        @Override
-        public ComponentResolvers create(ResolveContext context) {
-            return vcsResolver.hasRules() ? vcsDependencyResolver : projectDependencyResolver;
-        }
-    }
-
-    VcsDependencyResolver createVcsDependencyResolver(VcsWorkingDirectoryRoot vcsWorkingDirectoryRoot, ProjectDependencyResolver projectDependencyResolver, LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlSystemFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, BuildStateRegistry buildRegistry, VersionParser versionParser) {
-        return new VcsDependencyResolver(vcsWorkingDirectoryRoot, projectDependencyResolver, localComponentRegistry, vcsResolver, versionControlSystemFactory, versionSelectorScheme, versionComparator, buildRegistry, versionParser);
-    }
-
-    ResolverProviderFactory createVcsResolverProviderFactory(VcsDependencyResolver vcsDependencyResolver, ProjectDependencyResolver projectDependencyResolver, VcsResolver vcsResolver) {
-        return new VcsOrProjectResolverProviderFactory(vcsDependencyResolver, projectDependencyResolver, vcsResolver);
-    }
-
     SimpleMapInterner createStringInterner() {
         return SimpleMapInterner.threadSafe();
     }
-
 
     ModuleComponentResolveMetadataSerializer createModuleComponentResolveMetadataSerializer(ImmutableAttributesFactory attributesFactory, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         DesugaringAttributeContainerSerializer attributeContainerSerializer = new DesugaringAttributeContainerSerializer(attributesFactory, NamedObjectInstantiator.INSTANCE);

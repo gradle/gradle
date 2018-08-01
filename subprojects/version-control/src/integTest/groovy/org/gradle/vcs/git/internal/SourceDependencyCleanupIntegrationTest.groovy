@@ -25,7 +25,7 @@ import org.junit.Rule
 
 import java.util.concurrent.TimeUnit
 
-class VcsCleanupIntegrationTest extends AbstractIntegrationSpec implements SourceDependencies {
+class SourceDependencyCleanupIntegrationTest extends AbstractIntegrationSpec implements SourceDependencies {
     @Rule
     GitFileRepository repo = new GitFileRepository("dep", testDirectory)
 
@@ -178,7 +178,7 @@ class VcsCleanupIntegrationTest extends AbstractIntegrationSpec implements Sourc
     }
 
     TestFile gcFile() {
-        file(".gradle/vcsWorkingDirs/gc.properties")
+        file(".gradle/vcs-1/gc.properties")
     }
 
     void cleanupNow() {

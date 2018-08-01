@@ -39,7 +39,7 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
         // For now, required and preferred are treated the same
 
         boolean strict = !strictVersion.isEmpty();
-        prefer = !preferredVersion.isEmpty();
+        prefer = requiredVersion.isEmpty() && !preferredVersion.isEmpty();
         String version = strict ? strictVersion : prefer ? preferredVersion : requiredVersion;
         this.preferredVersionSelector = scheme.parseSelector(version);
 

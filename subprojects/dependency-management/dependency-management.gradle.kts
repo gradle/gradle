@@ -24,7 +24,6 @@ plugins {
 
 dependencies {
     api(project(":core"))
-    api(project(":versionControl"))
 
     implementation(project(":resources"))
     implementation(project(":resourcesHttp"))
@@ -43,6 +42,7 @@ dependencies {
     runtimeOnly(library("bouncycastle_provider"))
     runtimeOnly(project(":installationBeacon"))
     runtimeOnly(project(":compositeBuilds"))
+    runtimeOnly(project(":versionControl"))
 
     testImplementation(library("nekohtml"))
 

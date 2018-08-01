@@ -30,7 +30,7 @@ import org.gradle.platform.base.internal.PlatformRequirement;
 
 public class PlayPlatformNotationParser {
 
-    private static final NotationParserBuilder<PlatformRequirement> BUILDER = NotationParserBuilder
+    private static final NotationParserBuilder<Object, PlatformRequirement> BUILDER = NotationParserBuilder
             .toType(PlatformRequirement.class)
             .fromCharSequence(new StringConverter())
             .converter(new MapConverter());
@@ -40,7 +40,7 @@ public class PlayPlatformNotationParser {
         return builder().toComposite();
     }
 
-    private static NotationParserBuilder<PlatformRequirement> builder() {
+    private static NotationParserBuilder<Object, PlatformRequirement> builder() {
         return BUILDER;
     }
 

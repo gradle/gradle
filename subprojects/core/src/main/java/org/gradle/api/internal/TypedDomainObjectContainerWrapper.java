@@ -19,7 +19,9 @@ package org.gradle.api.internal;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.DomainObjectProvider;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Namer;
@@ -83,12 +85,12 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
     }
 
     @Override
-    public Provider<U> register(String name, Action<? super U> configurationAction) throws InvalidUserDataException {
+    public DomainObjectProvider<U> register(String name, Action<? super U> configurationAction) throws InvalidUserDataException {
         return parent.register(name, type, configurationAction);
     }
 
     @Override
-    public Provider<U> register(String name) throws InvalidUserDataException {
+    public DomainObjectProvider<U> register(String name) throws InvalidUserDataException {
         return parent.register(name, type);
     }
 
@@ -101,7 +103,7 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
     }
 
     @Override
-    public Provider<U> named(String name) throws UnknownDomainObjectException {
+    public DomainObjectProvider<U> named(String name) throws UnknownDomainObjectException {
         return delegate.named(name);
     }
 
@@ -145,6 +147,11 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
 
     public SortedMap<String, U> getAsMap() {
         return delegate.getAsMap();
+    }
+
+    @Override
+    public NamedDomainObjectCollectionSchema getCollectionSchema() {
+        return delegate.getCollectionSchema();
     }
 
     public U getAt(String name) throws UnknownDomainObjectException {

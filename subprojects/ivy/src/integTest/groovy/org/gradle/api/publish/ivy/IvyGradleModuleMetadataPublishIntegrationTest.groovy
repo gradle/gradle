@@ -253,14 +253,14 @@ class TestCapability implements Capability {
 
         variant.dependencies[0].group == 'org'
         variant.dependencies[0].module == 'foo'
-        variant.dependencies[0].version == '1.0'
-        variant.dependencies[0].prefers == '1.0'
+        variant.dependencies[0].version == null
+        variant.dependencies[0].prefers == null
         variant.dependencies[0].strictly == '1.0'
         variant.dependencies[0].rejectsVersion == []
 
         variant.dependencies[1].group == 'org'
         variant.dependencies[1].module == 'bar'
-        variant.dependencies[1].version == '1.0'
+        variant.dependencies[1].version == null
         variant.dependencies[1].prefers == '1.0'
         variant.dependencies[1].strictly == null
         variant.dependencies[1].rejectsVersion == []
@@ -373,7 +373,8 @@ class TestCapability implements Capability {
 
         variant.dependencies[0].group == 'org'
         variant.dependencies[0].module == 'foo'
-        variant.dependencies[0].version == '1.0'
+        variant.dependencies[0].version == null
+        variant.dependencies[0].prefers == '1.0'
         variant.dependencies[0].rejectsVersion == ['1.1', '[1.3,1.4]']
 
         variant.dependencies[1].group == 'org'

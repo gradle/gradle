@@ -49,6 +49,7 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.RuleBasedPluginTarget;
+import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.DeferredProjectConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -181,8 +182,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return parentFactory.createChild(project, get(InstantiatorFactory.class).injectAndDecorate(this));
     }
 
-    protected Factory<TaskContainerInternal> createTaskContainerInternal(TaskStatistics taskStatistics, BuildOperationExecutor buildOperationExecutor) {
-        return new DefaultTaskContainerFactory(get(ModelRegistry.class), get(Instantiator.class), get(ITaskFactory.class), project, get(ProjectAccessListener.class), taskStatistics, buildOperationExecutor);
+    protected Factory<TaskContainerInternal> createTaskContainerInternal(TaskStatistics taskStatistics, BuildOperationExecutor buildOperationExecutor, CrossProjectConfigurator crossProjectConfigurator) {
+        return new DefaultTaskContainerFactory(get(ModelRegistry.class), get(Instantiator.class), get(ITaskFactory.class), project, get(ProjectAccessListener.class), taskStatistics, buildOperationExecutor, crossProjectConfigurator);
     }
 
     protected SoftwareComponentContainer createSoftwareComponentContainer() {

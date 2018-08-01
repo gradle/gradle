@@ -125,13 +125,13 @@ You can use the list of task types to guide which tasks would provide the bigges
 To approximate the time it takes to configure a build without executing tasks, you can run `gradle help`. Please use the Gradle Profiler to measure your build as described <<#sec:new_task_gradle_profiler_scenario,further on>>.
 
 [[sec:task_configuration_avoidance_migration_guidelines]]
-=== Migration Guide
+== Migration Guide
 
 The following sections will go through some <<#sec:task_configuration_avoidance_general, general guidelines>> to adhere when migrating the build logic as well as <<#sec:task_configuration_avoidance_migration_steps, the steps>> we recommend following.
 We also cover some <<#sec:task_configuration_avoidance_troubleshooting, troubleshooting>> and <<#sec:task_configuration_avoidance_pitfalls, pitfalls>> to help you work around some issues you may encountered during the migration.
 
 [[sec:task_configuration_avoidance_general]]
-==== General
+=== General
 1. [[task_configuration_avoidance_guideline_use_help_task]] **Use `help` task as a benchmark during the migration.**
 The `help` task is the perfect candidate to benchmark your migration process.
 In a completely lazy build, https://scans.gradle.com/s/o7qmlmmrsfxz4/performance/configuration?openScriptsAndPlugins=WzFd[a build scan should show no task created immediately or created during configuration].
@@ -164,11 +164,22 @@ Although realizing a task within a lazy configuration action may not have any im
 The lazy task API is an opt-in feature, meaning someone may be realizing task eagerly which would cause the realization to realize other tasks transitively.
 Using `TaskProvider` helps create an indirection that protects transitive realization.
 
+8. Some APIs may be disallowed if you try to access them from the new API's configuration blocks. For example,
+link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:afterEvaluate(org.gradle.api.Action)[`Project.afterEvaluate()`]
+cannot be called when configuring a task registered with the new API. Since `afterEvaluate` is used to delay configuring a `Project`, mixing delayed configuration
+with the new API can cause hard to track down configuration errors because tasks registered with the new API are not always configured, but an `afterEvaluate` block
+may be expected to always execute.
+
 [[sec:task_configuration_avoidance_migration_steps]]
-==== Migration Steps
+=== Migration Steps
 The first part of the migration process is to go through the code and manually migrate eager task creation and configuration to use lazy APIs.
 The following explores the recommended steps for a successful migration.
 While going through those steps, keep in mind <<#sec:task_configuration_avoidance_general, the guidelines>>.
+
+[NOTE]
+====
+Using the new API in a plugin will require users to use Gradle 4.9 or newer. Plugin authors should refer to <<sec:task_configuration_avoidance_backward_compatibility_migration>> section.
+====
 
 1. **Migrate task configuration that affects all tasks (`tasks.all {}`) or subsets by type (`tasks.withType(...) {}`).**
 This will cause your build to create fewer built-in Gradle task types.
@@ -194,7 +205,7 @@ Under some circumstance, you may <<task_configuration_avoidance_troubleshooting_
 It’s unfortunate, and we feel your frustration. Keep reading onto the next section.
 
 [[sec:task_configuration_avoidance_troubleshooting]]
-==== Troubleshooting
+=== Troubleshooting
 * **The build became unstable after migrating to lazy task configuration.**
 It’s a common issue that happens during the migration.
 Follow these next steps to find out the issue:
@@ -341,6 +352,22 @@ Even though this issue wasn't released with Gradle 4.9, you should reference the
 
 * [[task_configuration_avoidance_pitfall_build_scan_plugin]] **The build scan plugin `buildScanPublishPrevious` task is eager until version 1.15.** Upgrade the build scan plugin in your build to use the latest version.
 
+[[sec:task_configuration_avoidance_backward_compatibility_migration]]
+==== Supporting older versions of Gradle
+
+This section describes two ways to keep your plugin backward compatible with older version of Gradle if you must maintain compatibility with versions of Gradle older than 4.9.
+
+[NOTE]
+====
+Although backward compatibility is good for users, we still recommended to upgrade to newer Gradle releases in a timely manner. This will reduce your maintenance burden.
+====
+
+The first method to maintain compatibility is to compile your plugin against the Gradle 4.9 API and conditionally call the right APIs with Groovy (https://github.com/melix/jmh-gradle-plugin/blob/a034aa88805b7a06fa9c5a825d573554b2aa23e2/src/main/groovy/me/champeau/gradle/JMHPlugin.groovy#L289-L296[example]). 
+
+The second method is to use Java reflection to cope with the fact that the APIs are unavailable during compilation (https://github.com/tbroyer/gradle-apt-plugin/tree/432509ec85d1ab49296d4f9b21fad876523c6a8a/src/main/java/net/ltgt/gradle/apt[example]).
+
+It is highly recommended to have cross-version test coverage using <<test_kit.adoc#sub:gradle-runner-gradle-version, TestKit>> and multiple versions of Gradle.
+
 [[sec:old_vs_new_configuration_api_overview]]
 == Old vs New API overview
 
@@ -349,6 +376,7 @@ Even though this issue wasn't released with Gradle 4.9, you should reference the
 * Methods that take a `groovy.lang.Closure` are covered in the new API with methods taking `org.gradle.api.Action`.
 * More convenience methods may be added in the future based on user feedback.
 * Some old API methods may never have a direct replacement in the new API.
+* Some APIs may be restricted when accessed in a lazy configuration block.
 ====
 
 [cols="a,a", options="header"]

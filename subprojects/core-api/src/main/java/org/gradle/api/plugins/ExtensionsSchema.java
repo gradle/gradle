@@ -16,6 +16,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.reflect.TypeOf;
 
 /**
@@ -25,7 +26,13 @@ import org.gradle.api.reflect.TypeOf;
  * @since 4.5
  */
 @Incubating
-public interface ExtensionsSchema extends Iterable<ExtensionsSchema.ExtensionSchema> {
+public interface ExtensionsSchema extends NamedDomainObjectCollectionSchema, Iterable<ExtensionsSchema.ExtensionSchema> {
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    Iterable<ExtensionSchema> getElements();
 
     /**
      * Schema of an extension.
@@ -33,7 +40,7 @@ public interface ExtensionsSchema extends Iterable<ExtensionsSchema.ExtensionSch
      * @since 4.5
      */
     @Incubating
-    interface ExtensionSchema {
+    interface ExtensionSchema extends NamedDomainObjectCollectionSchema.NamedDomainObjectSchema {
 
         /**
          * The name of the extension.

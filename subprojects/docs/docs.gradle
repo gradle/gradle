@@ -368,6 +368,22 @@ def userguide = tasks.register("userguide", Copy) {
     rename 'userguide_single.pdf', 'userguide.pdf'
 }
 
+tasks.register("serveDocs", Exec) {
+    description = 'Runs webserver to serve generate userguide docs'
+    group = 'documentation'
+
+    def webserverPort = 8000
+    workingDir docsDir
+    executable "python"
+    args "-m", "SimpleHTTPServer", webserverPort
+
+    dependsOn userguide
+
+    doFirst {
+        logger.lifecycle("ctrl+C to restart, serving Gradle docs at http://localhost:${webserverPort}")
+    }
+}
+
 tasks.register("editReleaseNotes") {
     group = "release notes"
     doLast {

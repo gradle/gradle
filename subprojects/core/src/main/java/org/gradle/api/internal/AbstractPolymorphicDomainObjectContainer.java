@@ -17,10 +17,10 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.DomainObjectProvider;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Namer;
-import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.Transformers;
@@ -68,18 +68,18 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
     }
 
     @Override
-    public <U extends T> Provider<U> register(String name, Class<U> type) throws InvalidUserDataException {
+    public <U extends T> DomainObjectProvider<U> register(String name, Class<U> type) throws InvalidUserDataException {
         return createDomainObjectProvider(name, type, null);
     }
 
     @Override
-    public <U extends T> Provider<U> register(String name, Class<U> type, Action<? super U> configurationAction) throws InvalidUserDataException {
+    public <U extends T> DomainObjectProvider<U> register(String name, Class<U> type, Action<? super U> configurationAction) throws InvalidUserDataException {
         return createDomainObjectProvider(name, type, configurationAction);
     }
 
-    protected <U extends T> Provider<U> createDomainObjectProvider(String name, Class<U> type, @Nullable Action<? super U> configurationAction) {
+    protected <U extends T> DomainObjectProvider<U> createDomainObjectProvider(String name, Class<U> type, @Nullable Action<? super U> configurationAction) {
         assertCanAdd(name);
-        Provider<U> provider = Cast.uncheckedCast(
+        DomainObjectProvider<U> provider = Cast.uncheckedCast(
             getInstantiator().newInstance(DomainObjectCreatingProvider.class, AbstractPolymorphicDomainObjectContainer.this, name, type, configurationAction)
         );
         addLater(provider);

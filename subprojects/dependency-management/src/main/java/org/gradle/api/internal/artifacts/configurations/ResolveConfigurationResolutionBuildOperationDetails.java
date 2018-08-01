@@ -27,6 +27,7 @@ import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.net.URI;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -131,6 +132,8 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
                     propertyValue = listBuilder.build();
                 } else if (property.getValue() instanceof File) {
                     propertyValue = ((File) property.getValue()).getAbsolutePath();
+                } else if (property.getValue() instanceof URI) {
+                    propertyValue = ((URI) property.getValue()).toASCIIString();
                 } else {
                     propertyValue = property.getValue();
                 }
@@ -147,6 +150,8 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
     private void doSerialize(Object value, ImmutableList.Builder<Object> listBuilder) {
         if (value instanceof File) {
             listBuilder.add(((File) value).getAbsolutePath());
+        } else if (value instanceof URI) {
+            listBuilder.add(((URI) value).toASCIIString());
         } else {
             listBuilder.add(value);
         }

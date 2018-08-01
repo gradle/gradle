@@ -35,37 +35,33 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
     private final List<String> rejectedVersions = Lists.newArrayListWithExpectedSize(1);
 
     public DefaultMutableVersionConstraint(VersionConstraint versionConstraint) {
-        this(versionConstraint.getRequiredVersion(), versionConstraint.getPreferredVersion(), versionConstraint.getStrictVersion(), versionConstraint.getRejectedVersions());
+        this(versionConstraint.getPreferredVersion(), versionConstraint.getRequiredVersion(), versionConstraint.getStrictVersion(), versionConstraint.getRejectedVersions());
     }
 
     public DefaultMutableVersionConstraint(String version) {
-        this(version, null, null);
+        this(version, version, null);
     }
 
-    private DefaultMutableVersionConstraint(String requiredVersion, String preferredVersion, String strictVersion) {
-        this(requiredVersion, preferredVersion, strictVersion, Collections.<String>emptyList());
+    private DefaultMutableVersionConstraint(String preferredVersion, String requiredVersion, String strictVersion) {
+        this(preferredVersion, requiredVersion, strictVersion, Collections.<String>emptyList());
     }
 
-    private DefaultMutableVersionConstraint(String requiredVersion, String preferredVersion, String strictVersion, List<String> rejects) {
-        updateVersions(requiredVersion, preferredVersion, strictVersion);
+    private DefaultMutableVersionConstraint(String preferredVersion, String requiredVersion, String strictVersion, List<String> rejects) {
+        updateVersions(preferredVersion, requiredVersion, strictVersion);
         for (String reject : rejects) {
             this.rejectedVersions.add(nullToEmpty(reject));
         }
     }
 
-    private void updateVersions(String requiredVersion, String preferredVersion, String strictVersion) {
-        this.requiredVersion = nullToEmpty(requiredVersion);
+    private void updateVersions(String preferredVersion, String requiredVersion, String strictVersion) {
         this.preferredVersion = nullToEmpty(preferredVersion);
+        this.requiredVersion = nullToEmpty(requiredVersion);
         this.strictVersion = nullToEmpty(strictVersion);
         this.rejectedVersions.clear();
     }
 
     public static DefaultMutableVersionConstraint withVersion(String version) {
-        return new DefaultMutableVersionConstraint(version, null, null);
-    }
-
-    public static DefaultMutableVersionConstraint withPreferredVersion(String version) {
-        return new DefaultMutableVersionConstraint(version, version, null);
+        return new DefaultMutableVersionConstraint(version);
     }
 
     public static DefaultMutableVersionConstraint withStrictVersion(String version) {
@@ -74,7 +70,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
 
     @Override
     public ImmutableVersionConstraint asImmutable() {
-        return new DefaultImmutableVersionConstraint(requiredVersion, preferredVersion, strictVersion, rejectedVersions, branch);
+        return new DefaultImmutableVersionConstraint(preferredVersion, requiredVersion, strictVersion, rejectedVersions, branch);
     }
 
     @Nullable
@@ -100,7 +96,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
 
     @Override
     public void prefer(String version) {
-        updateVersions(version, version, null);
+        updateVersions(version, null, null);
     }
 
     @Override
@@ -130,5 +126,9 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
     @Override
     public List<String> getRejectedVersions() {
        return rejectedVersions;
+    }
+
+    public String getVersion() {
+        return requiredVersion.isEmpty() ? preferredVersion : requiredVersion;
     }
 }

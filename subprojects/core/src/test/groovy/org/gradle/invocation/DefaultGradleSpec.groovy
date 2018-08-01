@@ -30,6 +30,7 @@ import org.gradle.api.internal.project.CrossProjectConfigurator
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.DefaultProjectRegistry
 import org.gradle.api.internal.project.ProjectInternal
+
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.execution.TaskExecutionGraphInternal
 import org.gradle.groovy.scripts.ScriptSource

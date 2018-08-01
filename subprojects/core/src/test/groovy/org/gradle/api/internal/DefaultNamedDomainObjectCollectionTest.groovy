@@ -141,8 +141,57 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
         0 * rule._
     }
 
+    def "can configure domain objects through provider"() {
+        container.add(a)
+        when:
+        def result = container.named("a")
+        result.configure {
+            it.value = "changed"
+        }
+        then:
+        result.get().value == "changed"
+    }
+
+    def "can extract schema from collection with domain objects"() {
+        container.add(a)
+        expect:
+        assertSchemaIs(
+            a: "DefaultNamedDomainObjectCollectionTest.BeanSub1"
+        )
+        // schema isn't cached
+        container.add(b)
+        container.add(d)
+        assertSchemaIs(
+            a: "DefaultNamedDomainObjectCollectionTest.BeanSub1",
+            b: "DefaultNamedDomainObjectCollectionTest.BeanSub1",
+            d: "DefaultNamedDomainObjectCollectionTest.BeanSub2"
+        )
+    }
+
+    def "can extract schema from empty collection"() {
+        expect:
+        assertSchemaIs([:])
+    }
+
+    protected void assertSchemaIs(Map<String, String> expectedSchema) {
+        def actualSchema = container.collectionSchema
+        Map<String, String> actualSchemaMap = actualSchema.elements.collectEntries { schema ->
+            [ schema.name, schema.publicType.simpleName ]
+        }
+        // Same size
+        assert expectedSchema.size() == actualSchemaMap.size()
+        // Same keys
+        assert expectedSchema.keySet().containsAll(actualSchemaMap.keySet())
+        // Keys have the same values
+        expectedSchema.each { entry ->
+            assert entry.value == actualSchemaMap[entry.key]
+        }
+    }
+
     static class Bean {
         public final String name
+
+        String value = "original"
 
         Bean(String name) {
             this.name = name

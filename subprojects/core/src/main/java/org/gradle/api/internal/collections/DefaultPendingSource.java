@@ -24,7 +24,7 @@ import java.util.List;
 
 public class DefaultPendingSource<T> implements PendingSource<T> {
     private final List<ProviderInternal<? extends T>> pending = Lists.newArrayList();
-    private Action<ProviderInternal<? extends T>> flushAction;
+    private Action<T> flushAction;
 
     @Override
     public void realizePending() {
@@ -51,7 +51,7 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
         for (ProviderInternal<? extends T> provider : elements) {
             if (flushAction != null) {
                 pending.remove(provider);
-                flushAction.execute(provider);
+                flushAction.execute(provider.get());
             } else {
                 throw new IllegalStateException("Cannot realize pending elements when realize action is not set");
             }
@@ -59,18 +59,23 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
     }
 
     @Override
-    public void addPending(ProviderInternal<? extends T> provider) {
-        pending.add(provider);
+    public boolean addPending(ProviderInternal<? extends T> provider) {
+        return pending.add(provider);
     }
 
     @Override
-    public void removePending(ProviderInternal<? extends T> provider) {
-        pending.remove(provider);
+    public boolean removePending(ProviderInternal<? extends T> provider) {
+        return pending.remove(provider);
     }
 
     @Override
-    public void onRealize(Action<ProviderInternal<? extends T>> action) {
+    public void onRealize(Action<T> action) {
         this.flushAction = action;
+    }
+
+    @Override
+    public void realizeExternal(ProviderInternal<? extends T> provider) {
+        removePending(provider);
     }
 
     @Override

@@ -20,9 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 abstract class BaseGradleImplDepsIntegrationTest extends AbstractIntegrationSpec {
 
-    public static final String API_JAR_GENERATION_OUTPUT_REGEX = "Generating JAR file 'gradle-api-(.*)\\.jar"
-    public static final String TESTKIT_GENERATION_OUTPUT_REGEX = "Generating JAR file 'gradle-test-kit-(.*)\\.jar"
-
     def setup() {
         executer.requireGradleDistribution()
     }

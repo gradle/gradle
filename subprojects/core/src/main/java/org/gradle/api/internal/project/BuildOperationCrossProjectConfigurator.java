@@ -20,10 +20,11 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.internal.Actions;
+import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.Collections;
@@ -31,6 +32,12 @@ import java.util.Collections;
 public class BuildOperationCrossProjectConfigurator implements CrossProjectConfigurator {
 
     private final BuildOperationExecutor buildOperationExecutor;
+    private final ThreadLocal<Integer> nestedActionExecutionCount = new ThreadLocal<Integer>() {
+        @Override
+        protected Integer initialValue() {
+            return 0;
+        }
+    };
 
     public BuildOperationCrossProjectConfigurator(BuildOperationExecutor buildOperationExecutor) {
         this.buildOperationExecutor = buildOperationExecutor;
@@ -109,6 +116,43 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
                 Actions.with(project, configureAction);
             }
         });
+    }
+
+    @Override
+    public void assertCrossProjectConfigurationAllowed(String methodName, Project target) {
+        if (isCrossConfigurationAllowed()) {
+            throw createIllegalStateException(methodName, target);
+        }
+    }
+
+    @Override
+    public <T> Action<T> withCrossProjectConfigurationDisabled(final Action<? super T> action) {
+        return new Action<T>() {
+            @Override
+            public void execute(T t) {
+                nestedActionExecutionCount.set(nestedActionExecutionCount.get() + 1);
+                try {
+                    action.execute(t);
+                } finally {
+                    nestedActionExecutionCount.set(nestedActionExecutionCount.get() - 1);
+                }
+            }
+        };
+    }
+
+    private IllegalStateException createIllegalStateException(String methodName, Project target) {
+        return new IllegalCrossProjectConfigurationException(String.format("%s on %s cannot be executed in the current context.", methodName, target));
+    }
+
+    private boolean isCrossConfigurationAllowed() {
+        return nestedActionExecutionCount.get() != 0;
+    }
+
+    @Contextual
+    private static class IllegalCrossProjectConfigurationException extends IllegalStateException {
+        public IllegalCrossProjectConfigurationException(String message) {
+            super(message);
+        }
     }
 
     private static abstract class BlockConfigureBuildOperation implements RunnableBuildOperation {

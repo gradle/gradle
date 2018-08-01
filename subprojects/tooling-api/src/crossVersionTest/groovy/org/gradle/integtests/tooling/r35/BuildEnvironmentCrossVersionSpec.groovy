@@ -29,7 +29,7 @@ class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=3.5")
     @TargetGradleVersion(">=3.5")
-    @Requires(TestPrecondition.JDK8_OR_EARLIER) //modifies environment variables
+    @Requires(TestPrecondition.SET_ENV_VARIABLE)
     def "provide setEnvironmentVariables on LongRunningOperation"() {
         given:
         toolingApi.requireDaemons() //cannot be run in embedded mode

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.vcs.internal;
+package org.gradle.vcs.internal
 
-public class DefaultVersionRef implements VersionRef {
+class DeclarativeSourceDependencyMultiprojectIntegrationTest extends AbstractSourceDependencyMultiprojectIntegrationTest {
     @Override
-    public String getVersion() {
-        return "latest.integration";
-    }
-
-    @Override
-    public String getCanonicalId() {
-        return "fixed";
+    void mappingFor(String gitRepo, String coords, String repoDef) {
+        settingsFile << """
+            sourceControl {
+                gitRepository("${gitRepo}") {
+                    producesModule("${coords}")
+                    ${repoDef}
+                }
+            }
+        """
     }
 }

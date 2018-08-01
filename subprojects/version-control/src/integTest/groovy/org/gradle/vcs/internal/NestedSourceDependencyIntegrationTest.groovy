@@ -21,7 +21,7 @@ import org.gradle.util.TextUtil
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 
-class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
+class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     GitFileRepository first = new GitFileRepository('first', testDirectory)
     @Rule
@@ -107,10 +107,6 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
             buildFile << commonConfiguration
         }
         fourth.commit("initial commit")
-
-        executer.beforeExecute {
-            withArgument('--debug')
-        }
     }
 
     def "can use source mappings in nested builds"() {
