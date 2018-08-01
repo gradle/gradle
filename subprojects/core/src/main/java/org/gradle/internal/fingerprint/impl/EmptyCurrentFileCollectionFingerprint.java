@@ -21,20 +21,36 @@ import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.Map;
 
-public class EmptyFileCollectionFingerprint implements CurrentFileCollectionFingerprint, HistoricalFileCollectionFingerprint {
-    public static final EmptyFileCollectionFingerprint INSTANCE = new EmptyFileCollectionFingerprint();
+public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollectionFingerprint {
 
-    private static final HashCode SIGNATURE = Hashing.md5().hashString(EmptyFileCollectionFingerprint.class.getName());
+    private static final HashCode SIGNATURE = Hashing.md5().hashString(EmptyCurrentFileCollectionFingerprint.class.getName());
 
-    private EmptyFileCollectionFingerprint() {
+    private static final Map<FingerprintingStrategy.Identifier, EmptyCurrentFileCollectionFingerprint> INSTANCES = new EnumMap<FingerprintingStrategy.Identifier, EmptyCurrentFileCollectionFingerprint>(FingerprintingStrategy.Identifier.class);
+
+    static {
+        for (FingerprintingStrategy.Identifier identifier : FingerprintingStrategy.Identifier.values()) {
+            INSTANCES.put(identifier, new EmptyCurrentFileCollectionFingerprint(identifier));
+        }
+    }
+
+    private final FingerprintingStrategy.Identifier identifier;
+
+    private EmptyCurrentFileCollectionFingerprint(FingerprintingStrategy.Identifier identifier) {
+        this.identifier = identifier;
+    }
+
+    public static CurrentFileCollectionFingerprint of(FingerprintingStrategy.Identifier identifier) {
+        return INSTANCES.get(identifier);
     }
 
     @Override
@@ -62,8 +78,13 @@ public class EmptyFileCollectionFingerprint implements CurrentFileCollectionFing
     }
 
     @Override
+    public String getNormalizationStrategyName() {
+        return identifier.name();
+    }
+
+    @Override
     public HistoricalFileCollectionFingerprint archive() {
-        return this;
+        return EmptyHistoricalFileCollectionFingerprint.INSTANCE;
     }
 
     @Override

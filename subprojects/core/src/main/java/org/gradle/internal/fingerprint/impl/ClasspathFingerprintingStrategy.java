@@ -25,6 +25,7 @@ import org.gradle.api.internal.changedetection.state.JarHasher;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
+import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
@@ -43,16 +44,19 @@ import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Map;
 
+import static org.gradle.internal.fingerprint.impl.ClasspathFingerprintingStrategy.NonJarFingerprintingStrategy.IGNORE;
+import static org.gradle.internal.fingerprint.impl.ClasspathFingerprintingStrategy.NonJarFingerprintingStrategy.USE_FILE_HASH;
+
 /**
  * Fingerprints classpath-like {@link org.gradle.api.file.FileCollection}s.
  *
  * <p>
- *     This strategy uses a {@link ResourceHasher} to normalize the contents of files and a {@link ResourceFilter} to ignore resources in classpath entries. {@code .jar} files are treated as if the contents would be expanded on disk.
+ * This strategy uses a {@link ResourceHasher} to normalize the contents of files and a {@link ResourceFilter} to ignore resources in classpath entries. {@code .jar} files are treated as if the contents would be expanded on disk.
  * </p>
  *
  * <p>
- *     The order of the entries in the classpath matters, paths do not matter for the entries.
- *     For the resources in each classpath entry, normalization takes the relative path of the resource and possibly normalizes its contents.
+ * The order of the entries in the classpath matters, paths do not matter for the entries.
+ * For the resources in each classpath entry, normalization takes the relative path of the resource and possibly normalizes its contents.
  * </p>
  */
 public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
@@ -64,8 +68,10 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
     private final JarHasher jarHasher;
     private final StringInterner stringInterner;
     private final HashCode jarHasherConfigurationHash;
+    private final FingerprintingStrategy.Identifier identifier;
 
-    public ClasspathFingerprintingStrategy(NonJarFingerprintingStrategy nonJarFingerprintingStrategy, ResourceHasher classpathResourceHasher, ResourceFilter classpathResourceFilter, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
+    private ClasspathFingerprintingStrategy(Identifier identifier, NonJarFingerprintingStrategy nonJarFingerprintingStrategy, ResourceHasher classpathResourceHasher, ResourceFilter classpathResourceFilter, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
+        this.identifier = identifier;
         this.nonJarFingerprintingStrategy = nonJarFingerprintingStrategy;
         this.classpathResourceFilter = classpathResourceFilter;
         this.classpathResourceHasher = classpathResourceHasher;
@@ -75,6 +81,14 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
         jarHasher.appendConfigurationToHasher(hasher);
         this.jarHasherConfigurationHash = hasher.hash();
+    }
+
+    static ClasspathFingerprintingStrategy runtimeClasspath(ResourceFilter classpathResourceFilter, RuntimeClasspathResourceHasher runtimeClasspathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
+        return new ClasspathFingerprintingStrategy(Identifier.CLASSPATH, USE_FILE_HASH, runtimeClasspathResourceHasher, classpathResourceFilter, cacheService, stringInterner);
+    }
+
+    static ClasspathFingerprintingStrategy compileClasspath(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
+        return new ClasspathFingerprintingStrategy(Identifier.COMPILE_CLASSPATH, IGNORE, classpathResourceHasher, ResourceFilter.FILTER_NOTHING, cacheService, stringInterner);
     }
 
     @Override
@@ -178,6 +192,11 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
     @Override
     public FingerprintCompareStrategy getCompareStrategy() {
         return FingerprintCompareStrategy.CLASSPATH;
+    }
+
+    @Override
+    public Identifier getIdentifier() {
+        return identifier;
     }
 
     private class ClasspathSnapshotVisitor {

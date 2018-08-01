@@ -32,4 +32,6 @@ public interface CurrentFileCollectionFingerprint extends FileCollectionFingerpr
      * Visits the roots of this file collection fingerprint.
      */
     void visitRoots(PhysicalSnapshotVisitor visitor);
+
+    String getNormalizationStrategyName();
 }

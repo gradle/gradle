@@ -55,7 +55,7 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
 
     public void registerSerializers(SerializerRegistry registry) {
         registry.register(DefaultHistoricalFileCollectionFingerprint.class, new DefaultHistoricalFileCollectionFingerprint.SerializerImpl(stringInterner));
-        registry.register(EmptyFileCollectionFingerprint.class, Serializers.constant(EmptyFileCollectionFingerprint.INSTANCE));
+        registry.register(EmptyHistoricalFileCollectionFingerprint.class, Serializers.constant(EmptyHistoricalFileCollectionFingerprint.INSTANCE));
     }
 
     public CurrentFileCollectionFingerprint fingerprint(FileCollection input, FingerprintingStrategy strategy) {
@@ -64,7 +64,7 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
         fileCollection.visitRootElements(visitor);
         List<FileSystemSnapshot> roots = visitor.getRoots();
         if (roots.isEmpty()) {
-            return EmptyFileCollectionFingerprint.INSTANCE;
+            return EmptyCurrentFileCollectionFingerprint.of(strategy.getIdentifier());
         }
         return DefaultCurrentFileCollectionFingerprint.from(roots, strategy);
     }

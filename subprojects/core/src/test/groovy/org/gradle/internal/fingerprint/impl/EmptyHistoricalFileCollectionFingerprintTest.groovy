@@ -25,15 +25,15 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 
-class EmptyFileCollectionFingerprintTest extends Specification {
+class EmptyHistoricalFileCollectionFingerprintTest extends Specification {
     def "comparing empty snapshot to regular snapshot shows entries added"() {
         def fingerprint = new DefaultHistoricalFileCollectionFingerprint([
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", FileType.RegularFile, HashCode.fromInt(234)),
-        ], FingerprintCompareStrategy.ABSOLUTE)
+        ], FingerprintCompareStrategy.ABSOLUTE, identifier)
         expect:
-        getChanges(fingerprint, EmptyFileCollectionFingerprint.INSTANCE, false).empty
-        getChanges(fingerprint, EmptyFileCollectionFingerprint.INSTANCE, true) == [
+        getChanges(fingerprint, EmptyHistoricalFileCollectionFingerprint.INSTANCE, false).empty
+        getChanges(fingerprint, EmptyHistoricalFileCollectionFingerprint.INSTANCE, true) == [
             FileChange.added("file1.txt", "test", FileType.RegularFile),
             FileChange.added("file2.txt", "test", FileType.RegularFile)
         ]
@@ -43,13 +43,13 @@ class EmptyFileCollectionFingerprintTest extends Specification {
         def fingerprint = new DefaultHistoricalFileCollectionFingerprint([
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", FileType.RegularFile, HashCode.fromInt(234)),
-        ], FingerprintCompareStrategy.ABSOLUTE)
+        ], FingerprintCompareStrategy.ABSOLUTE, identifier)
         expect:
-        getChanges(EmptyFileCollectionFingerprint.INSTANCE, fingerprint, false).toList() == [
+        getChanges(EmptyHistoricalFileCollectionFingerprint.INSTANCE, fingerprint, false).toList() == [
             FileChange.removed("file1.txt", "test", FileType.RegularFile),
             FileChange.removed("file2.txt", "test", FileType.RegularFile)
         ]
-        getChanges(EmptyFileCollectionFingerprint.INSTANCE, fingerprint, true).toList() == [
+        getChanges(EmptyHistoricalFileCollectionFingerprint.INSTANCE, fingerprint, true).toList() == [
             FileChange.removed("file1.txt", "test", FileType.RegularFile),
             FileChange.removed("file2.txt", "test", FileType.RegularFile)
         ]
@@ -57,8 +57,8 @@ class EmptyFileCollectionFingerprintTest extends Specification {
 
     def "comparing to itself works"() {
         expect:
-        getChanges(EmptyFileCollectionFingerprint.INSTANCE, EmptyFileCollectionFingerprint.INSTANCE, false).toList() == []
-        getChanges(EmptyFileCollectionFingerprint.INSTANCE, EmptyFileCollectionFingerprint.INSTANCE, true).toList() == []
+        getChanges(EmptyHistoricalFileCollectionFingerprint.INSTANCE, EmptyHistoricalFileCollectionFingerprint.INSTANCE, false).toList() == []
+        getChanges(EmptyHistoricalFileCollectionFingerprint.INSTANCE, EmptyHistoricalFileCollectionFingerprint.INSTANCE, true).toList() == []
     }
 
     private static Collection<TaskStateChange> getChanges(FileCollectionFingerprint current, FileCollectionFingerprint previous, boolean includeAdded) {

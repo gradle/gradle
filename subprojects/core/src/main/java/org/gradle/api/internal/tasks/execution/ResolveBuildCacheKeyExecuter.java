@@ -25,6 +25,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -33,11 +35,13 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -130,8 +134,8 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
         @Nullable
         @Override
-        public Map<String, String> getInputHashes() {
-            ImmutableSortedMap<String, HashCode> inputHashes = key.getInputs().getInputHashes();
+        public Map<String, String> getInputValueHashes() {
+            ImmutableSortedMap<String, HashCode> inputHashes = key.getInputs().getInputValueHashes();
             if (inputHashes == null || inputHashes.isEmpty()) {
                 return null;
             } else {
@@ -141,6 +145,140 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                         return input.toString();
                     }
                 });
+            }
+        }
+
+        @Override
+        public Map<String, String> getInputHashes() {
+            ImmutableSortedMap.Builder<String, String> builder = ImmutableSortedMap.naturalOrder();
+            Map<String, String> inputValueHashes = getInputValueHashes();
+            if (inputValueHashes != null) {
+                builder.putAll(inputValueHashes);
+            }
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = key.getInputs().getInputFiles();
+            if (inputFiles != null) {
+                for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputFiles.entrySet()) {
+                    builder.put(entry.getKey(), entry.getValue().getHash().toString());
+                }
+            }
+            return builder.build();
+        }
+
+        private static class State implements VisitState, PhysicalSnapshotVisitor {
+            private final InputFilePropertyVisitor visitor;
+            Map<String, NormalizedFileSnapshot> normalizedSnapshots;
+
+            String propertyName;
+            HashCode propertyHash;
+            String propertyNormalizationStrategyName;
+            String name;
+            String path;
+            HashCode hash;
+
+            int depth;
+            int rootNum;
+
+            public State(InputFilePropertyVisitor visitor) {
+                this.visitor = visitor;
+            }
+
+            @Override
+            public String getPropertyName() {
+                return propertyName;
+            }
+
+            @Override
+            public String getPropertyHash() {
+                return propertyHash.toString();
+            }
+
+            @Override
+            public String getPropertyNormalizationStrategyName() {
+                return propertyNormalizationStrategyName;
+            }
+
+            @Override
+            public String getName() {
+                return name;
+            }
+
+            @Override
+            public String getPath() {
+                return path;
+            }
+
+            @Override
+            public String getHash() {
+                return hash.toString();
+            }
+
+            @Override
+            public boolean preVisitDirectory(PhysicalSnapshot physicalSnapshot) {
+                this.path = physicalSnapshot.getAbsolutePath();
+                this.name = physicalSnapshot.getName();
+                this.hash = null;
+
+                if (depth++ == 0) {
+                    visitor.preRoot(this);
+                }
+
+                visitor.preDirectory(this);
+
+                return true;
+            }
+
+            @Override
+            public void visit(PhysicalSnapshot physicalSnapshot) {
+                NormalizedFileSnapshot snapshot = normalizedSnapshots.get(path);
+                if (snapshot == null) {
+                    return;
+                }
+
+                this.path = physicalSnapshot.getAbsolutePath();
+                this.name = physicalSnapshot.getName();
+
+                boolean isRoot = depth == 0;
+                if (isRoot) {
+                    visitor.preRoot(this);
+                }
+
+                this.hash = snapshot.getNormalizedContentHash();
+                visitor.file(this);
+
+                if (isRoot) {
+                    visitor.postRoot();
+                }
+            }
+
+            @Override
+            public void postVisitDirectory() {
+                visitor.postDirectory();
+                if (--depth == 0) {
+                    visitor.postRoot();
+                }
+            }
+
+        }
+
+
+        @Override
+        public void visitInputFileProperties(InputFilePropertyVisitor visitor) {
+            State state = new State(visitor);
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = key.getInputs().getInputFiles();
+            if (inputFiles == null) {
+                return;
+            }
+            for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputFiles.entrySet()) {
+                CurrentFileCollectionFingerprint fingerprint = entry.getValue();
+
+                state.propertyName = entry.getKey();
+                state.propertyHash = fingerprint.getHash();
+                state.propertyNormalizationStrategyName = fingerprint.getNormalizationStrategyName();
+                state.normalizedSnapshots = fingerprint.getSnapshots();
+
+                visitor.preProperty(state);
+                fingerprint.visitRoots(state);
+                visitor.postProperty();
             }
         }
 

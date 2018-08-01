@@ -271,7 +271,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         TestFile file = tmpDir.createFile('file')
 
         when:
-        FileCollectionFingerprint fingerprint = EmptyFileCollectionFingerprint.INSTANCE
+        FileCollectionFingerprint fingerprint = EmptyHistoricalFileCollectionFingerprint.INSTANCE
         FileCollectionFingerprint newFingerprint = fingerprinter.fingerprint(files(file), normalizationStrategy)
         fileSystemMirror.beforeTaskOutputChanged()
         changes(newFingerprint, fingerprint, listener)

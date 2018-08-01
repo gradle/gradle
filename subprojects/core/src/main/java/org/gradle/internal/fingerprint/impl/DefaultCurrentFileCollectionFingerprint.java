@@ -34,20 +34,22 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
 
     private final Map<String, NormalizedFileSnapshot> snapshots;
     private final FingerprintCompareStrategy compareStrategy;
+    private final FingerprintingStrategy.Identifier identifier;
     private final Iterable<FileSystemSnapshot> roots;
     private HashCode hash;
 
     public static CurrentFileCollectionFingerprint from(Iterable<FileSystemSnapshot> roots, FingerprintingStrategy strategy) {
         Map<String, NormalizedFileSnapshot> snapshots = strategy.collectSnapshots(roots);
         if (snapshots.isEmpty()) {
-            return EmptyFileCollectionFingerprint.INSTANCE;
+            EmptyCurrentFileCollectionFingerprint.of(strategy.getIdentifier());
         }
-        return new DefaultCurrentFileCollectionFingerprint(snapshots, strategy.getCompareStrategy(), roots);
+        return new DefaultCurrentFileCollectionFingerprint(snapshots, strategy.getCompareStrategy(), strategy.getIdentifier(), roots);
     }
 
-    private DefaultCurrentFileCollectionFingerprint(Map<String, NormalizedFileSnapshot> snapshots, FingerprintCompareStrategy compareStrategy, @Nullable Iterable<FileSystemSnapshot> roots) {
+    private DefaultCurrentFileCollectionFingerprint(Map<String, NormalizedFileSnapshot> snapshots, FingerprintCompareStrategy compareStrategy, FingerprintingStrategy.Identifier identifier, @Nullable Iterable<FileSystemSnapshot> roots) {
         this.snapshots = snapshots;
         this.compareStrategy = compareStrategy;
+        this.identifier = identifier;
         this.roots = roots;
     }
 
@@ -69,6 +71,11 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     @Override
     public Map<String, NormalizedFileSnapshot> getSnapshots() {
         return snapshots;
+    }
+
+    @Override
+    public String getNormalizationStrategyName() {
+        return identifier.name();
     }
 
     @Override
