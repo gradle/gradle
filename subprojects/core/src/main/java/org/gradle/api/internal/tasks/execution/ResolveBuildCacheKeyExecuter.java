@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Ordering;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
@@ -47,13 +48,15 @@ import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
@@ -372,10 +375,18 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                 Property property;
                 Deque<DirEntry> dirStack = new ArrayDeque<DirEntry>();
 
+                Comparator<Entry> comparator = Ordering.natural().onResultOf(new Function<Entry, String>() {
+                    @Nullable
+                    @Override
+                    public String apply(@Nullable Entry input) {
+                        return input.path;
+                    }
+                });
+
                 class Property {
                     private final String hash;
                     private final String normalization;
-                    private final List<Entry> roots = new ArrayList<Entry>();
+                    private final Set<Entry> roots = new TreeSet<Entry>(comparator);
 
                     public Property(String hash, String normalization) {
                         this.hash = hash;
@@ -390,7 +401,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                         return normalization;
                     }
 
-                    public List<Entry> getRoots() {
+                    public Collection<Entry> getRoots() {
                         return roots;
                     }
                 }
@@ -422,13 +433,13 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                 }
 
                 class DirEntry extends Entry {
-                    private final List<Entry> children = new ArrayList<Entry>();
+                    private final Set<Entry> children = new TreeSet<Entry>(comparator);
 
                     DirEntry(String path) {
                         super(path);
                     }
 
-                    public List<Entry> getChildren() {
+                    public Collection<Entry> getChildren() {
                         return children;
                     }
                 }
