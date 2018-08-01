@@ -315,4 +315,33 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
         bob.present
         bob.get().age == 50
     }
+
+    def "can extract schema from container that mixes register and create"() {
+        given:
+        container.registerFactory(Person, { new DefaultPerson(name: it) } as NamedDomainObjectFactory)
+
+        when:
+        container.register("fred", Person)
+        container.create("bob", Person)
+        then:
+        assertSchemaIs(
+            fred: "DefaultPolymorphicDomainObjectContainerTest.Person",
+            bob: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson"
+        )
+    }
+
+    protected void assertSchemaIs(Map<String, String> expectedSchema) {
+        def actualSchema = container.collectionSchema
+        Map<String, String> actualSchemaMap = actualSchema.elements.collectEntries { schema ->
+            [ schema.name, schema.publicType.simpleName ]
+        }
+        // Same size
+        assert expectedSchema.size() == actualSchemaMap.size()
+        // Same keys
+        assert expectedSchema.keySet().containsAll(actualSchemaMap.keySet())
+        // Keys have the same values
+        expectedSchema.each { entry ->
+            assert entry.value == actualSchemaMap[entry.key]
+        }
+    }
 }

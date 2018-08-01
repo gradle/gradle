@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectProvider;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Namer;
@@ -146,6 +147,11 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
 
     public SortedMap<String, U> getAsMap() {
         return delegate.getAsMap();
+    }
+
+    @Override
+    public NamedDomainObjectCollectionSchema getCollectionSchema() {
+        return delegate.getCollectionSchema();
     }
 
     public U getAt(String name) throws UnknownDomainObjectException {

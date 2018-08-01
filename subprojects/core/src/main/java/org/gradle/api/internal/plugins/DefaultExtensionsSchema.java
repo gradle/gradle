@@ -36,4 +36,9 @@ public class DefaultExtensionsSchema implements ExtensionsSchema {
     public Iterator<ExtensionSchema> iterator() {
         return extensionSchemas.iterator();
     }
+
+    @Override
+    public Iterable<ExtensionSchema> getElements() {
+        return this;
+    }
 }
