@@ -131,7 +131,7 @@ The two main things you will want to configure are the repository's:
 
  * URL (required)
  * Name (optional)
- 
+
 You can define multiple repositories as long as they have unique names within the build script. You may also declare one (and only one) repository without a name. That repository will take on an implicit name of "Maven".
 
 You can also configure any authentication details that are required to connect to the repository. See link:{groovyDslPath}org.gradle.api.artifacts.repositories.MavenArtifactRepository.html[MavenArtifactRepository] for more details.
