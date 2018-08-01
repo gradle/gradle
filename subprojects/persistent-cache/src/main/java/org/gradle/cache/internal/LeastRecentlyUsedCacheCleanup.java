@@ -18,7 +18,6 @@ package org.gradle.cache.internal;
 
 import org.gradle.cache.CleanableStore;
 import org.gradle.cache.CleanupProgressMonitor;
-import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,12 +34,12 @@ public class LeastRecentlyUsedCacheCleanup extends AbstractCacheCleanup {
     public static final long DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES = 7;
     public static final long DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES = 30;
 
-    private final FileAccessTimeJournal journal;
+    private final CacheCleanupFileAccessTimeProvider fileAccessTimeProvider;
     private final long minimumTimestamp;
 
-    public LeastRecentlyUsedCacheCleanup(FilesFinder eligibleFilesFinder, FileAccessTimeJournal journal, long numberOfDays) {
+    public LeastRecentlyUsedCacheCleanup(FilesFinder eligibleFilesFinder, CacheCleanupFileAccessTimeProvider fileAccessTimeProvider, long numberOfDays) {
         super(eligibleFilesFinder);
-        this.journal = journal;
+        this.fileAccessTimeProvider = fileAccessTimeProvider;
         this.minimumTimestamp = Math.max(0, System.currentTimeMillis() - TimeUnit.DAYS.toMillis(numberOfDays));
     }
 
@@ -52,11 +51,12 @@ public class LeastRecentlyUsedCacheCleanup extends AbstractCacheCleanup {
 
     @Override
     protected boolean shouldDelete(File file) {
-        return journal.getLastAccessTime(file) < minimumTimestamp;
+        return fileAccessTimeProvider.getLastAccessTime(file) < minimumTimestamp;
     }
 
     @Override
     protected void handleDeletion(File file) {
-        journal.deleteLastAccessTime(file);
+        fileAccessTimeProvider.deleteLastAccessTime(file);
     }
+
 }

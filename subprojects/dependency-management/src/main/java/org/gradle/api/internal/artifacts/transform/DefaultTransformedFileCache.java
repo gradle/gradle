@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
@@ -28,6 +29,8 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.internal.CacheCleanupFileAccessTimeProvider;
+import org.gradle.cache.internal.CacheCleanupFileAccessTimeProvidingCleanupAction;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.ProducerGuard;
@@ -90,10 +93,15 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
         fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, filesOutputDirectory, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
     }
 
-    private CleanupAction createCleanupAction(File filesOutputDirectory, FileAccessTimeJournal fileAccessTimeJournal) {
-        return CompositeCleanupAction.builder()
-            .add(filesOutputDirectory, new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
-            .build();
+    private CleanupAction createCleanupAction(final File filesOutputDirectory, FileAccessTimeJournal fileAccessTimeJournal) {
+        return CacheCleanupFileAccessTimeProvidingCleanupAction.create(fileAccessTimeJournal, new Transformer<CleanupAction, CacheCleanupFileAccessTimeProvider>() {
+            @Override
+            public CleanupAction transform(CacheCleanupFileAccessTimeProvider fileAccessTimeProvider) {
+                return CompositeCleanupAction.builder()
+                    .add(filesOutputDirectory, new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeProvider, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
+                    .build();
+            }
+        });
     }
 
     @Override

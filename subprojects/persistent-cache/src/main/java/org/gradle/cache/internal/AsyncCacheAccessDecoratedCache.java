@@ -20,6 +20,7 @@ import org.gradle.api.Transformer;
 import org.gradle.cache.AsyncCacheAccess;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.MultiProcessSafePersistentIndexedCache;
+import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.Factory;
 
 import javax.annotation.Nullable;
@@ -78,6 +79,17 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsy
                 } finally {
                     completion.run();
                 }
+            }
+        });
+    }
+
+    @Override
+    public PersistentIndexedCache.Snapshot<K, V> createSnapshot() {
+        return asyncCacheAccess.read(new Factory<PersistentIndexedCache.Snapshot<K, V>>() {
+            @Nullable
+            @Override
+            public PersistentIndexedCache.Snapshot<K, V> create() {
+                return persistentCache.createSnapshot();
             }
         });
     }

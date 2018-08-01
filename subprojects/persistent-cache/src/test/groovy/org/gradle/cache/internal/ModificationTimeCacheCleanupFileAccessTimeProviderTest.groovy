@@ -14,40 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.local
+package org.gradle.cache.internal
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-class ModificationTimeFileAccessTimeJournalTest extends Specification {
-
-    static final long FIXED_TIMESTAMP = 42_000
+class ModificationTimeCacheCleanupFileAccessTimeProviderTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider tmpDir
-    @Subject ModificationTimeFileAccessTimeJournal journal = new ModificationTimeFileAccessTimeJournal()
-
-    def "updates modification time"() {
-        given:
-        def file = tmpDir.createFile("file")
-
-        when:
-        journal.setLastAccessTime(file, FIXED_TIMESTAMP)
-
-        then:
-        file.lastModified() == FIXED_TIMESTAMP
-    }
+    @Subject ModificationTimeCacheCleanupFileAccessTimeProvider provider = new ModificationTimeCacheCleanupFileAccessTimeProvider()
 
     def "reads modification time"() {
         given:
         def file = tmpDir.createFile("file")
-        file.lastModified = FIXED_TIMESTAMP
+        file.lastModified = 42_000
 
-        when:
-        def lastAccessTime = journal.getLastAccessTime(file)
-
-        then:
-        lastAccessTime == FIXED_TIMESTAMP
+        expect:
+        provider.getLastAccessTime(file) == 42_000
     }
 }

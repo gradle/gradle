@@ -24,6 +24,8 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.internal.CacheCleanupFileAccessTimeProvider;
+import org.gradle.cache.internal.CacheCleanupFileAccessTimeProvidingCleanupAction;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
@@ -54,19 +56,24 @@ public class DefaultArtifactCacheLockingManager implements ArtifactCacheLockingM
                 .open();
     }
 
-    private CleanupAction createCleanupAction(ArtifactCacheMetadata cacheMetaData, FileAccessTimeJournal fileAccessTimeJournal, UsedGradleVersions usedGradleVersions) {
-        long maxAgeInDays = DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES;
-        return CompositeCleanupAction.builder()
-                .add(UnusedVersionsCacheCleanup.create(CacheLayout.ROOT.getName(), CacheLayout.ROOT.getVersionMapping(), usedGradleVersions))
-                .add(cacheMetaData.getExternalResourcesStoreDirectory(),
-                    UnusedVersionsCacheCleanup.create(CacheLayout.RESOURCES.getName(), CacheLayout.RESOURCES.getVersionMapping(), usedGradleVersions),
-                    new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(ExternalResourceFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, maxAgeInDays))
-                .add(cacheMetaData.getFileStoreDirectory(),
-                    UnusedVersionsCacheCleanup.create(CacheLayout.FILE_STORE.getName(), CacheLayout.FILE_STORE.getVersionMapping(), usedGradleVersions),
-                    new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(ArtifactIdentifierFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, maxAgeInDays))
-                .add(cacheMetaData.getMetaDataStoreDirectory().getParentFile(),
-                    UnusedVersionsCacheCleanup.create(CacheLayout.META_DATA.getName(), CacheLayout.META_DATA.getVersionMapping(), usedGradleVersions))
-                .build();
+    private CleanupAction createCleanupAction(final ArtifactCacheMetadata cacheMetaData, final FileAccessTimeJournal fileAccessTimeJournal, final UsedGradleVersions usedGradleVersions) {
+        return CacheCleanupFileAccessTimeProvidingCleanupAction.create(fileAccessTimeJournal, new Transformer<CleanupAction, CacheCleanupFileAccessTimeProvider>() {
+            @Override
+            public CleanupAction transform(CacheCleanupFileAccessTimeProvider fileAccessTimeProvider) {
+                long maxAgeInDays = DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES;
+                return CompositeCleanupAction.builder()
+                    .add(UnusedVersionsCacheCleanup.create(CacheLayout.ROOT.getName(), CacheLayout.ROOT.getVersionMapping(), usedGradleVersions))
+                    .add(cacheMetaData.getExternalResourcesStoreDirectory(),
+                        UnusedVersionsCacheCleanup.create(CacheLayout.RESOURCES.getName(), CacheLayout.RESOURCES.getVersionMapping(), usedGradleVersions),
+                        new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(ExternalResourceFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeProvider, maxAgeInDays))
+                    .add(cacheMetaData.getFileStoreDirectory(),
+                        UnusedVersionsCacheCleanup.create(CacheLayout.FILE_STORE.getName(), CacheLayout.FILE_STORE.getVersionMapping(), usedGradleVersions),
+                        new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(ArtifactIdentifierFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeProvider, maxAgeInDays))
+                    .add(cacheMetaData.getMetaDataStoreDirectory().getParentFile(),
+                        UnusedVersionsCacheCleanup.create(CacheLayout.META_DATA.getName(), CacheLayout.META_DATA.getVersionMapping(), usedGradleVersions))
+                    .build();
+            }
+        });
     }
 
     @Override
@@ -145,6 +152,17 @@ public class DefaultArtifactCacheLockingManager implements ArtifactCacheLockingM
                 @Override
                 public void run() {
                     persistentCache.remove(key);
+                }
+            });
+        }
+
+        @Override
+        public Snapshot<K, V> createSnapshot() {
+            return cache.useCache(new Factory<Snapshot<K, V>>() {
+                @Nullable
+                @Override
+                public Snapshot<K, V> create() {
+                    return persistentCache.createSnapshot();
                 }
             });
         }

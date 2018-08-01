@@ -58,7 +58,7 @@ class DefaultFileAccessTimeJournalTest extends Specification {
         journal.setLastAccessTime(file, 23)
 
         then:
-        journal.getLastAccessTime(file) == 23
+        journal.createSnapshot().getLastAccessTime(file) == 23
     }
 
     def "overwrites existing value"() {
@@ -67,7 +67,7 @@ class DefaultFileAccessTimeJournalTest extends Specification {
         journal.setLastAccessTime(file, 42)
 
         then:
-        journal.getLastAccessTime(file) == 42
+        journal.createSnapshot().getLastAccessTime(file) == 42
     }
 
     def "falls back to and stores inception time when no value was written previously"() {
@@ -84,7 +84,7 @@ class DefaultFileAccessTimeJournalTest extends Specification {
         file.makeOlder()
 
         then:
-        journal.getLastAccessTime(file) == inceptionTimestamp
+        journal.createSnapshot().getLastAccessTime(file) == inceptionTimestamp
     }
 
     def "deletes last access time when asked to do so"() {
@@ -96,7 +96,7 @@ class DefaultFileAccessTimeJournalTest extends Specification {
         journal.deleteLastAccessTime(file)
 
         then:
-        journal.getLastAccessTime(file) == inceptionTimestamp
+        journal.createSnapshot().getLastAccessTime(file) == inceptionTimestamp
     }
 
     def "loads and uses previously stored inception time"() {
@@ -112,7 +112,29 @@ class DefaultFileAccessTimeJournalTest extends Specification {
         inceptionTimestamp == 42
 
         then:
-        journal.getLastAccessTime(file) == inceptionTimestamp
+        journal.createSnapshot().getLastAccessTime(file) == inceptionTimestamp
+    }
+
+    def "snapshot contains immutable data"() {
+        given:
+        def inceptionTimestamp = loadInceptionTimestamp()
+        journal.setLastAccessTime(file, 42)
+
+        when:
+        def snapshot = journal.createSnapshot()
+
+        then:
+        snapshot.getLastAccessTime(file) == 42
+        snapshot.getLastAccessTime(tmpDir.file("anotherFile")) == inceptionTimestamp
+
+        when:
+        journal.setLastAccessTime(file, 23)
+
+        then:
+        snapshot.getLastAccessTime(file) == 42
+
+        cleanup:
+        snapshot?.close()
     }
 
     private long loadInceptionTimestamp() {

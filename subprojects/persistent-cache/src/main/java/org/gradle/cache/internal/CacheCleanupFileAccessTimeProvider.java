@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.local;
+package org.gradle.cache.internal;
 
 import java.io.File;
 
-public class ModificationTimeFileAccessTimeJournal implements FileAccessTimeJournal {
-    @Override
-    public void setLastAccessTime(File file, long millis) {
-        file.setLastModified(millis);
-    }
+public interface CacheCleanupFileAccessTimeProvider {
 
-    @Override
-    public long getLastAccessTime(File file) {
-        return file.lastModified();
-    }
+    long getLastAccessTime(File file);
 
-    @Override
-    public void deleteLastAccessTime(File file) {
-        // nothing to do
-    }
+    void deleteLastAccessTime(File file);
+
 }

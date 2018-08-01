@@ -19,8 +19,11 @@ package org.gradle.internal.classpath;
 import org.gradle.api.Transformer;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.CleanupAction;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.CacheCleanupFileAccessTimeProvider;
+import org.gradle.cache.internal.CacheCleanupFileAccessTimeProvidingCleanupAction;
 import org.gradle.cache.internal.CacheVersionMapping;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
@@ -68,11 +71,20 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             .withLockOptions(mode(FileLockManager.LockMode.None))
             .withCleanup(CompositeCleanupAction.builder()
                 .add(UnusedVersionsCacheCleanup.create(CACHE_NAME, CACHE_VERSION_MAPPING, usedGradleVersions))
-                .add(new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
+                .add(createCleanupAction(fileAccessTimeJournal))
                 .build())
             .open();
         FileAccessTracker fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, cache.getBaseDir(), FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
         this.jarFileTransformer = new FileAccessTrackingJarFileTransformer(new CachedJarFileTransformer(jarCache, fileStores), fileAccessTracker);
+    }
+
+    private CleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal) {
+        return CacheCleanupFileAccessTimeProvidingCleanupAction.create(fileAccessTimeJournal, new Transformer<CleanupAction, CacheCleanupFileAccessTimeProvider>() {
+            @Override
+            public CleanupAction transform(CacheCleanupFileAccessTimeProvider fileAccessTimeProvider) {
+                return new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeProvider, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES);
+            }
+        });
     }
 
     @Override
