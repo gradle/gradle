@@ -29,8 +29,6 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -167,21 +165,16 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     private TaskProvider<PluginUnderTestMetadata> createAndConfigurePluginUnderTestMetadataTask(final Project project, final GradlePluginDevelopmentExtension extension) {
         return project.getTasks().register(PLUGIN_UNDER_TEST_METADATA_TASK_NAME, PluginUnderTestMetadata.class, new Action<PluginUnderTestMetadata>() {
             @Override
-            public void execute(final PluginUnderTestMetadata pluginUnderTestMetadataTask1) {
-                pluginUnderTestMetadataTask1.setGroup(PLUGIN_DEVELOPMENT_GROUP);
-                pluginUnderTestMetadataTask1.setDescription(PLUGIN_UNDER_TEST_METADATA_TASK_DESCRIPTION);
-                final Configuration gradlePluginConfiguration = project.getConfigurations().detachedConfiguration(project.getDependencies().gradleApi());
+            public void execute(final PluginUnderTestMetadata pluginUnderTestMetadataTask) {
+                pluginUnderTestMetadataTask.setGroup(PLUGIN_DEVELOPMENT_GROUP);
+                pluginUnderTestMetadataTask.setDescription(PLUGIN_UNDER_TEST_METADATA_TASK_DESCRIPTION);
 
-                ConventionMapping conventionMapping = new DslObject(pluginUnderTestMetadataTask1).getConventionMapping();
-                conventionMapping.map("pluginClasspath", new Callable<Object>() {
+                pluginUnderTestMetadataTask.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir(pluginUnderTestMetadataTask.getName()));
+                pluginUnderTestMetadataTask.getPluginClasspath().from(new Callable<Object>() {
                     public Object call() {
+                        final Configuration gradlePluginConfiguration = project.getConfigurations().detachedConfiguration(project.getDependencies().gradleApi());
                         FileCollection gradleApi = gradlePluginConfiguration.getIncoming().getFiles();
                         return extension.getPluginSourceSet().getRuntimeClasspath().minus(gradleApi);
-                    }
-                });
-                conventionMapping.map("outputDirectory", new Callable<Object>() {
-                    public Object call() {
-                        return new File(project.getBuildDir(), pluginUnderTestMetadataTask1.getName());
                     }
                 });
             }
