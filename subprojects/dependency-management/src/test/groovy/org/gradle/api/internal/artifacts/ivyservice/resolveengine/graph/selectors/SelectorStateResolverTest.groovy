@@ -56,6 +56,7 @@ import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.RANG
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.RANGE_14_16
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.RANGE_7_8
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_DEPENDENCY_WITH_REJECT
+import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_EMPTY
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_FOUR_DEPENDENCIES
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_PREFER
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_THREE_DEPENDENCIES
@@ -84,6 +85,19 @@ class SelectorStateResolverTest extends Specification {
 
         where:
         permutation << SCENARIOS_TWO_DEPENDENCIES
+    }
+
+    @Unroll
+    def "resolve empty pair #permutation"() {
+        given:
+        def candidates = permutation.candidates
+        def expected = permutation.expected
+
+        expect:
+        resolve(candidates) == expected
+
+        where:
+        permutation << SCENARIOS_EMPTY
     }
 
     @Unroll

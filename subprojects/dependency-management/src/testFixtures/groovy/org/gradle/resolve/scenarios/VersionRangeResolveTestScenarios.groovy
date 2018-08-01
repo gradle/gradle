@@ -29,6 +29,7 @@ class VersionRangeResolveTestScenarios {
     public static final FAILED = "FAILED"
     public static final IGNORE = "IGNORE"
 
+    public static final EMPTY = empty()
     public static final FIXED_7 = fixed(7)
     public static final FIXED_9 = fixed(9)
     public static final FIXED_10 = fixed(10)
@@ -59,6 +60,23 @@ class VersionRangeResolveTestScenarios {
     public static final REJECT_11 = reject(11)
     public static final REJECT_12 = reject(12)
     public static final REJECT_13 = reject(13)
+
+    public static final StrictPermutationsProvider SCENARIOS_EMPTY = StrictPermutationsProvider.check(
+        versions: [EMPTY, FIXED_12],
+        expected: "12"
+    ).and(
+        versions: [EMPTY, PREFER_12],
+        expected: "12"
+    ).and(
+        versions: [EMPTY, RANGE_10_12],
+        expected: "12"
+    ).and(
+        versions: [EMPTY, EMPTY],
+        expected: ""
+    ).and(
+        versions: [EMPTY, EMPTY, FIXED_12],
+        expected: "12"
+    )
 
     public static final StrictPermutationsProvider SCENARIOS_PREFER = StrictPermutationsProvider.check(
         versions: [PREFER_11, PREFER_12],
@@ -317,6 +335,11 @@ class VersionRangeResolveTestScenarios {
         expected: "11",
         expectedStrict: [REJECTED, "11", "11", "11"]
     )
+    private static RenderableVersion empty() {
+        def vs = new SimpleVersion()
+        vs.version = ""
+        return vs
+    }
     private static RenderableVersion fixed(int version) {
         def vs = new SimpleVersion()
         vs.version = "${version}"
@@ -382,7 +405,7 @@ class VersionRangeResolveTestScenarios {
 
         @Override
         String toString() {
-            return version
+            return version ?: "''"
         }
     }
 
@@ -456,8 +479,8 @@ class VersionRangeResolveTestScenarios {
         }
 
         StrictPermutationsProvider and(Map config) {
-            assert config.versions
-            assert config.expected
+            assert config.versions != null
+            assert config.expected != null
 
             ++batchCount
             if (!config.ignore) {
