@@ -103,6 +103,8 @@ open class AbstractIntegrationTest {
             plugins {
                 `kotlin-dsl`
             }
+
+            $repositoriesBlock
         """)
     }
 
