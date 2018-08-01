@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.devel.plugins;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -206,18 +205,13 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             public void execute(final GeneratePluginDescriptors generatePluginDescriptors) {
                 generatePluginDescriptors.setGroup(PLUGIN_DEVELOPMENT_GROUP);
                 generatePluginDescriptors.setDescription(GENERATE_PLUGIN_DESCRIPTORS_TASK_DESCRIPTION);
-                generatePluginDescriptors.conventionMapping("declarations", new Callable<List<PluginDeclaration>>() {
+                generatePluginDescriptors.getDeclarations().set(project.provider(new Callable<Iterable<? extends PluginDeclaration>>() {
                     @Override
-                    public List<PluginDeclaration> call() {
-                        return Lists.newArrayList(extension.getPlugins());
+                    public Iterable<? extends PluginDeclaration> call() throws Exception {
+                        return extension.getPlugins();
                     }
-                });
-                generatePluginDescriptors.conventionMapping("outputDirectory", new Callable<File>() {
-                    @Override
-                    public File call() {
-                        return new File(project.getBuildDir(), generatePluginDescriptors.getName());
-                    }
-                });
+                }));
+                generatePluginDescriptors.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir(generatePluginDescriptors.getName()));
             }
         });
         project.getTasks().withType(Copy.class).named(PROCESS_RESOURCES_TASK).configure(new Action<Copy>() {
