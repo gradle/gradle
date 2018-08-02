@@ -93,7 +93,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    public HashCode getContentHash(final File file) {
+    public HashCode getRegularFileContentHash(final File file) {
         final String absolutePath = file.getAbsolutePath();
         PhysicalSnapshot snapshot = fileSystemMirror.getSnapshot(absolutePath);
         if (snapshot != null) {
@@ -183,7 +183,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    public HashCode snapshotAll(final File file) {
+    public HashCode getContentHash(final File file) {
         // Could potentially coordinate with a thread that is snapshotting an overlapping directory tree
         final String path = file.getAbsolutePath();
         return producingAllSnapshots.guardByKey(path, new Factory<HashCode>() {

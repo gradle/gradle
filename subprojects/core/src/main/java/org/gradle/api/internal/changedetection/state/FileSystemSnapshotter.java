@@ -47,7 +47,7 @@ public interface FileSystemSnapshotter {
      * Returns the hash of the content of the file if the file is a regular file and {@code null} otherwise.
      */
     @Nullable
-    HashCode getContentHash(File file);
+    HashCode getRegularFileContentHash(File file);
 
     /**
      * Returns the current snapshot of the contents and meta-data of the given file.
@@ -68,5 +68,5 @@ public interface FileSystemSnapshotter {
      * The absolute path and the hash of the snapshot of the file are added to the combined hash.
      * See {@link #snapshot(File)} and {@link PhysicalSnapshot#getHash()} for how the hash of the snapshot of the file is determined.
      */
-    HashCode snapshotAll(File file);
+    HashCode getContentHash(File file);
 }

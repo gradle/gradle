@@ -93,7 +93,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemSnapshotter.getContentHash(file) >> null
+        1 * fileSystemSnapshotter.getRegularFileContentHash(file) >> null
         1 * calculator.calculate(file, false) >> 12
         0 * _
 
@@ -205,7 +205,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemSnapshotter.getContentHash(file) >> null
+        1 * fileSystemSnapshotter.getRegularFileContentHash(file) >> null
         1 * calculator.calculate(file, false) >> 12
         0 * _
 
@@ -217,7 +217,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 10
 
         and:
-        1 * fileSystemSnapshotter.getContentHash(file) >> null
+        1 * fileSystemSnapshotter.getRegularFileContentHash(file) >> null
         1 * calculator.calculate(file, false) >> 10
         0 * _
     }
@@ -255,6 +255,6 @@ class DefaultFileContentCacheFactoryTest extends Specification {
     }
 
     def snapshotRegularFile(File file, HashCode hashCode = HashCode.fromInt(123)) {
-        1 * fileSystemSnapshotter.getContentHash(file) >> hashCode
+        1 * fileSystemSnapshotter.getRegularFileContentHash(file) >> hashCode
     }
 }

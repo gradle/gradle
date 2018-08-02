@@ -31,7 +31,7 @@ class TestFileSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    HashCode getContentHash(File file) {
+    HashCode getRegularFileContentHash(File file) {
         return file.isFile() ? Hashing.md5().hashBytes(file.bytes) : null
     }
 
@@ -52,7 +52,7 @@ class TestFileSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    HashCode snapshotAll(File file) {
+    HashCode getContentHash(File file) {
         throw new UnsupportedOperationException()
     }
 }

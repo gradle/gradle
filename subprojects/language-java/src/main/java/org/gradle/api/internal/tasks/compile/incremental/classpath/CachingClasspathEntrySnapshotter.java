@@ -49,6 +49,6 @@ public class CachingClasspathEntrySnapshotter implements ClasspathEntrySnapshott
     }
 
     private HashCode getHash(File classpathEntry) {
-        return fileSystemSnapshotter.snapshotAll(classpathEntry);
+        return fileSystemSnapshotter.getContentHash(classpathEntry);
     }
 }

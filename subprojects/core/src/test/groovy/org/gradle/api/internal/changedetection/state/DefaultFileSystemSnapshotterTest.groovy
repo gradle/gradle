@@ -246,28 +246,28 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def f = tmpDir.createFile("f")
 
         expect:
-        def snapshot = snapshotter.snapshotAll(f)
-        snapshotter.snapshotAll(f).is(snapshot)
+        def contentHash = snapshotter.getContentHash(f)
+        snapshotter.getContentHash(f).is(contentHash)
 
         fileSystemMirror.beforeTaskOutputChanged()
         f << "some other content"
 
-        def snapshot2 = snapshotter.snapshotAll(f)
-        snapshot != snapshot2
+        def contentHash2 = snapshotter.getContentHash(f)
+        contentHash != contentHash2
     }
 
     def "snapshots a missing file and caches the result"() {
         def f = tmpDir.file("missing")
 
         expect:
-        def snapshot = snapshotter.snapshotAll(f)
-        snapshotter.snapshotAll(f).is(snapshot)
+        def contentHash = snapshotter.getContentHash(f)
+        snapshotter.getContentHash(f).is(contentHash)
 
         fileSystemMirror.beforeTaskOutputChanged()
         f.createDir()
 
-        def snapshot2 = snapshotter.snapshotAll(f)
-        snapshot != snapshot2
+        def contentHash2 = snapshotter.getContentHash(f)
+        contentHash != contentHash2
     }
 
     def "snapshots a directory tree and caches the result"() {
@@ -276,14 +276,14 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         f.createFile("child2/f")
 
         expect:
-        def snapshot = snapshotter.snapshotAll(f)
-        snapshotter.snapshotAll(f).is(snapshot)
+        def contentHash = snapshotter.getContentHash(f)
+        snapshotter.getContentHash(f).is(contentHash)
 
         fileSystemMirror.beforeTaskOutputChanged()
         f.createFile("newFile")
 
-        def snapshot2 = snapshotter.snapshotAll(f)
-        snapshot != snapshot2
+        def contentHash2 = snapshotter.getContentHash(f)
+        contentHash != contentHash2
     }
 
     def "determines whether file exists when snapshot is cached"() {

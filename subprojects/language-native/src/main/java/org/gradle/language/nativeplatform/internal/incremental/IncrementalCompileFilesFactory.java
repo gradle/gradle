@@ -86,7 +86,7 @@ public class IncrementalCompileFilesFactory {
          * @return true if this source file requires recompilation, false otherwise.
          */
         private boolean visitSourceFile(File sourceFile) {
-            HashCode fileContent = fileSystemSnapshotter.getContentHash(sourceFile);
+            HashCode fileContent = fileSystemSnapshotter.getRegularFileContentHash(sourceFile);
             if (fileContent == null) {
                 // Skip things that aren't files
                 return false;

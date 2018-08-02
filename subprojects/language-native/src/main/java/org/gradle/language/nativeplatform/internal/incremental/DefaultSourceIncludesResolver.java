@@ -350,7 +350,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             }
 
             File candidate = new File(searchDir, includePath);
-            HashCode contentHash = fileSystemSnapshotter.getContentHash(candidate);
+            HashCode contentHash = fileSystemSnapshotter.getRegularFileContentHash(candidate);
             includeFile = contentHash != null ? new SystemIncludeFile(candidate, includePath, contentHash) : MISSING_INCLUDE_FILE;
             contents.put(includePath, includeFile);
             return includeFile;

@@ -177,7 +177,7 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
     }
 
     private CacheKey getCacheKey(File inputFile, HashCode inputsHash) {
-        HashCode inputFileContentHash = fileSystemSnapshotter.snapshotAll(inputFile);
+        HashCode inputFileContentHash = fileSystemSnapshotter.getContentHash(inputFile);
         return new CacheKey(inputFileContentHash, inputsHash);
     }
 

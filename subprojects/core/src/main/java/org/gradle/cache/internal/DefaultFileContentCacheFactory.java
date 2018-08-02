@@ -113,7 +113,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
             // TODO - don't calculate the same value concurrently
             V value = cache.get(file);
             if (value == null) {
-                HashCode contentHash = fileSystemSnapshotter.getContentHash(file);
+                HashCode contentHash = fileSystemSnapshotter.getRegularFileContentHash(file);
                 if (contentHash != null) {
                     value = contentCache.get(contentHash);
                     if (value == null) {
