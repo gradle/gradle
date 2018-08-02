@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.collections
 
+import org.gradle.api.internal.provider.AbstractProvider
+import org.gradle.api.internal.provider.CollectionProviderInternal
+
 
 class ListElementSourceTest extends AbstractIterationOrderRetainingElementSourceTest {
     ListElementSource<CharSequence> source = new ListElementSource<>()
@@ -53,11 +56,23 @@ class ListElementSourceTest extends AbstractIterationOrderRetainingElementSource
         source.iterator().collect() == ["foo", "foo", "foo", "bar", "bar", "bar"]
     }
 
+    def "a provider of iterable can provide the same element multiple times"() {
+        when:
+        source.add("foo")
+        source.addPendingCollection(listProvider("foo", "foo", "foo"))
+
+        then:
+        source.iteratorNoFlush().collect() == ["foo"]
+
+        and:
+        source.iterator().collect() == ["foo", "foo", "foo", "foo"]
+    }
+
     def "listIterator can get previous"() {
         given:
         source.add("foo")
         source.addPending(provider("bar"))
-        source.addPending(provider("baz"))
+        source.addPendingCollection(listProvider("baz", "buzz"))
         source.add("fizz")
         source.add("fuzz")
 
@@ -86,11 +101,50 @@ class ListElementSourceTest extends AbstractIterationOrderRetainingElementSource
         iterator.previous() == "fizz"
     }
 
+    def "listIterator can get previous on realized collection"() {
+        given:
+        source.add("foo")
+        source.addPending(provider("bar"))
+        source.addPendingCollection(listProvider("baz", "buzz"))
+        source.add("fizz")
+        source.add("fuzz")
+        source.realizePending()
+
+        when:
+        def iterator = source.listIterator()
+
+        then:
+        iterator.next() == "foo"
+        iterator.next() == "bar"
+        iterator.next() == "baz"
+
+        then:
+        iterator.previous() == "baz"
+        iterator.previous() == "bar"
+        iterator.previous() == "foo"
+        !iterator.hasPrevious()
+
+        and:
+        iterator.next() == "foo"
+        iterator.next() == "bar"
+        iterator.next() == "baz"
+        iterator.next() == "buzz"
+        iterator.next() == "fizz"
+        iterator.next() == "fuzz"
+        !iterator.hasNext()
+
+        and:
+        iterator.previous() == "fuzz"
+        iterator.previous() == "fizz"
+        iterator.next() == "fizz"
+        iterator.previous() == "fizz"
+    }
+
     def "listIterator can remove elements"() {
         given:
         source.add("foo")
         source.addPending(provider("bar"))
-        source.addPending(provider("baz"))
+        source.addPendingCollection(listProvider("baz", "buzz"))
         source.add("fizz")
         source.add("fuzz")
 
@@ -121,14 +175,59 @@ class ListElementSourceTest extends AbstractIterationOrderRetainingElementSource
         source.iteratorNoFlush().collect() == []
 
         and:
-        source.iterator().collect() == ["bar", "baz"]
+        source.iterator().collect() == ["bar", "baz", "buzz"]
+    }
+
+    def "listIterator can remove elements from realized collection"() {
+        given:
+        source.add("foo")
+        source.addPending(provider("bar"))
+        source.addPendingCollection(listProvider("baz", "buzz"))
+        source.add("fizz")
+        source.add("fuzz")
+        source.realizePending()
+
+        when:
+        def iterator = source.listIterator()
+        iterator.next()
+        iterator.remove()
+
+        then:
+        source.iteratorNoFlush().collect() == ["bar", "baz", "buzz", "fizz", "fuzz"]
+
+        when:
+        iterator.next()
+        iterator.next()
+        iterator.previous()
+        iterator.remove()
+
+        then:
+        source.iteratorNoFlush().collect() == ["baz", "buzz", "fizz", "fuzz"]
+
+        when:
+        iterator.next()
+        iterator.remove()
+
+        then:
+        source.iteratorNoFlush().collect() == ["buzz", "fizz", "fuzz"]
+
+        when:
+        while (iterator.hasNext()) {
+            iterator.next()
+            iterator.remove()
+        }
+
+        then:
+        !iterator.hasNext()
+        !iterator.hasPrevious()
+        source.iteratorNoFlush().collect() == []
     }
 
     def "listIterator can add elements"() {
         given:
         source.add("foo")
         source.addPending(provider("bar"))
-        source.addPending(provider("baz"))
+        source.addPendingCollection(listProvider("baz", "buzz"))
         source.add("fizz")
 
         when:
@@ -164,14 +263,14 @@ class ListElementSourceTest extends AbstractIterationOrderRetainingElementSource
         source.iteratorNoFlush().collect() == ["bizz", "foo", "fuzz", "fizz", "bazz", "buzz"]
 
         and:
-        source.iterator().collect() == ["bizz", "foo", "bar", "baz", "fuzz", "fizz", "bazz", "buzz"]
+        source.iterator().collect() == ["bizz", "foo", "bar", "baz", "buzz", "fuzz", "fizz", "bazz", "buzz"]
     }
 
     def "listIterator can set elements"() {
         given:
         source.add("foo")
         source.addPending(provider("bar"))
-        source.addPending(provider("baz"))
+        source.addPendingCollection(listProvider("baz", "buzz"))
         source.add("fizz")
 
         when:
@@ -203,14 +302,14 @@ class ListElementSourceTest extends AbstractIterationOrderRetainingElementSource
         source.iteratorNoFlush().collect() == ["bazz", "buzz"]
 
         and:
-        source.iterator().collect() == ["bazz", "bar", "baz", "buzz"]
+        source.iterator().collect() == ["bazz", "bar", "baz", "buzz", "buzz"]
     }
 
     def "listIterator provides accurate indexes"() {
         given:
         source.add("foo")
         source.addPending(provider("bar"))
-        source.addPending(provider("baz"))
+        source.addPendingCollection(listProvider("baz", "buzz"))
         source.add("fizz")
 
         when:
@@ -254,7 +353,7 @@ class ListElementSourceTest extends AbstractIterationOrderRetainingElementSource
         given:
         source.add("foo")
         source.addPending(provider("bar"))
-        source.addPending(provider("baz"))
+        source.addPendingCollection(listProvider("baz", "buzz"))
         source.add("fizz")
         source.add("fuzz")
 
@@ -277,7 +376,7 @@ class ListElementSourceTest extends AbstractIterationOrderRetainingElementSource
         source.iteratorNoFlush().collect() == ["bazz", "buzz", "foo"]
 
         and:
-        source.iterator().collect() == ["bazz", "bar", "baz", "buzz", "foo"]
+        source.iterator().collect() == ["bazz", "bar", "baz", "buzz", "buzz", "foo"]
     }
 
     def "cannot set value at invalid index"() {
@@ -296,7 +395,7 @@ class ListElementSourceTest extends AbstractIterationOrderRetainingElementSource
         given:
         source.add("foo")
         source.addPending(provider("bar"))
-        source.addPending(provider("baz"))
+        source.addPendingCollection(listProvider("baz", "buzz"))
         source.add("fizz")
 
         when:
@@ -318,6 +417,39 @@ class ListElementSourceTest extends AbstractIterationOrderRetainingElementSource
         source.iteratorNoFlush().collect() == ["fuzz", "bazz", "foo", "fizz", "buzz"]
 
         and:
-        source.iterator().collect() == ["fuzz", "bazz", "foo", "bar", "baz", "fizz", "buzz"]
+        source.iterator().collect() == ["fuzz", "bazz", "foo", "bar", "baz", "buzz", "fizz", "buzz"]
+    }
+
+    CollectionProviderInternal<? extends String, List<? extends String>> listProvider(String... values) {
+        return new TypedProviderOfList<String>(String, values as List)
+    }
+
+    CollectionProviderInternal<? extends StringBuffer, List<? extends StringBuffer>> listProvider(StringBuffer... values) {
+        return new TypedProviderOfList<StringBuffer>(StringBuffer, values as List)
+    }
+
+    private static class TypedProviderOfList<T> extends AbstractProvider<List<T>> implements CollectionProviderInternal<T, List<T>> {
+        final Class<T> type
+        final List<T> value
+
+        TypedProviderOfList(Class<T> type, List<T> value) {
+            this.type = type
+            this.value = value
+        }
+
+        @Override
+        Class<? extends T> getElementType() {
+            return type
+        }
+
+        @Override
+        List<T> getOrNull() {
+            return value
+        }
+
+        @Override
+        int size() {
+            return value.size()
+        }
     }
 }
