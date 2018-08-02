@@ -17,16 +17,17 @@
 package org.gradle.internal;
 
 /**
- * Interface to be implemented when registering internal actions or listeners that should not emit build
- * operations.
- *
+ * Indicator that the object should not be considered user code.
  * <p>
- *     When registering listeners on Gradle, Project and TaskExecutionGraph instances, user code is
- *     decorated to emit build operations around the execution of that code. This is to support
- *     attribution of the time taken etc by those listeners to the script or plugin that registered the
- *     listener. For gradle internals, we don't want to do that, so we mark internal cases using this
- *     interface. See also the convenience class/interfaces InternalAction and InternalBuildAdapter.
- * </p>
+ * Execution of user code listeners are observable as build operations, with provenance information.
+ * Internal listeners are not.
+ * This is implemented by decorating user code listeners at the registration site.
+ * This interface is used to suppress the decoration.
+ * <p>
+ * User can generally do very little about internal listeners (i.e. they are a fixed cost),
+ * while they do have control of user code listeners.
+ * <p>
+ * There are some reusable implementations of this, such as {@link org.gradle.api.internal.InternalAction}.
  */
 public interface InternalListener {
 }
