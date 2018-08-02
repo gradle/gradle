@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CleanupAction;
@@ -177,7 +178,11 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
     }
 
     private CacheKey getCacheKey(File inputFile, HashCode inputsHash) {
-        HashCode inputFileContentHash = fileSystemSnapshotter.snapshot(inputFile).getHash();
+        PhysicalSnapshot snapshot = fileSystemSnapshotter.snapshot(inputFile);
+        HashCode inputFileContentHash = new DefaultBuildCacheHasher()
+            .putString(snapshot.getName())
+            .putHash(snapshot.getHash())
+            .hash();
         return new CacheKey(inputFileContentHash, inputsHash);
     }
 
