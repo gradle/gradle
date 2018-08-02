@@ -272,8 +272,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             // Are all file snapshots after execution accounted for as new entries?
             if (!hasBeenFiltered.get()) {
                 filesFingerprint = afterExecution;
-            } else if (newRoots.isEmpty()) {
-                filesFingerprint = EmptyFileCollectionFingerprint.INSTANCE;
             } else {
                 filesFingerprint = DefaultCurrentFileCollectionFingerprint.from(newRoots, AbsolutePathFingerprintingStrategy.IGNORE_MISSING);
             }

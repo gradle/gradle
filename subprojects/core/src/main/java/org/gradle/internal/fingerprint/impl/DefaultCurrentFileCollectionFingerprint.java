@@ -43,6 +43,9 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     private HashCode hash;
 
     public static CurrentFileCollectionFingerprint from(Iterable<FileSystemSnapshot> roots, FingerprintingStrategy strategy) {
+        if (Iterables.isEmpty(roots)) {
+            return EmptyFileCollectionFingerprint.INSTANCE;
+        }
         Map<String, NormalizedFileSnapshot> snapshots = strategy.collectSnapshots(roots);
         if (snapshots.isEmpty()) {
             return EmptyFileCollectionFingerprint.INSTANCE;

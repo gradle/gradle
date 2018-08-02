@@ -52,9 +52,6 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
     public CurrentFileCollectionFingerprint fingerprint(FileCollection input, FingerprintingStrategy strategy) {
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
         List<FileSystemSnapshot> roots = fileSystemSnapshotter.snapshot(fileCollection);
-        if (roots.isEmpty()) {
-            return EmptyFileCollectionFingerprint.INSTANCE;
-        }
         return DefaultCurrentFileCollectionFingerprint.from(roots, strategy);
     }
 
