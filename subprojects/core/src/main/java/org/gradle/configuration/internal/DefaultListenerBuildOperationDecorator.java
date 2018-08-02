@@ -33,9 +33,9 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -107,7 +107,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
     }
 
     private static boolean isSupported(Object listener) {
-        for(Class<?> i : SUPPORTED_INTERFACES) {
+        for (Class<?> i : SUPPORTED_INTERFACES) {
             if (i.isInstance(listener)) {
                 return true;
             }
@@ -247,7 +247,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
                 return delegate;
             } else if (methodName.equals("equals") && args.length == 1) {
                 return proxy == args[0] || (args[0] instanceof BuildOperationEmittingListenerProxy && delegate.equals(((BuildOperationEmittingListenerProxy) args[0]).getDelegate()));
-            } else if(!SUPPORTED_INTERFACES.contains(method.getDeclaringClass()) || UNDECORATED_METHOD_NAMES.contains(methodName)){
+            } else if (!SUPPORTED_INTERFACES.contains(method.getDeclaringClass()) || UNDECORATED_METHOD_NAMES.contains(methodName)) {
                 // just execute directly
                 return method.invoke(delegate, args);
             } else {
@@ -276,7 +276,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
 
         @Override
         protected Deque<ApplicationStackEntry> initialValue() {
-            return new LinkedList<ApplicationStackEntry>();
+            return new ArrayDeque<ApplicationStackEntry>();
         }
 
         public long allocateApplicationId() {
