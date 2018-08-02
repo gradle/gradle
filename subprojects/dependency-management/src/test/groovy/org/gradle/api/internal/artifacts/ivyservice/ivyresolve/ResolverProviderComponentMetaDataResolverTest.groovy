@@ -84,6 +84,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo
             metaData
         }
+        1 * result.isRetryMissing() >> true
         1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
             assert metaData == this.metaData
         }
@@ -111,6 +112,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo
             metaData
         }
+        1 * result.isRetryMissing() >> true
         1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
             assert metaData == this.metaData
         }
@@ -140,6 +142,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo
             metaData
         }
+        1 * result.isRetryMissing() >> true
         1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
             assert metaData == this.metaData
         }
@@ -162,6 +165,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             result.attempted("scheme:thing")
             result.missing()
         }
+        1 * result.isRetryMissing() >> true
         1 * result.attempted("scheme:thing")
         1 * result.notFound(moduleComponentId)
 
@@ -186,6 +190,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         1 * remoteAccess.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.missing()
         }
+        1 * result.isRetryMissing() >> true
         1 * result.notFound(moduleComponentId)
 
         and:
@@ -214,6 +219,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo1
             metaData
         }
+        3 * result.isRetryMissing() >> true
         1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
             assert metaData == this.metaData
         }
@@ -246,6 +252,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo2
             metaData
         }
+        2 * result.isRetryMissing() >> true
         1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
             assert metaData == this.metaData
         }
@@ -279,6 +286,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo2
             metaData
         }
+        2 * result.isRetryMissing() >> true
         1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
             assert metaData == this.metaData
         }
@@ -312,6 +320,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo2
             metaData
         }
+        2 * result.isRetryMissing() >> true
         1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
             assert metaData == this.metaData
         }
@@ -352,6 +361,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo2
             metaData
         }
+        2 * result.isRetryMissing() >> true
         1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
             assert metaData == this.metaData
         }
@@ -387,6 +397,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo2
             metaData
         }
+        2 * result.isRetryMissing() >> true
         1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
             assert metaData == this.metaData
         }
@@ -424,6 +435,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo1
             metaData
         }
+        2 * result.isRetryMissing() >> true
         1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
             assert metaData == this.metaData
         }
@@ -455,6 +467,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo2
             metaData
         }
+        2 * result.isRetryMissing() >> true
         1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
             assert metaData == this.metaData
         }
@@ -489,6 +502,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
             assert it.repository == repo2
             metaData
         }
+        2 * result.isRetryMissing() >> true
         1 * result.resolved(_) >> { ModuleComponentResolveMetadata metaData ->
             assert metaData == this.metaData
         }
@@ -518,6 +532,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.missing()
         }
+        2 * result.isRetryMissing() >> true
         1 * result.failed({ it.cause == failure })
 
         and:
@@ -546,6 +561,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
         1 * remoteAccess2.resolveComponentMetaData(moduleComponentId, componentRequestMetaData, _) >> { id, meta, result ->
             result.missing()
         }
+        2 * result.isRetryMissing() >> true
         1 * result.failed({ it.cause == failure })
 
         and:

@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
-    
+
     def "should align leaves to the same version"() {
         repository {
             path 'xml -> core'
@@ -977,6 +977,198 @@ class AlignmentIntegrationTest extends AbstractModuleDependencyResolveTest {
             }
             resolvesToVirtual.each {
                 spec."$it"(VIRTUAL_PLATFORM)
+            }
+        }
+
+    }
+
+    @RequiredFeatures([
+        // We only need to test one flavor
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true"),
+        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    ])
+    def "virtual platform missing modules are cached accross builds"() {
+        // Disable daemon, so that the second run executes with the file cache
+        // and therefore make sure that we read the "missing" status from disk
+        executer.withArgument('--no-daemon')
+
+        repository {
+            path 'xml -> core'
+            path 'json -> core'
+            path 'xml:1.1 -> core:1.1'
+            path 'json:1.1 -> core:1.1'
+        }
+
+        given:
+        buildFile << """
+            dependencies {
+                conf 'org:xml:1.0'
+                conf 'org:json:1.1'
+            }
+        """
+        and:
+        "a rule which infers module set from group and version"()
+
+        when:
+        expectAlignment {
+            module('core') tries('1.0') alignsTo('1.1') byVirtualPlatform()
+            module('xml') tries('1.0') alignsTo('1.1') byVirtualPlatform()
+            module('json') alignsTo('1.1') byVirtualPlatform()
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:xml:1.0", "org:xml:1.1") {
+                    byConstraint("belongs to platform org:platform:1.1")
+                    module('org:core:1.1')
+                }
+                module("org:json:1.1") {
+                    module('org:core:1.1')
+                }
+            }
+        }
+
+        when:
+        resetExpectations()
+        run ':checkDeps'
+
+        then: "no network requests are issued"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:xml:1.0", "org:xml:1.1") {
+                    byConstraint("belongs to platform org:platform:1.1")
+                    module('org:core:1.1')
+                }
+                module("org:json:1.1") {
+                    module('org:core:1.1')
+                }
+            }
+        }
+    }
+
+    @RequiredFeatures([
+        // We only need to test one flavor
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true"),
+        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    ])
+    def "published platform can be found in a different repository"() {
+        // Disable daemon, so that the second run executes with the file cache
+        // and therefore make sure that we read the "missing" status from disk
+        executer.withArgument('--no-daemon')
+
+        // An empty repository, that will only return misses
+        def emptyRepo = mavenHttpRepo("nothing")
+
+        repository {
+            path 'databind:2.7.9 -> core:2.7.9'
+            path 'databind:2.7.9 -> annotations:2.7.9'
+            path 'databind:2.9.4 -> core:2.9.4'
+            path 'databind:2.9.4 -> annotations:2.9.0' // intentional!
+            path 'kt:2.9.4.1 -> databind:2.9.4'
+            'org:annotations:2.9.0'()
+            'org:annotations:2.9.4'()
+
+            // define "real" platforms, as published modules.
+            // The platforms are supposed to declare _in extenso_ what modules
+            // they include, by constraints
+            'org:platform' {
+                '2.7.9' {
+                    constraint("org:databind:2.7.9")
+                    constraint("org:core:2.7.9")
+                    constraint("org:annotations:2.7.9")
+                }
+                '2.9.0' {
+                    constraint("org:databind:2.9.0")
+                    constraint("org:core:2.9.0")
+                    constraint("org:annotations:2.9.0")
+                }
+                '2.9.4' {
+                    constraint("org:databind:2.9.4")
+                    constraint("org:core:2.9.4")
+                    constraint("org:annotations:2.9.0")
+                }
+                '2.9.4.1' {
+                    // versions here are intentionally lower
+                    constraint("org:databind:2.9.4")
+                    constraint("org:core:2.9.4")
+                    constraint("org:annotations:2.9.4")
+                }
+            }
+        }
+
+        given:
+        buildFile << """
+            repositories {
+                def repo = maven { url "$emptyRepo.uri" }
+                remove(repo)
+                addFirst(repo)
+            }
+            
+            dependencies {
+                conf 'org:core:2.9.4'
+                conf 'org:databind:2.7.9'
+                conf 'org:kt:2.9.4.1'
+                
+                components.all(DeclarePlatform)
+            }
+            
+            class DeclarePlatform implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext ctx) {
+                    ctx.details.with {
+                        belongsTo("org:platform:\${id.version}")
+                    }
+                }
+            }
+        """
+
+
+        when:
+        [['core', 'databind', 'kt', 'annotations', 'platform'], ['2.7.9', '2.9.0', '2.9.4', '2.9.4.1']].combinations { module, version ->
+            emptyRepo.module('org', module, version).missing()
+        }
+
+        expectAlignment {
+            module('core') alignsTo('2.9.4') byPublishedPlatform()
+            module('databind') tries('2.7.9') alignsTo('2.9.4') byPublishedPlatform()
+            module('annotations') tries('2.7.9', '2.9.0') alignsTo('2.9.4') byPublishedPlatform()
+            module('kt') alignsTo('2.9.4.1') byPublishedPlatform()
+
+            doesNotGetPlatform("org", "platform", "2.9.0") // because of conflict resolution
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:core:2.9.4')
+                edge('org:databind:2.7.9', 'org:databind:2.9.4')
+                module('org:kt:2.9.4.1') {
+                    module('org:databind:2.9.4') {
+                        module('org:core:2.9.4')
+                        edge('org:annotations:2.9.0', 'org:annotations:2.9.4')
+                    }
+                }
+            }
+        }
+
+        when:
+        resetExpectations()
+        emptyRepo.server.resetExpectations()
+        run ':checkDeps'
+
+        then: "no more network requests should be issued"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:core:2.9.4')
+                edge('org:databind:2.7.9', 'org:databind:2.9.4')
+                module('org:kt:2.9.4.1') {
+                    module('org:databind:2.9.4') {
+                        module('org:core:2.9.4')
+                        edge('org:annotations:2.9.0', 'org:annotations:2.9.4')
+                    }
+                }
             }
         }
 
