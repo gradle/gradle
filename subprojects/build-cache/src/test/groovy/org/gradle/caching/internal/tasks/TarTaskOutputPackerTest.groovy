@@ -29,7 +29,6 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
-import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
 import org.gradle.internal.hash.DefaultStreamHasher
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.TestFileHasher
@@ -358,14 +357,14 @@ class TarTaskOutputPackerTest extends Specification {
             case FILE:
                 return new PropertyDefinition(new ResolvedTaskOutputFilePropertySpec(name, FILE, output), {
                     if (output == null) {
-                        return EmptyCurrentFileCollectionFingerprint.of(FingerprintingStrategy.Identifier.ABSOLUTE_PATH)
+                        return FingerprintingStrategy.Identifier.ABSOLUTE_PATH.getEmptyFingerprint()
                     }
                     return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshot(output)], AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
                 })
             case DIRECTORY:
                 return new PropertyDefinition(new ResolvedTaskOutputFilePropertySpec(name, DIRECTORY, output), {
                     if (output == null) {
-                        return EmptyCurrentFileCollectionFingerprint.of(FingerprintingStrategy.Identifier.ABSOLUTE_PATH)
+                        return FingerprintingStrategy.Identifier.ABSOLUTE_PATH.getEmptyFingerprint()
                     }
                     return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshot(output)], AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
                 })

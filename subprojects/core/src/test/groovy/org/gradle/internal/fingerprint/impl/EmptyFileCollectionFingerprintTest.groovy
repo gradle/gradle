@@ -33,7 +33,7 @@ class EmptyFileCollectionFingerprintTest extends Specification {
 
     private static final List<FileCollectionFingerprint> EMPTY_FINGERPRINTS = [
         EmptyHistoricalFileCollectionFingerprint.INSTANCE,
-        *FingerprintingStrategy.Identifier.values().collect(EmptyCurrentFileCollectionFingerprint.&of)
+        *FingerprintingStrategy.Identifier.values()*.emptyFingerprint
     ]
 
     def "comparing empty snapshot to regular snapshot shows entries added"() {
@@ -71,13 +71,15 @@ class EmptyFileCollectionFingerprintTest extends Specification {
         empty << EMPTY_FINGERPRINTS
     }
 
-    def "comparing empty fingerprints always produces empty - #combination"(List<FileCollectionFingerprint> combination) {
+    def "comparing empty fingerprints always produces empty - #firstEmpty / #secondEmpty"() {
         expect:
-        getChanges(combination[0], combination[1], false).toList() == []
-        getChanges(combination[0], combination[1], true).toList() == []
+        getChanges(firstEmpty, secondEmpty, false).toList() == []
+        getChanges(firstEmpty, secondEmpty, true).toList() == []
 
         where:
         combination << [EMPTY_FINGERPRINTS, EMPTY_FINGERPRINTS].combinations()
+        firstEmpty = combination[0]
+        secondEmpty = combination[1]
     }
 
     private static Collection<TaskStateChange> getChanges(FileCollectionFingerprint current, FileCollectionFingerprint previous, boolean includeAdded) {

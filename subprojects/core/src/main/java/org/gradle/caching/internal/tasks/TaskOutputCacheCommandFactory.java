@@ -42,7 +42,6 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
-import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint;
 
 import java.io.File;
 import java.io.IOException;
@@ -142,7 +141,7 @@ public class TaskOutputCacheCommandFactory {
                 String propertyName = property.getPropertyName();
                 File outputFile = property.getOutputFile();
                 if (outputFile == null) {
-                    propertyFingerprintsBuilder.put(propertyName, EmptyCurrentFileCollectionFingerprint.of(fingerprintingStrategy.getIdentifier()));
+                    propertyFingerprintsBuilder.put(propertyName, fingerprintingStrategy.getIdentifier().getEmptyFingerprint());
                     continue;
                 }
                 PhysicalSnapshot snapshot = propertiesSnapshots.get(propertyName);
@@ -152,7 +151,7 @@ public class TaskOutputCacheCommandFactory {
                 if (snapshot == null) {
                     fileSystemMirror.putMetadata(absolutePath, DefaultFileMetadata.missing());
                     fileSystemMirror.putSnapshot(new PhysicalMissingSnapshot(absolutePath, property.getOutputFile().getName()));
-                    propertyFingerprintsBuilder.put(propertyName, EmptyCurrentFileCollectionFingerprint.of(fingerprintingStrategy.getIdentifier()));
+                    propertyFingerprintsBuilder.put(propertyName, fingerprintingStrategy.getIdentifier().getEmptyFingerprint());
                     continue;
                 }
 
