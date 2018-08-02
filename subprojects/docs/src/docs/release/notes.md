@@ -1,3 +1,29 @@
+The Gradle team is pleased to announce Gradle 4.10. This is a big release.
+
+First and foremost, this release of Gradle features an improved [incremental Java compiler, now enabled by default](#incremental-java-compilation-by-default).
+This will result in significantly reduced Java compilation time in subsequent builds when outputs are not up-to-date or resolved from the build cache.
+
+Chances are caches in those `.gradle/` directories have accumulated a few (or a few dozen) gigabytes over time.
+If so, you'll be relieved to know that Gradle will now [periodically clean up unused `/caches`](#periodic-cache-cleanup) under `GRADLE_USER_HOME` and project root directories. 
+
+A moment you have anticipated is nearly here, as the [Kotlin DSL reaches version 1.0 RC1](TODO) with this release of Gradle.
+TODO @eskatos: details about configuration avoidance and other changes.
+
+You can now use [SNAPSHOT plugin versions with the `plugins {}`](#use-snapshot-plugin-versions-with-the-plugins-{}-block) and `pluginManagement {}` blocks.
+
+Last but not least, [included builds can now be nested](#nested-included-builds).
+This makes some common workflows more convenient, such as working on multiple source repositories at the same time to implement a cross-cutting feature.
+
+We hope you will build happiness with Gradle 4.10, and we look forward to your feedback [via Twitter](https://twitter.com/gradle) or [on GitHub](https://github.com/gradle/gradle).
+
+## Upgrade Instructions
+
+Switch your build to use Gradle 4.10 RC1 quickly by updating your wrapper properties:
+
+    ./gradlew wrapper --gradle-version=4.10-rc-1
+
+Standalone downloads are available at https://gradle.org/release-candidate/.
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
@@ -18,7 +44,7 @@ This release fixes all known issues of the incremental compiler. It now
 - recompiles all classes when module-info files change
 - recompiles all classes in a package when that package's package-info changes
 
-It's memory usage has also been reduced. For our own build, its heap usage dropped from 350MB to just 10MB.
+Its memory usage has also been reduced. For the gradle/gradle build, heap usage dropped from 350MB to just 10MB.
 
 We are now confident that the incremental compiler is ready to be used in every build, so it is now the new default setting.
 
