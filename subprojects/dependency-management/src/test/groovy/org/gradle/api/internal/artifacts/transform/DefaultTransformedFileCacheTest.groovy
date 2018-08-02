@@ -395,6 +395,6 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
     }
 
     def snapshot(HashCode hashCode) {
-        return new PhysicalFileSnapshot("/", "/", hashCode, 0)
+        return new PhysicalFileSnapshot("/path/to/some.txt", "some.txt", hashCode, 0)
     }
 }
