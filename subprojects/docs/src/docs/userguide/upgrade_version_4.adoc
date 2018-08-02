@@ -31,22 +31,30 @@ The most significant changes include the following:
  * A <<#upgrade_4.5,recommendation to enable the new and improved POM support>> in your builds.
  * A <<#rel4.5:annotation_processor_configuration,change to the way you add Java annotation processors to a project>>.
  * The <<custom_tasks.adoc#worker_api,Worker API>> for enabling units of work to execute in parallel.
+ * A new, <<feature_lifecycle#sec:incubating_state,incubating>> API for <<#rel4.8:lazy_task_creation,creating and configuring tasks lazily>> that can significantly improve your build's configuration time.
 
 There are many other changes that we list by Gradle version in the rest of the guide.
 
 [[upgrade_4.8]]
 == From 4.8
 
- * TBD
+ * <<#rel4.8:lazy_task_creation,Consider trying the lazy API for task creation and configuration>>
+
+=== Potential breaking changes
+
+ * `whenMerged {}` and `beforeMerged {}` blocks for link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.model.EclipseProject.html[EclipseProject] are now executed by Buildship.
+ * You can no longer use GPath syntax with link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-[tasks.withType()].
++
+Use http://docs.groovy-lang.org/latest/html/documentation/#_spread_operator[Groovy's spread operator] instead. For example, you would replace `tasks.withType(JavaCompile).name` with `tasks.withType(JavaCompile)*.name`.
 
 [[upgrade_4.7]]
 == From 4.7
 
  * <<#rel4.7:switch_to_publishing_plugins,Switch to the Maven Publish and Ivy Publish plugins>>
- * <<#rel4.7:switch_to_core_dependency_locking,Switch to the built-in dependency lock mechanism>>
  * <<#rel4.7:deferred_configuration,Use deferred configuration with the publishing plugins>>
  * <<#rel4.7:configure_internal_tasks,Configure existing `wrapper` and `init` tasks>> rather than defining your own
  * Use <<java_testing.adoc#test_filtering,test filtering>> rather than the <<java_testing.adoc#sec:single_test_execution_via_system_properties,old system properties>> like `-Dtest.single`
+ * Consider migrating to the built-in <<dependency_locking#dependency_locking,dependency locking mechanism>> if you are currently using a plugin or custom solution for this.
  * Use the `--debug-jvm` command-line option rather than `-Dtest.debug`
 
 === Deprecated classes, methods and properties
@@ -256,6 +264,13 @@ To override this behavior, you can explicitly declare the configuration to use i
 
 == Changes in detail
 
+[[rel4.8:lazy_task_creation]]
+=== [4.8] Consider trying the lazy API for task creation and configuration
+
+Gradle 4.9 introduced a new way to create and configure tasks that works lazily. When you use this approach for tasks that are expensive to configure, or when you have many, many tasks, your build configuration time can drop significantly when those tasks don't run.
+
+You can learn more about lazily creating tasks in the <<task_configuration_avoidance#task_configuration_avoidance,Task Configuration Avoidance>> chapter. You can also read about the background to this new feature in https://blog.gradle.org/preview-avoiding-task-configuration-time[this blog post].
+
 [[rel4.7:switch_to_publishing_plugins]]
 === [4.7] Switch to the Maven Publish and Ivy Publish Plugins
 
@@ -308,11 +323,6 @@ subprojects {
     }
 }
 ----
-
-[[rel4.7:switch_to_core_dependency_locking]]
-=== [4.7] Switch to the built-in dependency lock mechanism
-
-++[There is no migration information available right now]++
 
 [[rel4.7:configure_internal_tasks]]
 === [4.7] Configure existing `wrapper` and `init` tasks
