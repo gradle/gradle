@@ -37,7 +37,6 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static org.gradle.configuration.internal.ExecuteListenerBuildOperationType.RESULT;
 
@@ -272,7 +271,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
     }
 
     private static class ApplicationStack extends ThreadLocal<Deque<ApplicationStackEntry>> {
-        private final AtomicLong applicationIdSequence = new AtomicLong();
+        private long counter;
 
         @Override
         protected Deque<ApplicationStackEntry> initialValue() {
@@ -280,7 +279,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         }
 
         public long allocateApplicationId() {
-            return applicationIdSequence.incrementAndGet();
+            return ++counter;
         }
 
         private void startApplication(long id) {
