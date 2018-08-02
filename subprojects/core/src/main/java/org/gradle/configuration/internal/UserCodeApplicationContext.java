@@ -18,6 +18,9 @@ package org.gradle.configuration.internal;
 
 import org.gradle.api.Action;
 
+/**
+ * Assigns and stores an ID for the application of some user code (e.g. scripts and plugins).
+ */
 public interface UserCodeApplicationContext {
 
     void apply(Action<? super UserCodeApplicationId> action);
