@@ -16,7 +16,6 @@
 
 package org.gradle.internal.fingerprint.impl;
 
-import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -55,12 +54,7 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
 
     @Override
     public boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, final String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
-        for (Map.Entry<String, NormalizedFileSnapshot> entry : oldFingerprint.getSnapshots().entrySet()) {
-            if (!visitor.visitChange(FileChange.removed(entry.getKey(), title, entry.getValue().getType()))) {
-                return false;
-            }
-        }
-        return true;
+        return EmptyHistoricalFileCollectionFingerprint.INSTANCE.visitChangesSince(oldFingerprint, title, includeAdded, visitor);
     }
 
     @Override
