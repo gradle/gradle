@@ -434,6 +434,9 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                 }
 
                 class DirEntry extends Entry {
+                    // The visitation order is currently not stable, so we sort.
+                    // Will be fixed by https://github.com/gradle/gradle/pull/6067
+                    // After that, we can turn this into a list
                     private final Set<Entry> children = new TreeSet<Entry>(comparator);
 
                     DirEntry(String path) {
