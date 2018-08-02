@@ -59,15 +59,22 @@ class BuildOperationNotificationFixture {
                 return false
             }
             for (String key : actualPayload.keySet()) {
-                def expectedValue = expectedPayload[key]
-                def actualValue = actualPayload[key]
-                def matches = expectedValue instanceof Predicate ? expectedValue.apply(actualValue) : expectedValue == actualValue
-                if (!matches) {
+                if (!testValue(expectedPayload[key], actualPayload[key])) {
                     return false
                 }
             }
             true
         } as Predicate
+    }
+
+    private static boolean testValue(expectedValue, actualValue) {
+        if (expectedValue instanceof Closure) {
+            expectedValue.call(actualValue)
+        } else if (expectedValue instanceof Predicate) {
+            expectedValue.apply(actualValue)
+        } else {
+            expectedValue == actualValue
+        }
     }
 
     void has(boolean started, Class<?> type, Predicate<? super Map<String, ?>> payloadTest) {
