@@ -174,5 +174,3 @@ However, if that configuration happens to be resolved in the future at a time wh
 == Nebula locking plugin
 
 This feature is inspired by the https://github.com/nebula-plugins/gradle-dependency-lock-plugin[Nebula Gradle dependency lock plugin].
-
-If you were using that plugin and want to migrate, see the Nebula documentation.
