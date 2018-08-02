@@ -121,7 +121,7 @@ public class HttpClientHelper implements Closeable {
     }
 
     public CloseableHttpResponse performHttpRequest(HttpRequestBase request) throws IOException {
-        if(request.getURI().toString().contains("dl.bintray.com/kotlin")) {
+        if(request.getURI().toString().contains("dl.bintray.com/kotlin-")) {
             throw new AssertionError();
         }
         if (sharedContext == null) {
