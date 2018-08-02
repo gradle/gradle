@@ -925,7 +925,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                         }
                         withDependencyConstraints {
                             it.each {
-                                it.version { prefer '1.1' }
+                                it.version { strictly '1.1' }
                                 it.because '1.0 is buggy'
                             }
                         }

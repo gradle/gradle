@@ -99,8 +99,7 @@ class VersionRangeResolveTestScenarios {
     ).and(
         versions: [PREFER_12, FIXED_11],
         expected: "11",
-        expectedStrict: [IGNORE, "11"],
-        ignore: true
+        expectedStrict: [IGNORE, "11"]
     ).and(
         versions: [PREFER_11, FIXED_12],
         expected: "12",
@@ -108,13 +107,11 @@ class VersionRangeResolveTestScenarios {
     ).and(
         versions: [PREFER_12, RANGE_10_11],
         expected: "11",
-        expectedStrict: [IGNORE, "11"],
-        ignore: true
+        expectedStrict: [IGNORE, "11"]
     ).and(
         versions: [PREFER_12, RANGE_10_12],
         expected: "12",
-        expectedStrict: [IGNORE, "12"],
-        ignore: true
+        expectedStrict: [IGNORE, "12"]
     ).and(
         versions: [PREFER_12, RANGE_10_14],
         expected: "12",
@@ -130,8 +127,7 @@ class VersionRangeResolveTestScenarios {
     ).and(
         versions: [PREFER_11, PREFER_13, RANGE_10_12],
         expected: "11",
-        expectedStrict: [IGNORE, IGNORE, "11"],
-        ignore: true
+        expectedStrict: [IGNORE, IGNORE, "11"]
     ).and(
         versions: [PREFER_7_8, FIXED_12],  // No version satisfies the range [7,8]
         expected: FAILED
@@ -300,7 +296,7 @@ class VersionRangeResolveTestScenarios {
         expected: "12",
         expectedStrict: ["12", "12", "12", IGNORE]
     ).and(
-        ignore: true, // This will require resolving RANGE_10_14 with the knowledge that FIXED_12 rejects < "12".
+        ignore: "Will require resolving RANGE_10_14 with the knowledge that FIXED_12 rejects < '12'",
         versions: [RANGE_10_14, RANGE_10_12, FIXED_12, REJECT_12],
         expected: "13",
     ).and(
