@@ -86,7 +86,7 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
 
         List<ComponentMetaDataResolveState> resolveStates = new ArrayList<ComponentMetaDataResolveState>();
         for (ModuleComponentRepository repository : repositories) {
-            resolveStates.add(new ComponentMetaDataResolveState(identifier, componentOverrideMetadata, repository, versionedComponentChooser));
+            resolveStates.add(new ComponentMetaDataResolveState(identifier, componentOverrideMetadata, repository, versionedComponentChooser, result.isRetryMissing()));
         }
 
         final RepositoryChainModuleResolution latestResolved = findBestMatch(resolveStates, errors);

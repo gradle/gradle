@@ -19,6 +19,7 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 public class DefaultBuildableModuleComponentMetaDataResolveResult extends DefaultResourceAwareResolveResult implements BuildableModuleComponentMetaDataResolveResult {
+
     private State state = State.Unknown;
     private ModuleVersionResolveException failure;
     private ModuleComponentResolveMetadata metaData;

@@ -25,8 +25,18 @@ import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 public class DefaultBuildableComponentResolveResult extends DefaultResourceAwareResolveResult implements BuildableComponentResolveResult {
+    private final boolean retryMissing;
+
     private ComponentResolveMetadata metadata;
     private ModuleVersionResolveException failure;
+
+    public DefaultBuildableComponentResolveResult() {
+        this(true);
+    }
+
+    public DefaultBuildableComponentResolveResult(boolean retryMissing) {
+        this.retryMissing = retryMissing;
+    }
 
     public DefaultBuildableComponentResolveResult failed(ModuleVersionResolveException failure) {
         metadata = null;
@@ -94,5 +104,9 @@ public class DefaultBuildableComponentResolveResult extends DefaultResourceAware
         if (metadata != null) {
             idResolve.resolved(metadata);
         }
+    }
+
+    public boolean isRetryMissing() {
+        return retryMissing;
     }
 }
