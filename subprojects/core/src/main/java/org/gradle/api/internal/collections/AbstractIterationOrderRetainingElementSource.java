@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.Collector;
 import org.gradle.api.internal.provider.Collectors.*;
@@ -123,12 +124,34 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         }
     }
 
+    protected void clearCachedElement(Element<T> element) {
+        element.clearCache();
+    }
+
     Element<T> cachingElement(ProviderInternal<? extends T> provider) {
-        return new Element<T>(provider.getType(), new ElementFromProvider<T>(provider), realizeAction);
+        final Element<T> element = new Element<T>(provider.getType(), new ElementFromProvider<T>(provider), realizeAction);
+        if (provider instanceof ChangingValue) {
+            ((ChangingValue) provider).onValueChange(new Runnable() {
+                @Override
+                public void run() {
+                    clearCachedElement(element);
+                }
+            });
+        }
+        return element;
     }
 
     Element<T> cachingElement(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
-        return new Element<T>(provider.getElementType(), new ElementsFromCollectionProvider<T>(provider), realizeAction);
+        final Element<T> element = new Element<T>(provider.getElementType(), new ElementsFromCollectionProvider<T>(provider), realizeAction);
+        if (provider instanceof ChangingValue) {
+            ((ChangingValue)provider).onValueChange(new Runnable() {
+                @Override
+                public void run() {
+                    clearCachedElement(element);
+                }
+            });
+        }
+        return element;
     }
 
     @Override
@@ -242,7 +265,8 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
     protected static class Element<T> extends TypedCollector<T> {
         private List<T> cache;
-        private final List<T> removed = Lists.newArrayList();
+        private final List<T> removedValues = Lists.newArrayList();
+        private final List<T> realizedValues = Lists.newArrayList();
         private final List<Integer> duplicates = Lists.newArrayList();
         private boolean realized;
         private final Action<T> realizeAction;
@@ -266,11 +290,14 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             if (cache == null) {
                 cache = new ArrayList<T>(delegate.size());
                 super.collectInto(cache);
-                cache.removeAll(removed);
+                cache.removeAll(removedValues);
                 realized = true;
                 if (realizeAction != null) {
-                    for (T element : cache) {
-                        realizeAction.execute(element);
+                    for (T value : cache) {
+                        if (!realizedValues.contains(value)) {
+                            realizeAction.execute(value);
+                            realizedValues.add(value);
+                        }
                     }
                 }
             }
@@ -298,19 +325,25 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         }
 
         public boolean remove(T value) {
-            removed.add(value);
+            removedValues.add(value);
             if (cache != null) {
                 return cache.remove(value);
             }
             return true;
         }
 
-        public boolean isDuplicate(int index) {
+        boolean isDuplicate(int index) {
             return duplicates.contains(index);
         }
 
-        public void setDuplicate(int index) {
+        void setDuplicate(int index) {
             duplicates.add(index);
+        }
+
+        void clearCache() {
+            cache = null;
+            realized = false;
+            duplicates.clear();
         }
 
         @Override

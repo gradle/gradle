@@ -17,6 +17,8 @@
 package org.gradle.api.internal.collections
 
 import org.gradle.api.internal.provider.AbstractProvider
+import org.gradle.api.internal.provider.ChangingValue
+import org.gradle.api.internal.provider.ChangingValueHandler
 import org.gradle.api.internal.provider.CollectionProviderInternal
 import org.gradle.api.internal.provider.ProviderInternal
 import spock.lang.Specification
@@ -329,6 +331,31 @@ abstract class AbstractIterationOrderRetainingElementSourceTest extends Specific
         source.iterator().collect() == []
     }
 
+    def "can handle elements with changing values"() {
+        def provider1 = setProvider("baz", "fooz")
+
+        when:
+        source.add("foo")
+        source.addPending(provider("bar"))
+        source.addPendingCollection(provider1)
+        source.add("fizz")
+
+        then:
+        source.iteratorNoFlush().collect() == ["foo", "fizz"]
+
+        when:
+        provider1.value = ["fuzz", "buzz"]
+
+        then:
+        source.iterator().collect() == ["foo", "bar", "fuzz", "buzz", "fizz"]
+
+        when:
+        provider1.value = ["baz"]
+
+        then:
+        source.iterator().collect() == ["foo", "bar", "baz", "fizz"]
+    }
+
     ProviderInternal<? extends String> provider(String value) {
         return new TypedProvider<String>(String, value)
     }
@@ -365,9 +392,10 @@ abstract class AbstractIterationOrderRetainingElementSourceTest extends Specific
         return new TypedProviderOfSet<StringBuffer>(StringBuffer, values as LinkedHashSet)
     }
 
-    private static class TypedProviderOfSet<T> extends AbstractProvider<Set<T>> implements CollectionProviderInternal<T, Set<T>> {
+    private static class TypedProviderOfSet<T> extends AbstractProvider<Set<T>> implements CollectionProviderInternal<T, Set<T>>, ChangingValue {
         final Class<T> type
-        final Set<T> value
+        Set<T> value
+        final ChangingValueHandler changingValue = new ChangingValueHandler()
 
         TypedProviderOfSet(Class<T> type, Set<T> value) {
             this.type = type
@@ -387,6 +415,16 @@ abstract class AbstractIterationOrderRetainingElementSourceTest extends Specific
         @Override
         int size() {
             return value.size()
+        }
+
+        void setValue(Set<T> value) {
+            this.value = value
+            changingValue.handle()
+        }
+
+        @Override
+        void onValueChange(Runnable action) {
+            changingValue.onValueChange(action)
         }
     }
 }

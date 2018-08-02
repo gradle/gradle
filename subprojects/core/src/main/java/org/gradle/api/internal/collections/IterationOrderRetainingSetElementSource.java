@@ -60,6 +60,17 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
         return true;
     }
 
+    @Override
+    protected void clearCachedElement(Element<T> element) {
+        boolean wasRealized = element.isRealized();
+        super.clearCachedElement(element);
+        if (wasRealized) {
+            for (T value : element.getValues()) {
+                markDuplicates(value);
+            }
+        }
+    }
+
     private void markDuplicates(T value) {
         boolean seen = false;
         for (Element<T> element : getInserted()) {
