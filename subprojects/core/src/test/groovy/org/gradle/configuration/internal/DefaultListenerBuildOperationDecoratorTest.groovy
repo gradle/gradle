@@ -418,7 +418,10 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         def broadcast = listenerManager.getBroadcaster(BuildListener)
 
         when:
+        def id = decorator.allocateApplicationId()
+        decorator.startApplication(id)
         def decorated = decorator.decorate(BuildListener, undecorated)
+        decorator.finishApplication(id)
         listenerManager.addListener(decorated)
         broadcast.projectsLoaded(gradle)
 
