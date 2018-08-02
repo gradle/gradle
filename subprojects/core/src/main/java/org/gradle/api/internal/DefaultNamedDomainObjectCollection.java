@@ -754,9 +754,23 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         T object = findByNameWithoutRules(name);
         if (object == null) {
             // TODO: Need to check for proper type/cast
-            return Cast.uncheckedCast(findByNameLaterWithoutRules(name));
+            ProviderInternal<? extends T> provider = findByNameLaterWithoutRules(name);
+            if (provider == null) {
+                if (applyRules(name)) {
+                    object = findByNameWithoutRules(name);
+                }
+                if (object == null) {
+                    return null;
+                }
+            } else {
+                return Cast.uncheckedCast(provider);
+            }
         }
 
+        return createExistingProvider(name, object);
+    }
+
+    protected NamedDomainObjectProvider<? extends T> createExistingProvider(String name, T object) {
         return Cast.uncheckedCast(getInstantiator().newInstance(ExistingNamedDomainObjectProvider.class, this, object, name));
     }
 
