@@ -11,3 +11,7 @@ gradlePlugin {
         }
     }
 }
+
+repositories {
+    jcenter()
+}

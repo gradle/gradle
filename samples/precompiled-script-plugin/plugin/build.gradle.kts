@@ -15,3 +15,7 @@ publishing {
         maven(url = "build/repository")
     }
 }
+
+repositories {
+    jcenter()
+}
