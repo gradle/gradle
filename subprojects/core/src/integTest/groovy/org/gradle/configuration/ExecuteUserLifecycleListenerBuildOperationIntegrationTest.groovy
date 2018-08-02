@@ -34,7 +34,7 @@ import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.operations.trace.BuildOperationRecord.Progress
 import org.gradle.test.fixtures.file.TestFile
 
-class LifecycleAttributionBuildOperationIntegrationTest extends AbstractIntegrationSpec {
+class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
