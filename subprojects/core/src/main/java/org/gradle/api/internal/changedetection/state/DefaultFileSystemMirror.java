@@ -20,7 +20,6 @@ import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.file.FileMetadataSnapshot;
-import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -36,9 +35,6 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
     // Maps from interned absolute path for a file to snapshot for the file.
     private final Map<String, PhysicalSnapshot> files = new ConcurrentHashMap<String, PhysicalSnapshot>();
     private final Map<String, PhysicalSnapshot> cacheFiles = new ConcurrentHashMap<String, PhysicalSnapshot>();
-    // Maps from interned absolute path to a hash of the contents of the file/directory
-    private final Map<String, HashCode> snapshots = new ConcurrentHashMap<String, HashCode>();
-    private final Map<String, HashCode> cacheSnapshots = new ConcurrentHashMap<String, HashCode>();
 
     private final WellKnownFileLocations wellKnownFileLocations;
 
@@ -83,32 +79,12 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
         }
     }
 
-    @Nullable
-    @Override
-    public HashCode getContent(String absolutePath) {
-        if (wellKnownFileLocations.isImmutable(absolutePath)) {
-            return cacheSnapshots.get(absolutePath);
-        } else {
-            return snapshots.get(absolutePath);
-        }
-    }
-
-    @Override
-    public void putContent(String absolutePath, HashCode contentHash) {
-        if (wellKnownFileLocations.isImmutable(absolutePath)) {
-            cacheSnapshots.put(absolutePath, contentHash);
-        } else {
-            snapshots.put(absolutePath, contentHash);
-        }
-    }
-
     @Override
     public void beforeTaskOutputChanged() {
         // When the task outputs are generated, throw away all state for files that do not live in an append-only cache.
         // This is intentionally very simple, to be improved later
         metadata.clear();
         files.clear();
-        snapshots.clear();
     }
 
     @Override
@@ -122,7 +98,5 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
         cacheMetadata.clear();
         files.clear();
         cacheFiles.clear();
-        snapshots.clear();
-        cacheSnapshots.clear();
     }
 }

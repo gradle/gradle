@@ -36,7 +36,6 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.internal.ProducerGuard;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.file.FileMetadataSnapshot;
@@ -68,7 +67,6 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     private final FileSystem fileSystem;
     private final FileSystemMirror fileSystemMirror;
     private final ProducerGuard<String> producingSnapshots = ProducerGuard.striped();
-    private final ProducerGuard<String> producingAllSnapshots = ProducerGuard.striped();
     private final MirrorUpdatingDirectoryWalker mirrorUpdatingDirectoryWalker;
 
     public DefaultFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, FileSystemMirror fileSystemMirror) {
@@ -180,28 +178,6 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             default:
                 throw new IllegalArgumentException("Unrecognized file type: " + metadata.getType());
         }
-    }
-
-    @Override
-    public HashCode getContentHash(final File file) {
-        // Could potentially coordinate with a thread that is snapshotting an overlapping directory tree
-        final String path = file.getAbsolutePath();
-        return producingAllSnapshots.guardByKey(path, new Factory<HashCode>() {
-            @Override
-            public HashCode create() {
-                HashCode fileContentHash = fileSystemMirror.getContent(path);
-                if (fileContentHash == null) {
-                    PhysicalSnapshot snapshot = snapshot(file);
-                    DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
-                    hasher.putString(path);
-                    hasher.putHash(snapshot.getHash());
-                    fileContentHash = hasher.hash();
-                    String internedPath = internPath(file);
-                    fileSystemMirror.putContent(internedPath, fileContentHash);
-                }
-                return fileContentHash;
-            }
-        });
     }
 
     /*

@@ -50,9 +50,4 @@ class TestFileSnapshotter implements FileSystemSnapshotter {
     List<FileSystemSnapshot> snapshot(FileCollectionInternal fileCollection) {
         throw new UnsupportedOperationException()
     }
-
-    @Override
-    HashCode getContentHash(File file) {
-        throw new UnsupportedOperationException()
-    }
 }

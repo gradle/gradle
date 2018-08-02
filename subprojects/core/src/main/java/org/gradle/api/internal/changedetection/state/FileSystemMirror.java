@@ -19,7 +19,6 @@ package org.gradle.api.internal.changedetection.state;
 import net.rubygrapefruit.platform.ThreadSafe;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.internal.file.FileMetadataSnapshot;
-import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
 
@@ -39,9 +38,4 @@ public interface FileSystemMirror {
     FileMetadataSnapshot getMetadata(String absolutePath);
 
     void putMetadata(String absolutePath, FileMetadataSnapshot stat);
-
-    @Nullable
-    HashCode getContent(String absolutePath);
-
-    void putContent(String absolutePath, HashCode contentHash);
 }

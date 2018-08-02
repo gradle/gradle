@@ -51,7 +51,7 @@ public class DefaultClasspathEntrySnapshotCache implements ClasspathEntrySnapsho
 
     @Override
     public ClasspathEntrySnapshot get(File key, final Factory<ClasspathEntrySnapshot> factory) {
-        HashCode fileContentHash = fileSystemSnapshotter.getContentHash(key);
+        HashCode fileContentHash = fileSystemSnapshotter.snapshot(key).getHash();
         return new ClasspathEntrySnapshot(cache.get(fileContentHash, new Factory<ClasspathEntrySnapshotData>() {
             public ClasspathEntrySnapshotData create() {
                 return factory.create().getData();

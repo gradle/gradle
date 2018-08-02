@@ -46,7 +46,6 @@ class DefaultFileSystemMirrorTest extends Specification {
         def file = tmpDir.file("a")
         def fileSnapshot = Stub(PhysicalFileSnapshot)
         def fileTreeSnapshot = Stub(PhysicalSnapshot)
-        def contentHash = HashCode.fromInt(1234)
         def metadata = Stub(FileMetadataSnapshot)
 
         given:
@@ -58,21 +57,17 @@ class DefaultFileSystemMirrorTest extends Specification {
         expect:
         mirror.getMetadata(file.path) == null
         mirror.getSnapshot(file.path) == null
-        mirror.getContent(file.path) == null
 
         mirror.putMetadata(file.path, metadata)
         mirror.putSnapshot(fileSnapshot)
-        mirror.putContent(file.path, contentHash)
 
         mirror.getMetadata(file.path) == metadata
         mirror.getSnapshot(file.path) == fileSnapshot
-        mirror.getContent(file.path) == contentHash
 
         mirror.beforeTaskOutputChanged()
 
         mirror.getMetadata(file.path) == null
         mirror.getSnapshot(file.path) == null
-        mirror.getContent(file.path) == null
     }
 
     def "keeps state about a file until end of build"() {
@@ -80,7 +75,6 @@ class DefaultFileSystemMirrorTest extends Specification {
         def fileSnapshot = Stub(PhysicalFileSnapshot)
         def fileTreeSnapshot = Stub(PhysicalSnapshot)
         def metadata = Stub(FileMetadataSnapshot)
-        def contentHash = HashCode.fromInt(1234)
         def buildResult = Stub(BuildResult)
         def gradle = Stub(GradleInternal)
 
@@ -94,21 +88,17 @@ class DefaultFileSystemMirrorTest extends Specification {
         expect:
         mirror.getMetadata(file.path) == null
         mirror.getSnapshot(file.path) == null
-        mirror.getContent(file.path) == null
 
         mirror.putMetadata(file.path, metadata)
         mirror.putSnapshot(fileSnapshot)
-        mirror.putContent(file.path, contentHash)
 
         mirror.getMetadata(file.path) == metadata
         mirror.getSnapshot(file.path) == fileSnapshot
-        mirror.getContent(file.path) == contentHash
 
         mirror.beforeComplete()
 
         mirror.getMetadata(file.path) == null
         mirror.getSnapshot(file.path) == null
-        mirror.getContent(file.path) == null
     }
 
     def "does not discard state about a file that lives in the caches when task outputs are generated"() {
@@ -116,7 +106,6 @@ class DefaultFileSystemMirrorTest extends Specification {
         def fileSnapshot = Stub(PhysicalFileSnapshot)
         def fileTreeSnapshot = Stub(PhysicalSnapshot)
         def metadata = Stub(FileMetadataSnapshot)
-        def contentHash = HashCode.fromInt(1234)
         def buildResult = Stub(BuildResult)
         def gradle = Stub(GradleInternal)
 
@@ -129,26 +118,21 @@ class DefaultFileSystemMirrorTest extends Specification {
         expect:
         mirror.getMetadata(file.path) == null
         mirror.getSnapshot(file.path) == null
-        mirror.getContent(file.path) == null
 
         mirror.putMetadata(file.path, metadata)
         mirror.putSnapshot(fileSnapshot)
-        mirror.putContent(file.path, contentHash)
 
         mirror.getMetadata(file.path) == metadata
         mirror.getSnapshot(file.path) == fileSnapshot
-        mirror.getContent(file.path) == contentHash
 
         mirror.beforeTaskOutputChanged()
 
         mirror.getMetadata(file.path) == metadata
         mirror.getSnapshot(file.path) == fileSnapshot
-        mirror.getContent(file.path) == contentHash
 
         mirror.beforeComplete()
 
         mirror.getMetadata(file.path) == null
         mirror.getSnapshot(file.path) == null
-        mirror.getContent(file.path) == null
     }
 }

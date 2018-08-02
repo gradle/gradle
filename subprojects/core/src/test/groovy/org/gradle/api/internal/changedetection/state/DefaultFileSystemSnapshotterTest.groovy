@@ -242,50 +242,6 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         })
     }
 
-    def "snapshots a file and caches the result"() {
-        def f = tmpDir.createFile("f")
-
-        expect:
-        def contentHash = snapshotter.getContentHash(f)
-        snapshotter.getContentHash(f).is(contentHash)
-
-        fileSystemMirror.beforeTaskOutputChanged()
-        f << "some other content"
-
-        def contentHash2 = snapshotter.getContentHash(f)
-        contentHash != contentHash2
-    }
-
-    def "snapshots a missing file and caches the result"() {
-        def f = tmpDir.file("missing")
-
-        expect:
-        def contentHash = snapshotter.getContentHash(f)
-        snapshotter.getContentHash(f).is(contentHash)
-
-        fileSystemMirror.beforeTaskOutputChanged()
-        f.createDir()
-
-        def contentHash2 = snapshotter.getContentHash(f)
-        contentHash != contentHash2
-    }
-
-    def "snapshots a directory tree and caches the result"() {
-        def f = tmpDir.createDir("dir")
-        f.createFile("child1/f")
-        f.createFile("child2/f")
-
-        expect:
-        def contentHash = snapshotter.getContentHash(f)
-        snapshotter.getContentHash(f).is(contentHash)
-
-        fileSystemMirror.beforeTaskOutputChanged()
-        f.createFile("newFile")
-
-        def contentHash2 = snapshotter.getContentHash(f)
-        contentHash != contentHash2
-    }
-
     def "determines whether file exists when snapshot is cached"() {
         def f = tmpDir.createFile("file")
         def d = tmpDir.createDir("dir")

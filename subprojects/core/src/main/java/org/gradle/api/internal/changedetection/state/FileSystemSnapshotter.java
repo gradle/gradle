@@ -60,13 +60,4 @@ public interface FileSystemSnapshotter {
      * Returns snapshots of the roots of a file collection.
      */
     List<FileSystemSnapshot> snapshot(FileCollectionInternal fileCollection);
-
-    /**
-     * Returns a hash of the contents of the given file.
-     * The file may be a regular file, a directory or missing.
-     *
-     * The absolute path and the hash of the snapshot of the file are added to the combined hash.
-     * See {@link #snapshot(File)} and {@link PhysicalSnapshot#getHash()} for how the hash of the snapshot of the file is determined.
-     */
-    HashCode getContentHash(File file);
 }
