@@ -55,7 +55,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         "buildFinished"
     );
 
-    private final ApplicationStack applicationStack = new ApplicationStack();
+    private final ThreadApplicationStack applicationStack = new ThreadApplicationStack();
 
     private final BuildOperationExecutor buildOperationExecutor;
 
@@ -114,7 +114,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         return false;
     }
 
-    private static BuildOperationDescriptor.Builder opDescriptor(ApplicationStack.Entry application, String name) {
+    private static BuildOperationDescriptor.Builder opDescriptor(ThreadApplicationStack.Entry application, String name) {
         return BuildOperationDescriptor
             .displayName("Execute " + name + " listener")
             .details(new DetailsImpl(application == null ? null : application.parentApplicationId()));
@@ -122,9 +122,9 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
 
     private abstract class BuildOperationEmitter {
 
-        protected final ApplicationStack.Entry application;
+        protected final ThreadApplicationStack.Entry application;
 
-        BuildOperationEmitter(ApplicationStack.Entry application) {
+        BuildOperationEmitter(ThreadApplicationStack.Entry application) {
             this.application = application;
         }
 
@@ -148,7 +148,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         private final String name;
         private final Action<T> delegate;
 
-        private BuildOperationEmittingAction(ApplicationStack.Entry application, String name, Action<T> delegate) {
+        private BuildOperationEmittingAction(ThreadApplicationStack.Entry application, String name, Action<T> delegate) {
             super(application);
             this.delegate = delegate;
             this.name = name;
@@ -173,11 +173,11 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
 
     private class BuildOperationEmittingClosure<T> extends Closure<T> {
 
-        private final ApplicationStack.Entry application;
+        private final ThreadApplicationStack.Entry application;
         private final String name;
         private final Closure<T> delegate;
 
-        private BuildOperationEmittingClosure(ApplicationStack.Entry application, String name, Closure<T> delegate) {
+        private BuildOperationEmittingClosure(ThreadApplicationStack.Entry application, String name, Closure<T> delegate) {
             super(delegate.getOwner(), delegate.getThisObject());
             this.application = application;
             this.delegate = delegate;
@@ -230,7 +230,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
 
         private final Object delegate;
 
-        protected BuildOperationEmittingInvocationHandler(ApplicationStack.Entry application, Object delegate) {
+        protected BuildOperationEmittingInvocationHandler(ThreadApplicationStack.Entry application, Object delegate) {
             super(application);
             this.delegate = delegate;
         }
@@ -270,7 +270,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         }
     }
 
-    private static class ApplicationStack extends ThreadLocal<Deque<ApplicationStack.Entry>> {
+    private static class ThreadApplicationStack extends ThreadLocal<Deque<ThreadApplicationStack.Entry>> {
         private long counter;
 
         @Override
@@ -278,7 +278,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
             return new ArrayDeque<Entry>();
         }
 
-        public long allocateApplicationId() {
+        private long allocateApplicationId() {
             return ++counter;
         }
 
