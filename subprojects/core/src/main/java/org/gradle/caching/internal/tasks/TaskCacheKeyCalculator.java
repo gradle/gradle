@@ -49,7 +49,7 @@ public class TaskCacheKeyCalculator {
             entry.getValue().appendToHasher(newHasher);
             if (newHasher.isValid()) {
                 HashCode hash = newHasher.hash();
-                builder.appendInputPropertyHash(entry.getKey(), hash);
+                builder.appendInputValuePropertyHash(entry.getKey(), hash);
             } else {
                 builder.inputPropertyLoadedByUnknownClassLoader(entry.getKey());
             }
@@ -57,8 +57,7 @@ public class TaskCacheKeyCalculator {
 
         SortedMap<String, CurrentFileCollectionFingerprint> inputFingerprints = execution.getInputFingerprints();
         for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputFingerprints.entrySet()) {
-            CurrentFileCollectionFingerprint fingerprint = entry.getValue();
-            builder.appendInputPropertyHash(entry.getKey(), fingerprint.getHash());
+            builder.appendInputFilesProperty(entry.getKey(), entry.getValue());
         }
 
         SortedSet<String> outputPropertyNamesForCacheKey = execution.getOutputPropertyNamesForCacheKey();

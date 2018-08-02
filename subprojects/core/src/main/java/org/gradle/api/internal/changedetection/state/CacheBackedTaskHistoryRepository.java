@@ -49,7 +49,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
 import org.gradle.internal.fingerprint.impl.DefaultHistoricalFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.impl.EmptyFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.impl.EmptyHistoricalFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Serializer;
@@ -224,7 +224,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             if (newEntryCount == afterExecution.getSnapshots().size()) {
                 filesFingerprint = afterExecution;
             } else if (newEntryCount == 0) {
-                filesFingerprint = EmptyFileCollectionFingerprint.INSTANCE;
+                filesFingerprint = EmptyHistoricalFileCollectionFingerprint.INSTANCE;
             } else {
                 filesFingerprint = new DefaultHistoricalFileCollectionFingerprint(outputEntries.build(), FingerprintCompareStrategy.ABSOLUTE);
             }
@@ -339,7 +339,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 return afterPreviousExecution;
             }
         }
-        return EmptyFileCollectionFingerprint.INSTANCE;
+        return EmptyHistoricalFileCollectionFingerprint.INSTANCE;
     }
 
     @Nullable
