@@ -36,7 +36,7 @@ tasks.apply {
         }
     }
 
-    withType<Test> {
+    withType<Test>().configureEach {
         dependsOn(testEnvironment)
     }
 

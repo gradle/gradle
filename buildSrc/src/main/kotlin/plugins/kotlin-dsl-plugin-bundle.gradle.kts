@@ -29,7 +29,7 @@ afterEvaluate {
 }
 
 
-tasks.getByName("test") {
+tasks.named("test").configure {
     dependsOn(rootProject.tasks["customInstallation"])
 }
 
@@ -42,11 +42,11 @@ workAroundTestKitWithPluginClassPathIssues()
 // Also see AbstractPluginTest
 fun Project.workAroundTestKitWithPluginClassPathIssues() {
 
-    val publishPluginsToTestRepository = tasks.create("publishPluginsToTestRepository") {
+    val publishPluginsToTestRepository = tasks.register("publishPluginsToTestRepository") {
         dependsOn("publishPluginMavenPublicationToTestRepository")
     }
 
-    tasks.getByName("test") {
+    tasks.named("test").configure {
         dependsOn(publishPluginsToTestRepository)
     }
 
@@ -68,8 +68,9 @@ fun Project.workAroundTestKitWithPluginClassPathIssues() {
 
                 val plugin = this
 
-                publishPluginsToTestRepository
-                    .dependsOn("publish${plugin.name.capitalize()}PluginMarkerMavenPublicationToTestRepository")
+                publishPluginsToTestRepository.configure {
+                    dependsOn("publish${plugin.name.capitalize()}PluginMarkerMavenPublicationToTestRepository")
+                }
 
                 writeFuturePluginVersions
                     .property(plugin.id, version)

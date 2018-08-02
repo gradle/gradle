@@ -9,12 +9,9 @@ dependencies {
     compile("org.xmlunit:xmlunit-matchers:2.5.1")
 }
 
-val customInstallation by rootProject.tasks
-tasks {
-    "test" {
-        dependsOn(customInstallation)
-        inputs.dir("$rootDir/samples")
-    }
+tasks.named("test").configure {
+    dependsOn(rootProject.tasks.named("customInstallation"))
+    inputs.dir("$rootDir/samples")
 }
 
 withParallelTests()

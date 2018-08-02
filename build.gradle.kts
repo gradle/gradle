@@ -20,7 +20,6 @@ plugins {
 allprojects {
     group = "org.gradle"
     version = "0.19.2-SNAPSHOT"
-    createOpenTestReportTasks()
 }
 
 val publishedPluginsVersion by extra { "0.19.8" }
@@ -140,22 +139,3 @@ idea {
 // --- Utility functions -----------------------------------------------
 inline fun <reified T : Task> task(noinline configuration: T.() -> Unit) =
     tasks.creating(T::class, configuration)
-
-
-fun Project.createOpenTestReportTasks() {
-    tasks.withType<Test> {
-        val test = this
-        reports.all {
-            val report = this
-            tasks.register("open${test.name.capitalize()}${report.name.capitalize()}Report") {
-                group = JavaBasePlugin.VERIFICATION_GROUP
-                description = "Opens the ${report.name} report produced by the ${test.name} task."
-                doLast {
-                    exec {
-                        commandLine("open", report.destination)
-                    }
-                }
-            }
-        }
-    }
-}

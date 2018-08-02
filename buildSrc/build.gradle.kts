@@ -49,7 +49,7 @@ dependencies {
     compile(kotlin("stdlib-jdk8"))
     compile(kotlin("reflect"))
 
-    compile("com.gradle.publish:plugin-publish-plugin:0.9.10")
+    compile("com.gradle.publish:plugin-publish-plugin:0.10.0")
     compile("org.ow2.asm:asm-all:5.1")
 
     testCompile("junit:junit:4.12")

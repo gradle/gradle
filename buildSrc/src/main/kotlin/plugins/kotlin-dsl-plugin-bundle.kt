@@ -30,7 +30,7 @@ val ProcessResources.futurePluginVersionsFile
 fun Project.bundledGradlePlugin(name: String, shortDescription: String, pluginId: String, pluginClass: String) {
     gradlePlugin {
         plugins {
-            create(name) {
+            register(name) {
                 id = pluginId
                 implementationClass = pluginClass
             }
@@ -38,8 +38,7 @@ fun Project.bundledGradlePlugin(name: String, shortDescription: String, pluginId
     }
     pluginBundle {
         plugins {
-            create(name) {
-                id = pluginId
+            named(name).configure {
                 displayName = shortDescription
                 description = shortDescription
             }
