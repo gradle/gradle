@@ -69,6 +69,7 @@ public class BuildCacheKeyInputs {
         return inputValueHashes;
     }
 
+    @Nullable
     public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFiles() {
         return inputFiles;
     }
