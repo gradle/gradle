@@ -222,9 +222,13 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             file("build.gradle") << """
                 plugins { id 'java' }
                 dependencies { compile project(":a") }
+                sourceSets.main.java.srcDir "other"
             """
             dir("src/main/java") {
                 file("Thing.java") << "class Thing {}"
+            }
+            dir("other") {
+                file("Other.java") << "class Other {}"
             }
         }
 
@@ -241,7 +245,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         // Not in just-values property
         aCompileJava.keySet().every { !result.inputValueHashes.containsKey(it) }
 
-        with(aCompileJava.classpath as Map<String, ?>) {
+        with(aCompileJava.classpath) {
             hash != null
             roots.empty
             normalization == "COMPILE_CLASSPATH"
@@ -259,7 +263,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             normalization == "CLASSPATH"
         }
 
-        with(aCompileJava.source as Map<String, ?>) {
+        with(aCompileJava.source) {
             hash != null
             normalization == "NAME_ONLY"
             roots.size() == 1
@@ -302,6 +306,20 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                 !containsKey("children")
             }
         }
+        with(bCompileJava.source) {
+            hash != null
+            roots.size() == 2
+            with(roots[0]) {
+                path == file("b/src/main/java").absolutePath
+                children.size() == 1
+                children[0].path == "Thing.java"
+            }
+            with(roots[1]) {
+                path == file("b/other").absolutePath
+                children.size() == 1
+                children[0].path == "Other.java"
+            }
+        }
 
         def bJar = snapshotResults(":b:jar").inputFileProperties
         with(bJar["rootSpec\$1"]) {
@@ -309,8 +327,9 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             roots.size() == 1
             with(roots[0]) {
                 path == file("b/build/classes/java/main").absolutePath
-                children.size() == 1
-                children[0].path == "Thing.class"
+                children.size() == 2
+                children[0].path == "Other.class"
+                children[1].path == "Thing.class"
             }
         }
     }
