@@ -1,1 +1,2 @@
 org.gradle.language.nativeplatform.internal.registry.NativeLanguageServices
+org.gradle.language.cpp.internal.tooling.ToolingModelServices
