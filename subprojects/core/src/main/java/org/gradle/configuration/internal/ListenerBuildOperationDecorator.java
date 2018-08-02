@@ -28,8 +28,8 @@ public interface ListenerBuildOperationDecorator {
 
     /**
      * Decorates an action to emit an ExecuteListenerBuildOperationType build operation when executing.
-     *
-     * <p>Does not decorate any action that implements {@link org.gradle.internal.InternalListener}</p>
+     * <p>
+     * Does not decorate any action that implements {@link org.gradle.internal.InternalListener}
      *
      * @param name the name of the listener, e.g. projectsLoaded
      * @param action the action to decorate
@@ -40,8 +40,8 @@ public interface ListenerBuildOperationDecorator {
 
     /**
      * Decorates a closure to emit an ExecuteListenerBuildOperationType build operation when executing.
-     *
-     * <p>Does not decorate any listener that implements {@link org.gradle.internal.InternalListener}</p>
+     * <p>
+     * Does not decorate any listener that implements {@link org.gradle.internal.InternalListener}
      *
      * @param name the name of the listener, e.g. projectsLoaded
      * @param closure the closure to decorate
@@ -52,10 +52,10 @@ public interface ListenerBuildOperationDecorator {
 
     /**
      * Decorates a known listener type to emit an ExecuteListenerBuildOperationType build operation when executing.
-     *
-     * <p>Supports decorating BuildListener, ProjectEvaluationListener and TaskExecutionGraphListener listeners</p>
-     *
-     * <p>Does not decorate any listener that implements {@link org.gradle.internal.InternalListener}</p>
+     * <p>
+     * Supports decorating BuildListener, ProjectEvaluationListener and TaskExecutionGraphListener listeners
+     * <p>
+     * Does not decorate any listener that implements {@link org.gradle.internal.InternalListener}
      *
      * @param cls the type of the listener
      * @param listener the listener
@@ -66,13 +66,11 @@ public interface ListenerBuildOperationDecorator {
 
     /**
      * Decorates a listener of unknown type, generally registered using {@link Gradle#addListener}, to emit an ExecuteListenerBuildOperationType build operation when executing.
-     *
      * <p>
-     *     Supports decorating BuildListener, ProjectEvaluationListener and TaskExecutionGraphListener listeners. Note that a registered listener
-     *     may implement more than one of these - the returned listener will implement all interfaces that the passed-in listener does.
-     * </p>
-     *
-     * <p>Does not decorate any listener that implements {@link org.gradle.internal.InternalListener}</p>
+     * Supports decorating BuildListener, ProjectEvaluationListener and TaskExecutionGraphListener listeners. Note that a registered listener
+     * may implement more than one of these - the returned listener will implement all interfaces that the passed-in listener does.
+     * <p>
+     * Does not decorate any listener that implements {@link org.gradle.internal.InternalListener}
      *
      * @param listener the listener
      * @return a decorated listener, or the original if we don't need to decorate this one
