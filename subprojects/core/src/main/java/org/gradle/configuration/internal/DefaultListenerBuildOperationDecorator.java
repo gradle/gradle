@@ -230,7 +230,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
 
         private final Object delegate;
 
-        protected BuildOperationEmittingInvocationHandler(ThreadApplicationStack.Entry application, Object delegate) {
+        private BuildOperationEmittingInvocationHandler(ThreadApplicationStack.Entry application, Object delegate) {
             super(application);
             this.delegate = delegate;
         }
@@ -309,10 +309,10 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
             get().push(new Entry(type, id, parentApplicationId));
         }
 
-        private void popEntry(Entry.Type type, Long id) {
+        private void popEntry(Entry.Type type, long id) {
             Entry expected = new Entry(type, id, null);
             Entry head = get().pop();
-            if (!head.equals(expected)) {
+            if (head.id != expected.id) {
                 throw new IllegalStateException("Mismatching application stack, ending " + expected + " but stack had " + head);
             }
         }
@@ -335,32 +335,6 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
 
             private long parentApplicationId() {
                 return parentId != null ? parentId : id;
-            }
-
-            // note equals and hashCode aren't interested in the parent, only this execution
-
-            @Override
-            public boolean equals(Object o) {
-                if (this == o) {
-                    return true;
-                }
-                if (o == null || getClass() != o.getClass()) {
-                    return false;
-                }
-
-                Entry that = (Entry) o;
-
-                if (type != that.type) {
-                    return false;
-                }
-                return id == that.id;
-            }
-
-            @Override
-            public int hashCode() {
-                int result = type.hashCode();
-                result = 31 * result + (int) (id ^ (id >>> 32));
-                return result;
             }
 
             @Override
