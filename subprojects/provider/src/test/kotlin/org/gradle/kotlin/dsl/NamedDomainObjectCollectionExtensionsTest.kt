@@ -5,7 +5,7 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 
 import org.gradle.api.Action
-import org.gradle.api.DomainObjectProvider
+import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.NamedDomainObjectCollection
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.PolymorphicDomainObjectContainer
@@ -316,7 +316,7 @@ class NamedDomainObjectCollectionExtensionsTest {
 
 
 internal
-inline fun <reified T : Any> mockDomainObjectProviderFor(domainObject: T): DomainObjectProvider<T> =
+inline fun <reified T : Any> mockDomainObjectProviderFor(domainObject: T): NamedDomainObjectProvider<T> =
     mock {
         on { get() } doReturn domainObject
         on { configure(any()) }.thenAnswer {

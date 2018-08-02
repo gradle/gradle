@@ -2,7 +2,7 @@ package org.gradle.kotlin.dsl
 
 import com.nhaarman.mockito_kotlin.*
 
-import org.gradle.api.DomainObjectProvider
+import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.api.Action
@@ -78,7 +78,7 @@ class NamedDomainObjectContainerExtensionsTest {
         val martyProvider = mockDomainObjectProviderFor<DomainObjectBase>(marty)
         val doc = DomainObjectBase.Bar()
         val docProvider = mockDomainObjectProviderFor<DomainObjectBase>(doc)
-        val docProviderAsBarProvider = uncheckedCast<DomainObjectProvider<DomainObjectBase.Bar>>(docProvider)
+        val docProviderAsBarProvider = uncheckedCast<NamedDomainObjectProvider<DomainObjectBase.Bar>>(docProvider)
         val container = mock<PolymorphicDomainObjectContainer<DomainObjectBase>> {
             on { getByName("alice") } doReturn alice
             on { maybeCreate("alice", DomainObjectBase.Foo::class.java) } doReturn alice
@@ -139,7 +139,7 @@ class NamedDomainObjectContainerExtensionsTest {
     fun `can configure monomorphic container`() {
 
         val alice = DomainObject()
-        val aliceProvider = mock<DomainObjectProvider<DomainObject>> {
+        val aliceProvider = mock<NamedDomainObjectProvider<DomainObject>> {
             on { get() } doReturn alice
             on { configure(any()) } doAnswer {
                 it.getArgument<Action<DomainObject>>(0).execute(alice)
@@ -147,7 +147,7 @@ class NamedDomainObjectContainerExtensionsTest {
         }
 
         val bob = DomainObject()
-        val bobProvider = mock<DomainObjectProvider<DomainObject>> {
+        val bobProvider = mock<NamedDomainObjectProvider<DomainObject>> {
             on { get() } doReturn bob
             on { configure(any()) } doAnswer {
                 it.getArgument<Action<DomainObject>>(0).execute(bob)
@@ -192,7 +192,7 @@ class NamedDomainObjectContainerExtensionsTest {
     fun `can configure polymorphic container`() {
 
         val alice = DomainObjectBase.Foo()
-        val aliceProvider = mock<DomainObjectProvider<DomainObjectBase.Foo>> {
+        val aliceProvider = mock<NamedDomainObjectProvider<DomainObjectBase.Foo>> {
             on { get() } doReturn alice
             on { configure(any()) } doAnswer {
                 it.getArgument<Action<DomainObjectBase.Foo>>(0).execute(alice)
@@ -200,7 +200,7 @@ class NamedDomainObjectContainerExtensionsTest {
         }
 
         val bob = DomainObjectBase.Bar()
-        val bobProvider = mock<DomainObjectProvider<DomainObjectBase.Bar>> {
+        val bobProvider = mock<NamedDomainObjectProvider<DomainObjectBase.Bar>> {
             on { get() } doReturn bob
             on { configure(any()) } doAnswer {
                 it.getArgument<Action<DomainObjectBase.Bar>>(0).execute(bob)
@@ -208,7 +208,7 @@ class NamedDomainObjectContainerExtensionsTest {
         }
 
         val default: DomainObjectBase = DomainObjectBase.Default()
-        val defaultProvider = mock<DomainObjectProvider<DomainObjectBase>> {
+        val defaultProvider = mock<NamedDomainObjectProvider<DomainObjectBase>> {
             on { get() } doReturn default
             on { configure(any()) } doAnswer {
                 it.getArgument<Action<DomainObjectBase>>(0).execute(default)
@@ -216,8 +216,8 @@ class NamedDomainObjectContainerExtensionsTest {
         }
 
         val container = mock<PolymorphicDomainObjectContainer<DomainObjectBase>> {
-            on { named("alice") } doReturn uncheckedCast<DomainObjectProvider<DomainObjectBase>>(aliceProvider)
-            on { named("bob") } doReturn uncheckedCast<DomainObjectProvider<DomainObjectBase>>(bobProvider)
+            on { named("alice") } doReturn uncheckedCast<NamedDomainObjectProvider<DomainObjectBase>>(aliceProvider)
+            on { named("bob") } doReturn uncheckedCast<NamedDomainObjectProvider<DomainObjectBase>>(bobProvider)
             on { named("jim") } doReturn defaultProvider
             on { named("steve") } doReturn defaultProvider
         }

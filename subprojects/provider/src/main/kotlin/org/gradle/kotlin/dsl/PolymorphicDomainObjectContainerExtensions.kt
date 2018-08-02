@@ -16,7 +16,7 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.DomainObjectProvider
+import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.PolymorphicDomainObjectContainer
 
@@ -27,7 +27,7 @@ import org.gradle.api.PolymorphicDomainObjectContainer
  * @see [PolymorphicDomainObjectContainer.register]
  */
 @Suppress("extension_shadowed_by_member")
-inline fun <reified T : Any> PolymorphicDomainObjectContainer<in T>.register(name: String): DomainObjectProvider<T> =
+inline fun <reified T : Any> PolymorphicDomainObjectContainer<in T>.register(name: String): NamedDomainObjectProvider<T> =
     register(name, T::class.java)
 
 
@@ -36,7 +36,7 @@ inline fun <reified T : Any> PolymorphicDomainObjectContainer<in T>.register(nam
  *
  * @see [PolymorphicDomainObjectContainer.register]
  */
-inline fun <reified T : Any> PolymorphicDomainObjectContainer<in T>.register(name: String, noinline configuration: T.() -> Unit): DomainObjectProvider<T> =
+inline fun <reified T : Any> PolymorphicDomainObjectContainer<in T>.register(name: String, noinline configuration: T.() -> Unit): NamedDomainObjectProvider<T> =
     register(name, T::class.java, configuration)
 
 

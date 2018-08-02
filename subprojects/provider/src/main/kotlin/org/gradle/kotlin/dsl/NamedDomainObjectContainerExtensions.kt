@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Action
-import org.gradle.api.DomainObjectProvider
+import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.PolymorphicDomainObjectContainer
 
@@ -47,10 +47,10 @@ class NamedDomainObjectContainerScope<T : Any>(
     private val container: NamedDomainObjectContainer<T>
 ) : NamedDomainObjectContainer<T> by container, PolymorphicDomainObjectContainer<T> {
 
-    override fun <U : T> register(name: String, type: Class<U>, configurationAction: Action<in U>): DomainObjectProvider<U> =
+    override fun <U : T> register(name: String, type: Class<U>, configurationAction: Action<in U>): NamedDomainObjectProvider<U> =
         polymorphicDomainObjectContainer().register(name, type, configurationAction)
 
-    override fun <U : T> register(name: String, type: Class<U>): DomainObjectProvider<U> =
+    override fun <U : T> register(name: String, type: Class<U>): NamedDomainObjectProvider<U> =
         polymorphicDomainObjectContainer().register(name, type)
 
     override fun <U : T> create(name: String, type: Class<U>): U =
@@ -69,9 +69,9 @@ class NamedDomainObjectContainerScope<T : Any>(
      * Configures an object by name, without triggering its creation or configuration, failing if there is no such object.
      *
      * @see [NamedDomainObjectContainer.named]
-     * @see [DomainObjectProvider.configure]
+     * @see [NamedDomainObjectProvider.configure]
      */
-    operator fun String.invoke(configuration: T.() -> Unit): DomainObjectProvider<T> =
+    operator fun String.invoke(configuration: T.() -> Unit): NamedDomainObjectProvider<T> =
         this().apply { configure(configuration) }
 
     /**
@@ -79,16 +79,16 @@ class NamedDomainObjectContainerScope<T : Any>(
      *
      * @see [NamedDomainObjectContainer.named]
      */
-    operator fun String.invoke(): DomainObjectProvider<T> =
+    operator fun String.invoke(): NamedDomainObjectProvider<T> =
         container.named(this)
 
     /**
      * Configures an object by name, without triggering its creation or configuration, failing if there is no such object.
      *
      * @see [PolymorphicDomainObjectContainer.named]
-     * @see [DomainObjectProvider.configure]
+     * @see [NamedDomainObjectProvider.configure]
      */
-    operator fun <U : T> String.invoke(type: KClass<U>, configuration: U.() -> Unit): DomainObjectProvider<U> =
+    operator fun <U : T> String.invoke(type: KClass<U>, configuration: U.() -> Unit): NamedDomainObjectProvider<U> =
         container.named(this, type, configuration)
 
     /**
@@ -96,7 +96,7 @@ class NamedDomainObjectContainerScope<T : Any>(
      *
      * @see [PolymorphicDomainObjectContainer.named]
      */
-    operator fun <U : T> String.invoke(type: KClass<U>): DomainObjectProvider<U> =
+    operator fun <U : T> String.invoke(type: KClass<U>): NamedDomainObjectProvider<U> =
         container.named(this, type)
 
     /**

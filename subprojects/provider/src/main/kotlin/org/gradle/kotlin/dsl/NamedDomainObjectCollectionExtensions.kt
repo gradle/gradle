@@ -16,7 +16,7 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.DomainObjectProvider
+import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.NamedDomainObjectCollection
 import org.gradle.api.UnknownDomainObjectException
 
@@ -34,7 +34,7 @@ import kotlin.reflect.full.safeCast
  * @see [NamedDomainObjectCollection.named]
  */
 @Suppress("extension_shadowed_by_member")
-inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.named(name: String): DomainObjectProvider<T> =
+inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.named(name: String): NamedDomainObjectProvider<T> =
     named(name, T::class)
 
 
@@ -43,7 +43,7 @@ inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.named(name: St
  *
  * @see [NamedDomainObjectCollection.named]
  */
-fun <T : Any> NamedDomainObjectCollection<out Any>.named(name: String, type: KClass<T>): DomainObjectProvider<T> =
+fun <T : Any> NamedDomainObjectCollection<out Any>.named(name: String, type: KClass<T>): NamedDomainObjectProvider<T> =
     uncheckedCast(named(name).apply {
         configure {
             type.safeCast(it)
@@ -56,9 +56,9 @@ fun <T : Any> NamedDomainObjectCollection<out Any>.named(name: String, type: KCl
  * Configures an object by name and type, without triggering its creation or configuration, failing if there is no such object.
  *
  * @see [NamedDomainObjectCollection.named]
- * @see [DomainObjectProvider.configure]
+ * @see [NamedDomainObjectProvider.configure]
  */
-inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.named(name: String, noinline configuration: T.() -> Unit): DomainObjectProvider<T> =
+inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.named(name: String, noinline configuration: T.() -> Unit): NamedDomainObjectProvider<T> =
     named<T>(name).apply {
         configure(configuration)
     }
@@ -68,9 +68,9 @@ inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.named(name: St
  * Configures an object by name and type, without triggering its creation or configuration, failing if there is no such object.
  *
  * @see [NamedDomainObjectCollection.named]
- * @see [DomainObjectProvider.configure]
+ * @see [NamedDomainObjectProvider.configure]
  */
-fun <T : Any> NamedDomainObjectCollection<out Any>.named(name: String, type: KClass<T>, configuration: T.() -> Unit): DomainObjectProvider<T> =
+fun <T : Any> NamedDomainObjectCollection<out Any>.named(name: String, type: KClass<T>, configuration: T.() -> Unit): NamedDomainObjectProvider<T> =
     named(name, type).apply {
         configure(configuration)
     }
