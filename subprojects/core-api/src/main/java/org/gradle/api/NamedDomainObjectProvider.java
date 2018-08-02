@@ -25,7 +25,7 @@ import org.gradle.api.provider.Provider;
  * @since 4.10
  */
 @Incubating
-public interface DomainObjectProvider<T> extends Provider<T> {
+public interface NamedDomainObjectProvider<T> extends Provider<T> {
     /**
      * Configures the domain object with the given action. Actions are run in the order added.
      *
