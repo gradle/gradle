@@ -22,12 +22,8 @@ class FunctionalTestProject(model: CIBuildModel, testConfig: TestCoverage, stage
             return@forEach
         }
 
-        if (subProject.unitTests && testConfig.testType.unitTests) {
-            buildType(FunctionalTest(model, testConfig, subProject.name, subProject.useDaemon, stage))
-        } else if (subProject.functionalTests && testConfig.testType.functionalTests) {
-            buildType(FunctionalTest(model, testConfig, subProject.name, subProject.useDaemon, stage))
-        } else if (subProject.crossVersionTests && testConfig.testType.crossVersionTests) {
-            buildType(FunctionalTest(model, testConfig, subProject.name, subProject.useDaemon, stage))
+        if (subProject.hasTestsOf(testConfig.testType)) {
+            buildType(FunctionalTest(model, testConfig, subProject.name, subProject.useDaemonFor(testConfig.testType), stage))
         }
     }
 }){
