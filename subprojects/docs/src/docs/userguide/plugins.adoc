@@ -199,6 +199,38 @@ Hello!
 BUILD SUCCEEDED
 ----
 
+[[sec:buildsrc_plugins_dsl]]
+==== Applying plugins from the _buildSrc_ directory
+
+You can apply plugins that reside in a project's _buildSrc_ directory as long as they have a defined ID. The following example shows how to tie a plugin implementation class — `my.MyPlugin` — defined in _buildSrc_ to the ID "my-plugin":
+
+.Defining a buildSrc plugin with an ID
+====
+[.multi-language-sample]
+=====
+.buildSrc/build.gradle
+[source,groovy]
+----
+include::{samplesPath}/plugins/dslWithBuildSrc/buildSrc/build.gradle[tag=main-block]
+----
+=====
+====
+
+The plugin can then be applied by ID as normal:
+
+.Applying a plugin from buildSrc
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+include::{samplesPath}/plugins/dslWithBuildSrc/build.gradle[tag=use-plugin]
+----
+=====
+====
+
+
 [[sec:plugin_management]]
 ==== Plugin Management
 
