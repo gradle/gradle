@@ -324,17 +324,17 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
             }
 
             private final Type type;
-            private final long applicationId;
-            private final Long parentApplicationId;
+            private final long id;
+            private final Long parentId;
 
-            private Entry(Type type, long applicationId, Long parentApplicationId) {
+            private Entry(Type type, long id, Long parentId) {
                 this.type = type;
-                this.applicationId = applicationId;
-                this.parentApplicationId = parentApplicationId;
+                this.id = id;
+                this.parentId = parentId;
             }
 
             private long parentApplicationId() {
-                return parentApplicationId != null ? parentApplicationId : applicationId;
+                return parentId != null ? parentId : id;
             }
 
             // note equals and hashCode aren't interested in the parent, only this execution
@@ -353,13 +353,13 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
                 if (type != that.type) {
                     return false;
                 }
-                return applicationId == that.applicationId;
+                return id == that.id;
             }
 
             @Override
             public int hashCode() {
                 int result = type.hashCode();
-                result = 31 * result + (int) (applicationId ^ (applicationId >>> 32));
+                result = 31 * result + (int) (id ^ (id >>> 32));
                 return result;
             }
 
@@ -367,8 +367,8 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
             public String toString() {
                 return "ApplicationStackEntry{"
                     + "type=" + type
-                    + ", applicationId=" + applicationId
-                    + ", parentApplicationId=" + parentApplicationId
+                    + ", id=" + id
+                    + ", parentId=" + parentId
                     + '}';
             }
         }
