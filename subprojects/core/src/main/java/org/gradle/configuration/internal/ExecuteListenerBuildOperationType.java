@@ -16,8 +16,6 @@
 
 package org.gradle.configuration.internal;
 
-import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType;
-import org.gradle.configuration.ApplyScriptPluginBuildOperationType;
 import org.gradle.configuration.project.NotifyProjectBeforeEvaluatedBuildOperationType;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
@@ -37,8 +35,8 @@ public final class ExecuteListenerBuildOperationType implements BuildOperationTy
         /**
          * The application ID of the script or plugin that registered the listener.
          *
-         * @see ApplyPluginBuildOperationType.Details#getApplicationId()
-         * @see ApplyScriptPluginBuildOperationType.Details#getApplicationId()
+         * @see org.gradle.api.internal.plugins.ApplyPluginBuildOperationType.Details#getApplicationId()
+         * @see org.gradle.configuration.ApplyScriptPluginBuildOperationType.Details#getApplicationId()
          */
         Long getApplicationId();
     }

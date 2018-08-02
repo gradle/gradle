@@ -16,7 +16,6 @@
 
 package org.gradle.configuration;
 
-import org.gradle.configuration.internal.ExecuteListenerBuildOperationType;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -71,7 +70,7 @@ public final class ApplyScriptPluginBuildOperationType implements BuildOperation
         /**
          * A unique ID for this plugin application, within this build operation tree.
          *
-         * @see ExecuteListenerBuildOperationType.Details#getApplicationId()
+         * @see org.gradle.configuration.internal.ExecuteListenerBuildOperationType.Details#getApplicationId()
          * @since 4.10
          */
         long getApplicationId();
