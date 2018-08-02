@@ -132,6 +132,11 @@ The S3 [repository transport protocol](userguide/repository_types.html#sub:suppo
 
 See the User guide section on “[Repository Types](userguide/repository_types.html#sub:s3_cross_account)” for more information.
 
+### Changes to the Java Gradle Plugin plugin
+
+- `PluginUnderTestMetadata` and `GeneratePluginDescriptors` were updated to use the Provider API.
+- All setters were removed and can be replaced with calls to the new Property `set(...)` method.
+
 ## External contributions
 
 
@@ -153,6 +158,7 @@ We love getting contributions from the Gradle community. For information on cont
 - [Paul Wellner Bou](https://github.com/paulwellnerbou) - Authorization for Maven repositories with custom HTTP headers (gradle/gradle#5571)
 - [Kenzie Togami](https://github.com/kenzierocks) - Docs are unclear on how JavaExec parses --args (gradle/gradle#6056)
 - [Salvian Reynaldi](https://github.com/salvianreynaldi) - Give S3 bucket owner full control over the published Maven artifacts (gradle/gradle#5329)
+- [Thomas Broyer](https://github.com/tbroyer) - Convert `java-gradle-plugin` to use lazy configuration API (gradle/gradle#6115)
 
 ## Known issues
 
