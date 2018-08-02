@@ -99,10 +99,10 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
     }
 
     @Override
-    public void appendInputFilesProperty(String propertyName, CurrentFileCollectionFingerprint fileCollectionSnapshot) {
+    public void appendInputFilesProperty(String propertyName, CurrentFileCollectionFingerprint fileCollectionFingerprint) {
         hasher.putString(propertyName);
-        hasher.putHash(fileCollectionSnapshot.getHash());
-        inputFiles.put(propertyName, fileCollectionSnapshot);
+        hasher.putHash(fileCollectionFingerprint.getHash());
+        inputFiles.put(propertyName, fileCollectionFingerprint);
     }
 
     @Override

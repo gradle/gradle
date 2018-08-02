@@ -61,9 +61,9 @@ public class DebuggingTaskOutputCachingBuildCacheKeyBuilder implements TaskOutpu
     }
 
     @Override
-    public void appendInputFilesProperty(String propertyName, CurrentFileCollectionFingerprint fileCollectionSnapshot) {
-        LOGGER.lifecycle("Appending inputFilePropertyHash for '{}' to build cache key: {}", propertyName, fileCollectionSnapshot.getHash());
-        delegate.appendInputFilesProperty(propertyName, fileCollectionSnapshot);
+    public void appendInputFilesProperty(String propertyName, CurrentFileCollectionFingerprint fileCollectionFingerprint) {
+        LOGGER.lifecycle("Appending inputFilePropertyHash for '{}' to build cache key: {}", propertyName, fileCollectionFingerprint.getHash());
+        delegate.appendInputFilesProperty(propertyName, fileCollectionFingerprint);
 
     }
 
