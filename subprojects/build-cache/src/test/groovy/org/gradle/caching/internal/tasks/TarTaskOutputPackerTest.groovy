@@ -26,9 +26,10 @@ import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginReader
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginWriter
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
+import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
-import org.gradle.internal.fingerprint.impl.EmptyFileCollectionFingerprint
+import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
 import org.gradle.internal.hash.DefaultStreamHasher
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.TestFileHasher
@@ -356,14 +357,14 @@ class TarTaskOutputPackerTest extends Specification {
             case FILE:
                 return new PropertyDefinition(new ResolvedTaskOutputFilePropertySpec(name, FILE, output), {
                     if (output == null) {
-                        return EmptyFileCollectionFingerprint.INSTANCE
+                        return EmptyCurrentFileCollectionFingerprint.of(FingerprintingStrategy.Identifier.ABSOLUTE_PATH)
                     }
                     return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshotSelf(output)], AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
                 })
             case DIRECTORY:
                 return new PropertyDefinition(new ResolvedTaskOutputFilePropertySpec(name, DIRECTORY, output), {
                     if (output == null) {
-                        return EmptyFileCollectionFingerprint.INSTANCE
+                        return EmptyCurrentFileCollectionFingerprint.of(FingerprintingStrategy.Identifier.ABSOLUTE_PATH)
                     }
                     return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshotDirectoryTree(dirTreeFactory.create(output))], AbsolutePathFingerprintingStrategy.IGNORE_MISSING)
                 })
