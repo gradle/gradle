@@ -1,0 +1,4 @@
+ - Incremental Java compilation by default
+ - Automatic Gradle caches/ cleanup
+ - Nested included builds
+ - SNAPSHOT plugin versions in the `plugins {}` block
