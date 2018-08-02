@@ -50,8 +50,8 @@ public abstract class TransformInfo extends WorkInfo {
     protected List<File> result;
     protected Throwable failure;
 
-    public static TransformInfo chained(List<UserCodeBackedTransformer> transformerChain, TransformInfo previous) {
-        return new ChainedTransformInfo(transformerChain.get(transformerChain.size() - 1), previous);
+    public static TransformInfo chained(UserCodeBackedTransformer current, TransformInfo previous) {
+        return new ChainedTransformInfo(current, previous);
     }
 
     public static TransformInfo initial(UserCodeBackedTransformer initial, BuildableSingleResolvedArtifactSet artifact) {
