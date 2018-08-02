@@ -17,63 +17,60 @@
 package org.gradle.configuration.internal;
 
 import groovy.lang.Closure;
+import org.gradle.BuildListener;
 import org.gradle.api.Action;
-import org.gradle.api.invocation.Gradle;
+import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.execution.TaskExecutionGraphListener;
+import org.gradle.internal.InternalListener;
 
 /**
- * Decorates registered Action, Closure and known interface listeners registered by configuration code,
- * to emit build operations around each execution.
+ * Decorates listener functions/objects to fire {@link ExecuteListenerBuildOperationType} build operations when later executed.
+ *
+ * Works in conjunction with {@link UserCodeApplicationContext} to attach the current user code application ID
+ * to the listener, in order to convey it as part of the operation details.
+ * This allows tracking the listener back to the plugin or script that <i>registered</i> it.
  */
 public interface ListenerBuildOperationDecorator {
 
     /**
-     * Decorates an action to emit an ExecuteListenerBuildOperationType build operation when executing.
+     * Decorates an action listener.
      * <p>
-     * Does not decorate any action that implements {@link org.gradle.internal.InternalListener}
+     * Does not decorate any action that implements {@link InternalListener}.
+     * Does not decorate if there is not currently a script or plugin being applied on the thread.
      *
-     * @param name the name of the listener, e.g. projectsLoaded
+     * @param name the name of the listener (e.g. projectsLoaded) - used in the operation description
      * @param action the action to decorate
-     * @param <T> The action's target type
-     * @return a decorated Action, or the original if we don't need to decorate this one
      */
     <T> Action<T> decorate(String name, Action<T> action);
 
     /**
-     * Decorates a closure to emit an ExecuteListenerBuildOperationType build operation when executing.
+     * Decorates a closure listener.
      * <p>
-     * Does not decorate any listener that implements {@link org.gradle.internal.InternalListener}
+     * Does not decorate any action that implements {@link InternalListener}.
+     * Does not decorate if there is not currently a script or plugin being applied on the thread.
      *
-     * @param name the name of the listener, e.g. projectsLoaded
+     * @param name the name of the listener (e.g. projectsLoaded) - used in the operation description
      * @param closure the closure to decorate
-     * @param <T> The Closure's generic type
-     * @return a decorated Closure, or the original if we don't need to decorate this one
      */
     <T> Closure<T> decorate(String name, Closure<T> closure);
 
     /**
-     * Decorates a known listener type to emit an ExecuteListenerBuildOperationType build operation when executing.
+     * Decorates a listener type object.
      * <p>
-     * Supports decorating BuildListener, ProjectEvaluationListener and TaskExecutionGraphListener listeners
+     * Supports decorating {@link BuildListener}, {@link ProjectEvaluationListener} and {@link TaskExecutionGraphListener} listeners
      * <p>
-     * Does not decorate any listener that implements {@link org.gradle.internal.InternalListener}
+     * Does not decorate any action that implements {@link InternalListener}.
+     * Does not decorate if there is not currently a script or plugin being applied on the thread.
      *
      * @param cls the type of the listener
      * @param listener the listener
-     * @param <T> The listener type
-     * @return a decorated listener, or the original if we don't need to decorate this one
      */
     <T> T decorate(Class<T> cls, T listener);
 
     /**
-     * Decorates a listener of unknown type, generally registered using {@link Gradle#addListener}, to emit an ExecuteListenerBuildOperationType build operation when executing.
+     * Decorates a listener of unknown type.
      * <p>
-     * Supports decorating BuildListener, ProjectEvaluationListener and TaskExecutionGraphListener listeners. Note that a registered listener
-     * may implement more than one of these - the returned listener will implement all interfaces that the passed-in listener does.
-     * <p>
-     * Does not decorate any listener that implements {@link org.gradle.internal.InternalListener}
-     *
-     * @param listener the listener
-     * @return a decorated listener, or the original if we don't need to decorate this one
+     * @see #decorate(Class, Object)
      */
     Object decorateUnknownListener(Object listener);
 
