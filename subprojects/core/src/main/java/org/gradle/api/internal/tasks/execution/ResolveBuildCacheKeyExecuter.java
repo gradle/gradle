@@ -48,6 +48,7 @@ import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Deque;
@@ -386,7 +387,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                 class Property {
                     private final String hash;
                     private final String normalization;
-                    private final Set<Entry> roots = new TreeSet<Entry>(comparator);
+                    private final List<Entry> roots = new ArrayList<Entry>();
 
                     public Property(String hash, String normalization) {
                         this.hash = hash;
