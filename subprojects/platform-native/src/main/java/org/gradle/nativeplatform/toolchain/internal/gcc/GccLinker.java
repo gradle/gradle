@@ -74,7 +74,17 @@ class GccLinker extends AbstractCompiler<LinkerSpec> {
                 args.add(file.getAbsolutePath());
             }
             for (File file : spec.getLibraries()) {
-                args.add(file.getAbsolutePath());
+                // Link against libraries leveraging the library path.
+                if (file.getName().startsWith ("lib")) {
+                    args.add("-L" + file.getParent());
+                    String library = file.getName().replaceFirst("lib", "-l");
+                    args.add(library.substring(0, library.lastIndexOf('.')));
+                }
+                // Link against direct objects with the full path.
+                else {
+                    args.add(file.getAbsolutePath());
+                }
+
             }
             if (!spec.getLibraryPath().isEmpty()) {
                 throw new UnsupportedOperationException("Library Path not yet supported on GCC");
