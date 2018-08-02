@@ -81,7 +81,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
             rootProjectPluginAppId = findPluginApplicationId(targetsProject(':'), pluginClass('ProjectPlugin'))
         }
         if (hasPlugin(subBuildFile, 'ProjectPlugin')) {
-            subProjectPluginAppId = findPluginApplicationId(targetsProject(':sub') , pluginClass('ProjectPlugin'))
+            subProjectPluginAppId = findPluginApplicationId(targetsProject(':sub'), pluginClass('ProjectPlugin'))
         }
         if (hasScript(buildFile, scriptFile.name)) {
             rootOtherScriptAppId = findScriptApplicationId(targetsProject(':'), scriptFile(scriptFile))
@@ -129,7 +129,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         run()
 
         then:
-        def projectsLoaded = operations.only(NotifyProjectsLoadedBuildOperationType, { it.details.buildPath == ':'})
+        def projectsLoaded = operations.only(NotifyProjectsLoadedBuildOperationType, { it.details.buildPath == ':' })
         verifyExpectedNumberOfExecuteListenerChildren(projectsLoaded, expectedGradleOpProgressMessages.size() * 3)
         verifyHasChildren(projectsLoaded, initScriptAppId, 'init', expectedGradleOpProgressMessages)
         verifyHasChildren(projectsLoaded, settingsScriptAppId, 'settings', expectedGradleOpProgressMessages)
@@ -138,7 +138,8 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
 
     def 'projectsEvaluated listeners are attributed to the correct registrant'() {
         given:
-        def addGradleListeners = { String source -> """
+        def addGradleListeners = { String source ->
+            """
             gradle.projectsEvaluated({
                 println "gradle.projectsEvaluated(Action) from $source"
             } as Action)
@@ -155,7 +156,8 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
                     println "gradle.addBuildListener(BuildListener) from $source"
                 }
             })
-        """}
+        """
+        }
         def expectedGradleOpProgressMessages = [
             'gradle.projectsEvaluated(Action)',
             'gradle.projectsEvaluated(Closure)',
@@ -191,7 +193,8 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
 
     def 'beforeEvaluate listeners are attributed to the correct registrant'() {
         given:
-        def addGradleListeners = { String source -> """
+        def addGradleListeners = { String source ->
+            """
             gradle.beforeProject({
                 println "gradle.beforeProject(Action) from $source"
             } as Action)
@@ -212,14 +215,16 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
                 void afterEvaluate(Project p, ProjectState s) {
                 }
             })
-        """}
+        """
+        }
         def expectedGradleOpProgressMessages = [
             'gradle.beforeProject(Action)',
             'gradle.beforeProject(Closure)',
             'gradle.addListener(ProjectEvaluationListener)',
             'gradle.addProjectEvaluationListener(ProjectEvaluationListener)'
         ]
-        def addProjectListeners = { String source, String target = null -> """
+        def addProjectListeners = { String source, String target = null ->
+            """
             ${target == null ? '' : "project('$target') { project ->"}
                 project.beforeEvaluate({
                     println "project.beforeEvaluate(Action) from $source"
@@ -228,7 +233,8 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
                     println "project.beforeEvaluate(Closure) from $source"
                 }
             ${target == null ? '' : "}"}
-        """}
+        """
+        }
         def expectedProjectOpProgressMessages = [
             'project.beforeEvaluate(Action)',
             'project.beforeEvaluate(Closure)',
@@ -289,7 +295,8 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
 
     def 'afterEvaluate listeners are attributed to the correct registrant'() {
         given:
-        def addGradleListeners = { String source -> """
+        def addGradleListeners = { String source ->
+            """
             gradle.afterProject({
                 println "gradle.afterProject(Action) from $source"
             } as Action)
@@ -316,7 +323,8 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
                     println "gradle.addProjectEvaluationListener(ProjectEvaluationListener) from $source"
                 }
             })
-        """}
+        """
+        }
         def expectedGradleOpProgressMessages = [
             'gradle.afterProject(Action)',
             'gradle.afterProject(Closure(0))',
@@ -325,7 +333,8 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
             'gradle.addListener(ProjectEvaluationListener)',
             'gradle.addProjectEvaluationListener(ProjectEvaluationListener)'
         ]
-        def addProjectListeners = { String source, String target = null -> """
+        def addProjectListeners = { String source, String target = null ->
+            """
             ${target == null ? '' : "project('$target') { project ->"}
                 project.afterEvaluate({
                     println "project.afterEvaluate(Action) from $source"
@@ -334,7 +343,8 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
                     println "project.afterEvaluate(Closure) from $source"
                 }
             ${target == null ? '' : '}'}
-        """}
+        """
+        }
         def expectedProjectOpProgressMessages = [
             'project.afterEvaluate(Action)',
             'project.afterEvaluate(Closure)',
@@ -393,7 +403,8 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
 
     def 'nested afterEvaluate listeners are attributed to the correct registrant'() {
         given:
-        def addGradleListeners = { String source -> """
+        def addGradleListeners = { String source ->
+            """
             gradle.afterProject { project ->
                 println "gradle.afterProject(Closure) from $source"
                 project.afterEvaluate {
@@ -403,13 +414,15 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
                     }
                 }
             }
-        """}
+        """
+        }
         def expectedGradleOpProgressMessages = [
             'gradle.afterProject(Closure)',
             'nested gradle.afterProject(Closure)',
             'nested nested gradle.afterProject(Closure)',
         ]
-        def addProjectListeners = { String source -> """
+        def addProjectListeners = { String source ->
+            """
             project.afterEvaluate {
                 println "project.afterEvaluate(Closure) from $source"
                 project.afterEvaluate {
@@ -419,7 +432,8 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
                     }
                 }
             }
-        """}
+        """
+        }
         def expectedProjectOpProgressMessages = [
             'project.afterEvaluate(Closure)',
             'nested project.afterEvaluate(Closure)',
@@ -449,7 +463,8 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
 
     def 'taskGraph whenReady action listeners are attributed to the correct registrant'() {
         given:
-        def addGradleListeners = { String source -> """
+        def addGradleListeners = { String source ->
+            """
             gradle.addListener(new TaskExecutionGraphListener() {
                 void graphPopulated(TaskExecutionGraph graph) {
                     println "gradle.addListener(TaskExecutionGraphListener) from $source"
@@ -466,7 +481,8 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
             gradle.taskGraph.whenReady {
                 println "gradle.taskGraph.whenReady(Closure) from $source"
             }            
-        """}
+        """
+        }
         def expectedGradleOpProgressMessages = [
             'gradle.addListener(TaskExecutionGraphListener)',
             'gradle.taskGraph.addTaskExecutionGraphListener(TaskExecutionGraphListener)',
@@ -499,7 +515,8 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
 
     def 'listeners that implement multiple interfaces are decorated correctly'() {
         given:
-        def addGradleListeners = { String source -> """
+        def addGradleListeners = { String source ->
+            """
             class ComboListener implements BuildListener, ProjectEvaluationListener, TaskExecutionGraphListener {
                 void buildStarted(Gradle gradle) {
                     println 'gradle.addListener(ComboListener) from $source'
@@ -527,7 +544,8 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
                 }
             }
             gradle.addListener(new ComboListener())
-        """}
+        """
+        }
         def expectedGradleOpProgressMessages = [
             'gradle.addListener(ComboListener)'
         ]
@@ -587,16 +605,20 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
 
     def 'listener registrations in delayed callbacks are tracked correctly'() {
         given:
-        def addBeforeProjectListeners = { String source -> """
+        def addBeforeProjectListeners = { String source ->
+            """
             project.beforeEvaluate { ignored ->
                 println "project.beforeEvaluate(Closure) from $source"
             }
-        """}
-        def addAfterProjectListeners = { String source -> """
+        """
+        }
+        def addAfterProjectListeners = { String source ->
+            """
             project.afterEvaluate { ignored ->
                 println "project.afterEvaluate(Closure) from $source"
             }
-        """}
+        """
+        }
 
         and:
         initFile << """
@@ -670,13 +692,13 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
     }
 
     private static List<BuildOperationRecord> verifyHasChildren(BuildOperationRecord op, long expectedApplicationId, String sourceName, List<String> expectedProgressMessages) {
-        def matchingChildren = op.children.findAll { it.hasDetailsOfType(ExecuteListenerBuildOperationType.Details) && it.details .applicationId == expectedApplicationId}
+        def matchingChildren = op.children.findAll { it.hasDetailsOfType(ExecuteListenerBuildOperationType.Details) && it.details.applicationId == expectedApplicationId }
         verifyExpectedOps(matchingChildren, expectedProgressMessages.collect { "$it from $sourceName" })
         matchingChildren
     }
 
-    private void verifyHasNoChildren(BuildOperationRecord op, long expectedApplicationId) {
-        assert op.children.findAll { it.hasDetailsOfType(ExecuteListenerBuildOperationType.Details) && it.details.applicationId == expectedApplicationId}.empty
+    private static void verifyHasNoChildren(BuildOperationRecord op, long expectedApplicationId) {
+        assert op.children.findAll { it.hasDetailsOfType(ExecuteListenerBuildOperationType.Details) && it.details.applicationId == expectedApplicationId }.empty
     }
 
     private static void verifyExpectedOps(List<BuildOperationRecord> ops, List<String> expectedProgressMessages) {
@@ -705,7 +727,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         file.exists() && file.text.indexOf("apply from: rootProject.file('$scriptName')") != -1
     }
 
-    private Long findOpApplicationId(Class<? extends BuildOperationType<?,?>> opType, Spec<? super BuildOperationRecord> predicate) {
+    private Long findOpApplicationId(Class<? extends BuildOperationType<?, ?>> opType, Spec<? super BuildOperationRecord> predicate) {
         operations.only(opType, predicate).details.applicationId as Long
     }
 
@@ -718,11 +740,11 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
     }
 
     private static Spec<? super BuildOperationRecord> targetsGradle() {
-        { s -> s.details.targetType == 'gradle'} as Spec<? super BuildOperationRecord>
+        { s -> s.details.targetType == 'gradle' } as Spec<? super BuildOperationRecord>
     }
 
     private static Spec<? super BuildOperationRecord> targetsSettings() {
-        { s -> s.details.targetType == 'settings'} as Spec<? super BuildOperationRecord>
+        { s -> s.details.targetType == 'settings' } as Spec<? super BuildOperationRecord>
     }
 
     private static Spec<? super BuildOperationRecord> targetsProject(String projectPath) {
