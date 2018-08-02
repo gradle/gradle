@@ -16,12 +16,14 @@
 
 package org.gradle.configuration;
 
-import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
+import org.gradle.api.Action;
+import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.configuration.internal.UserCodeApplicationId;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.internal.resource.TextResource;
 
@@ -38,12 +40,12 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
 
     private final ScriptPlugin decorated;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final ListenerBuildOperationDecorator listenerBuildOperations;
+    private final UserCodeApplicationContext userCodeApplicationContext;
 
-    public BuildOperationScriptPlugin(ScriptPlugin decorated, BuildOperationExecutor buildOperationExecutor, ListenerBuildOperationDecorator listenerBuildOperations) {
+    public BuildOperationScriptPlugin(ScriptPlugin decorated, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
         this.decorated = decorated;
         this.buildOperationExecutor = buildOperationExecutor;
-        this.listenerBuildOperations = listenerBuildOperations;
+        this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
     @Override
@@ -58,30 +60,29 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
             //no operation, if there is no script code provided
             decorated.apply(target);
         } else {
-            buildOperationExecutor.run(new RunnableBuildOperation() {
-                long applicationId = listenerBuildOperations.allocateApplicationId();
+            userCodeApplicationContext.apply(new Action<UserCodeApplicationId>() {
                 @Override
-                public void run(BuildOperationContext context) {
-                    try {
-                        listenerBuildOperations.startApplication(applicationId);
-                        decorated.apply(target);
-                        context.setResult(OPERATION_RESULT);
-                    } finally {
-                        listenerBuildOperations.finishApplication(applicationId);
-                    }
-                }
+                public void execute(final UserCodeApplicationId userCodeApplicationId) {
+                    buildOperationExecutor.run(new RunnableBuildOperation() {
+                        @Override
+                        public void run(BuildOperationContext context) {
+                            decorated.apply(target);
+                            context.setResult(OPERATION_RESULT);
+                        }
 
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    final ScriptSource source = getSource();
-                    final ResourceLocation resourceLocation = source.getResource().getLocation();
-                    final File file = resourceLocation.getFile();
-                    String name = "Apply script " + (file != null ? file.getName() : source.getDisplayName());
-                    final String displayName = name + " to " + target;
+                        @Override
+                        public BuildOperationDescriptor.Builder description() {
+                            final ScriptSource source = getSource();
+                            final ResourceLocation resourceLocation = source.getResource().getLocation();
+                            final File file = resourceLocation.getFile();
+                            String name = "Apply script " + (file != null ? file.getName() : source.getDisplayName());
+                            final String displayName = name + " to " + target;
 
-                    return BuildOperationDescriptor.displayName(displayName)
-                        .name(name)
-                        .details(new OperationDetails(file, resourceLocation, ConfigurationTargetIdentifier.of(target), applicationId));
+                            return BuildOperationDescriptor.displayName(displayName)
+                                .name(name)
+                                .details(new OperationDetails(file, resourceLocation, ConfigurationTargetIdentifier.of(target), userCodeApplicationId));
+                        }
+                    });
                 }
             });
         }
@@ -92,9 +93,9 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
         private final File file;
         private final ResourceLocation resourceLocation;
         private final ConfigurationTargetIdentifier identifier;
-        private final long applicationId;
+        private final UserCodeApplicationId applicationId;
 
-        private OperationDetails(File file, ResourceLocation resourceLocation, @Nullable ConfigurationTargetIdentifier identifier, long applicationId) {
+        private OperationDetails(File file, ResourceLocation resourceLocation, @Nullable ConfigurationTargetIdentifier identifier, UserCodeApplicationId applicationId) {
             this.file = file;
             this.resourceLocation = resourceLocation;
             this.identifier = identifier;
@@ -135,7 +136,7 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
 
         @Override
         public long getApplicationId() {
-            return applicationId;
+            return applicationId.longValue();
         }
     }
 

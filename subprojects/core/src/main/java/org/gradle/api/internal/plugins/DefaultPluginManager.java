@@ -30,7 +30,8 @@ import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
-import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
+import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.configuration.internal.UserCodeApplicationId;
 import org.gradle.internal.Cast;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -60,15 +61,15 @@ public class DefaultPluginManager implements PluginManagerInternal {
     private final Map<PluginId, DomainObjectSet<PluginWithId>> idMappings = Maps.newHashMap();
 
     private final BuildOperationExecutor buildOperationExecutor;
-    private final ListenerBuildOperationDecorator listenerBuildOperationDecorator;
+    private final UserCodeApplicationContext userCodeApplicationContext;
 
-    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginTarget target, BuildOperationExecutor buildOperationExecutor, ListenerBuildOperationDecorator listenerBuildOperationDecorator) {
+    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginTarget target, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
         this.instantiator = instantiator;
         this.target = target;
         this.pluginRegistry = pluginRegistry;
         this.pluginContainer = new DefaultPluginContainer(pluginRegistry, this);
         this.buildOperationExecutor = buildOperationExecutor;
-        this.listenerBuildOperationDecorator = listenerBuildOperationDecorator;
+        this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
     private <T> T instantiatePlugin(Class<T> type) {
@@ -135,17 +136,22 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
     private void doApply(final PluginImplementation<?> plugin) {
         PluginId pluginId = plugin.getPluginId();
-        String pluginIdStr = pluginId == null ? null : pluginId.toString();
-        Class<?> pluginClass = plugin.asClass();
+        final String pluginIdStr = pluginId == null ? null : pluginId.toString();
+        final Class<?> pluginClass = plugin.asClass();
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         try {
             Thread.currentThread().setContextClassLoader(pluginClass.getClassLoader());
             if (plugin.getType().equals(PotentialPlugin.Type.UNKNOWN)) {
                 throw new InvalidPluginException("'" + pluginClass.getName() + "' is neither a plugin or a rule source and cannot be applied.");
             } else {
-                Runnable adder = addPluginInternal(plugin);
+                final Runnable adder = addPluginInternal(plugin);
                 if (adder != null) {
-                    buildOperationExecutor.run(new AddPluginBuildOperation(adder, plugin, pluginIdStr, pluginClass));
+                    userCodeApplicationContext.apply(new Action<UserCodeApplicationId>() {
+                        @Override
+                        public void execute(UserCodeApplicationId userCodeApplicationId) {
+                            buildOperationExecutor.run(new AddPluginBuildOperation(adder, plugin, pluginIdStr, pluginClass, userCodeApplicationId));
+                        }
+                    });
                 }
             }
         } catch (PluginApplicationException e) {
@@ -243,24 +249,20 @@ public class DefaultPluginManager implements PluginManagerInternal {
         private final PluginImplementation<?> plugin;
         private final String pluginId;
         private final Class<?> pluginClass;
-        private final long applicationId = listenerBuildOperationDecorator.allocateApplicationId();
+        private final UserCodeApplicationId applicationId;
 
-        private AddPluginBuildOperation(Runnable adder, PluginImplementation<?> plugin, String pluginId, Class<?> pluginClass) {
+        private AddPluginBuildOperation(Runnable adder, PluginImplementation<?> plugin, String pluginId, Class<?> pluginClass, UserCodeApplicationId applicationId) {
             this.adder = adder;
             this.plugin = plugin;
             this.pluginId = pluginId;
             this.pluginClass = pluginClass;
+            this.applicationId = applicationId;
         }
 
         @Override
         public void run(BuildOperationContext context) {
-            listenerBuildOperationDecorator.startApplication(applicationId);
-            try {
-                addPlugin(adder, plugin, pluginId, pluginClass);
-                context.setResult(OPERATION_RESULT);
-            } finally {
-                listenerBuildOperationDecorator.finishApplication(applicationId);
-            }
+            addPlugin(adder, plugin, pluginId, pluginClass);
+            context.setResult(OPERATION_RESULT);
         }
 
         @Override
@@ -286,9 +288,9 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
         private final PluginImplementation<?> pluginImplementation;
         private final ConfigurationTargetIdentifier targetIdentifier;
-        private final long applicationId;
+        private final UserCodeApplicationId applicationId;
 
-        private OperationDetails(PluginImplementation<?> pluginImplementation, ConfigurationTargetIdentifier targetIdentifier, long applicationId) {
+        private OperationDetails(PluginImplementation<?> pluginImplementation, ConfigurationTargetIdentifier targetIdentifier, UserCodeApplicationId applicationId) {
             this.pluginImplementation = pluginImplementation;
             this.targetIdentifier = targetIdentifier;
             this.applicationId = applicationId;
@@ -323,7 +325,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
         @Override
         public long getApplicationId() {
-            return applicationId;
+            return applicationId.longValue();
         }
 
         @Override

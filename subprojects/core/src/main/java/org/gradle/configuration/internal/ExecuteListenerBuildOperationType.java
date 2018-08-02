@@ -45,15 +45,15 @@ public final class ExecuteListenerBuildOperationType implements BuildOperationTy
     }
 
     static class DetailsImpl implements Details {
-        final Long applicationId;
+        final UserCodeApplicationId applicationId;
 
-        DetailsImpl(Long applicationId) {
+        DetailsImpl(UserCodeApplicationId applicationId) {
             this.applicationId = applicationId;
         }
 
         @Override
         public Long getApplicationId() {
-            return applicationId;
+            return applicationId.longValue();
         }
 
     }

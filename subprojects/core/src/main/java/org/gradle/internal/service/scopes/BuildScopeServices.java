@@ -87,7 +87,7 @@ import org.gradle.configuration.DefaultScriptPluginFactory;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.ScriptPluginFactorySelector;
-import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
+import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.configuration.project.BuildScriptProcessor;
 import org.gradle.configuration.project.ConfigureActionsProjectEvaluator;
 import org.gradle.configuration.project.DelayedConfigurationActions;
@@ -99,8 +99,8 @@ import org.gradle.execution.TaskPathProjectEvaluator;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptExecutionListener;
-import org.gradle.groovy.scripts.internal.BuildScopeInMemoryCachingScriptClassCompiler;
 import org.gradle.groovy.scripts.internal.BuildOperationBackedScriptCompilationHandler;
+import org.gradle.groovy.scripts.internal.BuildScopeInMemoryCachingScriptClassCompiler;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
 import org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler;
 import org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory;
@@ -298,10 +298,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             classLoaderHierarchyHasher);
     }
 
-    protected ScriptPluginFactory createScriptPluginFactory(InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, ListenerBuildOperationDecorator listenerBuildOperations) {
+    protected ScriptPluginFactory createScriptPluginFactory(InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
         DefaultScriptPluginFactory defaultScriptPluginFactory = defaultScriptPluginFactory();
         ScriptPluginFactorySelector.ProviderInstantiator instantiator = ScriptPluginFactorySelector.defaultProviderInstantiatorFor(instantiatorFactory.inject(this));
-        ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, instantiator, buildOperationExecutor, listenerBuildOperations);
+        ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, instantiator, buildOperationExecutor, userCodeApplicationContext);
         defaultScriptPluginFactory.setScriptPluginFactory(scriptPluginFactorySelector);
         return scriptPluginFactorySelector;
     }

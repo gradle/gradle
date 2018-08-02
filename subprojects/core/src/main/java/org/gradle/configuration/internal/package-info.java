@@ -14,31 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration.internal
+@NonNullApi
+package org.gradle.configuration.internal;
 
-import org.gradle.api.Action
-
-class TestListenerBuildOperations implements ListenerBuildOperationDecorator {
-
-    private long counter
-
-    @Override
-    <T> Action<T> decorate(String name, Action<T> action) {
-        action
-    }
-
-    @Override
-    <T> Closure<T> decorate(String name, Closure<T> closure) {
-        return closure
-    }
-
-    @Override
-    <T> T decorate(Class<T> cls, T listener) {
-        listener
-    }
-
-    @Override
-    Object decorateUnknownListener(Object listener) {
-        listener
-    }
-}
+import org.gradle.api.NonNullApi;

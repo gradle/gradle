@@ -14,31 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration.internal
+package org.gradle.configuration.internal;
 
-import org.gradle.api.Action
+import org.gradle.api.Action;
 
-class TestListenerBuildOperations implements ListenerBuildOperationDecorator {
+public interface UserCodeApplicationContext {
 
-    private long counter
+    void apply(Action<? super UserCodeApplicationId> action);
 
-    @Override
-    <T> Action<T> decorate(String name, Action<T> action) {
-        action
-    }
-
-    @Override
-    <T> Closure<T> decorate(String name, Closure<T> closure) {
-        return closure
-    }
-
-    @Override
-    <T> T decorate(Class<T> cls, T listener) {
-        listener
-    }
-
-    @Override
-    Object decorateUnknownListener(Object listener) {
-        listener
-    }
 }

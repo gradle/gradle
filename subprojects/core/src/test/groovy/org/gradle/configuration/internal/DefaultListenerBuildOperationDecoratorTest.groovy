@@ -39,13 +39,15 @@ import spock.lang.Unroll
 
 class DefaultListenerBuildOperationDecoratorTest extends Specification {
 
-    private static final long APPLICATION_ID = 3
     private static interface InternalProjectEvaluationListener extends ProjectEvaluationListener, InternalListener {}
+
     private static interface InternalTaskExecutionGraphListener extends TaskExecutionGraphListener, InternalListener {}
+
     private static interface ComboListener extends BuildListener, ProjectEvaluationListener, TaskExecutionGraphListener, BuildCompletionListener {}
 
     def buildOperationExecutor = new TestBuildOperationExecutor()
     DefaultListenerBuildOperationDecorator decorator = new DefaultListenerBuildOperationDecorator(buildOperationExecutor)
+    def context = decorator.@userCodeApplicationContext
 
     def 'ignores implementors of InternalListener'() {
         given:
@@ -53,7 +55,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         def buildListener = new InternalBuildAdapter()
         def projectEvaluationListener = Mock(InternalProjectEvaluationListener)
         def graphListener = Mock(InternalTaskExecutionGraphListener)
-        decorator.startApplication(APPLICATION_ID)
+        context.push()
 
         expect:
         decorator.decorate('foo', action) is action
@@ -84,7 +86,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         given:
         def action = Mock(Action)
         def arg = new Object()
-        decorator.startApplication(APPLICATION_ID)
+        def id = context.push()
 
         when:
         def decoratedAction = decorator.decorate('foo', action)
@@ -99,7 +101,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         1 * action.execute(arg)
 
         and:
-        verifyExpectedOp('foo')
+        verifyExpectedOp('foo', id)
     }
 
     def 'decorates closures of same single arity'() {
@@ -110,7 +112,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
             assert passedArg == arg
             called = true
         }
-        decorator.startApplication(APPLICATION_ID)
+        def id = context.push()
 
         when:
         def decoratedClosure = decorator.decorate('foo', closure)
@@ -125,7 +127,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         called
 
         and:
-        verifyExpectedOp('foo')
+        verifyExpectedOp('foo', id)
     }
 
     def 'decorates closures of same multiple arity'() {
@@ -138,7 +140,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
             assert passedArg2 == arg2
             called = true
         }
-        decorator.startApplication(APPLICATION_ID)
+        def id = context.push()
 
         when:
         def decoratedClosure = decorator.decorate('foo', closure)
@@ -153,7 +155,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         called
 
         and:
-        verifyExpectedOp('foo')
+        verifyExpectedOp('foo', id)
     }
 
     def 'decorates closures of lower arity'() {
@@ -165,7 +167,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
             assert passedArg == arg1
             called = true
         }
-        decorator.startApplication(APPLICATION_ID)
+        def id = context.push()
 
         when:
         def decoratedClosure = decorator.decorate('foo', closure)
@@ -180,7 +182,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         called
 
         and:
-        verifyExpectedOp('foo')
+        verifyExpectedOp('foo', id)
     }
 
     def 'decorates closures of zero arity'() {
@@ -190,7 +192,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         def closure = { ->
             called = true
         }
-        decorator.startApplication(APPLICATION_ID)
+        def id = context.push()
 
         when:
         def decoratedClosure = decorator.decorate('foo', closure)
@@ -205,7 +207,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         called
 
         and:
-        verifyExpectedOp('foo')
+        verifyExpectedOp('foo', id)
     }
 
     @Unroll
@@ -217,7 +219,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         def projectsEvaluatedArg = Mock(Gradle)
         def buildFinishedArg = new BuildResult(null, null)
         def listener = Mock(BuildListener)
-        decorator.startApplication(APPLICATION_ID)
+        def id = context.push()
 
         when:
         def decoratedListener = decorateAsObject ? decorator.decorateUnknownListener(listener) as BuildListener : decorator.decorate(BuildListener, listener)
@@ -250,7 +252,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         1 * listener.projectsLoaded(projectsLoadedArg)
 
         and:
-        verifyExpectedOp('projectsLoaded')
+        verifyExpectedOp('projectsLoaded', id)
 
         when:
         resetOps()
@@ -260,7 +262,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         1 * listener.projectsEvaluated(projectsEvaluatedArg)
 
         and:
-        verifyExpectedOp('projectsEvaluated')
+        verifyExpectedOp('projectsEvaluated', id)
 
         when:
         resetOps()
@@ -283,7 +285,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         def afterEvaluateArg1 = Mock(Project)
         def afterEvaluateArg2 = Mock(ProjectState)
         def listener = Mock(ProjectEvaluationListener)
-        decorator.startApplication(APPLICATION_ID)
+        def id = context.push()
 
         when:
         def decoratedListener = decorateAsObject ? decorator.decorateUnknownListener(listener) as ProjectEvaluationListener : decorator.decorate(ProjectEvaluationListener, listener)
@@ -298,7 +300,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         1 * listener.beforeEvaluate(beforeEvaluateArg)
 
         and:
-        verifyExpectedOp('beforeEvaluate')
+        verifyExpectedOp('beforeEvaluate', id)
 
         when:
         resetOps()
@@ -308,7 +310,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         1 * listener.afterEvaluate(afterEvaluateArg1, afterEvaluateArg2)
 
         and:
-        verifyExpectedOp('afterEvaluate')
+        verifyExpectedOp('afterEvaluate', id)
 
         where:
         decorateAsObject << [true, false]
@@ -319,7 +321,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         given:
         def arg = Mock(TaskExecutionGraph)
         def listener = Mock(TaskExecutionGraphListener)
-        decorator.startApplication(APPLICATION_ID)
+        def id = context.push()
 
         when:
         def decoratedListener = decorateAsObject ? decorator.decorateUnknownListener(listener) as TaskExecutionGraphListener : decorator.decorate(TaskExecutionGraphListener, listener)
@@ -334,7 +336,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         1 * listener.graphPopulated(arg)
 
         and:
-        verifyExpectedOp('graphPopulated')
+        verifyExpectedOp('graphPopulated', id)
 
         where:
         decorateAsObject << [true, false]
@@ -347,7 +349,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         def beforeEvaluateArg = Mock(Project)
         def graphPopulatedArg = Mock(TaskExecutionGraph)
         def listener = Mock(ComboListener)
-        decorator.startApplication(APPLICATION_ID)
+        def id = context.push()
 
         when:
         def decoratedListener = decorator.decorateUnknownListener(listener) as ComboListener
@@ -371,7 +373,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         1 * listener.projectsLoaded(projectsLoadedArg)
 
         and:
-        verifyExpectedOp('projectsLoaded')
+        verifyExpectedOp('projectsLoaded', id)
 
         when:
         resetOps()
@@ -381,7 +383,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         1 * listener.beforeEvaluate(beforeEvaluateArg)
 
         and:
-        verifyExpectedOp('beforeEvaluate')
+        verifyExpectedOp('beforeEvaluate', id)
 
         when:
         resetOps()
@@ -391,7 +393,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         1 * listener.graphPopulated(graphPopulatedArg)
 
         and:
-        verifyExpectedOp('graphPopulated')
+        verifyExpectedOp('graphPopulated', id)
 
         when:
         resetOps()
@@ -418,10 +420,9 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         def broadcast = listenerManager.getBroadcaster(BuildListener)
 
         when:
-        def id = decorator.allocateApplicationId()
-        decorator.startApplication(id)
+        context.push()
         def decorated = decorator.decorate(BuildListener, undecorated)
-        decorator.finishApplication(id)
+        context.pop()
         listenerManager.addListener(decorated)
         broadcast.projectsLoaded(gradle)
 
@@ -445,10 +446,10 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         assert buildOperationExecutor.operations.empty
     }
 
-    private void verifyExpectedOp(String expectedName, long expectedApplicationId = APPLICATION_ID) {
+    private void verifyExpectedOp(String expectedName, UserCodeApplicationId id) {
         assert buildOperationExecutor.operations.size() == 1
         def op = buildOperationExecutor.operations.first()
         assert op.displayName == "Execute $expectedName listener"
-        assert (op.details as ExecuteListenerBuildOperationType.Details).applicationId == expectedApplicationId
+        assert (op.details as ExecuteListenerBuildOperationType.Details).applicationId == id.longValue()
     }
 }

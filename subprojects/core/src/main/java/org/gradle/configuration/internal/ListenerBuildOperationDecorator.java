@@ -77,21 +77,5 @@ public interface ListenerBuildOperationDecorator {
      */
     Object decorateUnknownListener(Object listener);
 
-    /**
-     * Used by script and plugin build operation emitting code to allocate an id, that is then
-     * also emitted in the listener execution build operation to allow a build op consumer to
-     * determine the registering script or plugin for a listener execution.
-     */
-    long allocateApplicationId();
-
-    /**
-     * Used by script and plugin build operation emitting code to mark the start of a script or plugin application.
-     */
-    void startApplication(long id);
-
-    /**
-     * Used by script and plugin build operation emitting code to mark the end of a script or plugin application.
-     */
-    void finishApplication(long id);
 
 }
