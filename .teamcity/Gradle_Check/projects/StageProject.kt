@@ -66,13 +66,17 @@ class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boo
             uuid = "${rootProjectUuid}_deferred_tests"
             id = AbsoluteId(uuid)
             name = "Test coverage deferred from Quick Feedback and Build Branch accept"
-            model.subProjects.forEach { subProject ->
-                if (subProject.containsSlowTests) {
-                    FunctionalTestProject.missingTestCoverage.forEach { testConfig ->
-                        configureBuildType(model, testConfig, stage, subProject)
-                    }
+            model.subProjects
+                .filter(GradleSubproject::containsSlowTests)
+                .forEach { subProject ->
+                    FunctionalTestProject.missingTestCoverage
+                        .filter { testConfig ->
+                            subProject.hasTestsOf(testConfig.testType)
+                        }
+                        .forEach { testConfig ->
+                            buildType(FunctionalTest(model, testConfig, subProject.name, subProject.useDaemonFor(testConfig.testType), stage))
+                        }
                 }
-            }
         }
         subProject(deferredTestsProject)
     }

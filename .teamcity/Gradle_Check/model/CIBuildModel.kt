@@ -154,8 +154,12 @@ data class CIBuildModel (
 
 data class GradleSubproject(val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val containsSlowTests: Boolean = false, val useDaemon: Boolean = true) {
     fun asDirectoryName(): String {
-        return name.replace(Regex("([A-Z])"), { "-" + it.groups[1]!!.value.toLowerCase()})
+        return name.replace(Regex("([A-Z])"), { "-" + it.groups[1]!!.value.toLowerCase() })
     }
+
+    fun hasTestsOf(type: TestType) = (unitTests && type.unitTests) || (functionalTests && type.functionalTests) || (crossVersionTests && type.crossVersionTests)
+
+    fun useDaemonFor(type: TestType) = useDaemon && type != TestType.noDaemon
 }
 
 interface BuildCache {
