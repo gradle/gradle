@@ -24,7 +24,20 @@ class GrettySmokeTest extends AbstractSmokeTest {
         given:
         useSample('gretty-example')
         buildFile << """
+            plugins {
+                id "war"
+                id "org.gretty" version "${TestedVersions.gretty}"
+            }
+            
+            ${jcenterRepository()}
+
+            dependencies {
+                compile group: 'log4j', name: 'log4j', version: '1.2.15', ext: 'jar'
+            }
+            
             gretty {
+                contextPath = 'quickstart'
+
                 httpPort = 0
                 integrationTestTask = 'checkContainerUp'
                 servletContainer = 'jetty9'
