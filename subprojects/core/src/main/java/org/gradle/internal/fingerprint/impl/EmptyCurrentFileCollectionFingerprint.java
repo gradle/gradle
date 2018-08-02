@@ -83,6 +83,6 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
 
     @Override
     public String toString() {
-        return "EMPTY";
+        return "EMPTY{" + identifier.name() + "}";
     }
 }

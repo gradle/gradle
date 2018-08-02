@@ -25,7 +25,9 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
+import spock.lang.Unroll
 
+@Unroll
 class EmptyFileCollectionFingerprintTest extends Specification {
 
     private static final List<FileCollectionFingerprint> EMPTY_FINGERPRINTS = [
@@ -68,13 +70,13 @@ class EmptyFileCollectionFingerprintTest extends Specification {
         empty << EMPTY_FINGERPRINTS
     }
 
-    def "comparing to itself works"() {
+    def "comparing empty fingerprints always produces empty - #combination"(List<FileCollectionFingerprint> combination) {
         expect:
-        getChanges(empty, empty, false).toList() == []
-        getChanges(empty, empty, true).toList() == []
+        getChanges(combination[0], combination[1], false).toList() == []
+        getChanges(combination[0], combination[1], true).toList() == []
 
         where:
-        empty << EMPTY_FINGERPRINTS
+        combination << [EMPTY_FINGERPRINTS, EMPTY_FINGERPRINTS].combinations()
     }
 
     private static Collection<TaskStateChange> getChanges(FileCollectionFingerprint current, FileCollectionFingerprint previous, boolean includeAdded) {
