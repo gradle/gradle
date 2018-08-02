@@ -16,24 +16,29 @@
 
 package org.gradle.configuration.internal;
 
+import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType;
+import org.gradle.configuration.ApplyScriptPluginBuildOperationType;
+import org.gradle.configuration.project.NotifyProjectBeforeEvaluatedBuildOperationType;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
- * Details about the execution of a registered listener.
+ * Execution of a lifecycle listener/callback.
+ *
+ * Expected to be the child operation of an operation indicating the lifecycle event (e.g. {@link NotifyProjectBeforeEvaluatedBuildOperationType}).
  *
  * @since 4.10
  */
+@UsedByScanPlugin
 public final class ExecuteListenerBuildOperationType implements BuildOperationType<ExecuteListenerBuildOperationType.Details, ExecuteListenerBuildOperationType.Result> {
 
-    @UsedByScanPlugin
     public interface Details {
 
         /**
-         * Returns the application id of the registering script or plugin.
+         * The application ID of the script or plugin that registered the listener.
          *
-         * @see org.gradle.api.internal.plugins.ApplyPluginBuildOperationType.Details#getApplicationId()}
-         * @see org.gradle.configuration.ApplyScriptPluginBuildOperationType.Details#getApplicationId
+         * @see ApplyPluginBuildOperationType.Details#getApplicationId()
+         * @see ApplyScriptPluginBuildOperationType.Details#getApplicationId()
          */
         Long getApplicationId();
     }
@@ -55,7 +60,8 @@ public final class ExecuteListenerBuildOperationType implements BuildOperationTy
 
     }
 
-    static final Result RESULT = new Result() {};
+    static final Result RESULT = new Result() {
+    };
 
     private ExecuteListenerBuildOperationType() {
     }
