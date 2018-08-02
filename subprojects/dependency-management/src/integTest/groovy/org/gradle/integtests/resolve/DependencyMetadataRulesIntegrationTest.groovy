@@ -328,7 +328,8 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         "dependency constraints" | _
     }
 
-    def "can set version on dependency"() {
+    @Unroll
+    def "can set version on dependency using #keyword"() {
         given:
         repository {
             'org.test:moduleA:1.0'() {
@@ -343,7 +344,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                     context.details.withVariant("$variantToTest") { 
                         withDependencies {
                             it.each {
-                                it.version { prefer '1.0' }
+                                it.version { ${keyword} '1.0' }
                             }
                         }
                     }
@@ -377,6 +378,9 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                 }
             }
         }
+
+        where:
+        keyword << ["prefer", "require", "strictly"]
     }
 
     @RequiredFeatures(
