@@ -18,9 +18,7 @@ package org.gradle.configuration.internal
 
 import org.gradle.api.Action
 
-class TestListenerBuildOperations implements ListenerBuildOperationDecorator {
-
-    private long counter
+class TestListenerBuildOperationDecorator implements ListenerBuildOperationDecorator {
 
     @Override
     <T> Action<T> decorate(String name, Action<T> action) {

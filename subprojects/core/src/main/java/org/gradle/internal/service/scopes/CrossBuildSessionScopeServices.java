@@ -98,7 +98,7 @@ public class CrossBuildSessionScopeServices implements Closeable {
         return new DelegatingBuildOperationExecutor(services.get(BuildOperationExecutor.class));
     }
 
-    ListenerBuildOperationDecorator createListenerBuildOperations() {
+    ListenerBuildOperationDecorator createListenerBuildOperationDecorator() {
         return services.get(DefaultListenerBuildOperationDecorator.class);
     }
 
@@ -164,7 +164,7 @@ public class CrossBuildSessionScopeServices implements Closeable {
             return operationDecorator.getUserCodeApplicationContext();
         }
 
-        DefaultListenerBuildOperationDecorator createListenerBuildOperations(BuildOperationExecutor buildOperationExecutor) {
+        DefaultListenerBuildOperationDecorator createListenerBuildOperationDecorator(BuildOperationExecutor buildOperationExecutor) {
             return new DefaultListenerBuildOperationDecorator(buildOperationExecutor);
         }
     }

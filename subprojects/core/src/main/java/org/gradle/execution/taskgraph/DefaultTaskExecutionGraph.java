@@ -72,7 +72,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final ListenerBroadcast<TaskExecutionListener> taskListeners;
     private final DefaultTaskExecutionPlan taskExecutionPlan;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final ListenerBuildOperationDecorator listenerBuildOperations;
+    private final ListenerBuildOperationDecorator listenerBuildOperationDecorator;
     private TaskGraphState taskGraphState = TaskGraphState.EMPTY;
     private List<Task> allTasks;
 
@@ -83,7 +83,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         TaskPlanExecutor taskPlanExecutor,
         List<WorkInfoExecutor> workInfoExecutors,
         BuildOperationExecutor buildOperationExecutor,
-        ListenerBuildOperationDecorator listenerBuildOperations,
+        ListenerBuildOperationDecorator listenerBuildOperationDecorator,
         WorkerLeaseService workerLeaseService,
         ResourceLockCoordinationService coordinationService,
         GradleInternal gradleInternal,
@@ -93,7 +93,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         this.taskPlanExecutor = taskPlanExecutor;
         this.workInfoExecutors = workInfoExecutors;
         this.buildOperationExecutor = buildOperationExecutor;
-        this.listenerBuildOperations = listenerBuildOperations;
+        this.listenerBuildOperationDecorator = listenerBuildOperationDecorator;
         this.coordinationService = coordinationService;
         this.gradleInternal = gradleInternal;
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
@@ -154,7 +154,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     public void addTaskExecutionGraphListener(TaskExecutionGraphListener listener) {
-        graphListeners.add(listenerBuildOperations.decorate(TaskExecutionGraphListener.class, listener));
+        graphListeners.add(listenerBuildOperationDecorator.decorate(TaskExecutionGraphListener.class, listener));
     }
 
     public void removeTaskExecutionGraphListener(TaskExecutionGraphListener listener) {
@@ -162,11 +162,11 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     public void whenReady(final Closure closure) {
-        graphListeners.add(new ClosureBackedMethodInvocationDispatch("graphPopulated", listenerBuildOperations.decorate("graphPopulated", closure)));
+        graphListeners.add(new ClosureBackedMethodInvocationDispatch("graphPopulated", listenerBuildOperationDecorator.decorate("graphPopulated", closure)));
     }
 
     public void whenReady(final Action<TaskExecutionGraph> action) {
-        graphListeners.add(listenerBuildOperations.decorate(TaskExecutionGraphListener.class, new TaskExecutionGraphListener() {
+        graphListeners.add(listenerBuildOperationDecorator.decorate(TaskExecutionGraphListener.class, new TaskExecutionGraphListener() {
             @Override
             public void graphPopulated(TaskExecutionGraph graph) {
                 action.execute(graph);
