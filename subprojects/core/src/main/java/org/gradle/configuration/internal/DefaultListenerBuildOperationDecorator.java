@@ -97,7 +97,6 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
 
         Class<?> listenerClass = listener.getClass();
         List<Class<?>> allInterfaces = ClassUtils.getAllInterfaces(listenerClass);
-        allInterfaces.add(BuildOperationEmittingListenerProxy.class);
         BuildOperationEmittingInvocationHandler handler = new BuildOperationEmittingInvocationHandler(applicationId, listener);
         return targetClass.cast(Proxy.newProxyInstance(listenerClass.getClassLoader(), allInterfaces.toArray(new Class[0]), handler));
     }
@@ -115,58 +114,48 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         return false;
     }
 
-    private static BuildOperationDescriptor.Builder opDescriptor(UserCodeApplicationId applicationId, String name) {
-        return BuildOperationDescriptor
-            .displayName("Execute " + name + " listener")
-            .details(new DetailsImpl(applicationId));
-    }
+    private static abstract class Operation implements RunnableBuildOperation {
 
-    private abstract class BuildOperationEmitter {
+        private final UserCodeApplicationId applicationId;
+        private final String name;
 
-        protected final UserCodeApplicationId applicationId;
-
-        BuildOperationEmitter(UserCodeApplicationId applicationId) {
+        protected Operation(UserCodeApplicationId applicationId, String name) {
             this.applicationId = applicationId;
+            this.name = name;
         }
 
-        protected abstract class Operation implements RunnableBuildOperation {
-
-            private final String name;
-
-            protected Operation(String name) {
-                this.name = name;
-            }
-
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-                return opDescriptor(applicationId, name);
-            }
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor
+                .displayName("Execute " + name + " listener")
+                .details(new DetailsImpl(applicationId));
         }
     }
 
-    private class BuildOperationEmittingAction<T> extends DefaultListenerBuildOperationDecorator.BuildOperationEmitter implements Action<T> {
+    private class BuildOperationEmittingAction<T> implements Action<T> {
 
+        private final UserCodeApplicationId applicationId;
         private final String name;
         private final Action<T> delegate;
 
         private BuildOperationEmittingAction(UserCodeApplicationId applicationId, String name, Action<T> delegate) {
-            super(applicationId);
+            this.applicationId = applicationId;
             this.delegate = delegate;
             this.name = name;
         }
 
         @Override
         public void execute(final T arg) {
-            buildOperationExecutor.run(new Operation(name) {
+            buildOperationExecutor.run(new Operation(applicationId, name) {
                 @Override
                 public void run(final BuildOperationContext context) {
                     userCodeApplicationContext.reapply(applicationId, new Runnable() {
                         @Override
                         public void run() {
                             delegate.execute(arg);
-                            context.setResult(RESULT);
                         }
                     });
+                    context.setResult(RESULT);
                 }
             });
         }
@@ -186,7 +175,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         }
 
         public void doCall(final Object... args) {
-            buildOperationExecutor.run(new RunnableBuildOperation() {
+            buildOperationExecutor.run(new Operation(applicationId, name) {
                 @Override
                 public void run(final BuildOperationContext context) {
                     userCodeApplicationContext.reapply(applicationId, new Runnable() {
@@ -198,11 +187,6 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
                             context.setResult(RESULT);
                         }
                     });
-                }
-
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return opDescriptor(applicationId, name);
                 }
             });
         }
@@ -223,16 +207,13 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         }
     }
 
-    public interface BuildOperationEmittingListenerProxy {
-        Object getDelegate();
-    }
+    private class BuildOperationEmittingInvocationHandler implements InvocationHandler {
 
-    private class BuildOperationEmittingInvocationHandler extends BuildOperationEmitter implements InvocationHandler {
-
+        private final UserCodeApplicationId applicationId;
         private final Object delegate;
 
         private BuildOperationEmittingInvocationHandler(UserCodeApplicationId applicationId, Object delegate) {
-            super(applicationId);
+            this.applicationId = applicationId;
             this.delegate = delegate;
         }
 
@@ -243,15 +224,12 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
                 return "BuildOperationEmittingBuildListenerInvocationHandler{delegate: " + delegate + "}";
             } else if (methodName.equals("hashCode") && (args == null || args.length == 0)) {
                 return delegate.hashCode();
-            } else if (methodName.equals("getDelegate") && (args == null || args.length == 0)) {
-                return delegate;
             } else if (methodName.equals("equals") && args.length == 1) {
-                return proxy == args[0] || (args[0] instanceof BuildOperationEmittingListenerProxy && delegate.equals(((BuildOperationEmittingListenerProxy) args[0]).getDelegate()));
+                return proxy == args[0] || isSame(args[0]);
             } else if (!SUPPORTED_INTERFACES.contains(method.getDeclaringClass()) || UNDECORATED_METHOD_NAMES.contains(methodName)) {
-                // just execute directly
                 return method.invoke(delegate, args);
             } else {
-                buildOperationExecutor.run(new Operation(methodName) {
+                buildOperationExecutor.run(new Operation(applicationId, methodName) {
                     @Override
                     public void run(final BuildOperationContext context) {
                         userCodeApplicationContext.reapply(applicationId, new Runnable() {
@@ -265,13 +243,24 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
                                 }
                             }
                         });
-
                     }
                 });
+
                 // all of the interfaces that we decorate have 100% void methods
                 //noinspection ConstantConditions
                 return null;
             }
+        }
+
+        private boolean isSame(Object arg) {
+            if (Proxy.isProxyClass(arg.getClass())) {
+                InvocationHandler invocationHandler = Proxy.getInvocationHandler(arg);
+                if (getClass() == invocationHandler.getClass()) {
+                    BuildOperationEmittingInvocationHandler cast = (BuildOperationEmittingInvocationHandler) invocationHandler;
+                    return cast.delegate.equals(delegate);
+                }
+            }
+            return false;
         }
     }
 
