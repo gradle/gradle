@@ -611,13 +611,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         @Override
         public void configure(final Action<? super I> action) {
+            Action<? super I> wrappedAction = crossProjectConfigurator.withCrossProjectConfigurationDisabled(action);
             if (task != null) {
                 // Already realized, just run the action now
-                crossProjectConfigurator.withCrossProjectConfigurationDisabled(action).execute(task);
+                wrappedAction.execute(task);
                 return;
             }
             // Collect any container level add actions then add the task specific action
-            onCreate = onCreate.mergeFrom(getEventRegister().getAddActions()).add(action);
+            onCreate = onCreate.mergeFrom(getEventRegister().getAddActions()).add(wrappedAction);
         }
 
         @Override
@@ -641,7 +642,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                                 statistics.lazyTaskRealized(getType());
 
                                 // Register the task
-                                add(task, crossProjectConfigurator.withCrossProjectConfigurationDisabled(onCreate));
+                                add(task, onCreate);
                                 // TODO removing this stuff from the store should be handled through some sort of decoration
                                 context.setResult(REALIZE_RESULT);
                             } catch (Throwable ex) {

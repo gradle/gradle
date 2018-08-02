@@ -36,6 +36,20 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         """
     }
 
+    def "has default conventions"() {
+        buildFile << """
+            task assertHasTestKit() {
+                doLast {
+                    assert project.sourceSets.test.runtimeClasspath.files.containsAll(dependencies.gradleTestKit().files.files)
+                }
+            }
+        """
+        expect:
+        succeeds("assertHasTestKit")
+        succeeds("test")
+        result.executedTasks.containsAll(":pluginUnderTestMetadata", ":pluginDescriptors")
+    }
+
     def "wires creation of plugin under test metadata into build lifecycle"() {
         given:
         def module = mavenRepo.module('org.gradle.test', 'a', '1.3').publish()

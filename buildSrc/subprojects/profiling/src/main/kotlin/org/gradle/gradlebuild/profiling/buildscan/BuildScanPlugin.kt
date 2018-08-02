@@ -142,7 +142,7 @@ open class BuildScanPlugin : Plugin<Project> {
                 .split(",")
 
             buildScan.buildFinished {
-                allprojects.flatMap { gradle.taskGraph.allTasks }
+                gradle.taskGraph.allTasks
                     .filter { it.state.executed && it.path in tasksToInvestigate }
                     .forEach { task ->
                         val hasher = (gradle as GradleInternal).services.get(ClassLoaderHierarchyHasher::class.java)

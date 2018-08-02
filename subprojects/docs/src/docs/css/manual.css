@@ -1272,6 +1272,14 @@ div.screenshot {
     height: 36px;
 }
 
+.site-header .site-header-version {
+    align-self: center;
+    color: #1da2bd;
+    font-size: 20px;
+    font-weight: 500;
+    padding-left: 1px;
+}
+
 .site-header__navigation {
     display: flex;
     flex-direction: column;
