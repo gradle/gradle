@@ -114,7 +114,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         return false;
     }
 
-    private static BuildOperationDescriptor.Builder opDescriptor(ApplicationStackEntry application, String name) {
+    private static BuildOperationDescriptor.Builder opDescriptor(ApplicationStack.Entry application, String name) {
         return BuildOperationDescriptor
             .displayName("Execute " + name + " listener")
             .details(new DetailsImpl(application == null ? null : application.parentApplicationId()));
@@ -122,9 +122,9 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
 
     private abstract class BuildOperationEmitter {
 
-        protected final ApplicationStackEntry application;
+        protected final ApplicationStack.Entry application;
 
-        BuildOperationEmitter(ApplicationStackEntry application) {
+        BuildOperationEmitter(ApplicationStack.Entry application) {
             this.application = application;
         }
 
@@ -148,7 +148,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         private final String name;
         private final Action<T> delegate;
 
-        private BuildOperationEmittingAction(ApplicationStackEntry application, String name, Action<T> delegate) {
+        private BuildOperationEmittingAction(ApplicationStack.Entry application, String name, Action<T> delegate) {
             super(application);
             this.delegate = delegate;
             this.name = name;
@@ -173,11 +173,11 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
 
     private class BuildOperationEmittingClosure<T> extends Closure<T> {
 
-        private final ApplicationStackEntry application;
+        private final ApplicationStack.Entry application;
         private final String name;
         private final Closure<T> delegate;
 
-        private BuildOperationEmittingClosure(ApplicationStackEntry application, String name, Closure<T> delegate) {
+        private BuildOperationEmittingClosure(ApplicationStack.Entry application, String name, Closure<T> delegate) {
             super(delegate.getOwner(), delegate.getThisObject());
             this.application = application;
             this.delegate = delegate;
@@ -230,7 +230,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
 
         private final Object delegate;
 
-        protected BuildOperationEmittingInvocationHandler(ApplicationStackEntry application, Object delegate) {
+        protected BuildOperationEmittingInvocationHandler(ApplicationStack.Entry application, Object delegate) {
             super(application);
             this.delegate = delegate;
         }
@@ -270,12 +270,12 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         }
     }
 
-    private static class ApplicationStack extends ThreadLocal<Deque<ApplicationStackEntry>> {
+    private static class ApplicationStack extends ThreadLocal<Deque<ApplicationStack.Entry>> {
         private long counter;
 
         @Override
-        protected Deque<ApplicationStackEntry> initialValue() {
-            return new ArrayDeque<ApplicationStackEntry>();
+        protected Deque<Entry> initialValue() {
+            return new ArrayDeque<Entry>();
         }
 
         public long allocateApplicationId() {
@@ -283,94 +283,95 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         }
 
         private void startApplication(long id) {
-            pushEntry(ApplicationStackEntryType.Application, id, null);
+            pushEntry(Entry.Type.Application, id, null);
         }
 
         private void finishApplication(long id) {
-            popEntry(ApplicationStackEntryType.Application, id);
+            popEntry(Entry.Type.Application, id);
         }
 
-        private long startListenerExecution(ApplicationStackEntry parent) {
+        private long startListenerExecution(Entry parent) {
             long id = allocateApplicationId();
             // this is to support attributing nested listener execution (primarily afterEvaluate at this time)
-            pushEntry(ApplicationStackEntryType.ListenerExecution, id, parent == null ? null : parent.parentApplicationId());
+            pushEntry(Entry.Type.ListenerExecution, id, parent == null ? null : parent.parentApplicationId());
             return id;
         }
 
         private void finishListenerExecution(long id) {
-            popEntry(ApplicationStackEntryType.ListenerExecution, id);
+            popEntry(Entry.Type.ListenerExecution, id);
         }
 
-        private ApplicationStackEntry currentApplication() {
+        private Entry currentApplication() {
             return get().peek();
         }
 
-        private void pushEntry(ApplicationStackEntryType type, Long id, Long parentApplicationId) {
-            get().push(new ApplicationStackEntry(type, id, parentApplicationId));
+        private void pushEntry(Entry.Type type, Long id, Long parentApplicationId) {
+            get().push(new Entry(type, id, parentApplicationId));
         }
 
-        private void popEntry(ApplicationStackEntryType type, Long id) {
-            ApplicationStackEntry expected = new ApplicationStackEntry(type, id, null);
-            ApplicationStackEntry head = get().pop();
+        private void popEntry(Entry.Type type, Long id) {
+            Entry expected = new Entry(type, id, null);
+            Entry head = get().pop();
             if (!head.equals(expected)) {
                 throw new IllegalStateException("Mismatching application stack, ending " + expected + " but stack had " + head);
             }
         }
 
-    }
+        private static class Entry {
 
-    private enum ApplicationStackEntryType {
-        Application, ListenerExecution
-    }
-
-    private static class ApplicationStackEntry {
-        private final ApplicationStackEntryType type;
-        private final long applicationId;
-        private final Long parentApplicationId;
-
-        private ApplicationStackEntry(ApplicationStackEntryType type, long applicationId, Long parentApplicationId) {
-            this.type = type;
-            this.applicationId = applicationId;
-            this.parentApplicationId = parentApplicationId;
-        }
-
-        private long parentApplicationId() {
-            return parentApplicationId != null ? parentApplicationId : applicationId;
-        }
-
-        // note equals and hashCode aren't interested in the parent, only this execution
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
+            private enum Type {
+                Application, ListenerExecution
             }
 
-            ApplicationStackEntry that = (ApplicationStackEntry) o;
+            private final Type type;
+            private final long applicationId;
+            private final Long parentApplicationId;
 
-            if (type != that.type) {
-                return false;
+            private Entry(Type type, long applicationId, Long parentApplicationId) {
+                this.type = type;
+                this.applicationId = applicationId;
+                this.parentApplicationId = parentApplicationId;
             }
-            return applicationId == that.applicationId;
-        }
 
-        @Override
-        public int hashCode() {
-            int result = type.hashCode();
-            result = 31 * result + (int) (applicationId ^ (applicationId >>> 32));
-            return result;
-        }
+            private long parentApplicationId() {
+                return parentApplicationId != null ? parentApplicationId : applicationId;
+            }
 
-        @Override
-        public String toString() {
-            return "ApplicationStackEntry{"
-                + "type=" + type
-                + ", applicationId=" + applicationId
-                + ", parentApplicationId=" + parentApplicationId
-                + '}';
+            // note equals and hashCode aren't interested in the parent, only this execution
+
+            @Override
+            public boolean equals(Object o) {
+                if (this == o) {
+                    return true;
+                }
+                if (o == null || getClass() != o.getClass()) {
+                    return false;
+                }
+
+                Entry that = (Entry) o;
+
+                if (type != that.type) {
+                    return false;
+                }
+                return applicationId == that.applicationId;
+            }
+
+            @Override
+            public int hashCode() {
+                int result = type.hashCode();
+                result = 31 * result + (int) (applicationId ^ (applicationId >>> 32));
+                return result;
+            }
+
+            @Override
+            public String toString() {
+                return "ApplicationStackEntry{"
+                    + "type=" + type
+                    + ", applicationId=" + applicationId
+                    + ", parentApplicationId=" + parentApplicationId
+                    + '}';
+            }
         }
     }
+
 }
