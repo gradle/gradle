@@ -20,7 +20,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.DomainObjectProvider;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectCollection;
@@ -340,8 +340,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Override
-    public DomainObjectProvider<T> named(String name) throws UnknownTaskException {
-        DomainObjectProvider<? extends T> provider = findDomainObject(name);
+    public NamedDomainObjectProvider<T> named(String name) throws UnknownTaskException {
+        NamedDomainObjectProvider<? extends T> provider = findDomainObject(name);
         if (provider == null) {
             throw createNotFoundException(name);
         }
@@ -750,20 +750,20 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Nullable
-    protected DomainObjectProvider<? extends T> findDomainObject(String name) {
+    protected NamedDomainObjectProvider<? extends T> findDomainObject(String name) {
         T object = findByNameWithoutRules(name);
         if (object == null) {
             // TODO: Need to check for proper type/cast
             return Cast.uncheckedCast(findByNameLaterWithoutRules(name));
         }
 
-        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingDomainObjectProvider.class, this, object, name));
+        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingNamedDomainObjectProvider.class, this, object, name));
     }
 
-    protected abstract class AbstractDomainObjectProvider<I extends T> extends AbstractProvider<I> implements Named, DomainObjectProvider<I> {
+    protected abstract class AbstractNamedDomainObjectProvider<I extends T> extends AbstractProvider<I> implements Named, NamedDomainObjectProvider<I> {
         private final String name;
 
-        protected AbstractDomainObjectProvider(String name) {
+        protected AbstractNamedDomainObjectProvider(String name) {
             this.name = name;
         }
 
@@ -789,10 +789,10 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
     }
 
-    protected class ExistingDomainObjectProvider<I extends T> extends AbstractDomainObjectProvider<I> {
+    protected class ExistingNamedDomainObjectProvider<I extends T> extends AbstractNamedDomainObjectProvider<I> {
         private final I object;
 
-        public ExistingDomainObjectProvider(I object, String name) {
+        public ExistingNamedDomainObjectProvider(I object, String name) {
             super(name);
             this.object = object;
         }

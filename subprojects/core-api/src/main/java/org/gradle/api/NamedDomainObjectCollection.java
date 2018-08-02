@@ -228,7 +228,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @since 4.10
      */
     @Incubating
-    DomainObjectProvider<T> named(String name) throws UnknownDomainObjectException;
+    NamedDomainObjectProvider<T> named(String name) throws UnknownDomainObjectException;
 
     /**
      * Provides access to the schema of all created or registered named domain objects in this collection.

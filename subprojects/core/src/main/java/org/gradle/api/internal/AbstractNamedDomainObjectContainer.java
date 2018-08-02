@@ -17,7 +17,7 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.DomainObjectProvider;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
@@ -95,31 +95,31 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
     }
 
     @Override
-    public DomainObjectProvider<T> register(String name) throws InvalidUserDataException {
+    public NamedDomainObjectProvider<T> register(String name) throws InvalidUserDataException {
         return createDomainObjectProvider(name, null);
     }
 
     @Override
-    public DomainObjectProvider<T> register(String name, Action<? super T> configurationAction) throws InvalidUserDataException {
+    public NamedDomainObjectProvider<T> register(String name, Action<? super T> configurationAction) throws InvalidUserDataException {
         return createDomainObjectProvider(name, configurationAction);
     }
 
-    protected DomainObjectProvider<T> createDomainObjectProvider(String name, @Nullable Action<? super T> configurationAction) {
+    protected NamedDomainObjectProvider<T> createDomainObjectProvider(String name, @Nullable Action<? super T> configurationAction) {
         assertCanAdd(name);
-        DomainObjectProvider<T> provider = Cast.uncheckedCast(
-            getInstantiator().newInstance(DomainObjectCreatingProvider.class, AbstractNamedDomainObjectContainer.this, name, configurationAction)
+        NamedDomainObjectProvider<T> provider = Cast.uncheckedCast(
+            getInstantiator().newInstance(NamedDomainObjectCreatingProvider.class, AbstractNamedDomainObjectContainer.this, name, configurationAction)
         );
         addLater(provider);
         return provider;
     }
 
     // Cannot be private due to reflective instantiation
-    public class DomainObjectCreatingProvider<I extends T> extends AbstractDomainObjectProvider<I> {
+    public class NamedDomainObjectCreatingProvider<I extends T> extends AbstractNamedDomainObjectProvider<I> {
         private I object;
         private Throwable cause;
         private ImmutableActionSet<I> onCreate;
 
-        public DomainObjectCreatingProvider(String name, @Nullable Action<? super I> configureAction) {
+        public NamedDomainObjectCreatingProvider(String name, @Nullable Action<? super I> configureAction) {
             super(name);
             this.onCreate = ImmutableActionSet.<I>empty().mergeFrom(getEventRegister().getAddActions());
 
