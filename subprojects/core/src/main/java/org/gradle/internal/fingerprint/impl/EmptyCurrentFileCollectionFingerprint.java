@@ -78,8 +78,8 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
     }
 
     @Override
-    public String getNormalizationStrategyName() {
-        return identifier.name();
+    public FingerprintingStrategy.Identifier getStrategyIdentifier() {
+        return identifier;
     }
 
     @Override

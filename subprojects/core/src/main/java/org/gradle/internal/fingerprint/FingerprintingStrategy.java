@@ -19,6 +19,7 @@ package org.gradle.internal.fingerprint;
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.Map;
 
@@ -39,6 +40,7 @@ public interface FingerprintingStrategy {
 
     Identifier getIdentifier();
 
+    @UsedByScanPlugin("not linked directly - name are expected as part of org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType.Result.VisitState.getPropertyNormalizationStrategyName")
     enum Identifier {
         IGNORED_PATH,
         NAME_ONLY,

@@ -74,8 +74,8 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     }
 
     @Override
-    public String getNormalizationStrategyName() {
-        return identifier.name();
+    public FingerprintingStrategy.Identifier getStrategyIdentifier() {
+        return identifier;
     }
 
     @Override

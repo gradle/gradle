@@ -33,5 +33,5 @@ public interface CurrentFileCollectionFingerprint extends FileCollectionFingerpr
      */
     void visitRoots(PhysicalSnapshotVisitor visitor);
 
-    String getNormalizationStrategyName();
+    FingerprintingStrategy.Identifier getStrategyIdentifier();
 }
