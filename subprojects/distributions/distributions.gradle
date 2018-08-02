@@ -54,16 +54,13 @@ gradlebuildJava {
 }
 
 apiMetadata {
-    sources = provider {
-        ProjectGroups.INSTANCE.getJavaProjects(project)
-            .collect { it.sourceSets.main.allJava.asFileTree }
-            .inject { acc, fileTree -> acc.plus(fileTree) }
-    }
+    sources.from(provider {
+        ProjectGroups.INSTANCE.getJavaProjects(project).collect { it.sourceSets.main.allJava }
+    })
     includes = PublicApi.includes
     excludes = PublicApi.excludes
-    classpath = provider {
-        rootProject.configurations.runtime + rootProject.configurations.gradlePlugins
-    }
+    classpath.from(rootProject.configurations.runtime)
+    classpath.from(rootProject.configurations.gradlePlugins)
 }
 
 evaluationDependsOn ":docs"

@@ -72,4 +72,9 @@ public class IgnoredPathFingerprintingStrategy implements FingerprintingStrategy
         return FingerprintCompareStrategy.IGNORED_PATH;
     }
 
+    @Override
+    public Identifier getIdentifier() {
+        return Identifier.IGNORED_PATH;
+    }
+
 }

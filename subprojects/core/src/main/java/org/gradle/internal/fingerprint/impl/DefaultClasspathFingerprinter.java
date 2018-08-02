@@ -28,8 +28,6 @@ import org.gradle.internal.fingerprint.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
-import static org.gradle.internal.fingerprint.impl.ClasspathFingerprintingStrategy.NonJarFingerprintingStrategy.USE_FILE_HASH;
-
 public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerprinter implements ClasspathFingerprinter {
     private final ResourceSnapshotterCacheService cacheService;
     private final StringInterner stringInterner;
@@ -50,6 +48,7 @@ public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerp
     @Override
     public CurrentFileCollectionFingerprint fingerprint(FileCollection files, InputNormalizationStrategy inputNormalizationStrategy) {
         ResourceFilter classpathResourceFilter = inputNormalizationStrategy.getRuntimeClasspathNormalizationStrategy().getRuntimeClasspathResourceFilter();
-        return super.fingerprint(files, new ClasspathFingerprintingStrategy(USE_FILE_HASH, runtimeClasspathResourceHasher, classpathResourceFilter, cacheService, stringInterner));
+        return super.fingerprint(files, ClasspathFingerprintingStrategy.runtimeClasspath(classpathResourceFilter, runtimeClasspathResourceHasher, cacheService, stringInterner));
     }
+
 }

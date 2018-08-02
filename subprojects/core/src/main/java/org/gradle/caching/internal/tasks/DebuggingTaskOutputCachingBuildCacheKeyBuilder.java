@@ -20,6 +20,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
@@ -54,9 +55,16 @@ public class DebuggingTaskOutputCachingBuildCacheKeyBuilder implements TaskOutpu
     }
 
     @Override
-    public void appendInputPropertyHash(String propertyName, HashCode hashCode) {
-        LOGGER.lifecycle("Appending inputPropertyHash for '{}' to build cache key: {}", propertyName, hashCode);
-        delegate.appendInputPropertyHash(propertyName, hashCode);
+    public void appendInputValuePropertyHash(String propertyName, HashCode hashCode) {
+        LOGGER.lifecycle("Appending inputValuePropertyHash for '{}' to build cache key: {}", propertyName, hashCode);
+        delegate.appendInputValuePropertyHash(propertyName, hashCode);
+    }
+
+    @Override
+    public void appendInputFilesProperty(String propertyName, CurrentFileCollectionFingerprint fileCollectionFingerprint) {
+        LOGGER.lifecycle("Appending inputFilePropertyHash for '{}' to build cache key: {}", propertyName, fileCollectionFingerprint.getHash());
+        delegate.appendInputFilesProperty(propertyName, fileCollectionFingerprint);
+
     }
 
     @Override

@@ -1050,4 +1050,20 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
+
+    @Unroll
+    def "can execute #description during eager configuration action with registered task"() {
+        buildFile << """
+            tasks.withType(SomeTask) {
+                ${code}
+            }
+            tasks.register("foo", SomeTask)
+        """
+
+        expect:
+        succeeds "foo"
+
+        where:
+        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+    }
 }

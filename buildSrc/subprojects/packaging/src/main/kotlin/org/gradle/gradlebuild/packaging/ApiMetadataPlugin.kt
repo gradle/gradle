@@ -20,7 +20,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.FileTree
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
@@ -48,10 +47,10 @@ import org.gradle.kotlin.dsl.support.serviceOf
 
 open class ApiMetadataExtension(project: Project, val jarTask: Provider<Jar>) {
 
-    val sources = project.objects.property<FileTree>()
+    val sources = project.files()
     val includes = project.objects.listProperty<String>()
     val excludes = project.objects.listProperty<String>()
-    val classpath = project.objects.property<FileCollection>()
+    val classpath = project.files()
 }
 
 
@@ -80,11 +79,11 @@ open class ApiMetadataPlugin : Plugin<Project> {
 
         val apiParameterNamesTask =
             tasks.register("apiParameterNamesResource", ParameterNamesResourceTask::class.java) {
-                sources = extension.sources.get().matching {
+                sources.from(extension.sources.asFileTree.matching {
                     include(extension.includes.get())
                     exclude(extension.excludes.get())
-                }
-                classpath = extension.classpath.get()
+                })
+                classpath.from(extension.classpath)
                 destinationFile.set(generatedPropertiesFileFor("gradle-api-parameter-names"))
             }
 
@@ -93,7 +92,7 @@ open class ApiMetadataPlugin : Plugin<Project> {
             group = "build"
             from(apiDeclarationTask)
             from(apiParameterNamesTask)
-            destinationDir = layout.buildDirectory.file("$name").get().asFile
+            destinationDir = layout.buildDirectory.file(name).get().asFile
             archiveName = "gradle-api-metadata-$version.jar"
         }
 
@@ -116,11 +115,11 @@ open class ParameterNamesResourceTask : DefaultTask() {
 
     @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
-    lateinit var sources: FileTree
+    val sources = project.files()
 
     @InputFiles
     @Classpath
-    lateinit var classpath: FileCollection
+    val classpath = project.files()
 
     @OutputFile
     @PathSensitive(PathSensitivity.NONE)

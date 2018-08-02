@@ -83,4 +83,9 @@ public enum AbsolutePathFingerprintingStrategy implements FingerprintingStrategy
         return FingerprintCompareStrategy.ABSOLUTE;
     }
 
+    @Override
+    public Identifier getIdentifier() {
+        return Identifier.ABSOLUTE_PATH;
+    }
+
 }

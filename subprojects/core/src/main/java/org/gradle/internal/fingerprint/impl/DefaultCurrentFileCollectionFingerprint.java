@@ -38,24 +38,26 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
 
     private final Map<String, NormalizedFileSnapshot> snapshots;
     private final FingerprintCompareStrategy compareStrategy;
+    private final FingerprintingStrategy.Identifier identifier;
     private final Iterable<FileSystemSnapshot> roots;
     private final ImmutableMultimap<String, HashCode> rootHashes;
     private HashCode hash;
 
     public static CurrentFileCollectionFingerprint from(Iterable<FileSystemSnapshot> roots, FingerprintingStrategy strategy) {
         if (Iterables.isEmpty(roots)) {
-            return EmptyFileCollectionFingerprint.INSTANCE;
+            EmptyCurrentFileCollectionFingerprint.of(strategy.getIdentifier());
         }
         Map<String, NormalizedFileSnapshot> snapshots = strategy.collectSnapshots(roots);
         if (snapshots.isEmpty()) {
-            return EmptyFileCollectionFingerprint.INSTANCE;
+            EmptyCurrentFileCollectionFingerprint.of(strategy.getIdentifier());
         }
-        return new DefaultCurrentFileCollectionFingerprint(snapshots, strategy.getCompareStrategy(), roots);
+        return new DefaultCurrentFileCollectionFingerprint(snapshots, strategy.getCompareStrategy(), strategy.getIdentifier(), roots);
     }
 
-    private DefaultCurrentFileCollectionFingerprint(Map<String, NormalizedFileSnapshot> snapshots, FingerprintCompareStrategy compareStrategy, Iterable<FileSystemSnapshot> roots) {
+    private DefaultCurrentFileCollectionFingerprint(Map<String, NormalizedFileSnapshot> snapshots, FingerprintCompareStrategy compareStrategy, FingerprintingStrategy.Identifier identifier, Iterable<FileSystemSnapshot> roots) {
         this.snapshots = snapshots;
         this.compareStrategy = compareStrategy;
+        this.identifier = identifier;
         this.roots = roots;
 
         final ImmutableMultimap.Builder<String, HashCode> builder = ImmutableMultimap.builder();
@@ -108,6 +110,11 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     @Override
     public Multimap<String, HashCode> getRootHashes() {
         return rootHashes;
+    }
+
+    @Override
+    public FingerprintingStrategy.Identifier getStrategyIdentifier() {
+        return identifier;
     }
 
     @Override
