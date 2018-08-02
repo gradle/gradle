@@ -50,10 +50,10 @@ class BuildOperationNotificationFixture {
     }
 
     void has(boolean started, Class<?> type, Map<String, ?> payload) {
-        has(started, type, payload ? payloadTest(payload) : { true } as Predicate)
+        has(started, type, payload ? payloadEquals(payload) : { true } as Predicate)
     }
 
-    private static Predicate<? super Map<String, ?>> payloadTest(Map<String, ?> expectedPayload) {
+    private static Predicate<? super Map<String, ?>> payloadEquals(Map<String, ?> expectedPayload) {
         { actualPayload ->
             if (actualPayload.keySet() != expectedPayload.keySet()) {
                 return false
