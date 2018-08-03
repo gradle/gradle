@@ -16,22 +16,24 @@
 
 package org.gradle.api.internal.collections;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.WithEstimatedSize;
+import org.gradle.api.provider.Provider;
 
 import java.util.Collection;
 import java.util.Iterator;
 
-public interface ElementSource<T> extends Iterable<T>, WithEstimatedSize, PendingSource<T> {
+public interface ElementSource<T> extends Iterable<T>, WithEstimatedSize {
     /**
      * Iterates over and realizes each of the elements of this source.
      */
     @Override
     Iterator<T> iterator();
 
-    /**
-     * Iterates over only the realized elements (without flushing any pending elements)
-     */
-    Iterator<T> iteratorNoFlush();
+    void configureAll(Action<? super T> action);
+
+    void addedElement(Action<? super T> action);
+    void removedElement(Action<? super T> action);
 
     /**
      * Returns false if this source is not empty or it is not fast to determine this.
@@ -46,13 +48,12 @@ public interface ElementSource<T> extends Iterable<T>, WithEstimatedSize, Pendin
 
     boolean isEmpty();
 
-    boolean add(T element);
-
-    boolean addRealized(T element);
-
     void clear();
 
     boolean remove(Object o);
 
     int size();
+
+    Provider<T> add(Class<? extends T> clazz, Provider<? extends T> provider);
+    void realize();
 }

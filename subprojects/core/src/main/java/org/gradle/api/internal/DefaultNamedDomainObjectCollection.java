@@ -94,7 +94,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister, Index<T> index, Instantiator instantiator, Namer<? super T> namer) {
-        super(type, store, eventRegister);
+        super(type, store);
         this.instantiator = instantiator;
         this.namer = namer;
         this.index = index;
