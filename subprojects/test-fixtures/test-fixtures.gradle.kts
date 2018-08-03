@@ -1,9 +1,11 @@
+import build.*
+
 plugins {
     id("kotlin-library")
 }
 
 dependencies {
-    compile(gradleApi())
+    compile(gradleApiWithParameterNames())
 
     compile(project(":provider"))
     compile(project(":tooling-builders"))
