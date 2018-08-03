@@ -26,6 +26,7 @@ import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.gradle.api.internal.InternalAction;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.UncheckedException;
@@ -380,7 +381,7 @@ public class BuildOperationTrace implements Stoppable {
         @Override
         public void projectsLoaded(@SuppressWarnings("NullableProblems") Gradle gradle) {
             if (gradle.getParent() == null) {
-                gradle.getRootProject().beforeEvaluate(new Action<Project>() {
+                gradle.getRootProject().beforeEvaluate(new InternalAction<Project>() {
                     @Override
                     public void execute(Project project) {
                         stopBuffering();
