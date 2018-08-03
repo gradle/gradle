@@ -150,6 +150,19 @@ public class SystemProperties {
     }
 
     /**
+     * Provides safe access to the system properties, preventing concurrent {@link #withSystemProperty(String, String, Factory)} calls.
+     * This can be used to wrap 3rd party APIs that iterate over the system properties, so they won't result in {@link java.util.ConcurrentModificationException}s.
+     */
+    public <T> T withSystemProperties(Factory<T> factory) {
+        lock.lock();
+        try {
+            return factory.create();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
      * Returns the keys that are guaranteed to be contained in System.getProperties() by default,
      * as specified in the Javadoc for that method.
      */
