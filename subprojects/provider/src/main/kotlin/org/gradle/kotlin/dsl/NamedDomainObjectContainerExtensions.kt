@@ -118,7 +118,7 @@ class NamedDomainObjectContainerScope<T : Any>(
  * Provides a property delegate that creates elements of the default collection type.
  */
 val <T : Any> NamedDomainObjectContainer<T>.creating
-    get() = NamedDomainObjectContainerDelegateProvider(this, {})
+    get() = NamedDomainObjectContainerCreatingDelegateProvider(this)
 
 
 /**
@@ -127,7 +127,7 @@ val <T : Any> NamedDomainObjectContainer<T>.creating
  * `val myElement by myContainer.creating { myProperty = 42 }`
  */
 fun <T : Any> NamedDomainObjectContainer<T>.creating(configuration: T.() -> Unit) =
-    NamedDomainObjectContainerDelegateProvider(this, configuration)
+    NamedDomainObjectContainerCreatingDelegateProvider(this, configuration)
 
 
 /**
@@ -135,14 +135,14 @@ fun <T : Any> NamedDomainObjectContainer<T>.creating(configuration: T.() -> Unit
  *
  * See [creating]
  */
-class NamedDomainObjectContainerDelegateProvider<T : Any>(
+class NamedDomainObjectContainerCreatingDelegateProvider<T : Any>(
     val container: NamedDomainObjectContainer<T>,
-    val configuration: T.() -> Unit
+    val configuration: (T.() -> Unit)? = null
 ) {
-
     operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) =
-        container.apply {
-            create(property.name).apply(configuration)
+        when (configuration) {
+            null -> container.register(property.name)
+            else -> container.register(property.name, configuration)
         }
 }
 
@@ -151,7 +151,7 @@ class NamedDomainObjectContainerDelegateProvider<T : Any>(
  * Provides a property delegate that creates elements of the given [type].
  */
 fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.creating(type: KClass<U>) =
-    creating(type.java, {})
+    PolymorphicDomainObjectContainerCreatingDelegateProvider(this, type.java)
 
 
 /**
@@ -166,23 +166,22 @@ fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.creating(type: KClass<U
  * with the given [configuration].
  */
 fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.creating(type: Class<U>, configuration: U.() -> Unit) =
-    PolymorphicDomainObjectContainerDelegateProvider(this, type, configuration)
+    PolymorphicDomainObjectContainerCreatingDelegateProvider(this, type, configuration)
 
 
 /**
  * A property delegate that creates elements of the given [type] with the given [configuration] in the given [container].
  */
-class PolymorphicDomainObjectContainerDelegateProvider<T : Any, U : T>(
+class PolymorphicDomainObjectContainerCreatingDelegateProvider<T : Any, U : T>(
     val container: PolymorphicDomainObjectContainer<T>,
     val type: Class<U>,
-    val configuration: U.() -> Unit
+    val configuration: (U.() -> Unit)? = null
 ) {
-
-    @Suppress("unchecked_cast")
     operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) =
-        container.apply {
-            create(property.name, type).apply(configuration)
-        } as PolymorphicDomainObjectContainer<U>
+        when (configuration) {
+            null -> container.register(property.name, type)
+            else -> container.register(property.name, type, configuration)
+        }
 }
 
 
@@ -197,20 +196,7 @@ fun <T : Any, U : T> NamedDomainObjectContainer<T>.getting(type: KClass<U>, conf
  * Provides a property delegate that gets elements of the given [type].
  */
 fun <T : Any, U : T> NamedDomainObjectContainer<T>.getting(type: KClass<U>) =
-    PolymorphicDomainObjectContainerGettingDelegate(this, type)
-
-
-/**
- * A property delegate that gets elements of the given [type] in the given [container].
- */
-class PolymorphicDomainObjectContainerGettingDelegate<T : Any, U : T>(
-    val container: NamedDomainObjectContainer<T>,
-    val type: KClass<U>
-) {
-
-    operator fun getValue(receiver: Any?, property: kotlin.reflect.KProperty<*>): U =
-        container.getByName(property.name, type)
-}
+    PolymorphicDomainObjectContainerGettingDelegateProvider(this, type)
 
 
 /**
@@ -220,12 +206,11 @@ class PolymorphicDomainObjectContainerGettingDelegate<T : Any, U : T>(
 class PolymorphicDomainObjectContainerGettingDelegateProvider<T : Any, U : T>(
     val container: NamedDomainObjectContainer<T>,
     val type: KClass<U>,
-    val configuration: U.() -> Unit
+    val configuration: (U.() -> Unit)? = null
 ) {
-
-    @Suppress("unchecked_cast")
     operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) =
-        container.apply {
-            getByName(property.name, type).configuration()
-        } as NamedDomainObjectContainer<U>
+        when (configuration) {
+            null -> container.named(property.name, type)
+            else -> container.named(property.name, type, configuration)
+        }
 }

@@ -16,12 +16,10 @@
 
 package org.gradle.kotlin.dsl.support
 
-import org.gradle.api.NamedDomainObjectCollection
-
 import kotlin.reflect.KClass
 
 
-fun illegalElementType(container: NamedDomainObjectCollection<*>, name: String, expectedType: KClass<*>, actualType: KClass<*>) =
+fun illegalElementType(container: Any, name: String, expectedType: KClass<*>, actualType: KClass<*>) =
     IllegalArgumentException(
         "Element '$name' of type '${actualType.java.name}' from container '$container' cannot be cast to '${expectedType.qualifiedName}'.")
 

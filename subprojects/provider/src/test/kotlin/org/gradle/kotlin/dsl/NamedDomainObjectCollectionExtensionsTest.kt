@@ -1,8 +1,12 @@
 package org.gradle.kotlin.dsl
 
+import com.nhaarman.mockito_kotlin.KStubbing
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.eq
+import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.times
 
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectProvider
@@ -81,10 +85,17 @@ class NamedDomainObjectCollectionExtensionsTest {
     fun `can access existing element via delegated property`() {
 
         val element = DomainObject()
+        val provider = mockDomainObjectProviderFor(element)
         val container = mock<NamedDomainObjectCollection<DomainObject>> {
-            on { getByName("domainObject") } doReturn element
+            on { named("domainObject") } doReturn provider
         }
+
         val domainObject by container
+
+        inOrder(container) {
+            verify(container).named("domainObject")
+            verifyNoMoreInteractions()
+        }
 
         assertThat(
             domainObject.foo, // just to prove domainObject's type is inferred correctly
@@ -93,22 +104,38 @@ class NamedDomainObjectCollectionExtensionsTest {
         assertThat(
             domainObject,
             sameInstance(element))
+
+        inOrder(container, provider) {
+            verify(provider, times(2)).get()
+            verifyNoMoreInteractions()
+        }
     }
 
     @Test
     fun `can access existing element by getting`() {
 
         val element = DomainObject()
+        val elementProvider = mockDomainObjectProviderFor(element)
         val container = mock<NamedDomainObjectContainer<DomainObject>> {
-            on { getByName("domainObject") } doReturn element
+            on { named("domainObject") } doReturn elementProvider
         }
 
-        container { // invoke syntax
+        container {
+            // invoke syntax
             val domainObject by getting
+            inOrder(container, elementProvider) {
+                verify(container).named("domainObject")
+                verifyNoMoreInteractions()
+            }
             assertThat(domainObject, sameInstance(element))
+            inOrder(container, elementProvider) {
+                verify(elementProvider).get()
+                verifyNoMoreInteractions()
+            }
         }
 
-        container.apply { // regular syntax
+        container.apply {
+            // regular syntax
             val domainObject by getting
             assertThat(domainObject, sameInstance(element))
         }
@@ -118,17 +145,20 @@ class NamedDomainObjectCollectionExtensionsTest {
     fun `can configure existing element by getting`() {
 
         val element = DomainObject()
+        val elementProvider = mockDomainObjectProviderFor(element)
         val container = mock<NamedDomainObjectContainer<DomainObject>> {
-            on { getByName("domainObject") } doReturn element
+            on { named("domainObject") } doReturn elementProvider
         }
 
-        container { // invoke syntax
+        container {
+            // invoke syntax
             @Suppress("unused_variable")
             val domainObject by getting { foo = "foo" }
             assertThat(element.foo, equalTo("foo"))
         }
 
-        container.apply { // regular syntax
+        container.apply {
+            // regular syntax
             @Suppress("unused_variable")
             val domainObject by getting { foo = "bar" }
             assertThat(element.foo, equalTo("bar"))
@@ -139,20 +169,22 @@ class NamedDomainObjectCollectionExtensionsTest {
     fun `can add element by creating`() {
 
         val fooObject = DomainObject()
+        val fooObjectProvider = mockDomainObjectProviderFor(fooObject)
         val barObject = DomainObject()
+        val barObjectProvider = mockDomainObjectProviderFor(barObject)
         val container = mock<NamedDomainObjectContainer<DomainObject>> {
-            on { create("foo") } doReturn fooObject
-            on { getByName("foo") } doReturn fooObject
-            on { create("bar") } doReturn barObject
-            on { getByName("bar") } doReturn barObject
+            on { register("foo") } doReturn fooObjectProvider
+            on { register("bar") } doReturn barObjectProvider
         }
 
-        container { // invoke syntax
+        container {
+            // invoke syntax
             val foo by creating
             assertThat(foo.foo, nullValue())
         }
 
-        container.apply { // regular syntax
+        container.apply {
+            // regular syntax
             val bar by creating
             assertThat(bar.foo, nullValue())
         }
@@ -162,20 +194,22 @@ class NamedDomainObjectCollectionExtensionsTest {
     fun `can add and configure element by creating`() {
 
         val fooObject = DomainObject()
+        val fooObjectProvider = mockDomainObjectProviderFor(fooObject)
         val barObject = DomainObject()
+        val barObjectProvider = mockDomainObjectProviderFor(barObject)
         val container = mock<NamedDomainObjectContainer<DomainObject>> {
-            on { create("foo") } doReturn fooObject
-            on { getByName("foo") } doReturn fooObject
-            on { create("bar") } doReturn barObject
-            on { getByName("bar") } doReturn barObject
+            onRegisterWithAction("foo", fooObjectProvider)
+            onRegisterWithAction("bar", barObjectProvider)
         }
 
-        container { // invoke syntax
+        container {
+            // invoke syntax
             val foo by creating { foo = "foo" }
             assertThat(foo.foo, equalTo("foo"))
         }
 
-        container.apply { // regular syntax
+        container.apply {
+            // regular syntax
             val bar by creating { foo = "bar" }
             assertThat(bar.foo, equalTo("bar"))
         }
@@ -185,17 +219,20 @@ class NamedDomainObjectCollectionExtensionsTest {
     fun `can access existing typed element by getting`() {
 
         val element = DomainObject()
+        val elementProvider = mockDomainObjectProviderFor<Any>(element)
         val container = mock<NamedDomainObjectContainer<Any>> {
-            on { getByName("domainObject") } doReturn element
+            on { named("domainObject") } doReturn elementProvider
         }
 
-        container { // invoke syntax
-            val domainObject: DomainObject by getting
+        container {
+            // invoke syntax
+            val domainObject by getting(DomainObject::class)
             assertThat(domainObject, sameInstance(element))
         }
 
-        container.apply { // regular syntax
-            val domainObject: DomainObject by getting
+        container.apply {
+            // regular syntax
+            val domainObject by getting(DomainObject::class)
             assertThat(domainObject, sameInstance(element))
         }
     }
@@ -204,16 +241,19 @@ class NamedDomainObjectCollectionExtensionsTest {
     fun `can access existing element by getting with type`() {
 
         val element = DomainObject()
+        val elementProvider = mockDomainObjectProviderFor<Any>(element)
         val container = mock<NamedDomainObjectContainer<Any>> {
-            on { getByName("domainObject") } doReturn element
+            on { named("domainObject") } doReturn elementProvider
         }
 
-        container { // invoke syntax
+        container {
+            // invoke syntax
             val domainObject by getting(DomainObject::class)
             assertThat(domainObject, sameInstance(element))
         }
 
-        container.apply { // regular syntax
+        container.apply {
+            // regular syntax
             val domainObject by getting(DomainObject::class)
             assertThat(domainObject, sameInstance(element))
         }
@@ -223,17 +263,20 @@ class NamedDomainObjectCollectionExtensionsTest {
     fun `can configure existing typed element by getting`() {
 
         val element = DomainObject()
+        val elementProvider = mockDomainObjectProviderFor<Any>(element)
         val container = mock<NamedDomainObjectContainer<Any>> {
-            on { getByName("domainObject") } doReturn element
+            on { named("domainObject") } doReturn elementProvider
         }
 
-        container { // invoke syntax
+        container {
+            // invoke syntax
             @Suppress("unused_variable")
             val domainObject by getting(DomainObject::class) { foo = "foo" }
             assertThat(element.foo, equalTo("foo"))
         }
 
-        container.apply { // regular syntax
+        container.apply {
+            // regular syntax
             @Suppress("unused_variable")
             val domainObject by getting(DomainObject::class) { foo = "bar" }
             assertThat(element.foo, equalTo("bar"))
@@ -244,20 +287,22 @@ class NamedDomainObjectCollectionExtensionsTest {
     fun `can add typed element by creating`() {
 
         val fooObject = DomainObject()
+        val fooObjectProvider = mockDomainObjectProviderFor(fooObject)
         val barObject = DomainObject()
+        val barObjectProvider = mockDomainObjectProviderFor(barObject)
         val container = mock<PolymorphicDomainObjectContainer<Any>> {
-            on { create("foo", DomainObject::class.java) } doReturn fooObject
-            on { getByName("foo") } doReturn fooObject
-            on { create("bar", DomainObject::class.java) } doReturn barObject
-            on { getByName("bar") } doReturn barObject
+            on { register("foo", DomainObject::class.java) } doReturn fooObjectProvider
+            on { register("bar", DomainObject::class.java) } doReturn barObjectProvider
         }
 
-        container { // invoke syntax
+        container {
+            // invoke syntax
             val foo by creating(DomainObject::class)
             assertThat(foo.foo, nullValue())
         }
 
-        container.apply { // regular syntax
+        container.apply {
+            // regular syntax
             val bar by creating(DomainObject::class)
             assertThat(bar.foo, nullValue())
         }
@@ -267,20 +312,22 @@ class NamedDomainObjectCollectionExtensionsTest {
     fun `can add and configure typed element by creating`() {
 
         val fooObject = DomainObject()
+        val fooObjectProvider = mockDomainObjectProviderFor(fooObject)
         val barObject = DomainObject()
+        val barObjectProvider = mockDomainObjectProviderFor(barObject)
         val container = mock<PolymorphicDomainObjectContainer<Any>> {
-            on { create("foo", DomainObject::class.java) } doReturn fooObject
-            on { getByName("foo") } doReturn fooObject
-            on { create("bar", DomainObject::class.java) } doReturn barObject
-            on { getByName("bar") } doReturn barObject
+            onRegisterWithAction("foo", DomainObject::class, fooObjectProvider)
+            onRegisterWithAction("bar", DomainObject::class, barObjectProvider)
         }
 
-        container { // invoke syntax
+        container {
+            // invoke syntax
             val foo by creating(DomainObject::class) { foo = "foo" }
             assertThat(foo.foo, equalTo("foo"))
         }
 
-        container.apply { // regular syntax
+        container.apply {
+            // regular syntax
             val bar by creating(DomainObject::class) { foo = "bar" }
             assertThat(bar.foo, equalTo("bar"))
         }
@@ -296,21 +343,39 @@ class NamedDomainObjectCollectionExtensionsTest {
             on { getByName("domainObject") } doReturn obj
         }
 
-        fun assertFailsWithIllegalElementType(type: KClass<*>, block: () -> Unit) {
+        fun assertFailsWithIllegalElementType(type: KClass<*>, container: Any, block: () -> Unit) {
             val error = assertFailsWith(IllegalArgumentException::class, block)
             assertThat(
                 error.message,
                 matches("Element 'domainObject' of type 'java\\.lang\\.Object' from container '${Pattern.quote(container.toString())}' cannot be cast to '${Pattern.quote(type.qualifiedName)}'\\."))
         }
 
-        assertFailsWithIllegalElementType(DomainObject::class) {
+        assertFailsWithIllegalElementType(DomainObject::class, container) {
             container.named<DomainObject>("domainObject").get()
         }
 
         val domainObject: DomainObject by container
-        assertFailsWithIllegalElementType(DomainObject::class) {
+        assertFailsWithIllegalElementType(DomainObject::class, provider) {
             println(domainObject)
         }
+    }
+}
+
+
+private
+fun <T> KStubbing<NamedDomainObjectContainer<T>>.onRegisterWithAction(name: String, provider: NamedDomainObjectProvider<T>) {
+    on { register(eq(name), any<Action<T>>()) }.thenAnswer {
+        it.getArgument<Action<T>>(1).execute(provider.get())
+        provider
+    }
+}
+
+
+internal
+fun <T : Any, U : T> KStubbing<PolymorphicDomainObjectContainer<T>>.onRegisterWithAction(name: String, type: KClass<U>, domainObjectProvider: NamedDomainObjectProvider<U>) {
+    on { register(eq(name), eq(type.java), any<Action<U>>()) }.thenAnswer {
+        it.getArgument<Action<U>>(2).execute(domainObjectProvider.get())
+        domainObjectProvider
     }
 }
 
