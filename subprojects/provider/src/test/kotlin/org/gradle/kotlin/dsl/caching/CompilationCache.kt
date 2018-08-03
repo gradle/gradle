@@ -66,9 +66,9 @@ sealed class CachedScript {
     class CompilationStage(
         programTarget: ProgramTarget,
         programKind: ProgramKind,
-        stage: String,
+        val stage: String,
         sourceDescription: String,
-        file: File,
+        val file: File,
         val enabled: Boolean = true
     ) : CachedScript() {
 

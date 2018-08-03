@@ -134,7 +134,7 @@ class StandardKotlinScriptEvaluator(
                 override fun getLanguage(): String = "KOTLIN"
             }
             val result = object : Result {}
-            val name = "Compile script " + scriptPath + " (" + stage + ")"
+            val name = "Compile script " + scriptPath.substringAfterLast(File.separator) + " (" + stage + ")"
             val compileScriptBuildOperation = object : CallableBuildOperation<String> {
                 override fun call(context: BuildOperationContext): String {
                     val res = action()

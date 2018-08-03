@@ -218,7 +218,7 @@ class ResidualProgramCompiler(
 
     fun emitStage2ProgramFor(scriptFile: File, originalPath: String) {
 
-        val precompiledScriptClass = compileScript(scriptFile, originalPath, stage2ScriptDefinition, "stage-2")
+        val precompiledScriptClass = compileScript(scriptFile, originalPath, stage2ScriptDefinition, "BODY")
 
         program<ExecutableProgram> {
 
@@ -504,7 +504,7 @@ class ResidualProgramCompiler(
     fun compileStage1(source: ProgramSource, scriptDefinition: KotlinScriptDefinition): String {
         withTemporaryScriptFileFor(source.path, source.text) { scriptFile ->
             val originalScriptPath = source.path
-            return compileScript(scriptFile, originalScriptPath, scriptDefinition, "stage-1")
+            return compileScript(scriptFile, originalScriptPath, scriptDefinition, "CLASSPATH")
         }
     }
 

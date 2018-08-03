@@ -30,6 +30,7 @@ import org.gradle.testkit.runner.BuildResult
 
 import org.junit.ClassRule
 import org.junit.Test
+import java.io.File
 
 
 @LeaksFileHandles("""
@@ -55,7 +56,12 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
             // when: first use
             buildForCacheInspection("help").apply {
-
+                compilationTrace {
+                    assertScriptCompile(settingsFile.stage1)
+                    assertNoScriptCompile(settingsFile.stage2)
+                    assertNoScriptCompile(rootBuildFile.stage1)
+                    assertScriptCompile(rootBuildFile.stage2)
+                }
                 // then: single compilation and classloading
                 compilationCache {
                     misses(settingsFile, rootBuildFile, leftBuildFile)
@@ -93,6 +99,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
             }
         }
     }
+
 
     @Test
     fun `same script different target type`() {
@@ -322,7 +329,32 @@ fun BuildResult.assertOccurrenceCountOf(actionDisplayName: String, stage: Cached
     }
 }
 
-
 internal
 fun String.occurrenceCountOf(string: String) =
     split(string).size - 1
+
+internal
+fun compilationTrace(action: CompileTrace.() -> Unit) {
+    File("operations-log.txt").readLines().forEach {
+        println(it)
+    }
+    action(CompileTrace(File("operations-log.txt").readLines()))
+}
+
+internal class CompileTrace(val operations: List<String>) {
+    fun assertScriptCompile(stage: CachedScript.CompilationStage) {
+        require(operations.any {
+            it.contains(operationDescription(stage))
+        })
+    }
+
+    fun assertNoScriptCompile(stage: CachedScript.CompilationStage) {
+        require(!operations.any {
+            it.contains(operationDescription(stage))
+        })
+    }
+
+    fun operationDescription(stage: CachedScript.CompilationStage) = "Compile script ${stage.file.name} (${stageDescr(stage)})"
+
+    fun stageDescr(stage: CachedScript.CompilationStage) = if(stage.stage == "stage1") "CLASSPATH" else "BODY"
+}
