@@ -45,6 +45,8 @@ import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.MutablePublicBuildPath;
+import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -94,6 +96,8 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
                 projectsLoaded = true;
             }
         });
+
+        services.get(MutablePublicBuildPath.class).set(this);
 
         if (parent == null) {
             services.get(BuildScanConfigInit.class).init();
@@ -457,4 +461,10 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     public PluginManagerInternal getPluginManager() {
         throw new UnsupportedOperationException();
     }
+
+    @Inject
+    public PublicBuildPath getPublicBuildPath() {
+        throw new UnsupportedOperationException();
+    }
+
 }

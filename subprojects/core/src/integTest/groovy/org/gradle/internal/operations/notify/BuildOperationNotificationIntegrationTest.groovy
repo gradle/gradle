@@ -69,7 +69,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         succeeds "t", "-S"
 
         then:
-        notifications.started(LoadBuildBuildOperationType.Details, [buildPath: ":"])
+        notifications.started(LoadBuildBuildOperationType.Details, [buildPath: ":", includedBy: null])
         notifications.started(EvaluateSettingsBuildOperationType.Details, [settingsDir: testDirectory.absolutePath, settingsFile: settingsFile.absolutePath, buildPath: ":"])
         notifications.finished(EvaluateSettingsBuildOperationType.Result, [:])
         notifications.started(LoadProjectsBuildOperationType.Details, [buildPath: ":"])
@@ -136,12 +136,10 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         succeeds "t"
 
         then:
-        notifications.started(LoadBuildBuildOperationType.Details, [buildPath: ":"])
-
-        notifications.started(LoadBuildBuildOperationType.Details, [buildPath: ":"])
-        notifications.started(LoadBuildBuildOperationType.Details, [buildPath: ":buildSrc"])
-        notifications.started(LoadBuildBuildOperationType.Details, [buildPath: ":a"])
-        notifications.started(LoadBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"])
+        notifications.started(LoadBuildBuildOperationType.Details, [buildPath: ":", includedBy: null])
+        notifications.started(LoadBuildBuildOperationType.Details, [buildPath: ":buildSrc", includedBy: ":"])
+        notifications.started(LoadBuildBuildOperationType.Details, [buildPath: ":a", includedBy: ":"])
+        notifications.started(LoadBuildBuildOperationType.Details, [buildPath: ":a:buildSrc", includedBy: ":a"])
 
         notifications.started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('buildSrc').absolutePath, settingsFile: file('buildSrc/settings.gradle').absolutePath, buildPath: ":buildSrc"])
         notifications.started(EvaluateSettingsBuildOperationType.Details, [settingsDir: file('a').absolutePath, settingsFile: file('a/settings.gradle').absolutePath, buildPath: ":a"])
