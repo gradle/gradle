@@ -100,7 +100,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
     }
 
     private boolean isGroupedOperation(BuildOperationCategory buildOperationCategory) {
-        return buildOperationCategory == BuildOperationCategory.TASK || buildOperationCategory == BuildOperationCategory.CONFIGURE_PROJECT;
+        return buildOperationCategory == BuildOperationCategory.TASK || buildOperationCategory == BuildOperationCategory.CONFIGURE_PROJECT || buildOperationCategory == BuildOperationCategory.TRANSFORM;
     }
 
     private void handleOutput(RenderableOutputEvent event) {
@@ -206,7 +206,6 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
             this.category = category;
             this.lastUpdateTime = startTime;
             this.description = description;
-            this.lastUpdateTime = startTime;
             this.buildOperationCategory = buildOperationCategory;
         }
 
@@ -291,7 +290,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         }
 
         private boolean shouldForward() {
-            return !bufferedLogs.isEmpty() || (buildOperationCategory == BuildOperationCategory.TASK && (shouldPrintHeader() || statusIsFailed()));
+            return !bufferedLogs.isEmpty() || ((buildOperationCategory == BuildOperationCategory.TASK || buildOperationCategory == BuildOperationCategory.TRANSFORM) && (shouldPrintHeader() || statusIsFailed()));
         }
     }
 }
