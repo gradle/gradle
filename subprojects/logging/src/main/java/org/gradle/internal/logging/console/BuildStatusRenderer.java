@@ -88,7 +88,7 @@ public class BuildStatusRenderer implements OutputEventListener {
                     phaseHasMoreProgress(startEvent);
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_PROJECT && currentPhase == Phase.Configuring) {
                     currentPhaseChildren.add(startEvent.getProgressOperationId());
-                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.TASK && currentPhase == Phase.Executing) {
+                } else if (startEvent.getBuildOperationCategory().isTopLevelWorkItem() && currentPhase == Phase.Executing) {
                     currentPhaseChildren.add(startEvent.getProgressOperationId());
                 }
             }
