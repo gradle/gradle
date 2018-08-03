@@ -15,10 +15,10 @@
  */
 package org.gradle.profile;
 
-import org.gradle.BuildAdapter;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.StartParameterBuildOptions;
+import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -29,7 +29,7 @@ import java.util.Date;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
-public class ReportGeneratingProfileListener extends BuildAdapter implements ProfileListener {
+public class ReportGeneratingProfileListener extends InternalBuildAdapter implements ProfileListener {
     private static final SimpleDateFormat FILE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
     private final StyledTextOutputFactory textOutputFactory;
     private File buildDir;

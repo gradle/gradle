@@ -26,6 +26,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.initialization.BuildRequestMetaData;
+import org.gradle.internal.InternalListener;
 import org.gradle.internal.logging.format.TersePrettyDurationFormatter;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.time.Clock;
@@ -36,7 +37,7 @@ import java.util.List;
 /**
  * A {@link org.gradle.BuildListener} which logs the build progress.
  */
-public class BuildLogger implements BuildListener, TaskExecutionGraphListener {
+public class BuildLogger implements BuildListener, TaskExecutionGraphListener, InternalListener {
     private final Logger logger;
     private final List<BuildListener> resultLoggers = new ArrayList<BuildListener>();
 
