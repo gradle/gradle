@@ -159,6 +159,7 @@ We love getting contributions from the Gradle community. For information on cont
 - [Kenzie Togami](https://github.com/kenzierocks) - Docs are unclear on how JavaExec parses --args (gradle/gradle#6056)
 - [Salvian Reynaldi](https://github.com/salvianreynaldi) - Give S3 bucket owner full control over the published Maven artifacts (gradle/gradle#5329)
 - [Thomas Broyer](https://github.com/tbroyer) - Convert `java-gradle-plugin` to use lazy configuration API (gradle/gradle#6115)
+- [Sebastian Schuberth](https://github.com/sschuberth) - Fix an application plugin example to work for Windows (gradle/gradle#5994)
 
 ## Known issues
 
