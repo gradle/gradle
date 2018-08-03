@@ -171,33 +171,8 @@ public class DefaultFileHierarchySet {
             return new Node(commonPrefix, ImmutableList.of(newThis, sibling));
         }
 
-        /**
-         * Does not include the file separator.
-         */
         int sizeOfCommonPrefix(String path, int offset) {
-            int pos = 0;
-            int lastSeparator = 0;
-            int maxPos = Math.min(prefix.length(), path.length() - offset);
-            for (; pos < maxPos; pos++) {
-                if (prefix.charAt(pos) != path.charAt(pos + offset)) {
-                    break;
-                }
-                if (prefix.charAt(pos) == File.separatorChar) {
-                    lastSeparator = pos;
-                }
-            }
-            if (pos == maxPos) {
-                if (prefix.length() == path.length() - offset) {
-                    return pos;
-                }
-                if (pos < prefix.length() && prefix.charAt(pos) == File.separatorChar) {
-                    return pos;
-                }
-                if (pos < path.length() - offset && path.charAt(pos + offset) == File.separatorChar) {
-                    return pos;
-                }
-            }
-            return lastSeparator;
+            return FilePathUtil.sizeOfCommonPrefix(prefix, path, offset);
         }
 
 

@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
 import org.gradle.initialization.RootBuildLifecycleListener;
-import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.file.FileMetadataSnapshot;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -30,15 +29,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * See {@link DefaultFileSystemSnapshotter} for some more details
  */
 public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChangesListener, RootBuildLifecycleListener {
-    // Maps from interned absolute path for a file to known details for the file.
+    // Maps from interned absolute path for a file to metadata for the file.
+    private final Map<String, FileMetadataSnapshot> metadata = new ConcurrentHashMap<String, FileMetadataSnapshot>();
+    private final Map<String, FileMetadataSnapshot> cacheMetadata = new ConcurrentHashMap<String, FileMetadataSnapshot>();
+    // Maps from interned absolute path for a file to snapshot for the file.
     private final Map<String, PhysicalSnapshot> files = new ConcurrentHashMap<String, PhysicalSnapshot>();
     private final Map<String, PhysicalSnapshot> cacheFiles = new ConcurrentHashMap<String, PhysicalSnapshot>();
-    // Maps from interned absolute path for a directory to known details for the directory.
-    private final Map<String, FileSystemSnapshot> trees = new ConcurrentHashMap<String, FileSystemSnapshot>();
-    private final Map<String, FileSystemSnapshot> cacheTrees = new ConcurrentHashMap<String, FileSystemSnapshot>();
-    // Maps from interned absolute path to a hash of the contents of the file/directory
-    private final Map<String, HashCode> snapshots = new ConcurrentHashMap<String, HashCode>();
-    private final Map<String, HashCode> cacheSnapshots = new ConcurrentHashMap<String, HashCode>();
+
     private final WellKnownFileLocations wellKnownFileLocations;
 
     public DefaultFileSystemMirror(WellKnownFileLocations wellKnownFileLocations) {
@@ -47,7 +44,7 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
 
     @Nullable
     @Override
-    public PhysicalSnapshot getFile(String absolutePath) {
+    public PhysicalSnapshot getSnapshot(String absolutePath) {
         // Could potentially also look whether we have the details for an ancestor directory tree
         // Could possibly infer that the path refers to a directory, if we have details for a descendant path (and it's not a missing file)
         if (wellKnownFileLocations.isImmutable(absolutePath)) {
@@ -57,7 +54,7 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
     }
 
     @Override
-    public void putFile(PhysicalSnapshot file) {
+    public void putSnapshot(PhysicalSnapshot file) {
         if (wellKnownFileLocations.isImmutable(file.getAbsolutePath())) {
             cacheFiles.put(file.getAbsolutePath(), file);
         } else {
@@ -65,43 +62,20 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
         }
     }
 
-    @Nullable
     @Override
-    public HashCode getContent(String absolutePath) {
+    public FileMetadataSnapshot getMetadata(String absolutePath) {
         if (wellKnownFileLocations.isImmutable(absolutePath)) {
-            return cacheSnapshots.get(absolutePath);
-        } else {
-            return snapshots.get(absolutePath);
+            return cacheMetadata.get(absolutePath);
         }
+        return metadata.get(absolutePath);
     }
 
     @Override
-    public void putContent(String absolutePath, HashCode contentHash) {
+    public void putMetadata(String absolutePath, FileMetadataSnapshot metadata) {
         if (wellKnownFileLocations.isImmutable(absolutePath)) {
-            cacheSnapshots.put(absolutePath, contentHash);
+            cacheMetadata.put(absolutePath, metadata);
         } else {
-            snapshots.put(absolutePath, contentHash);
-        }
-    }
-
-    @Nullable
-    @Override
-    public FileSystemSnapshot getDirectoryTree(String absolutePath) {
-        // Could potentially also look whether we have the details for an ancestor directory tree
-        // Could possibly also short-circuit some scanning if we have details for some sub trees
-        if (wellKnownFileLocations.isImmutable(absolutePath)) {
-            return cacheTrees.get(absolutePath);
-        } else {
-            return trees.get(absolutePath);
-        }
-    }
-
-    @Override
-    public void putDirectory(String absolutePath, FileSystemSnapshot directory) {
-        if (wellKnownFileLocations.isImmutable(absolutePath)) {
-            cacheTrees.put(absolutePath, directory);
-        } else {
-            trees.put(absolutePath, directory);
+            this.metadata.put(absolutePath, metadata);
         }
     }
 
@@ -109,9 +83,8 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
     public void beforeTaskOutputChanged() {
         // When the task outputs are generated, throw away all state for files that do not live in an append-only cache.
         // This is intentionally very simple, to be improved later
-        trees.clear();
+        metadata.clear();
         files.clear();
-        snapshots.clear();
     }
 
     @Override
@@ -121,11 +94,9 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
     @Override
     public void beforeComplete() {
         // We throw away all state between builds
+        metadata.clear();
+        cacheMetadata.clear();
         files.clear();
         cacheFiles.clear();
-        trees.clear();
-        cacheTrees.clear();
-        snapshots.clear();
-        cacheSnapshots.clear();
     }
 }

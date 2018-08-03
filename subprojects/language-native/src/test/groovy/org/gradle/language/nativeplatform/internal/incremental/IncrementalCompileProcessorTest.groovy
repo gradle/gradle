@@ -511,7 +511,7 @@ class IncrementalCompileProcessorTest extends Specification {
     }
 
     private HashCode getContentHash(File file) {
-        def self = fileSystemSnapshotter.snapshotSelf(file)
-        return self.contentHash
+        def self = fileSystemSnapshotter.snapshot(file)
+        return self.hash
     }
 }

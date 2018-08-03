@@ -41,7 +41,7 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint;
+import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
 
 import java.io.File;
 import java.io.IOException;
@@ -141,7 +141,7 @@ public class TaskOutputCacheCommandFactory {
                 String propertyName = property.getPropertyName();
                 File outputFile = property.getOutputFile();
                 if (outputFile == null) {
-                    propertyFingerprintsBuilder.put(propertyName, EmptyCurrentFileCollectionFingerprint.of(fingerprintingStrategy.getIdentifier()));
+                    propertyFingerprintsBuilder.put(propertyName, fingerprintingStrategy.getIdentifier().getEmptyFingerprint());
                     continue;
                 }
                 PhysicalSnapshot snapshot = propertiesSnapshots.get(propertyName);
@@ -149,8 +149,9 @@ public class TaskOutputCacheCommandFactory {
                 List<FileSystemSnapshot> roots = new ArrayList<FileSystemSnapshot>();
 
                 if (snapshot == null) {
-                    fileSystemMirror.putFile(new PhysicalMissingSnapshot(absolutePath, property.getOutputFile().getName()));
-                    propertyFingerprintsBuilder.put(propertyName, EmptyCurrentFileCollectionFingerprint.of(fingerprintingStrategy.getIdentifier()));
+                    fileSystemMirror.putMetadata(absolutePath, DefaultFileMetadata.missing());
+                    fileSystemMirror.putSnapshot(new PhysicalMissingSnapshot(absolutePath, property.getOutputFile().getName()));
+                    propertyFingerprintsBuilder.put(propertyName, fingerprintingStrategy.getIdentifier().getEmptyFingerprint());
                     continue;
                 }
 
@@ -160,11 +161,12 @@ public class TaskOutputCacheCommandFactory {
                             throw new IllegalStateException(String.format("Only a regular file should be produced by unpacking property '%s', but saw a %s", propertyName, snapshot.getType()));
                         }
                         roots.add(snapshot);
-                        fileSystemMirror.putFile(snapshot);
+                        fileSystemMirror.putSnapshot(snapshot);
                         break;
                     case DIRECTORY:
                         roots.add(snapshot);
-                        fileSystemMirror.putDirectory(absolutePath, snapshot);
+                        fileSystemMirror.putMetadata(absolutePath, DefaultFileMetadata.directory());
+                        fileSystemMirror.putSnapshot(snapshot);
                         break;
                     default:
                         throw new AssertionError();

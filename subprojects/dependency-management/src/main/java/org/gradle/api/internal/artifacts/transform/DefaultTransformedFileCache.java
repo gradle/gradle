@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CleanupAction;
@@ -177,8 +178,8 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
     }
 
     private CacheKey getCacheKey(File inputFile, HashCode inputsHash) {
-        HashCode inputFileContentHash = fileSystemSnapshotter.snapshotAll(inputFile);
-        return new CacheKey(inputFileContentHash, inputsHash);
+        PhysicalSnapshot snapshot = fileSystemSnapshotter.snapshot(inputFile);
+        return new CacheKey(inputsHash, snapshot.getName(), snapshot.getHash());
     }
 
     /**
@@ -187,18 +188,20 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
      * operation, so we only calculate it when we have a cache miss in memory.
      */
     private static class CacheKey {
+        private final String fileName;
         private final HashCode fileContentHash;
         private final HashCode inputHash;
 
-        public CacheKey(HashCode fileContentHash, HashCode inputHash) {
+        public CacheKey(HashCode inputHash, String fileName, HashCode fileContentHash) {
+            this.fileName = fileName;
             this.fileContentHash = fileContentHash;
             this.inputHash = inputHash;
         }
 
-
         public HashCode getPersistentCacheKey() {
             DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
             hasher.putHash(inputHash);
+            hasher.putString(fileName);
             hasher.putHash(fileContentHash);
             return hasher.hash();
         }
@@ -217,12 +220,16 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
             if (!fileContentHash.equals(cacheKey.fileContentHash)) {
                 return false;
             }
-            return inputHash.equals(cacheKey.inputHash);
+            if (!inputHash.equals(cacheKey.inputHash)) {
+                return false;
+            }
+            return fileName.equals(cacheKey.fileName);
         }
 
         @Override
         public int hashCode() {
             int result = fileContentHash.hashCode();
+            result = 31 * result + fileName.hashCode();
             result = 31 * result + inputHash.hashCode();
             return result;
         }

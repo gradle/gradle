@@ -21,6 +21,7 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.util.GFileUtils;
@@ -28,49 +29,53 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 import java.io.InputStream;
 
-public class FilteredFileSystemSnapshot implements FileSystemSnapshot {
+public class FileSystemSnapshotFilter {
 
-    private final Spec<FileTreeElement> spec;
-    private final FileSystemSnapshot delegate;
-    private final FileSystem fileSystem;
-
-    public FilteredFileSystemSnapshot(Spec<FileTreeElement> spec, FileSystemSnapshot delegate, FileSystem fileSystem) {
-        this.spec = spec;
-        this.delegate = delegate;
-        this.fileSystem = fileSystem;
+    private FileSystemSnapshotFilter() {
     }
 
-    @Override
-    public void accept(final PhysicalSnapshotVisitor visitor) {
-        delegate.accept(new PhysicalSnapshotVisitor() {
-            private final RelativePathSegmentsTracker relativePath = new RelativePathSegmentsTracker();
+    public static FileSystemSnapshot filterSnapshot(final Spec<FileTreeElement> spec, FileSystemSnapshot unfiltered, final FileSystem fileSystem) {
+        final MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
+        final MutableBoolean hasBeenFiltered = new MutableBoolean(false);
+        unfiltered.accept(new PhysicalSnapshotVisitor() {
+            private final RelativePathSegmentsTracker relativePathTracker = new RelativePathSegmentsTracker();
 
             @Override
-            public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
-                relativePath.enter(directorySnapshot);
-                if (relativePath.isRoot() || spec.isSatisfiedBy(new LogicalFileTreeElement(directorySnapshot, relativePath.getRelativePath(), fileSystem))) {
-                    visitor.preVisitDirectory(directorySnapshot);
+            public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+                boolean root = relativePathTracker.isRoot();
+                relativePathTracker.enter(directorySnapshot);
+                if (root || spec.isSatisfiedBy(new LogicalFileTreeElement(directorySnapshot, relativePathTracker.getRelativePath(), fileSystem))) {
+                    builder.preVisitDirectory(directorySnapshot);
                     return true;
+                } else {
+                    hasBeenFiltered.set(true);
                 }
-                relativePath.leave();
+                relativePathTracker.leave();
                 return false;
             }
 
             @Override
             public void visit(PhysicalSnapshot fileSnapshot) {
-                relativePath.enter(fileSnapshot);
-                if (spec.isSatisfiedBy(new LogicalFileTreeElement(fileSnapshot, relativePath.getRelativePath(), fileSystem))) {
-                    visitor.visit(fileSnapshot);
+                boolean root = relativePathTracker.isRoot();
+                relativePathTracker.enter(fileSnapshot);
+                if (root || spec.isSatisfiedBy(new LogicalFileTreeElement(fileSnapshot, relativePathTracker.getRelativePath(), fileSystem))) {
+                    builder.visit(fileSnapshot);
+                } else {
+                    hasBeenFiltered.set(true);
                 }
-                relativePath.leave();
+                relativePathTracker.leave();
             }
 
             @Override
-            public void postVisitDirectory() {
-                relativePath.leave();
-                visitor.postVisitDirectory();
+            public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+                relativePathTracker.leave();
+                builder.postVisitDirectory();
             }
         });
+        if (builder.getResult() == null) {
+            return FileSystemSnapshot.EMPTY;
+        }
+        return hasBeenFiltered.get() ? builder.getResult() : unfiltered;
     }
 
     /**

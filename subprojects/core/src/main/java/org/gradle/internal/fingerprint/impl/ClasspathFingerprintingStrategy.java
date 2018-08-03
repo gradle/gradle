@@ -17,7 +17,6 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
@@ -27,6 +26,7 @@ import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
@@ -96,9 +96,8 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         ImmutableMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableMap.builder();
         HashSet<String> processedEntries = new HashSet<String>();
         for (FileSystemSnapshot root : roots) {
-            ClasspathSnapshotVisitor snapshotVisitor = new ClasspathSnapshotVisitor(processedEntries);
+            ClasspathSnapshotVisitor snapshotVisitor = new ClasspathSnapshotVisitor(processedEntries, builder);
             root.accept(new ClasspathContentSnapshottingVisitor(snapshotVisitor));
-            builder.putAll(snapshotVisitor.getResult());
         }
         return builder.build();
     }
@@ -137,7 +136,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         }
 
         @Override
-        public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
+        public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
             relativePathSegmentsTracker.enter(directorySnapshot);
             return delegate.preVisitDirectory(directorySnapshot);
         }
@@ -169,7 +168,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         }
 
         @Override
-        public void postVisitDirectory() {
+        public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
             relativePathSegmentsTracker.leave();
             delegate.postVisitDirectory();
         }
@@ -181,7 +180,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         if (FileUtils.hasExtensionIgnoresCase(fileSnapshot.getName(), ".jar")) {
             return snapshotJarContents(fileSnapshot);
         }
-        return nonJarFingerprintingStrategy.determineNonJarFingerprint(fileSnapshot.getContentHash());
+        return nonJarFingerprintingStrategy.determineNonJarFingerprint(fileSnapshot.getHash());
     }
 
     @Nullable
@@ -202,11 +201,11 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
     private class ClasspathSnapshotVisitor {
         private final RelativePathStringTracker relativePathStringTracker;
         private final HashSet<String> processedEntries;
-        private final ImmutableSortedMap.Builder<String, NormalizedFileSnapshot> builder;
+        private final ImmutableMap.Builder<String, NormalizedFileSnapshot> builder;
 
-        public ClasspathSnapshotVisitor(HashSet<String> processedEntries) {
+        public ClasspathSnapshotVisitor(HashSet<String> processedEntries, ImmutableMap.Builder<String, NormalizedFileSnapshot> builder) {
             this.processedEntries = processedEntries;
-            this.builder = ImmutableSortedMap.naturalOrder();
+            this.builder = builder;
             this.relativePathStringTracker = new RelativePathStringTracker();
         }
 
@@ -234,10 +233,6 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
 
         public void postVisitDirectory() {
             relativePathStringTracker.leave();
-        }
-
-        public ImmutableSortedMap<String, NormalizedFileSnapshot> getResult() {
-            return builder.build();
         }
     }
 }

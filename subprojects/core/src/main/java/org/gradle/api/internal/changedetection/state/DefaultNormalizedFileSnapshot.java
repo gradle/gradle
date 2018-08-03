@@ -24,12 +24,25 @@ public class DefaultNormalizedFileSnapshot extends AbstractNormalizedFileSnapsho
     private final String normalizedPath;
 
     public DefaultNormalizedFileSnapshot(String normalizedPath, FileType type, HashCode contentHash) {
-        super(type, contentHash);
+        super(type, hashForType(type, contentHash));
         this.normalizedPath = normalizedPath;
     }
 
     public DefaultNormalizedFileSnapshot(String normalizedPath, PhysicalSnapshot snapshot) {
-        this(normalizedPath, snapshot.getType(), snapshot.getContentHash());
+        this(normalizedPath, snapshot.getType(), snapshot.getHash());
+    }
+
+    private static HashCode hashForType(FileType fileType, HashCode hash) {
+        switch (fileType) {
+            case Directory:
+                return DIR_SIGNATURE;
+            case Missing:
+                return MISSING_FILE_SIGNATURE;
+            case RegularFile:
+                return hash;
+            default:
+                throw new IllegalStateException("Unknown file type: " + fileType);
+        }
     }
 
     @Override

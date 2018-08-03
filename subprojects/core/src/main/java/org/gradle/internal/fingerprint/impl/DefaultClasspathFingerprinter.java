@@ -22,7 +22,6 @@ import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.ClasspathFingerprinter;
@@ -34,8 +33,8 @@ public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerp
     private final StringInterner stringInterner;
     private final RuntimeClasspathResourceHasher runtimeClasspathResourceHasher;
 
-    public DefaultClasspathFingerprinter(ResourceSnapshotterCacheService cacheService, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
-        super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
+    public DefaultClasspathFingerprinter(ResourceSnapshotterCacheService cacheService, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
+        super(stringInterner, fileSystemSnapshotter);
         this.cacheService = cacheService;
         this.stringInterner = stringInterner;
         this.runtimeClasspathResourceHasher = new RuntimeClasspathResourceHasher();

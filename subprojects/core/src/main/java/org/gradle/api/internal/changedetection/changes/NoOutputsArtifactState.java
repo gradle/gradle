@@ -27,7 +27,6 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.util.Path;
 
@@ -139,7 +138,7 @@ class NoOutputsArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     @Override
-    public Map<String, FileCollectionFingerprint> getOutputFingerprints() {
+    public Map<String, CurrentFileCollectionFingerprint> getOutputFingerprints() {
         return Collections.emptyMap();
     }
 

@@ -19,8 +19,6 @@ package org.gradle.internal.fingerprint.impl;
 import com.google.common.base.Objects;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
 import org.gradle.internal.hash.HashCode;
@@ -79,9 +77,9 @@ public class SnapshotMapSerializer extends AbstractSerializer<Map<String, Normal
     private HashCode readContentHash(FileType fileType, Decoder decoder) throws IOException {
         switch (fileType) {
             case Directory:
-                return PhysicalDirectorySnapshot.SIGNATURE;
+                return NormalizedFileSnapshot.DIR_SIGNATURE;
             case Missing:
-                return PhysicalMissingSnapshot.SIGNATURE;
+                return NormalizedFileSnapshot.MISSING_FILE_SIGNATURE;
             case RegularFile:
                 return hashCodeSerializer.read(decoder);
             default:
