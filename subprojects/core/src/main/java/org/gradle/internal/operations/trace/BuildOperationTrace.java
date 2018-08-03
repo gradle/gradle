@@ -25,6 +25,8 @@ import groovy.json.JsonSlurper;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
+import org.gradle.api.Action;
+import org.gradle.api.Project;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
@@ -378,21 +380,30 @@ public class BuildOperationTrace implements Stoppable {
         @Override
         public void projectsLoaded(@SuppressWarnings("NullableProblems") Gradle gradle) {
             if (gradle.getParent() == null) {
-                stopBuffering();
+                gradle.getRootProject().beforeEvaluate(new Action<Project>() {
+                    @Override
+                    public void execute(Project project) {
+                        stopBuffering();
+                    }
+                });
             }
         }
 
-        // Build may have failed before getting to projectsLoaded
         @Override
-        public void buildFinished(@SuppressWarnings("NullableProblems") BuildResult result) {
-            stopBuffering();
+        public void buildStarted(@SuppressWarnings("NullableProblems") Gradle gradle) {
+            if (gradle.getParent() == null) {
+                gradle.buildFinished(new Action<BuildResult>() {
+                    @Override
+                    public void execute(BuildResult buildResult) {
+                        // Build may have failed before getting to projectsLoaded
+                        stopBuffering();
+                    }
+                });
+            }
         }
 
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            if (buildOperation.getId().getId() == 11) {
-                int i = 1;
-            }
             new Entry(new SerializedOperationStart(buildOperation, startEvent), false).add();
         }
 

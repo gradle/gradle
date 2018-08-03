@@ -40,7 +40,7 @@ public class TestBuildScopeServices extends BuildScopeServices {
     }
 
     protected BuildDefinition createBuildDefinition(StartParameter startParameter) {
-        return BuildDefinition.fromStartParameter(startParameter);
+        return BuildDefinition.fromStartParameter(startParameter, null);
     }
 
     protected BuildCancellationToken createBuildCancellationToken() {

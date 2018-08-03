@@ -196,7 +196,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             gradle.getServices().get(BuildExecuter.class),
             serviceRegistry,
             servicesToStop,
-            includedBuildControllers
+            includedBuildControllers,
+            buildDefinition.getFromBuild()
         );
         nestedBuildFactory.setParent(gradleLauncher);
         nestedBuildFactory.setBuildCancellationToken(cancellationToken);

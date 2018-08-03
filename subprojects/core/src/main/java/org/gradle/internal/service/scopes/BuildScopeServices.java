@@ -98,8 +98,8 @@ import org.gradle.execution.TaskPathProjectEvaluator;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptExecutionListener;
-import org.gradle.groovy.scripts.internal.BuildScopeInMemoryCachingScriptClassCompiler;
 import org.gradle.groovy.scripts.internal.BuildOperationBackedScriptCompilationHandler;
+import org.gradle.groovy.scripts.internal.BuildScopeInMemoryCachingScriptClassCompiler;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
 import org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler;
 import org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory;
@@ -137,6 +137,9 @@ import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.DefaultPublicBuildPath;
+import org.gradle.internal.build.MutablePublicBuildPath;
+import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
@@ -175,6 +178,7 @@ import java.util.List;
  * Contains the singleton services for a single build invocation.
  */
 public class BuildScopeServices extends DefaultServiceRegistry {
+
     public BuildScopeServices(final ServiceRegistry parent) {
         super(parent);
         addProvider(new BuildCacheServices());
@@ -185,6 +189,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 }
             }
         });
+    }
+
+    protected MutablePublicBuildPath createPublicBuildPath() {
+        return new DefaultPublicBuildPath();
     }
 
     protected TaskStatistics createTaskStatistics() {
@@ -324,7 +332,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(AutoAppliedPluginHandler.class));
     }
 
-    protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, BuildLayoutFactory buildLayoutFactory, BuildState currentBuild, ClassLoaderScopeRegistry classLoaderScopeRegistry, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, CachingServiceLocator cachingServiceLocator, BuildStateRegistry buildRegistry) {
+    protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, BuildLayoutFactory buildLayoutFactory, BuildState currentBuild, ClassLoaderScopeRegistry classLoaderScopeRegistry, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, CachingServiceLocator cachingServiceLocator, BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath) {
         return new DefaultSettingsLoaderFactory(
             new DefaultSettingsFinder(buildLayoutFactory),
             settingsProcessor,
@@ -338,8 +346,11 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                     PluginsProjectConfigureActions.of(
                         BuildSrcProjectConfigurationAction.class,
                         cachingServiceLocator)),
-                buildRegistry),
-            buildRegistry);
+                buildRegistry,
+                publicBuildPath),
+            buildRegistry,
+            publicBuildPath
+        );
     }
 
     protected InitScriptHandler createInitScriptHandler(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, BuildOperationExecutor buildOperationExecutor) {

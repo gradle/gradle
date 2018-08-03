@@ -14,22 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.internal.build;
 
-import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.api.internal.GradleInternal;
 
-public final class LoadBuildBuildOperationType implements BuildOperationType<LoadBuildBuildOperationType.Details, LoadBuildBuildOperationType.Result> {
-    @UsedByScanPlugin
-    public interface Details {
-        /**
-         * @since 4.6
-         */
-        String getBuildPath();
+public interface MutablePublicBuildPath extends PublicBuildPath {
 
-        String getIncludedBy();
-    }
+    void set(GradleInternal gradleInternal);
 
-    public interface Result {
-    }
 }

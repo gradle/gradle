@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.internal.build;
 
-import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.util.Path;
 
-public final class LoadBuildBuildOperationType implements BuildOperationType<LoadBuildBuildOperationType.Details, LoadBuildBuildOperationType.Result> {
-    @UsedByScanPlugin
-    public interface Details {
-        /**
-         * @since 4.6
-         */
-        String getBuildPath();
+public class DefaultPublicBuildPath implements MutablePublicBuildPath {
 
-        String getIncludedBy();
+    private GradleInternal gradle;
+
+    @Override
+    public Path getBuildPath() {
+        if (gradle == null) {
+            throw new IllegalStateException("public build path not yet available");
+        }
+        return gradle.getIdentityPath();
     }
 
-    public interface Result {
+    @Override
+    public void set(GradleInternal gradle) {
+        this.gradle = gradle;
     }
 }
