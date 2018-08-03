@@ -258,8 +258,8 @@ dependencies {
         where:
         version              | expectedVersion
         '[1.0, 2.0)'         | '1.2-SNAPSHOT'
-//        '1.+'                | '1.2-SNAPSHOT'
-//        '+'                  | '1.2-SNAPSHOT'
+        '1.+'                | '1.2-SNAPSHOT'
+        '+'                  | '1.2-SNAPSHOT'
         'latest.release'     | '1.1'
         'latest.integration' | '1.2-SNAPSHOT'
     }
