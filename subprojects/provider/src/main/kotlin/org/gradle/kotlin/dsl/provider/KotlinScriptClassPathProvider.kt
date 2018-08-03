@@ -33,6 +33,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.kotlin.dsl.codegen.generateApiExtensionsJar
+import org.gradle.kotlin.dsl.support.gradleApiMetadataModuleName
 import org.gradle.kotlin.dsl.support.ProgressMonitor
 import org.gradle.kotlin.dsl.support.serviceOf
 
@@ -219,10 +220,6 @@ fun DependencyFactory.gradleApi(): Dependency =
 
 private
 val gradleApiNotation = DependencyFactory.ClassPathNotation.GRADLE_API
-
-
-internal
-const val gradleApiMetadataModuleName = "gradle-api-metadata"
 
 
 private
