@@ -16,18 +16,18 @@
 
 package org.gradle.caching.local.internal;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheCleanupFileAccessTimeProvider;
-import org.gradle.cache.internal.CacheCleanupFileAccessTimeProvidingCleanupAction;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CleanupActionFactory;
+import org.gradle.cache.internal.DelegatingCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
+import org.gradle.cache.internal.SnapshottingCacheCleanupFileAccessTimeProvider;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
@@ -100,13 +100,10 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         return new DirectoryBuildCacheService(fileStore, persistentCache, tempFileStore, fileAccessTracker, FAILED_READ_SUFFIX);
     }
 
-    private CleanupAction createCleanupAction(final int removeUnusedEntriesAfterDays) {
-        return CacheCleanupFileAccessTimeProvidingCleanupAction.create(fileAccessTimeJournal, new Transformer<CleanupAction, CacheCleanupFileAccessTimeProvider>() {
-            @Override
-            public CleanupAction transform(CacheCleanupFileAccessTimeProvider fileAccessTimeProvider) {
-                return new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeProvider, removeUnusedEntriesAfterDays);
-            }
-        });
+    private CleanupAction createCleanupAction(int removeUnusedEntriesAfterDays) {
+        CacheCleanupFileAccessTimeProvider fileAccessTimeProvider = new SnapshottingCacheCleanupFileAccessTimeProvider(fileAccessTimeJournal);
+        CleanupAction cleanupAction = new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeProvider, removeUnusedEntriesAfterDays);
+        return new DelegatingCleanupAction(cleanupAction, fileAccessTimeProvider);
     }
 
     private static void checkDirectory(File directory) {

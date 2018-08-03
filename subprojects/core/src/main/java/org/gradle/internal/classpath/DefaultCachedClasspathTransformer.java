@@ -23,11 +23,12 @@ import org.gradle.cache.CleanupAction;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheCleanupFileAccessTimeProvider;
-import org.gradle.cache.internal.CacheCleanupFileAccessTimeProvidingCleanupAction;
+import org.gradle.cache.internal.DelegatingCleanupAction;
 import org.gradle.cache.internal.CacheVersionMapping;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
+import org.gradle.cache.internal.SnapshottingCacheCleanupFileAccessTimeProvider;
 import org.gradle.cache.internal.UnusedVersionsCacheCleanup;
 import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.internal.Factories;
@@ -79,12 +80,9 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     }
 
     private CleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal) {
-        return CacheCleanupFileAccessTimeProvidingCleanupAction.create(fileAccessTimeJournal, new Transformer<CleanupAction, CacheCleanupFileAccessTimeProvider>() {
-            @Override
-            public CleanupAction transform(CacheCleanupFileAccessTimeProvider fileAccessTimeProvider) {
-                return new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeProvider, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES);
-            }
-        });
+        CacheCleanupFileAccessTimeProvider fileAccessTimeProvider = new SnapshottingCacheCleanupFileAccessTimeProvider(fileAccessTimeJournal);
+        CleanupAction cleanupAction = new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeProvider, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES);
+        return new DelegatingCleanupAction(cleanupAction, fileAccessTimeProvider);
     }
 
     @Override

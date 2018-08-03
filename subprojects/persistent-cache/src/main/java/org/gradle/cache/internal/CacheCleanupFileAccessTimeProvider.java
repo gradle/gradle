@@ -16,12 +16,16 @@
 
 package org.gradle.cache.internal;
 
+import java.io.Closeable;
 import java.io.File;
 
-public interface CacheCleanupFileAccessTimeProvider {
+public interface CacheCleanupFileAccessTimeProvider extends Closeable {
 
     long getLastAccessTime(File file);
 
     void deleteLastAccessTime(File file);
+
+    @Override
+    void close();
 
 }

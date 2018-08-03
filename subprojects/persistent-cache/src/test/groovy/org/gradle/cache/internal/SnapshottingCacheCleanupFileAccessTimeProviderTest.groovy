@@ -16,34 +16,16 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.cache.CleanableStore
-import org.gradle.cache.CleanupAction
-import org.gradle.cache.CleanupProgressMonitor
+
 import org.gradle.internal.resource.local.FileAccessTimeJournal
 import spock.lang.Specification
 import spock.lang.Subject
 
-class CacheCleanupFileAccessTimeProvidingCleanupActionTest extends Specification {
+class SnapshottingCacheCleanupFileAccessTimeProviderTest extends Specification {
 
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
-    def delegateAction = Mock(CleanupAction)
-    def cleanableStore = Stub(CleanableStore)
-    def progressMonitor = Stub(CleanupProgressMonitor)
-    def fileAccessTimeProvider
 
-    @Subject cleanupAction = CacheCleanupFileAccessTimeProvidingCleanupAction.create(fileAccessTimeJournal) { provider ->
-        fileAccessTimeProvider = provider
-        return delegateAction
-    }
-
-    def "delegates cleanup"() {
-        when:
-        cleanupAction.clean(cleanableStore, progressMonitor)
-
-        then:
-        1 * delegateAction.clean(cleanableStore, progressMonitor)
-        0 * fileAccessTimeJournal._
-    }
+    @Subject provider = new SnapshottingCacheCleanupFileAccessTimeProvider(fileAccessTimeJournal)
 
     def "creates and closes a single snapshot"() {
         given:
@@ -52,36 +34,38 @@ class CacheCleanupFileAccessTimeProvidingCleanupActionTest extends Specification
         def snapshot = Mock(FileAccessTimeJournal.Snapshot)
 
         when:
-        cleanupAction.clean(cleanableStore, progressMonitor)
+        provider.getLastAccessTime(file1)
+        provider.getLastAccessTime(file2)
 
         then:
-        1 * delegateAction.clean(cleanableStore, progressMonitor) >> {
-            fileAccessTimeProvider.getLastAccessTime(file1)
-            fileAccessTimeProvider.getLastAccessTime(file2)
-        }
         1 * fileAccessTimeJournal.createSnapshot() >> snapshot
         1 * snapshot.getLastAccessTime(file1)
         1 * snapshot.getLastAccessTime(file2)
+
+        when:
+        provider.close()
 
         then:
         1 * snapshot.close()
     }
 
-    def "deletes last access time in the very end"() {
+    def "deletes last access time when being closed"() {
         given:
         def file1 = new File("a")
         def file2 = new File("b")
         def snapshot = Mock(FileAccessTimeJournal.Snapshot)
 
         when:
-        cleanupAction.clean(cleanableStore, progressMonitor)
+        provider.deleteLastAccessTime(file1)
+        provider.getLastAccessTime(file2)
 
         then:
-        1 * delegateAction.clean(cleanableStore, progressMonitor) >> {
-            fileAccessTimeProvider.deleteLastAccessTime(file1)
-            fileAccessTimeProvider.getLastAccessTime(file2)
-        }
         1 * fileAccessTimeJournal.createSnapshot() >> snapshot
+
+        when:
+        provider.close()
+
+        then:
         1 * snapshot.close()
 
         then:

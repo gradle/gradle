@@ -28,4 +28,9 @@ public class ModificationTimeCacheCleanupFileAccessTimeProvider implements Cache
     public void deleteLastAccessTime(File file) {
         // nothing to do
     }
+
+    @Override
+    public void close() {
+        // nothing to do
+    }
 }
