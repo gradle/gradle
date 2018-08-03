@@ -44,12 +44,7 @@ inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.named(name: St
  * @see [NamedDomainObjectCollection.named]
  */
 fun <T : Any> NamedDomainObjectCollection<out Any>.named(name: String, type: KClass<T>): NamedDomainObjectProvider<T> =
-    uncheckedCast(named(name).apply {
-        configure {
-            type.safeCast(it)
-                ?: throw illegalElementType(this@named, name, type, it::class)
-        }
-    })
+    named(name, type) {}
 
 
 /**
@@ -71,9 +66,14 @@ inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.named(name: St
  * @see [NamedDomainObjectProvider.configure]
  */
 fun <T : Any> NamedDomainObjectCollection<out Any>.named(name: String, type: KClass<T>, configuration: T.() -> Unit): NamedDomainObjectProvider<T> =
-    named(name, type).apply {
-        configure(configuration)
-    }
+    uncheckedCast(named(name).also { provider ->
+        provider.configure { obj ->
+            configuration(
+                type.safeCast(obj)
+                    ?: throw illegalElementType(this@named, name, type, obj::class)
+            )
+        }
+    })
 
 
 /**
