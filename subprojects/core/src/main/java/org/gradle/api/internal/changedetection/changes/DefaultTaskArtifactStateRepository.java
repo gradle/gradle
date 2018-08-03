@@ -142,7 +142,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
-        public Map<String, ? extends FileCollectionFingerprint> getOutputFingerprints() {
+        public Map<String, CurrentFileCollectionFingerprint> getOutputFingerprints() {
             return history.getCurrentExecution().getOutputFingerprints();
         }
 

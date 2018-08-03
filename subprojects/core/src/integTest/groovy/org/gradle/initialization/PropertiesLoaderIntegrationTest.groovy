@@ -141,4 +141,33 @@ task printSystemProp {
         then:
         succeeds ':help'
     }
+
+    def "Gradle properties can be derived from environment variables"() {
+        given:
+        buildFile << """
+            task printProperty() {
+                doLast {
+                    println "myProp=\${project.ext.myProp}"
+                }
+            }
+        """
+
+        when:
+        executer.withEnvironmentVars(ORG_GRADLE_PROJECT_myProp: 'fromEnv')
+
+        then:
+        succeeds 'printProperty'
+
+        and:
+        outputContains("myProp=fromEnv")
+
+        when:
+        executer.withEnvironmentVars(ORG_GRADLE_PROJECT_myProp: 'fromEnv2')
+
+        then:
+        succeeds 'printProperty'
+
+        and:
+        outputContains("myProp=fromEnv2")
+    }
 }

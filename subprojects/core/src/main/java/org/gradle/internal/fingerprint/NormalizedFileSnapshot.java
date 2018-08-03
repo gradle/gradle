@@ -19,6 +19,7 @@ package org.gradle.internal.fingerprint;
 import org.gradle.api.internal.changedetection.state.Hashable;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hashing;
 
 /**
  * An immutable snapshot of some aspects of a file's metadata and content.
@@ -29,6 +30,9 @@ import org.gradle.internal.hash.HashCode;
  * File snapshots are cached between builds, so their memory footprint should be kept to a minimum.
  */
 public interface NormalizedFileSnapshot extends Comparable<NormalizedFileSnapshot>, Hashable {
+    HashCode DIR_SIGNATURE = Hashing.md5().hashString("DIR");
+    HashCode MISSING_FILE_SIGNATURE = Hashing.md5().hashString("MISSING");
+
     String getNormalizedPath();
     HashCode getNormalizedContentHash();
     FileType getType();

@@ -24,11 +24,12 @@ import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class FilteredFileSystemSnapshotTest extends AbstractProjectBuilderSpec {
+class FileSystemSnapshotFilterTest extends AbstractProjectBuilderSpec {
 
     FileSystemSnapshotter snapshotter
     DirectoryFileTreeFactory directoryFileTreeFactory = TestFiles.directoryFileTreeFactory()
@@ -40,7 +41,7 @@ class FilteredFileSystemSnapshotTest extends AbstractProjectBuilderSpec {
             intern(_) >> { String string -> string }
         }
 
-        snapshotter = new DefaultFileSystemSnapshotter(new TestFileHasher(), interner, fileSystem, directoryFileTreeFactory, new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([])))
+        snapshotter = new DefaultFileSystemSnapshotter(new TestFileHasher(), interner, fileSystem, new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([])))
     }
 
     def "filters correctly"() {
@@ -63,11 +64,37 @@ class FilteredFileSystemSnapshotTest extends AbstractProjectBuilderSpec {
         filteredPaths(unfiltered, include("dir1/dirFile1")) == [root, dir1, dirFile1] as Set
     }
 
+    def "filters empty tree"() {
+        expect:
+        FileSystemSnapshotFilter.filterSnapshot(include("**/*").asSpec, FileSystemSnapshot.EMPTY, fileSystem) == FileSystemSnapshot.EMPTY
+    }
+
+    def "root is always matched"() {
+        def root = temporaryFolder.createFile("root")
+
+        expect:
+        filteredPaths(new PhysicalDirectorySnapshot(root.absolutePath, root.name, [], HashCode.fromInt(789)), include("different")) == [root] as Set
+        filteredPaths(new PhysicalFileSnapshot(root.absolutePath, root.name, HashCode.fromInt(1234), 1234), include("different")) == [root] as Set
+    }
+
+    def "returns original tree if nothing is excluded"() {
+        def root = temporaryFolder.createDir("root")
+        root.createFile("rootFile1")
+        def dir1 = root.createDir("dir1")
+        dir1.createFile("dirFile1")
+        dir1.createFile("dirFile2")
+
+        def unfiltered = snapshotter.snapshotDirectoryTree(directoryFileTreeFactory.create(root))
+
+        expect:
+        FileSystemSnapshotFilter.filterSnapshot(include("**/*File*").asSpec, unfiltered, fileSystem).is(unfiltered)
+    }
+
     private Set<File> filteredPaths(FileSystemSnapshot unfiltered, PatternSet patterns) {
         def result = [] as Set
-        new FilteredFileSystemSnapshot(patterns.asSpec, unfiltered, fileSystem).accept(new PhysicalSnapshotVisitor() {
+        FileSystemSnapshotFilter.filterSnapshot(patterns.asSpec, unfiltered, fileSystem).accept(new PhysicalSnapshotVisitor() {
             @Override
-            boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
+            boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
                 result << new File(directorySnapshot.absolutePath)
                 return true
             }
@@ -78,7 +105,7 @@ class FilteredFileSystemSnapshotTest extends AbstractProjectBuilderSpec {
             }
 
             @Override
-            void postVisitDirectory() {
+            void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
             }
         })
         return result

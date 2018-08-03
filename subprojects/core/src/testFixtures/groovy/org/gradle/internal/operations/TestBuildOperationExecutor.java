@@ -242,4 +242,8 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             return t;
         }
     }
+
+    public void reset() {
+        log.records.clear();
+    }
 }

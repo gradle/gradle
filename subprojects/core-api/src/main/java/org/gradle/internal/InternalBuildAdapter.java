@@ -14,20 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state.mirror;
+package org.gradle.internal;
 
-import java.util.List;
+import org.gradle.BuildAdapter;
 
-public class ImmutablePhysicalDirectorySnapshot extends AbstractPhysicalDirectorySnapshot {
-    private final List<PhysicalSnapshot> children;
-
-    public ImmutablePhysicalDirectorySnapshot(String absolutePath, String name, List<PhysicalSnapshot> children) {
-        super(absolutePath, name);
-        this.children = children;
-    }
-
-    @Override
-    public List<PhysicalSnapshot> getChildren() {
-        return children;
-    }
+public class InternalBuildAdapter extends BuildAdapter implements InternalListener {
 }

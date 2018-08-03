@@ -60,15 +60,14 @@ class PathNormalizationStrategyTest extends AbstractProjectBuilderSpec {
         emptyDir.mkdirs()
         missingFile = file("missing-file")
 
-        def directoryFileTreeFactory = TestFiles.directoryFileTreeFactory()
-        def snapshotter = new DefaultFileSystemSnapshotter(new TestFileHasher(), interner, TestFiles.fileSystem(), directoryFileTreeFactory, new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([])))
+        def snapshotter = new DefaultFileSystemSnapshotter(new TestFileHasher(), interner, TestFiles.fileSystem(), new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([])))
 
         roots = [
-            snapshotter.snapshotSelf(jarFile1),
-            snapshotter.snapshotSelf(this.jarFile2),
-            snapshotter.snapshotDirectoryTree(directoryFileTreeFactory.create(this.resources)),
-            snapshotter.snapshotDirectoryTree(directoryFileTreeFactory.create(this.emptyDir)),
-            snapshotter.snapshotSelf(missingFile)
+            snapshotter.snapshot(jarFile1),
+            snapshotter.snapshot(jarFile2),
+            snapshotter.snapshot(resources),
+            snapshotter.snapshot(emptyDir),
+            snapshotter.snapshot(missingFile)
         ]
     }
 

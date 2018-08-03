@@ -19,12 +19,21 @@ package org.gradle.api.internal.changedetection.state.mirror;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
+import java.util.Comparator;
+
 /**
  * A snapshot of a concrete file/directory tree.
  *
  * The file is not required to exist (see {@link PhysicalMissingSnapshot}.
  */
 public interface PhysicalSnapshot extends FileSystemSnapshot {
+
+    Comparator<PhysicalSnapshot> BY_NAME = new Comparator<PhysicalSnapshot>() {
+        @Override
+        public int compare(PhysicalSnapshot o1, PhysicalSnapshot o2) {
+            return o1.getName().compareTo(o2.getName());
+        }
+    };
 
     /**
      * The type of the file.
@@ -42,9 +51,19 @@ public interface PhysicalSnapshot extends FileSystemSnapshot {
     String getAbsolutePath();
 
     /**
-     * The content hash of the snapshot.
+     * The hash of the snapshot.
+     *
+     * This makes it possible to uniquely identify the snapshot.
+     * <dl>
+     *     <dt>Directories</dt>
+     *     <dd>The combined hash of the children, calculated by appending the name and the hash of each child to a hasher.</dd>
+     *     <dt>Regular Files</dt>
+     *     <dd>The hash of the content of the file.</dd>
+     *     <dt>Missing files</dt>
+     *     <dd>{@link PhysicalMissingSnapshot#SIGNATURE}</dd>
+     * </dl>
      */
-    HashCode getContentHash();
+    HashCode getHash();
 
     /**
      * Whether the content and the metadata (modification date) of the current snapshot is the same as for the given one.

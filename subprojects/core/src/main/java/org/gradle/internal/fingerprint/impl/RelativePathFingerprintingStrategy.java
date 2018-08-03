@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.api.internal.changedetection.state.mirror.RelativePathStringTracker;
@@ -50,7 +51,7 @@ public class RelativePathFingerprintingStrategy implements FingerprintingStrateg
                 private final RelativePathStringTracker relativePathStringTracker = new RelativePathStringTracker();
 
                 @Override
-                public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
+                public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
                     boolean isRoot = relativePathStringTracker.isRoot();
                     relativePathStringTracker.enter(directorySnapshot);
                     String absolutePath = directorySnapshot.getAbsolutePath();
@@ -78,7 +79,7 @@ public class RelativePathFingerprintingStrategy implements FingerprintingStrateg
                 }
 
                 @Override
-                public void postVisitDirectory() {
+                public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
                     relativePathStringTracker.leave();
                 }
             });

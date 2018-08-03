@@ -24,7 +24,7 @@ import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.SettingsLoader;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.plugin.management.internal.DefaultPluginRequests;
+import org.gradle.internal.build.PublicBuildPath;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -34,10 +34,12 @@ import java.util.Set;
 public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
     private final SettingsLoader delegate;
     private final BuildStateRegistry buildRegistry;
+    private final PublicBuildPath publicBuildPath;
 
-    public ChildBuildRegisteringSettingsLoader(SettingsLoader delegate, BuildStateRegistry buildRegistry) {
+    public ChildBuildRegisteringSettingsLoader(SettingsLoader delegate, BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath) {
         this.delegate = delegate;
         this.buildRegistry = buildRegistry;
+        this.publicBuildPath = publicBuildPath;
     }
 
     @Override
@@ -50,7 +52,7 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
             Set<IncludedBuild> children = new LinkedHashSet<IncludedBuild>(includedBuilds.size());
             for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
                 gradle.getOwner().assertCanAdd(includedBuildSpec);
-                BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(gradle.getStartParameter(), includedBuildSpec.rootDir, DefaultPluginRequests.EMPTY);
+                BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(gradle.getStartParameter(), null, includedBuildSpec.rootDir, publicBuildPath);
                 IncludedBuildState includedBuild = buildRegistry.addIncludedBuild(buildDefinition);
                 includedBuildSpec.configurer.execute(includedBuild.getModel());
                 children.add(includedBuild.getModel());

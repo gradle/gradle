@@ -23,10 +23,10 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Ordering;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
@@ -51,14 +51,12 @@ import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
@@ -224,7 +222,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             }
 
             @Override
-            public boolean preVisitDirectory(PhysicalSnapshot physicalSnapshot) {
+            public boolean preVisitDirectory(PhysicalDirectorySnapshot physicalSnapshot) {
                 this.path = physicalSnapshot.getAbsolutePath();
                 this.name = physicalSnapshot.getName();
                 this.hash = null;
@@ -263,7 +261,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             }
 
             @Override
-            public void postVisitDirectory() {
+            public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
                 visitor.postDirectory();
                 if (--depth == 0) {
                     visitor.postRoot();
@@ -377,14 +375,6 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                 Property property;
                 Deque<DirEntry> dirStack = new ArrayDeque<DirEntry>();
 
-                Comparator<Entry> comparator = Ordering.natural().onResultOf(new Function<Entry, String>() {
-                    @Nullable
-                    @Override
-                    public String apply(@Nullable Entry input) {
-                        return input.path;
-                    }
-                });
-
                 class Property {
                     private final String hash;
                     private final String normalization;
@@ -435,10 +425,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                 }
 
                 class DirEntry extends Entry {
-                    // The visitation order is currently not stable, so we sort.
-                    // Will be fixed by https://github.com/gradle/gradle/pull/6067
-                    // After that, we can turn this into a list
-                    private final Set<Entry> children = new TreeSet<Entry>(comparator);
+                    private final List<Entry> children = new ArrayList<Entry>();
 
                     DirEntry(String path) {
                         super(path);

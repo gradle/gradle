@@ -16,6 +16,8 @@
 
 package org.gradle.internal.fingerprint.impl;
 
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -27,29 +29,16 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.Map;
 
 public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollectionFingerprint {
 
     private static final HashCode SIGNATURE = Hashing.md5().hashString(EmptyCurrentFileCollectionFingerprint.class.getName());
 
-    private static final Map<FingerprintingStrategy.Identifier, EmptyCurrentFileCollectionFingerprint> INSTANCES = new EnumMap<FingerprintingStrategy.Identifier, EmptyCurrentFileCollectionFingerprint>(FingerprintingStrategy.Identifier.class);
-
-    static {
-        for (FingerprintingStrategy.Identifier identifier : FingerprintingStrategy.Identifier.values()) {
-            INSTANCES.put(identifier, new EmptyCurrentFileCollectionFingerprint(identifier));
-        }
-    }
-
     private final FingerprintingStrategy.Identifier identifier;
 
-    private EmptyCurrentFileCollectionFingerprint(FingerprintingStrategy.Identifier identifier) {
+    public EmptyCurrentFileCollectionFingerprint(FingerprintingStrategy.Identifier identifier) {
         this.identifier = identifier;
-    }
-
-    public static CurrentFileCollectionFingerprint of(FingerprintingStrategy.Identifier identifier) {
-        return INSTANCES.get(identifier);
     }
 
     @Override
@@ -69,6 +58,10 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
 
     @Override
     public void visitRoots(PhysicalSnapshotVisitor visitor) {
+    }
+
+    public Multimap<String, HashCode> getRootHashes() {
+        return ImmutableMultimap.of();
     }
 
     @Override

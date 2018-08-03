@@ -20,6 +20,7 @@ import org.apache.tools.ant.DirectoryScanner
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.internal.MutableBoolean
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -52,8 +53,9 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
         def visited = []
         def relativePaths = []
 
+        def actuallyFiltered = new MutableBoolean(false)
         when:
-        def root = walkDir(rootDir, null, walker)
+        def root = walkDir(rootDir, null, walker, actuallyFiltered)
         root.accept(new RelativePathTrackingVisitor() {
             @Override
             void visit(String absolutePath, Deque<String> relativePath) {
@@ -63,6 +65,7 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
         })
 
         then:
+        ! actuallyFiltered.get()
         visited.contains(rootTextFile.absolutePath)
         visited.contains(nestedTextFile.absolutePath)
         visited.contains(nestedSiblingTextFile.absolutePath)
@@ -97,8 +100,9 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
         def visited = []
         def relativePaths = []
 
+        def actuallyFiltered = new MutableBoolean(false)
         when:
-        def root = walkDir(rootDir, patterns, walker)
+        def root = walkDir(rootDir, patterns, walker, actuallyFiltered)
         root.accept(new RelativePathTrackingVisitor() {
             @Override
             void visit(String absolutePath, Deque<String> relativePath) {
@@ -108,6 +112,7 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
         })
 
         then:
+        actuallyFiltered.get()
         visited.contains(rootTextFile.absolutePath)
         visited.contains(nestedTextFile.absolutePath)
         visited.contains(nestedSiblingTextFile.absolutePath)
@@ -145,8 +150,8 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
         !defaultExcludes.excludeFile('#some')
     }
 
-    private static PhysicalSnapshot walkDir(File dir, PatternSet patterns, MirrorUpdatingDirectoryWalker walker) {
-        walker.walk(new ImmutablePhysicalDirectorySnapshot(dir.absolutePath, dir.getName(), []), patterns)
+    private static FileSystemSnapshot walkDir(File dir, PatternSet patterns, MirrorUpdatingDirectoryWalker walker, MutableBoolean actuallyFiltered) {
+        walker.walkDir(dir.absolutePath, patterns, actuallyFiltered)
     }
 }
 
@@ -154,7 +159,7 @@ abstract class RelativePathTrackingVisitor implements PhysicalSnapshotVisitor {
     private Deque<String> relativePath = new ArrayDeque<String>()
 
     @Override
-    boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
+    boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
         relativePath.addLast(directorySnapshot.name)
         visit(directorySnapshot.absolutePath, relativePath)
         return true
@@ -168,7 +173,7 @@ abstract class RelativePathTrackingVisitor implements PhysicalSnapshotVisitor {
     }
 
     @Override
-    void postVisitDirectory() {
+    void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
         relativePath.removeLast()
     }
 

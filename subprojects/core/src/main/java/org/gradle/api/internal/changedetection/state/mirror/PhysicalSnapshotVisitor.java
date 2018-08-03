@@ -26,7 +26,7 @@ public interface PhysicalSnapshotVisitor {
      *
      * @return Whether the subtree should be visited.
      */
-    boolean preVisitDirectory(PhysicalSnapshot directorySnapshot);
+    boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot);
 
     /**
      * Called for each regular/missing file.
@@ -36,5 +36,5 @@ public interface PhysicalSnapshotVisitor {
     /**
      * Called when leaving a directory.
      */
-    void postVisitDirectory();
+    void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot);
 }

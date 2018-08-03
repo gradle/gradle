@@ -18,6 +18,7 @@ package org.gradle.internal.fingerprint;
 
 import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
+import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -47,6 +48,16 @@ public interface FingerprintingStrategy {
         RELATIVE_PATH,
         ABSOLUTE_PATH,
         COMPILE_CLASSPATH,
-        CLASSPATH,
+        CLASSPATH;
+
+        private final EmptyCurrentFileCollectionFingerprint emptyFingerprint;
+
+        Identifier() {
+            emptyFingerprint = new EmptyCurrentFileCollectionFingerprint(this);
+        }
+
+        public EmptyCurrentFileCollectionFingerprint getEmptyFingerprint() {
+            return emptyFingerprint;
+        }
     }
 }

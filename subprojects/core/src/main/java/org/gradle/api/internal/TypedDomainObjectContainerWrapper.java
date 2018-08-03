@@ -19,7 +19,7 @@ package org.gradle.api.internal;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
-import org.gradle.api.DomainObjectProvider;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.NamedDomainObjectContainer;
@@ -85,12 +85,12 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
     }
 
     @Override
-    public DomainObjectProvider<U> register(String name, Action<? super U> configurationAction) throws InvalidUserDataException {
+    public NamedDomainObjectProvider<U> register(String name, Action<? super U> configurationAction) throws InvalidUserDataException {
         return parent.register(name, type, configurationAction);
     }
 
     @Override
-    public DomainObjectProvider<U> register(String name) throws InvalidUserDataException {
+    public NamedDomainObjectProvider<U> register(String name) throws InvalidUserDataException {
         return parent.register(name, type);
     }
 
@@ -103,7 +103,7 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
     }
 
     @Override
-    public DomainObjectProvider<U> named(String name) throws UnknownDomainObjectException {
+    public NamedDomainObjectProvider<U> named(String name) throws UnknownDomainObjectException {
         return delegate.named(name);
     }
 

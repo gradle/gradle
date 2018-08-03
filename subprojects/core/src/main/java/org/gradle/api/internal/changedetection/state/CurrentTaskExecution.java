@@ -43,8 +43,7 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
     };
 
     private final ImmutableSet<String> declaredOutputFilePaths;
-    private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprintsBeforeExecution;
-    private ImmutableSortedMap<String, ? extends FileCollectionFingerprint> outputFingerprintsAfterExecution;
+    private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints;
     private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFingerprints;
     private final OverlappingOutputs detectedOverlappingOutputs;
     private Boolean successful;
@@ -62,7 +61,7 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
     ) {
         super(taskImplementation, taskActionImplementations, inputProperties, outputPropertyNames);
         this.declaredOutputFilePaths = declaredOutputFilePaths;
-        this.outputFingerprintsBeforeExecution = outputFingerprintsBeforeExecution;
+        this.outputFingerprints = outputFingerprintsBeforeExecution;
         this.inputFingerprints = inputFingerprints;
         this.detectedOverlappingOutputs = detectedOverlappingOutputs;
     }
@@ -85,23 +84,18 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
         this.successful = successful;
     }
 
-
-    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFingerprintsBeforeExecution() {
-        return outputFingerprintsBeforeExecution;
-    }
-
     /**
      * The fingerprints of the output files for the current execution.
      *
      * @return The fingerprint of the output files before or after the task executed, depending on which one is available.
      */
     @Override
-    public ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getOutputFingerprints() {
-        return outputFingerprintsAfterExecution != null ? outputFingerprintsAfterExecution : outputFingerprintsBeforeExecution;
+    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFingerprints() {
+        return outputFingerprints;
     }
 
-    public void setOutputFingerprintsAfterExecution(ImmutableSortedMap<String, ? extends FileCollectionFingerprint> outputFilesSnapshot) {
-        this.outputFingerprintsAfterExecution = outputFilesSnapshot;
+    public void setOutputFingerprintsAfterExecution(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesSnapshot) {
+        this.outputFingerprints = outputFilesSnapshot;
     }
 
     @Override
@@ -116,7 +110,7 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
 
     public HistoricalTaskExecution archive() {
         ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> historicalInputFingerprints = ImmutableSortedMap.copyOfSorted(Maps.transformValues(inputFingerprints, ARCHIVE_FINGERPRINT));
-        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> historicalOutputFingerprints = ImmutableSortedMap.copyOfSorted(Maps.transformValues(outputFingerprintsAfterExecution, ARCHIVE_FINGERPRINT));
+        ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> historicalOutputFingerprints = ImmutableSortedMap.copyOfSorted(Maps.transformValues(outputFingerprints, ARCHIVE_FINGERPRINT));
         return new HistoricalTaskExecution(
             getTaskImplementation(),
             getTaskActionImplementations(),

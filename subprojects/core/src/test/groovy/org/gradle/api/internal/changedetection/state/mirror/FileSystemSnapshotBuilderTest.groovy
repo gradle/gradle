@@ -21,33 +21,34 @@ import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 
-class MutablePhysicalDirectorySnapshotTest extends Specification {
+class FileSystemSnapshotBuilderTest extends Specification {
 
     def stringInterner = Stub(StringInterner) {
             intern(_) >> { String string -> string }
     }
 
-    String basePath = '/some/location'
+    String basePath = new File("some/path").absolutePath
 
     def "can rebuild tree from relative paths"() {
-        def root = new MutablePhysicalDirectorySnapshot(basePath, "location", stringInterner)
+        def builder = new FileSystemSnapshotBuilder(stringInterner)
         def expectedRelativePaths = ['one', 'one/two', 'one/two/some.txt', 'three', 'three/four.txt']
 
         when:
-        root.add(["one", "two", "some.txt"] as String[], 0, fileSnapshot('one/two', 'some.txt'))
-        def subdir = root.add(["three"] as String[], 0, new MutablePhysicalDirectorySnapshot("${basePath}/three", "three", stringInterner))
-        subdir.add(["three", "four.txt"] as String[], 1, fileSnapshot("three", "four.txt"))
-        Map<String, HashCode> files = [:]
+        builder.addFile(new File(basePath, "one/two/some.txt"), ["one", "two", "some.txt"] as String[], fileSnapshot('one/two', 'some.txt'))
+        builder.addDir(new File(basePath, "three"), ["three"] as String[])
+        builder.addFile(new File(basePath, "three/four.txt"), ["three", "four.txt"] as String[], fileSnapshot("three", "four.txt"))
+        Set<String> files = [] as Set
         Set<String> relativePaths = [] as Set
-        root.accept(new PhysicalSnapshotVisitor() {
+        def result = builder.build()
+        result.accept(new PhysicalSnapshotVisitor() {
             private final relativePathTracker = new RelativePathSegmentsTracker()
 
             @Override
-            boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
+            boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
                 def isRoot = relativePathTracker.root
                 relativePathTracker.enter(directorySnapshot)
                 if (!isRoot) {
-                    files[directorySnapshot.absolutePath] = PhysicalDirectorySnapshot.SIGNATURE
+                    files.add(directorySnapshot.absolutePath)
                     relativePaths.add(relativePathTracker.relativePath.join("/"))
                 }
                 return true
@@ -55,20 +56,20 @@ class MutablePhysicalDirectorySnapshotTest extends Specification {
 
             @Override
             void visit(PhysicalSnapshot fileSnapshot) {
-                files[fileSnapshot.absolutePath] = fileSnapshot.contentHash
+                files.add(fileSnapshot.absolutePath)
                 relativePathTracker.enter(fileSnapshot)
                 relativePaths.add(relativePathTracker.relativePath.join("/"))
                 relativePathTracker.leave()
             }
 
             @Override
-            void postVisitDirectory() {
+            void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
                 relativePathTracker.leave()
             }
         })
 
         then:
-        normalizeFileSeparators(files.keySet()) == expectedRelativePaths.collect { "/some/location/$it".toString() } as Set
+        normalizeFileSeparators(files) == normalizeFileSeparators(expectedRelativePaths.collect { "${basePath}/$it".toString() } as Set)
         relativePaths == expectedRelativePaths as Set
     }
 
@@ -77,29 +78,46 @@ class MutablePhysicalDirectorySnapshotTest extends Specification {
     }
 
     def "cannot replace a file with a directory"() {
-        def root = new MutablePhysicalDirectorySnapshot(basePath, "location", stringInterner)
+        def builder = new FileSystemSnapshotBuilder(stringInterner)
         def relativePath = ["some", "file.txt"] as String[]
-        root.add(relativePath, 0, fileSnapshot("some", "file.txt"))
+        builder.addFile(new File(basePath, "some/file.txt"), relativePath, fileSnapshot("some/file.txt", "file.txt"))
 
         when:
-        root.add(relativePath, 0, new MutablePhysicalDirectorySnapshot("${basePath}/some/file.txt", "file.txt", stringInterner))
+        builder.addDir(new File(basePath, "some/file.txt"), relativePath)
 
         then:
         thrown IllegalStateException
-
     }
 
     def "cannot replace a directory with a file"() {
-        def root = new MutablePhysicalDirectorySnapshot(basePath, "location", stringInterner)
+        def builder = new FileSystemSnapshotBuilder(stringInterner)
         def relativePath = ["some", "file.txt"] as String[]
-        root.add(relativePath, 0, new MutablePhysicalDirectorySnapshot("${basePath}/some/dir", "dir", stringInterner))
+        builder.addDir(new File(basePath, "some/file.txt"), relativePath)
 
         when:
-        root.add(relativePath, 0, fileSnapshot("some", "file.txt"))
+        builder.addFile(new File(basePath, "some/file.txt"), relativePath, fileSnapshot("some", "file.txt"))
 
         then:
         thrown IllegalStateException
+    }
 
+    def "can add root file"() {
+        def builder = new FileSystemSnapshotBuilder(stringInterner)
+        def snapshot = fileSnapshot("", "path")
+
+        when:
+        builder.addFile(new File(basePath), [] as String[], snapshot)
+        def result = builder.build()
+
+        then:
+        result == snapshot
+    }
+
+    def "can add nothing"() {
+        def builder = new FileSystemSnapshotBuilder(stringInterner)
+
+        expect:
+        builder.build() == FileSystemSnapshot.EMPTY
     }
 
     private PhysicalFileSnapshot fileSnapshot(String relativePath, String name) {

@@ -16,11 +16,14 @@
 
 package org.gradle.internal.fingerprint.impl;
 
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
+import org.gradle.internal.hash.HashCode;
 
 import java.util.Collections;
 import java.util.Map;
@@ -39,6 +42,10 @@ public class EmptyHistoricalFileCollectionFingerprint implements HistoricalFileC
             }
         }
         return true;
+    }
+
+    public Multimap<String, HashCode> getRootHashes() {
+        return ImmutableMultimap.of();
     }
 
     @Override

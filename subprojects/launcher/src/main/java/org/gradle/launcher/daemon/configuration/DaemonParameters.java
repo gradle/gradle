@@ -37,6 +37,7 @@ public class DaemonParameters {
 
     public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError");
     public static final List<String> DEFAULT_JVM_8_ARGS = ImmutableList.of("-Xmx1024m", "-XX:+HeapDumpOnOutOfMemoryError");
+    public static final List<String> ALLOW_ENVIRONMENT_VARIABLE_OVERWRITE = ImmutableList.of("--add-opens", "java.base/java.util=ALL-UNNAMED");
 
     private final File gradleUserHomeDir;
 
@@ -126,6 +127,9 @@ public class DaemonParameters {
     }
 
     public void applyDefaultsFor(JavaVersion javaVersion) {
+        if (javaVersion.compareTo(JavaVersion.VERSION_1_9) >= 0) {
+            jvmOptions.jvmArgs(ALLOW_ENVIRONMENT_VARIABLE_OVERWRITE);
+        }
         if (hasJvmArgs) {
             return;
         }

@@ -39,7 +39,7 @@ public class RuntimeClasspathResourceHasher implements ResourceHasher {
     @Nullable
     @Override
     public HashCode hash(PhysicalFileSnapshot fileSnapshot) {
-        return fileSnapshot.getContentHash();
+        return fileSnapshot.getHash();
     }
 
     @Override

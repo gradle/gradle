@@ -16,18 +16,18 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
-import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
+import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.InternalPhasedAction;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
@@ -79,7 +79,7 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
 
     private void addBuildListener(final InternalPhasedAction phasedAction, final BuildController buildController) {
         final GradleInternal gradleInternal = buildController.getGradle();
-        gradleInternal.addBuildListener(new BuildAdapter() {
+        gradleInternal.addBuildListener(new InternalBuildAdapter() {
             @Override
             public void projectsEvaluated(Gradle gradle) {
                 run(phasedAction.getProjectsLoadedAction(), PhasedActionResult.Phase.PROJECTS_LOADED);

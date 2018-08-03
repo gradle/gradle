@@ -107,8 +107,8 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         def stringInterner = new StringInterner()
         def fileHasher = new TestFileHasher()
         fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
-        FileCollectionFingerprinter inputFileCollectionFingerprinter = new AbsolutePathFileCollectionFingerprinter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(fileHasher, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
-        FileCollectionFingerprinter outputFileCollectionFingerprinter = new OutputFileCollectionFingerprinter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(fileHasher, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
+        FileCollectionFingerprinter inputFileCollectionFingerprinter = new AbsolutePathFileCollectionFingerprinter(stringInterner, new DefaultFileSystemSnapshotter(fileHasher, stringInterner, TestFiles.fileSystem(), fileSystemMirror))
+        FileCollectionFingerprinter outputFileCollectionFingerprinter = new OutputFileCollectionFingerprinter(stringInterner, new DefaultFileSystemSnapshotter(fileHasher, stringInterner, TestFiles.fileSystem(), fileSystemMirror))
         def classLoaderHierarchyHasher = Mock(ConfigurableClassLoaderHierarchyHasher) {
             getClassLoaderHash(_) >> HashCode.fromInt(123)
         }
@@ -605,7 +605,27 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         and:
         def state2 = getStateFor(task2)
         state2.isUpToDate([])
-        state2.executionHistory.outputFiles == [outputDirFile2] as Set
+        state2.executionHistory.outputFiles == [outputDir2, outputDirFile2] as Set
+    }
+
+    def "overlapping directories are not included"() {
+        when:
+        TestFile outputDir2 = outputDir.createDir("output-dir-2")
+        TestFile outputDirFile2 = outputDir2.file("output-file-2")
+        TaskInternal task1 = builder.withOutputDirs(dir: [outputDir]).createsFiles(outputDirFile).withPath('task1').task()
+        TaskInternal task2 = builder.withOutputDirs(dir: [outputDir2]).createsFiles(outputDirFile2).withPath('task2').task()
+
+        execute(task1, task2)
+
+        then:
+        def state1 = getStateFor(task1)
+        state1.isUpToDate([])
+        state1.executionHistory.outputFiles == [outputDir, outputDirFile] as Set
+
+        and:
+        def state2 = getStateFor(task2)
+        state2.isUpToDate([])
+        state2.executionHistory.outputFiles == [outputDir2, outputDirFile2] as Set
     }
 
     def "has no origin build ID when not executed"() {
