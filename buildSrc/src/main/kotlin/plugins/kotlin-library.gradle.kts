@@ -37,6 +37,7 @@ tasks {
         kotlinOptions {
             freeCompilerArgs += listOf(
                 "-java-parameters",
+                "-Xuse-old-class-files-reading",
                 "-Xjsr305=strict",
                 "-Xskip-runtime-version-check")
         }

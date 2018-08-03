@@ -61,6 +61,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
     scriptFilePattern = ".+\\.init\\.gradle\\.kts")
 @ScriptTemplateAdditionalCompilerArguments([
     "-java-parameters",
+    "-Xuse-old-class-files-reading",
     "-Xjsr305=strict",
     "-Xprogressive",
     "-XXLanguage:+NewInference",

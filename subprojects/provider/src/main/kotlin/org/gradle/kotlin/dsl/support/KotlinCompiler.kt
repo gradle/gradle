@@ -45,6 +45,7 @@ import org.jetbrains.kotlin.config.JVMConfigurationKeys.JVM_TARGET
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_DIRECTORY
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_JAR
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.RETAIN_OUTPUT_IN_MEMORY
+import org.jetbrains.kotlin.config.JVMConfigurationKeys.USE_FAST_CLASS_FILES_READING
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersion
@@ -208,6 +209,7 @@ fun compilerConfigurationFor(messageCollector: MessageCollector): CompilerConfig
         put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettings)
         put(JVM_TARGET, JvmTarget.JVM_1_8)
         put(PARAMETERS_METADATA, true)
+        put(USE_FAST_CLASS_FILES_READING, false)
     }
 
 
