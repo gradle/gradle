@@ -36,6 +36,7 @@ tasks {
     withType<KotlinCompile> {
         kotlinOptions {
             freeCompilerArgs += listOf(
+                "-java-parameters",
                 "-Xjsr305=strict",
                 "-Xskip-runtime-version-check")
         }

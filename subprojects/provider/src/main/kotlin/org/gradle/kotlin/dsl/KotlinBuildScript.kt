@@ -46,6 +46,7 @@ annotation class KotlinScriptTemplate
     resolver = KotlinBuildScriptDependenciesResolver::class,
     scriptFilePattern = ".*\\.gradle\\.kts")
 @ScriptTemplateAdditionalCompilerArguments([
+    "-java-parameters",
     "-Xjsr305=strict",
     "-Xprogressive",
     "-XXLanguage:+NewInference",

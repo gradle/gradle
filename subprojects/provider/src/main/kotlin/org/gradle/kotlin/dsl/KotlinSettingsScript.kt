@@ -70,6 +70,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
     resolver = KotlinBuildScriptDependenciesResolver::class,
     scriptFilePattern = "^(settings|.+\\.settings)\\.gradle\\.kts$")
 @ScriptTemplateAdditionalCompilerArguments([
+    "-java-parameters",
     "-Xjsr305=strict",
     "-Xprogressive",
     "-XXLanguage:+NewInference",
