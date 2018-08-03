@@ -83,7 +83,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
     }
 
     private void onStart(ProgressStartEvent startEvent) {
-        boolean isGrouped = isGroupedOperation(startEvent.getBuildOperationCategory());
+        boolean isGrouped = startEvent.getBuildOperationCategory().isGrouped();
         OperationIdentifier progressId = startEvent.getProgressOperationId();
         if (startEvent.isBuildOperationStart() && isGrouped) {
             // Create a new group for tasks or configure project
@@ -97,10 +97,6 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         if (!isGrouped && GUtil.isTrue(startEvent.getLoggingHeader())) {
             onUngroupedOutput(new LogEvent(startEvent.getTimestamp(), startEvent.getCategory(), startEvent.getLogLevel(), startEvent.getLoggingHeader(), null, null));
         }
-    }
-
-    private boolean isGroupedOperation(BuildOperationCategory buildOperationCategory) {
-        return buildOperationCategory == BuildOperationCategory.TASK || buildOperationCategory == BuildOperationCategory.CONFIGURE_PROJECT || buildOperationCategory == BuildOperationCategory.TRANSFORM;
     }
 
     private void handleOutput(RenderableOutputEvent event) {
@@ -290,7 +286,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         }
 
         private boolean shouldForward() {
-            return !bufferedLogs.isEmpty() || ((buildOperationCategory == BuildOperationCategory.TASK || buildOperationCategory == BuildOperationCategory.TRANSFORM) && (shouldPrintHeader() || statusIsFailed()));
+            return !bufferedLogs.isEmpty() || (buildOperationCategory.isTopLevelWorkItem() && (shouldPrintHeader() || statusIsFailed()));
         }
     }
 }

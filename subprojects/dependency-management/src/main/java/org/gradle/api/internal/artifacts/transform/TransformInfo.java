@@ -125,7 +125,7 @@ public abstract class TransformInfo extends WorkInfo {
         }
 
         @Override
-        public void execute(final BuildOperationExecutor buildOperationExecutor) {
+        public void execute(BuildOperationExecutor buildOperationExecutor) {
             ResolveArtifacts resolveArtifacts = new ResolveArtifacts(artifactSet);
             buildOperationExecutor.runAll(resolveArtifacts);
             ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor();
