@@ -163,10 +163,22 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     @Override
     public void configureEach(Action<? super T> action) {
         eventRegister.registerLazyAddAction(action);
+
+        // copy in case any actions mutate the store
+        Collection<T> copied = null;
         Iterator<T> iterator = iteratorNoFlush();
         while (iterator.hasNext()) {
-            T next = iterator.next();
-            action.execute(next);
+            // only create an intermediate collection if there's something to copy
+            if (copied == null) {
+                copied = Lists.newArrayListWithExpectedSize(estimatedSize());
+            }
+            copied.add(iterator.next());
+        }
+
+        if (copied != null) {
+            for (T next : copied) {
+                action.execute(next);
+            }
         }
     }
 
