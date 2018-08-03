@@ -17,7 +17,6 @@
 package org.gradle.initialization;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildDefinition;
@@ -31,6 +30,7 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
+import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.NestedBuildState;
 import org.gradle.internal.build.RootBuildState;
@@ -108,7 +108,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         rootBuild = launcher;
 
         final DefaultDeploymentRegistry deploymentRegistry = parentRegistry.get(DefaultDeploymentRegistry.class);
-        launcher.getGradle().addBuildListener(new BuildAdapter() {
+        launcher.getGradle().addBuildListener(new InternalBuildAdapter() {
             @Override
             public void buildFinished(BuildResult result) {
                 deploymentRegistry.buildFinished(result);

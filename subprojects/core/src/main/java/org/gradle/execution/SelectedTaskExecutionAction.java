@@ -22,6 +22,7 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.InternalListener;
 
 import java.util.Collection;
 import java.util.Set;
@@ -39,7 +40,7 @@ public class SelectedTaskExecutionAction implements BuildExecutionAction {
         taskGraph.execute(taskFailures);
     }
 
-    private static class BindAllReferencesOfProjectsToExecuteListener implements TaskExecutionGraphListener {
+    private static class BindAllReferencesOfProjectsToExecuteListener implements TaskExecutionGraphListener, InternalListener {
         @Override
         public void graphPopulated(TaskExecutionGraph graph) {
             Set<Project> seen = Sets.newHashSet();

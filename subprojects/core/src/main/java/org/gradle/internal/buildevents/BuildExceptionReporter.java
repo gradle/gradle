@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.buildevents;
 
-import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
@@ -24,6 +23,7 @@ import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.StartParameterBuildOptions;
+import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
@@ -44,7 +44,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 /**
  * A {@link org.gradle.BuildListener} which reports the build exception, if any.
  */
-public class BuildExceptionReporter extends BuildAdapter implements Action<Throwable> {
+public class BuildExceptionReporter extends InternalBuildAdapter implements Action<Throwable> {
     private enum ExceptionStyle {
         NONE, FULL
     }

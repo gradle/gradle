@@ -22,10 +22,10 @@ import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
 import groovy.json.JsonOutput;
 import groovy.json.JsonSlurper;
-import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
@@ -360,7 +360,7 @@ public class BuildOperationTrace implements Stoppable {
     }
 
 
-    private class LoggingListener extends BuildAdapter implements BuildOperationListener {
+    private class LoggingListener extends InternalBuildAdapter implements BuildOperationListener {
 
         // This is a workaround for https://github.com/gradle/gradle/issues/4241
         // Several early typed operations have `buildPath` property,

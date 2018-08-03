@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon.server.scaninfo;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
+import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationListener;
@@ -102,7 +103,7 @@ public class DefaultDaemonScanInfo implements DaemonScanInfo {
         daemonExpirationListenerReference.set(daemonExpirationListener);
         listenerManager.addListener(daemonExpirationListener);
 
-        final BuildAdapter buildListener = new BuildAdapter() {
+        final BuildAdapter buildListener = new InternalBuildAdapter() {
             @Override
             public void buildFinished(BuildResult result) {
                 DaemonExpirationListener daemonExpirationListener = daemonExpirationListenerReference.getAndSet(null);

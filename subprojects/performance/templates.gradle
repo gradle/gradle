@@ -59,12 +59,6 @@ tasks.register("withVerboseJUnit", JvmProjectGeneratorTask) {
     subProjectTemplates << 'with-verbose-junit'
 }
 
-//TODO replace with static project or direct project objects creation
-tasks.register("bigEmpty", JvmProjectGeneratorTask) {
-    projects = 10000
-    subProjectTemplates = ['empty']
-}
-
 //TODO replace with direct task objects creation in test
 tasks.register("createLotsOfTasks", JvmProjectGeneratorTask) {
     projects = 1
