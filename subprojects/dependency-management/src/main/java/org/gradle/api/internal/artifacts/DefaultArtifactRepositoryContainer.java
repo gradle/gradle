@@ -74,7 +74,6 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
         add(repository);
     }
 
-    @Override
     protected UnknownDomainObjectException createNotFoundException(String name) {
         return new UnknownRepositoryException(String.format("Repository with name '%s' not found.", name));
     }

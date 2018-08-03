@@ -17,6 +17,7 @@
 package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
+import org.gradle.api.DomainObjectProvider;
 import org.gradle.api.internal.WithEstimatedSize;
 import org.gradle.api.provider.Provider;
 
@@ -29,6 +30,8 @@ public interface ElementSource<T> extends Iterable<T>, WithEstimatedSize {
      */
     @Override
     Iterator<T> iterator();
+
+    Iterable<DomainObjectProvider<? extends T>> providers();
 
     void configureAll(Action<? super T> action);
 

@@ -21,12 +21,14 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.DomainObjectProvider;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.collections.FilteredCollection;
 import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Cast;
@@ -56,6 +58,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     public Class<? extends T> getType() {
         return type;
+    }
+
+    protected ElementSource<T> getStore() {
+        return store;
     }
 
     protected CollectionFilter<T> createFilter(Spec<? super T> filter) {
@@ -234,7 +240,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         whenObjectRemoved(toAction(action));
     }
 
-    private Action<? super T> toAction(Closure action) {
+    protected Action<? super T> toAction(Closure action) {
         return ConfigureUtil.configureUsing(action);
     }
 
@@ -247,10 +253,6 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     protected void assertMutable() {
         mutateAction.execute(null);
-    }
-
-    public interface DomainObjectProvider<T> extends Provider<T> {
-        void configure(Action<? super T> action);
     }
 
     // TODO: toString
@@ -276,6 +278,12 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             } else {
                 action.execute(object);
             }
+        }
+
+        @Override
+        public TypeOf<T> getPublicType() {
+            // TODO: Merge with DslObject
+            return TypeOf.typeOf(type);
         }
 
         @Override
@@ -323,6 +331,16 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
                     return provider.get();
                 }
             });
+        }
+
+        @Override
+        public Iterable<DomainObjectProvider<? extends T>> providers() {
+            return new Iterable<DomainObjectProvider<? extends T>>() {
+                @Override
+                public Iterator<DomainObjectProvider<? extends T>> iterator() {
+                    return backingCollection.iterator();
+                }
+            };
         }
 
         @Override

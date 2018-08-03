@@ -16,21 +16,10 @@
 
 package org.gradle.api;
 
-/**
- * Provides a domain object of the given type.
- *
- * @param <T> type of domain object
- * @since 4.10
- */
-@Incubating
-public interface NamedDomainObjectProvider<T> extends DomainObjectProvider<T> {
-    /**
-     * The domain object name referenced by this provider.
-     * <p>
-     * Must be constant for the life of the object.
-     *
-     * @return The domain object. Never null.
-     * @since 4.10
-     */
-    String getName();
+import org.gradle.api.provider.Provider;
+import org.gradle.api.reflect.TypeOf;
+
+public interface DomainObjectProvider<T> extends Provider<T> {
+    void configure(Action<? super T> action);
+    TypeOf<T> getPublicType();
 }
