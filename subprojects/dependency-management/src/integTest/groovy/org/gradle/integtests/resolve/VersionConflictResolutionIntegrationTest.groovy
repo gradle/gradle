@@ -410,7 +410,7 @@ project(':tool') {
 
 	configurations.all {
 	    resolutionStrategy {
-	        force 'org:foo:1.4+'
+	        force 'org:foo:[1.4, 1.5)'
 	        failOnVersionConflict()
 	    }
 	}
@@ -1193,7 +1193,7 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    def "merges range selector with sub-version selector"() {
+    def "range selector should not win over sub-version selector"() {
         given:
         (1..10).each {
             mavenRepo.module("org", "leaf", "1.$it").publish()
@@ -1214,7 +1214,7 @@ task checkDeps(dependsOn: configurations.compile) {
             task checkDeps {
                 doLast {
                     def files = configurations.conf*.name.sort()
-                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'leaf-1.6.jar']
+                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'leaf-1.10.jar']
                 }
             }
         """

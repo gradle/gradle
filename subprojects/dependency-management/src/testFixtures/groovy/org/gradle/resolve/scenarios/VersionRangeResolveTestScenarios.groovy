@@ -122,11 +122,11 @@ class VersionRangeResolveTestScenarios {
         expectedStrict: ["13", "13"]
     ).and(
         versions: [DYNAMIC_PLUS, FIXED_11],
-        expectedNoStrict: "11",
+        expectedNoStrict: "13",
         expectedStrict: [IGNORE, "11"]
     ).and(
         versions: [DYNAMIC_PLUS, RANGE_10_12],
-        expectedNoStrict: "12",
+        expectedNoStrict: "13",
         expectedStrict: [IGNORE, "12"]
     ).and(
         versions: [DYNAMIC_PLUS, RANGE_10_16],
