@@ -618,6 +618,41 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access?.close()
     }
 
+    def "does not acquire file lock for cleanup"() {
+        given:
+        def access = newAccess(None)
+        access.open()
+
+        when:
+        access.close()
+
+        then:
+        1 * cleanupAction.requiresCleanup() >> true
+        1 * cleanupAction.cleanup()
+        0 * lockManager._
+    }
+
+    def "releases file lock before running cleanup"() {
+        def access = newAccess(None)
+
+        given:
+        lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _ as Runnable) >> lock
+        lock.writeFile(_) >> { Runnable r -> r.run() }
+        access.open()
+        def cache = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
+        access.useCache { cache.get("key") }
+
+        when:
+        access.close()
+
+        then:
+        lock.close()
+
+        then:
+        cleanupAction.requiresCleanup() >> true
+        cleanupAction.cleanup()
+    }
+
     def "returns the same cache object when using same cache parameters"() {
         def access = newAccess(None)
 
