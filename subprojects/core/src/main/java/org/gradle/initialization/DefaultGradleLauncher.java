@@ -261,7 +261,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
                     @Override
                     public String getIncludedBy() {
-                        return fromBuild.getBuildPath().toString();
+                        return fromBuild == null ? null : fromBuild.getBuildPath().toString();
                     }
                 });
         }
