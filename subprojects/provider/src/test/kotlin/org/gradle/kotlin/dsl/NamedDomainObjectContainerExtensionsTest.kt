@@ -92,10 +92,7 @@ class NamedDomainObjectContainerExtensionsTest {
             on { create("john", DomainObjectBase.Default::class.java) } doReturn default
             on { named("marty") } doReturn martyProvider
             on { register(eq("doc"), eq(DomainObjectBase.Bar::class.java)) } doReturn docProviderAsBarProvider
-            on { register(eq("doc"), eq(DomainObjectBase.Bar::class.java), any<Action<DomainObjectBase>>()) }.thenAnswer {
-                it.getArgument<Action<DomainObjectBase>>(2).execute(doc)
-                docProvider
-            }
+            onRegisterWithAction("doc", DomainObjectBase.Bar::class, docProviderAsBarProvider)
         }
 
         // regular syntax
@@ -145,20 +142,10 @@ class NamedDomainObjectContainerExtensionsTest {
     fun `can configure monomorphic container`() {
 
         val alice = DomainObject()
-        val aliceProvider = mock<NamedDomainObjectProvider<DomainObject>> {
-            on { get() } doReturn alice
-            on { configure(any()) } doAnswer {
-                it.getArgument<Action<DomainObject>>(0).execute(alice)
-            }
-        }
+        val aliceProvider = mockDomainObjectProviderFor(alice)
 
         val bob = DomainObject()
-        val bobProvider = mock<NamedDomainObjectProvider<DomainObject>> {
-            on { get() } doReturn bob
-            on { configure(any()) } doAnswer {
-                it.getArgument<Action<DomainObject>>(0).execute(bob)
-            }
-        }
+        val bobProvider = mockDomainObjectProviderFor(bob)
 
         val container = mock<NamedDomainObjectContainer<DomainObject>> {
             on { named("alice") } doReturn aliceProvider

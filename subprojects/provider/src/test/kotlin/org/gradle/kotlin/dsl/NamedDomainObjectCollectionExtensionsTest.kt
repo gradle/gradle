@@ -198,8 +198,8 @@ class NamedDomainObjectCollectionExtensionsTest {
         val barObject = DomainObject()
         val barObjectProvider = mockDomainObjectProviderFor(barObject)
         val container = mock<NamedDomainObjectContainer<DomainObject>> {
-            onRegister("foo", fooObjectProvider)
-            onRegister("bar", barObjectProvider)
+            onRegisterWithAction("foo", fooObjectProvider)
+            onRegisterWithAction("bar", barObjectProvider)
         }
 
         container {
@@ -316,8 +316,8 @@ class NamedDomainObjectCollectionExtensionsTest {
         val barObject = DomainObject()
         val barObjectProvider = mockDomainObjectProviderFor(barObject)
         val container = mock<PolymorphicDomainObjectContainer<Any>> {
-            onRegister("foo", DomainObject::class, fooObjectProvider)
-            onRegister("bar", DomainObject::class, barObjectProvider)
+            onRegisterWithAction("foo", DomainObject::class, fooObjectProvider)
+            onRegisterWithAction("bar", DomainObject::class, barObjectProvider)
         }
 
         container {
@@ -363,7 +363,7 @@ class NamedDomainObjectCollectionExtensionsTest {
 
 
 private
-fun <T> KStubbing<NamedDomainObjectContainer<T>>.onRegister(name: String, provider: NamedDomainObjectProvider<T>) {
+fun <T> KStubbing<NamedDomainObjectContainer<T>>.onRegisterWithAction(name: String, provider: NamedDomainObjectProvider<T>) {
     on { register(eq(name), any<Action<T>>()) }.thenAnswer {
         it.getArgument<Action<T>>(1).execute(provider.get())
         provider
@@ -372,7 +372,7 @@ fun <T> KStubbing<NamedDomainObjectContainer<T>>.onRegister(name: String, provid
 
 
 internal
-fun <T : Any, U : T> KStubbing<PolymorphicDomainObjectContainer<T>>.onRegister(name: String, type: KClass<U>, domainObjectProvider: NamedDomainObjectProvider<U>) {
+fun <T : Any, U : T> KStubbing<PolymorphicDomainObjectContainer<T>>.onRegisterWithAction(name: String, type: KClass<U>, domainObjectProvider: NamedDomainObjectProvider<U>) {
     on { register(eq(name), eq(type.java), any<Action<U>>()) }.thenAnswer {
         it.getArgument<Action<U>>(2).execute(domainObjectProvider.get())
         domainObjectProvider
