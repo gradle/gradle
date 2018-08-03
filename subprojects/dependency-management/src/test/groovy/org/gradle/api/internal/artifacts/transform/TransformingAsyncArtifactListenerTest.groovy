@@ -24,7 +24,7 @@ import org.gradle.testing.internal.util.Specification
 class TransformingAsyncArtifactListenerTest extends Specification {
     def transformer = Mock(ArtifactTransformer)
     def operationQueue = Mock(BuildOperationQueue)
-    def listener  = new TransformingAsyncArtifactListener(transformer, null, operationQueue, Maps.newHashMap(), Maps.newHashMap())
+    def listener  = new TransformingAsyncArtifactListener(transformer, null, operationQueue, Maps.newHashMap(), Maps.newHashMap(), transformListener)
 
     def "runs transforms in parallel if no cached result is available"() {
         given:

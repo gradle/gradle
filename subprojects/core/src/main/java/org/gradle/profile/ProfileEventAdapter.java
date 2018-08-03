@@ -23,21 +23,28 @@ import org.gradle.api.ProjectState;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.ResolvableDependencies;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformer;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.initialization.BuildCompletionListener;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.time.Clock;
 
+import javax.annotation.Nullable;
+import java.io.File;
+
 /**
  * Adapts various events to build a {@link BuildProfile} model, and then notifies a {@link ReportGeneratingProfileListener} when the model is ready.
  */
-public class ProfileEventAdapter implements BuildListener, ProjectEvaluationListener, TaskExecutionListener, DependencyResolutionListener, BuildCompletionListener {
+public class ProfileEventAdapter implements BuildListener, ProjectEvaluationListener, TaskExecutionListener, DependencyResolutionListener, BuildCompletionListener, ArtifactTransformListener {
     private final BuildStartedTime buildStartedTime;
     private final Clock clock;
     private final ProfileListener listener;
+    private final ThreadLocal<ContinuousOperation> currentTransform = new ThreadLocal<ContinuousOperation>();
     private BuildProfile buildProfile;
 
     public ProfileEventAdapter(BuildStartedTime buildStartedTime, Clock clock, ProfileListener listener) {
@@ -132,5 +139,25 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
         long now = clock.getCurrentTime();
         buildProfile.getDependencySetProfile(dependencies.getPath()).setFinish(now);
     }
-}
 
+    @Override
+    public void beforeTransform(ArtifactTransformer transform, @Nullable ComponentArtifactIdentifier artifactId, File file) {
+        long now = clock.getCurrentTime();
+        String transformDescription;
+        if (artifactId != null) {
+            transformDescription = artifactId.getDisplayName();
+        } else {
+            transformDescription = file.getAbsolutePath();
+        }
+        transformDescription += " with " + transform.getDisplayName();
+        FragmentedOperation transformProfile = buildProfile.getTransformProfile(transformDescription);
+        currentTransform.set(transformProfile.start(now));
+    }
+
+    @Override
+    public void afterTransform(ArtifactTransformer transform, @Nullable ComponentArtifactIdentifier artifactId, File file, @Nullable Throwable failure) {
+        long now = clock.getCurrentTime();
+        currentTransform.get().setFinish(now);
+        currentTransform.remove();
+    }
+}

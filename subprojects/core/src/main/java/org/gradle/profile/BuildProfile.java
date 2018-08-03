@@ -15,6 +15,7 @@
  */
 package org.gradle.profile;
 
+import com.google.common.collect.Maps;
 import org.gradle.StartParameter;
 import org.gradle.util.CollectionUtils;
 
@@ -46,6 +47,7 @@ public class BuildProfile {
 
     private final Map<String, ProjectProfile> projects = new LinkedHashMap<String, ProjectProfile>();
     private final Map<String, ContinuousOperation> dependencySets = new LinkedHashMap<String, ContinuousOperation>();
+    private final Map<String, FragmentedOperation> transforms = Maps.newLinkedHashMap();
     private long profilingStarted;
     private long buildStarted;
     private long settingsEvaluated;
@@ -136,9 +138,22 @@ public class BuildProfile {
         return new CompositeOperation<ContinuousOperation>(profiles);
     }
 
+    public FragmentedOperation getTransformProfile(String transformDescription) {
+        FragmentedOperation profile = transforms.get(transformDescription);
+        if (profile == null) {
+            profile = new FragmentedOperation(transformDescription);
+            transforms.put(transformDescription, profile);
+        }
+        return profile;
+    }
+
+    public CompositeOperation<FragmentedOperation> getTransforms() {
+        final List<FragmentedOperation> profiles = CollectionUtils.sort(transforms.values(), Operation.slowestFirst());
+        return new CompositeOperation<FragmentedOperation>(profiles);
+    }
+
     /**
      * Should be set with a time as soon as possible after startup.
-     * @param profilingStarted
      */
     public void setProfilingStarted(long profilingStarted) {
         this.profilingStarted = profilingStarted;
@@ -147,7 +162,6 @@ public class BuildProfile {
     /**
      * Should be set with a timestamp from a {@link org.gradle.BuildListener#buildStarted}
      * callback.
-     * @param buildStarted
      */
     public void setBuildStarted(long buildStarted) {
         this.buildStarted = buildStarted;
@@ -156,7 +170,6 @@ public class BuildProfile {
     /**
      * Should be set with a timestamp from a {@link org.gradle.BuildListener#settingsEvaluated}
      * callback.
-     * @param settingsEvaluated
      */
     public void setSettingsEvaluated(long settingsEvaluated) {
         this.settingsEvaluated = settingsEvaluated;
@@ -165,7 +178,6 @@ public class BuildProfile {
     /**
      * Should be set with a timestamp from a {@link org.gradle.BuildListener#projectsLoaded}
      * callback.
-     * @param projectsLoaded
      */
     public void setProjectsLoaded(long projectsLoaded) {
         this.projectsLoaded = projectsLoaded;
@@ -174,7 +186,6 @@ public class BuildProfile {
     /**
      * Should be set with a timestamp from a {@link org.gradle.BuildListener#projectsEvaluated}
      * callback.
-     * @param projectsEvaluated
      */
     public void setProjectsEvaluated(long projectsEvaluated) {
         this.projectsEvaluated = projectsEvaluated;
@@ -183,7 +194,6 @@ public class BuildProfile {
     /**
      * Should be set with a timestamp from a {@link org.gradle.BuildListener#buildFinished}
      * callback.
-     * @param buildFinished
      */
     public void setBuildFinished(long buildFinished) {
         this.buildFinished = buildFinished;
@@ -191,7 +201,6 @@ public class BuildProfile {
 
     /**
      * Get the elapsed time (in mSec) between the start of profiling and the buildStarted event.
-     * @return
      */
     public long getElapsedStartup() {
         return buildStarted - profilingStarted;
@@ -199,7 +208,6 @@ public class BuildProfile {
 
     /**
      * Get the total elapsed time (in mSec) between the start of profiling and the buildFinished event.
-     * @return
      */
     public long getElapsedTotal() {
         return buildFinished - profilingStarted;
@@ -208,7 +216,6 @@ public class BuildProfile {
     /**
      * Get the elapsed time (in mSec) between the buildStarted event and the settingsEvaluated event.
      * Note that this will include processing of buildSrc as well as the settings file.
-     * @return
      */
     public long getElapsedSettings() {
         return settingsEvaluated - buildStarted;
@@ -216,7 +223,6 @@ public class BuildProfile {
 
     /**
      * Get the elapsed time (in mSec) between the settingsEvaluated event and the projectsLoaded event.
-     * @return
      */
     public long getElapsedProjectsLoading() {
         return projectsLoaded - settingsEvaluated;
@@ -224,15 +230,24 @@ public class BuildProfile {
 
     /**
      * Get the elapsed time (in mSec) between the projectsLoaded event and the projectsEvaluated event.
-     * @return
      */
     public long getElapsedProjectsConfiguration() {
         return projectsEvaluated - projectsLoaded;
     }
 
     /**
+     * Get the total artifact transformation time.
+     */
+    public long getElapsedArtifactTransformTime() {
+        long result = 0;
+        for (FragmentedOperation transform : transforms.values()) {
+            result += transform.getElapsedTime();
+        }
+        return result;
+    }
+
+    /**
      * Get the total task execution time from all projects.
-     * @return
      */
     public long getElapsedTotalExecutionTime() {
         long result = 0;

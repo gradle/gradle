@@ -17,7 +17,6 @@ package org.gradle.profile;
 
 import com.google.common.collect.Lists;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -25,7 +24,7 @@ import java.util.List;
  * An operation made up of other operations of type T.
  */
 public class CompositeOperation<T extends Operation> extends Operation implements Iterable<T> {
-    private List<T> children = new ArrayList<T>();
+    private final List<T> children;
 
     public CompositeOperation(Iterable<? extends T> children) {
         this.children = Lists.newArrayList(children);
@@ -35,6 +34,7 @@ public class CompositeOperation<T extends Operation> extends Operation implement
         return children;
     }
 
+    @Override
     public Iterator<T> iterator() {
         return children.iterator();
     }
@@ -48,6 +48,7 @@ public class CompositeOperation<T extends Operation> extends Operation implement
         return sum;
     }
 
+    @Override
     public String getDescription() {
         return "<composite operation>";
     }

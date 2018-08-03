@@ -29,23 +29,25 @@ import java.util.Map;
 class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArtifactListener {
     private final Map<ComponentArtifactIdentifier, TransformArtifactOperation> artifactResults;
     private final Map<File, TransformFileOperation> fileResults;
+    private final ArtifactTransformListener transformListener;
     private final BuildOperationQueue<RunnableBuildOperation> actions;
     private final ResolvedArtifactSet.AsyncArtifactListener delegate;
     private final ArtifactTransformer transform;
 
-    TransformingAsyncArtifactListener(ArtifactTransformer transform, ResolvedArtifactSet.AsyncArtifactListener delegate, BuildOperationQueue<RunnableBuildOperation> actions, Map<ComponentArtifactIdentifier, TransformArtifactOperation> artifactResults, Map<File, TransformFileOperation> fileResults) {
+    TransformingAsyncArtifactListener(ArtifactTransformer transform, ResolvedArtifactSet.AsyncArtifactListener delegate, BuildOperationQueue<RunnableBuildOperation> actions, Map<ComponentArtifactIdentifier, TransformArtifactOperation> artifactResults, Map<File, TransformFileOperation> fileResults, ArtifactTransformListener transformListener) {
         this.artifactResults = artifactResults;
         this.actions = actions;
         this.transform = transform;
         this.delegate = delegate;
         this.fileResults = fileResults;
+        this.transformListener = transformListener;
     }
 
     @Override
     public void artifactAvailable(ResolvableArtifact artifact) {
         ComponentArtifactIdentifier artifactId = artifact.getId();
         File file = artifact.getFile();
-        TransformArtifactOperation operation = new TransformArtifactOperation(artifactId, file, transform, BuildOperationCategory.UNCATEGORIZED);
+        TransformArtifactOperation operation = new TransformArtifactOperation(artifactId, file, transform, BuildOperationCategory.UNCATEGORIZED, transformListener);
         artifactResults.put(artifactId, operation);
         if (transform.hasCachedResult(file)) {
             operation.run(null);
@@ -67,7 +69,7 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
 
     @Override
     public void fileAvailable(File file) {
-        TransformFileOperation operation = new TransformFileOperation(file, transform, BuildOperationCategory.UNCATEGORIZED);
+        TransformFileOperation operation = new TransformFileOperation(file, transform, BuildOperationCategory.UNCATEGORIZED, transformListener);
         fileResults.put(file, operation);
         if (transform.hasCachedResult(file)) {
             operation.run(null);
