@@ -598,4 +598,19 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * action.execute(a)
         1 * action.execute(b)
     }
+
+    def "can mutate the container inside a configureEach action"() {
+        given:
+        container.add(a)
+        container.add(b)
+        container.add(c)
+
+        when:
+        container.configureEach {
+            container.add(d)
+        }
+
+        then:
+        toList(container) == [a, b, c, d]
+    }
 }

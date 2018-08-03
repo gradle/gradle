@@ -1066,4 +1066,27 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
+
+    def "can realize a task provider inside a configureEach action"() {
+        buildFile << """
+            def foo = tasks.create("foo", SomeTask)
+            def bar = tasks.register("bar") { println "Create :bar" }
+            def baz = tasks.create("baz", SomeTask)
+            def fizz = tasks.create("fizz", SomeTask)
+            def fuzz = tasks.create("fuzz", SomeTask)
+           
+            tasks.withType(SomeTask).configureEach { task ->
+                println "Configuring " + task.name
+                bar.get()
+            }
+            
+            task some { dependsOn tasks.withType(SomeTask) }
+        """
+
+        expect:
+        succeeds("some")
+
+        and:
+        executed ":foo", ":baz", ":fizz", ":fuzz", ":some"
+    }
 }
