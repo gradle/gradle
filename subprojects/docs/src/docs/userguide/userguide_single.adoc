@@ -50,6 +50,8 @@ include::gradle_wrapper.adoc[leveloffset=+2]
 
 include::troubleshooting.adoc[leveloffset=+2]
 
+include::directory_layout.adoc[leveloffset=+2]
+
 
 == Authoring Gradle Builds
 
