@@ -181,7 +181,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         examplePlugin.parent == applyInitScript
     }
 
-    @TargetGradleVersion("<4.10")
+    @TargetGradleVersion(">=4.0 <4.10")
     def "generates plugin application events for project plugin applied in init script to root project pre execute listener ops"() {
         given:
         def events = ProgressEvents.create()
@@ -249,7 +249,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         base.parent == javaBase
     }
 
-    @TargetGradleVersion("<4.10")
+    @TargetGradleVersion(">=4.0 <4.10")
     def "generates plugin application events for project plugin applied in init script to all projects pre execute listener ops"() {
         given:
         def events = ProgressEvents.create()
