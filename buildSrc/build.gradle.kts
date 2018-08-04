@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
 
-    val pluginsExperiments = "gradle.plugin.org.gradle.kotlin:gradle-kotlin-dsl-plugins-experiments:0.1.10"
+    val pluginsExperiments = "gradle.plugin.org.gradle.kotlin:gradle-kotlin-dsl-plugins-experiments:0.1.11"
 
     dependencies {
         classpath(pluginsExperiments)
@@ -28,7 +28,7 @@ kotlinDslPluginOptions {
     progressive.set(ProgressiveModeState.ENABLED)
 }
 
-// apply(plugin = "org.gradle.kotlin.ktlint-convention")
+apply(plugin = "org.gradle.kotlin.ktlint-convention")
 
 apply<PrecompiledScriptPlugins>()
 
