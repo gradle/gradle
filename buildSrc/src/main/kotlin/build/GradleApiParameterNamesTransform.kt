@@ -187,7 +187,6 @@ class ParameterNamesClassVisitor(
     override fun visitMethod(access: Int, name: String, desc: String, signature: String?, exceptions: Array<out String>?): MethodVisitor {
         return super.visitMethod(access, name, desc, signature, exceptions).apply {
             parameterNamesSupplier.parameterNamesForBinaryNames(typeName, name, desc)?.forEach { parameterName ->
-                // TODO figure out what to set for access
                 visitParameter(parameterName, 0)
             }
         }
