@@ -56,7 +56,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
             // when: first use
             buildForCacheInspection("help").apply {
-                compilationTrace {
+                compilationTrace(projectRoot) {
                     assertScriptCompile(settingsFile.stage1)
                     assertNoScriptCompile(settingsFile.stage2)
                     assertNoScriptCompile(rootBuildFile.stage1)
@@ -76,6 +76,12 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
             // when: second use
             buildForCacheInspection("help").apply {
 
+                compilationTrace(projectRoot) {
+                    assertNoScriptCompile(settingsFile.stage1)
+                    assertNoScriptCompile(settingsFile.stage2)
+                    assertNoScriptCompile(rootBuildFile.stage1)
+                    assertNoScriptCompile(rootBuildFile.stage2)
+                }
                 // then: no compilation nor class loading
                 compilationCache {
                     hits(leftBuildFile, rootBuildFile, rightBuildFile)
@@ -329,19 +335,21 @@ fun BuildResult.assertOccurrenceCountOf(actionDisplayName: String, stage: Cached
     }
 }
 
+
 internal
 fun String.occurrenceCountOf(string: String) =
     split(string).size - 1
 
+
 internal
-fun compilationTrace(action: CompileTrace.() -> Unit) {
-    File("operations-log.txt").readLines().forEach {
-        println(it)
-    }
-    action(CompileTrace(File("operations-log.txt").readLines()))
+fun compilationTrace(projectRoot: File, action: CompileTrace.() -> Unit) {
+    val file = File(projectRoot, "operation-trace-log.txt")
+    action(CompileTrace(file.readLines()))
 }
 
-internal class CompileTrace(val operations: List<String>) {
+
+internal
+class CompileTrace(val operations: List<String>) {
     fun assertScriptCompile(stage: CachedScript.CompilationStage) {
         require(operations.any {
             it.contains(operationDescription(stage))
@@ -356,5 +364,5 @@ internal class CompileTrace(val operations: List<String>) {
 
     fun operationDescription(stage: CachedScript.CompilationStage) = "Compile script ${stage.file.name} (${stageDescr(stage)})"
 
-    fun stageDescr(stage: CachedScript.CompilationStage) = if(stage.stage == "stage1") "CLASSPATH" else "BODY"
+    fun stageDescr(stage: CachedScript.CompilationStage) = if (stage.stage == "stage1") "CLASSPATH" else "BODY"
 }
