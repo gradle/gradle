@@ -22,16 +22,19 @@ import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RelativePath
-import org.gradle.api.specs.Spec
-import org.gradle.api.specs.Specs
 
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
+import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileCollectionInternal
-import org.gradle.api.internal.file.pattern.PatternMatcherFactory
-import org.gradle.internal.installation.CurrentGradleInstallation
-import org.gradle.util.GradleVersion
 
 import org.gradle.kotlin.dsl.*
+
+import org.gradle.kotlin.dsl.codegen.ParameterNamesSupplier
+import org.gradle.kotlin.dsl.codegen.parameterNamesFor
+
+import org.gradle.kotlin.dsl.support.gradleApiMetadataFrom
+import org.gradle.kotlin.dsl.support.gradleApiMetadataModuleName
+import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
@@ -43,9 +46,11 @@ import org.objectweb.asm.Opcodes.ASM6
 import org.objectweb.asm.Type
 
 import java.io.File
-import java.util.Properties
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
+import javax.inject.Inject
+
+import kotlin.LazyThreadSafetyMode.NONE
 
 
 fun Project.gradleApiWithParameterNames(): Dependency =
@@ -74,7 +79,12 @@ fun Project.resolvedGradleApiWithParameterNames(): FileCollection =
             registerTransform {
                 from.attribute(artifactType, "jar")
                 to.attribute(artifactType, withParameterNames)
-                artifactTransform(GradleApiParameterNamesTransform::class)
+                artifactTransform(GradleApiParameterNamesTransform::class) {
+                    params(
+                        gradle.gradleVersion,
+                        project.serviceOf<ModuleRegistry>().getExternalModule(gradleApiMetadataModuleName).classpath.asFiles.single()
+                    )
+                }
             }
         }
         incoming.artifactView {
@@ -90,13 +100,14 @@ fun Project.gradleApiDetachedConfiguration() =
     configurations.detachedConfiguration(dependencies.gradleApi())
 
 
-private
-val gradleApiJarFileName by lazy {
-    "gradle-api-${GradleVersion.current().version}.jar"
-}
+class GradleApiParameterNamesTransform @Inject constructor(
+    private val gradleVersion: String,
+    private val gradleApiMetadataJar: File
+) : ArtifactTransform() {
 
-
-class GradleApiParameterNamesTransform : ArtifactTransform() {
+    private
+    val gradleApiJarFileName =
+        "gradle-api-$gradleVersion.jar"
 
     override fun transform(input: File): MutableList<File> =
         when (input.name) {
@@ -127,6 +138,11 @@ class GradleApiParameterNamesTransform : ArtifactTransform() {
                 .also { it.parentFile.mkdirs() }
                 .writeBytes(writer.toByteArray())
         }
+    }
+
+    private
+    val gradleApiMetadata by lazy(NONE) {
+        gradleApiMetadataFrom(gradleApiMetadataJar)
     }
 
     private
@@ -180,88 +196,3 @@ class ParameterNamesClassVisitor(
     fun parameterTypesBinaryNamesFor(methodDescriptor: String) =
         Type.getArgumentTypes(methodDescriptor).map { it.className }
 }
-
-
-private
-data class GradleApiMetadata(
-    val includes: List<String>,
-    val excludes: List<String>,
-    val parameterNamesSupplier: ParameterNamesSupplier
-) {
-    val spec = apiSpecFor(includes, excludes)
-}
-
-
-private
-typealias ParameterNamesSupplier = (String) -> List<String>?
-
-
-private
-val gradleApiMetadata by lazy {
-    gradleApiMetadataFrom(locateGradleApiMetadataJar())
-}
-
-
-private
-const val gradleApiMetadataModuleName = "gradle-api-metadata"
-
-
-private
-const val gradleApiDeclarationPropertiesName = "gradle-api-declaration.properties"
-
-
-private
-const val gradleApiParameterNamesPropertiesName = "gradle-api-parameter-names.properties"
-
-
-private
-fun locateGradleApiMetadataJar() =
-    CurrentGradleInstallation.get()!!.libDirs.flatMap {
-        it.listFiles().filter { it.name.startsWith(gradleApiMetadataModuleName) }
-    }.single()
-
-
-private
-fun gradleApiMetadataFrom(gradleApiMetadataJar: File): GradleApiMetadata =
-    JarFile(gradleApiMetadataJar).use { jar ->
-        val apiDeclaration = jar.loadProperties(gradleApiDeclarationPropertiesName)
-        val parameterNames = jar.loadProperties(gradleApiParameterNamesPropertiesName)
-        GradleApiMetadata(
-            apiDeclaration.getProperty("includes").split(":"),
-            apiDeclaration.getProperty("excludes").split(":"),
-            parameterNamesSupplierFrom(parameterNames))
-    }
-
-
-private
-fun ParameterNamesSupplier.parameterNamesFor(typeName: String, functionName: String, parameterTypeNames: List<String>): List<String>? =
-    this("$typeName.$functionName(${parameterTypeNames.joinToString(",")})")
-
-
-private
-fun parameterNamesSupplierFrom(parameterNames: Properties): ParameterNamesSupplier =
-    { key: String -> parameterNames.getProperty(key, null)?.split(",") }
-
-
-private
-fun apiSpecFor(includes: List<String>, excludes: List<String>): Spec<RelativePath> =
-    when {
-        includes.isEmpty() && excludes.isEmpty() -> Specs.satisfyAll()
-        includes.isEmpty() -> Specs.negate(patternSpecFor(excludes))
-        excludes.isEmpty() -> patternSpecFor(includes)
-        else -> Specs.intersect(patternSpecFor(includes), Specs.negate(patternSpecFor(excludes)))
-    }
-
-
-private
-fun patternSpecFor(patterns: List<String>) =
-    Specs.union(patterns.map {
-        PatternMatcherFactory.getPatternMatcher(true, true, it)
-    })
-
-
-private
-fun JarFile.loadProperties(name: String) =
-    getInputStream(getJarEntry(name)).use { input ->
-        Properties().also { it.load(input) }
-    }
