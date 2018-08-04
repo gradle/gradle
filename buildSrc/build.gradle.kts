@@ -28,7 +28,7 @@ kotlinDslPluginOptions {
     progressive.set(ProgressiveModeState.ENABLED)
 }
 
-apply(plugin = "org.gradle.kotlin.ktlint-convention")
+// apply(plugin = "org.gradle.kotlin.ktlint-convention")
 
 apply<PrecompiledScriptPlugins>()
 
