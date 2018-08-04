@@ -17,6 +17,7 @@
 package build
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.attributes.Attribute
@@ -60,7 +61,7 @@ fun Project.gradleApiWithParameterNames(): Dependency =
 private
 fun Project.gradleApiWithParameterNamesFiles(): FileCollection =
     files().from(provider {
-        resolvedGradleApiWithParameterNames()
+        resolveGradleApiWithParameterNames()
     })
 
 
@@ -73,26 +74,27 @@ const val withParameterNames = "with-parameter-names"
 
 
 private
-fun Project.resolvedGradleApiWithParameterNames(): FileCollection =
-    gradleApiDetachedConfiguration().run {
-        dependencies {
-            registerTransform {
-                from.attribute(artifactType, "jar")
-                to.attribute(artifactType, withParameterNames)
-                artifactTransform(GradleApiParameterNamesTransform::class) {
-                    params(
-                        gradle.gradleVersion,
-                        project.serviceOf<ModuleRegistry>().getExternalModule(gradleApiMetadataModuleName).classpath.asFiles.single()
-                    )
-                }
+fun Project.resolveGradleApiWithParameterNames(): FileCollection =
+    registerGradleApiParameterNamesTransform().run {
+        gradleApiDetachedConfiguration().resolveGradleApiWithParameterNamesArtifactFiles()
+    }
+
+
+private
+fun Project.registerGradleApiParameterNamesTransform() {
+    dependencies {
+        registerTransform {
+            from.attribute(artifactType, "jar")
+            to.attribute(artifactType, withParameterNames)
+            artifactTransform(GradleApiParameterNamesTransform::class) {
+                params(
+                    gradle.gradleVersion,
+                    project.serviceOf<ModuleRegistry>().getExternalModule(gradleApiMetadataModuleName).classpath.asFiles.single()
+                )
             }
         }
-        incoming.artifactView {
-            attributes {
-                attribute(artifactType, withParameterNames)
-            }
-        }.artifacts.artifactFiles
     }
+}
 
 
 private
@@ -100,6 +102,16 @@ fun Project.gradleApiDetachedConfiguration() =
     configurations.detachedConfiguration(dependencies.gradleApi())
 
 
+private
+fun Configuration.resolveGradleApiWithParameterNamesArtifactFiles() =
+    incoming.artifactView {
+        attributes {
+            attribute(artifactType, withParameterNames)
+        }
+    }.artifacts.artifactFiles
+
+
+internal
 class GradleApiParameterNamesTransform @Inject constructor(
     private val gradleVersion: String,
     private val gradleApiMetadataJar: File
@@ -128,6 +140,7 @@ class GradleApiParameterNamesTransform @Inject constructor(
             && name != "package-info.class"
             && gradleApiMetadata.spec.isSatisfiedBy(RelativePath.parse(true, name))
 
+    private
     fun JarFile.transformEntryIntoOutputDirectory(entry: JarEntry) {
         getInputStream(entry).use { input ->
             val reader = ClassReader(input)
