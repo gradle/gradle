@@ -61,8 +61,8 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         where:
         testProject                         | runs
-        LARGE_MONOLITHIC_JAVA_PROJECT       | null
-        LARGE_JAVA_MULTI_PROJECT            | null
+        LARGE_MONOLITHIC_JAVA_PROJECT       | 10
+        LARGE_JAVA_MULTI_PROJECT            | 10
         LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL | 5
     }
 
