@@ -1590,6 +1590,7 @@ div.screenshot {
     display: none;
     overflow: hidden;
     padding-left: 5px;
+    position: relative;
 }
 
 .docs-navigation a {
@@ -1649,6 +1650,24 @@ div.screenshot {
     font-weight: 700;
     line-height: 1.5;
     margin: 1.5em 0 0;
+}
+
+.docs-navigation .pdf-link-container {
+    display: inline-block;
+    position: absolute;
+    top: 0.75em;
+    right: 0;
+}
+
+.docs-navigation .pdf-link-container a {
+    color: #999;
+    font-size: 12px;
+}
+
+.docs-navigation .pdf-link-container svg {
+    fill: #999;
+    height: 12px;
+    vertical-align: bottom;
 }
 
 @media screen and (min-width: 45rem) {

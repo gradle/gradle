@@ -22,5 +22,28 @@ package org.gradle.internal.operations;
  * @since 4.0
  */
 public enum BuildOperationCategory {
-    CONFIGURE_PROJECT, TASK, CONFIGURE_ROOT_BUILD, CONFIGURE_BUILD, RUN_TASKS_ROOT_BUILD, RUN_TASKS, UNCATEGORIZED
+    CONFIGURE_PROJECT(true, false),
+    TASK(true, true),
+    CONFIGURE_ROOT_BUILD(false, false),
+    CONFIGURE_BUILD(false, false),
+    RUN_TASKS_ROOT_BUILD(false, false),
+    RUN_TASKS(false, false),
+    UNCATEGORIZED(false, false),
+    TRANSFORM(true, true);
+
+    private final boolean grouped;
+    private final boolean topLevelWorkItem;
+
+    BuildOperationCategory(boolean grouped, boolean topLevelWorkItem) {
+        this.grouped = grouped;
+        this.topLevelWorkItem = topLevelWorkItem;
+    }
+
+    public boolean isGrouped() {
+        return grouped;
+    }
+
+    public boolean isTopLevelWorkItem() {
+        return topLevelWorkItem;
+    }
 }
