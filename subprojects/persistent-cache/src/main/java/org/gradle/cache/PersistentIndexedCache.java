@@ -18,6 +18,7 @@ package org.gradle.cache;
 import org.gradle.api.Transformer;
 
 import javax.annotation.Nullable;
+import java.io.Closeable;
 
 /**
  * A persistent store of objects of type V indexed by a key of type K.
@@ -59,4 +60,24 @@ public interface PersistentIndexedCache<K, V> {
      * The implementation may do this synchronously or asynchronously. A file lock is held until the value has been removed from the persistent store.
      */
     void remove(K key);
+
+    /**
+     * Creates a read-only snapshot of this cache. Subsequent changes to this cache will not be visible in the returned snapshot.
+     *
+     * A shared or exclusive file lock is held while creating the snapshot, depending on implementation.
+     */
+    Snapshot<K, V> createSnapshot();
+
+    /**
+     * A read-only snapshot of a persistent indexed cache.
+     */
+    interface Snapshot<K, V> extends Closeable {
+        /**
+         * Fetches the value mapped to the given key from this snapshot.
+         *
+         * @return The value, or null if no value associated with the key.
+         */
+        @Nullable
+        V get(K key);
+    }
 }

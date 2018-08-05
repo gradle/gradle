@@ -23,6 +23,8 @@ import org.gradle.cache.MultiProcessSafePersistentIndexedCache;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.internal.Factory;
 
+import javax.annotation.Nullable;
+
 public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements MultiProcessSafePersistentIndexedCache<K, V> {
     private final FileAccess fileAccess;
     private final Factory<BTreePersistentIndexedCache<K, V>> factory;
@@ -109,6 +111,17 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
     public void beforeLockRelease(FileLock.State currentCacheState) {
     }
 
+    @Override
+    public Snapshot<K, V> createSnapshot() {
+        final BTreePersistentIndexedCache<K, V> cache = getCache();
+        return fileAccess.readFile(new Factory<Snapshot<K, V>>() {
+            @Override
+            public Snapshot<K, V> create() {
+                return new DefaultSnapshot<K, V>(cache.createTemporaryCopy());
+            }
+        });
+    }
+
     private BTreePersistentIndexedCache<K, V> getCache() {
         if (cache == null) {
             // Use writeFile because the cache can internally recover from datafile
@@ -120,5 +133,24 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
             });
         }
         return cache;
+    }
+
+    private static class DefaultSnapshot<K, V> implements Snapshot<K, V> {
+        private final BTreePersistentIndexedCache<K, V> copy;
+
+        private DefaultSnapshot(BTreePersistentIndexedCache<K, V> copy) {
+            this.copy = copy;
+        }
+
+        @Nullable
+        @Override
+        public V get(K key) {
+            return copy.get(key);
+        }
+
+        @Override
+        public void close() {
+            copy.destroy();
+        }
     }
 }

@@ -35,7 +35,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.lessThan;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.startsWith;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
@@ -385,6 +391,69 @@ public class BTreePersistentIndexedCacheTest {
         assertThat(cache.get(key2), equalTo(2));
 
         cache.close();
+    }
+
+    @Test
+    public void createsCacheNextToOriginalCacheFile() {
+        createCache();
+
+        BTreePersistentIndexedCache<String, Integer> copy = cache.createTemporaryCopy();
+
+        assertThat(copy.getCacheFile().getName(), startsWith(cacheFile.getName()));
+        assertThat(copy.getCacheFile().getParentFile(), equalTo((File) cacheFile.getParentFile()));
+
+        cache.close();
+        copy.close();
+    }
+
+    @Test
+    public void copyContainsOriginalValues() {
+        createCache();
+        cache.put("foo", 42);
+
+        BTreePersistentIndexedCache<String, Integer> copy = cache.createTemporaryCopy();
+
+        assertThat(cache.get("foo"), equalTo(42));
+        assertThat(copy.get("foo"), equalTo(42));
+
+        cache.close();
+        copy.close();
+    }
+
+    @Test
+    public void changesToCopyDoNotAffectOriginalCache() {
+        createCache();
+        cache.put("foo", 42);
+
+        BTreePersistentIndexedCache<String, Integer> copy = cache.createTemporaryCopy();
+        copy.put("foo", 23);
+
+        assertThat(cache.get("foo"), equalTo(42));
+        assertThat(copy.get("foo"), equalTo(23));
+
+        cache.close();
+        copy.close();
+    }
+
+    @Test
+    public void destroyingCopyDoesNotAffectOriginalCache() {
+        createCache();
+        cache.put("foo", 42);
+
+        cache.createTemporaryCopy().destroy();
+
+        assertThat(cache.get("foo"), equalTo(42));
+
+        cache.close();
+    }
+
+    @Test
+    public void destroyingCacheDeletesCacheFile() {
+        createCache();
+
+        cache.destroy();
+
+        assertFalse(cacheFile.exists());
     }
 
     private void checkAdds(Integer... values) {

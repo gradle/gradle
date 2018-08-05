@@ -386,8 +386,10 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         cache.stop()
 
         then:
-        1 * fileAccessTimeJournal.getLastAccessTime(file1.parentFile) >> 0
-        1 * fileAccessTimeJournal.getLastAccessTime(file2.parentFile) >> System.currentTimeMillis()
+        1 * fileAccessTimeJournal.createSnapshot() >> Stub(FileAccessTimeJournal.Snapshot) {
+            getLastAccessTime(file1.parentFile) >> 0
+            getLastAccessTime(file2.parentFile) >> System.currentTimeMillis()
+        }
 
         and:
         !file1.exists()

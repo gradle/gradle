@@ -18,7 +18,6 @@ package org.gradle.cache.internal
 
 import org.gradle.cache.CleanableStore
 import org.gradle.cache.CleanupProgressMonitor
-import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal
 import org.gradle.internal.time.CountdownTimer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -34,7 +33,7 @@ class LeastRecentlyUsedCacheCleanupTest extends Specification {
         getBaseDir() >> cacheDir
     }
     def timer = Stub(CountdownTimer)
-    def fileAccessTimeJournal = Spy(ModificationTimeFileAccessTimeJournal)
+    def fileAccessTimeJournal = Spy(ModificationTimeCacheCleanupFileAccessTimeProvider)
     def progressMonitor = Stub(CleanupProgressMonitor)
     @Subject def cleanupAction = new LeastRecentlyUsedCacheCleanup(
         new SingleDepthFilesFinder(1), fileAccessTimeJournal, 1)

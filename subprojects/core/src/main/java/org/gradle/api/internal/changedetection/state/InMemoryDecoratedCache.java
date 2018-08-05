@@ -23,6 +23,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.FileLock;
+import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.MultiProcessSafeAsyncPersistentIndexedCache;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.HashCode;
@@ -132,6 +133,11 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
     public void removeLater(K key, Runnable completion) {
         inMemoryCache.put(key, NULL);
         delegate.removeLater(key, completion);
+    }
+
+    @Override
+    public PersistentIndexedCache.Snapshot<K, V> createSnapshot() {
+        return delegate.createSnapshot();
     }
 
     @Override

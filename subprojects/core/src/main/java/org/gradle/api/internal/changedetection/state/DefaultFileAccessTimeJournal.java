@@ -28,8 +28,10 @@ import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Properties;
 
+import static com.google.common.base.Objects.firstNonNull;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 import static org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER;
 import static org.gradle.internal.serialize.BaseSerializerFactory.LONG_SERIALIZER;
@@ -89,14 +91,30 @@ public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stop
     }
 
     @Override
-    public long getLastAccessTime(File file) {
-        // no need to store the default value
-        Long value = store.get(file);
-        return value == null ? inceptionTimestamp : value;
+    public void deleteLastAccessTime(File file) {
+        store.remove(file);
     }
 
     @Override
-    public void deleteLastAccessTime(File file) {
-        store.remove(file);
+    public Snapshot createSnapshot() {
+        return new DefaultSnapshot(store.createSnapshot());
+    }
+
+    private class DefaultSnapshot implements Snapshot {
+        private final PersistentIndexedCache.Snapshot<File, Long> snapshot;
+
+        public DefaultSnapshot(PersistentIndexedCache.Snapshot<File, Long> snapshot) {
+            this.snapshot = snapshot;
+        }
+
+        @Override
+        public long getLastAccessTime(File file) {
+            return firstNonNull(snapshot.get(file), inceptionTimestamp);
+        }
+
+        @Override
+        public void close() throws IOException {
+            snapshot.close();
+        }
     }
 }

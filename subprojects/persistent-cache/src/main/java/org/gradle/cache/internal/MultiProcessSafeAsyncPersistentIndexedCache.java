@@ -16,6 +16,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.Transformer;
+import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.UnitOfWorkParticipant;
 
 import javax.annotation.Nullable;
@@ -44,4 +45,9 @@ public interface MultiProcessSafeAsyncPersistentIndexedCache<K, V> extends UnitO
      * Submits a removal to be applied later. This method may or may not block, and will invoke the given completion action when the operation is complete.
      */
     void removeLater(K key, Runnable completion);
+
+    /**
+     * Creates a read-only snapshot of this cache, blocking until the result is available.
+     */
+    PersistentIndexedCache.Snapshot<K, V> createSnapshot();
 }

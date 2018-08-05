@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice
 
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.cache.internal.UsedGradleVersions
-import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal
+import org.gradle.internal.resource.local.FileAccessTimeJournal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.junit.Rule
@@ -40,7 +40,10 @@ class DefaultArtifactCacheLockingManagerTest extends Specification {
         getFileStoreDirectory() >> filesDir
         getMetaDataStoreDirectory() >> metaDataDir.file("descriptors")
     }
-    def fileAccessTimeJournal = new ModificationTimeFileAccessTimeJournal()
+    def fileAccessTimeJournalSnapshot = Mock(FileAccessTimeJournal.Snapshot)
+    def fileAccessTimeJournal = Stub(FileAccessTimeJournal) {
+        createSnapshot() >> fileAccessTimeJournalSnapshot
+    }
     def usedGradleVersions = Stub(UsedGradleVersions)
 
     @Subject @AutoCleanup
@@ -51,13 +54,16 @@ class DefaultArtifactCacheLockingManagerTest extends Specification {
         def file1 = resourcesDir.createDir("1/abc").createFile("test.txt")
         def file2 = resourcesDir.createDir("1/xyz").createFile("test.txt")
         def file3 = resourcesDir.createDir("2/uvw").createFile("test.txt")
-        file2.parentFile.lastModified = 0
-        file3.parentFile.lastModified = 0
 
         when:
         cacheLockingManager.close()
 
         then:
+        1 * fileAccessTimeJournalSnapshot.getLastAccessTime(file1.parentFile) >> System.currentTimeMillis()
+        1 * fileAccessTimeJournalSnapshot.getLastAccessTime(file2.parentFile) >> 0
+        1 * fileAccessTimeJournalSnapshot.getLastAccessTime(file3.parentFile) >> 0
+
+        and:
         file1.assertExists()
         file2.assertDoesNotExist()
         file3.assertDoesNotExist()
@@ -68,13 +74,16 @@ class DefaultArtifactCacheLockingManagerTest extends Specification {
         def file1 = filesDir.createDir("group1/artifact1/1.0/abc").createFile("my.pom")
         def file2 = filesDir.createDir("group1/artifact1/1.0/xyz").createFile("my.jar")
         def file3 = filesDir.createDir("group1/artifact1/2.0/uvw").createFile("some.pom")
-        file2.parentFile.lastModified = 0
-        file3.parentFile.lastModified = 0
 
         when:
         cacheLockingManager.close()
 
         then:
+        1 * fileAccessTimeJournalSnapshot.getLastAccessTime(file1.parentFile) >> System.currentTimeMillis()
+        1 * fileAccessTimeJournalSnapshot.getLastAccessTime(file2.parentFile) >> 0
+        1 * fileAccessTimeJournalSnapshot.getLastAccessTime(file3.parentFile) >> 0
+
+        and:
         file1.assertExists()
         file2.assertDoesNotExist()
         file3.assertDoesNotExist()

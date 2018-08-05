@@ -71,6 +71,17 @@ public class CrossProcessSynchronizingCache<K, V> implements MultiProcessSafePer
     }
 
     @Override
+    public Snapshot<K, V> createSnapshot() {
+        return cacheAccess.withFileLock(new Factory<Snapshot<K, V>>() {
+            @Nullable
+            @Override
+            public Snapshot<K, V> create() {
+                return target.createSnapshot();
+            }
+        });
+    }
+
+    @Override
     public void afterLockAcquire(FileLock.State currentCacheState) {
         target.afterLockAcquire(currentCacheState);
     }

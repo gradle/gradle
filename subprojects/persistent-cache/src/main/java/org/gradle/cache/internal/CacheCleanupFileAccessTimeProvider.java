@@ -14,22 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.local;
+package org.gradle.cache.internal;
 
 import java.io.Closeable;
 import java.io.File;
 
-public interface FileAccessTimeJournal {
+public interface CacheCleanupFileAccessTimeProvider extends Closeable {
 
-    void setLastAccessTime(File file, long millis);
+    long getLastAccessTime(File file);
 
     void deleteLastAccessTime(File file);
 
-    Snapshot createSnapshot();
+    @Override
+    void close();
 
-    interface Snapshot extends Closeable {
-
-        long getLastAccessTime(File file);
-
-    }
 }

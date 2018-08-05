@@ -27,7 +27,7 @@ import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.HashUtil;
-import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal;
+import org.gradle.cache.internal.ModificationTimeCacheCleanupFileAccessTimeProvider;
 import org.gradle.util.GFileUtils;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.git.GitVersionControlSpec;
@@ -55,7 +55,8 @@ public class DefaultVersionControlRepositoryFactory implements VersionControlRep
             .cache(directoryLayout.getCheckoutDir())
             .withLockOptions(mode(FileLockManager.LockMode.None))
             .withDisplayName("VCS Checkout Cache")
-            .withCleanup(cleanupActionFactory.create(new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(1), new ModificationTimeFileAccessTimeJournal(), DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES)))
+            .withCleanup(cleanupActionFactory.create(
+                new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(1), new ModificationTimeCacheCleanupFileAccessTimeProvider(), DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES)))
             .open();
     }
 

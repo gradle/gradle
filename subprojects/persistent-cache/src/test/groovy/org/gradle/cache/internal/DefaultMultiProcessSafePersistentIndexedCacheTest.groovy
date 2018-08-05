@@ -20,7 +20,7 @@ import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
 import org.gradle.internal.Factory
 import spock.lang.Specification
 
-class MultiProcessSafePersistentIndexedCacheTest extends Specification {
+class DefaultMultiProcessSafePersistentIndexedCacheTest extends Specification {
     final FileAccess fileAccess = Mock()
     final Factory<BTreePersistentIndexedCache<String, String>> factory = Mock()
     final cache = new DefaultMultiProcessSafePersistentIndexedCache<String, String>(factory, fileAccess)
@@ -127,6 +127,36 @@ class MultiProcessSafePersistentIndexedCacheTest extends Specification {
 
         then:
         0 * _._
+    }
+
+    def "creates read-only snapshot"() {
+        def temporaryCopy = Mock(BTreePersistentIndexedCache)
+        cacheOpened()
+
+        when:
+        def snapshot = cache.createSnapshot()
+
+        then:
+        1 * fileAccess.readFile(_) >> { Factory action -> action.create() }
+        1 * backingCache.createTemporaryCopy() >> temporaryCopy
+        0 * _
+
+        when:
+        def result = snapshot.get("foo")
+
+        then:
+        1 * temporaryCopy.get("foo") >> "bar"
+        0 * _
+
+        and:
+        result == "bar"
+
+        when:
+        snapshot.close()
+
+        then:
+        1 * temporaryCopy.destroy()
+        0 * _
     }
 
     def cacheOpened() {

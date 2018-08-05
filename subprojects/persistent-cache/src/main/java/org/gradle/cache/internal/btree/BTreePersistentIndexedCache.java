@@ -15,13 +15,17 @@
  */
 package org.gradle.cache.internal.btree;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
+import org.gradle.internal.time.Time;
+import org.gradle.internal.time.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +58,7 @@ public class BTreePersistentIndexedCache<K, V> {
     private final Serializer<V> serializer;
     private final short maxChildIndexEntries;
     private final int minIndexChildNodes;
+    private final int maxFreeListEntries;
     private final StateCheckBlockStore store;
     private HeaderBlock header;
 
@@ -63,11 +68,16 @@ public class BTreePersistentIndexedCache<K, V> {
 
     public BTreePersistentIndexedCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer,
                                        short maxChildIndexEntries, int maxFreeListEntries) {
+        this(cacheFile, new KeyHasher<K>(keySerializer), valueSerializer, maxChildIndexEntries, maxChildIndexEntries / 2, maxFreeListEntries);
+    }
+
+    private BTreePersistentIndexedCache(File cacheFile, KeyHasher<K> keyHasher, Serializer<V> serializer, short maxChildIndexEntries, int minIndexChildNodes, int maxFreeListEntries) {
         this.cacheFile = cacheFile;
-        this.keyHasher = new KeyHasher<K>(keySerializer);
-        this.serializer = valueSerializer;
+        this.keyHasher = keyHasher;
+        this.serializer = serializer;
         this.maxChildIndexEntries = maxChildIndexEntries;
-        this.minIndexChildNodes = maxChildIndexEntries / 2;
+        this.minIndexChildNodes = minIndexChildNodes;
+        this.maxFreeListEntries = maxFreeListEntries;
         BlockStore cachingStore = new CachingBlockStore(new FileBackedBlockStore(cacheFile), ImmutableSet.of(IndexBlock.class, FreeListBlockStore.FreeListBlock.class));
         this.store = new StateCheckBlockStore(new FreeListBlockStore(cachingStore, maxFreeListEntries));
         try {
@@ -75,6 +85,11 @@ public class BTreePersistentIndexedCache<K, V> {
         } catch (Exception e) {
             throw new UncheckedIOException(String.format("Could not open %s.", this), e);
         }
+    }
+
+    @VisibleForTesting
+    File getCacheFile() {
+        return cacheFile;
     }
 
     @Override
@@ -290,6 +305,25 @@ public class BTreePersistentIndexedCache<K, V> {
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    public BTreePersistentIndexedCache<K, V> createTemporaryCopy() {
+        Timer timer = Time.startTimer();
+        try {
+            File tempFile = File.createTempFile(cacheFile.getName() + ".", null, cacheFile.getParentFile());
+            FileUtils.copyFile(cacheFile, tempFile);
+            BTreePersistentIndexedCache<K, V> copy = new BTreePersistentIndexedCache<K, V>(tempFile, keyHasher, serializer, maxChildIndexEntries, minIndexChildNodes, maxFreeListEntries);
+            LOGGER.debug("Created copy of {} in {}.", this, timer.getElapsed());
+            return copy;
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to create snapshot", e);
+        }
+    }
+
+    public void destroy() {
+        close();
+        LOGGER.debug("Deleting {}", this);
+        cacheFile.delete();
     }
 
     private class IndexRoot {

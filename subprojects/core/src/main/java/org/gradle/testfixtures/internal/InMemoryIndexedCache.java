@@ -24,6 +24,7 @@ import org.gradle.internal.serialize.InputStreamBackedDecoder;
 import org.gradle.internal.serialize.OutputStreamBackedEncoder;
 import org.gradle.internal.serialize.Serializer;
 
+import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Map;
@@ -87,6 +88,24 @@ public class InMemoryIndexedCache<K, V> implements PersistentIndexedCache<K, V> 
     @Override
     public void remove(K key) {
         entries.remove(key);
+    }
+
+    @Override
+    public Snapshot<K, V> createSnapshot() {
+        final InMemoryIndexedCache<K, V> copy = new InMemoryIndexedCache<K, V>(valueSerializer);
+        copy.entries.putAll(this.entries);
+        return new Snapshot<K, V>() {
+            @Nullable
+            @Override
+            public V get(K key) {
+                return copy.get(key);
+            }
+
+            @Override
+            public void close() {
+                copy.entries.clear();
+            }
+        };
     }
 
     @SuppressWarnings("unchecked")
