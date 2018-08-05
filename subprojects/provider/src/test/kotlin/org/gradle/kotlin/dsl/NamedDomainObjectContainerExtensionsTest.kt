@@ -1,7 +1,6 @@
 package org.gradle.kotlin.dsl
 
 import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
@@ -227,12 +226,7 @@ class NamedDomainObjectContainerExtensionsTest {
     fun `can create and configure tasks`() {
 
         val clean = mock<Delete>()
-        val cleanProvider = mock<TaskProvider<Delete>> {
-            on { get() } doReturn clean
-            on { configure(any()) } doAnswer {
-                it.getArgument<Action<Delete>>(0).execute(clean)
-            }
-        }
+        val cleanProvider = mockTaskProviderFor(clean)
 
         val tasks = mock<TaskContainer> {
             on { create(eq("clean"), eq(Delete::class.java), any<Action<Delete>>()) } doReturn clean
