@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,27 +17,23 @@
 package org.gradle.tooling.model.cpp;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.model.DomainObjectSet;
+
+import java.io.File;
 
 /**
- * Represents a C++ component.
+ * Provides details about a particular source file.
  *
  * @since 4.10
  */
 @Incubating
-public interface CppComponent {
+public interface SourceFile {
     /**
-     * Returns the name of this component. This is used to disambiguate the component of a project. Each component has a unique name within its project. However, these names are not unique across multiple projects.
+     * Returns the source file.
      */
-    String getName();
+    File getSourceFile();
 
     /**
-     * All binaries buildable for this component. These will implement {@link CppExecutable}, {@link CppSharedLibrary} or {@link CppStaticLibrary}.
+     * Returns the object file produced for the source file.
      */
-    DomainObjectSet<? extends CppBinary> getBinaries();
-
-    /**
-     * Returns the base name of this component.
-     */
-    String getBaseName();
+    File getObjectFile();
 }

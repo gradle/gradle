@@ -65,6 +65,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         project.projectIdentifier.buildIdentifier.rootDir == projectDir
 
         project.mainComponent instanceof CppApplication
+        project.mainComponent.name == 'main'
         project.mainComponent.baseName == 'app'
 
         project.mainComponent.binaries.size() == 2
@@ -73,7 +74,8 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         debugBinary instanceof CppExecutable
         debugBinary.name == 'mainDebug'
         debugBinary.baseName == 'app'
-        debugBinary.compilationDetails.sources as Set == [src1, src2] as Set
+        debugBinary.compilationDetails.sources.sourceFile as Set == [src1, src2] as Set
+        debugBinary.compilationDetails.sources.objectFile.each { assert it != null }
         debugBinary.compilationDetails.frameworkSearchPaths.empty
         !debugBinary.compilationDetails.systemHeaderSearchPaths.empty
         debugBinary.compilationDetails.userHeaderSearchPaths == [headerDir]
@@ -93,7 +95,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         releaseBinary instanceof CppExecutable
         releaseBinary.name == 'mainRelease'
         releaseBinary.baseName == 'app'
-        releaseBinary.compilationDetails.sources as Set == [src1, src2] as Set
+        releaseBinary.compilationDetails.sources.sourceFile as Set == [src1, src2] as Set
         releaseBinary.compilationDetails.frameworkSearchPaths.empty
         !releaseBinary.compilationDetails.systemHeaderSearchPaths.empty
         releaseBinary.compilationDetails.userHeaderSearchPaths == [headerDir]
@@ -129,6 +131,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         project.mainComponent instanceof CppLibrary
+        project.mainComponent.name == 'main'
         project.mainComponent.baseName == 'lib'
 
         project.mainComponent.binaries.size() == 2
@@ -136,7 +139,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         debugBinary instanceof CppSharedLibrary
         debugBinary.name == 'mainDebug'
         debugBinary.baseName == 'lib'
-        debugBinary.compilationDetails.sources as Set == [src1, src2] as Set
+        debugBinary.compilationDetails.sources.sourceFile as Set == [src1, src2] as Set
         debugBinary.compilationDetails.frameworkSearchPaths.empty
         !debugBinary.compilationDetails.systemHeaderSearchPaths.empty
         debugBinary.compilationDetails.userHeaderSearchPaths == [apiHeaderDir, headerDir]
@@ -154,7 +157,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         releaseBinary instanceof CppSharedLibrary
         releaseBinary.name == 'mainRelease'
         releaseBinary.baseName == 'lib'
-        releaseBinary.compilationDetails.sources as Set == [src1, src2] as Set
+        releaseBinary.compilationDetails.sources.sourceFile as Set == [src1, src2] as Set
         releaseBinary.compilationDetails.frameworkSearchPaths.empty
         !releaseBinary.compilationDetails.systemHeaderSearchPaths.empty
         releaseBinary.compilationDetails.userHeaderSearchPaths == [apiHeaderDir, headerDir]
@@ -188,6 +191,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         then:
         project.mainComponent == null
         project.testComponent instanceof CppTestSuite
+        project.testComponent.name == 'test'
         project.testComponent.baseName == 'testsTest'
 
         project.testComponent.binaries.size() == 1
@@ -195,7 +199,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         testBinary instanceof CppExecutable
         testBinary.name == 'testExecutable'
         testBinary.baseName == 'testsTest'
-        testBinary.compilationDetails.sources as Set == [src1, src2] as Set
+        testBinary.compilationDetails.sources.sourceFile as Set == [src1, src2] as Set
         testBinary.compilationDetails.frameworkSearchPaths.empty
         !testBinary.compilationDetails.systemHeaderSearchPaths.empty
         testBinary.compilationDetails.userHeaderSearchPaths == [headerDir]
@@ -222,8 +226,10 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         project.mainComponent instanceof CppApplication
+        project.mainComponent.name == 'main'
         project.mainComponent.baseName == 'app'
         project.testComponent instanceof CppTestSuite
+        project.testComponent.name == 'test'
         project.testComponent.baseName == 'appTest'
         project.testComponent.binaries[0].compilationDetails.userHeaderSearchPaths == [file('src/test/headers'), file('src/main/headers')]
     }
@@ -252,6 +258,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
             application {
                 baseName = 'some-app'
                 source.from 'src'
+                source.from 'other/app-impl.cpp'
                 privateHeaders.from = ['include']
                 binaries.configureEach {
                     compileTask.get().compilerArgs.add("--compile=\$name")
@@ -261,14 +268,15 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
             }
         """
         def headerDir = file('include')
-        def src1 = file('src/main/cpp/app.cpp').createFile()
-        def src2 = file('src/app-impl.cpp').createFile()
+        def src1 = file('src/dir/app.cpp').createFile()
+        def src2 = file('other/app-impl.cpp').createFile()
 
         when:
         def project = withConnection { connection -> connection.getModel(CppProject.class) }
 
         then:
         project.mainComponent instanceof CppApplication
+        project.mainComponent.name == 'main'
         project.mainComponent.baseName == 'some-app'
         project.mainComponent.binaries.size() == 2
 
@@ -276,7 +284,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         debugBinary instanceof CppExecutable
         debugBinary.name == 'mainDebug'
         debugBinary.baseName == 'some-app'
-        debugBinary.compilationDetails.sources as Set == [src1, src2] as Set
+        debugBinary.compilationDetails.sources.sourceFile as Set == [src1, src2] as Set
         debugBinary.compilationDetails.userHeaderSearchPaths == [headerDir]
         debugBinary.compilationDetails.macroDefines.name == ['VARIANT']
         debugBinary.compilationDetails.macroDefines.value == ['mainDebug']
@@ -289,7 +297,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         releaseBinary instanceof CppExecutable
         releaseBinary.name == 'mainRelease'
         releaseBinary.baseName == 'some-app'
-        releaseBinary.compilationDetails.sources as Set == [src1, src2] as Set
+        releaseBinary.compilationDetails.sources.sourceFile as Set == [src1, src2] as Set
         releaseBinary.compilationDetails.userHeaderSearchPaths == [headerDir]
         releaseBinary.compilationDetails.macroDefines.name == ['VARIANT']
         releaseBinary.compilationDetails.macroDefines.value == ['mainRelease']
@@ -325,6 +333,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         project.mainComponent instanceof CppLibrary
+        project.mainComponent.name == 'main'
         project.mainComponent.baseName == 'some-lib'
 
         project.mainComponent.binaries.size() == 4
@@ -400,6 +409,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         def appProject = models[1]
         appProject.projectIdentifier.projectPath == ':app'
         appProject.mainComponent instanceof CppApplication
+        appProject.mainComponent.name == 'main'
         appProject.mainComponent.binaries[0].compilationDetails.userHeaderSearchPaths == [file("app/src/main/headers"), file("lib/src/main/public")]
         appProject.mainComponent.binaries[0].compilationDetails.compileTask.projectIdentifier.projectPath == ':app'
         appProject.mainComponent.binaries[0].linkageDetails.linkTask.projectIdentifier.projectPath == ':app'
@@ -408,6 +418,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         def libProject = models[2]
         libProject.projectIdentifier.projectPath == ':lib'
         libProject.mainComponent instanceof CppLibrary
+        libProject.mainComponent.name == 'main'
         libProject.mainComponent.binaries[0].compilationDetails.userHeaderSearchPaths == [file("lib/src/main/public"), file("lib/src/main/headers")]
         libProject.mainComponent.binaries[0].compilationDetails.compileTask.projectIdentifier.projectPath == ':lib'
         libProject.mainComponent.binaries[0].linkageDetails.linkTask.projectIdentifier.projectPath == ':lib'
@@ -450,6 +461,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         appProject.projectIdentifier.projectPath == ':app'
         appProject.projectIdentifier.buildIdentifier.rootDir == projectDir
         appProject.mainComponent instanceof CppApplication
+        appProject.mainComponent.name == 'main'
         appProject.mainComponent.binaries[0].compilationDetails.compileTask.projectIdentifier.buildIdentifier.rootDir == projectDir
         appProject.mainComponent.binaries[0].compilationDetails.compileTask.projectIdentifier.projectPath == ':app'
         appProject.mainComponent.binaries[0].linkageDetails.linkTask.projectIdentifier.buildIdentifier.rootDir == projectDir
@@ -460,6 +472,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         libProject.projectIdentifier.projectPath == ':'
         libProject.projectIdentifier.buildIdentifier.rootDir == file('lib')
         libProject.mainComponent instanceof CppLibrary
+        libProject.mainComponent.name == 'main'
         libProject.mainComponent.binaries[0].compilationDetails.compileTask.projectIdentifier.buildIdentifier.rootDir == file('lib')
         libProject.mainComponent.binaries[0].compilationDetails.compileTask.projectIdentifier.projectPath == ':'
         libProject.mainComponent.binaries[0].linkageDetails.linkTask.projectIdentifier.buildIdentifier.rootDir == file('lib')

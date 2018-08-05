@@ -33,7 +33,7 @@ import java.util.Set;
 @Incubating
 public interface CompilationDetails {
     /**
-     * Returns the details of the compilation task for the binary. This is the task that should be run to produce the object files, but may not necessarily be the task that compiles the source files. For example, the task may perform some post processing of the object files.
+     * Returns the details of the compilation task for this binary. This is the task that should be run to produce the object files, but may not necessarily be the task that compiles the source files. For example, the task may perform some post processing of the object files.
      */
     Task getCompileTask();
 
@@ -51,37 +51,37 @@ public interface CompilationDetails {
     File getCompileWorkingDir();
 
     /**
-     * All framework search paths.
+     * Returns the framework search paths for this binary.
      */
     List<File> getFrameworkSearchPaths();
 
     /**
-     * All compilation unit used for this binary.
+     * Returns the compilation unit for this binary.
      */
-    List<File> getSources();
+    DomainObjectSet<? extends SourceFile> getSources();
 
     /**
-     * All macro define directives.
+     * Returns the macro define directives for this binary.
      */
     DomainObjectSet<? extends MacroDirective> getMacroDefines();
 
     /**
-     * All macro undefine directives.
+     * Returns the macro undefine directives for this binary.
      */
     Set<String> getMacroUndefines();
 
     /**
-     * All system search paths.
+     * Returns the system search paths for this binary.
      */
     List<File> getSystemHeaderSearchPaths();
 
     /**
-     * All user search paths.
+     * Returns the user search paths for this binary.
      */
     List<File> getUserHeaderSearchPaths();
 
     /**
-     * Returns any additional compiler arguments.
+     * Returns any additional compiler arguments not included in the search paths and macro directives of this binary.
      */
     List<String> getAdditionalArgs();
 }
