@@ -141,7 +141,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
                 if (!toolProvider.isAvailable()) {
                     return toolProvider;
                 }
-                ToolSearchResult cppCompiler = toolProvider.isToolAvailable(ToolType.CPP_COMPILER);
+                ToolSearchResult cppCompiler = toolProvider.locateTool(ToolType.CPP_COMPILER);
                 if (!cppCompiler.isAvailable()) {
                     return new UnavailablePlatformToolProvider(targetMachine.getOperatingSystem(), cppCompiler);
                 }
