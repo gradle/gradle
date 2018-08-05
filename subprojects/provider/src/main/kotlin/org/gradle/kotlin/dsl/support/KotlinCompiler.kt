@@ -40,7 +40,6 @@ import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.CompilerConfigurationKey
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.PARAMETERS_METADATA
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.JVM_TARGET
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_DIRECTORY
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_JAR
@@ -208,7 +207,6 @@ fun compilerConfigurationFor(messageCollector: MessageCollector): CompilerConfig
         put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
         put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettings)
         put(JVM_TARGET, JvmTarget.JVM_1_8)
-        put(PARAMETERS_METADATA, true)
         put(USE_FAST_CLASS_FILES_READING, false)
     }
 
