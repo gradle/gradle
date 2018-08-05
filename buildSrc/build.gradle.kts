@@ -50,7 +50,7 @@ dependencies {
     compile(kotlin("reflect"))
 
     compile("com.gradle.publish:plugin-publish-plugin:0.10.0")
-    compile("org.ow2.asm:asm-all:5.1")
+    compile("org.ow2.asm:asm:6.2")
 
     testCompile("junit:junit:4.12")
     testCompile(gradleTestKit())

@@ -11,7 +11,7 @@ base {
 }
 
 dependencies {
-    compileOnly(gradleApi())
+    compileOnly(gradleApiWithParameterNames())
 
     compile(project(":tooling-models"))
     compile(futureKotlin("stdlib-jdk8"))
