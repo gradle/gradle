@@ -19,6 +19,7 @@ package org.gradle.language.cpp.tooling.r410
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.tooling.model.cpp.CppApplication
 import org.gradle.tooling.model.cpp.CppExecutable
 import org.gradle.tooling.model.cpp.CppLibrary
@@ -79,6 +80,8 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         debugBinary.compilationDetails.macroDefines.empty
         debugBinary.compilationDetails.macroUndefines.empty
         debugBinary.compilationDetails.additionalArgs.empty
+        debugBinary.compilationDetails.compilerExecutable == AvailableToolChains.defaultToolChain.cppCompiler
+        debugBinary.compilationDetails.compileWorkingDir == projectDir.file("build/obj/main/debug")
         debugBinary.compilationDetails.compileTask.path == ":compileDebugCpp"
         debugBinary.compilationDetails.compileTask.name == "compileDebugCpp"
         debugBinary.linkageDetails.outputLocation == file("build/exe/main/debug/app")
@@ -97,6 +100,8 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         releaseBinary.compilationDetails.macroDefines.empty
         releaseBinary.compilationDetails.macroUndefines.empty
         releaseBinary.compilationDetails.additionalArgs.empty
+        releaseBinary.compilationDetails.compilerExecutable == AvailableToolChains.defaultToolChain.cppCompiler
+        releaseBinary.compilationDetails.compileWorkingDir == projectDir.file("build/obj/main/release")
         releaseBinary.compilationDetails.compileTask.path == ":compileReleaseCpp"
         releaseBinary.compilationDetails.compileTask.name == "compileReleaseCpp"
         releaseBinary.linkageDetails.outputLocation == file("build/exe/main/release/stripped/app")

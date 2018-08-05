@@ -16,3 +16,7 @@ dependencies {
 gradlebuildJava {
     moduleType = ModuleType.PLUGIN
 }
+
+testFixtures {
+    from(":platformNative")
+}

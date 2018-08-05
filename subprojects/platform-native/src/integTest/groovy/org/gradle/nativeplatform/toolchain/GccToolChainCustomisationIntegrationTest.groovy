@@ -254,8 +254,7 @@ model {
         executable("build/exe/main/custom/main").exec().out == helloWorldApp.frenchOutput
     }
 
-
-    def wrapperTool(TestFile binDir, String wrapperName, String executable, String... additionalArgs) {
+    def wrapperTool(TestFile binDir, String wrapperName, File executable, String... additionalArgs) {
         def script = binDir.file(OperatingSystem.current().getExecutableName(wrapperName))
         if (OperatingSystem.current().windows) {
             script.text = "${executable} ${additionalArgs.join(' ')} %*"
