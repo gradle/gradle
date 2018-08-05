@@ -57,8 +57,18 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
-    public void addAll(final Provider<? extends Iterable<T>> providerOfElements) {
-        collectors.add(new ElementsFromCollectionProvider<T>(providerOfElements));
+    public void addAll(T... elements) {
+        collectors.add(new ElementsFromArray<T>(elements));
+    }
+
+    @Override
+    public void addAll(Iterable<? extends T> elements) {
+        collectors.add(new ElementsFromCollection<T>(elements));
+    }
+
+    @Override
+    public void addAll(Provider<? extends Iterable<? extends T>> provider) {
+        collectors.add(new ElementsFromCollectionProvider<T>(provider));
     }
 
     @Nullable
@@ -118,12 +128,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
-    public void set(@Nullable final Iterable<? extends T> value) {
+    public void set(@Nullable final Iterable<? extends T> elements) {
         collectors.clear();
-        if (value == null) {
+        if (elements == null) {
             this.value = (Collector<T>) NO_VALUE_COLLECTOR;
         } else {
-            this.value = new ElementsFromCollection<T>(value);
+            this.value = new ElementsFromCollection<T>(elements);
         }
     }
 
@@ -235,9 +245,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     private static class ElementsFromCollectionProvider<T> implements Collector<T> {
-        private final Provider<? extends Iterable<T>> providerOfElements;
+        private final Provider<? extends Iterable<? extends T>> providerOfElements;
 
-        ElementsFromCollectionProvider(Provider<? extends Iterable<T>> providerOfElements) {
+        ElementsFromCollectionProvider(Provider<? extends Iterable<? extends T>> providerOfElements) {
             this.providerOfElements = providerOfElements;
         }
 
@@ -248,16 +258,40 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public void collectInto(Collection<T> collection) {
-            Iterable<T> value = providerOfElements.get();
+            Iterable<? extends T> value = providerOfElements.get();
             CollectionUtils.addAll(collection, value);
         }
 
         @Override
         public boolean maybeCollectInto(Collection<T> collection) {
-            Iterable<T> value = providerOfElements.getOrNull();
+            Iterable<? extends T> value = providerOfElements.getOrNull();
             if (value == null) {
                 return false;
             }
+            CollectionUtils.addAll(collection, value);
+            return true;
+        }
+    }
+
+    private static class ElementsFromArray<T> implements Collector<T> {
+        private final T[] value;
+
+        ElementsFromArray(T[] value) {
+            this.value = value;
+        }
+
+        @Override
+        public boolean present() {
+            return true;
+        }
+
+        @Override
+        public void collectInto(Collection<T> collection) {
+            CollectionUtils.addAll(collection, value);
+        }
+
+        @Override
+        public boolean maybeCollectInto(Collection<T> collection) {
             CollectionUtils.addAll(collection, value);
             return true;
         }
