@@ -34,6 +34,8 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static org.gradle.cache.internal.locklistener.FileLockPacketType.LOCK_RELEASE_CONFIRMATION;
+
 /**
  * The contention handler is responsible for negotiating the transfer of a lock from one process to another.
  * Several processes might request the same lock at the same time. In such a situation, there is:
@@ -111,24 +113,24 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
             private void doRun() {
                 while (true) {
                     DatagramPacket packet;
-                    long lockId;
+                    FileLockPacketPayload payload;
                     try {
                         packet = communicator.receive();
-                        lockId = communicator.decodeLockId(packet);
+                        payload = communicator.decode(packet);
                     } catch (GracefullyStoppedException e) {
                         return;
                     }
 
                     lock.lock();
-                    ContendedAction contendedAction = contendedActions.get(lockId);
+                    ContendedAction contendedAction = contendedActions.get(payload.getLockId());
                     if (contendedAction == null) {
-                        acceptConfirmationAsLockRequester(lockId, packet.getPort());
+                        acceptConfirmationAsLockRequester(payload, packet.getPort());
                     } else {
                         contendedAction.addRequester(packet.getSocketAddress());
                         if (!contendedAction.running) {
                             startLockReleaseAsLockHolder(contendedAction);
                         }
-                        communicator.confirmUnlockRequest(packet);
+                        communicator.confirmUnlockRequest(packet.getSocketAddress(), payload.getLockId());
                     }
                     lock.unlock();
                 }
@@ -141,16 +143,17 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         unlockActionExecutor.execute(contendedAction);
     }
 
-    private void acceptConfirmationAsLockRequester(Long lockId, Integer port) {
-        LOGGER.debug("Gradle process at port {} confirmed unlock request for lock with id {}.", port, lockId);
-        boolean isLockReleaseConfirmation = port.equals(unlocksConfirmedFrom.get(lockId));
-        if (isLockReleaseConfirmation) {
+    private void acceptConfirmationAsLockRequester(FileLockPacketPayload payload, Integer port) {
+        long lockId = payload.getLockId();
+        if (payload.getType() == LOCK_RELEASE_CONFIRMATION) {
+            LOGGER.debug("Gradle process at port {} confirmed lock release for lock with id {}.", port, lockId);
             FileLockReleasedSignal signal = lockReleasedSignals.get(lockId);
             if (signal != null) {
                 LOGGER.debug("Triggering lock release signal for lock with id {}.", lockId);
                 signal.trigger();
             }
         } else {
+            LOGGER.debug("Gradle process at port {} confirmed unlock request for lock with id {}.", port, lockId);
             unlocksConfirmedFrom.put(lockId, port);
         }
     }

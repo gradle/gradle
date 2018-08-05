@@ -25,7 +25,6 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 class FileLockCommunicatorTest extends ConcurrentSpecification {
 
     def communicator = new FileLockCommunicator(new InetAddressFactory())
-    Long receivedId
 
     def cleanup() {
         communicator.stop()
@@ -44,14 +43,16 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         communicator.getPort() == -1
     }
 
-    def "can receive lock id"() {
+    def "can receive lock id and type"() {
+        FileLockPacketPayload receivedPayload
+
         start {
             def packet = communicator.receive()
-            receivedId = communicator.decodeLockId(packet)
+            receivedPayload = communicator.decode(packet)
         }
 
         poll {
-            assert communicator.getPort() != -1 && receivedId == null
+            assert communicator.getPort() != -1 && receivedPayload == null
         }
 
         when:
@@ -59,7 +60,8 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
 
         then:
         poll {
-            assert receivedId == 155
+            assert receivedPayload.lockId == 155
+            assert receivedPayload.type == FileLockPacketType.UNLOCK_REQUEST
         }
     }
 
