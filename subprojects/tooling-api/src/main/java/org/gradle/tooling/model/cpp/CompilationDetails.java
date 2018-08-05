@@ -18,6 +18,7 @@ package org.gradle.tooling.model.cpp;
 
 import org.gradle.api.Incubating;
 import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.Task;
 
 import java.io.File;
 import java.util.List;
@@ -30,6 +31,11 @@ import java.util.Set;
  */
 @Incubating
 public interface CompilationDetails {
+    /**
+     * Returns the details of the compilation task for the binary. This is the task that should be run to produce the object files, but may not necessarily be the task that compiles the source files. For example, the task may perform some post processing of the object files.
+     */
+    Task getCompileTask();
+
     /**
      * All framework search paths.
      */
