@@ -9,9 +9,8 @@ dependencies {
     compile(project(":languageNative"))
     compile(project(":testingNative"))
     compile(project(":toolingApi"))
-
-    // To pick up GradleBuild builders (which should live somewhere else)
-    crossVersionTestRuntime(project(":ide"))
+    // To pick up various builders (which should live somewhere else)
+    compile(project(":ide"))
 }
 
 gradlebuildJava {
