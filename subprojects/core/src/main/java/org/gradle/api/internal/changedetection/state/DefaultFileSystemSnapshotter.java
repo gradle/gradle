@@ -92,12 +92,12 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
 
     @Override
     public HashCode getRegularFileContentHash(final File file) {
-        String absolutePath = file.getAbsolutePath();
-        final String internedAbsolutePath = internPath(file);
+        final String absolutePath = file.getAbsolutePath();
         return producingSnapshots.guardByKey(absolutePath, new Factory<HashCode>() {
             @Nullable
             @Override
             public HashCode create() {
+                InternedPathHolder internedAbsolutePath = new InternedPathHolder(absolutePath);
                 FileMetadataSnapshot metadata = statAndCache(internedAbsolutePath, file);
                 if (metadata.getType() != FileType.RegularFile) {
                     return null;
@@ -131,25 +131,25 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     private PhysicalSnapshot snapshotAndCache(File file, @Nullable PatternSet patternSet) {
-        String internedAbsolutePath = internPath(file);
+        InternedPathHolder internedAbsolutePath = new InternedPathHolder(file.getAbsolutePath());
         FileMetadataSnapshot metadata = statAndCache(internedAbsolutePath, file);
         return snapshotAndCache(internedAbsolutePath, file, metadata, patternSet);
     }
 
-    private FileMetadataSnapshot statAndCache(String internedAbsolutePath, File file) {
-        FileMetadataSnapshot metadata = fileSystemMirror.getMetadata(internedAbsolutePath);
+    private FileMetadataSnapshot statAndCache(InternedPathHolder internedAbsolutePath, File file) {
+        FileMetadataSnapshot metadata = fileSystemMirror.getMetadata(internedAbsolutePath.getNonInternedPath());
         if (metadata == null) {
             metadata = fileSystem.stat(file);
-            fileSystemMirror.putMetadata(internedAbsolutePath, metadata);
+            fileSystemMirror.putMetadata(internedAbsolutePath.getInternedPath(), metadata);
         }
         return metadata;
     }
 
-    private PhysicalSnapshot snapshotAndCache(String internedAbsolutePath, File file, FileMetadataSnapshot metadata, @Nullable PatternSet patternSet) {
-        PhysicalSnapshot physicalSnapshot = fileSystemMirror.getSnapshot(internedAbsolutePath);
+    private PhysicalSnapshot snapshotAndCache(InternedPathHolder internedAbsolutePath, File file, FileMetadataSnapshot metadata, @Nullable PatternSet patternSet) {
+        PhysicalSnapshot physicalSnapshot = fileSystemMirror.getSnapshot(internedAbsolutePath.getNonInternedPath());
         if (physicalSnapshot == null) {
             MutableBoolean hasBeenFiltered = new MutableBoolean(false);
-            physicalSnapshot = snapshot(internedAbsolutePath, patternSet, file, metadata, hasBeenFiltered);
+            physicalSnapshot = snapshot(internedAbsolutePath.getInternedPath(), patternSet, file, metadata, hasBeenFiltered);
             if (!hasBeenFiltered.get()) {
                 fileSystemMirror.putSnapshot(physicalSnapshot);
             }
@@ -236,10 +236,6 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         return FileSystemSnapshotFilter.filterSnapshot(spec, snapshot, fileSystem);
     }
 
-    private String internPath(File file) {
-        return stringInterner.intern(file.getAbsolutePath());
-    }
-
     private class FileCollectionVisitorImpl implements FileCollectionVisitor {
         private final List<FileSystemSnapshot> roots = new ArrayList<FileSystemSnapshot>();
 
@@ -265,6 +261,26 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
 
         public List<FileSystemSnapshot> getRoots() {
             return roots;
+        }
+    }
+
+    private class InternedPathHolder {
+        private final String nonInternedPath;
+        private String internedPath;
+
+        public InternedPathHolder(String nonInternedPath) {
+            this.nonInternedPath = nonInternedPath;
+        }
+
+        public String getInternedPath() {
+            if (internedPath == null)  {
+                internedPath = stringInterner.intern(nonInternedPath);
+            }
+            return internedPath;
+        }
+
+        public String getNonInternedPath() {
+            return nonInternedPath;
         }
     }
 }
