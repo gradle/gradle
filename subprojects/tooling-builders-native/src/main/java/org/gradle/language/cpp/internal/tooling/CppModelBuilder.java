@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp.internal.tooling;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Project;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppBinary;
@@ -100,15 +101,7 @@ public class CppModelBuilder implements ToolingModelBuilder {
     }
 
     private List<String> args(List<String> compilerArgs) {
-        if (compilerArgs.isEmpty()) {
-            return Collections.emptyList();
-        }
-        List<String> result = new ArrayList<String>(compilerArgs.size());
-        // TODO - This is to deal with Groovy strings in the args collection. This conversion should instead live in the property implementation
-        for (Object compilerArg : compilerArgs) {
-            result.add(compilerArg.toString());
-        }
-        return result;
+        return ImmutableList.copyOf(compilerArgs);
     }
 
     private List<DefaultMacroDirective> macroDefines(CppCompile compileTask) {
