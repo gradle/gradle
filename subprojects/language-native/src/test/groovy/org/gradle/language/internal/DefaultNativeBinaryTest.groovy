@@ -21,6 +21,7 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
+import org.gradle.language.nativeplatform.internal.Names
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.toolchain.NativeToolChain
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -57,7 +58,7 @@ class DefaultNativeBinaryTest extends Specification {
     class TestBinary extends DefaultNativeBinary {
         @Inject
         TestBinary(String name, ObjectFactory objectFactory, ProjectLayout projectLayout, Configuration componentImplementation) {
-            super(name, objectFactory, projectLayout, componentImplementation)
+            super(Names.of(name), objectFactory, projectLayout, componentImplementation)
         }
 
         @Override

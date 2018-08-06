@@ -20,12 +20,14 @@ import java.io.Serializable;
 
 public class DefaultCppBinaryModel implements Serializable {
     private final String name;
+    private final String variantName;
     private final String baseName;
     private final DefaultCompilationDetails compilationDetails;
     private final DefaultLinkageDetails linkageDetails;
 
-    public DefaultCppBinaryModel(String name, String baseName, DefaultCompilationDetails compilationDetails, DefaultLinkageDetails linkageDetails) {
+    public DefaultCppBinaryModel(String name, String variantName, String baseName, DefaultCompilationDetails compilationDetails, DefaultLinkageDetails linkageDetails) {
         this.name = name;
+        this.variantName = variantName;
         this.baseName = baseName;
         this.compilationDetails = compilationDetails;
         this.linkageDetails = linkageDetails;
@@ -33,6 +35,10 @@ public class DefaultCppBinaryModel implements Serializable {
 
     public String getName() {
         return name;
+    }
+
+    public String getVariantName() {
+        return variantName;
     }
 
     public String getBaseName() {
