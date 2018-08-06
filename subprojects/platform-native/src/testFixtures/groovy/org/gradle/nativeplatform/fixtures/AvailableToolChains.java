@@ -185,7 +185,7 @@ public class AvailableToolChains {
         if (!gppCandidates.isEmpty()) {
             File firstInPath = gppCandidates.iterator().next();
             for (File candidate : gppCandidates) {
-                SearchResult<GccMetadata> version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList());
+                SearchResult<GccMetadata> version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList(), Collections.<File>emptyList());
                 if (version.isAvailable()) {
                     InstalledGcc gcc = new InstalledGcc("gcc" + " " + version.getComponent().getVersion());
                     if (!candidate.equals(firstInPath)) {
@@ -219,7 +219,7 @@ public class AvailableToolChains {
 
         for (File swiftInstall : candidates) {
             File swiftc = new File(swiftInstall, "/usr/bin/swiftc");
-            SearchResult<SwiftcMetadata> version = versionDeterminer.getCompilerMetaData(swiftc, Collections.<String>emptyList());
+            SearchResult<SwiftcMetadata> version = versionDeterminer.getCompilerMetaData(swiftc, Collections.<String>emptyList(), Collections.<File>emptyList());
             if (version.isAvailable()) {
                 File binDir = swiftc.getParentFile();
                 toolChains.add(new InstalledSwiftc(binDir, version.getComponent().getVersion()).inPath(binDir, new File("/usr/bin")));
@@ -228,7 +228,7 @@ public class AvailableToolChains {
 
         List<File> swiftcCandidates = OperatingSystem.current().findAllInPath("swiftc");
         for (File candidate : swiftcCandidates) {
-            SearchResult<SwiftcMetadata> version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList());
+            SearchResult<SwiftcMetadata> version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList(), Collections.<File>emptyList());
             if (version.isAvailable()) {
                 File binDir = candidate.getParentFile();
                 InstalledSwiftc swiftc = new InstalledSwiftc(binDir, version.getComponent().getVersion());
