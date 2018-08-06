@@ -19,12 +19,14 @@ package org.gradle.nativeplatform.toolchain.internal.gcc.metadata;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
 import org.gradle.nativeplatform.toolchain.internal.metadata.AbstractMetadataProvider;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerType;
+import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.VersionNumber;
 
@@ -81,7 +83,7 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
         VersionNumber scrapedVersion = determineVersion(defines, gccBinary);
         ArchitectureInternal architecture = determineArchitecture(defines);
         String scrapedVendor = determineVendor(error, scrapedVersion, gccBinary);
-        ImmutableList<File> systemIncludes = determineSystemIncludes(error);
+        ImmutableList<File> systemIncludes = determineSystemIncludes(defines, error);
 
         return new DefaultGccMetadata(scrapedVersion, scrapedVendor, architecture, systemIncludes);
     }
@@ -106,7 +108,8 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
         throw new BrokenResultException(String.format("Could not determine %s metadata: could not find vendor in output of %s.", compilerType.getDescription(), gccBinary));
     }
 
-    private ImmutableList<File> determineSystemIncludes(String error) {
+    private ImmutableList<File> determineSystemIncludes(Map<String, String> defines, String error) {
+        boolean isCygwin = defines.containsKey("__CYGWIN__");
         BufferedReader reader = new BufferedReader(new StringReader(error));
         String line;
         ImmutableList.Builder<File> builder = ImmutableList.builder();
@@ -129,7 +132,11 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
                     if (compilerType == GCC && line.endsWith("/Library/Frameworks")) {
                         continue;
                     }
-                    builder.add(new File(line.trim()));
+                    String include = line.trim();
+                    if (isCygwin) {
+                        include = mapCygwinPath(include);
+                    }
+                    builder.add(new File(include));
                 }
             }
             return builder.build();
@@ -137,6 +144,18 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
             // Should not happen reading from a StringReader
             throw new UncheckedIOException(e);
         }
+    }
+
+    private String mapCygwinPath(String path) {
+        ExecAction execAction = getExecActionFactory().newExecAction();
+        execAction.setWorkingDir(new File(".").getAbsolutePath());
+        execAction.commandLine("cygpath", "-w", path);
+        StreamByteBuffer buffer = new StreamByteBuffer();
+        StreamByteBuffer errorBuffer = new StreamByteBuffer();
+        execAction.setStandardOutput(buffer.getOutputStream());
+        execAction.setErrorOutput(errorBuffer.getOutputStream());
+        execAction.execute().assertNormalExitValue();
+        return buffer.readAsString().trim();
     }
 
     private Map<String, String> parseDefines(String output, File gccBinary) {
