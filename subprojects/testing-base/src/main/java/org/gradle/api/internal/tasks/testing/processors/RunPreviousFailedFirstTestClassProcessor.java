@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.processors;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.TestSuiteRunInfo;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -50,6 +51,11 @@ public class RunPreviousFailedFirstTestClassProcessor implements TestClassProces
         } else {
             otherTestClasses.add(testClass);
         }
+    }
+
+    @Override
+    public void processTestSuite(TestSuiteRunInfo testSuite) {
+        delegate.processTestSuite(testSuite);
     }
 
     @Override

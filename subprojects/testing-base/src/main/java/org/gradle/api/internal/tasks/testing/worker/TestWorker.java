@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.TestSuiteRunInfo;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
@@ -115,6 +116,20 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         Thread.currentThread().setName("Test worker");
         try {
             processor.processTestClass(testClass);
+        } catch (AccessControlException e) {
+            completed.countDown();
+            throw e;
+        } finally {
+            // Clean the interrupted status
+            Thread.interrupted();
+        }
+    }
+
+    @Override
+    public void processTestSuite(final TestSuiteRunInfo testSuite) {
+        Thread.currentThread().setName("Test worker");
+        try {
+            processor.processTestSuite(testSuite);
         } catch (AccessControlException e) {
             completed.countDown();
             throw e;

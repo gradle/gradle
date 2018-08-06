@@ -17,9 +17,11 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.TestSuiteRunInfo;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
@@ -64,6 +66,11 @@ public abstract class AbstractJUnitTestClassProcessor<T extends JUnitSpec> imple
     public void processTestClass(TestClassRunInfo testClass) {
         LOGGER.debug("Executing test class {}", testClass.getTestClassName());
         executor.execute(testClass.getTestClassName());
+    }
+
+    @Override
+    public void processTestSuite(TestSuiteRunInfo testSuite) {
+        throw new GradleException("This method is unimplemented - it should never be called.");
     }
 
     @Override

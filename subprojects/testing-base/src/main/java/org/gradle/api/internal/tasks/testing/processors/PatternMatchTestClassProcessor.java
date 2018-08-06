@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.processors;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.TestSuiteRunInfo;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 
@@ -41,6 +42,11 @@ public class PatternMatchTestClassProcessor implements TestClassProcessor {
         if (testClassSelectionMatcher.mayIncludeClass(testClass.getTestClassName())) {
             delegate.processTestClass(testClass);
         }
+    }
+
+    @Override
+    public void processTestSuite(TestSuiteRunInfo testSuite) {
+        delegate.processTestSuite(testSuite);
     }
 
     @Override

@@ -38,6 +38,14 @@ public interface TestClassProcessor extends Stoppable {
     void processTestClass(TestClassRunInfo testClass);
 
     /**
+     * Accepts the given test suite for processing. May execute synchronously, asynchronously, or defer execution for
+     * later.
+     *
+     * @param testSuite The test class.
+     */
+    void processTestSuite(TestSuiteRunInfo testSuite);
+
+    /**
      * Completes any pending or asynchronous processing. Blocks until all processing is complete. The processor should
      * not use the result processor provided to {@link #startProcessing(TestResultProcessor)} after this method has
      * returned.

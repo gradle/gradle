@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.processors;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.TestSuiteRunInfo;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.Actor;
@@ -78,6 +79,28 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
             pos = (pos + 1) % processors.size();
         }
         processor.processTestClass(testClass);
+    }
+
+    @Override
+    public void processTestSuite(TestSuiteRunInfo testSuite) {
+        if (stoppedNow) {
+            return;
+        }
+
+        TestClassProcessor processor;
+        if (processors.size() < maxProcessors) {
+            processor = factory.create();
+            rawProcessors.add(processor);
+            Actor actor = actorFactory.createActor(processor);
+            processor = actor.getProxy(TestClassProcessor.class);
+            actors.add(actor);
+            processors.add(processor);
+            processor.startProcessing(resultProcessor);
+        } else {
+            processor = processors.get(pos);
+            pos = (pos + 1) % processors.size();
+        }
+        processor.processTestSuite(testSuite);
     }
 
     @Override

@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.processors;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.TestSuiteRunInfo;
 import org.gradle.internal.Factory;
 
 public class RestartEveryNTestClassProcessor implements TestClassProcessor {
@@ -54,6 +55,20 @@ public class RestartEveryNTestClassProcessor implements TestClassProcessor {
         if (testCount == restartEvery) {
             endBatch();
         }
+    }
+
+    @Override
+    public void processTestSuite(TestSuiteRunInfo testSuite) {
+        if (stoppedNow) {
+            return;
+        }
+
+        if (processor == null) {
+            processor = factory.create();
+            processor.startProcessing(resultProcessor);
+        }
+        processor.processTestSuite(testSuite);
+        testCount++;
     }
 
     @Override

@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.TestSuiteRunInfo;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
@@ -46,23 +47,24 @@ import static org.gradle.api.tasks.testing.testng.TestNGOptions.*;
 
 public class TestNGTestClassProcessor implements TestClassProcessor {
     private final List<Class<?>> testClasses = new ArrayList<Class<?>>();
+    private final List<File> suiteFiles = new ArrayList<File>();
     private final File testReportDir;
     private final TestNGSpec options;
-    private final List<File> suiteFiles;
     private final IdGenerator<?> idGenerator;
     private final Clock clock;
     private final ActorFactory actorFactory;
+    private final boolean runSuites;
     private ClassLoader applicationClassLoader;
     private Actor resultProcessorActor;
     private TestResultProcessor resultProcessor;
 
-    public TestNGTestClassProcessor(File testReportDir, TestNGSpec options, List<File> suiteFiles, IdGenerator<?> idGenerator, Clock clock, ActorFactory actorFactory) {
+    public TestNGTestClassProcessor(File testReportDir, TestNGSpec options, IdGenerator<?> idGenerator, Clock clock, ActorFactory actorFactory, boolean runSuites) {
         this.testReportDir = testReportDir;
         this.options = options;
-        this.suiteFiles = suiteFiles;
         this.idGenerator = idGenerator;
         this.clock = clock;
         this.actorFactory = actorFactory;
+        this.runSuites = runSuites;
     }
 
     @Override
@@ -80,6 +82,15 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             testClasses.add(applicationClassLoader.loadClass(testClass.getTestClassName()));
         } catch (Throwable e) {
             throw new GradleException(String.format("Could not load test class '%s'.", testClass.getTestClassName()), e);
+        }
+    }
+
+    @Override
+    public void processTestSuite(TestSuiteRunInfo testSuite) {
+        try {
+            suiteFiles.add(testSuite.getFile());
+        } catch (Throwable e) {
+            throw new GradleException(String.format("Could not load test suite '%s'.", testSuite.getTestSuiteName()), e);
         }
     }
 
@@ -130,7 +141,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             testNg.addListener(new SelectedTestsFilter(options.getIncludedTests(), options.getIncludedTestsCommandLine()));
         }
 
-        if (!suiteFiles.isEmpty()) {
+        if (runSuites) {
             testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
         } else {
             testNg.setTestClasses(testClasses.toArray(new Class[0]));

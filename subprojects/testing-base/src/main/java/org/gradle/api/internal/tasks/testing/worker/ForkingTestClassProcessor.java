@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.testing.JULRedirector;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.TestSuiteRunInfo;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.work.WorkerLeaseRegistry;
@@ -86,6 +87,26 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             }
 
             remoteProcessor.processTestClass(testClass);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public void processTestSuite(TestSuiteRunInfo testSuite) {
+        lock.lock();
+        try {
+            if (stoppedNow) {
+                return;
+            }
+
+            if (remoteProcessor == null) {
+                completion = currentWorkerLease.startChild();
+                JULRedirector.checkDeprecatedProperty(options);
+                remoteProcessor = forkProcess();
+            }
+
+            remoteProcessor.processTestSuite(testSuite);
         } finally {
             lock.unlock();
         }

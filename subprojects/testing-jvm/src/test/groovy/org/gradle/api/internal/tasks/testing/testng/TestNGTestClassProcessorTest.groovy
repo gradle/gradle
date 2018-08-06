@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.testng
 
 import org.gradle.api.GradleException
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo
+import org.gradle.api.internal.tasks.testing.DefaultTestSuiteRunInfo
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.tasks.testing.TestResult.ResultType
@@ -47,7 +48,7 @@ class TestNGTestClassProcessorTest extends Specification {
 
     def options = Spy(TestNGSpec, constructorArgs:[new TestNGOptions(dir.testDirectory), new DefaultTestFilter()])
 
-    @Subject classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [], new LongIdGenerator(), Time.clock(), new TestActorFactory())
+    @Subject classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, new LongIdGenerator(), Time.clock(), new TestActorFactory(), false)
 
     void process(Class ... clazz) {
         classProcessor.startProcessing(processor)
@@ -260,10 +261,11 @@ class TestNGTestClassProcessorTest extends Specification {
     </classes>
   </test>
 </suite>"""
-        classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [suite], new LongIdGenerator(), Time.clock(), new TestActorFactory())
+        classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, new LongIdGenerator(), Time.clock(), new TestActorFactory(), true)
 
         when:
         classProcessor.startProcessing(processor)
+        classProcessor.processTestSuite(new DefaultTestSuiteRunInfo(suite))
         classProcessor.stop()
 
         then: 1 * processor.started({ it.id == 1 && it.name == 'AwesomeSuite' && it.className == null }, { it.parentId == null })
@@ -304,10 +306,12 @@ class TestNGTestClassProcessorTest extends Specification {
     </classes>
   </test>
 </suite>"""
-        classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [suite1, suite2], new LongIdGenerator(), Time.clock(), new TestActorFactory())
+        classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, new LongIdGenerator(), Time.clock(), new TestActorFactory(), true)
 
         when:
         classProcessor.startProcessing(processor)
+        classProcessor.processTestSuite(new DefaultTestSuiteRunInfo(suite1))
+        classProcessor.processTestSuite(new DefaultTestSuiteRunInfo(suite2))
         classProcessor.stop()
 
         then: 1 * processor.started({ it.id == 1 && it.name == 'suite 1' && it.className == null }, { it.parentId == null })

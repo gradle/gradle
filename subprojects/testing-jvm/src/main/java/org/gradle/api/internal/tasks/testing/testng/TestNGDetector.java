@@ -15,17 +15,35 @@
  */
 package org.gradle.api.internal.tasks.testing.testng;
 
+import org.gradle.api.internal.tasks.testing.DefaultTestSuiteRunInfo;
+import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.detection.AbstractTestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
+import org.gradle.api.tasks.testing.testng.TestNGOptions;
+
+import java.io.File;
 
 class TestNGDetector extends AbstractTestFrameworkDetector<TestNGTestClassDetector> {
-    TestNGDetector(ClassFileExtractionManager classFileExtractionManager) {
+    private final TestNGOptions testNGOptions;
+    private final File temporaryDirectory;
+
+    TestNGDetector(ClassFileExtractionManager classFileExtractionManager, TestNGOptions testNGOptions, File temporaryDirectory) {
         super(classFileExtractionManager);
+        this.testNGOptions = testNGOptions;
+        this.temporaryDirectory = temporaryDirectory;
     }
 
     @Override
     protected TestNGTestClassDetector createClassVisitor() {
         return new TestNGTestClassDetector(this);
+    }
+
+    @Override
+    public void startDetection(TestClassProcessor testClassProcessor) {
+        super.startDetection(testClassProcessor);
+        for (File file : testNGOptions.getSuites(temporaryDirectory)){
+            testClassProcessor.processTestSuite(new DefaultTestSuiteRunInfo(file));
+        }
     }
 
     @Override

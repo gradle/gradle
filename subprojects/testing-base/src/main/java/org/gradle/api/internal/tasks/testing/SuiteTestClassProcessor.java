@@ -56,6 +56,16 @@ public class SuiteTestClassProcessor implements TestClassProcessor {
     }
 
     @Override
+    public void processTestSuite(TestSuiteRunInfo testSuite) {
+        try {
+            processor.processTestSuite(testSuite);
+        } catch (Throwable t) {
+            resultProcessor.failure(suiteDescriptor.getId(), new TestSuiteExecutionException(String.format(
+                "Could not execute test suite '%s'.", testSuite.getTestSuiteName()), t));
+        }
+    }
+
+    @Override
     public void stop() {
         try {
             processor.stop();

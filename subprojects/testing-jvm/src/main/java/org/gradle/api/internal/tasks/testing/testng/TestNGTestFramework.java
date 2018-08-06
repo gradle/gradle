@@ -54,7 +54,7 @@ public class TestNGTestFramework implements TestFramework {
         this.filter = filter;
         options = instantiator.newInstance(TestNGOptions.class, testTask.getProject().getProjectDir());
         conventionMapOutputDirectory(options, testTask.getReports().getHtml());
-        detector = new TestNGDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
+        detector = new TestNGDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()), options, testTask.getTemporaryDir());
         classLoaderFactory = new TestClassLoaderFactory(classLoaderCache, testTask);
     }
 
@@ -133,17 +133,17 @@ public class TestNGTestFramework implements TestFramework {
     private static class TestClassProcessorFactoryImpl implements WorkerTestClassProcessorFactory, Serializable {
         private final File testReportDir;
         private final TestNGSpec options;
-        private final List<File> suiteFiles;
+        private final boolean runSuites;
 
         public TestClassProcessorFactoryImpl(File testReportDir, TestNGSpec options, List<File> suiteFiles) {
             this.testReportDir = testReportDir;
             this.options = options;
-            this.suiteFiles = suiteFiles;
+            this.runSuites = !suiteFiles.isEmpty();
         }
 
         @Override
         public TestClassProcessor create(ServiceRegistry serviceRegistry) {
-            return new TestNGTestClassProcessor(testReportDir, options, suiteFiles, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(Clock.class), serviceRegistry.get(ActorFactory.class));
+            return new TestNGTestClassProcessor(testReportDir, options, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(Clock.class), serviceRegistry.get(ActorFactory.class), runSuites);
         }
     }
 }

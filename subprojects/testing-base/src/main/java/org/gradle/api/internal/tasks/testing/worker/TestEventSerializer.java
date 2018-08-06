@@ -22,11 +22,14 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.serialize.*;
 
+import java.io.File;
+
 public class TestEventSerializer {
     public static SerializerRegistry create() {
         BaseSerializerFactory factory = new BaseSerializerFactory();
         DefaultSerializerRegistry registry = new DefaultSerializerRegistry();
         registry.register(DefaultTestClassRunInfo.class, new DefaultTestClassRunInfoSerializer());
+        registry.register(DefaultTestSuiteRunInfo.class, new DefaultTestSuiteRunInfoSerializer());
         registry.register(CompositeIdGenerator.CompositeId.class, new IdSerializer());
         registry.register(DefaultTestSuiteDescriptor.class, new DefaultTestSuiteDescriptorSerializer());
         registry.register(WorkerTestClassProcessor.WorkerTestSuiteDescriptor.class, new WorkerTestSuiteDescriptorSerializer());
@@ -86,6 +89,18 @@ public class TestEventSerializer {
         @Override
         public void write(Encoder encoder, DefaultTestClassRunInfo value) throws Exception {
             encoder.writeString(value.getTestClassName());
+        }
+    }
+
+    private static class DefaultTestSuiteRunInfoSerializer implements Serializer<DefaultTestSuiteRunInfo> {
+        @Override
+        public DefaultTestSuiteRunInfo read(Decoder decoder) throws Exception {
+            return new DefaultTestSuiteRunInfo(new File(decoder.readString()));
+        }
+
+        @Override
+        public void write(Encoder encoder, DefaultTestSuiteRunInfo value) throws Exception {
+            encoder.writeString(value.getFile().getAbsolutePath());
         }
     }
 

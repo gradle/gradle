@@ -17,11 +17,13 @@
 package org.gradle.nativeplatform.test.xctest.internal.execution;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.TestSuiteRunInfo;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.id.IdGenerator;
@@ -166,6 +168,11 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
             } finally {
                 execHandle = null;
             }
+        }
+
+        @Override
+        public void processTestSuite(TestSuiteRunInfo testSuite) {
+            throw new GradleException("This exception should never be thrown / reachable");
         }
 
         private ExecHandle executeTest(String testName, OutputStream outputStream, OutputStream errorStream) {
