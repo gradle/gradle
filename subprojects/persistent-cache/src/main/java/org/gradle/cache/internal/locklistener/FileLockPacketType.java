@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,14 @@
 
 package org.gradle.cache.internal.locklistener;
 
-import org.gradle.api.Action;
-import org.gradle.cache.FileLockReleasedSignal;
-
-public class NoOpFileLockContentionHandler implements FileLockContentionHandler {
-
-    public void start(long lockId, Action<FileLockReleasedSignal> whenContended) {}
-
-    public void stop(long lockId) {}
-
-    public int reservePort() {
-        return -1;
-    }
-
-    public boolean maybePingOwner(int port, long lockId, String displayName, long timeElapsed, FileLockReleasedSignal signal) {
-        return false;
-    }
+/**
+ * Packet type for communication about file locks.
+ *
+ * <p>For backward compatibility, enum constants must not be removed.
+ */
+public enum FileLockPacketType {
+    UNKNOWN,
+    UNLOCK_REQUEST,
+    UNLOCK_REQUEST_CONFIRMATION,
+    LOCK_RELEASE_CONFIRMATION
 }
