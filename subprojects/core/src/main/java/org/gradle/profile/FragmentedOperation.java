@@ -22,7 +22,7 @@ import java.util.Collection;
 
 public class FragmentedOperation extends Operation {
     private final String description;
-    private final Collection<ContinuousOperation> children = Sets.newConcurrentHashSet();
+    private final Collection<ContinuousOperation> children = Sets.newHashSet();
 
     public FragmentedOperation(String description) {
         this.description = description;
