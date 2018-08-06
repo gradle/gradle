@@ -64,18 +64,21 @@ public class FileLockPacketPayload {
         return out.toByteArray();
     }
 
-    public static FileLockPacketPayload decode(byte[] bytes) throws IOException {
+    public static FileLockPacketPayload decode(byte[] bytes, int length) throws IOException {
         DataInputStream dataInput = new DataInputStream(new ByteArrayInputStream(bytes));
         byte version = dataInput.readByte();
         if (version != PROTOCOL_VERSION) {
             throw new IllegalArgumentException(String.format("Unexpected protocol version %s received in lock contention notification message", version));
         }
         long lockId = dataInput.readLong();
-        FileLockPacketType type = readType(dataInput);
+        FileLockPacketType type = readType(dataInput, length);
         return new FileLockPacketPayload(lockId, type);
     }
 
-    private static FileLockPacketType readType(DataInputStream dataInput) throws IOException {
+    private static FileLockPacketType readType(DataInputStream dataInput, int length) throws IOException {
+        if (length < MAX_BYTES) {
+            return UNKNOWN;
+        }
         try {
             int ordinal = dataInput.readByte();
             if (ordinal < TYPES.size()) {

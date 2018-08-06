@@ -88,7 +88,7 @@ public class FileLockCommunicator {
 
     public FileLockPacketPayload decode(DatagramPacket receivedPacket) {
         try {
-            return FileLockPacketPayload.decode(receivedPacket.getData());
+            return FileLockPacketPayload.decode(receivedPacket.getData(), receivedPacket.getLength());
         } catch (IOException e) {
             if (!stopped) {
                 throw new RuntimeException(e);

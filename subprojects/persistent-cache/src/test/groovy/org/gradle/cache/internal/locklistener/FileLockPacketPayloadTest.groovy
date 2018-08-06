@@ -35,7 +35,7 @@ class FileLockPacketPayloadTest extends Specification {
 
     def "decodes payloads without type"() {
         when:
-        def payload = FileLockPacketPayload.decode([1, 0, 0, 0, 0, 0, 0, 0, 42] as byte[])
+        def payload = FileLockPacketPayload.decode([1, 0, 0, 0, 0, 0, 0, 0, 42, 1] as byte[], 9)
 
         then:
         payload.lockId == 42
@@ -45,7 +45,7 @@ class FileLockPacketPayloadTest extends Specification {
     @Unroll
     def "decodes payloads with type #type"() {
         when:
-        def payload = FileLockPacketPayload.decode([1, 0, 0, 0, 0, 0, 0, 0, 42, type.ordinal()] as byte[])
+        def payload = FileLockPacketPayload.decode([1, 0, 0, 0, 0, 0, 0, 0, 42, type.ordinal()] as byte[], 10)
 
         then:
         payload.lockId == 42
@@ -57,7 +57,7 @@ class FileLockPacketPayloadTest extends Specification {
 
     def "decodes payloads with unknown types that might be added in the future"() {
         when:
-        def payload = FileLockPacketPayload.decode([1, 0, 0, 0, 0, 0, 0, 0, 42, FileLockPacketType.values().length] as byte[])
+        def payload = FileLockPacketPayload.decode([1, 0, 0, 0, 0, 0, 0, 0, 42, FileLockPacketType.values().length] as byte[], 10)
 
         then:
         payload.lockId == 42
