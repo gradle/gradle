@@ -19,7 +19,7 @@ plugins {
 
 allprojects {
     group = "org.gradle"
-    version = "0.19.2-SNAPSHOT"
+    version = "0.19.2"
 }
 
 val publishedPluginsVersion by extra { "0.19.9" }
