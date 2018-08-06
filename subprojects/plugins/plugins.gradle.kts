@@ -33,3 +33,15 @@ bundledGradlePlugin(
     shortDescription = "Gradle Kotlin DSL Plugin",
     pluginId = "org.gradle.kotlin.kotlin-dsl",
     pluginClass = "org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin")
+
+bundledGradlePlugin(
+    name = "kotlinDslCompilerSettings",
+    shortDescription = "Gradle Kotlin DSL Compiler Settings",
+    pluginId = "org.gradle.kotlin.kotlin-dsl.compiler-settings",
+    pluginClass = "org.gradle.kotlin.dsl.plugins.dsl.KotlinDslCompilerPlugins")
+
+bundledGradlePlugin(
+    name = "kotlinDslPrecompiledScriptPlugins",
+    shortDescription = "Gradle Kotlin DSL Precompiled Script Plugins",
+    pluginId = "org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins",
+    pluginClass = "org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins")
