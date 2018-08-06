@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="b7ecebd3-3812-4532-aa77-5679f9e9d6b3" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/2018.1/project-config.xsd">
   <name>Publish Branch Snapshot (from Quick Feedback)</name>
-  <description>Deploys the latest successful change on 'release' as a new snapshot</description>
+  <description>Deploys a new wrapper for the selected build/branch. Does not update master or the documentation.</description>
   <settings>
     <options>
       <option name="artifactRules" value="incoming-build-receipt/build-receipt.properties =&gt; incoming-build-receipt&#xA;**/build/git-checkout/build/build-receipt.properties&#xA;**/build/distributions/*.zip =&gt; promote-build-distributions&#xA;**/build/website-checkout/data/releases.xml&#xA;**/build/git-checkout/build/reports/integTest/** =&gt; distribution-tests&#xA;**/smoke-tests/build/reports/tests/** =&gt; post-smoke-tests" />
