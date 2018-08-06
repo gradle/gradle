@@ -95,7 +95,6 @@ class GradleBuildPerformanceTest extends Specification {
         runner.testGroup = 'gradle build'
     }
 
-    @Ignore
     def "help on the gradle build comparing the build"() {
 
         given:
