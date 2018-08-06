@@ -50,19 +50,19 @@ public interface GradleBuild extends Model, BuildModel {
     DomainObjectSet<? extends BasicGradleProject> getProjects();
 
     /**
-     * Returns the included builds that were referenced by this build.
+     * Returns the included builds that were referenced by this build. This is the set of builds that were directly included by this build via its {@link org.gradle.api.initialization.Settings} instance.
      *
      * @since 3.3
      */
     DomainObjectSet<? extends GradleBuild> getIncludedBuilds();
 
     /**
-     * Returns all builds contained in this build, and for which tooling models should be built when importing into an IDE. This is not necessarily the same as {@link #getIncludedBuilds()}, as an included build is not necessarily 'owned' by a build that includes it.
+     * Returns all builds contained in this build for which tooling models should be built when importing into an IDE.
      *
-     * <p>For the root build, this set contains all builds that participate in the composite build, including those from all nested included builds. For other builds, this set is empty.</p>
+     * <p>This is not always the same the builds returned by {@link #getIncludedBuilds()}. For the root build, the 'editable' builds set contains all builds that participate in the composite build, including those directly included by the root build plus all builds included by any nested included builds transitively. For all other builds, this set is empty.</p>
      *
      * @since 4.10
      */
     @Incubating
-    DomainObjectSet<? extends GradleBuild> getAllBuilds();
+    DomainObjectSet<? extends GradleBuild> getEditableBuilds();
 }
