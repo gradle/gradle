@@ -31,6 +31,11 @@ public interface CppBinary {
     String getName();
 
     /**
+     * Returns the variant name of this binary. This is used to disambiguate the binaries of a component. Each binary has a unique variant name within its component. However, these names are not unique across multiple projects or components.
+     */
+    String getVariantName();
+
+    /**
      * Returns the base name of this binary. This is used to calculate output file names.
      */
     String getBaseName();

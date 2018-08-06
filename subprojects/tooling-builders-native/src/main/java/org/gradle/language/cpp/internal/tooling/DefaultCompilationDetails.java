@@ -28,16 +28,18 @@ public class DefaultCompilationDetails implements Serializable {
     private final File compilerExe;
     private final File workingDir;
     private final List<DefaultSourceFile> sources;
+    private final List<File> headerDirs;
     private final List<File> systemHeaderDirs;
     private final List<File> userHeaderDirs;
     private final List<DefaultMacroDirective> macroDefines;
     private final List<String> additionalArgs;
 
-    public DefaultCompilationDetails(LaunchableGradleTask compileTask, File compilerExe, File workingDir, List<DefaultSourceFile> sources, List<File> systemHeaderDirs, List<File> userHeaderDirs, List<DefaultMacroDirective> macroDefines, List<String> additionalArgs) {
+    public DefaultCompilationDetails(LaunchableGradleTask compileTask, File compilerExe, File workingDir, List<DefaultSourceFile> sources, List<File> headerDirs, List<File> systemHeaderDirs, List<File> userHeaderDirs, List<DefaultMacroDirective> macroDefines, List<String> additionalArgs) {
         this.compileTask = compileTask;
         this.compilerExe = compilerExe;
         this.workingDir = workingDir;
         this.sources = sources;
+        this.headerDirs = headerDirs;
         this.systemHeaderDirs = systemHeaderDirs;
         this.userHeaderDirs = userHeaderDirs;
         this.macroDefines = macroDefines;
@@ -58,6 +60,10 @@ public class DefaultCompilationDetails implements Serializable {
 
     public List<DefaultSourceFile> getSources() {
         return sources;
+    }
+
+    public List<File> getHeaderDirs() {
+        return headerDirs;
     }
 
     public List<File> getFrameworkSearchPaths() {

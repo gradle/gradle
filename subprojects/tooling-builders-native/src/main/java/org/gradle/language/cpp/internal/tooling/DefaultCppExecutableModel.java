@@ -19,7 +19,7 @@ package org.gradle.language.cpp.internal.tooling;
 import org.gradle.tooling.internal.protocol.cpp.InternalCppExecutable;
 
 public class DefaultCppExecutableModel extends DefaultCppBinaryModel implements InternalCppExecutable {
-    public DefaultCppExecutableModel(String name, String baseName, DefaultCompilationDetails compilationDetails, DefaultLinkageDetails linkageDetails) {
-        super(name, baseName, compilationDetails, linkageDetails);
+    public DefaultCppExecutableModel(String name, String variantName, String baseName, DefaultCompilationDetails compilationDetails, DefaultLinkageDetails linkageDetails) {
+        super(name, variantName, baseName, compilationDetails, linkageDetails);
     }
 }

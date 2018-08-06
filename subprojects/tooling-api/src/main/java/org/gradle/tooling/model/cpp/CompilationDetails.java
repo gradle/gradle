@@ -46,7 +46,7 @@ public interface CompilationDetails {
     File getCompilerExecutable();
 
     /**
-     * Returns the working directory that the compiler is invoked from.
+     * Returns the working directory that the compiler is invoked from when compiling the source of this binary.
      */
     File getCompileWorkingDir();
 
@@ -56,9 +56,24 @@ public interface CompilationDetails {
     List<File> getFrameworkSearchPaths();
 
     /**
-     * Returns the compilation unit for this binary.
+     * Returns the system search paths for this binary.
+     */
+    List<File> getSystemHeaderSearchPaths();
+
+    /**
+     * Returns the user search paths for this binary. This includes the header directories for the binary itself, plus any dependencies of the binary.
+     */
+    List<File> getUserHeaderSearchPaths();
+
+    /**
+     * Returns the source files for this binary.
      */
     DomainObjectSet<? extends SourceFile> getSources();
+
+    /**
+     * Returns the header directories for this binary. These are also included in the result of {@link #getUserHeaderSearchPaths()}.
+     */
+    Set<File> getHeaderDirs();
 
     /**
      * Returns the macro define directives for this binary.
@@ -69,16 +84,6 @@ public interface CompilationDetails {
      * Returns the macro undefine directives for this binary.
      */
     Set<String> getMacroUndefines();
-
-    /**
-     * Returns the system search paths for this binary.
-     */
-    List<File> getSystemHeaderSearchPaths();
-
-    /**
-     * Returns the user search paths for this binary.
-     */
-    List<File> getUserHeaderSearchPaths();
 
     /**
      * Returns any additional compiler arguments not included in the search paths and macro directives of this binary.

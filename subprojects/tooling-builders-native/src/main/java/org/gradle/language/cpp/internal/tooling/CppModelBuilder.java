@@ -32,6 +32,7 @@ import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.CppStaticLibrary;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
+import org.gradle.language.cpp.internal.DefaultCppLibrary;
 import org.gradle.language.cpp.tasks.CppCompile;
 import org.gradle.language.nativeplatform.ComponentWithExecutable;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
@@ -69,53 +70,54 @@ public class CppModelBuilder implements ToolingModelBuilder {
         DefaultCppComponentModel mainComponent = null;
         CppApplication application = project.getComponents().withType(CppApplication.class).findByName("main");
         if (application != null) {
-            mainComponent = new DefaultCppApplicationModel(application.getName(), application.getBaseName().get(), binariesFor(application, projectIdentifier, namingSchemeFactory));
+            mainComponent = new DefaultCppApplicationModel(application.getName(), application.getBaseName().get(), binariesFor(application, application.getPrivateHeaderDirs(), projectIdentifier, namingSchemeFactory));
         } else {
-            CppLibrary library = project.getComponents().withType(CppLibrary.class).findByName("main");
+            DefaultCppLibrary library = (DefaultCppLibrary) project.getComponents().withType(CppLibrary.class).findByName("main");
             if (library != null) {
-                mainComponent = new DefaultCppLibraryModel(library.getName(), library.getBaseName().get(), binariesFor(library, projectIdentifier, namingSchemeFactory));
+                mainComponent = new DefaultCppLibraryModel(library.getName(), library.getBaseName().get(), binariesFor(library, library.getAllHeaderDirs(), projectIdentifier, namingSchemeFactory));
             }
         }
         DefaultCppComponentModel testComponent = null;
         CppTestSuite testSuite = project.getComponents().withType(CppTestSuite.class).findByName("test");
         if (testSuite != null) {
-            testComponent = new DefaultCppTestSuiteModel(testSuite.getName(), testSuite.getBaseName().get(), binariesFor(testSuite, projectIdentifier, namingSchemeFactory));
+            testComponent = new DefaultCppTestSuiteModel(testSuite.getName(), testSuite.getBaseName().get(), binariesFor(testSuite, testSuite.getPrivateHeaderDirs(), projectIdentifier, namingSchemeFactory));
         }
         return new DefaultCppProjectModel(projectIdentifier, mainComponent, testComponent);
     }
 
-    private List<DefaultCppBinaryModel> binariesFor(CppComponent component, DefaultProjectIdentifier projectIdentifier, CompilerOutputFileNamingSchemeFactory namingSchemeFactory) {
-        ArrayList<DefaultCppBinaryModel> binaries = new ArrayList<DefaultCppBinaryModel>();
+    private List<DefaultCppBinaryModel> binariesFor(CppComponent component, Iterable<File> headerDirs, DefaultProjectIdentifier projectIdentifier, CompilerOutputFileNamingSchemeFactory namingSchemeFactory) {
+        List<File> headerDirsCopy = ImmutableList.copyOf(headerDirs);
+        List<DefaultCppBinaryModel> binaries = new ArrayList<DefaultCppBinaryModel>();
         for (CppBinary binary : component.getBinaries().get()) {
             DefaultCppBinary cppBinary = (DefaultCppBinary) binary;
             PlatformToolProvider platformToolProvider = cppBinary.getPlatformToolProvider();
             CppCompile compileTask = binary.getCompileTask().get();
             List<DefaultSourceFile> sourceFiles = sourceFiles(namingSchemeFactory, platformToolProvider, compileTask.getObjectFileDir().get().getAsFile(), binary.getCppSource().getFiles());
-            List<File> systemIncludes = new ArrayList<File>(compileTask.getSystemIncludes().getFiles());
-            List<File> userIncludes = new ArrayList<File>(compileTask.getIncludes().getFiles());
+            List<File> systemIncludes = ImmutableList.copyOf(compileTask.getSystemIncludes().getFiles());
+            List<File> userIncludes = ImmutableList.copyOf(compileTask.getIncludes().getFiles());
             List<DefaultMacroDirective> macroDefines = macroDefines(compileTask);
             List<String> additionalArgs = args(compileTask.getCompilerArgs().get());
             CommandLineToolSearchResult compilerLookup = platformToolProvider.locateTool(ToolType.CPP_COMPILER);
             File compilerExe = compilerLookup.isAvailable() ? compilerLookup.getTool() : null;
             LaunchableGradleTask compileTaskModel = ToolingModelBuilderSupport.buildFromTask(new LaunchableGradleTask(), projectIdentifier, compileTask);
-            DefaultCompilationDetails compilationDetails = new DefaultCompilationDetails(compileTaskModel, compilerExe, compileTask.getObjectFileDir().get().getAsFile(), sourceFiles, systemIncludes, userIncludes, macroDefines, additionalArgs);
+            DefaultCompilationDetails compilationDetails = new DefaultCompilationDetails(compileTaskModel, compilerExe, compileTask.getObjectFileDir().get().getAsFile(), sourceFiles, headerDirsCopy,  systemIncludes, userIncludes, macroDefines, additionalArgs);
             if (binary instanceof CppExecutable || binary instanceof CppTestExecutable) {
                 ComponentWithExecutable componentWithExecutable = (ComponentWithExecutable) binary;
                 LinkExecutable linkTask = componentWithExecutable.getLinkTask().get();
                 LaunchableGradleTask linkTaskModel = ToolingModelBuilderSupport.buildFromTask(new LaunchableGradleTask(), projectIdentifier, taskFor(componentWithExecutable.getExecutableFile()));
                 DefaultLinkageDetails linkageDetails = new DefaultLinkageDetails(linkTaskModel, componentWithExecutable.getExecutableFile().get().getAsFile(), args(linkTask.getLinkerArgs().get()));
-                binaries.add(new DefaultCppExecutableModel(binary.getName(), binary.getBaseName().get(), compilationDetails, linkageDetails));
+                binaries.add(new DefaultCppExecutableModel(binary.getName(), cppBinary.getIdentity().getName(), binary.getBaseName().get(), compilationDetails, linkageDetails));
             } else if (binary instanceof CppSharedLibrary) {
                 CppSharedLibrary sharedLibrary = (CppSharedLibrary) binary;
                 LinkSharedLibrary linkTask = sharedLibrary.getLinkTask().get();
                 LaunchableGradleTask linkTaskModel = ToolingModelBuilderSupport.buildFromTask(new LaunchableGradleTask(), projectIdentifier, taskFor(sharedLibrary.getLinkFile()));
                 DefaultLinkageDetails linkageDetails = new DefaultLinkageDetails(linkTaskModel, sharedLibrary.getLinkFile().get().getAsFile(), args(linkTask.getLinkerArgs().get()));
-                binaries.add(new DefaultCppSharedLibraryModel(binary.getName(), binary.getBaseName().get(), compilationDetails, linkageDetails));
+                binaries.add(new DefaultCppSharedLibraryModel(binary.getName(), cppBinary.getIdentity().getName(), binary.getBaseName().get(), compilationDetails, linkageDetails));
             } else if (binary instanceof CppStaticLibrary) {
                 CppStaticLibrary staticLibrary = (CppStaticLibrary) binary;
                 LaunchableGradleTask createTaskModel = ToolingModelBuilderSupport.buildFromTask(new LaunchableGradleTask(), projectIdentifier, taskFor(staticLibrary.getLinkFile()));
                 DefaultLinkageDetails linkageDetails = new DefaultLinkageDetails(createTaskModel, staticLibrary.getLinkFile().get().getAsFile(), Collections.<String>emptyList());
-                binaries.add(new DefaultCppStaticLibraryModel(binary.getName(), binary.getBaseName().get(), compilationDetails, linkageDetails));
+                binaries.add(new DefaultCppStaticLibraryModel(binary.getName(), cppBinary.getIdentity().getName(), binary.getBaseName().get(), compilationDetails, linkageDetails));
             }
         }
         return binaries;
