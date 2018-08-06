@@ -1,20 +1,28 @@
-val myTask = task("myTask") {
+tasks {
 
-    val foo by extra { 42 }
-    val bar by extra<Int?>(null)
+    val myTask by creating {
 
-    doLast {
-        println("Extra foo property value: $foo")
-        println("Optional extra bar property value: $bar")
+        val foo by extra { 42 }
+        val bar by extra<Int?>(null)
+
+        doLast {
+            println("Extra foo property value: $foo")
+            println("Optional extra bar property value: $bar")
+        }
     }
+
+    val test by registering {
+
+        dependsOn(myTask)
+
+        doLast {
+            val foo: Int by myTask.extra
+            val bar: Int? by myTask.extra
+
+            println("myTask.foo = $foo")
+            println("myTask.bar = $bar")
+        }
+    }
+
+    defaultTasks(test.name)
 }
-
-val foo: Int by myTask.extra
-val bar: Int? by myTask.extra
-
-afterEvaluate {
-    println("myTask.foo = $foo")
-    println("myTask.bar = $bar")
-}
-
-defaultTasks(myTask.name)

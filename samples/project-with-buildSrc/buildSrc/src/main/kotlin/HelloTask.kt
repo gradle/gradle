@@ -19,5 +19,5 @@ open class HelloTask : DefaultTask() {
  * Declares a [HelloTask] named `hello`.
  */
 fun Project.withHelloTask() =
-    task<HelloTask>("hello")
+    tasks.register("hello", HelloTask::class)
 

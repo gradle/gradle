@@ -16,7 +16,7 @@ open class HelloTask : DefaultTask() {
 }
 
 fun Project.declareHelloTask() =
-    task<HelloTask>("hello")
+    tasks.register<HelloTask>("hello")
 
-val Project.hello: HelloTask
-    get() = tasks["hello"] as HelloTask
+val Project.hello: TaskProvider<HelloTask>
+    get() = tasks.named<HelloTask>("hello")

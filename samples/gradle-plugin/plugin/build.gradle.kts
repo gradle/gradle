@@ -8,7 +8,7 @@ group = "my"
 version = "1.0"
 
 gradlePlugin {
-    (plugins) {
+    plugins {
         register("myPlugin") {
             id = "my-plugin"
             implementationClass = "plugin.MyPlugin"

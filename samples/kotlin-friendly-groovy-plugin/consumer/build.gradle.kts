@@ -9,13 +9,13 @@ plugins {
 documentation {
 
     books {
-        "quickStart" {
+        register("quickStart") {
             sourceFile = file("src/docs/quick-start")
         }
-        "userGuide" {
+        register("userGuide") {
 
         }
-        "developerGuide" {
+        register("developerGuide") {
 
         }
     }
