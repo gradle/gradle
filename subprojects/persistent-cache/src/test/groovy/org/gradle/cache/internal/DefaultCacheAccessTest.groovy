@@ -638,7 +638,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         def access = newAccess(None)
 
         given:
-        lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _ as Runnable) >> lock
+        lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> lock
         lock.writeFile(_) >> { Runnable r -> r.run() }
         access.open()
         def cache = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
