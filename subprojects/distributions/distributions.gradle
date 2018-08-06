@@ -63,6 +63,25 @@ apiMetadata {
     classpath.from(rootProject.configurations.gradlePlugins)
 }
 
+afterEvaluate {
+
+    configurations {
+        apiMetadataFiles
+    }
+
+    artifacts {
+        apiMetadataFiles(apiMetadataJar) {
+            builtBy apiMetadataJar
+        }
+    }
+
+    project(":") {
+        dependencies {
+            testRuntime project(path: ":distributions", configuration: "apiMetadataFiles")
+        }
+    }
+}
+
 evaluationDependsOn ":docs"
 
 ext {
