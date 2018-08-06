@@ -16,7 +16,7 @@ dependencies {
     compile(kotlin("stdlib"))
 }
 
-val sourcesJar by tasks.creating(Jar::class) {
+val sourcesJar by tasks.registering(Jar::class) {
     classifier = "sources"
     from(sourceSets["main"].allSource)
 }
@@ -28,10 +28,10 @@ publishing {
             url = uri("$buildDir/repo")
         }
     }
-    (publications) {
+    publications {
         register("mavenJava", MavenPublication::class) {
             from(components["java"])
-            artifact(sourcesJar)
+            artifact(sourcesJar.get())
         }
     }
 }

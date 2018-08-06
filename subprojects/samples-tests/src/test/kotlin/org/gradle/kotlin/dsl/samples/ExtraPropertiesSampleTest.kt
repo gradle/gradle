@@ -11,7 +11,7 @@ class ExtraPropertiesSampleTest : AbstractSampleTest("extra-properties") {
     @Test
     fun `extra properties`() {
         assertThat(
-            build("myTask").output,
+            build("test").output,
             allOf(
                 containsString("myTask.foo = 42"),
                 containsString("Extra foo property value: 42"),

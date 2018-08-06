@@ -3,7 +3,9 @@ allprojects {
 }
 
 subprojects {
-    hello.doLast {
-        println("- I depend on water")
+    hello {
+        doLast {
+            println("- I depend on water")
+        }
     }
 }
