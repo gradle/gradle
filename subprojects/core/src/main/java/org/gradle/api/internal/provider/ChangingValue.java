@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.provider;
 
-public interface ChangingValue {
-    void onValueChange(Runnable action);
+import org.gradle.api.Action;
+
+public interface ChangingValue<T> {
+    void onValueChange(Action<T> action);
 }

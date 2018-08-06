@@ -16,31 +16,19 @@
 
 package org.gradle.api.internal.collections
 
-abstract class AbstractIterationOrderRetainingElementSourceTest extends AbstractElementSourceTest {
-    @Override
-    List<CharSequence> iterationOrder(CharSequence... values) {
-        return values as List
-    }
+import org.gradle.api.Action
 
-    def "can realize a filtered set of providers and order is correct"() {
-        when:
-        source.addPending(provider("foo"))
-        source.addPending(provider(new StringBuffer("bar")))
-        source.addPending(provider(new StringBuffer("baz")))
-        source.addPending(provider("fizz"))
-        source.addPendingCollection(setProvider(new StringBuffer("fuzz"), new StringBuffer("bazz")))
 
-        then:
-        source.iteratorNoFlush().collect() == []
+class SortedSetElementSourceTest extends AbstractElementSourceTest {
+    ElementSource source = new SortedSetElementSource<CharSequence>()
 
-        when:
-        source.realizePending(StringBuffer.class)
-
-        then:
-        source.iteratorNoFlush().collect { it.toString() } == iterationOrder("bar", "baz", "fuzz", "bazz")
-
-        and:
-        source.iterator().collect { it.toString() } == iterationOrder("foo", "bar", "baz", "fizz", "fuzz", "bazz")
+    def setup() {
+        source.onRealize(new Action<CharSequence>() {
+            @Override
+            void execute(CharSequence t) {
+                source.addRealized(t)
+            }
+        })
     }
 
     def "can remove elements using iteratorNoFlush"() {
@@ -60,13 +48,13 @@ abstract class AbstractIterationOrderRetainingElementSourceTest extends Abstract
         def next = iterator.next()
 
         then:
-        next == "foo"
+        next == "fizz"
 
         when:
         iterator.remove()
 
         then:
-        source.iteratorNoFlush().collect() == iterationOrder("fizz")
+        source.iteratorNoFlush().collect() == iterationOrder("foo")
 
         when:
         source.addPending(provider("fuzz"))
@@ -74,7 +62,7 @@ abstract class AbstractIterationOrderRetainingElementSourceTest extends Abstract
         next = iterator.next()
 
         then:
-        next == "fizz"
+        next == "foo"
 
         when:
         iterator.remove()
@@ -130,31 +118,16 @@ abstract class AbstractIterationOrderRetainingElementSourceTest extends Abstract
         def next = iterator.next()
 
         then:
-        next == "foo"
-
-        when:
-        iterator.remove()
-
-        then:
-        source.iterator().collect() == ["bar", "baz", "fooz", "fizz"]
-
-        when:
-        source.addPending(provider("fuzz"))
-        iterator = source.iterator()
-        next = iterator.next()
-
-        then:
         next == "bar"
 
         when:
         iterator.remove()
 
         then:
-        iterator.hasNext()
-        source.iterator().collect() == iterationOrder("baz", "fooz", "fizz", "fuzz")
+        source.iterator().collect() == iterationOrder("foo", "baz", "fooz", "fizz")
 
         when:
-        source.add("buzz")
+        source.addPending(provider("fuzz"))
         iterator = source.iterator()
         next = iterator.next()
 
@@ -166,7 +139,22 @@ abstract class AbstractIterationOrderRetainingElementSourceTest extends Abstract
 
         then:
         iterator.hasNext()
-        source.iterator().collect() == ["fooz", "fizz", "fuzz", "buzz"]
+        source.iterator().collect() == iterationOrder("foo", "fooz", "fizz", "fuzz")
+
+        when:
+        source.add("buzz")
+        iterator = source.iterator()
+        next = iterator.next()
+
+        then:
+        next == "buzz"
+
+        when:
+        iterator.remove()
+
+        then:
+        iterator.hasNext()
+        source.iterator().collect() == iterationOrder("foo", "fooz", "fizz", "fuzz")
 
         when:
         iterator = source.iterator()
@@ -177,5 +165,10 @@ abstract class AbstractIterationOrderRetainingElementSourceTest extends Abstract
 
         then:
         source.iterator().collect() == []
+    }
+
+    @Override
+    List<CharSequence> iterationOrder(CharSequence... values) {
+        return (values as List).sort()
     }
 }
