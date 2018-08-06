@@ -32,7 +32,7 @@ apply(plugin = "org.gradle.kotlin.ktlint-convention")
 
 apply<PrecompiledScriptPlugins>()
 
-tasks.withType<KotlinCompile> {
+tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
         freeCompilerArgs += listOf(
             "-Xjsr305=strict",
