@@ -47,7 +47,7 @@ public class DefaultGradleBuild implements Serializable, GradleBuildIdentity {
         projects.add(project);
     }
 
-    public Set<DefaultGradleBuild> getAllBuilds() {
+    public Set<DefaultGradleBuild> getEditableBuilds() {
         return allBuilds;
     }
 

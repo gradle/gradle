@@ -31,7 +31,7 @@ public class FetchAllCppProjects implements BuildAction<List<CppProject>>, Seria
     public List<CppProject> execute(BuildController controller) {
         List<CppProject> projects = new ArrayList<CppProject>();
         collectModelsForBuild(controller, controller.getBuildModel(), projects);
-        for (GradleBuild build : controller.getBuildModel().getAllBuilds()) {
+        for (GradleBuild build : controller.getBuildModel().getEditableBuilds()) {
             collectModelsForBuild(controller, build, projects);
         }
         return projects;
