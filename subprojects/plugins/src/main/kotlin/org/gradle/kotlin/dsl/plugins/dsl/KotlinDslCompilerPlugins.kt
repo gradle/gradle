@@ -21,6 +21,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.logging.Logger
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -29,6 +30,8 @@ import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverExtension
 import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverGradleSubplugin
 
 import org.gradle.kotlin.dsl.*
+
+import org.gradle.kotlin.dsl.support.serviceOf
 
 
 /**
@@ -50,11 +53,14 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
                     it.kotlinOptions {
                         jvmTarget = this@kotlinDslPluginOptions.jvmTarget.get()
                         freeCompilerArgs += listOf(
-                            "-Xjsr305=strict",
-                            "-java-parameters"
+                            KotlinCompilerArguments.jsr305Strict,
+                            KotlinCompilerArguments.javaParameters,
+                            KotlinCompilerArguments.progressive,
+                            KotlinCompilerArguments.newInference,
+                            KotlinCompilerArguments.samConversionForKotlinFunctions
                         )
                     }
-                    it.applyKotlinDslPluginProgressiveMode(progressive.get())
+                    it.applyExperimentalWarning(experimentalWarning.get())
                 }
             }
         }
@@ -63,37 +69,17 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
 
 
 private
-fun KotlinCompile.applyKotlinDslPluginProgressiveMode(progressiveModeState: ProgressiveModeState) {
-    when (progressiveModeState) {
-        ProgressiveModeState.WARN -> {
-            enableSamConversionForKotlinFunctions()
-            replaceLoggerWith(KotlinCompilerWarningSubstitutingLogger(logger))
-        }
-        ProgressiveModeState.ENABLED -> {
-            enableSamConversionForKotlinFunctions()
-            replaceLoggerWith(KotlinCompilerWarningSilencingLogger(logger))
-        }
-        ProgressiveModeState.DISABLED -> {
-            // NOOP
-        }
-    }
-}
-
-
-private
-fun KotlinCompile.enableSamConversionForKotlinFunctions() {
-    kotlinOptions {
-        freeCompilerArgs += listOf(
-            KotlinCompilerArguments.progressive,
-            KotlinCompilerArguments.newInference,
-            KotlinCompilerArguments.samConversionForKotlinFunctions
-        )
-    }
-}
+fun KotlinCompile.applyExperimentalWarning(experimentalWarning: Boolean) =
+    replaceLoggerWith(
+        if (experimentalWarning) KotlinCompilerWarningSubstitutingLogger(logger, project)
+        else KotlinCompilerWarningSilencingLogger(logger)
+    )
 
 
 internal
 object KotlinCompilerArguments {
+    const val jsr305Strict = "-Xjsr305=strict"
+    const val javaParameters = "-java-parameters"
     const val progressive = "-Xprogressive"
     const val newInference = "-XXLanguage:+NewInference"
     const val samConversionForKotlinFunctions = "-XXLanguage:+SamConversionForKotlinFunctions"
@@ -107,16 +93,23 @@ fun KotlinCompile.replaceLoggerWith(logger: Logger) {
 
 
 private
-class KotlinCompilerWarningSubstitutingLogger(private val delegate: Logger) : Logger by delegate {
+class KotlinCompilerWarningSubstitutingLogger(
+    private val delegate: Logger,
+    private val project: Project
+) : Logger by delegate {
+
     override fun warn(message: String) {
-        if (message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions)) delegate.warn(kotlinDslPluginProgressiveWarning)
+        if (message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions)) delegate.warn(project.kotlinDslPluginExperimentalWarning())
         else delegate.warn(message)
     }
 }
 
 
 private
-class KotlinCompilerWarningSilencingLogger(private val delegate: Logger) : Logger by delegate {
+class KotlinCompilerWarningSilencingLogger(
+    private val delegate: Logger
+) : Logger by delegate {
+
     override fun warn(message: String) {
         if (!message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions)) {
             delegate.warn(message)
@@ -125,21 +118,21 @@ class KotlinCompilerWarningSilencingLogger(private val delegate: Logger) : Logge
 }
 
 
+private
+fun Project.kotlinDslPluginExperimentalWarning() =
+    kotlinDslPluginExperimentalWarning(project, experimentalWarningLink)
+
+
 internal
-val kotlinDslPluginProgressiveWarning = """
-WARNING
-The `kotlin-dsl` plugin relies on Kotlin compiler's progressive mode and experimental features to enable among other things SAM conversion for Kotlin functions.
+fun kotlinDslPluginExperimentalWarning(target: Any, link: Any) =
+    "The `kotlin-dsl` plugin applied to $target enables experimental Kotlin compiler features. For more information see $link"
 
-Once built and published, artifacts produced by this project will continue to work on future Gradle versions.
-However, you may have to fix the sources of this project after upgrading the Gradle wrapper of this build.
 
-To silence this warning add the following to this project's build script:
+private
+val Project.experimentalWarningLink
+    get() = documentationRegistry.getDocumentationFor("kotlin-dsl", "sec:kotlin-dsl-plugin")
 
-    kotlinDslPluginOptions.progressive.set(ProgressiveModeState.ENABLED)
 
-To disable Gradle Kotlin DSL progressive mode and give up SAM conversion for Kotlin functions add the following to this project's build script:
-
-    kotlinDslPluginOptions.progressive.set(ProgressiveModeState.DISABLED)
-
-See the `progressive` property documentation for more information.
-""".trimIndent()
+private
+val Project.documentationRegistry
+    get() = serviceOf<DocumentationRegistry>()
