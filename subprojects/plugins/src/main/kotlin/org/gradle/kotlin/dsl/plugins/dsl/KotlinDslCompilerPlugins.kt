@@ -49,7 +49,10 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
                 tasks.withType<KotlinCompile>().configureEach {
                     it.kotlinOptions {
                         jvmTarget = this@kotlinDslPluginOptions.jvmTarget.get()
-                        freeCompilerArgs += "-java-parameters"
+                        freeCompilerArgs += listOf(
+                            "-Xjsr305=strict",
+                            "-java-parameters"
+                        )
                     }
                     it.applyKotlinDslPluginProgressiveMode(progressive.get())
                 }
