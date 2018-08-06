@@ -21,7 +21,7 @@ import static org.gradle.api.internal.component.ArtifactType.MAVEN_POM
 
 class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDescriptorParserTest {
 
-    def "a pom file with packaging=pom is a bom - dependencies declared in dependencyManagement block are treated as optional dependencies"() {
+    def "a pom file with packaging=pom is a bom - dependencies declared in dependencyManagement block are treated as optional non-transitive dependencies"() {
         given:
         pomFile << """
 <project>
@@ -52,6 +52,7 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
         dep.optional
+        !dep.transitive
     }
 
     def "a bom can combine dependencies and dependencyManagement constraints"() {
@@ -91,9 +92,11 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         def depA = metadata.dependencies.find { it.selector.group == 'group-a'}
         depA.selector == moduleId('group-a', 'module-a', '1.0')
         !depA.optional
+        depA.transitive
         def depB = metadata.dependencies.find { it.selector.group == 'group-b'}
         depB.selector == moduleId('group-b', 'module-b', '2.0')
         depB.optional
+        !depB.transitive
     }
 
     def "a parent pom is not a bom - dependencies declared in dependencyManagement block are ignored"() {
@@ -195,9 +198,11 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         def depC = metadata.dependencies.find { it.selector.group == 'group-c'}
         depC.selector == moduleId('group-c', 'module-c', '2.0')
         depC.optional
+        !depC.transitive
         def depB = metadata.dependencies.find { it.selector.group == 'group-b'}
         depB.selector == moduleId('group-b', 'module-b', '1.0')
         depB.optional
+        !depB.transitive
     }
 
     def "an entry in the dependencyManagement block without version does not fail parsing"() {
@@ -230,6 +235,7 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         dep.scope == MavenScope.Compile
         hasDefaultDependencyArtifact(dep)
         dep.optional
+        !dep.transitive
     }
 
     def "a bom can declare an optional dependency with excludes"() {
@@ -412,5 +418,6 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         dep.scope == MavenScope.Compile //compile is the 'default' scope
         hasDefaultDependencyArtifact(dep)
         dep.optional
+        !dep.transitive
     }
 }

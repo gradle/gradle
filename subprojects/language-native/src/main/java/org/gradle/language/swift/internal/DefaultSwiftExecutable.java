@@ -35,6 +35,7 @@ import org.gradle.language.cpp.internal.DefaultUsageContext;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithRuntimeUsage;
+import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftExecutable;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.nativeplatform.Linkage;
@@ -58,8 +59,8 @@ public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftE
     private final ConfigurableFileCollection outputs;
 
     @Inject
-    public DefaultSwiftExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        super(name, projectLayout, objectFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
+    public DefaultSwiftExecutable(Names names, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+        super(names, projectLayout, objectFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
         this.executableFile = projectLayout.fileProperty();
         this.installDirectory = projectLayout.directoryProperty();
         this.linkTaskProperty = objectFactory.property(LinkExecutable.class);

@@ -164,26 +164,26 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         PlatformToolProvider toolProvider = getProviderForPlatform(targetMachine);
         switch (sourceLanguage) {
             case CPP:
-                ToolSearchResult cppCompiler = toolProvider.isToolAvailable(ToolType.CPP_COMPILER);
+                ToolSearchResult cppCompiler = toolProvider.locateTool(ToolType.CPP_COMPILER);
                 if (cppCompiler.isAvailable()) {
                     return toolProvider;
                 }
                 // No C++ compiler, complain about it
                 return new UnavailablePlatformToolProvider(targetMachine.getOperatingSystem(), cppCompiler);
             case ANY:
-                ToolSearchResult cCompiler = toolProvider.isToolAvailable(ToolType.C_COMPILER);
+                ToolSearchResult cCompiler = toolProvider.locateTool(ToolType.C_COMPILER);
                 if (cCompiler.isAvailable()) {
                     return toolProvider;
                 }
-                ToolSearchResult compiler = toolProvider.isToolAvailable(ToolType.CPP_COMPILER);
+                ToolSearchResult compiler = toolProvider.locateTool(ToolType.CPP_COMPILER);
                 if (compiler.isAvailable()) {
                     return toolProvider;
                 }
-                compiler = toolProvider.isToolAvailable(ToolType.OBJECTIVEC_COMPILER);
+                compiler = toolProvider.locateTool(ToolType.OBJECTIVEC_COMPILER);
                 if (compiler.isAvailable()) {
                     return toolProvider;
                 }
-                compiler = toolProvider.isToolAvailable(ToolType.OBJECTIVECPP_COMPILER);
+                compiler = toolProvider.locateTool(ToolType.OBJECTIVECPP_COMPILER);
                 if (compiler.isAvailable()) {
                     return toolProvider;
                 }
@@ -213,7 +213,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
         }
 
-        return new GccPlatformToolProvider(targetPlatform, buildOperationExecutor, targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, compilerOutputFileNamingSchemeFactory, configurableToolChain.isCanUseCommandFile(), workerLeaseService, new CompilerMetaDataProviderWithDefaultArgs(configurableToolChain.getCompilerProbeArgs(), metaDataProvider), standardLibraryDiscovery);
+        return new GccPlatformToolProvider(buildOperationExecutor, targetPlatform.getOperatingSystem(), toolSearchPath, configurableToolChain, execActionFactory, compilerOutputFileNamingSchemeFactory, configurableToolChain.isCanUseCommandFile(), workerLeaseService, new CompilerMetaDataProviderWithDefaultArgs(configurableToolChain.getCompilerProbeArgs(), metaDataProvider));
     }
 
     protected void initTools(DefaultGccPlatformToolChain platformToolChain, ToolChainAvailability availability) {

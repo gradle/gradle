@@ -16,8 +16,10 @@
 
 package org.gradle.cache.internal
 
+import org.gradle.api.Action
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
+import org.gradle.cache.FileLockReleasedSignal
 import org.gradle.cache.LockTimeoutException
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler
@@ -51,7 +53,7 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
     def "lock manager is notified while holding an exclusive lock when another lock manager in same process requires lock with mode #lockMode"() {
         given:
         def file = tmpDir.file("lock-file.bin")
-        def action = Mock(Runnable)
+        def action = Mock(Action)
 
         def lock = createLock(Exclusive, file, manager, action)
 
@@ -60,8 +62,9 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
 
         then:
         lock2
-        1 * action.run() >> {
+        1 * action.execute(_) >> { FileLockReleasedSignal signal ->
             lock.close()
+            signal.trigger()
         }
 
         where:
@@ -100,21 +103,21 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
         createLock(Exclusive, file, manager3)
 
         then:
-        1 * contentionHandler3.maybePingOwner(port1, _, _, _) >> { int port, long lockId, String displayName, long timeElapsed ->
+        1 * contentionHandler3.maybePingOwner(port1, _, _, _, _) >> { int port, long lockId, String displayName, long timeElapsed, FileLockReleasedSignal signal ->
             assert timeElapsed < 20
             lock1.close()
             lock2 = createLock(Exclusive, file, manager2)
             Thread.sleep(50)
             return false
         }
-        1 * contentionHandler3.maybePingOwner(port2, _, _, _)  >> { int port, long lockId, String displayName, long timeElapsed ->
+        1 * contentionHandler3.maybePingOwner(port2, _, _, _, _)  >> { int port, long lockId, String displayName, long timeElapsed, FileLockReleasedSignal signal ->
             assert timeElapsed < 20
             lock2.close()
             return false
         }
     }
 
-    FileLock createLock(FileLockManager.LockMode lockMode, File file, FileLockManager lockManager = manager, Runnable whenContended = null) {
+    FileLock createLock(FileLockManager.LockMode lockMode, File file, FileLockManager lockManager = manager, Action<FileLockReleasedSignal> whenContended = null) {
         def lock = lockManager.lock(file, LockOptionsBuilder.mode(lockMode), "foo", "operation", whenContended)
         openedLocks << lock
         lock

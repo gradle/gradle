@@ -275,4 +275,62 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         failure.assertHasCause "Could not find group:moduleA:."
         failure.assertNotOutput("parse")
     }
+
+    def 'a BOM dependencyManagement entry preserves exclusions declared in build file'() {
+        def modB = mavenHttpRepo.module("group", "moduleB", "1.0").allowAll().publish()
+        moduleA.dependsOn(modB).publish()
+        bomDependency('moduleA').publish()
+
+        buildFile << """
+            dependencies {
+                compile("group:moduleA") {
+                    exclude(group: 'group')
+                }
+                compile "group:bom:1.0"
+            }
+        """
+
+        when:
+        succeeds 'checkDep'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':testproject:') {
+                module("group:bom:1.0") {
+                    module("group:moduleA:2.0")
+                    noArtifacts()
+                }
+                edge("group:moduleA", "group:moduleA:2.0")
+            }
+        }
+    }
+
+    def 'a BOM dependencyManagement entry preserves transitive=false declared in build file'() {
+        def modB = mavenHttpRepo.module("group", "moduleB", "1.0").allowAll().publish()
+        moduleA.dependsOn(modB).publish()
+        bomDependency('moduleA').publish()
+
+        buildFile << """
+            dependencies {
+                compile("group:moduleA") {
+                    transitive = false
+                }
+                compile "group:bom:1.0"
+            }
+        """
+
+        when:
+        succeeds 'checkDep'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':testproject:') {
+                module("group:bom:1.0") {
+                    module("group:moduleA:2.0")
+                    noArtifacts()
+                }
+                edge("group:moduleA", "group:moduleA:2.0")
+            }
+        }
+    }
 }

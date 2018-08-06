@@ -19,6 +19,7 @@ package org.gradle.cache.internal
 import org.gradle.api.Action
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
+import org.gradle.cache.FileLockReleasedSignal
 import org.gradle.cache.LockOptions
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.internal.Factory
@@ -60,27 +61,30 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
     def "releases retained lock when no actions running on contention"() {
         def action = Mock(Factory)
         def lock = Mock(FileLock)
+        def signal = Mock(FileLockReleasedSignal)
         def contendedAction
 
         given:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
                 return lock
         }
 
         cacheAccess.withFileLock(action)
 
         when:
-        contendedAction.run()
+        contendedAction.execute(signal)
 
         then:
         1 * lock.close()
+        1 * signal.trigger()
         0 * _
     }
 
     def "releases retained lock at completion of action on contention"() {
         def action = Mock(Factory)
         def lock = Mock(FileLock)
+        def signal = Mock(FileLockReleasedSignal)
         def contendedAction
 
         when:
@@ -88,11 +92,12 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
                 return lock
         }
-        1 * action.create() >> { contendedAction.run(); "result" }
+        1 * action.create() >> { contendedAction.execute(signal); "result" }
         1 * lock.close()
+        1 * signal.trigger()
         0 * _
     }
 
@@ -117,6 +122,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
     def "releases lock after failed action"() {
         def action = Mock(Factory)
         def lock = Mock(FileLock)
+        def signal = Mock(FileLockReleasedSignal)
         def failure = new RuntimeException()
         def contendedAction
 
@@ -129,7 +135,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         and:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
             return lock
         }
 
@@ -140,10 +146,11 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         0 * _
 
         when:
-        contendedAction.run()
+        contendedAction.execute(signal)
 
         then:
         1 * lock.close()
+        1 * signal.trigger()
         0 * _
     }
 
@@ -151,6 +158,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         def action1 = Mock(Factory)
         def action2 = Mock(Factory)
         def lock = Mock(FileLock)
+        def signal = Mock(FileLockReleasedSignal)
         def contendedAction
 
         when:
@@ -158,7 +166,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
                 return lock
         }
 
@@ -167,15 +175,17 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         0 * _
 
         when:
-        contendedAction.run()
+        contendedAction.execute(signal)
 
         then:
         1 * lock.close()
+        1 * signal.trigger()
         0 * _
     }
 
     def "lock is acquired when multiple threads run actions concurrently"() {
         def lock = Mock(FileLock)
+        def signal = Mock(FileLockReleasedSignal)
         def contendedAction
 
         when:
@@ -196,21 +206,23 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
                 return lock
         }
         0 * _
 
         when:
-        contendedAction.run()
+        contendedAction.execute(signal)
 
         then:
         1 * lock.close()
+        1 * signal.trigger()
         0 * _
     }
 
     def "can acquire lock and release later"() {
         def lock = Mock(FileLock)
+        def signal = Mock(FileLockReleasedSignal)
         def contendedAction
 
         when:
@@ -218,7 +230,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
                 return lock
         }
         0 * _
@@ -230,15 +242,17 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         0 * _
 
         when:
-        contendedAction.run()
+        contendedAction.execute(signal)
 
         then:
         1 * lock.close()
+        1 * signal.trigger()
         0 * _
     }
 
     def "thread can acquire lock multiple times"() {
         def lock = Mock(FileLock)
+        def signal = Mock(FileLockReleasedSignal)
         def contendedAction
 
         when:
@@ -246,7 +260,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
                 return lock
         }
         0 * _
@@ -268,15 +282,17 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         0 * _
 
         when:
-        contendedAction.run()
+        contendedAction.execute(signal)
 
         then:
         1 * lock.close()
+        1 * signal.trigger()
         0 * _
     }
 
     def "multiple threads can acquire lock concurrently"() {
         def lock = Mock(FileLock)
+        def signal = Mock(FileLockReleasedSignal)
         def contendedAction
 
         when:
@@ -297,21 +313,23 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
                 return lock
         }
         0 * _
 
         when:
-        contendedAction.run()
+        contendedAction.execute(signal)
 
         then:
         1 * lock.close()
+        1 * signal.trigger()
         0 * _
     }
 
     def "can release lock from different thread to the thread that acquired the lock"() {
         def lock = Mock(FileLock)
+        def signal = Mock(FileLockReleasedSignal)
         def releaseAction
         def contendedAction
 
@@ -329,22 +347,24 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
                 return lock
         }
         0 * _
 
         when:
-        contendedAction.run()
+        contendedAction.execute(signal)
 
         then:
         1 * lock.close()
+        1 * signal.trigger()
         0 * _
     }
 
     def "initializes cache after lock is acquired"() {
         def action = Mock(Factory)
         def lock = Mock(FileLock)
+        def signal = Mock(FileLockReleasedSignal)
         def initAction = Mock(CacheInitializationAction)
         def contendedAction
         def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), initAction, Stub(Action), Stub(Action))
@@ -360,7 +380,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
                 return lock
         }
 
@@ -370,10 +390,11 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         1 * initAction.initialize(lock)
 
         then:
-        1 * action.create() >> { contendedAction.run() }
+        1 * action.create() >> { contendedAction.execute(signal) }
 
         then:
         1 * lock.close()
+        1 * signal.trigger()
         0 * _
 
         when:
@@ -381,7 +402,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
                 return lock
         }
 
@@ -398,10 +419,11 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         0 * _
 
         when:
-        contendedAction.run()
+        contendedAction.execute(signal)
 
         then:
         1 * lock.close()
+        1 * signal.trigger()
         0 * _
     }
 
@@ -443,6 +465,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         def onOpen = Mock(Action)
         def onClose = Mock(Action)
         def lock = Mock(FileLock)
+        def signal = Mock(FileLockReleasedSignal)
         def contendedAction
         def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(CacheInitializationAction), onOpen, onClose)
 
@@ -451,7 +474,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
                 return lock
         }
 
@@ -471,7 +494,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         when:
         def release2 = cacheAccess.acquireFileLock()
         release1.run()
-        contendedAction.run()
+        contendedAction.execute(signal)
 
         then:
         0 * _
@@ -481,9 +504,8 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * onClose.execute(lock)
-
-        then:
         1 * lock.close()
+        1 * signal.trigger()
         0 * _
 
         when:
@@ -529,6 +551,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         def onOpen = Mock(Action)
         def onClose = Mock(Action)
         def lock = Mock(FileLock)
+        def signal = Mock(FileLockReleasedSignal)
         def contendedAction
         def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(CacheInitializationAction), onOpen, onClose)
 
@@ -537,7 +560,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
                 return lock
         }
 
@@ -549,13 +572,12 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         0 * _
 
         when:
-        contendedAction.run()
+        contendedAction.execute(signal)
 
         then:
         1 * onClose.execute(lock)
-
-        then:
         1 * lock.close()
+        1 * signal.trigger()
         0 * _
 
         when:
@@ -610,7 +632,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
                 return lock
         }
 
@@ -622,15 +644,14 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         0 * _
 
         when:
-        contendedAction.run()
+        contendedAction.execute({} as FileLockReleasedSignal)
 
         then:
         def e = thrown(RuntimeException)
         e == failure
 
+        and:
         1 * onClose.execute(lock) >> { throw failure }
-
-        then:
         1 * lock.close()
         0 * _
 
@@ -663,7 +684,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Runnable whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
                 return lock
         }
         1 * action.create() >> "result"

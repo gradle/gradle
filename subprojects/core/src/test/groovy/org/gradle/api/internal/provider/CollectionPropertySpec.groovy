@@ -25,7 +25,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
     @Override
     Provider<C> providerWithNoValue() {
         def p = property()
-        p.set((C)null)
+        p.set((C) null)
         return p
     }
 
@@ -56,6 +56,9 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
         assert actual instanceof ImmutableCollection
         assert immutableCollectionType.isInstance(actual)
         assert actual == toImmutable(expected)
+        actual.each {
+            assert it instanceof String
+        }
         assert property.present
     }
 
@@ -100,6 +103,12 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
         property.get() == toImmutable(["4", "5"])
     }
 
+    def "can set string property from collection containing GString"() {
+        expect:
+        property.set(["${'321'.substring(2)}"])
+        assertValueIs(["1"])
+    }
+
     def "can set untyped from various collection types"() {
         def iterable = Stub(Iterable)
         iterable.iterator() >> ["4", "5"].iterator()
@@ -123,6 +132,16 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
         property.setFromAnyValue(provider)
         property.get() == toImmutable(["1"])
         property.get() == toImmutable(["2"])
+    }
+
+    def "can set string property from provider that returns collection containing GString"() {
+        def provider = Stub(Provider)
+        def value = ["${'321'.substring(2)}"]
+        provider.get() >>> value
+
+        expect:
+        property.set(value)
+        assertValueIs(["1"])
     }
 
     def "queries initial value for every call to get()"() {
@@ -161,24 +180,6 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
         actual == toMutable(["123"])
     }
 
-    def "can add values to property with all methods"() {
-        expect:
-        property.add("abc")
-        assertValueIs(["abc"])
-
-        property.add(Providers.of("def"))
-        assertValueIs(["abc", "def"])
-
-        property.addAll(Providers.of(["hij"]))
-        assertValueIs(["abc", "def", "hij"])
-
-        property.add("klm")
-        assertValueIs(["abc", "def", "hij", "klm"])
-
-        property.add(Providers.of("nop"))
-        assertValueIs(["abc", "def", "hij", "klm", "nop"])
-    }
-
     def "can add values to property with initial value"() {
         property.set(toMutable(["123"]))
 
@@ -199,31 +200,107 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
         assertValueIs(["123", "abc", "def", "hij", "klm", "nop"])
     }
 
-    def "appends value during `add` to property"() {
+    def "appends a single value using add"() {
         expect:
         property.add("123")
         property.add("456")
         assertValueIs(["123", "456"])
     }
 
-    def "appends value from provider during `add` to property"() {
+    def "appends a single value to string property using GString"() {
+        expect:
+        property.add("${'321'.substring(2)}")
+        assertValueIs(["1"])
+    }
+
+    def "appends a single value from provider using add"() {
         expect:
         property.add(Providers.of("123"))
         property.add(Providers.of("456"))
         assertValueIs(["123", "456"])
     }
 
+    def "appends a single value to string property from provider with GString value using add"() {
+        expect:
+        property.add(Providers.of("${'321'.substring(2)}"))
+        assertValueIs(["1"])
+    }
+
     @Unroll
-    def "appends values from provider during `addAll` to property"() {
+    def "appends zero or more values from array #value using addAll"() {
+        expect:
+        property.addAll(value as String[])
+        assertValueIs(expectedValue)
+
+        where:
+        value                 | expectedValue
+        []                    | []
+        ["aaa"]               | ["aaa"]
+        ["aaa", "bbb", "ccc"] | ["aaa", "bbb", "ccc"]
+    }
+
+    def "appends value to string property from array with GString value using addAll"() {
+        expect:
+        property.addAll("${'321'.substring(2)}")
+        assertValueIs(["1"])
+    }
+
+    @Unroll
+    def "appends zero or more values from provider #value using addAll"() {
+        expect:
+        property.addAll(Providers.of(value))
+        assertValueIs(expectedValue)
+
+        where:
+        value                 | expectedValue
+        []                    | []
+        ["aaa"]               | ["aaa"]
+        ["aaa", "bbb", "ccc"] | ["aaa", "bbb", "ccc"]
+    }
+
+    def "queries values of provider on every call to get()"() {
+        def provider = Stub(Provider)
+        _ * provider.present >> true
+        _ * provider.get() >>> [["abc"], ["def"]]
+
+        expect:
+        property.addAll(provider)
+        assertValueIs(["abc"])
+        assertValueIs(["def"])
+    }
+
+    def "appends value to string property from provider with GString value using addAll"() {
+        expect:
+        property.addAll(Providers.of(["${'321'.substring(2)}"]))
+        assertValueIs(["1"])
+    }
+
+    @Unroll
+    def "appends zero or more values from collection #value using addAll"() {
         expect:
         property.addAll(value)
         assertValueIs(expectedValue)
 
         where:
-        value                               | expectedValue
-        Providers.of([])                    | []
-        Providers.of(["aaa"])               | ["aaa"]
-        Providers.of(["aaa", "bbb", "ccc"]) | ["aaa", "bbb", "ccc"]
+        value                 | expectedValue
+        []                    | []
+        ["aaa"]               | ["aaa"]
+        ["aaa", "bbb", "ccc"] | ["aaa", "bbb", "ccc"]
+    }
+
+    def "queries values of collection on every call to get()"() {
+        expect:
+        def value = ["abc"]
+        property.addAll(value)
+        assertValueIs(["abc"])
+        value.add("added")
+        assertValueIs(["abc", "added"])
+    }
+
+    def "appends value to string property from collection with GString value using addAll"() {
+        expect:
+        property.addAll(["${'321'.substring(2)}"])
+        assertValueIs(["1"])
     }
 
     def "providers only called once per query"() {
@@ -342,7 +419,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
         property.add(Providers.of("def"))
         property.addAll(Providers.of(["hij"]))
 
-        property.set((Iterable)null)
+        property.set((Iterable) null)
 
         expect:
         !property.present
@@ -354,7 +431,9 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
     def "can set value to override added values"() {
         property.add("abc")
         property.add(Providers.of("def"))
-        property.addAll(Providers.of(["hij"]))
+        property.addAll("ghi")
+        property.addAll(["jkl"])
+        property.addAll(Providers.of(["mno"]))
 
         expect:
         property.set(toMutable(["123", "456"]))

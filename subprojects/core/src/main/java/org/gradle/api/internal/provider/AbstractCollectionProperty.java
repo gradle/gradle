@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
+import groovy.lang.GString;
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
 import org.gradle.util.CollectionUtils;
@@ -30,14 +31,18 @@ import java.util.List;
 public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractProvider<C> implements CollectionPropertyInternal<T, C> {
     private static final EmptyCollection EMPTY_COLLECTION = new EmptyCollection();
     private static final NoValueCollector NO_VALUE_COLLECTOR = new NoValueCollector();
+    private static final StringValueCollector STRING_VALUE_COLLECTOR = new StringValueCollector();
+    private static final IdentityValueCollector IDENTITY_VALUE_COLLECTOR = new IdentityValueCollector();
     private final Class<? extends Collection> collectionType;
     private final Class elementType;
+    private final ValueCollector<T> valueCollector;
     private Collector<T> value = (Collector<T>) EMPTY_COLLECTION;
     private List<Collector<T>> collectors = new LinkedList<Collector<T>>();
 
     AbstractCollectionProperty(Class<? extends Collection> collectionType, Class<T> elementType) {
         this.collectionType = collectionType;
         this.elementType = elementType;
+        valueCollector = (ValueCollector<T>) (elementType == String.class ? STRING_VALUE_COLLECTOR : IDENTITY_VALUE_COLLECTOR);
     }
 
     /**
@@ -57,8 +62,18 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
-    public void addAll(final Provider<? extends Iterable<T>> providerOfElements) {
-        collectors.add(new ElementsFromCollectionProvider<T>(providerOfElements));
+    public void addAll(T... elements) {
+        collectors.add(new ElementsFromArray<T>(elements));
+    }
+
+    @Override
+    public void addAll(Iterable<? extends T> elements) {
+        collectors.add(new ElementsFromCollection<T>(elements));
+    }
+
+    @Override
+    public void addAll(Provider<? extends Iterable<? extends T>> provider) {
+        collectors.add(new ElementsFromCollectionProvider<T>(provider));
     }
 
     @Nullable
@@ -83,9 +98,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Override
     public C get() {
         List<T> values = new ArrayList<T>(1 + collectors.size());
-        value.collectInto(values);
+        value.collectInto(valueCollector, values);
         for (Collector<T> collector : collectors) {
-            collector.collectInto(values);
+            collector.collectInto(valueCollector, values);
         }
         return fromValue(values);
     }
@@ -94,11 +109,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Override
     public C getOrNull() {
         List<T> values = new ArrayList<T>(1 + collectors.size());
-        if (!value.maybeCollectInto(values)) {
+        if (!value.maybeCollectInto(valueCollector, values)) {
             return null;
         }
         for (Collector<T> collector : collectors) {
-            if (!collector.maybeCollectInto(values)) {
+            if (!collector.maybeCollectInto(valueCollector, values)) {
                 return null;
             }
         }
@@ -118,12 +133,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
-    public void set(@Nullable final Iterable<? extends T> value) {
+    public void set(@Nullable final Iterable<? extends T> elements) {
         collectors.clear();
-        if (value == null) {
+        if (elements == null) {
             this.value = (Collector<T>) NO_VALUE_COLLECTOR;
         } else {
-            this.value = new ElementsFromCollection<T>(value);
+            this.value = new ElementsFromCollection<T>(elements);
         }
     }
 
@@ -133,7 +148,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             throw new IllegalArgumentException("Cannot set the value of a property using a null provider.");
         }
         collectors.clear();
-        value = new ElementsFromProvider<T>(provider);
+        value = new ElementsFromCollectionProvider<T>(provider);
     }
 
     @Override
@@ -149,20 +164,56 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, valueState);
     }
 
+    @Override
+    public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super C> transformer) {
+        return new TransformBackedProvider<S, C>(transformer, this);
+    }
+
+    private interface ValueCollector<T> {
+        void add(T value, Collection<T> dest);
+
+        void addAll(Iterable<? extends T> values, Collection<T> dest);
+    }
+
     /**
      * This could move to the public API.
      */
     private interface Collector<T> {
         boolean present();
 
-        void collectInto(Collection<T> collection);
+        void collectInto(ValueCollector<T> collector, Collection<T> dest);
 
-        boolean maybeCollectInto(Collection<T> collection);
+        boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest);
     }
 
-    @Override
-    public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super C> transformer) {
-        return new TransformBackedProvider<S, C>(transformer, this);
+    private static class IdentityValueCollector implements ValueCollector<Object> {
+        @Override
+        public void add(Object value, Collection<Object> dest) {
+            dest.add(value);
+        }
+
+        @Override
+        public void addAll(Iterable<?> values, Collection<Object> dest) {
+            CollectionUtils.addAll(dest, values);
+        }
+    }
+
+    private static class StringValueCollector implements ValueCollector<Object> {
+        @Override
+        public void add(Object value, Collection<Object> dest) {
+            if (value instanceof GString) {
+                dest.add(value.toString());
+            } else {
+                dest.add(value);
+            }
+        }
+
+        @Override
+        public void addAll(Iterable<?> values, Collection<Object> dest) {
+            for (Object value : values) {
+                add(value, dest);
+            }
+        }
     }
 
     private static class EmptyCollection implements Collector<Object> {
@@ -172,12 +223,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public boolean maybeCollectInto(Collection<Object> collection) {
-            return true;
+        public void collectInto(ValueCollector<Object> collector, Collection<Object> dest) {
         }
 
         @Override
-        public void collectInto(Collection<Object> collection) {
+        public boolean maybeCollectInto(ValueCollector<Object> collector, Collection<Object> dest) {
+            return true;
         }
     }
 
@@ -194,13 +245,13 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public void collectInto(Collection<T> collection) {
-            collection.add(element);
+        public void collectInto(ValueCollector<T> collector, Collection<T> dest) {
+            collector.add(element, dest);
         }
 
         @Override
-        public boolean maybeCollectInto(Collection<T> collection) {
-            collection.add(element);
+        public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest) {
+            collectInto(collector, dest);
             return true;
         }
     }
@@ -218,26 +269,26 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public void collectInto(Collection<T> collection) {
+        public void collectInto(ValueCollector<T> collector, Collection<T> dest) {
             T value = providerOfElement.get();
-            collection.add(value);
+            collector.add(value, dest);
         }
 
         @Override
-        public boolean maybeCollectInto(Collection<T> collection) {
+        public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest) {
             T value = providerOfElement.getOrNull();
             if (value == null) {
                 return false;
             }
-            collection.add(value);
+            collector.add(value, dest);
             return true;
         }
     }
 
     private static class ElementsFromCollectionProvider<T> implements Collector<T> {
-        private final Provider<? extends Iterable<T>> providerOfElements;
+        private final Provider<? extends Iterable<? extends T>> providerOfElements;
 
-        ElementsFromCollectionProvider(Provider<? extends Iterable<T>> providerOfElements) {
+        ElementsFromCollectionProvider(Provider<? extends Iterable<? extends T>> providerOfElements) {
             this.providerOfElements = providerOfElements;
         }
 
@@ -247,18 +298,44 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public void collectInto(Collection<T> collection) {
-            Iterable<T> value = providerOfElements.get();
-            CollectionUtils.addAll(collection, value);
+        public void collectInto(ValueCollector<T> collector, Collection<T> dest) {
+            Iterable<? extends T> value = providerOfElements.get();
+            collector.addAll(value, dest);
         }
 
         @Override
-        public boolean maybeCollectInto(Collection<T> collection) {
-            Iterable<T> value = providerOfElements.getOrNull();
+        public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest) {
+            Iterable<? extends T> value = providerOfElements.getOrNull();
             if (value == null) {
                 return false;
             }
-            CollectionUtils.addAll(collection, value);
+            collector.addAll(value, dest);
+            return true;
+        }
+    }
+
+    private static class ElementsFromArray<T> implements Collector<T> {
+        private final T[] value;
+
+        ElementsFromArray(T[] value) {
+            this.value = value;
+        }
+
+        @Override
+        public boolean present() {
+            return true;
+        }
+
+        @Override
+        public void collectInto(ValueCollector<T> collector, Collection<T> dest) {
+            for (T t : value) {
+                collector.add(t, dest);
+            }
+        }
+
+        @Override
+        public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest) {
+            collectInto(collector, dest);
             return true;
         }
     }
@@ -276,42 +353,13 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public void collectInto(Collection<T> collection) {
-            CollectionUtils.addAll(collection, value);
+        public void collectInto(ValueCollector<T> collector, Collection<T> dest) {
+            collector.addAll(value, dest);
         }
 
         @Override
-        public boolean maybeCollectInto(Collection<T> collection) {
-            CollectionUtils.addAll(collection, value);
-            return true;
-        }
-    }
-
-    private static class ElementsFromProvider<T> implements Collector<T> {
-        private final Provider<? extends Iterable<? extends T>> provider;
-
-        ElementsFromProvider(Provider<? extends Iterable<? extends T>> provider) {
-            this.provider = provider;
-        }
-
-        @Override
-        public boolean present() {
-            return provider.isPresent();
-        }
-
-        @Override
-        public void collectInto(Collection<T> collection) {
-            Iterable<? extends T> value = provider.get();
-            CollectionUtils.addAll(collection, value);
-        }
-
-        @Override
-        public boolean maybeCollectInto(Collection<T> collection) {
-            Iterable<? extends T> value = provider.getOrNull();
-            if (value == null) {
-                return false;
-            }
-            CollectionUtils.addAll(collection, value);
+        public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest) {
+            collectInto(collector, dest);
             return true;
         }
     }
@@ -323,12 +371,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public void collectInto(Collection<Object> collection) {
+        public void collectInto(ValueCollector<Object> collector, Collection<Object> dest) {
             throw new IllegalStateException(Providers.NULL_VALUE);
         }
 
         @Override
-        public boolean maybeCollectInto(Collection<Object> collection) {
+        public boolean maybeCollectInto(ValueCollector<Object> collector, Collection<Object> dest) {
             return false;
         }
     }

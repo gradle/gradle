@@ -24,8 +24,8 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 class FileLockCommunicatorTest extends ConcurrentSpecification {
 
-    def communicator = new FileLockCommunicator(new InetAddressFactory())
-    Long receivedId
+    def addressFactory = new InetAddressFactory()
+    def communicator = new FileLockCommunicator(addressFactory)
 
     def cleanup() {
         communicator.stop()
@@ -44,14 +44,16 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         communicator.getPort() == -1
     }
 
-    def "can receive lock id"() {
+    def "can receive lock id and type"() {
+        FileLockPacketPayload receivedPayload
+
         start {
             def packet = communicator.receive()
-            receivedId = communicator.decodeLockId(packet)
+            receivedPayload = communicator.decode(packet)
         }
 
         poll {
-            assert communicator.getPort() != -1 && receivedId == null
+            assert communicator.getPort() != -1 && receivedPayload == null
         }
 
         when:
@@ -59,7 +61,34 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
 
         then:
         poll {
-            assert receivedId == 155
+            assert receivedPayload.lockId == 155
+            assert receivedPayload.type == FileLockPacketType.UNLOCK_REQUEST
+        }
+    }
+
+    def "can receive lock id despite missing type"() {
+        FileLockPacketPayload receivedPayload
+
+        start {
+            def packet = communicator.receive()
+            receivedPayload = communicator.decode(packet)
+        }
+
+        poll {
+            assert communicator.getPort() != -1 && receivedPayload == null
+        }
+
+        when:
+        def socket = new DatagramSocket(0, addressFactory.getLocalBindingAddress())
+        def bytes = [1, 0, 0, 0, 0, 0, 0, 0, 155] as byte[]
+        addressFactory.getCommunicationAddresses().each { address ->
+            socket.send(new DatagramPacket(bytes, bytes.length, new InetSocketAddress(address, communicator.port)))
+        }
+
+        then:
+        poll {
+            assert receivedPayload.lockId == 155
+            assert receivedPayload.type == FileLockPacketType.UNKNOWN
         }
     }
 
