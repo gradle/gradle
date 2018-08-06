@@ -43,10 +43,11 @@ inline val <T : Any, C : NamedDomainObjectCollection<T>> C.existing: ExistingDom
 /**
  * Idiomatic way of referring to the provider of a well-known element of a collection via a delegate property.
  *
- * `tasks { val jar by existing(Jar::class) }`
+ * `tasks { val jar by existing { ... } }`
  *
  * @param T the domain object type
  * @param C the concrete container type
+ * @param action the configuration action
  */
 fun <T : Any, C : NamedDomainObjectCollection<T>> C.existing(action: T.() -> Unit): ExistingDomainObjectDelegateProviderWithAction<out C, T> =
     ExistingDomainObjectDelegateProviderWithAction(this, action)
@@ -59,6 +60,7 @@ fun <T : Any, C : NamedDomainObjectCollection<T>> C.existing(action: T.() -> Uni
  *
  * @param T the domain object type
  * @param C the concrete container type
+ * @param type the domain object type
  */
 fun <T : Any, C : NamedDomainObjectCollection<T>, U : T> C.existing(type: KClass<U>): ExistingDomainObjectDelegateProviderWithType<out C, U> =
     ExistingDomainObjectDelegateProviderWithType(this, type)
@@ -67,10 +69,12 @@ fun <T : Any, C : NamedDomainObjectCollection<T>, U : T> C.existing(type: KClass
 /**
  * Idiomatic way of referring to the provider of a well-known element of a collection via a delegate property.
  *
- * `tasks { val jar by existing(Jar::class) }`
+ * `tasks { val jar by existing(Jar::class) { ... } }`
  *
  * @param T the domain object type
  * @param C the concrete container type
+ * @param type the domain object type
+ * @param action the configuration action
  */
 fun <T : Any, C : NamedDomainObjectCollection<T>, U : T> C.existing(type: KClass<U>, action: U.() -> Unit): ExistingDomainObjectDelegateProviderWithTypeAndAction<out C, U> =
     ExistingDomainObjectDelegateProviderWithTypeAndAction(this, type, action)

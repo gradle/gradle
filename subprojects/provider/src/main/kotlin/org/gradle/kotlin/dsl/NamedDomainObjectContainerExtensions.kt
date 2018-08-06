@@ -65,6 +65,7 @@ inline val <T : Any, C : NamedDomainObjectContainer<T>> C.registering: Registeri
  *
  * @param T the domain object type
  * @param C the concrete container type
+ * @param action the configuration action
  */
 fun <T : Any, C : PolymorphicDomainObjectContainer<T>> C.registering(action: T.() -> Unit): RegisteringDomainObjectDelegateProviderWithAction<out C, T> =
     RegisteringDomainObjectDelegateProviderWithAction(this, action)
@@ -77,6 +78,7 @@ fun <T : Any, C : PolymorphicDomainObjectContainer<T>> C.registering(action: T.(
  *
  * @param T the domain object type
  * @param C the concrete container type
+ * @param type the domain object type
  */
 fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> C.registering(type: KClass<U>): RegisteringDomainObjectDelegateProviderWithType<out C, U> =
     RegisteringDomainObjectDelegateProviderWithType(this, type)
@@ -90,6 +92,8 @@ fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> C.registering(type
  * @param T the container element type
  * @param C the container type
  * @param U the desired domain object type
+ * @param type the domain object type
+ * @param action the configuration action
  */
 fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> C.registering(
     type: KClass<U>,

@@ -31,5 +31,3 @@ import org.gradle.api.NamedDomainObjectProvider
  */
 operator fun <T> NamedDomainObjectProvider<T>.invoke(action: T.() -> Unit) =
     configure(action)
-
-
