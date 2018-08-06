@@ -17,11 +17,6 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-plugins {
-    id("gradlebuild.api-metadata")
-}
-
 // This is a groovy project because we have int tests.
 // Remove any pre-configured archives
 configurations.all {
@@ -53,36 +48,9 @@ gradlebuildJava {
     moduleType = ModuleType.INTERNAL
 }
 
-apiMetadata {
-    sources.from(provider {
-        ProjectGroups.INSTANCE.getJavaProjects(project).collect { it.sourceSets.main.allJava }
-    })
-    includes = PublicApi.includes
-    excludes = PublicApi.excludes
-    classpath.from(rootProject.configurations.runtime)
-    classpath.from(rootProject.configurations.gradlePlugins)
-}
-
-afterEvaluate {
-
-    configurations {
-        apiMetadataFiles
-    }
-
-    artifacts {
-        apiMetadataFiles(apiMetadataJar) {
-            builtBy apiMetadataJar
-        }
-    }
-
-    project(":") {
-        dependencies {
-            testRuntime project(path: ":distributions", configuration: "apiMetadataFiles")
-        }
-    }
-}
-
 evaluationDependsOn ":docs"
+
+evaluationDependsOn ":apiMetadata"
 
 ext {
     zipRootFolder = "gradle-$version"
@@ -96,7 +64,7 @@ ext {
         }
         into('lib') {
             from rootProject.configurations.runtime
-            from apiMetadata.jarTask
+            from project(":apiMetadata").apiMetadata.jarTask
             into('plugins') {
                 from rootProject.configurations.gradlePlugins - rootProject.configurations.runtime
             }

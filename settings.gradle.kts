@@ -18,6 +18,7 @@ apply(from = "gradle/shared-with-buildSrc/build-cache-configuration.settings.gra
 
 enableFeaturePreview("IMPROVED_POM_SUPPORT")
 
+include("apiMetadata")
 include("distributionsDependencies")
 include("distributions")
 include("baseServices")
