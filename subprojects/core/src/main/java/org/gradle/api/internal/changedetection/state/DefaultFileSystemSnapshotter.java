@@ -93,6 +93,16 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     @Override
     public HashCode getRegularFileContentHash(final File file) {
         final String absolutePath = file.getAbsolutePath();
+        FileMetadataSnapshot metadata = fileSystemMirror.getMetadata(absolutePath);
+        if (metadata != null) {
+            if (metadata.getType() != FileType.RegularFile) {
+                return null;
+            }
+            PhysicalSnapshot snapshot = fileSystemMirror.getSnapshot(absolutePath);
+            if (snapshot != null) {
+                return snapshot.getHash();
+            }
+        }
         return producingSnapshots.guardByKey(absolutePath, new Factory<HashCode>() {
             @Nullable
             @Override
