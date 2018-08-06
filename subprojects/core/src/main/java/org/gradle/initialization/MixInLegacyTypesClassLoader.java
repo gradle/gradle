@@ -21,6 +21,7 @@ import groovy.lang.GroovySystem;
 import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.reflect.PropertyAccessorType;
@@ -122,7 +123,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
         private Set<String> booleanIsGetters = new HashSet<String>();
 
         TransformingAdapter(ClassVisitor cv) {
-            super(Opcodes.ASM6, cv);
+            super(AsmConstants.ASM_LEVEL, cv);
         }
 
         @Override

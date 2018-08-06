@@ -30,6 +30,7 @@ dependencies {
     implementation(library("commons_lang"))
     implementation(library("commons_io"))
     implementation(library("jcip"))
+    implementation(library("asm"))
 
     jmh(library("bouncycastle_provider")) {
         version {
