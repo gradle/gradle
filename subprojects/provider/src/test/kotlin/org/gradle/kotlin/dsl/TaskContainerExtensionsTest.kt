@@ -3,6 +3,7 @@ package org.gradle.kotlin.dsl
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.times
@@ -35,29 +36,178 @@ class TaskContainerExtensionsTest {
     }
 
     @Test
-    fun `can access named provider via existing property delegate with type`() {
+    fun `val task by registering`() {
+
+        val taskProvider = mock<TaskProvider<Task>>()
+        val tasks = mock<TaskContainer> {
+            on { register("clean") } doReturn taskProvider
+        }
+
+        tasks {
+
+            val clean by registering
+
+            inOrder(tasks, taskProvider) {
+                verify(tasks).register("clean")
+                verifyNoMoreInteractions()
+            }
+
+            assertInferredTypeOf(
+                clean,
+                typeOf<TaskProvider<Task>>()
+            )
+        }
+    }
+
+    @Test
+    fun `val task by registering { }`() {
+
+        val taskProvider = mock<TaskProvider<Task>>()
+        val tasks = mock<TaskContainer> {
+            on { register(eq("name"), any<Action<Task>>()) } doReturn taskProvider
+        }
+
+        tasks {
+
+            val clean by registering {
+                assertInferredTypeOf(
+                    this,
+                    typeOf<Task>()
+                )
+            }
+
+            inOrder(tasks, taskProvider) {
+                verify(tasks).register(eq("clean"), any<Action<Task>>())
+                verifyNoMoreInteractions()
+            }
+
+            assertInferredTypeOf(
+                clean,
+                typeOf<TaskProvider<Task>>()
+            )
+        }
+    }
+
+    @Test
+    fun `val task by registering(type)`() {
+
+        val taskProvider = mockTaskProviderFor(mock<Delete>())
+        val tasks = mock<TaskContainer> {
+            on { register("clean", Delete::class.java) } doReturn taskProvider
+        }
+
+        tasks {
+
+            val clean by registering(Delete::class)
+
+            inOrder(tasks, taskProvider) {
+                verify(tasks).register("clean", Delete::class.java)
+                verifyNoMoreInteractions()
+            }
+
+            assertInferredTypeOf(
+                clean,
+                typeOf<TaskProvider<Delete>>()
+            )
+        }
+    }
+
+    @Test
+    fun `val task by registering(type) { }`() {
+
+        val taskProvider = mockTaskProviderFor(mock<Delete>())
+        val tasks = mock<TaskContainer> {
+            onRegisterWithAction("clean", Delete::class, taskProvider)
+        }
+
+        tasks {
+
+            val clean by registering(Delete::class) {
+                assertInferredTypeOf(
+                    this,
+                    typeOf<Delete>()
+                )
+            }
+
+            inOrder(tasks) {
+                verify(tasks).register(eq("clean"), eq(Delete::class.java), any<Action<Delete>>())
+                verifyNoMoreInteractions()
+            }
+
+            assertInferredTypeOf(
+                clean,
+                typeOf<TaskProvider<Delete>>()
+            )
+        }
+    }
+
+    @Test
+    fun `val task by existing { }`() {
 
         // given:
-        val cleanTask = mock<Delete>()
-        val cleanTaskProvider = mockTaskProviderFor<Task>(cleanTask)
+        val taskProvider = mockTaskProviderFor(mock<Task>())
         val tasks = mock<TaskContainer> {
-            on { named("clean") } doReturn cleanTaskProvider
+            on { named("clean") } doReturn taskProvider
+        }
+
+        // then:
+        tasks {
+            // invoke syntax
+            val clean by existing {
+                assertInferredTypeOf(
+                    this,
+                    typeOf<Task>()
+                )
+            }
+
+            inOrder(container, taskProvider) {
+                verify(container).named("clean")
+                verify(taskProvider).configure(any<Action<Task>>())
+                verifyNoMoreInteractions()
+            }
+
+            assertInferredTypeOf(
+                clean,
+                typeOf<TaskProvider<Task>>()
+            )
+        }
+
+        tasks.apply {
+            // regular syntax
+            val clean by existing {
+            }
+            assertInferredTypeOf(
+                clean,
+                typeOf<TaskProvider<Task>>()
+            )
+        }
+    }
+
+    @Test
+    fun `val task by existing(type)`() {
+
+        // given:
+        val task = mock<Delete>()
+        val taskProvider = mockTaskProviderFor<Task>(task)
+        val tasks = mock<TaskContainer> {
+            on { named("clean") } doReturn taskProvider
         }
 
         // then:
         tasks {
             // invoke syntax
             val clean by existing(Delete::class)
+
+            inOrder(container, taskProvider) {
+                verify(container).named("clean")
+                verify(taskProvider).configure(any<Action<Task>>())
+                verifyNoMoreInteractions()
+            }
+
             assertInferredTypeOf(
                 clean,
                 typeOf<TaskProvider<Delete>>()
             )
-
-            inOrder(container, cleanTaskProvider) {
-                verify(container).named("clean")
-                verify(cleanTaskProvider).configure(any<Action<Task>>())
-                verifyNoMoreInteractions()
-            }
         }
 
         tasks.apply {
@@ -74,10 +224,10 @@ class TaskContainerExtensionsTest {
     fun `task accessors can be made available via existing delegate provider`() {
 
         // given:
-        val cleanTask = mock<Delete>()
-        val cleanTaskProvider = mockTaskProviderFor<Task>(cleanTask)
+        val task = mock<Delete>()
+        val taskProvider = mockTaskProviderFor<Task>(task)
         val tasks = mock<TaskContainer> {
-            on { named("clean") } doReturn cleanTaskProvider
+            on { named("clean") } doReturn taskProvider
         }
 
         // when:
@@ -98,9 +248,9 @@ class TaskContainerExtensionsTest {
         }
 
         // then:
-        inOrder(tasks, cleanTaskProvider, cleanTask) {
+        inOrder(tasks, taskProvider, task) {
             verify(tasks, times(2)).named("clean")
-            verify(cleanTaskProvider, times(2)).configure(any())
+            verify(taskProvider, times(2)).configure(any())
             verifyNoMoreInteractions()
         }
     }
@@ -122,6 +272,6 @@ fun <T : Task> mockTaskProviderFor(task: T): TaskProvider<T> = mock {
 
 
 internal
-inline fun <reified T> assertInferredTypeOf(@Suppress("unused_parameter") value: T, expectedType: TypeOf<*>) {
+inline fun <reified T> assertInferredTypeOf(@Suppress("unused_parameter") value: T, expectedType: TypeOf<T>) {
     assertThat(typeOf<T>(), equalTo(expectedType))
 }

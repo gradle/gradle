@@ -10,9 +10,9 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.times
 
 import org.gradle.api.Action
-import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.NamedDomainObjectCollection
 import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.PolymorphicDomainObjectContainer
 
 import org.gradle.kotlin.dsl.fixtures.assertFailsWith
@@ -26,12 +26,119 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 import java.util.regex.Pattern
+
 import kotlin.reflect.KClass
 
 
 class NamedDomainObjectCollectionExtensionsTest {
 
     data class DomainObject(var foo: String? = null, var bar: String? = null)
+
+    @Test
+    fun `val domainObject by registering`() {
+
+        val domainObjectProvider = mockDomainObjectProviderFor(DomainObject())
+        val container = mock<NamedDomainObjectContainer<DomainObject>> {
+            on { register("domainObject") } doReturn domainObjectProvider
+        }
+
+        container {
+
+            val domainObject by registering
+
+            inOrder(container, domainObjectProvider) {
+                verify(container).register("domainObject")
+                verifyNoMoreInteractions()
+            }
+
+            assertInferredTypeOf(
+                domainObject,
+                typeOf<NamedDomainObjectProvider<DomainObject>>()
+            )
+        }
+    }
+
+    @Test
+    fun `val domainObject by registering { }`() {
+
+        val domainObjectProvider = mockDomainObjectProviderFor(DomainObject())
+        val container = mock<NamedDomainObjectContainer<DomainObject>> {
+            on { register(eq("domainObject"), any<Action<DomainObject>>()) } doReturn domainObjectProvider
+        }
+
+        container {
+
+            val domainObject by registering {
+                assertInferredTypeOf(
+                    this,
+                    typeOf<DomainObject>()
+                )
+            }
+
+            inOrder(container, domainObjectProvider) {
+                verify(container).register(eq("domainObject"), any<Action<DomainObject>>())
+                verifyNoMoreInteractions()
+            }
+
+            assertInferredTypeOf(
+                domainObject,
+                typeOf<NamedDomainObjectProvider<DomainObject>>()
+            )
+        }
+    }
+
+    @Test
+    fun `val domainObject by registering(type)`() {
+
+        val domainObjectProvider = mockDomainObjectProviderFor(DomainObject())
+        val container = mock<PolymorphicDomainObjectContainer<Any>> {
+            on { register("domainObject", DomainObject::class.java) } doReturn domainObjectProvider
+        }
+
+        container {
+
+            val domainObject by registering(DomainObject::class)
+
+            inOrder(container, domainObjectProvider) {
+                verify(container).register("domainObject", DomainObject::class.java)
+                verifyNoMoreInteractions()
+            }
+
+            assertInferredTypeOf(
+                domainObject,
+                typeOf<NamedDomainObjectProvider<DomainObject>>()
+            )
+        }
+    }
+
+    @Test
+    fun `val domainObject by registering(type) { }`() {
+
+        val domainObjectProvider = mockDomainObjectProviderFor(DomainObject())
+        val container = mock<PolymorphicDomainObjectContainer<Any>> {
+            onRegisterWithAction("domainObject", DomainObject::class, domainObjectProvider)
+        }
+
+        container {
+
+            val domainObject by registering(DomainObject::class) {
+                assertInferredTypeOf(
+                    this,
+                    typeOf<DomainObject>()
+                )
+            }
+
+            inOrder(container) {
+                verify(container).register(eq("domainObject"), eq(DomainObject::class.java), any<Action<DomainObject>>())
+                verifyNoMoreInteractions()
+            }
+
+            assertInferredTypeOf(
+                domainObject,
+                typeOf<NamedDomainObjectProvider<DomainObject>>()
+            )
+        }
+    }
 
     @Test
     fun `can getByName via indexer`() {
@@ -113,7 +220,7 @@ class NamedDomainObjectCollectionExtensionsTest {
     }
 
     @Test
-    fun `can bring provider into scope via existing property delegate`() {
+    fun `val domainObject by existing`() {
 
         val element = DomainObject()
         val elementProvider = mockDomainObjectProviderFor(element)
@@ -142,7 +249,48 @@ class NamedDomainObjectCollectionExtensionsTest {
     }
 
     @Test
-    fun `can access named provider via existing property delegate with type`() {
+    fun `val domainObject by existing { }`() {
+
+        val element = DomainObject()
+        val elementProvider = mockDomainObjectProviderFor(element)
+        val container = mock<NamedDomainObjectContainer<DomainObject>> {
+            on { named("domainObject") } doReturn elementProvider
+        }
+
+        container {
+            // invoke syntax
+            val domainObject by existing {
+                assertInferredTypeOf(
+                    this,
+                    typeOf<DomainObject>()
+                )
+            }
+
+            inOrder(container, elementProvider) {
+                verify(container).named("domainObject")
+                verify(elementProvider).configure(any<Action<DomainObject>>())
+                verifyNoMoreInteractions()
+            }
+
+            assertInferredTypeOf(
+                domainObject,
+                typeOf<NamedDomainObjectProvider<DomainObject>>()
+            )
+        }
+
+        container.apply {
+            // regular syntax
+            val domainObject by existing {
+            }
+            assertInferredTypeOf(
+                domainObject,
+                typeOf<NamedDomainObjectProvider<DomainObject>>()
+            )
+        }
+    }
+
+    @Test
+    fun `val domainObject by existing(type)`() {
 
         val element = DomainObject()
         val elementProvider = mockDomainObjectProviderFor<Any>(element)
@@ -153,21 +301,63 @@ class NamedDomainObjectCollectionExtensionsTest {
         container {
             // invoke syntax
             val domainObject by existing(DomainObject::class)
-            assertInferredTypeOf(
-                domainObject,
-                typeOf<NamedDomainObjectProvider<DomainObject>>()
-            )
 
             inOrder(container, elementProvider) {
                 verify(container).named("domainObject")
                 verify(elementProvider).configure(any<Action<Any>>())
                 verifyNoMoreInteractions()
             }
+
+            assertInferredTypeOf(
+                domainObject,
+                typeOf<NamedDomainObjectProvider<DomainObject>>()
+            )
         }
 
         container.apply {
             // regular syntax
             val domainObject by existing(DomainObject::class)
+            assertInferredTypeOf(
+                domainObject,
+                typeOf<NamedDomainObjectProvider<DomainObject>>()
+            )
+        }
+    }
+
+    @Test
+    fun `val domainObject by existing(type) { }`() {
+
+        val element = DomainObject()
+        val elementProvider = mockDomainObjectProviderFor<Any>(element)
+        val container = mock<NamedDomainObjectContainer<Any>> {
+            on { named("domainObject") } doReturn elementProvider
+        }
+
+        container {
+            // invoke syntax
+            val domainObject by existing(DomainObject::class) {
+                assertInferredTypeOf(
+                    this,
+                    typeOf<DomainObject>()
+                )
+            }
+
+            inOrder(container, elementProvider) {
+                verify(container).named("domainObject")
+                verify(elementProvider).configure(any<Action<Any>>())
+                verifyNoMoreInteractions()
+            }
+
+            assertInferredTypeOf(
+                domainObject,
+                typeOf<NamedDomainObjectProvider<DomainObject>>()
+            )
+        }
+
+        container.apply {
+            // regular syntax
+            val domainObject by existing(DomainObject::class) {
+            }
             assertInferredTypeOf(
                 domainObject,
                 typeOf<NamedDomainObjectProvider<DomainObject>>()
@@ -404,7 +594,7 @@ class NamedDomainObjectCollectionExtensionsTest {
 }
 
 
-private
+internal
 fun <T> KStubbing<NamedDomainObjectContainer<T>>.onRegisterWithAction(name: String, provider: NamedDomainObjectProvider<T>) {
     on { register(eq(name), any<Action<T>>()) } doAnswer {
         it.getArgument<Action<T>>(1).execute(provider.get())

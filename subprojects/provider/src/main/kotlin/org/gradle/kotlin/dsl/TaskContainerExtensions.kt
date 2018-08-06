@@ -55,8 +55,7 @@ inline operator fun TaskContainer.invoke(
 
 
 /**
- * Provides access to the [TaskProvider] for the element of the given
- * property name from the container via a delegated property.
+ * Provides a [TaskProvider] delegate for the task named after the property.
  */
 operator fun ExistingDomainObjectDelegateProvider<out TaskContainer>.provideDelegate(
     receiver: Any?,
@@ -67,14 +66,68 @@ operator fun ExistingDomainObjectDelegateProvider<out TaskContainer>.provideDele
 
 
 /**
- * Provides access to the [TaskProvider] for the element of the given
- * property name and type from the container via a delegated property.
+ * Provides a [TaskProvider] delegate for the task named after the property after configuring it with the given action.
+ */
+operator fun ExistingDomainObjectDelegateProviderWithAction<out TaskContainer, Task>.provideDelegate(
+    receiver: Any?,
+    property: KProperty<*>
+) = ExistingDomainObjectDelegate(
+    delegateProvider.named(property.name).apply { configure(action) }
+)
+
+
+/**
+ * Provides a [TaskProvider] delegate for the task of the given type named after the property.
  */
 operator fun <U : Task> ExistingDomainObjectDelegateProviderWithType<out TaskContainer, U>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
 ) = ExistingDomainObjectDelegate(
     delegateProvider.named(property.name, type)
+)
+
+
+/**
+ * Registers a task and provides a delegate with the resulting [TaskProvider].
+ */
+operator fun RegisteringDomainObjectDelegateProvider<out TaskContainer>.provideDelegate(
+    receiver: Any?,
+    property: KProperty<*>
+) = ExistingDomainObjectDelegate(
+    delegateProvider.register(property.name)
+)
+
+
+/**
+ * Registers a task that gets configured with the given action and provides a delegate with the resulting [TaskProvider].
+ */
+operator fun RegisteringDomainObjectDelegateProviderWithAction<out TaskContainer, Task>.provideDelegate(
+    receiver: Any?,
+    property: KProperty<*>
+) = ExistingDomainObjectDelegate(
+    delegateProvider.register(property.name, action)
+)
+
+
+/**
+ * Registers a task of the given type and provides a delegate with the resulting [TaskProvider].
+ */
+operator fun <U : Task> RegisteringDomainObjectDelegateProviderWithType<out TaskContainer, U>.provideDelegate(
+    receiver: Any?,
+    property: KProperty<*>
+) = ExistingDomainObjectDelegate(
+    delegateProvider.register(property.name, type.java)
+)
+
+
+/**
+ * Registers a task of the given type that gets configured with the given action and provides a delegate with the resulting [TaskProvider].
+ */
+operator fun <U : Task> RegisteringDomainObjectDelegateProviderWithTypeAndAction<out TaskContainer, U>.provideDelegate(
+    receiver: Any?,
+    property: KProperty<*>
+) = ExistingDomainObjectDelegate(
+    delegateProvider.register(property.name, type.java, action)
 )
 
 
