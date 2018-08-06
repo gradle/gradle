@@ -197,7 +197,7 @@ include::{samplesPath}/userguide/wrapper/customized-task/build.gradle[tag=custom
 .build.gradle.kts
 [source,kotlin]
 ----
-include::{samplesPath}/userguide/wrapper/customized-task/build.gradle.kts[tag=customized-wrapper-task]
+include::{samplesPath}/userguide/wrapper/customized-taskKts/build.gradle.kts[tag=customized-wrapper-task]
 ----
 =====
 ====
