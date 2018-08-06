@@ -57,8 +57,4 @@ val buildReceiptResource = tasks.register<Copy>("buildReceiptResource") {
     destinationDir = file("${gradlebuildJava.generatedTestResourcesDir}/$buildReceiptPackage")
 }
 
-java.sourceSets {
-    "main" {
-        output.dir(mapOf("builtBy" to buildReceiptResource), gradlebuildJava.generatedTestResourcesDir)
-    }
-}
+sourceSets["main"].output.dir(mapOf("builtBy" to buildReceiptResource), gradlebuildJava.generatedTestResourcesDir)
