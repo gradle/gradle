@@ -53,6 +53,10 @@ public abstract class AbstractMetadataProvider<T extends CompilerMetadata> imple
         }
     }
 
+    protected ExecActionFactory getExecActionFactory() {
+        return execActionFactory;
+    }
+
     protected abstract T parseCompilerOutput(String output, String error, File binary) throws BrokenResultException;
 
     private Pair<String, String> runCompiler(File gccBinary, List<String> args) {
