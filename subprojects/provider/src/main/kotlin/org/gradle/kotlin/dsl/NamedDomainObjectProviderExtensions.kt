@@ -23,7 +23,10 @@ import org.gradle.api.NamedDomainObjectProvider
  * Allows a [NamedDomainObjectProvider] to be configured via invocation syntax.
  *
  * ```kotlin
- * val clean by tasks.existing
+ * val rebuild by tasks.registering
+ * rebuild { // rebuild.configure {
+ *   dependsOn("clean")
+ * }
  * ```
  */
 operator fun <T> NamedDomainObjectProvider<T>.invoke(action: T.() -> Unit) =
