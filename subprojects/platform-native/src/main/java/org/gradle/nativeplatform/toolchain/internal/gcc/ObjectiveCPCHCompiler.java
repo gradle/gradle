@@ -34,5 +34,10 @@ public class ObjectiveCPCHCompiler extends GccCompatibleNativeCompiler<Objective
         protected String getLanguage() {
             return "objective-c-header";
         }
+
+        @Override
+        protected boolean isNoStandardIncludes() {
+            return false;
+        }
     }
 }

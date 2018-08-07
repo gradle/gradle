@@ -34,6 +34,8 @@ class ObjectiveCPCHCompilerTest extends GccCompatibleNativeCompilerTest {
 
     @Override
     protected List<String> getCompilerSpecificArguments(File includeDir, File systemIncludeDir) {
-        return [ '-x', 'objective-c-header' ] + super.getCompilerSpecificArguments(includeDir, systemIncludeDir)
+        def arguments = super.getCompilerSpecificArguments(includeDir, systemIncludeDir)
+        arguments.remove('-nostdinc')
+        return ['-x', 'objective-c-header' ] + arguments
     }
 }
