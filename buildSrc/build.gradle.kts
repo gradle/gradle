@@ -18,7 +18,6 @@ import org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_DEF
 import org.gradle.plugins.ide.idea.model.IdeaModel
 
 import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin
-import org.gradle.kotlin.dsl.plugins.dsl.ProgressiveModeState
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -199,7 +198,7 @@ fun Project.applyKotlinProjectConventions() {
 
     plugins.withType<KotlinDslPlugin> {
         kotlinDslPluginOptions {
-            progressive.set(ProgressiveModeState.ENABLED)
+            experimentalWarning.set(false)
         }
     }
 }
