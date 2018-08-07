@@ -53,6 +53,8 @@ include::troubleshooting.adoc[leveloffset=+2]
 
 == Authoring Gradle Builds
 
+include::kotlin_dsl.adoc[leveloffset=+2]
+
 include::feature_lifecycle.adoc[leveloffset=+2]
 
 include::authoring_maintainable_build_scripts.adoc[leveloffset=+2]
