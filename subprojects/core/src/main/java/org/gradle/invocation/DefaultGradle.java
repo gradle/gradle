@@ -51,6 +51,11 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
+import org.gradle.internal.invocation.NotifyRootProjectBuildOperationType;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.scan.config.BuildScanConfigInit;
 import org.gradle.internal.service.ServiceRegistry;
@@ -91,7 +96,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
             @Override
             public void projectsLoaded(Gradle gradle) {
                 if (!rootProjectActions.isEmpty()) {
-                    services.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
+                    executeRootProjectActions();
                 }
                 projectsLoaded = true;
             }
@@ -228,20 +233,24 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public void rootProject(Action<? super Project> action) {
+        rootProject("rootProject", action);
+    }
+
+    private void rootProject(String listenerName, Action<? super Project> action) {
         if (projectsLoaded) {
             assert rootProject != null;
             action.execute(rootProject);
         } else {
             // only need to decorate when this callback is delayed
-            rootProjectActions.add(getListenerBuildOperationDecorator().decorate("rootProject", action));
+            rootProjectActions.add(getListenerBuildOperationDecorator().decorate(listenerName, action));
         }
     }
 
     @Override
     public void allprojects(final Action<? super Project> action) {
-        rootProject(new Action<Project>() {
+        rootProject("allprojects", new Action<Project>() {
             public void execute(Project project) {
-                project.allprojects(getListenerBuildOperationDecorator().decorate("allprojects", action));
+                project.allprojects(action);
             }
         });
     }
@@ -467,4 +476,32 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected BuildOperationExecutor getBuildOperationExecutor() {
+        throw new UnsupportedOperationException();
+    }
+
+    private static final NotifyRootProjectBuildOperationType.Result NOTIFY_ROOT_PROJECT_RESULT =  new NotifyRootProjectBuildOperationType.Result() {};
+
+    private void executeRootProjectActions() {
+        getBuildOperationExecutor().run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                services.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
+                context.setResult(NOTIFY_ROOT_PROJECT_RESULT);
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor
+                    .displayName("Notify rootProject listeners")
+                    .details(new NotifyRootProjectBuildOperationType.Details() {
+                        @Override
+                        public String getBuildPath() {
+                            return getIdentityPath().getPath();
+                        }
+                    });
+            }
+        });
+    }
 }

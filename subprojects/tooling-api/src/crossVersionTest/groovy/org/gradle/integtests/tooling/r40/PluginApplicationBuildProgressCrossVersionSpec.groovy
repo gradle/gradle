@@ -314,10 +314,9 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
 
         java.parent == rootProjectAction.
             child("Cross-configure project :").
-            child('Execute rootProject listener').
+            child('Execute allprojects listener').
             child("Execute 'allprojects {}' action").
-            child("Cross-configure project :").
-            child('Execute allprojects listener')
+            child("Cross-configure project :")
         javaBase.parent == java
         base.parent == javaBase
     }
