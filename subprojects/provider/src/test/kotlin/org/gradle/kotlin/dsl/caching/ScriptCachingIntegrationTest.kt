@@ -30,6 +30,7 @@ import org.gradle.testkit.runner.BuildResult
 
 import org.junit.ClassRule
 import org.junit.Test
+
 import java.io.File
 
 
@@ -105,7 +106,6 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
             }
         }
     }
-
 
     @Test
     fun `same script different target type`() {
