@@ -19,6 +19,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 
 import org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
+import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins
 
 import org.gradle.kotlin.dsl.*
 
@@ -26,7 +27,7 @@ import org.gradle.kotlin.dsl.*
 /**
  * The `kotlin-dsl` plugin.
  *
- * - Applies the `embedded-kotlin` plugin
+ * - Applies the `embedded-kotlin` and `precompiled-script-plugins` plugins
  * - Adds the `gradleKotlinDsl()` dependency to the `compileOnly` and `testImplementation` configurations
  * - Configures the Kotlin DSL compiler plugins
  *
@@ -44,12 +45,18 @@ class KotlinDslPlugin : Plugin<Project> {
             createOptionsExtension()
             applyKotlinDslCompilerPlugins()
             addGradleKotlinDslDependencyTo("compileOnly", "testImplementation")
+            applyPrecompiledScriptPluginsPlugin()
         }
     }
 
     private
     fun Project.applyEmbeddedKotlinPlugin() {
         plugins.apply(EmbeddedKotlinPlugin::class.java)
+    }
+
+    private
+    fun Project.applyPrecompiledScriptPluginsPlugin() {
+        plugins.apply(PrecompiledScriptPlugins::class.java)
     }
 
     private

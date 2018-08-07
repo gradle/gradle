@@ -179,8 +179,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 `java-gradle-plugin`
             }
 
-            apply<org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins>()
-
             $repositoriesBlock
         """)
     }
