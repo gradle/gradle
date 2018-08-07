@@ -32,10 +32,16 @@ It is useful for all projects implementing build logic: <<organizing_gradle_proj
 The `kotlin-dsl` plugin can be applied as follows:
 
 [source,kotlin]
-.build.gradle.kts
+.buildSrc/build.gradle.kts
 ----
 plugins {
     `kotlin-dsl`
+}
+
+repositories {
+    // The org.jetbrains.kotlin.jvm plugin requires a repository
+    // where to download the Kotlin compiler dependencies from.
+    jcenter()
 }
 ----
 
@@ -43,7 +49,7 @@ The `kotlin-dsl` plugin
 
 * applies the link:https://kotlinlang.org/docs/reference/using-gradle.html#targeting-the-jvm[org.jetbrains.kotlin.jvm] plugin,
 * configures an embedded repository that contains all Kotlin libraries embedded with the Gradle Kotlin DSL, pins them to the embedded Kotlin version,
-* adds the `gradleKotlinDsl()` dependency to the `compileOnly` and `testImplementation` configurations,
+* adds the `kotlin-stdlib-jdk8`, `kotlin-reflect` and `gradleKotlinDsl()` dependencies to the `compileOnly` and `testImplementation` configurations,
 * and, configures the Kotlin compiler with the same set of Kotlin compiler settings that is used for Gradle Kotlin DSL scripts.
 
 [CAUTION]
@@ -61,11 +67,36 @@ These are the Kotlin compiler arguments used for compiling Gradle Kotlin DSL scr
 Sets the target version of the generated JVM bytecode to `1.8`.
 
 `-Xjsr305=strict`::
-Sets up Java interoperability to strictly follow JSR-305 annotations for more null safety.
+Sets up Kotlin's Java interoperability to strictly follow JSR-305 annotations for increased null safety.
 See link:https://kotlinlang.org/docs/reference/java-interop.html#compiler-configuration[Calling Java code from Kotlin] in the Kotlin documentation for more information.
 
 `-XX:NewInference`::
-Enable the experimental Kotlin compiler inference engine
+Enables the experimental Kotlin compiler inference engine (required for SAM conversion for Kotlin functions).
 
 `-XX:SamConversionForKotlinFunctions`::
-Enable SAM conversion for Kotlin functions
+Enables SAM (Single Abstract Method) conversion for Kotlin functions in order to allow Kotlin build logic to expose and consume `org.gradle.api.Action<T>` based APIs. Such APIs can then be used uniformly from both the Kotlin and Groovy DSLs.
++
+As an example, given the following hypothetical Kotlin function with a Java SAM parameter type:
++
+[source,kotlin]
+----
+fun kotlinFunctionWithJavaSam(action: org.gradle.api.Action<Any>) = TODO()
+----
++
+SAM conversion for Kotlin functions enables the following usage of the function:
++
+[source,kotlin]
+----
+kotlinFunctionWithJavaSam {
+    // ...
+}
+----
++
+Without SAM conversion for Kotlin functions one would have to explicitly convert the passed lambda:
++
+[source,kotlin]
+----
+kotlinFunctionWithJavaSam(Action {
+    // ...
+})
+----
