@@ -349,20 +349,27 @@ fun compilationTrace(projectRoot: File, action: CompileTrace.() -> Unit) {
 
 
 internal
-class CompileTrace(val operations: List<String>) {
+class CompileTrace(private val operations: List<String>) {
+
     fun assertScriptCompile(stage: CachedScript.CompilationStage) {
-        require(operations.any {
-            it.contains(operationDescription(stage))
-        })
+        val description = operationDescription(stage)
+        require(operations.any { it.contains(description) }) {
+            "Expecting operation `$description`!"
+        }
     }
 
     fun assertNoScriptCompile(stage: CachedScript.CompilationStage) {
-        require(!operations.any {
-            it.contains(operationDescription(stage))
-        })
+        val description = operationDescription(stage)
+        require(!operations.any { it.contains(description) }) {
+            "Unexpected operation `$description`!"
+        }
     }
 
-    fun operationDescription(stage: CachedScript.CompilationStage) = "Compile script ${stage.file.name} (${stageDescr(stage)})"
+    private
+    fun operationDescription(stage: CachedScript.CompilationStage) =
+        "Compile script ${stage.file.name} (${descriptionOf(stage)})"
 
-    fun stageDescr(stage: CachedScript.CompilationStage) = if (stage.stage == "stage1") "CLASSPATH" else "BODY"
+    private
+    fun descriptionOf(stage: CachedScript.CompilationStage) =
+        if (stage.stage == "stage1") "CLASSPATH" else "BODY"
 }
