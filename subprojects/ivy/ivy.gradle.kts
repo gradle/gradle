@@ -35,6 +35,8 @@ dependencies {
     integTestRuntimeOnly(project(":resourcesS3"))
     integTestRuntimeOnly(project(":resourcesSftp"))
     testFixturesImplementation(project(":internalIntegTesting"))
+
+    testRuntime(project(path = ":apiMetadata", configuration = "jar"))
 }
 
 gradlebuildJava {
