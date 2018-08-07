@@ -22,36 +22,53 @@ If you are looking into migrating an existing build to the Gradle Kotlin DSL, pl
 ====
 
 
-[[sec:kotlin_dsl_scripts]]
-== Gradle Kotlin DSL scripts
-
-For more information on the Kotlin compiler configuration, see the <<sec:compiler_settings>> section.
-
-
 [[sec:kotlin-dsl_plugin]]
 == The `kotlin-dsl` plugin
 
-- `buildSrc`
-- included build-logic builds
-- Gradle plugin builds
+When applied to a project, the `kotlin-dsl` Gradle plugin configures the project's Kotlin source sets to enable Gradle Kotlin DSL features.
 
-Kotlin sources in projects applying the `kotlin-dsl` plugin are compiled with the same set of Kotlin compiler settings as Gradle Kotlin DSL scripts.
-For more information see the <<sec:compiler_settings>> section.
+It is useful for all projects building build logic: <<organizing_gradle_projects.adoc#sec:build_sources, buildSrc>>, <<composite_builds.adoc, included builds>> for build logic or link:{guidesUrl}/designing-gradle-plugins/[Gradle plugin] builds.
 
+The `kotlin-dsl` plugin can be applied as follows:
 
-[[sec:compiler_settings]]
-== Kotlin compiler settings
+[source,kotlin]
+.build.gradle.kts
+----
+plugins {
+    `kotlin-dsl`
+}
+----
+
+The `kotlin-dsl` plugin
+
+* applies the link:https://kotlinlang.org/docs/reference/using-gradle.html#targeting-the-jvm[org.jetbrains.kotlin.jvm] plugin,
+* configures an embedded repository that contains all Kotlin libraries embedded with the Gradle Kotlin DSL, pins them to the embedded Kotlin version,
+* adds the `gradleKotlinDsl()` dependency to the `compileOnly` and `testImplementation` configurations,
+* and, configures the Kotlin compiler with the same set of Kotlin compiler settings that is used for Gradle Kotlin DSL scripts.
 
 [CAUTION]
 ====
 The `kotlin-dsl` plugin enables experimental Kotlin compiler features.
+See the <<sec:kotlin_compiler_arguments>> section below for more information.
 ====
 
-`-jvm-target`
+[[sec:kotlin_compiler_arguments]]
+== Kotlin compiler arguments
 
-`-Xjsr305=strict`
+These are the Kotlin compiler arguments used for compiling Gradle Kotlin DSL scripts and Kotlin sources and scripts in a project that has the `kotlin-dsl` plugin applied:
 
-`-Xprogressive`
+`-jvm-target=1.8`::
+Sets the target version of the generated JVM bytecode to `1.8`.
 
-`-XX:NewInference`
-`-XX:SamConversionForKotlinFunctions`
+`-Xjsr305=strict`::
+Sets up Java interoperability to strictly follow JSR-305 annotations for more null safety.
+See link:https://kotlinlang.org/docs/reference/java-interop.html#compiler-configuration[Calling Java code from Kotlin] in the Kotlin documentation for more information.
+
+`-Xprogressive`::
+Enable Kotlin compiler progressive mode
+
+`-XX:NewInference`::
+Enable the experimental Kotlin compiler inference engine
+
+`-XX:SamConversionForKotlinFunctions`::
+Enable SAM conversion for Kotlin functions
