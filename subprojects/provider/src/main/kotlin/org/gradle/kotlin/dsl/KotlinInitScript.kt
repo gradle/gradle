@@ -61,7 +61,6 @@ import kotlin.script.templates.ScriptTemplateDefinition
     scriptFilePattern = ".+\\.init\\.gradle\\.kts")
 @ScriptTemplateAdditionalCompilerArguments([
     "-Xjsr305=strict",
-    "-Xprogressive",
     "-XXLanguage:+NewInference",
     "-XXLanguage:+SamConversionForKotlinFunctions"
 ])
