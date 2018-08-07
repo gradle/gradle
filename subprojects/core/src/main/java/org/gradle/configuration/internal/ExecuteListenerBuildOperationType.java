@@ -39,6 +39,14 @@ public final class ExecuteListenerBuildOperationType implements BuildOperationTy
          * @see org.gradle.configuration.ApplyScriptPluginBuildOperationType.Details#getApplicationId()
          */
         Long getApplicationId();
+
+        /**
+         * A human friendly description of where the listener was registered by the user.
+         *
+         * General contract is public-type-simplename.method-name.
+         * e.g. Project.beforeEvaluate
+         */
+        String getRegistrationPoint();
     }
 
     public interface Result {
@@ -46,9 +54,11 @@ public final class ExecuteListenerBuildOperationType implements BuildOperationTy
 
     static class DetailsImpl implements Details {
         final UserCodeApplicationId applicationId;
+        final String registrationPoint;
 
-        DetailsImpl(UserCodeApplicationId applicationId) {
+        DetailsImpl(UserCodeApplicationId applicationId, String registrationPoint) {
             this.applicationId = applicationId;
+            this.registrationPoint = registrationPoint;
         }
 
         @Override
@@ -56,6 +66,10 @@ public final class ExecuteListenerBuildOperationType implements BuildOperationTy
             return applicationId.longValue();
         }
 
+        @Override
+        public String getRegistrationPoint() {
+            return registrationPoint;
+        }
     }
 
     static final Result RESULT = new Result() {
