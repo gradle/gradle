@@ -143,14 +143,15 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
     @Override
     public void beforeTransform(ArtifactTransformer transform, @Nullable ComponentArtifactIdentifier artifactId, File file) {
         long now = clock.getCurrentTime();
-        String transformDescription;
+        StringBuilder transformDescription = new StringBuilder(256);
         if (artifactId != null) {
-            transformDescription = artifactId.getDisplayName();
+            transformDescription.append(artifactId.getDisplayName());
         } else {
-            transformDescription = file.getAbsolutePath();
+            transformDescription.append(file.getAbsolutePath());
         }
-        transformDescription += " with " + transform.getDisplayName();
-        FragmentedOperation transformProfile = buildProfile.getTransformProfile(transformDescription);
+        transformDescription.append(" with ");
+        transformDescription.append(transform.getDisplayName());
+        FragmentedOperation transformProfile = buildProfile.getTransformProfile(transformDescription.toString());
         currentTransform.set(transformProfile.start(now));
     }
 
