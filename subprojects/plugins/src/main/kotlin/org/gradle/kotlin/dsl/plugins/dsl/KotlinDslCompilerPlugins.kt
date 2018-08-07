@@ -130,7 +130,7 @@ fun kotlinDslPluginExperimentalWarning(target: Any, link: Any) =
 
 private
 val Project.experimentalWarningLink
-    get() = documentationRegistry.getDocumentationFor("kotlin-dsl", "sec:kotlin-dsl-plugin")
+    get() = documentationRegistry.getDocumentationFor("kotlin_dsl", "sec:kotlin-dsl_plugin")
 
 
 private

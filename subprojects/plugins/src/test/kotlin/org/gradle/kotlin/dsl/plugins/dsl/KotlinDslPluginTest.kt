@@ -279,7 +279,10 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
     private
     fun experimentalWarningFor(projectPath: String) =
-        kotlinDslPluginExperimentalWarning("project '$projectPath'", DocumentationRegistry().getDocumentationFor("kotlin-dsl", "sec:kotlin-dsl-plugin"))
+        kotlinDslPluginExperimentalWarning(
+            "project '$projectPath'",
+            DocumentationRegistry().getDocumentationFor("kotlin_dsl", "sec:kotlin-dsl_plugin")
+        )
 
     private
     fun withBuildExercisingSamConversionForKotlinFunctions(buildSrcScript: String = "") {
