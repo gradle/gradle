@@ -142,7 +142,7 @@ These methods have been deprecated and the `create()` or `register()` methods sh
 
 ### Changes to the Gradle Kotlin DSL
 
-The Kotlin DSL now enables the _SAM conversion for Kotlin functions_ Kotlin compiler feature in order to expose an uniform `org.gradle.api.Action<T>` based API to both Groovy DSL and Kotlin DSL scripts.
+The Kotlin DSL enables experimental Kotlin compiler features in order to expose an uniform `org.gradle.api.Action<T>` based API to both Groovy DSL and Kotlin DSL scripts.
 
 The DSL types and behavior of containers elements delegated properties (e.g. `val jar by tasks`) and containers scopes (e.g. `tasks { }`) changed.
 
