@@ -198,7 +198,7 @@ fun Project.applyKotlinProjectConventions() {
 
     plugins.withType<KotlinDslPlugin> {
         kotlinDslPluginOptions {
-            experimentalWarning.set(false)
+//            experimentalWarning.set(false)
         }
     }
 }
