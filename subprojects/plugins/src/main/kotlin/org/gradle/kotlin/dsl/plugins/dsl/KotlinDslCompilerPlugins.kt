@@ -53,9 +53,8 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
                     it.kotlinOptions {
                         jvmTarget = this@kotlinDslPluginOptions.jvmTarget.get()
                         freeCompilerArgs += listOf(
-                            KotlinCompilerArguments.jsr305Strict,
                             KotlinCompilerArguments.javaParameters,
-                            KotlinCompilerArguments.progressive,
+                            KotlinCompilerArguments.jsr305Strict,
                             KotlinCompilerArguments.newInference,
                             KotlinCompilerArguments.samConversionForKotlinFunctions
                         )
@@ -78,9 +77,8 @@ fun KotlinCompile.applyExperimentalWarning(experimentalWarning: Boolean) =
 
 internal
 object KotlinCompilerArguments {
-    const val jsr305Strict = "-Xjsr305=strict"
     const val javaParameters = "-java-parameters"
-    const val progressive = "-Xprogressive"
+    const val jsr305Strict = "-Xjsr305=strict"
     const val newInference = "-XXLanguage:+NewInference"
     const val samConversionForKotlinFunctions = "-XXLanguage:+SamConversionForKotlinFunctions"
 }
