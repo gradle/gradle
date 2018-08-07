@@ -38,10 +38,10 @@ public interface ListenerBuildOperationDecorator {
      * Does not decorate any action that implements {@link InternalListener}.
      * Does not decorate if there is not currently a script or plugin being applied on the thread.
      *
-     * @param name the name of the listener (e.g. projectsLoaded) - used in the operation description
+     * @param registrationPoint the place that the listener was registered - used in the operation description / details
      * @param action the action to decorate
      */
-    <T> Action<T> decorate(String name, Action<T> action);
+    <T> Action<T> decorate(String registrationPoint, Action<T> action);
 
     /**
      * Decorates a closure listener.
@@ -49,10 +49,10 @@ public interface ListenerBuildOperationDecorator {
      * Does not decorate any action that implements {@link InternalListener}.
      * Does not decorate if there is not currently a script or plugin being applied on the thread.
      *
-     * @param name the name of the listener (e.g. projectsLoaded) - used in the operation description
+     * @param registrationPoint the place that the listener was registered - used in the operation description / details
      * @param closure the closure to decorate
      */
-    <T> Closure<T> decorate(String name, Closure<T> closure);
+    <T> Closure<T> decorate(String registrationPoint, Closure<T> closure);
 
     /**
      * Decorates a listener type object.
@@ -63,16 +63,19 @@ public interface ListenerBuildOperationDecorator {
      * Does not decorate if there is not currently a script or plugin being applied on the thread.
      *
      * @param cls the type of the listener
+     * @param registrationPoint the place that the listener was registered - used in the operation description / details
      * @param listener the listener
      */
-    <T> T decorate(Class<T> cls, T listener);
+    <T> T decorate(String registrationPoint, Class<T> cls, T listener);
 
     /**
      * Decorates a listener of unknown type.
      * <p>
-     * @see #decorate(Class, Object)
+     * @param registrationPoint the place that the listener was registered - used in the operation description / details
+     * @param listener the listener object to decorate
+     * @see #decorate(String, Class, Object)
      */
-    Object decorateUnknownListener(Object listener);
+    Object decorateUnknownListener(String registrationPoint, Object listener);
 
 
 }
