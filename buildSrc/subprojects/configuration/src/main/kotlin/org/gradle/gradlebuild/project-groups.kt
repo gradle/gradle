@@ -36,7 +36,7 @@ object ProjectGroups {
             "ide", "scala", "signing", "ear", "javascript", "buildComparison",
             "diagnostics", "reporting", "publish", "ivy", "jacoco", "buildInit", "platformBase",
             "platformJvm", "languageJvm", "languageJava", "languageGroovy", "languageScala",
-            "platformNative", "platformPlay", "idePlay", "languageNative", "toolingBuildersNative", "ideNative",
+            "platformNative", "platformPlay", "idePlay", "languageNative", "toolingNative", "ideNative",
             "testingBase", "testingNative", "testingJvm", "testingJunitPlatform", "pluginDevelopment", "pluginUse",
             "resourcesHttp", "resourcesSftp", "resourcesS3", "resourcesGcs", "compositeBuilds", "buildCacheHttp").map { rootProject.project(it) }.toSet()
 
