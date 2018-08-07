@@ -560,9 +560,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 implementation "org.apache.commons:commons-compress:1.5"
                 constraints {
                     api "commons-logging:commons-logging:1.1"
-                    implementation("commons-logging:commons-logging") {
-                        version { prefer "1.2" }
-                    }
+                    implementation "commons-logging:commons-logging:1.2"
+                    
                     implementation("org.tukaani:xz") {
                         version { strictly "1.6" }
                     }
@@ -605,11 +604,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 noMoreExcludes()
             }
             constraint('commons-logging:commons-logging:1.1') { rejects() }
-            constraint('commons-logging:commons-logging:') {
-                prefers('1.2')
-                strictly(null)
-                rejects()
-            }
+            constraint('commons-logging:commons-logging:1.2') { rejects() }
 
             dependency('org.apache.commons:commons-compress:1.5') {
                 rejects()
