@@ -16,7 +16,12 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
+import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 
@@ -45,4 +50,47 @@ public class InvertedRenderableModuleResult extends RenderableModuleResult {
         }
         return new LinkedHashSet<RenderableDependency>(children.values());
     }
+
+    @Override
+    public String getName() {
+        Set<? extends ResolvedDependencyResult> dependents = module.getDependents();
+        Set<ComponentSelector> requestedWithSameModuleAsSelected = Sets.newLinkedHashSet();
+        ModuleComponentIdentifier selected = null;
+        for (ResolvedDependencyResult dependent : dependents) {
+            ComponentSelector e = dependent.getRequested();
+            ComponentIdentifier id = dependent.getSelected().getId();
+            if (id instanceof ModuleComponentIdentifier) {
+                if (e instanceof ModuleComponentSelector) {
+                    ModuleComponentSelector mcs = (ModuleComponentSelector) e;
+                    if (selected == null || mcs.getModuleIdentifier().equals(selected.getModuleIdentifier())) {
+                        selected = (ModuleComponentIdentifier) id;
+                        if (!mcs.getVersion().equals(selected.getVersion())) {
+                            requestedWithSameModuleAsSelected.add(e);
+                        }
+                    }
+                }
+            }
+
+        }
+        if (selected != null && !requestedWithSameModuleAsSelected.isEmpty()) {
+            ModuleIdentifier mid = selected.getModuleIdentifier();
+            StringBuilder sb = new StringBuilder();
+            sb.append(mid.getGroup()).append(":").append(mid.getName()).append(":");
+            boolean comma = false;
+            for (ComponentSelector componentSelector : requestedWithSameModuleAsSelected) {
+                String version = ((ModuleComponentSelector) componentSelector).getVersion();
+                if (!version.equals(selected.getVersion())) {
+                    if (comma) {
+                        sb.append(",");
+                    }
+                    comma = true;
+                    sb.append(version);
+                }
+            }
+            sb.append(" -> ").append(selected.getVersion());
+            return sb.toString();
+        }
+        return super.getName();
+    }
+
 }

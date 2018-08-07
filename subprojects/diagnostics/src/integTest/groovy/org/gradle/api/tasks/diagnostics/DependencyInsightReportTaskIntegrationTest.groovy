@@ -551,18 +551,18 @@ org:leaf:1.0
    ]
 
 org:leaf:1.0
-\\--- org:middle:1.0
-     \\--- org:top:1.0
+\\--- org:middle:[1.0,2.0],latest.integration -> 1.0
+     \\--- org:top:[1.0,2.0],latest.integration -> 1.0
           \\--- conf
 
 org:leaf:[1.0,2.0] -> 1.0
-\\--- org:middle:1.0
-     \\--- org:top:1.0
+\\--- org:middle:[1.0,2.0],latest.integration -> 1.0
+     \\--- org:top:[1.0,2.0],latest.integration -> 1.0
           \\--- conf
 
 org:leaf:latest.integration -> 1.0
-\\--- org:middle:1.0
-     \\--- org:top:1.0
+\\--- org:middle:[1.0,2.0],latest.integration -> 1.0
+     \\--- org:top:[1.0,2.0],latest.integration -> 1.0
           \\--- conf
 """
     }
@@ -773,7 +773,7 @@ org:new-leaf:77 (selected by rule)
    ]
 
 org:leaf:1.0 -> org:new-leaf:77
-\\--- org:foo:2.0
+\\--- org:foo:1.0 -> 2.0
      \\--- conf
 
 org:leaf:2.0 -> org:new-leaf:77
@@ -2445,6 +2445,94 @@ org:foo:[1.0,) -> 1.0
 """
         where:
         type << ['configuration', 'dependency']
+    }
+
+    def "reports 2d level dependency conflicts"() {
+        given:
+        mavenRepo.with {
+            module('planet', 'earth', '3.0.0')
+                .dependsOn('planet', 'venus', '2.0.0')
+                .publish()
+            module('planet', 'jupiter', '5.0.0')
+                .dependsOn('planet', 'mercury', '1.0.2')
+                .publish()
+            module('planet', 'mars', '4.0.0')
+                .dependsOn('planet', 'venus', '2.0.1')
+                .publish()
+            module('planet', 'mercury', '1.0.0').publish()
+            module('planet', 'mercury', '1.0.1').publish()
+            module('planet', 'mercury', '1.0.2').publish()
+            module('planet', 'venus', '2.0.0')
+                .dependsOn('planet', 'mercury', '1.0.0')
+                .publish()
+            module('planet', 'venus', '2.0.1')
+                .dependsOn('planet', 'mercury', '1.0.1')
+                .publish()
+        }
+
+        file("build.gradle") << """
+            apply plugin: 'java-library'
+
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+
+            dependencies {
+                implementation 'planet:earth:3.0.0'
+                implementation 'planet:mars:4.0.0'
+                implementation 'planet:jupiter:5.0.0'
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "mercury"
+
+        then:
+        outputContains """> Task :dependencyInsight
+planet:mercury:1.0.2
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+      Requested attributes not found in the selected variant:
+         org.gradle.usage  = java-api
+   ]
+   Selection reasons:
+      - Was requested
+      - By conflict resolution : between versions 1.0.2 and 1.0.1
+
+planet:mercury:1.0.2
+\\--- planet:jupiter:5.0.0
+     \\--- compileClasspath
+
+planet:mercury:1.0.1 -> 1.0.2
+\\--- planet:venus:2.0.0 -> 2.0.1
+     +--- planet:earth:3.0.0
+     |    \\--- compileClasspath
+     \\--- planet:mars:4.0.0
+          \\--- compileClasspath
+"""
+        when:
+        run "dependencyInsight", "--dependency", "venus"
+
+        then:
+        outputContains """> Task :dependencyInsight
+planet:venus:2.0.1
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+      Requested attributes not found in the selected variant:
+         org.gradle.usage  = java-api
+   ]
+   Selection reasons:
+      - Was requested
+      - By conflict resolution : between versions 2.0.0 and 2.0.1
+
+planet:venus:2.0.1
+\\--- planet:mars:4.0.0
+     \\--- compileClasspath
+
+planet:venus:2.0.0 -> 2.0.1
+\\--- planet:earth:3.0.0
+     \\--- compileClasspath
+"""
     }
 
     @CompileStatic
