@@ -1,3 +1,4 @@
+ - Gradle Kotlin DSL 1.0-RC1
  - Incremental Java compilation by default
  - Periodic Gradle caches cleanup
  - Nested included builds
