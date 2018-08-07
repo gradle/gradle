@@ -228,20 +228,24 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public void rootProject(Action<? super Project> action) {
+        rootProject("rootProject", action);
+    }
+
+    private void rootProject(String registrationSite, Action<? super Project> action) {
         if (projectsLoaded) {
             assert rootProject != null;
             action.execute(rootProject);
         } else {
             // only need to decorate when this callback is delayed
-            rootProjectActions.add(getListenerBuildOperationDecorator().decorate("rootProject", action));
+            rootProjectActions.add(getListenerBuildOperationDecorator().decorate(registrationSite, action));
         }
     }
 
     @Override
     public void allprojects(final Action<? super Project> action) {
-        rootProject(new Action<Project>() {
+        rootProject("allprojects", new Action<Project>() {
             public void execute(Project project) {
-                project.allprojects(getListenerBuildOperationDecorator().decorate("allprojects", action));
+                project.allprojects(action);
             }
         });
     }

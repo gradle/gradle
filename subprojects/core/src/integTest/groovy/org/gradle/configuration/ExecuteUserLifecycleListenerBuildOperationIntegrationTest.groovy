@@ -43,6 +43,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
     def scriptFile = file('script.gradle')
 
     Long initScriptAppId
+    Long initOtherScriptAppId
     Long settingsScriptAppId
     Long rootProjectScriptAppId
     Long rootOtherScriptAppId
@@ -63,7 +64,10 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         sanityCheckApplicationIds()
 
         if (notEmpty(initFile)) {
-            initScriptAppId = findScriptApplicationId(targetsGradle())
+            initScriptAppId = findScriptApplicationId(targetsGradle(), scriptFile(initFile))
+        }
+        if (hasScript(initFile, scriptFile.name)) {
+            initOtherScriptAppId = findScriptApplicationId(targetsGradle(), scriptFile(scriptFile))
         }
         if (notEmpty(settingsFile)) {
             settingsScriptAppId = findScriptApplicationId(targetsSettings())
@@ -621,12 +625,17 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         }
 
         and:
+        // put these in different scripts so that we can track that they report the correct registrant,
+        // since allprojects callbacks are executed inside an internal rootProject listener
         initFile << """
             rootProject { project ->
                 ${addBeforeProjectListeners('init file rootProject')}
             }
+            apply from: file('$scriptFile.name')
+        """
+        scriptFile << """
             allprojects { project ->
-                ${addAfterProjectListeners('init file allprojects')}
+                ${addAfterProjectListeners('script file allprojects')}
             }
         """
 
@@ -643,12 +652,12 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         and:
         def rootAfterEvaluated = operations.only(NotifyProjectAfterEvaluatedBuildOperationType, { it.details.projectPath == ':' })
         verifyExpectedNumberOfExecuteListenerChildren(rootAfterEvaluated, 1)
-        verifyHasChildren(rootAfterEvaluated, initScriptAppId, 'init file allprojects', ['project.afterEvaluate(Closure)'])
+        verifyHasChildren(rootAfterEvaluated, initOtherScriptAppId, 'script file allprojects', ['project.afterEvaluate(Closure)'])
 
         and:
         def subAfterEvaluated = operations.only(NotifyProjectAfterEvaluatedBuildOperationType, { it.details.projectPath == ':sub' })
         verifyExpectedNumberOfExecuteListenerChildren(subAfterEvaluated, 1)
-        verifyHasChildren(subAfterEvaluated, initScriptAppId, 'init file allprojects', ['project.afterEvaluate(Closure)'])
+        verifyHasChildren(subAfterEvaluated, initOtherScriptAppId, 'script file allprojects', ['project.afterEvaluate(Closure)'])
     }
 
     def 'decorated listener can be removed'() {
@@ -724,7 +733,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
     }
 
     private static boolean hasScript(TestFile file, String scriptName) {
-        file.exists() && file.text.indexOf("apply from: rootProject.file('$scriptName')") != -1
+        file.exists() && (file.text.indexOf("apply from: rootProject.file('$scriptName')") != -1 || file.text.indexOf("apply from: file('$scriptName')") != -1)
     }
 
     private Long findOpApplicationId(Class<? extends BuildOperationType<?, ?>> opType, Spec<? super BuildOperationRecord> predicate) {
