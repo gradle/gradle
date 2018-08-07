@@ -41,7 +41,7 @@ class DefaultPendingDependenciesHandler implements PendingDependenciesHandler {
             if (!isOptionalDependency) {
                 // Mark as not pending. If we saw pending dependencies before, mark them as no longer pending
                 PendingDependencies priorPendingDependencies = pendingDependencies.notPending(key);
-                if (priorPendingDependencies != null) {
+                if (priorPendingDependencies != null && priorPendingDependencies.isPending()) {
                     if (noLongerPending == null) {
                         noLongerPending = Lists.newLinkedList();
                     }
