@@ -43,6 +43,8 @@ import accessors.java
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.serviceOf
 
+import java.net.URLClassLoader
+
 
 open class ApiMetadataExtension(project: Project) {
 
@@ -128,17 +130,20 @@ open class ParameterNamesResourceTask : DefaultTask() {
     @TaskAction
     fun generate() {
 
-        val qdoxBuilder = JavaProjectBuilder(sortedClassLibraryBuilderWithClassLoaderFor(classpath))
-        val qdoxSources = sources.asSequence().mapNotNull { qdoxBuilder.addSource(it) }
+        isolatedClassLoaderFor(classpath).use { loader ->
 
-        val properties = qdoxSources
-            .flatMap { it.classes.asSequence().filter { it.isPublic } }
-            .flatMap { it.methods.asSequence().filter { it.isPublic && it.parameterTypes.isNotEmpty() } }
-            .map { method ->
-                fullyQualifiedSignatureOf(method) to commaSeparatedParameterNamesOf(method)
-            }.toMap(linkedMapOf())
+            val qdoxBuilder = JavaProjectBuilder(sortedClassLibraryBuilderWithClassLoaderFor(loader))
+            val qdoxSources = sources.asSequence().mapNotNull { qdoxBuilder.addSource(it) }
 
-        write(properties)
+            val properties = qdoxSources
+                .flatMap { it.classes.asSequence().filter { it.isPublic } }
+                .flatMap { it.methods.asSequence().filter { it.isPublic && it.parameterTypes.isNotEmpty() } }
+                .map { method ->
+                    fullyQualifiedSignatureOf(method) to commaSeparatedParameterNamesOf(method)
+                }.toMap(linkedMapOf())
+
+            write(properties)
+        }
     }
 
     private
@@ -165,14 +170,14 @@ open class ParameterNamesResourceTask : DefaultTask() {
         method.parameters.joinToString(separator = ",") { it.name }
 
     private
-    fun sortedClassLibraryBuilderWithClassLoaderFor(classpath: FileCollection): SortedClassLibraryBuilder =
+    fun sortedClassLibraryBuilderWithClassLoaderFor(loader: ClassLoader): SortedClassLibraryBuilder =
         SortedClassLibraryBuilder().apply {
-            appendClassLoader(isolatedClassLoaderFor(classpath))
+            appendClassLoader(loader)
         }
 
     private
     fun isolatedClassLoaderFor(classpath: FileCollection) =
-        classLoaderFactory.createIsolatedClassLoader(DefaultClassPath.of(classpath.files))
+        classLoaderFactory.createIsolatedClassLoader(DefaultClassPath.of(classpath.files)) as URLClassLoader
 
     private
     val classLoaderFactory
