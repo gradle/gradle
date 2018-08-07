@@ -21,36 +21,47 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.plugins.PluginAwareInternal
+
 import org.gradle.cache.CacheOpenException
 import org.gradle.cache.internal.CacheKeyBuilder
-import org.gradle.configuration.ConfigurationTargetIdentifier
+
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
+
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+
 import org.gradle.internal.hash.HashCode
+
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
+
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.CallableBuildOperation
+
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
+
 import org.gradle.kotlin.dsl.cache.ScriptCache
+
 import org.gradle.kotlin.dsl.execution.EvalOption
 import org.gradle.kotlin.dsl.execution.EvalOptions
 import org.gradle.kotlin.dsl.execution.Interpreter
 import org.gradle.kotlin.dsl.execution.ProgramId
 import org.gradle.kotlin.dsl.get
+
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
 import org.gradle.kotlin.dsl.support.transitiveClosureOf
+
 import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.use.internal.PluginRequestApplicator
+
 import java.io.File
 
 
@@ -96,7 +107,7 @@ class StandardKotlinScriptEvaluator(
     ) {
         withOptions(options) {
 
-            Interpreter(InterpreterHost(ConfigurationTargetIdentifier.of(target))).eval(
+            interpreter.eval(
                 target,
                 scriptSource,
                 scriptSourceHasher.hash(scriptSource),
@@ -127,26 +138,30 @@ class StandardKotlinScriptEvaluator(
         }
     }
 
-    inner class InterpreterHost(val targetIdentifier: ConfigurationTargetIdentifier?) : Interpreter.Host {
-        override fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String {
-            val details = object : Details {
-                override fun getStage(): String = stage
-                override fun getLanguage(): String = "KOTLIN"
-            }
-            val result = object : Result {}
-            val name = "Compile script " + scriptPath.substringAfterLast(File.separator) + " (" + stage + ")"
-            val compileScriptBuildOperation = object : CallableBuildOperation<String> {
-                override fun call(context: BuildOperationContext): String {
-                    val res = action()
-                    context.setResult(result)
-                    return res
-                }
+    private
+    val interpreter by lazy {
+        Interpreter(InterpreterHost())
+    }
 
-                override fun description(): BuildOperationDescriptor.Builder =
-                    BuildOperationDescriptor.displayName(name).name(name).details(details)
-            }
-            return buildOperationExecutor.call(compileScriptBuildOperation)
-        }
+    inner class InterpreterHost : Interpreter.Host {
+
+        override fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String =
+
+            buildOperationExecutor.call(object : CallableBuildOperation<String> {
+
+                override fun call(context: BuildOperationContext): String =
+                    action().also {
+                        context.setResult(object : Result {})
+                    }
+
+                override fun description(): BuildOperationDescriptor.Builder {
+                    val name = "Compile script ${scriptPath.substringAfterLast(File.separator)} ($stage)"
+                    return BuildOperationDescriptor.displayName(name).name(name).details(object : Details {
+                        override fun getStage(): String = stage
+                        override fun getLanguage(): String = "KOTLIN"
+                    })
+                }
+            })
 
         override fun setupEmbeddedKotlinFor(scriptHost: KotlinScriptHost<*>) {
             setupEmbeddedKotlinForBuildscript(scriptHost.scriptHandler)
