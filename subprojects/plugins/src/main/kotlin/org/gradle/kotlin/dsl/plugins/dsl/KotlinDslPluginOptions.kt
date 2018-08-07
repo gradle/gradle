@@ -41,56 +41,11 @@ class KotlinDslPluginOptions internal constructor(objects: ObjectFactory) {
     }
 
     /**
-     * Switch for the `kotlin-dsl` plugin `progressive` mode.
-     *
-     * The `kotlin-dsl` plugin relies on Kotlin compiler's progressive mode and experimental features
-     * to enable among other things SAM conversion for Kotlin functions.
-     *
-     * Once built and published, artifacts produced by this project will continue to work on future Gradle versions.
-     * However, you may have to fix the sources of this project after upgrading the Gradle wrapper of this build.
-     *
-     * Defaults to [ProgressiveModeState.WARN] which enables SAM conversion for Kotlin functions and issue a warning.
-     * Set to [ProgressiveModeState.ENABLED] to silence the warning.
-     * Set to [ProgressiveModeState.DISABLED] to disable and give up SAM conversion for Kotlin functions.
-     *
-     * @see ProgressiveModeState
-     * @see KotlinDslPlugin
+     * Set to `false` to silence the warning about the `kotlin-dsl` plugin enabling Kotlin compiler experimental features.
      */
-    val progressive = objects.property<ProgressiveModeState>().apply {
-        set(ProgressiveModeState.WARN)
+    val experimentalWarning = objects.property<Boolean>().apply {
+        set(true)
     }
-}
-
-
-/**
- * State of the `kotlin-dsl` plugin `progressive` mode.
- *
- * @see KotlinDslPluginOptions.progressive
- * @see KotlinDslPlugin
- */
-enum class ProgressiveModeState {
-
-    /**
-     * SAM conversion for Kotlin functions is enabled and a warning is issued.
-     * This is the default.
-     *
-     * @see KotlinDslPluginOptions.progressive
-     */
-    WARN,
-
-    /**
-     * SAM conversion for Kotlin functions is enabled.
-     *
-     * @see KotlinDslPluginOptions.progressive
-     */
-    ENABLED,
-
-    /**
-     * SAM conversion for Kotlin functions is disabled.
-     *
-     * @see KotlinDslPluginOptions.progressive
-     */
-    DISABLED
 }
 
 

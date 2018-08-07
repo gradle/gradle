@@ -1,5 +1,7 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
+import org.gradle.api.internal.DocumentationRegistry
+
 import org.gradle.kotlin.dsl.fixtures.customDaemonRegistry
 import org.gradle.kotlin.dsl.fixtures.customInstallation
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
@@ -218,7 +220,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    fun `by default SAM conversion for Kotlin functions is enabled and a warning is issued`() {
+    fun `by default experimental Kotlin compiler features are enabled and a warning is issued`() {
 
         withBuildExercisingSamConversionForKotlinFunctions()
 
@@ -240,36 +242,16 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
             assertThat(
                 output,
-                containsString(kotlinDslPluginProgressiveWarning)
+                containsString(experimentalWarningFor(":buildSrc"))
             )
         }
     }
 
     @Test
-    fun `can explicitly disable SAM conversion for Kotlin functions and get no warning`() {
+    fun `can explicitly disable experimental Kotlin compiler features warning`() {
 
         withBuildExercisingSamConversionForKotlinFunctions(
-            "kotlinDslPluginOptions.progressive.set(ProgressiveModeState.DISABLED)"
-        )
-
-        buildAndFail("test").apply {
-
-            assertThat(
-                output,
-                not(containsString(KotlinCompilerArguments.samConversionForKotlinFunctions))
-            )
-            assertThat(
-                output,
-                not(containsString(kotlinDslPluginProgressiveWarning))
-            )
-        }
-    }
-
-    @Test
-    fun `can explicitly enable SAM conversion for Kotlin functions and get no warning`() {
-
-        withBuildExercisingSamConversionForKotlinFunctions(
-            "kotlinDslPluginOptions.progressive.set(ProgressiveModeState.ENABLED)"
+            "kotlinDslPluginOptions.experimentalWarning.set(false)"
         )
 
         build("test").apply {
@@ -290,10 +272,17 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
             assertThat(
                 output,
-                not(containsString(kotlinDslPluginProgressiveWarning))
+                not(containsString(experimentalWarningFor(":buildSrc")))
             )
         }
     }
+
+    private
+    fun experimentalWarningFor(projectPath: String) =
+        kotlinDslPluginExperimentalWarning(
+            "project '$projectPath'",
+            DocumentationRegistry().getDocumentationFor("kotlin_dsl", "sec:kotlin-dsl_plugin")
+        )
 
     private
     fun withBuildExercisingSamConversionForKotlinFunctions(buildSrcScript: String = "") {
