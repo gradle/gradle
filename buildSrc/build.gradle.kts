@@ -1,5 +1,3 @@
-import org.gradle.kotlin.dsl.plugins.dsl.ProgressiveModeState
-import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
@@ -25,12 +23,10 @@ plugins {
 }
 
 kotlinDslPluginOptions {
-    progressive.set(ProgressiveModeState.ENABLED)
+    experimentalWarning.set(false)
 }
 
 apply(plugin = "org.gradle.kotlin.ktlint-convention")
-
-apply<PrecompiledScriptPlugins>()
 
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
