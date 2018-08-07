@@ -15,8 +15,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
                 id("org.gradle.kotlin.ktlint-convention")
             }
 
-            apply<org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins>()
-
             repositories { jcenter() }
         """)
 

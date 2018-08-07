@@ -1,11 +1,15 @@
 package org.gradle.kotlin.dsl.samples
 
 import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
+
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
+
 import java.io.File
 
 
+@Ignore("Requires a new `kotlin-dsl` plugin release")
 class PrecompiledScriptPluginSampleTest : AbstractSampleTest("precompiled-script-plugin") {
 
     @Test
