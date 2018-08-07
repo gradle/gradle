@@ -37,7 +37,7 @@ abstract class AbstractScriptCachingIntegrationTest : AbstractIntegrationTest() 
 
     protected
     fun gradleRunnerForCacheInspection(vararg arguments: String) =
-        gradleRunnerForArguments("-d", *arguments)
+        gradleRunnerForArguments("-d", "-Dorg.gradle.internal.operations.trace=${newFile("operation-trace")}", *arguments)
 
     protected
     fun buildWithAnotherDaemon(vararg arguments: String): BuildResult =

@@ -31,8 +31,18 @@ import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+
 import org.gradle.internal.hash.HashCode
+
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
+
+import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.CallableBuildOperation
+
+import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
+import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 
 import org.gradle.kotlin.dsl.cache.ScriptCache
 
@@ -84,7 +94,8 @@ class StandardKotlinScriptEvaluator(
     private val classPathHasher: ClasspathHasher,
     private val scriptCache: ScriptCache,
     private val implicitImports: ImplicitImports,
-    private val progressLoggerFactory: ProgressLoggerFactory
+    private val progressLoggerFactory: ProgressLoggerFactory,
+    private val buildOperationExecutor: BuildOperationExecutor
 ) : KotlinScriptEvaluator {
 
     override fun evaluate(
@@ -134,8 +145,25 @@ class StandardKotlinScriptEvaluator(
         Interpreter(InterpreterHost())
     }
 
-    private
     inner class InterpreterHost : Interpreter.Host {
+
+        override fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String =
+
+            buildOperationExecutor.call(object : CallableBuildOperation<String> {
+
+                override fun call(context: BuildOperationContext): String =
+                    action().also {
+                        context.setResult(object : Result {})
+                    }
+
+                override fun description(): BuildOperationDescriptor.Builder {
+                    val name = "Compile script ${scriptPath.substringAfterLast(File.separator)} ($stage)"
+                    return BuildOperationDescriptor.displayName(name).name(name).details(object : Details {
+                        override fun getStage(): String = stage
+                        override fun getLanguage(): String = "KOTLIN"
+                    })
+                }
+            })
 
         override fun setupEmbeddedKotlinFor(scriptHost: KotlinScriptHost<*>) {
             setupEmbeddedKotlinForBuildscript(scriptHost.scriptHandler)

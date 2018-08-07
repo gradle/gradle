@@ -32,7 +32,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.ScriptSource
 
 import org.gradle.internal.hash.HashCode
-
 import org.gradle.internal.resource.TextResource
 import org.gradle.internal.service.ServiceRegistry
 
@@ -42,6 +41,7 @@ import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.junit.Test
 
 import java.io.File
+
 import java.net.URLClassLoader
 
 
@@ -100,6 +100,8 @@ class InterpreterTest : TestWithTempFiles() {
         val host = mock<Interpreter.Host> {
 
             on { startCompilerOperation(any()) } doReturn compilerOperation
+
+            on { runCompileBuildOperation(any(), any(), any()) } doAnswer { it.getArgument<() -> String>(2)() }
 
             on {
                 cachedDirFor(

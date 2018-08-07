@@ -31,6 +31,8 @@ import org.gradle.testkit.runner.BuildResult
 import org.junit.ClassRule
 import org.junit.Test
 
+import java.io.File
+
 
 @LeaksFileHandles("""
     Daemons hold their daemon log file open after the build has finished, debug logging exacerbates this.
@@ -55,7 +57,12 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
             // when: first use
             buildForCacheInspection("help").apply {
-
+                compilationTrace(projectRoot) {
+                    assertScriptCompile(settingsFile.stage1)
+                    assertNoScriptCompile(settingsFile.stage2)
+                    assertNoScriptCompile(rootBuildFile.stage1)
+                    assertScriptCompile(rootBuildFile.stage2)
+                }
                 // then: single compilation and classloading
                 compilationCache {
                     misses(settingsFile, rootBuildFile, leftBuildFile)
@@ -70,6 +77,12 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
             // when: second use
             buildForCacheInspection("help").apply {
 
+                compilationTrace(projectRoot) {
+                    assertNoScriptCompile(settingsFile.stage1)
+                    assertNoScriptCompile(settingsFile.stage2)
+                    assertNoScriptCompile(rootBuildFile.stage1)
+                    assertNoScriptCompile(rootBuildFile.stage2)
+                }
                 // then: no compilation nor class loading
                 compilationCache {
                     hits(leftBuildFile, rootBuildFile, rightBuildFile)
@@ -326,3 +339,37 @@ fun BuildResult.assertOccurrenceCountOf(actionDisplayName: String, stage: Cached
 internal
 fun String.occurrenceCountOf(string: String) =
     split(string).size - 1
+
+
+internal
+fun compilationTrace(projectRoot: File, action: CompileTrace.() -> Unit) {
+    val file = File(projectRoot, "operation-trace-log.txt")
+    action(CompileTrace(file.readLines()))
+}
+
+
+internal
+class CompileTrace(private val operations: List<String>) {
+
+    fun assertScriptCompile(stage: CachedScript.CompilationStage) {
+        val description = operationDescription(stage)
+        require(operations.any { it.contains(description) }) {
+            "Expecting operation `$description`!"
+        }
+    }
+
+    fun assertNoScriptCompile(stage: CachedScript.CompilationStage) {
+        val description = operationDescription(stage)
+        require(!operations.any { it.contains(description) }) {
+            "Unexpected operation `$description`!"
+        }
+    }
+
+    private
+    fun operationDescription(stage: CachedScript.CompilationStage) =
+        "Compile script ${stage.file.name} (${descriptionOf(stage)})"
+
+    private
+    fun descriptionOf(stage: CachedScript.CompilationStage) =
+        if (stage.stage == "stage1") "CLASSPATH" else "BODY"
+}
