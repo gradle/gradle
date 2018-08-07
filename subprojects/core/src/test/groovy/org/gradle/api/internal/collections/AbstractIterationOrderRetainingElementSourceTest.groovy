@@ -178,4 +178,19 @@ abstract class AbstractIterationOrderRetainingElementSourceTest extends Abstract
         then:
         source.iterator().collect() == []
     }
+
+    def "comodification of pending elements causes exception"() {
+        given:
+        def provider = provider("bar")
+        source.add("foo")
+        source.addPending(provider)
+
+        when:
+        def iterator = source.iteratorNoFlush()
+        source.removePending(provider)
+        iterator.next()
+
+        then:
+        thrown(ConcurrentModificationException)
+    }
 }

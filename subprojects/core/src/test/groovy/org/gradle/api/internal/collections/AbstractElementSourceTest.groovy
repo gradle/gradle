@@ -209,6 +209,56 @@ abstract class AbstractElementSourceTest extends Specification {
         source.iterator().collect() == iterationOrder("foo", "baz", "fooz", "fizz")
     }
 
+    def "comodification with iterator causes an exception" () {
+        given:
+        def provider = provider("baz")
+        def providerOfSet = setProvider("fuzz", "buzz")
+        source.add("foo")
+        source.addPending(provider)
+        source.addPendingCollection(providerOfSet)
+
+        when:
+        def iterator = source.iteratorNoFlush()
+        source.add("bar")
+        iterator.next()
+
+        then:
+        thrown(ConcurrentModificationException)
+
+        when:
+        iterator = source.iteratorNoFlush()
+        source.remove("bar")
+        iterator.next()
+
+        then:
+        thrown(ConcurrentModificationException)
+
+        when:
+        iterator = source.iteratorNoFlush()
+        source.realizePending()
+        iterator.next()
+
+        then:
+        thrown(ConcurrentModificationException)
+
+        when:
+        iterator = source.iteratorNoFlush()
+        iterator.next()
+        source.remove("foo")
+        iterator.remove()
+
+        then:
+        thrown(ConcurrentModificationException)
+
+        when:
+        iterator = source.iteratorNoFlush()
+        providerOfSet.value = ["fizz"]
+        iterator.next()
+
+        then:
+        thrown(ConcurrentModificationException)
+    }
+
     ProviderInternal<? extends String> provider(String value) {
         return new TypedProvider(String, value)
     }

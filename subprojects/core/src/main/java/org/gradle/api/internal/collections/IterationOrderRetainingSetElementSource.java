@@ -36,16 +36,17 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
     @Override
     public Iterator<T> iterator() {
         realizePending();
-        return new RealizedElementCollectionIterator<T>(getInserted(), noDuplicates);
+        return new RealizedElementCollectionIterator(getInserted(), noDuplicates);
     }
 
     @Override
     public Iterator<T> iteratorNoFlush() {
-        return new RealizedElementCollectionIterator<T>(getInserted(), noDuplicates);
+        return new RealizedElementCollectionIterator(getInserted(), noDuplicates);
     }
 
     @Override
     public boolean add(T element) {
+        modCount++;
         if (!Iterators.contains(iteratorNoFlush(), element)) {
             getInserted().add(new Element<T>(element));
             return true;
@@ -91,6 +92,7 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
 
     @Override
     public boolean addPending(ProviderInternal<? extends T> provider) {
+        modCount++;
         Element<T> element = cachingElement(provider);
         if (!getInserted().contains(element)) {
             getInserted().add(element);
@@ -102,6 +104,7 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
 
     @Override
     public boolean addPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+        modCount++;
         Element<T> element = cachingElement(provider);
         if (!getInserted().contains(element)) {
             getInserted().add(element);
