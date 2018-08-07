@@ -55,7 +55,7 @@ open class EmbeddedKotlinPlugin @Inject internal constructor(
                 embeddedKotlinConfiguration.name,
                 "stdlib-jdk8", "reflect")
 
-            listOf("compileOnly", "testCompileOnly").forEach {
+            listOf("compileOnly", "testImplementation").forEach {
                 configurations.getByName(it).extendsFrom(embeddedKotlinConfiguration)
             }
 

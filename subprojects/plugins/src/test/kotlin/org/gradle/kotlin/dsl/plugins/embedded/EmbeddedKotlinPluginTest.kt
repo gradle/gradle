@@ -62,7 +62,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
                 register("assertions") {
                     doLast {
                         val requiredLibs = listOf("kotlin-stdlib-jdk8-$embeddedKotlinVersion.jar", "kotlin-reflect-$embeddedKotlinVersion.jar")
-                        listOf("compileOnly", "testCompileOnly").forEach { configuration ->
+                        listOf("compileOnly", "testRuntimeClasspath").forEach { configuration ->
                             require(configurations[configuration].files.map { it.name }.containsAll(requiredLibs), {
                                 "Embedded Kotlin libraries not found in ${'$'}configuration"
                             })
