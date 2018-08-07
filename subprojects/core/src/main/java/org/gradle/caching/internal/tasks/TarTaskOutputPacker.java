@@ -18,6 +18,7 @@ package org.gradle.caching.internal.tasks;
 
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -62,6 +63,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
@@ -284,9 +286,13 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         parser.rootPath(rootEntry.getName());
 
         MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
+        Deque<String> directoryPaths = Lists.newLinkedList();
+        Deque<String> directoryNames = Lists.newLinkedList();
         String rootPath = stringInterner.intern(propertyRoot.getAbsolutePath());
         String rootDirName = stringInterner.intern(propertyRoot.getName());
-        builder.preVisitDirectory(rootPath, rootDirName);
+        directoryPaths.addLast(rootPath);
+        directoryNames.addLast(rootDirName);
+        builder.preVisitDirectory();
 
         TarArchiveEntry entry;
 
@@ -295,7 +301,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             boolean isDir = entry.isDirectory();
             int directoriesLeft = parser.nextPath(entry.getName(), isDir);
             for (int i = 0; i < directoriesLeft; i++) {
-                builder.postVisitDirectory();
+                builder.postVisitDirectory(directoryPaths.removeLast(), directoryNames.removeLast());
             }
             if (parser.getDepth() == 0) {
                 break;
@@ -307,7 +313,9 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
                 chmodUnpackedFile(entry, outputFile);
                 String outputPath = stringInterner.intern(outputFile.getAbsolutePath());
                 String outputDirName = stringInterner.intern(parser.getName());
-                builder.preVisitDirectory(outputPath, outputDirName);
+                directoryPaths.addLast(outputPath);
+                directoryNames.addLast(outputDirName);
+                builder.preVisitDirectory();
             } else {
                 PhysicalFileSnapshot fileSnapshot = unpackFile(input, entry, outputFile, outputFile.getAbsolutePath(), parser.getName());
                 builder.visit(fileSnapshot);
@@ -315,7 +323,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
 
         for (int i = 0; i < parser.getDepth(); i++) {
-            builder.postVisitDirectory();
+            builder.postVisitDirectory(directoryPaths.removeLast(), directoryNames.removeLast());
         }
 
         snapshots.put(propertyName, builder.getResult());

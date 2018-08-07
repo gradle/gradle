@@ -31,11 +31,10 @@ import java.util.List;
 public class MerkleDirectorySnapshotBuilder implements PhysicalSnapshotVisitor {
     private static final HashCode DIR_SIGNATURE = Hashing.md5().hashString("DIR");
 
-    private final RelativePathSegmentsTracker relativePathSegmentsTracker = new RelativePathSegmentsTracker();
     private final Deque<List<PhysicalSnapshot>> levelHolder = new ArrayDeque<List<PhysicalSnapshot>>();
-    private final Deque<String> directoryAbsolutePaths = new ArrayDeque<String>();
     private final boolean sortingRequired;
     private PhysicalSnapshot result;
+    private int depth;
 
     public static MerkleDirectorySnapshotBuilder sortingRequired() {
         return new MerkleDirectorySnapshotBuilder(true);
@@ -49,21 +48,20 @@ public class MerkleDirectorySnapshotBuilder implements PhysicalSnapshotVisitor {
         this.sortingRequired = sortingRequired;
     }
 
-    public boolean preVisitDirectory(String absolutePath, String name) {
-        relativePathSegmentsTracker.enter(name);
+    public boolean preVisitDirectory() {
+        depth++;
         levelHolder.addLast(new ArrayList<PhysicalSnapshot>());
-        directoryAbsolutePaths.addLast(absolutePath);
         return true;
     }
 
     @Override
     public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
-        return preVisitDirectory(directorySnapshot.getAbsolutePath(), directorySnapshot.getName());
+        return preVisitDirectory();
     }
 
     @Override
     public void visit(PhysicalSnapshot fileSnapshot) {
-        if (relativePathSegmentsTracker.isRoot()) {
+        if (depth == 0) {
             result = fileSnapshot;
         } else {
             levelHolder.peekLast().add(fileSnapshot);
@@ -72,17 +70,20 @@ public class MerkleDirectorySnapshotBuilder implements PhysicalSnapshotVisitor {
 
     @Override
     public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
-        postVisitDirectory(true);
+        postVisitDirectory(directorySnapshot, true);
     }
 
-    public void postVisitDirectory() {
-        postVisitDirectory(true);
+    public boolean postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot, boolean includeEmpty) {
+        return postVisitDirectory(directorySnapshot.getAbsolutePath(), directorySnapshot.getName(), includeEmpty);
     }
 
-    public boolean postVisitDirectory(boolean includeEmpty) {
-        String name = relativePathSegmentsTracker.leave();
+    public void postVisitDirectory(String absolutePath, String name) {
+        postVisitDirectory(absolutePath, name, true);
+    }
+
+    public boolean postVisitDirectory(String absolutePath, String name, boolean includeEmpty) {
+        depth--;
         List<PhysicalSnapshot> children = levelHolder.removeLast();
-        String absolutePath = directoryAbsolutePaths.removeLast();
         if (children.isEmpty() && !includeEmpty) {
             return false;
         }
@@ -106,11 +107,7 @@ public class MerkleDirectorySnapshotBuilder implements PhysicalSnapshotVisitor {
     }
 
     public boolean isRoot() {
-        return relativePathSegmentsTracker.isRoot();
-    }
-
-    public Iterable<String> getRelativePath() {
-        return relativePathSegmentsTracker.getRelativePath();
+        return depth == 0;
     }
 
     @Nullable

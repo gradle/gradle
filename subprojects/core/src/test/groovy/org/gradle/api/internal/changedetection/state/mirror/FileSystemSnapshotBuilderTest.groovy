@@ -41,7 +41,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
         Set<String> relativePaths = [] as Set
         def result = builder.build()
         result.accept(new PhysicalSnapshotVisitor() {
-            private final relativePathTracker = new RelativePathSegmentsTracker()
+            private final relativePathTracker = new RelativePathStringTracker()
 
             @Override
             boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
@@ -49,7 +49,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
                 relativePathTracker.enter(directorySnapshot)
                 if (!isRoot) {
                     files.add(directorySnapshot.absolutePath)
-                    relativePaths.add(relativePathTracker.relativePath.join("/"))
+                    relativePaths.add(relativePathTracker.getRelativePathString())
                 }
                 return true
             }
@@ -57,9 +57,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
             @Override
             void visit(PhysicalSnapshot fileSnapshot) {
                 files.add(fileSnapshot.absolutePath)
-                relativePathTracker.enter(fileSnapshot)
-                relativePaths.add(relativePathTracker.relativePath.join("/"))
-                relativePathTracker.leave()
+                relativePaths.add(relativePathTracker.getRelativePathString(fileSnapshot.name))
             }
 
             @Override

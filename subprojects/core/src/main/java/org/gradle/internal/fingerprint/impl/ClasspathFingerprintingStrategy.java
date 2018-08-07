@@ -17,7 +17,6 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.JarHasher;
@@ -127,9 +126,10 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         private final Factory<String[]> relativePathFactory = new Factory<String[]>() {
             @Override
             public String[] create() {
-                return Iterables.toArray(relativePathSegmentsTracker.getRelativePath(), String.class);
+                return relativePathSegmentsTracker.getSegments(currentFileSnapshot.getName());
             }
         };
+        private PhysicalSnapshot currentFileSnapshot;
 
         public ClasspathContentSnapshottingVisitor(ClasspathSnapshotVisitor delegate) {
             this.delegate = delegate;
@@ -143,6 +143,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
 
         @Override
         public void visit(PhysicalSnapshot fileSnapshot) {
+            currentFileSnapshot = fileSnapshot;
             if (fileSnapshot.getType() == FileType.RegularFile) {
                 HashCode normalizedContent = fingerprintFile((PhysicalFileSnapshot) fileSnapshot);
                 if (normalizedContent != null) {
@@ -158,9 +159,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
 
         @Nullable
         private HashCode fingerprintTreeFile(PhysicalFileSnapshot fileSnapshot) {
-            relativePathSegmentsTracker.enter(fileSnapshot);
             boolean shouldBeIgnored = classpathResourceFilter.shouldBeIgnored(relativePathFactory);
-            relativePathSegmentsTracker.leave();
             if (shouldBeIgnored) {
                 return null;
             }
@@ -225,10 +224,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         }
 
         private NormalizedFileSnapshot createNormalizedSnapshot(PhysicalSnapshot snapshot, HashCode content) {
-            relativePathStringTracker.enter(snapshot);
-            NormalizedFileSnapshot normalizedFileSnapshot = new DefaultNormalizedFileSnapshot(stringInterner.intern(relativePathStringTracker.getRelativePathString()), FileType.RegularFile, content);
-            relativePathStringTracker.leave();
-            return normalizedFileSnapshot;
+            return new DefaultNormalizedFileSnapshot(stringInterner.intern(relativePathStringTracker.getRelativePathString(snapshot.getName())), FileType.RegularFile, content);
         }
 
         public void postVisitDirectory() {

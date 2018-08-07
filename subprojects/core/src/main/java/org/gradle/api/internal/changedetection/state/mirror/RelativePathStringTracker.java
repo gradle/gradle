@@ -58,4 +58,11 @@ public class RelativePathStringTracker {
     public String getRelativePathString() {
         return relativePathStrings.getLast();
     }
+
+    public String getRelativePathString(String name) {
+        if (relativePathStrings.isEmpty()) {
+            return name;
+        }
+        return relativePathStrings.getLast() + '/' + name;
+    }
 }

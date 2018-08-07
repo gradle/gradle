@@ -223,6 +223,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 private MerkleDirectorySnapshotBuilder merkleBuilder;
                 private boolean currentRootFiltered = false;
                 private PhysicalDirectorySnapshot currentRoot;
+                private int depth;
 
                 @Override
                 public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
@@ -231,7 +232,8 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                         currentRoot = directorySnapshot;
                         currentRootFiltered = false;
                     }
-                    merkleBuilder.preVisitDirectory(directorySnapshot);
+                    merkleBuilder.preVisitDirectory();
+                    depth++;
                     return true;
                 }
 
@@ -252,12 +254,13 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 @Override
                 public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
                     boolean isOutputDir = isOutputEntry(directorySnapshot, beforeExecutionSnapshots, afterPreviousSnapshots);
-                    boolean includedDir = merkleBuilder.postVisitDirectory(isOutputDir);
+                    boolean includedDir = merkleBuilder.postVisitDirectory(directorySnapshot, isOutputDir);
+                    depth--;
                     if (!includedDir) {
                         currentRootFiltered = true;
                         hasBeenFiltered.set(true);
                     }
-                    if (merkleBuilder.isRoot()) {
+                    if (depth == 0) {
                         PhysicalSnapshot result = merkleBuilder.getResult();
                         if (result != null) {
                             newRoots.add(currentRootFiltered ? result : currentRoot);

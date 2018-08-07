@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state.mirror;
 
-import com.google.common.collect.Iterables;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
@@ -42,34 +41,29 @@ public class FileSystemSnapshotFilter {
 
             @Override
             public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
-                boolean root = relativePathTracker.isRoot();
-                relativePathTracker.enter(directorySnapshot);
-                if (root || spec.isSatisfiedBy(new LogicalFileTreeElement(directorySnapshot, relativePathTracker.getRelativePath(), fileSystem))) {
-                    builder.preVisitDirectory(directorySnapshot);
+                if (relativePathTracker.isRoot() || spec.isSatisfiedBy(new LogicalFileTreeElement(directorySnapshot, relativePathTracker, fileSystem))) {
+                    relativePathTracker.enter(directorySnapshot);
+                    builder.preVisitDirectory();
                     return true;
                 } else {
                     hasBeenFiltered.set(true);
+                    return false;
                 }
-                relativePathTracker.leave();
-                return false;
             }
 
             @Override
             public void visit(PhysicalSnapshot fileSnapshot) {
-                boolean root = relativePathTracker.isRoot();
-                relativePathTracker.enter(fileSnapshot);
-                if (root || spec.isSatisfiedBy(new LogicalFileTreeElement(fileSnapshot, relativePathTracker.getRelativePath(), fileSystem))) {
+                if (relativePathTracker.isRoot() || spec.isSatisfiedBy(new LogicalFileTreeElement(fileSnapshot, relativePathTracker, fileSystem))) {
                     builder.visit(fileSnapshot);
                 } else {
                     hasBeenFiltered.set(true);
                 }
-                relativePathTracker.leave();
             }
 
             @Override
             public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
                 relativePathTracker.leave();
-                builder.postVisitDirectory();
+                builder.postVisitDirectory(directorySnapshot);
             }
         });
         if (builder.getResult() == null) {
@@ -86,16 +80,16 @@ public class FileSystemSnapshotFilter {
      * in dynamic Groovy code.
      */
     private static class LogicalFileTreeElement extends AbstractFileTreeElement {
-        private final Iterable<String> _relativePathIterable;
         private final FileSystem _fileSystem;
         private final PhysicalSnapshot _snapshot;
+        private final RelativePathSegmentsTracker _relativePathTracker;
         private RelativePath _relativePath;
         private File _file;
 
-        public LogicalFileTreeElement(PhysicalSnapshot snapshot, Iterable<String> relativePathIterable, FileSystem fileSystem) {
+        public LogicalFileTreeElement(PhysicalSnapshot snapshot, RelativePathSegmentsTracker relativePathTracker, FileSystem fileSystem) {
             super(fileSystem);
             this._snapshot = snapshot;
-            this._relativePathIterable = relativePathIterable;
+            this._relativePathTracker = relativePathTracker;
             this._fileSystem = fileSystem;
         }
 
@@ -135,7 +129,7 @@ public class FileSystemSnapshotFilter {
         @Override
         public RelativePath getRelativePath() {
             if (_relativePath == null) {
-                _relativePath = new RelativePath(!isDirectory(), Iterables.toArray(_relativePathIterable, String.class));
+                _relativePath = new RelativePath(!isDirectory(), _relativePathTracker.getSegments(_snapshot.getName()));
             }
             return _relativePath;
         }

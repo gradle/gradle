@@ -19,7 +19,6 @@ package org.gradle.api.internal.changedetection.state.mirror;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.GradleException;
@@ -71,14 +70,16 @@ public class MirrorUpdatingDirectoryWalker {
         Path rootPath = Paths.get(absolutePath);
         final Spec<FileTreeElement> spec = (patterns == null || patterns.isEmpty()) ? null : patterns.getAsSpec();
         final MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
+        final RelativePathSegmentsTracker relativePathTracker = new RelativePathSegmentsTracker();
 
         try {
             Files.walkFileTree(rootPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new java.nio.file.FileVisitor<Path>() {
                 @Override
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
                     String name = stringInterner.intern(dir.getFileName().toString());
-                    if (builder.isRoot() || isAllowed(dir, name, true, attrs, builder.getRelativePath())) {
-                        builder.preVisitDirectory(internedAbsolutePath(dir), name);
+                    if (relativePathTracker.isRoot() || isAllowed(dir, name, true, attrs)) {
+                        relativePathTracker.enter(name);
+                        builder.preVisitDirectory();
                         return FileVisitResult.CONTINUE;
                     } else {
                         return FileVisitResult.SKIP_SUBTREE;
@@ -88,7 +89,7 @@ public class MirrorUpdatingDirectoryWalker {
                 @Override
                 public FileVisitResult visitFile(Path file, @Nullable BasicFileAttributes attrs) {
                     String name = stringInterner.intern(file.getFileName().toString());
-                    if (isAllowed(file, name, false, attrs, builder.getRelativePath())) {
+                    if (isAllowed(file, name, false, attrs)) {
                         if (attrs == null) {
                             throw new GradleException(String.format("Cannot read file '%s': not authorized.", file));
                         }
@@ -106,7 +107,7 @@ public class MirrorUpdatingDirectoryWalker {
                     // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue
                     // so we include all the other files apart from the loop.
                     // This way, we include each file only once.
-                    if (isNotFileSystemLoopException(exc) && isAllowed(file, file.getFileName().toString(), false, null, builder.getRelativePath())) {
+                    if (isNotFileSystemLoopException(exc) && isAllowed(file, file.getFileName().toString(), false, null)) {
                         throw new GradleException(String.format("Could not read path '%s'.", file), exc);
                     }
                     return FileVisitResult.CONTINUE;
@@ -120,7 +121,9 @@ public class MirrorUpdatingDirectoryWalker {
                     if (isNotFileSystemLoopException(exc)) {
                         throw new GradleException(String.format("Could not read directory path '%s'.", dir), exc);
                     }
-                    builder.postVisitDirectory();
+                    String internedAbsolutePath = internedAbsolutePath(dir);
+                    String internedName = relativePathTracker.leave();
+                    builder.postVisitDirectory(internedAbsolutePath, internedName);
                     return FileVisitResult.CONTINUE;
                 }
 
@@ -140,7 +143,7 @@ public class MirrorUpdatingDirectoryWalker {
                     return stringInterner.intern(file.toString());
                 }
 
-                private boolean isAllowed(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath) {
+                private boolean isAllowed(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs) {
                     if (isDirectory) {
                         if (defaultExcludes.excludeDir(name)) {
                             return false;
@@ -151,7 +154,7 @@ public class MirrorUpdatingDirectoryWalker {
                     if (spec == null) {
                         return true;
                     }
-                    boolean allowed = spec.isSatisfiedBy(new PathBackedFileTreeElement(path, name, isDirectory, attrs, relativePath, fileSystem));
+                    boolean allowed = spec.isSatisfiedBy(new PathBackedFileTreeElement(path, name, isDirectory, attrs, relativePathTracker, fileSystem));
                     if (!allowed) {
                         hasBeenFiltered.set(true);
                     }
@@ -238,15 +241,15 @@ public class MirrorUpdatingDirectoryWalker {
         private final String name;
         private final boolean isDirectory;
         private final BasicFileAttributes attrs;
-        private final Iterable<String> relativePath;
+        private final RelativePathSegmentsTracker relativePathTracker;
         private final Stat stat;
 
-        public PathBackedFileTreeElement(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath, Stat stat) {
+        public PathBackedFileTreeElement(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, RelativePathSegmentsTracker relativePathTracker, Stat stat) {
             this.path = path;
             this.name = name;
             this.isDirectory = isDirectory;
             this.attrs = attrs;
-            this.relativePath = relativePath;
+            this.relativePathTracker = relativePathTracker;
             this.stat = stat;
         }
 
@@ -305,14 +308,7 @@ public class MirrorUpdatingDirectoryWalker {
 
         @Override
         public RelativePath getRelativePath() {
-            String[] segments = new String[Iterables.size(relativePath) + 1];
-            int i = 0;
-            for (String segment : relativePath) {
-                segments[i] = segment;
-                i++;
-            }
-            segments[i] = name;
-            return new RelativePath(!isDirectory, segments);
+            return new RelativePath(!isDirectory, relativePathTracker.getSegments(name));
         }
 
         @Override

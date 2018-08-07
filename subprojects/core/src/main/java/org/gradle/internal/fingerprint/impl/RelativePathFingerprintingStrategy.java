@@ -72,10 +72,7 @@ public class RelativePathFingerprintingStrategy implements FingerprintingStrateg
                 }
 
                 private NormalizedFileSnapshot createNormalizedFileSnapshot(PhysicalSnapshot fileSnapshot) {
-                    relativePathStringTracker.enter(fileSnapshot);
-                    NormalizedFileSnapshot normalizedFileSnapshot = new DefaultNormalizedFileSnapshot(stringInterner.intern(relativePathStringTracker.getRelativePathString()), fileSnapshot);
-                    relativePathStringTracker.leave();
-                    return normalizedFileSnapshot;
+                    return new DefaultNormalizedFileSnapshot(stringInterner.intern(relativePathStringTracker.getRelativePathString(fileSnapshot.getName())), fileSnapshot);
                 }
 
                 @Override

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state.mirror;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 import java.util.Deque;
@@ -52,8 +53,15 @@ public class RelativePathSegmentsTracker {
         }
     }
 
-    public Iterable<String> getRelativePath() {
-        return relativePath;
+    public String[] getSegments(String name) {
+        String[] segments = new String[Iterables.size(relativePath) + 1];
+        int i = 0;
+        for (String segment : relativePath) {
+            segments[i] = segment;
+            i++;
+        }
+        segments[i] = name;
+        return segments;
     }
 
     public boolean isRoot() {

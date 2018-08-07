@@ -78,9 +78,9 @@ public class FileSystemSnapshotBuilder {
             return FileSystemSnapshot.EMPTY;
         }
         MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
-        builder.preVisitDirectory(rootPath, rootName);
+        builder.preVisitDirectory();
         rootDirectoryBuilder.accept(rootPath, builder);
-        builder.postVisitDirectory();
+        builder.postVisitDirectory(rootPath, rootName);
         return Preconditions.checkNotNull(builder.getResult());
     }
 
@@ -131,9 +131,9 @@ public class FileSystemSnapshotBuilder {
             for (Map.Entry<String, DirectoryBuilder> entry : subDirs.entrySet()) {
                 String dirName = entry.getKey();
                 String dirPath = stringInterner.intern(directoryPath + File.separatorChar + dirName);
-                builder.preVisitDirectory(dirPath, dirName);
+                builder.preVisitDirectory();
                 entry.getValue().accept(dirPath, builder);
-                builder.postVisitDirectory();
+                builder.postVisitDirectory(dirPath, dirName);
             }
             for (PhysicalFileSnapshot fileSnapshot : files.values()) {
                 builder.visit(fileSnapshot);
