@@ -82,13 +82,15 @@ class DistributionTestingPlugin : Plugin<Project> {
             layout.directoryProperty(layout.projectDirectory.dir(providers.provider { directory().absolutePath }))
 
         gradleInstallationForTest.apply {
-            // TODO Refactor to not reach into tasks of another project
             val intTestImage: Sync by project.tasks
-            val toolingApiShadedJar: ShadedJar by project.rootProject.project(":toolingApi").tasks
             gradleUserHomeDir.set(layout.projectDirectory.dir("intTestHomeDir"))
             daemonRegistry.set(layout.buildDirectory.dir("daemon"))
             gradleHomeDir.set(dirWorkaround { intTestImage.destinationDir })
-            toolingApiShadedJarDir.set(dirWorkaround { toolingApiShadedJar.jarFile.get().asFile.parentFile })
+            toolingApiShadedJarDir.set(dirWorkaround {
+                // TODO Refactor to not reach into tasks of another project
+                val toolingApiShadedJar: ShadedJar by project.rootProject.project(":toolingApi").tasks
+                toolingApiShadedJar.jarFile.get().asFile.parentFile
+            })
         }
 
         libsRepository.dir.set(layout.projectDirectory.dir("build/repo"))
