@@ -978,25 +978,25 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     public void beforeEvaluate(Action<? super Project> action) {
         assertMutatingMethodAllowed("Project#beforeEvaluate(Action)");
-        evaluationListener.add("beforeEvaluate", getListenerBuildOperationDecorator().decorate("beforeEvaluate", action));
+        evaluationListener.add("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Project.beforeEvaluate", action));
     }
 
     @Override
     public void afterEvaluate(Action<? super Project> action) {
         assertMutatingMethodAllowed("Project#afterEvaluate(Action)");
-        evaluationListener.add("afterEvaluate", getListenerBuildOperationDecorator().decorate("afterEvaluate", action));
+        evaluationListener.add("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", action));
     }
 
     @Override
     public void beforeEvaluate(Closure closure) {
         assertMutatingMethodAllowed("Project#beforeEvaluate(Closure)");
-        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", getListenerBuildOperationDecorator().decorate("beforeEvaluate", closure)));
+        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Project.beforeEvaluate", closure)));
     }
 
     @Override
     public void afterEvaluate(Closure closure) {
         assertMutatingMethodAllowed("Project#afterEvaluate(Closure)");
-        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", getListenerBuildOperationDecorator().decorate("afterEvaluate", closure)));
+        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", closure)));
     }
 
     @Override
