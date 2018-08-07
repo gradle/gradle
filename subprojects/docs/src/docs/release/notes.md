@@ -6,9 +6,11 @@ This will result in significantly reduced Java compilation time in subsequent bu
 Chances are caches in those `.gradle/` directories have accumulated a few (or a few dozen) gigabytes over time.
 If so, you'll be relieved to know that Gradle will now [periodically clean up unused `/caches`](#periodic-cache-cleanup) under `GRADLE_USER_HOME` and project root directories. 
 
-A moment you have anticipated is nearly here, as the [Kotlin DSL reaches version 1.0 RC1](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC1) with this release of Gradle.
-Configuration avoidance, script compilation caching, buildSrc refactoring propagation, and lots of DSL polish make this the release to try.
-_If you are interested in using the Kotlin DSL, please check out the [migration guide](https://guides.gradle.org/migrating-build-logic-from-groovy-to-kotlin/) and file issues in the [gradle/kotlin-dsl](https://github.com/gradle/kotlin-dsl) project._ 
+A moment you have anticipated is nearly here, as the [Kotlin DSL reaches version 1.0 RC1](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC1). 
+Configuration avoidance, `buildSrc` refactoring propagation to the IDE, and lots of DSL polish make this the release to try.
+The RC phase will span until the next Gradle version that will ship with the Gradle Kotlin DSL 1.0.
+Please give it a go and file issues in the [gradle/kotlin-dsl](https://github.com/gradle/kotlin-dsl) project.
+_If you are interested in using the Kotlin DSL, please check out the [Gradle guides](https://gradle.org/guides/), especially the [Groovy DSL to Kotlin DSL migration guide](https://guides.gradle.org/migrating-build-logic-from-groovy-to-kotlin/)._
 
 You can now use [SNAPSHOT plugin versions with the `plugins {}`](#use-snapshot-plugin-versions-with-the-plugins-{}-block) and `pluginManagement {}` blocks.
 This is especially good news for Kotlin DSL users, who will get code assistance and auto-completion for these `SNAPSHOT` plugins. 
@@ -138,9 +140,18 @@ These methods have been deprecated and the `create()` or `register()` methods sh
 
 ## Potential breaking changes
 
-### Kotlin DSL breakages
+### Changes to the Gradle Kotlin DSL
 
-- `project.java.sourceSets` is now `project.sourceSets`
+The Kotlin DSL now enables the _SAM conversion for Kotlin functions_ Kotlin compiler feature in order to expose an uniform `org.gradle.api.Action<T>` based API to both Groovy DSL and Kotlin DSL scripts.
+
+The DSL types and behavior of containers elements delegated properties (e.g. `val jar by tasks`) and containers scopes (e.g. `tasks { }`) changed.
+
+The source set container can now be accessed using `project.sourceSets`, or just `sourceSets`.
+Previously it was located at `project.java.sourceSets`, or just `java.sourceSets`.  
+
+All these changes could cause script compilation errors.
+
+See the [release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC1) for more information and how to fix builds broken by the changes described above.
 
 ### Restricting cross-configuration and lifecycle hooks from lazy configuration APIs
 
