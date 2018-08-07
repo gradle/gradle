@@ -18,6 +18,7 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.KotlinDslTestUtil
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
@@ -113,9 +114,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractPluginIntegration
     }
 
     def withKotlinBuildSrc() {
-        file("buildSrc/build.gradle.kts") << """
-            plugins { `kotlin-dsl` }
-        """
+        file("buildSrc/build.gradle.kts") << KotlinDslTestUtil.kotlinDslBuildSrcScript
     }
 
     private static String customKotlinTask(String suffix = "") {

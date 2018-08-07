@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
+import org.gradle.integtests.fixtures.KotlinDslTestUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -97,11 +98,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
         // This behaviour is temporary and will be removed once the Kotlin DSL
         // upgrades to the next GA release of Kotlin.
         file('buildSrc/settings.gradle.kts') << ""
-        file('buildSrc/build.gradle.kts') << """
-            plugins {
-                `kotlin-dsl`
-            }
-        """
+        file('buildSrc/build.gradle.kts') << KotlinDslTestUtil.kotlinDslBuildSrcScript
         file("buildSrc/src/main/kotlin/TaskWithNestedAction.kt") << """
             import org.gradle.api.DefaultTask
             import org.gradle.api.tasks.Nested
