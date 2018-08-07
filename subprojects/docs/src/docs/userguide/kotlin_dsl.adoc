@@ -64,9 +64,6 @@ Sets the target version of the generated JVM bytecode to `1.8`.
 Sets up Java interoperability to strictly follow JSR-305 annotations for more null safety.
 See link:https://kotlinlang.org/docs/reference/java-interop.html#compiler-configuration[Calling Java code from Kotlin] in the Kotlin documentation for more information.
 
-`-Xprogressive`::
-Enable Kotlin compiler progressive mode
-
 `-XX:NewInference`::
 Enable the experimental Kotlin compiler inference engine
 
