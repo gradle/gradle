@@ -33,15 +33,13 @@ class TransformArtifactOperation implements RunnableBuildOperation {
     private final ComponentArtifactIdentifier artifactId;
     private final File file;
     private final ArtifactTransformer transform;
-    private final BuildOperationCategory category;
     private Throwable failure;
     private List<File> result;
 
-    TransformArtifactOperation(ComponentArtifactIdentifier artifactId,  File file, ArtifactTransformer transform, BuildOperationCategory category) {
+    TransformArtifactOperation(ComponentArtifactIdentifier artifactId, File file, ArtifactTransformer transform) {
         this.artifactId = artifactId;
         this.file = file;
         this.transform = transform;
-        this.category = category;
     }
 
     @Override
@@ -61,7 +59,7 @@ class TransformArtifactOperation implements RunnableBuildOperation {
         String displayName = "Transform " + artifactId.getDisplayName() + " with " + transform.getDisplayName();
         return BuildOperationDescriptor.displayName(displayName)
             .progressDisplayName(displayName)
-            .operationType(category);
+            .operationType(BuildOperationCategory.UNCATEGORIZED);
     }
 
     @Nullable

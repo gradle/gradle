@@ -22,6 +22,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
@@ -72,8 +73,14 @@ public class ScalaBasePlugin implements Plugin<Project> {
         configureScaladoc(project, scalaRuntime);
     }
 
-    private static void configureConfigurations(Project project) {
-        project.getConfigurations().create(ZINC_CONFIGURATION_NAME).setVisible(false).setDescription("The Zinc incremental compiler to be used for this Scala project.");
+    private static void configureConfigurations(final Project project) {
+        project.getConfigurations().create(ZINC_CONFIGURATION_NAME).setVisible(false).setDescription("The Zinc incremental compiler to be used for this Scala project.")
+            .defaultDependencies(new Action<DependencySet>() {
+                @Override
+                public void execute(DependencySet dependencies) {
+                    dependencies.add(project.getDependencies().create("com.typesafe.zinc:zinc:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION));
+                }
+            });
     }
 
     private static ScalaRuntime configureScalaRuntimeExtension(Project project) {
@@ -160,11 +167,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 compile.getConventionMapping().map("zincClasspath", new Callable<Configuration>() {
                     @Override
                     public Configuration call() throws Exception {
-                        Configuration config = project.getConfigurations().getAt(ZINC_CONFIGURATION_NAME);
-                        if (config.getDependencies().isEmpty()) {
-                            project.getDependencies().add("zinc", "com.typesafe.zinc:zinc:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION);
-                        }
-                        return config;
+                        return project.getConfigurations().getAt(ZINC_CONFIGURATION_NAME);
                     }
                 });
             }

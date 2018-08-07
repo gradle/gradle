@@ -44,8 +44,6 @@ import org.gradle.plugins.ide.idea.GenerateIdeaProject
 import org.gradle.plugins.ide.idea.GenerateIdeaWorkspace
 import org.gradle.plugins.signing.Sign
 import org.gradle.util.GradleVersion
-import spock.lang.Issue
-
 /**
  * Tests that task classes compiled against earlier versions of Gradle are still compatible.
  */
@@ -210,43 +208,5 @@ apply plugin: SomePlugin
         then:
         version previous requireGradleDistribution() withTasks 'assemble' inDirectory(file("producer")) run()
         version current requireGradleDistribution() withTasks 't' run()
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/6027")
-    def "task can use project.file() from statically typed Groovy"() {
-        when:
-        file("producer/build.gradle") << """
-            apply plugin: 'groovy'
-            dependencies {
-                ${previous.version < GradleVersion.version("1.4-rc-1") ? "groovy" : "compile"} localGroovy()
-                compile gradleApi()
-            }
-        """
-
-        file("producer/src/main/groovy/SubclassTask.groovy") << """
-            import groovy.transform.CompileStatic
-            import org.gradle.api.DefaultTask
-            import org.gradle.api.tasks.TaskAction
-
-            @CompileStatic
-            class SubclassTask extends DefaultTask {
-                @TaskAction
-                void doGet() {
-                    project.file("file.txt")
-                }
-            }
-        """
-
-        buildFile << """
-            buildscript {
-                dependencies { classpath fileTree(dir: "producer/build/libs", include: '*.jar') }
-            }
-
-            task task(type: SubclassTask)
-        """
-
-        then:
-        version previous requireGradleDistribution() withTasks 'assemble' inDirectory(file("producer")) run()
-        version current requireGradleDistribution() withTasks 'task' run()
     }
 }
