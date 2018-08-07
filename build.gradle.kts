@@ -29,8 +29,8 @@ project(":plugins") {
     version = futurePluginsVersion
 }
 
-val publishedPluginsExperimentsVersion by extra { "0.1.11" }
-val futurePluginsExperimentsVersion = "0.1.12"
+val publishedPluginsExperimentsVersion by extra { "0.1.12" }
+val futurePluginsExperimentsVersion = "0.1.13"
 project(":plugins-experiments") {
     group = "org.gradle.kotlin"
     version = futurePluginsExperimentsVersion
