@@ -25,6 +25,7 @@ import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.collections.FilteredCollection;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -267,6 +268,19 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             return;
         }
         store.addPending(providerInternal);
+    }
+
+    @Override
+    public void addAllLater(Provider<? extends Iterable<T>> provider) {
+        assertMutable();
+        CollectionProviderInternal<T, ? extends Iterable<T>> providerInternal = Cast.uncheckedCast(provider);
+        if (eventRegister.isSubscribed(providerInternal.getElementType())) {
+            for (T value : provider.get()) {
+                doAdd(value, eventRegister.getAddActions());
+            }
+            return;
+        }
+        store.addPendingCollection(providerInternal);
     }
 
     protected void didAdd(T toAdd) {
