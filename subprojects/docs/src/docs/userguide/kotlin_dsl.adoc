@@ -22,13 +22,13 @@ If you are looking into migrating an existing build to the Gradle Kotlin DSL, pl
 ====
 
 
-[[sec:kotlin-dsl-scripts]]
+[[sec:kotlin_dsl_scripts]]
 == Gradle Kotlin DSL scripts
 
-For more information on the Kotlin compiler configuration, see the <<sec:compiler-settings>> section.
+For more information on the Kotlin compiler configuration, see the <<sec:compiler_settings>> section.
 
 
-[[sec:kotlin-dsl-plugin]]
+[[sec:kotlin-dsl_plugin]]
 == The `kotlin-dsl` plugin
 
 - `buildSrc`
@@ -36,10 +36,10 @@ For more information on the Kotlin compiler configuration, see the <<sec:compile
 - Gradle plugin builds
 
 Kotlin sources in projects applying the `kotlin-dsl` plugin are compiled with the same set of Kotlin compiler settings as Gradle Kotlin DSL scripts.
-For more information see the <<sec:compiler-settings>> section.
+For more information see the <<sec:compiler_settings>> section.
 
 
-[[sec:compiler-settings]]
+[[sec:compiler_settings]]
 == Kotlin compiler settings
 
 [CAUTION]
