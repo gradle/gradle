@@ -16,7 +16,6 @@
 
 package org.gradle.gradlebuild.test.integrationtests
 
-import accessors.base
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
@@ -26,14 +25,18 @@ import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Sync
+
+import org.gradle.kotlin.dsl.*
+
+import accessors.base
 import org.gradle.gradlebuild.packaging.ShadedJar
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanUpDaemons
-import org.gradle.kotlin.dsl.getValue
-import org.gradle.kotlin.dsl.withType
-import java.io.File
+
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
+
+import java.io.File
 
 
 class DistributionTestingPlugin : Plugin<Project> {
