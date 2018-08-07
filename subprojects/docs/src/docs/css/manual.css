@@ -340,7 +340,7 @@ table tr th, table tr td { padding: 0.5625em 0.625em; font-size: inherit; color:
 table tr.even, table tr.alt, table tr:nth-of-type(even) { background: #f8f8f7; }
 table thead tr th, table tfoot tr th, table tbody tr td, table tr td, table tfoot tr td { display: table-cell; line-height: 1.6; }
 
-body { -moz-osx-font-smoothing: grayscale; -webkit-font-smoothing: antialiased; tab-size: 4; }
+body { tab-size: 4; }
 
 h1, h2, h3, #toctitle, .sidebarblock > .content > .title, h4, h5, h6 { line-height: 1.2; word-spacing: -0.05em; }
 h1 strong, h2 strong, h3 strong, #toctitle strong, .sidebarblock > .content > .title strong, h4 strong, h5 strong, h6 strong { font-weight: 400; }
@@ -826,7 +826,6 @@ body {
     line-height: 1.5;
     -webkit-text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
-    -webkit-font-smoothing: antialiased;
 }
 
 /* Links */
