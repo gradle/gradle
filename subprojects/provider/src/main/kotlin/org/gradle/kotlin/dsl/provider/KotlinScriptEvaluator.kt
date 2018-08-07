@@ -50,6 +50,7 @@ import org.gradle.kotlin.dsl.execution.EvalOption
 import org.gradle.kotlin.dsl.execution.EvalOptions
 import org.gradle.kotlin.dsl.execution.Interpreter
 import org.gradle.kotlin.dsl.execution.ProgramId
+
 import org.gradle.kotlin.dsl.get
 
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
@@ -60,6 +61,7 @@ import org.gradle.kotlin.dsl.support.transitiveClosureOf
 
 import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.management.internal.PluginRequests
+
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 import java.io.File
