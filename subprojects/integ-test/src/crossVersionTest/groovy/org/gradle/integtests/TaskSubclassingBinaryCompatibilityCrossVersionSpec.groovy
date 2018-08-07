@@ -152,9 +152,6 @@ apply plugin: SomePlugin
     }
 
     def "task can use all methods declared by Task interface that AbstractTask specialises"() {
-        // Don't run these for RC 3, as stuff did change during the RCs
-        Assume.assumeFalse(previous.version == GradleVersion.version("2.14-rc-3"))
-
         file("someFile").touch()
         file("anotherFile").touch()
         file("yetAnotherFile").touch()
@@ -218,9 +215,6 @@ apply plugin: SomePlugin
 
     @Issue("https://github.com/gradle/gradle/issues/6027")
     def "task can use project.file() from statically typed Groovy"() {
-        // Don't run these for RC 3, as stuff did change during the RCs
-        Assume.assumeFalse(previous.version == GradleVersion.version("2.14-rc-3"))
-
         when:
         file("producer/build.gradle") << """
             apply plugin: 'groovy'
