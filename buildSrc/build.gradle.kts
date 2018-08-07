@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
 
-    val pluginsExperiments = "gradle.plugin.org.gradle.kotlin:gradle-kotlin-dsl-plugins-experiments:0.1.10"
+    val pluginsExperiments = "gradle.plugin.org.gradle.kotlin:gradle-kotlin-dsl-plugins-experiments:0.1.11"
 
     dependencies {
         classpath(pluginsExperiments)
@@ -32,7 +32,7 @@ apply(plugin = "org.gradle.kotlin.ktlint-convention")
 
 apply<PrecompiledScriptPlugins>()
 
-tasks.withType<KotlinCompile> {
+tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
         freeCompilerArgs += listOf(
             "-Xjsr305=strict",
@@ -50,7 +50,7 @@ dependencies {
     compile(kotlin("reflect"))
 
     compile("com.gradle.publish:plugin-publish-plugin:0.10.0")
-    compile("org.ow2.asm:asm-all:5.1")
+    compile("org.ow2.asm:asm:6.2")
 
     testCompile("junit:junit:4.12")
     testCompile(gradleTestKit())

@@ -26,8 +26,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
-import org.gradle.kotlin.dsl.get
-import org.gradle.kotlin.dsl.getValue
+import org.gradle.kotlin.dsl.*
 
 import java.io.File
 

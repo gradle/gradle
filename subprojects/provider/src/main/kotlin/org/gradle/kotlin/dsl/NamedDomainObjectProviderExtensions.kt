@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.support
+package org.gradle.kotlin.dsl
 
-import kotlin.reflect.KClass
-
-
-fun illegalElementType(container: Any, name: String, expectedType: KClass<*>, actualType: KClass<*>) =
-    IllegalArgumentException(
-        "Element '$name' of type '${actualType.java.name}' from container '$container' cannot be cast to '${expectedType.qualifiedName}'.")
+import org.gradle.api.NamedDomainObjectProvider
 
 
-internal
-fun internalError(): Nothing =
-    throw InternalError("This should not happen, please report at https://github.com/gradle/kotlin-dsl/issues/new")
+/**
+ * Allows a [NamedDomainObjectProvider] to be configured via invocation syntax.
+ *
+ * ```kotlin
+ * val rebuild by tasks.registering
+ * rebuild { // rebuild.configure {
+ *   dependsOn("clean")
+ * }
+ * ```
+ */
+operator fun <T> NamedDomainObjectProvider<T>.invoke(action: T.() -> Unit) =
+    configure(action)

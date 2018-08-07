@@ -16,8 +16,8 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.NamedDomainObjectCollection
+import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.UnknownDomainObjectException
 
 import org.gradle.kotlin.dsl.support.illegalElementType
@@ -26,6 +26,164 @@ import org.gradle.kotlin.dsl.support.uncheckedCast
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.safeCast
+
+
+/**
+ * Idiomatic way of referring to the provider of a well-known element of a collection via a delegate property.
+ *
+ * `tasks { val jar by existing }`
+ *
+ * @param T the domain object type
+ * @param C the concrete container type
+ */
+inline val <T : Any, C : NamedDomainObjectCollection<T>> C.existing: ExistingDomainObjectDelegateProvider<out C>
+    get() = ExistingDomainObjectDelegateProvider(this)
+
+
+/**
+ * Idiomatic way of referring to the provider of a well-known element of a collection via a delegate property.
+ *
+ * `tasks { val jar by existing { ... } }`
+ *
+ * @param T the domain object type
+ * @param C the concrete container type
+ * @param action the configuration action
+ */
+fun <T : Any, C : NamedDomainObjectCollection<T>> C.existing(action: T.() -> Unit): ExistingDomainObjectDelegateProviderWithAction<out C, T> =
+    ExistingDomainObjectDelegateProviderWithAction(this, action)
+
+
+/**
+ * Idiomatic way of referring to the provider of a well-known element of a collection via a delegate property.
+ *
+ * `tasks { val jar by existing(Jar::class) }`
+ *
+ * @param T the domain object type
+ * @param C the concrete container type
+ * @param type the domain object type
+ */
+fun <T : Any, C : NamedDomainObjectCollection<T>, U : T> C.existing(type: KClass<U>): ExistingDomainObjectDelegateProviderWithType<out C, U> =
+    ExistingDomainObjectDelegateProviderWithType(this, type)
+
+
+/**
+ * Idiomatic way of referring to the provider of a well-known element of a collection via a delegate property.
+ *
+ * `tasks { val jar by existing(Jar::class) { ... } }`
+ *
+ * @param T the domain object type
+ * @param C the concrete container type
+ * @param type the domain object type
+ * @param action the configuration action
+ */
+fun <T : Any, C : NamedDomainObjectCollection<T>, U : T> C.existing(type: KClass<U>, action: U.() -> Unit): ExistingDomainObjectDelegateProviderWithTypeAndAction<out C, U> =
+    ExistingDomainObjectDelegateProviderWithTypeAndAction(this, type, action)
+
+
+/**
+ * Holds the delegate provider for the `existing` property delegate with
+ * the purpose of providing specialized implementations for the `provideDelegate` operator
+ * based on the static type of the provider.
+ */
+class ExistingDomainObjectDelegateProvider<T>(
+    val delegateProvider: T
+)
+
+
+/**
+ * Holds the delegate provider for the `existing` property delegate with
+ * the purpose of providing specialized implementations for the `provideDelegate` operator
+ * based on the static type of the provider.
+ */
+class ExistingDomainObjectDelegateProviderWithAction<C, T>(
+    val delegateProvider: C,
+    val action: T.() -> Unit
+)
+
+
+/**
+ * Holds the delegate provider and expected element type for the `existing` property delegate with
+ * the purpose of providing specialized implementations for the `provideDelegate` operator
+ * based on the static type of the provider.
+ */
+class ExistingDomainObjectDelegateProviderWithType<T, U : Any>(
+    val delegateProvider: T,
+    val type: KClass<U>
+)
+
+
+/**
+ * Holds the delegate provider and expected element type for the `existing` property delegate with
+ * the purpose of providing specialized implementations for the `provideDelegate` operator
+ * based on the static type of the provider.
+ */
+class ExistingDomainObjectDelegateProviderWithTypeAndAction<T, U : Any>(
+    val delegateProvider: T,
+    val type: KClass<U>,
+    val action: U.() -> Unit
+)
+
+
+/**
+ * Provides access to the [NamedDomainObjectProvider] for the element of the given
+ * property name from the container via a delegated property.
+ */
+operator fun <T : Any, C : NamedDomainObjectCollection<T>> ExistingDomainObjectDelegateProvider<C>.provideDelegate(
+    receiver: Any?,
+    property: KProperty<*>
+) = ExistingDomainObjectDelegate(
+    delegateProvider.named(property.name)
+)
+
+
+/**
+ * Provides access to the [NamedDomainObjectProvider] for the element of the given
+ * property name from the container via a delegated property.
+ */
+operator fun <T : Any, C : NamedDomainObjectCollection<T>> ExistingDomainObjectDelegateProviderWithAction<C, T>.provideDelegate(
+    receiver: Any?,
+    property: KProperty<*>
+) = ExistingDomainObjectDelegate(
+    delegateProvider.named(property.name).apply { configure(action) }
+)
+
+
+/**
+ * Provides access to the [NamedDomainObjectProvider] for the element of the given
+ * property name from the container via a delegated property.
+ */
+operator fun <T : Any, C : NamedDomainObjectCollection<T>, U : T> ExistingDomainObjectDelegateProviderWithType<C, U>.provideDelegate(
+    receiver: Any?,
+    property: KProperty<*>
+) = ExistingDomainObjectDelegate(
+    delegateProvider.named(property.name, type)
+)
+
+
+/**
+ * Provides access to the [NamedDomainObjectProvider] for the element of the given
+ * property name from the container via a delegated property.
+ */
+operator fun <T : Any, C : NamedDomainObjectCollection<T>, U : T> ExistingDomainObjectDelegateProviderWithTypeAndAction<C, U>.provideDelegate(
+    receiver: Any?,
+    property: KProperty<*>
+) = ExistingDomainObjectDelegate(
+    delegateProvider.named(property.name, type, action)
+)
+
+
+/**
+ * Holds a property delegate with the purpose of providing specialized implementations for the
+ * `getValue` operator based on the static type of the delegate.
+ */
+class ExistingDomainObjectDelegate<T>(val delegate: T)
+
+
+/**
+ * Gets the delegate value.
+ */
+operator fun <T> ExistingDomainObjectDelegate<T>.getValue(receiver: Any?, property: KProperty<*>): T =
+    delegate
 
 
 /**
@@ -44,12 +202,7 @@ inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.named(name: St
  * @see [NamedDomainObjectCollection.named]
  */
 fun <T : Any> NamedDomainObjectCollection<out Any>.named(name: String, type: KClass<T>): NamedDomainObjectProvider<T> =
-    uncheckedCast(named(name).apply {
-        configure {
-            type.safeCast(it)
-                ?: throw illegalElementType(this@named, name, type, it::class)
-        }
-    })
+    named(name, type) {}
 
 
 /**
@@ -71,9 +224,14 @@ inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.named(name: St
  * @see [NamedDomainObjectProvider.configure]
  */
 fun <T : Any> NamedDomainObjectCollection<out Any>.named(name: String, type: KClass<T>, configuration: T.() -> Unit): NamedDomainObjectProvider<T> =
-    named(name, type).apply {
-        configure(configuration)
-    }
+    uncheckedCast(named(name).also { provider ->
+        provider.configure { obj ->
+            configuration(
+                type.safeCast(obj)
+                    ?: throw illegalElementType(this@named, name, type, obj::class)
+            )
+        }
+    })
 
 
 /**
@@ -136,7 +294,7 @@ inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.getByName(name
  *
  * `tasks { val jar by getting }`
  */
-inline val <T : Any, U : NamedDomainObjectCollection<in T>> U.getting: U
+inline val <T : Any, U : NamedDomainObjectCollection<out T>> U.getting: U
     get() = this
 
 
@@ -158,10 +316,8 @@ class NamedDomainObjectCollectionDelegateProvider<T>(
     val configuration: T.() -> Unit
 ) {
 
-    operator fun provideDelegate(thisRef: Any?, property: kotlin.reflect.KProperty<*>): NamedDomainObjectCollection<T> =
-        collection.apply {
-            getByName(property.name).apply(configuration)
-        }
+    operator fun provideDelegate(thisRef: Any?, property: kotlin.reflect.KProperty<*>) =
+        collection.named(property.name).apply { configure(configuration) }
 }
 
 
@@ -181,12 +337,20 @@ operator fun <T : Any> NamedDomainObjectCollection<T>.get(name: String): T =
 /**
  * Allows a [NamedDomainObjectCollection] to be used as a property delegate.
  *
- * @throws [UnknownDomainObjectException] upon property access when there is no such object in the given collection.
- *
- * @see [NamedDomainObjectCollection.getByName]
+ * @see [NamedDomainObjectCollection.named]
  */
-inline operator fun <T : Any, reified U : T> NamedDomainObjectCollection<T>.getValue(thisRef: Any?, property: KProperty<*>): U =
-    getByName(property.name).let {
+operator fun <T : Any> NamedDomainObjectCollection<T>.provideDelegate(thisRef: Any?, property: KProperty<*>): NamedDomainObjectProvider<T> =
+    named(property.name)
+
+
+/**
+ * Allows a [NamedDomainObjectProvider] to be used as a property delegate.
+ *
+ * @see [NamedDomainObjectProvider.get]
+ */
+@Suppress("nothing_to_inline", "unchecked_cast")
+inline operator fun <T : Any, reified U : T> NamedDomainObjectProvider<out T>.getValue(thisRef: Any?, property: KProperty<*>): U =
+    get().let {
         it as? U
             ?: throw illegalElementType(this, property.name, U::class, it::class)
     }

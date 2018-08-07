@@ -9,7 +9,7 @@ base {
 }
 
 dependencies {
-    compileOnly(gradleApi())
+    compileOnly(gradleApiWithParameterNames())
 
     compile(project(":provider"))
 

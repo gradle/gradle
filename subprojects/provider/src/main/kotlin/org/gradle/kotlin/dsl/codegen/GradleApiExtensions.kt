@@ -16,10 +16,9 @@
 
 package org.gradle.kotlin.dsl.codegen
 
-import java.io.File
+import org.gradle.kotlin.dsl.support.gradleApiMetadataFrom
 
-import java.util.Properties
-import java.util.jar.JarFile
+import java.io.File
 
 
 internal
@@ -35,8 +34,7 @@ fun writeGradleApiKotlinDslExtensionsTo(outputDirectory: File, gradleJars: Colle
         "GradleApiKotlinDslExtensions",
         gradleApiJars,
         gradleJars - gradleApiJars,
-        gradleApiMetadata.includes,
-        gradleApiMetadata.excludes,
+        gradleApiMetadata.spec,
         gradleApiMetadata.parameterNamesSupplier
     )
 }
@@ -45,43 +43,3 @@ fun writeGradleApiKotlinDslExtensionsTo(outputDirectory: File, gradleJars: Colle
 private
 fun gradleApiJarsFrom(gradleJars: Collection<File>) =
     gradleJars.filter { it.name.startsWith("gradle-") && !it.name.contains("gradle-kotlin-") }
-
-
-private
-fun gradleApiMetadataFrom(gradleApiMetadataJar: File): GradleApiMetadata =
-    JarFile(gradleApiMetadataJar).use { jar ->
-        val apiDeclaration = jar.loadProperties(gradleApiDeclarationPropertiesName)
-        val parameterNames = jar.loadProperties(gradleApiParameterNamesPropertiesName)
-        GradleApiMetadata(
-            apiDeclaration.getProperty("includes").split(":"),
-            apiDeclaration.getProperty("excludes").split(":"),
-            parameterNamesSupplierFrom(parameterNames))
-    }
-
-
-private
-fun parameterNamesSupplierFrom(parameterNames: Properties): ParameterNamesSupplier =
-    { key: String -> parameterNames.getProperty(key, null)?.split(",") }
-
-
-private
-data class GradleApiMetadata(
-    val includes: List<String>,
-    val excludes: List<String>,
-    val parameterNamesSupplier: ParameterNamesSupplier
-)
-
-
-private
-fun JarFile.loadProperties(name: String) =
-    getInputStream(getJarEntry(name)).use { input ->
-        Properties().also { it.load(input) }
-    }
-
-
-private
-const val gradleApiDeclarationPropertiesName = "gradle-api-declaration.properties"
-
-
-private
-const val gradleApiParameterNamesPropertiesName = "gradle-api-parameter-names.properties"

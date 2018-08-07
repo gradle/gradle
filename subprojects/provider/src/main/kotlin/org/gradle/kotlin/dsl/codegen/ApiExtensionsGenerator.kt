@@ -20,9 +20,6 @@ package org.gradle.kotlin.dsl.codegen
 
 import org.gradle.api.file.RelativePath
 import org.gradle.api.specs.Spec
-import org.gradle.api.specs.Specs
-
-import org.gradle.api.internal.file.pattern.PatternMatcherFactory
 
 import java.io.File
 
@@ -35,8 +32,7 @@ import java.io.File
  * @param sourceFilesBaseName the base name for generated source files
  * @param classPath the api classpath elements
  * @param classPathDependencies the api classpath dependencies
- * @param includes the api include patterns
- * @param excludes the api exclude patterns
+ * @param sec the api include/exclude spec
  * @param parameterNamesSupplier the api function parameter names
  *
  * @return the list of generated source files
@@ -48,15 +44,14 @@ fun generateKotlinDslApiExtensionsSourceTo(
     sourceFilesBaseName: String,
     classPath: List<File>,
     classPathDependencies: List<File>,
-    includes: List<String>,
-    excludes: List<String>,
+    apiSpec: Spec<RelativePath>,
     parameterNamesSupplier: ParameterNamesSupplier
 ): List<File> =
 
     apiTypeProviderFor(classPath, classPathDependencies, parameterNamesSupplier).use { api ->
 
         val extensionsPerTarget =
-            kotlinDslApiExtensionsDeclarationsFor(api, apiSpecFor(includes, excludes)).groupedByTarget()
+            kotlinDslApiExtensionsDeclarationsFor(api, apiSpec).groupedByTarget()
 
         val sourceFiles =
             ArrayList<File>(extensionsPerTarget.size)
@@ -97,23 +92,6 @@ fun writeExtensionsTo(outputFile: File, packageName: String, extensions: List<Ko
             }
         }
     }
-
-
-private
-fun apiSpecFor(includes: List<String>, excludes: List<String>): Spec<RelativePath> =
-    when {
-        includes.isEmpty() && excludes.isEmpty() -> Specs.satisfyAll()
-        includes.isEmpty() -> Specs.negate(patternSpecFor(excludes))
-        excludes.isEmpty() -> patternSpecFor(includes)
-        else -> Specs.intersect(patternSpecFor(includes), Specs.negate(patternSpecFor(excludes)))
-    }
-
-
-private
-fun patternSpecFor(patterns: List<String>) =
-    Specs.union(patterns.map {
-        PatternMatcherFactory.getPatternMatcher(true, true, it)
-    })
 
 
 private

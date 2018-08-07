@@ -11,24 +11,24 @@ group = "my"
 version = "1.0"
 
 gradlePlugin {
-    (plugins) {
-        "documentation" {
+    plugins {
+        register("documentation") {
             id = "my.documentation"
             implementationClass = "my.DocumentationPlugin"
         }
     }
 }
 
-val sourcesJar by tasks.creating(Jar::class) {
+val sourcesJar by tasks.registering(Jar::class) {
     classifier = "sources"
     from(sourceSets["main"].allSource)
 }
 
 publishing {
-    (publications) {
-        "mavenSources"(MavenPublication::class) {
+    publications {
+        register("mavenSources", MavenPublication::class) {
             from(components["java"])
-            artifact(sourcesJar)
+            artifact(sourcesJar.get())
         }
     }
     repositories {

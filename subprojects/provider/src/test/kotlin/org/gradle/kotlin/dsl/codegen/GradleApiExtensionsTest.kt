@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl.codegen
 
+import org.gradle.api.specs.Specs
+
 import org.gradle.kotlin.dsl.accessors.TestWithClassPath
 
 import org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments
@@ -285,8 +287,7 @@ class GradleApiExtensionsTest : TestWithClassPath() {
             "SourceBaseName",
             apiJars,
             emptyList(),
-            emptyList(),
-            emptyList(),
+            Specs.satisfyAll(),
             fixtureParameterNamesSupplier
         )
 

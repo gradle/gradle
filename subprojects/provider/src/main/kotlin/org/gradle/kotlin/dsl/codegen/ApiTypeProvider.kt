@@ -66,8 +66,11 @@ private
 typealias ApiTypeSupplier = () -> ApiType
 
 
-internal
 typealias ParameterNamesSupplier = (String) -> List<String>?
+
+
+fun ParameterNamesSupplier.parameterNamesFor(typeName: String, functionName: String, parameterTypeNames: List<String>): List<String>? =
+    this("$typeName.$functionName(${parameterTypeNames.joinToString(",")})")
 
 
 /**
@@ -144,7 +147,7 @@ class ApiTypeProvider(
             typeProvider.type(sourceName)
 
         fun parameterNamesFor(typeName: String, functionName: String, parameterTypeNames: List<String>): List<String>? =
-            parameterNamesSupplier("$typeName.$functionName(${parameterTypeNames.joinToString(",")})")
+            parameterNamesSupplier.parameterNamesFor(typeName, functionName, parameterTypeNames)
     }
 }
 
