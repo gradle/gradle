@@ -1,3 +1,32 @@
+The Gradle team is pleased to announce Gradle 4.10. This is a big release.
+
+First and foremost, this release of Gradle features an improved [incremental Java compiler, now enabled by default](#incremental-java-compilation-by-default).
+This will result in significantly reduced Java compilation time in subsequent builds when outputs are not up-to-date or resolved from the build cache.
+
+Chances are caches in those `.gradle/` directories have accumulated a few (or a few dozen) gigabytes over time.
+If so, you'll be relieved to know that Gradle will now [periodically clean up unused `/caches`](#periodic-cache-cleanup) under `GRADLE_USER_HOME` and project root directories. 
+
+A moment you have anticipated is nearly here, as the [Kotlin DSL reaches version 1.0 RC1](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC1) with this release of Gradle.
+Configuration avoidance, script compilation caching, buildSrc refactoring propagation, and lots of DSL polish make this the release to try.
+_If you are interested in using the Kotlin DSL, please check out the [migration guide](https://guides.gradle.org/migrating-build-logic-from-groovy-to-kotlin/) and file issues in the [gradle/kotlin-dsl](https://github.com/gradle/kotlin-dsl) project._ 
+
+You can now use [SNAPSHOT plugin versions with the `plugins {}`](#use-snapshot-plugin-versions-with-the-plugins-{}-block) and `pluginManagement {}` blocks.
+This is especially good news for Kotlin DSL users, who will get code assistance and auto-completion for these `SNAPSHOT` plugins. 
+Special thanks to [Sébastien Deleuze](https://github.com/sdeleuze) for contributing.
+
+Last but not least, [included builds can now be nested](#nested-included-builds).
+This makes some common workflows more convenient, such as working on multiple source repositories at the same time to implement a cross-cutting feature.
+
+We hope you will build happiness with Gradle 4.10, and we look forward to your feedback [via Twitter](https://twitter.com/gradle) or [on GitHub](https://github.com/gradle/gradle).
+
+## Upgrade Instructions
+
+Switch your build to use Gradle 4.10 RC1 quickly by updating your wrapper properties:
+
+    ./gradlew wrapper --gradle-version=4.10-rc-1
+
+Standalone downloads are available at https://gradle.org/release-candidate/.
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
@@ -5,10 +34,6 @@ Here are the new features introduced in this Gradle release.
 <!--
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
-
-### Use SNAPSHOT plugin versions with the `plugins {}` block
-
-Starting with this release, it is now possible to use SNAPSHOT plugin versions in the `plugins {}` and `pluginManagement {}` blocks.
 
 ### Incremental Java compilation by default
 
@@ -18,18 +43,9 @@ This release fixes all known issues of the incremental compiler. It now
 - recompiles all classes when module-info files change
 - recompiles all classes in a package when that package's package-info changes
 
-It's memory usage has also been reduced. For our own build, its heap usage dropped from 350MB to just 10MB.
+Its memory usage has also been reduced. For the gradle/gradle build, heap usage dropped from 350MB to just 10MB.
 
 We are now confident that the incremental compiler is ready to be used in every build, so it is now the new default setting.
-
-### Nested included builds
-
-Composite builds is a feature that allows a Gradle build to 'include' another build and conveniently use its outputs locally rather than via a binary repository. This makes some common workflows more convenient, such as working on multiple source repositories at the same time to implement a cross-cutting feature. In previous releases, it was not possible for a Gradle build to include another build that also includes other builds, which limits the usefulness of this feature for these workflows. In this Gradle release, a build can now include another build that also includes other builds. In other words, composite builds can now be nested.
-
-There are a number of limitations to be aware of. These will be improved in later Gradle releases:
-
-- A `buildSrc` build cannot include other builds, such as a shared plugin build.
-- The root project of each build must have a unique name.
 
 ### Periodic cache cleanup
 
@@ -39,6 +55,24 @@ Caching has always been one of the strong suits of Gradle. Over time, more and m
 - Similarly, after building a project, version-specific cache directories in `PROJECT_DIR/.gradle/<gradle-version>/` are checked periodically (at most every 24 hours) for whether they are still in use. They are deleted if they haven't been used for 7 days.
 - Shared versioned cache directories in `GRADLE_USER_HOME/caches/` (e.g. `jars-*`) are checked periodically (at most every 24 hours) for whether they are still in use. If there's no Gradle version that still uses them, they are deleted.
 - Files in shared caches used by the current Gradle version in `GRADLE_USER_HOME/caches/` (e.g. `jars-3` or `modules-2`) are checked periodically (at most every 24 hours) for when they were last accessed. Depending on whether the file can be recreated locally or would have to be downloaded from a remote repository again, it will be deleted after 7 or 30 days of not being accessed, respectively.
+
+### Use SNAPSHOT plugin versions with the `plugins {}` block
+
+Starting with this release, it is now possible to use SNAPSHOT plugin versions in the `plugins {}` and `pluginManagement {}` blocks.
+For example:
+
+    plugins {
+        id 'org.springframework.boot' version '2.0.0.BUILD-SNAPSHOT'
+    }
+
+### Nested included builds
+
+Composite builds is a feature that allows a Gradle build to 'include' another build and conveniently use its outputs locally rather than via a binary repository. This makes some common workflows more convenient, such as working on multiple source repositories at the same time to implement a cross-cutting feature. In previous releases, it was not possible for a Gradle build to include another build that also includes other builds, which limits the usefulness of this feature for these workflows. In this Gradle release, a build can now include another build that also includes other builds. In other words, composite builds can now be nested.
+
+There are a number of limitations to be aware of. These will be improved in later Gradle releases:
+
+- A `buildSrc` build cannot include other builds, such as a shared plugin build.
+- The root project of each build must have a unique name.
 
 ### Authorization for Maven repositories with custom HTTP headers
 
@@ -157,17 +191,17 @@ We would like to thank the following community members for making contributions 
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
+- [Sébastien Deleuze](https://github.com/sdeleuze) - Add support for SNAPSHOT plugin versions in the `plugins {}` block (gradle/gradle#5762)
+- [Paul Wellner Bou](https://github.com/paulwellnerbou) - Authorization for Maven repositories with custom HTTP headers (gradle/gradle#5571)
+- [Salvian Reynaldi](https://github.com/salvianreynaldi) - Give S3 bucket owner full control over the published Maven artifacts (gradle/gradle#5329)
+- [Mike Kobit](https://github.com/mkobit) - Add ability to use `RegularFile` and `Directory` as publishable artifacts (gradle/gradle#5109)
+- [Thomas Broyer](https://github.com/tbroyer) - Convert `java-gradle-plugin` to use lazy configuration API (gradle/gradle#6115)
 - [Björn Kautler](https://github.com/Vampire) - Update Spock version in docs and build init (gradle/gradle#5627)
+- [Ben McCann](https://github.com/benmccann) - Decouple Play and Twirl versions (gradle/gradle#2062)
 - [Kyle Moore](https://github.com/DPUkyle) - Use latest Gosu plugin 0.3.10 (gradle/gradle#5855)
 - [Mata Saru](https://github.com/matasaru) - Add missing verb into docs (gradle/gradle#5694)
-- [Sébastien Deleuze](https://github.com/sdeleuze) - Add support for SNAPSHOT plugin versions in the `plugins {}` block (gradle/gradle#5762)
-- [Ben McCann](https://github.com/benmccann) - Decouple Play and Twirl versions (gradle/gradle#2062)
-- [Mike Kobit](https://github.com/mkobit) - Add ability to use `RegularFile` and `Directory` as publishable artifacts (gradle/gradle#5109)
 - [Mészáros Máté Róbert](https://github.com/mrmeszaros) - Fix typo in userguide java plugin configuration image (gradle/gradle#6011)
-- [Paul Wellner Bou](https://github.com/paulwellnerbou) - Authorization for Maven repositories with custom HTTP headers (gradle/gradle#5571)
 - [Kenzie Togami](https://github.com/kenzierocks) - Docs are unclear on how JavaExec parses --args (gradle/gradle#6056)
-- [Salvian Reynaldi](https://github.com/salvianreynaldi) - Give S3 bucket owner full control over the published Maven artifacts (gradle/gradle#5329)
-- [Thomas Broyer](https://github.com/tbroyer) - Convert `java-gradle-plugin` to use lazy configuration API (gradle/gradle#6115)
 - [Sebastian Schuberth](https://github.com/sschuberth) - Fix an application plugin example to work for Windows (gradle/gradle#5994)
 
 ## Known issues
