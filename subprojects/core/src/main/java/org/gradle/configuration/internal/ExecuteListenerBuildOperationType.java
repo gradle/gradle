@@ -41,11 +41,11 @@ public final class ExecuteListenerBuildOperationType implements BuildOperationTy
         Long getApplicationId();
 
         /**
-         * The registration point of the listener. E.g. Project.beforeEvaluate etc.
+         * A human friendly description of where the listener was registered by the user.
          *
-         * <p>General contract is interface-simplename.method-name</p>
+         * General contract is public-type-simplename.method-name.
+         * e.g. Project.beforeEvaluate
          */
-
         String getRegistrationPoint();
     }
 
