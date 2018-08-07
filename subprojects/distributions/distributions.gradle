@@ -64,7 +64,7 @@ ext {
         }
         into('lib') {
             from rootProject.configurations.runtime
-            from project(":apiMetadata").apiMetadata.jarTask
+            from project(":apiMetadata").jar
             into('plugins') {
                 from rootProject.configurations.gradlePlugins - rootProject.configurations.runtime
             }

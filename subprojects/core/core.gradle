@@ -81,7 +81,7 @@ dependencies {
     integTestImplementation project(":plugins")
 
     integTestRuntimeOnly project(':maven')
-    integTestRuntimeOnly project(path: ":apiMetadata", configuration: "jar")
+    integTestRuntimeOnly project(':apiMetadata')
 }
 
 gradlebuildJava {
