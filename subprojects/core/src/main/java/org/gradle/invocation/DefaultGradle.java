@@ -481,7 +481,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         throw new UnsupportedOperationException();
     }
 
-    static final NotifyRootProjectBuildOperationType.Result NOTIFY_ROOT_PROJECT_RESULT =  new NotifyRootProjectBuildOperationType.Result() {};
+    private static final NotifyRootProjectBuildOperationType.Result NOTIFY_ROOT_PROJECT_RESULT =  new NotifyRootProjectBuildOperationType.Result() {};
 
     private void executeRootProjectActions() {
         getBuildOperationExecutor().run(new RunnableBuildOperation() {
