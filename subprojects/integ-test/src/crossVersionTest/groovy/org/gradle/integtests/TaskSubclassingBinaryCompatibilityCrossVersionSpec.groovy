@@ -50,6 +50,7 @@ import spock.lang.Issue
  * Tests that task classes compiled against earlier versions of Gradle are still compatible.
  */
 class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationSpec {
+    @SuppressWarnings("UnnecessaryQualifiedReference")
     def "can use task subclass compiled using previous Gradle version"() {
         given:
         def taskClasses = [
@@ -87,10 +88,10 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
         // Task types added after 1.0
 
         if (previous.version >= GradleVersion.version("2.4")) {
-            taskClasses << org.gradle.jvm.application.tasks.CreateStartScripts
+            taskClasses += org.gradle.jvm.application.tasks.CreateStartScripts
         }
         if (previous.version >= GradleVersion.version("2.3")) {
-            taskClasses << org.gradle.jvm.tasks.Jar
+            taskClasses += org.gradle.jvm.tasks.Jar
         }
 
         // Some breakages that were not detected prior to release. Please do not add any more exceptions
@@ -119,12 +120,11 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
             import org.gradle.api.Project
 
             class SomePlugin implements Plugin<Project> {
-                void apply(Project p) { """ <<
+                void apply(Project p) { """ << \
             subclasses.collect { "p.tasks.create('${it.key}', ${it.key})" }.join("\n") << """
                 }
             }
-            """ <<
-
+            """ << \
             subclasses.collect {
                 def className = it.key
                 """class ${className} extends ${it.value} {
