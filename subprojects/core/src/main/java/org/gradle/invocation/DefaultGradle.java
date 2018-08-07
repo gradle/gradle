@@ -228,7 +228,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public void rootProject(Action<? super Project> action) {
-        rootProject("rootProject", action);
+        rootProject("Gradle.rootProject", action);
     }
 
     private void rootProject(String registrationSite, Action<? super Project> action) {
@@ -243,7 +243,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public void allprojects(final Action<? super Project> action) {
-        rootProject("allprojects", new Action<Project>() {
+        rootProject("Gradle.allprojects", new Action<Project>() {
             public void execute(Project project) {
                 project.allprojects(action);
             }

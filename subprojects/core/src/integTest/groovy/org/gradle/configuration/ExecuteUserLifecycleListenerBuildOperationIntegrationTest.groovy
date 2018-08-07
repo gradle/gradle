@@ -140,6 +140,39 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyHasChildren(projectsLoaded, settingsPluginAppId, 'settings plugin', expectedGradleOps)
     }
 
+    def 'rootProject listeners are attributed to the correct registrant'() {
+        given:
+        def addGradleListeners = { String source ->
+            """
+                gradle.rootProject({
+                    println "gradle.rootProject(Action) from $source"
+                } as Action)
+                gradle.rootProject {
+                    println "gradle.rootProject(Closure) from $source"
+                }
+            """
+        }
+        def expectedGradleOps = [
+            expectedOp('Gradle.rootProject', 'gradle.rootProject(Action)'),
+            expectedOp('Gradle.rootProject', 'gradle.rootProject(Closure)'),
+        ]
+
+        initFile << addGradleListeners('init')
+
+        settingsFile << addGradleListeners('settings')
+        applyInlinePlugin(settingsFile, 'Settings', addGradleListeners('settings plugin'))
+
+        when:
+        run()
+
+        then:
+        def parent = operations.only("Execute 'rootProject {}' action").children.find { it.displayName == 'Cross-configure project :' }
+        verifyExpectedNumberOfExecuteListenerChildren(parent, expectedGradleOps.size() * 3)
+        verifyHasChildren(parent, initScriptAppId, 'init', expectedGradleOps)
+        verifyHasChildren(parent, settingsScriptAppId, 'settings', expectedGradleOps)
+        verifyHasChildren(parent, settingsPluginAppId, 'settings plugin', expectedGradleOps)
+    }
+
     def 'projectsEvaluated listeners are attributed to the correct registrant'() {
         given:
         def addGradleListeners = { String source ->
