@@ -88,6 +88,7 @@ class SourceDistributionResolverIntegrationTest : AbstractIntegrationTest() {
         "testing-junit-platform/src/main/java", "testing-jvm/src/main/java", "testing-jvm/src/main/resources",
         "testing-native/src/main/java", "testing-native/src/main/resources",
         "tooling-api/src/main/java", "tooling-api-builders/src/main/java", "tooling-api-builders/src/main/resources",
+        "tooling-builders-native/src/main/java", "tooling-builders-native/src/main/resources",
         "version-control/src/main/java", "version-control/src/main/resources",
         "workers/src/main/java", "workers/src/main/resources", "wrapper/src/main/java")
 }
