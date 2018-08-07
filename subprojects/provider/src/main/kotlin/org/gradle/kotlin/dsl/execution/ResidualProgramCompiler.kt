@@ -79,7 +79,7 @@ class ResidualProgramCompiler(
     private val programTarget: ProgramTarget,
     private val implicitImports: List<String> = emptyList(),
     private val logger: Logger = interpreterLogger,
-    private val compileBuildOperationRunner: CompileBuildOperationRunner = ::defaultCompileBuildOperationRunner
+    private val compileBuildOperationRunner: CompileBuildOperationRunner = { _, _, action -> action() }
 ) {
 
     fun compile(program: ResidualProgram) = when (program) {
@@ -564,11 +564,6 @@ class ResidualProgramCompiler(
             )
         }
 }
-
-
-private
-fun defaultCompileBuildOperationRunner(scriptPath: String, stage: String, operation: () -> String) =
-    operation()
 
 
 private
