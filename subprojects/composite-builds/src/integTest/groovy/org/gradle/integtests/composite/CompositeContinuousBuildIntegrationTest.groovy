@@ -123,6 +123,8 @@ class CompositeContinuousBuildIntegrationTest extends Java7RequiringContinuousIn
     }
 
     def "will rebuild on change for plugin supplied by included build"() {
+        buildTimeout = 60
+
         def includedLibrary = singleProjectBuild("plugin") {
             buildFile << """
                 apply plugin: 'java-gradle-plugin'

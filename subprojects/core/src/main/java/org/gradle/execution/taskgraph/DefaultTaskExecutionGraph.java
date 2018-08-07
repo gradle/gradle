@@ -154,7 +154,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     public void addTaskExecutionGraphListener(TaskExecutionGraphListener listener) {
-        graphListeners.add(listenerBuildOperationDecorator.decorate(TaskExecutionGraphListener.class, listener));
+        graphListeners.add(listenerBuildOperationDecorator.decorate("TaskExecutionGraph.addTaskExecutionGraphListener", TaskExecutionGraphListener.class, listener));
     }
 
     public void removeTaskExecutionGraphListener(TaskExecutionGraphListener listener) {
@@ -162,11 +162,11 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     public void whenReady(final Closure closure) {
-        graphListeners.add(new ClosureBackedMethodInvocationDispatch("graphPopulated", listenerBuildOperationDecorator.decorate("graphPopulated", closure)));
+        graphListeners.add(new ClosureBackedMethodInvocationDispatch("graphPopulated", listenerBuildOperationDecorator.decorate("TaskExecutionGraph.whenReady", closure)));
     }
 
     public void whenReady(final Action<TaskExecutionGraph> action) {
-        graphListeners.add(listenerBuildOperationDecorator.decorate(TaskExecutionGraphListener.class, new TaskExecutionGraphListener() {
+        graphListeners.add(listenerBuildOperationDecorator.decorate("TaskExecutionGraph.whenReady", TaskExecutionGraphListener.class, new TaskExecutionGraphListener() {
             @Override
             public void graphPopulated(TaskExecutionGraph graph) {
                 action.execute(graph);
