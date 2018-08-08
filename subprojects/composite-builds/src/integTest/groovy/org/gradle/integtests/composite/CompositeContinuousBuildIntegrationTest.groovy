@@ -123,7 +123,7 @@ class CompositeContinuousBuildIntegrationTest extends Java7RequiringContinuousIn
     }
 
     def "will rebuild on change for plugin supplied by included build"() {
-        buildTimeout = 60
+        requireOwnGradleUserHomeDir() // to reduce contention with concurrently executing tests
 
         def includedLibrary = singleProjectBuild("plugin") {
             buildFile << """

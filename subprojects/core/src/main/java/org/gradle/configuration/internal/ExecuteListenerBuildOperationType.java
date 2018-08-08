@@ -38,7 +38,7 @@ public final class ExecuteListenerBuildOperationType implements BuildOperationTy
          * @see org.gradle.api.internal.plugins.ApplyPluginBuildOperationType.Details#getApplicationId()
          * @see org.gradle.configuration.ApplyScriptPluginBuildOperationType.Details#getApplicationId()
          */
-        Long getApplicationId();
+        long getApplicationId();
 
         /**
          * A human friendly description of where the listener was registered by the user.
@@ -62,7 +62,7 @@ public final class ExecuteListenerBuildOperationType implements BuildOperationTy
         }
 
         @Override
-        public Long getApplicationId() {
+        public long getApplicationId() {
             return applicationId.longValue();
         }
 
