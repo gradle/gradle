@@ -67,7 +67,7 @@ public class BuildDashboardPlugin implements Plugin<Project> {
         };
 
         for (Project aProject : project.getAllprojects()) {
-            aProject.getTasks().all(captureReportingTasks);
+            aProject.getTasks().configureEach(captureReportingTasks);
         }
     }
 
