@@ -43,7 +43,7 @@ class TransformFileOperation implements RunnableBuildOperation {
 
     @Override
     public void run(@Nullable BuildOperationContext context) {
-        transformListener.beforeTransform(transform, null, file);
+        // transformListener.beforeTransform(transform, null, file);
         try {
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Executing transform {} on file {}", transform.getDisplayName(), file);
@@ -52,7 +52,7 @@ class TransformFileOperation implements RunnableBuildOperation {
         } catch (Throwable t) {
             failure = t;
         }
-        transformListener.afterTransform(transform, null, file, failure);
+        // transformListener.afterTransform(transform, null, file, failure);
     }
 
     @Override
