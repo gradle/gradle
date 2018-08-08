@@ -243,33 +243,6 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         })
     }
 
-    def "determines whether file exists when snapshot is cached"() {
-        def f = tmpDir.createFile("file")
-        def d = tmpDir.createDir("dir")
-        def m = tmpDir.file("missing")
-
-        given:
-        snapshotter.snapshot(f)
-        snapshotter.snapshot(d)
-        snapshotter.snapshot(m)
-
-        expect:
-        snapshotter.exists(f)
-        snapshotter.exists(d)
-        !snapshotter.exists(m)
-    }
-
-    def "determines whether file exists when snapshot is not cached"() {
-        def f = tmpDir.createFile("file")
-        def d = tmpDir.createDir("dir")
-        def m = tmpDir.file("missing")
-
-        expect:
-        snapshotter.exists(f)
-        snapshotter.exists(d)
-        !snapshotter.exists(m)
-    }
-
     private static DirectoryFileTree dirTree(File dir) {
         TestFiles.directoryFileTreeFactory().create(dir)
     }

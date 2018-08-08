@@ -77,19 +77,6 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    public boolean exists(File file) {
-        FileMetadataSnapshot metadata = fileSystemMirror.getMetadata(file.getAbsolutePath());
-        if (metadata != null) {
-            return metadata.getType() != FileType.Missing;
-        }
-        PhysicalSnapshot snapshot = fileSystemMirror.getSnapshot(file.getAbsolutePath());
-        if (snapshot != null) {
-            return snapshot.getType() != FileType.Missing;
-        }
-        return file.exists();
-    }
-
-    @Override
     public HashCode getRegularFileContentHash(final File file) {
         final String absolutePath = file.getAbsolutePath();
         FileMetadataSnapshot metadata = fileSystemMirror.getMetadata(absolutePath);

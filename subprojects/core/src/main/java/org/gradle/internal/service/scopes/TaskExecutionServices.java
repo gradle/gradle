@@ -20,7 +20,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.internal.TaskInputsListener;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.ShortCircuitTaskArtifactStateRepository;
@@ -87,7 +86,6 @@ import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.GradleVersion;
@@ -177,7 +175,6 @@ public class TaskExecutionServices {
 
     TaskHistoryRepository createTaskHistoryRepository(
         TaskHistoryStore cacheAccess,
-        StringInterner stringInterner,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter,
         FileCollectionFingerprinterRegistry fingerprinterRegistry) {
@@ -189,14 +186,13 @@ public class TaskExecutionServices {
         return new CacheBackedTaskHistoryRepository(
             cacheAccess,
             serializerRegistry.build(HistoricalFileCollectionFingerprint.class),
-            stringInterner,
             classLoaderHierarchyHasher,
             valueSnapshotter,
             fingerprinterRegistry
         );
     }
 
-    TaskOutputFilesRepository createTaskOutputFilesRepository(CacheRepository cacheRepository, Gradle gradle, FileSystemSnapshotter fileSystemSnapshotter, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    TaskOutputFilesRepository createTaskOutputFilesRepository(CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         PersistentCache cacheAccess = cacheRepository
             .cache(gradle, "buildOutputCleanup")
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
@@ -204,7 +200,7 @@ public class TaskExecutionServices {
             .withLockOptions(mode(FileLockManager.LockMode.None))
             .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
             .open();
-        return new DefaultTaskOutputFilesRepository(cacheAccess, fileSystemSnapshotter, inMemoryCacheDecoratorFactory);
+        return new DefaultTaskOutputFilesRepository(cacheAccess, inMemoryCacheDecoratorFactory);
     }
 
     TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, StartParameter startParameter, TaskHistoryRepository taskHistoryRepository, TaskOutputFilesRepository taskOutputsRepository) {

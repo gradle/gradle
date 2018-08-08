@@ -26,10 +26,6 @@ import org.gradle.internal.snapshot.PhysicalSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 
 class TestFileSnapshotter implements FileSystemSnapshotter {
-    @Override
-    boolean exists(File file) {
-        return file.exists()
-    }
 
     @Override
     HashCode getRegularFileContentHash(File file) {

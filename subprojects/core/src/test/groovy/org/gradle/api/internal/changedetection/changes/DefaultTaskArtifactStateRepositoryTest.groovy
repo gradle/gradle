@@ -118,7 +118,6 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(
             cacheAccess,
             serializerRegistry.build(HistoricalFileCollectionFingerprint),
-            stringInterner,
             classLoaderHierarchyHasher,
             TestUtil.valueSnapshotter(),
             fingerprinterRegistry

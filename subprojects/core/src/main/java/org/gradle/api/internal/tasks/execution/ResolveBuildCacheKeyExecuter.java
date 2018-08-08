@@ -285,7 +285,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                 state.fingerprints = fingerprint.getFingerprints();
 
                 visitor.preProperty(state);
-                fingerprint.visitRoots(state);
+                fingerprint.accept(state);
                 visitor.postProperty();
             }
         }

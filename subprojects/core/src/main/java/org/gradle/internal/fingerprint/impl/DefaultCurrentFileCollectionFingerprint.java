@@ -61,7 +61,7 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
         this.roots = roots;
 
         final ImmutableMultimap.Builder<String, HashCode> builder = ImmutableMultimap.builder();
-        visitRoots(new PhysicalSnapshotVisitor() {
+        accept(new PhysicalSnapshotVisitor() {
             @Override
             public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                 builder.put(directorySnapshot.getAbsolutePath(), directorySnapshot.getHash());
@@ -118,7 +118,7 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     }
 
     @Override
-    public void visitRoots(PhysicalSnapshotVisitor visitor) {
+    public void accept(PhysicalSnapshotVisitor visitor) {
         if (roots == null) {
             throw new UnsupportedOperationException("Roots not available.");
         }

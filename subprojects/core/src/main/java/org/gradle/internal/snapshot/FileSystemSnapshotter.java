@@ -36,12 +36,6 @@ import java.util.List;
 public interface FileSystemSnapshotter {
 
     /**
-     * Determines whether the given file is not missing.
-     * Using this method can be more efficient than using {@link File#exists()}.
-     */
-    boolean exists(File file);
-
-    /**
      * Returns the hash of the content of the file if the file is a regular file and {@code null} otherwise.
      */
     @Nullable

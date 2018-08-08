@@ -57,7 +57,7 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
     }
 
     @Override
-    public void visitRoots(PhysicalSnapshotVisitor visitor) {
+    public void accept(PhysicalSnapshotVisitor visitor) {
     }
 
     public Multimap<String, HashCode> getRootHashes() {

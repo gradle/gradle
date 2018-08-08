@@ -149,7 +149,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             return 0;
         }
         PackingVisitor packingVisitor = new PackingVisitor(tarOutput, propertyName, propertySpec.getOutputType(), fileSystem);
-        outputFingerprint.visitRoots(packingVisitor);
+        outputFingerprint.accept(packingVisitor);
         return packingVisitor.finish();
     }
 
