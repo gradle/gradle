@@ -90,6 +90,11 @@ Changes to the PATH will be visible to `Exec` tasks and calling `System.getenv` 
 
 However, we strongly recommend that build and plugin authors use Gradle properties instead of `System.getenv` for a more idiomatic end user experience.
 
+### Incremental build uses less memory
+
+Memory usage for up-to-date checking has been improved.
+For the gradle/gradle build, heap usage dropped by 60 MB to 450 MB, that is a 12% reduction.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
