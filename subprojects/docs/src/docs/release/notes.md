@@ -10,6 +10,11 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Incremental build uses less memory
+
+Memory usage for up-to-date checking has been improved.
+For the gradle/gradle build, heap usage dropped by 60 MB to 450 MB, that is a 12% reduction.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

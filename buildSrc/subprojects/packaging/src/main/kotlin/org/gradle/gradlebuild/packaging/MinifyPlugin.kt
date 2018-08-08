@@ -19,6 +19,9 @@ package org.gradle.gradlebuild.packaging
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
+import org.gradle.gradlebuild.packaging.Attributes.artifactType
+import org.gradle.gradlebuild.packaging.Attributes.minified
+
 import org.gradle.kotlin.dsl.*
 
 

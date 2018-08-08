@@ -57,6 +57,7 @@ dependencies {
     crossVersionTestRuntime(project(":buildComparison"))
     crossVersionTestRuntime(project(":ivy"))
     crossVersionTestRuntime(project(":maven"))
+    crossVersionTestRuntimeOnly(project(":apiMetadata"))
 }
 
 gradlebuildJava {

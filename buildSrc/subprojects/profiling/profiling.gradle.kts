@@ -16,8 +16,8 @@ dependencies {
 }
 
 gradlePlugin {
-    (plugins) {
-        "buildscan" {
+    plugins {
+        register("buildscan") {
             id = "gradlebuild.buildscan"
             implementationClass = "org.gradle.gradlebuild.profiling.buildscan.BuildScanPlugin"
         }

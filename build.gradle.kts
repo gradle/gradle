@@ -266,6 +266,8 @@ dependencies {
     coreRuntimeExtensions(project(":pluginUse"))
     coreRuntimeExtensions(project(":workers"))
     coreRuntimeExtensions(patchedExternalModules)
+
+    testRuntime(project(":apiMetadata"))
 }
 
 extra["allCoreRuntimeExtensions"] = coreRuntimeExtensions.allDependencies
