@@ -566,6 +566,7 @@ public class AvailableToolChains {
     public static class InstalledVisualCpp extends InstalledToolChain {
         private VersionNumber version;
         private File installDir;
+        private File cppCompiler;
 
         public InstalledVisualCpp(VisualStudioVersion version) {
             super("visual c++ " + version.getYear() + " (" + version.getVersion().toString() + ")");
@@ -580,7 +581,9 @@ public class AvailableToolChains {
             DefaultNativePlatform targetPlatform = new DefaultNativePlatform("default");
             installDir = install.getVisualStudioDir();
             version = install.getVersion();
-            pathEntries.addAll(install.getVisualCpp().forPlatform(targetPlatform).getPath());
+            org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualCpp visualCpp = install.getVisualCpp().forPlatform(targetPlatform);
+            cppCompiler = visualCpp.getCompilerExecutable();
+            pathEntries.addAll(visualCpp.getPath());
             return this;
         }
 
@@ -640,6 +643,10 @@ public class AvailableToolChains {
 
         public VersionNumber getVersion() {
             return version;
+        }
+
+        public File getCppCompiler() {
+            return cppCompiler;
         }
 
         @Override
