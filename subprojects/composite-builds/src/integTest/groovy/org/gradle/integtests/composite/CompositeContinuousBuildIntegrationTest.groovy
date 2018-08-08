@@ -171,7 +171,7 @@ class CompositeContinuousBuildIntegrationTest extends Java7RequiringContinuousIn
         when:
         pluginSource.text = pluginSource.text.replace("Hello", "Goodbye")
         then:
-        succeeds("--debug")
+        succeeds()
         outputContains("Goodbye World")
     }
 
