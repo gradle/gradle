@@ -31,7 +31,7 @@ buildscript {
 
 plugins {
     `kotlin-dsl`
-    id("org.gradle.kotlin.ktlint-convention") version "0.1.13" apply false
+    id("org.gradle.kotlin.ktlint-convention") version "0.1.14" apply false
 }
 
 subprojects {
