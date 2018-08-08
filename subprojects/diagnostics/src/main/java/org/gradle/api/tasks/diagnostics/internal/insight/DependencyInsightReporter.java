@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DefaultSection;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyReportHeader;
@@ -167,10 +168,9 @@ public class DependencyInsightReporter {
         DefaultSection selectionReasons = new DefaultSection("Selection reasons");
         for (ComponentSelectionDescriptor entry : reason.getDescriptions()) {
             ComponentSelectionDescriptorInternal descriptor = (ComponentSelectionDescriptorInternal) entry;
-            ComponentSelectionCause cause = descriptor.getCause();
             boolean hasCustomDescription = descriptor.hasCustomDescription();
 
-            if (cause.isExpected() && !hasCustomDescription) {
+            if (VersionSelectionReasons.isCauseExpected(descriptor) && !hasCustomDescription) {
                 // Don't render empty 'requested' reason
                 continue;
             }
