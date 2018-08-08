@@ -1021,6 +1021,53 @@ org:leaf:2.0 -> 1.0
 """
     }
 
+    def "forced version combined with constraint"() {
+        given:
+        mavenRepo.module("org", "leaf", "2.0").publish()
+        mavenRepo.module("org", "foo", "1.0").dependsOn('org', 'leaf', '1.0').publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            configurations.conf.resolutionStrategy.force 'org:leaf:2.0'
+            dependencies {
+                conf 'org:foo:1.0'
+                constraints {
+                    conf('org:leaf:1.4')
+                }
+            }
+            task insight(type: DependencyInsightReportTask) {
+                configuration = configurations.conf
+                setDependencySpec { it.requested.module == 'leaf' }
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        outputContains """
+org:leaf:2.0
+   variant "runtime+default" [
+      org.gradle.status = release (not requested)
+   ]
+   Selection reasons:
+      - Forced
+      - By constraint
+
+org:leaf:1.0 -> 2.0
+\\--- org:foo:1.0
+     \\--- conf
+
+org:leaf:1.4 -> 2.0
+\\--- conf
+"""
+    }
+
     def "shows decent failure when inputs missing"() {
         given:
         file("build.gradle") << """
