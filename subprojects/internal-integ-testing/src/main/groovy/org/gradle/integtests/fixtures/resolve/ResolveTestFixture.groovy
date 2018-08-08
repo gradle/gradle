@@ -696,8 +696,8 @@ allprojects {
         /**
          * Marks that this node has a forced vers.
          */
-        NodeBuilder forced() {
-            reasons << 'forced'
+        NodeBuilder forced(String message) {
+            reasons << "${ComponentSelectionCause.FORCED.defaultReason}: $message".toString()
             this
         }
 

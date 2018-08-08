@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.internal.Actions
+import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.locking.NoOpDependencyLockingProvider
 import org.gradle.internal.rules.NoInputsRuleAction
@@ -100,6 +101,7 @@ class DefaultResolutionStrategySpec extends Specification {
         given:
         strategy.force 'org:bar:1.0', 'org:foo:2.0'
         def details = Mock(DependencySubstitutionInternal)
+        def target = DefaultModuleComponentSelector.newSelector(mid, "2.0")
 
         when:
         strategy.dependencySubstitutionRule.execute(details)
@@ -109,7 +111,7 @@ class DefaultResolutionStrategySpec extends Specification {
         _ * globalDependencySubstitutions.ruleAction >> Actions.doNothing()
         _ * details.getRequested() >> DefaultModuleComponentSelector.newSelector(mid, new DefaultMutableVersionConstraint("1.0"))
         _ * details.getOldRequested() >> newSelector(mid, "1.0")
-        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(mid, "2.0"), VersionSelectionReasons.FORCED)
+        1 * details.useTarget(target, VersionSelectionReasons.FORCED.withReason(Describables.of("module", target)))
         0 * details._
     }
 
@@ -130,6 +132,7 @@ class DefaultResolutionStrategySpec extends Specification {
         strategy.force 'org:bar:1.0', 'org:foo:2.0'
         def details = Mock(DependencySubstitutionInternal)
         def substitutionAction = Mock(Action)
+        def target = DefaultModuleComponentSelector.newSelector(mid, "2.0")
 
         when:
         strategy.dependencySubstitutionRule.execute(details)
@@ -138,7 +141,7 @@ class DefaultResolutionStrategySpec extends Specification {
         dependencySubstitutions.ruleAction >> substitutionAction
         _ * details.requested >> DefaultModuleComponentSelector.newSelector(mid, new DefaultMutableVersionConstraint("1.0"))
         _ * details.oldRequested >> newSelector(mid, "1.0")
-        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(mid, "2.0"), VersionSelectionReasons.FORCED)
+        1 * details.useTarget(target, VersionSelectionReasons.FORCED.withReason(Describables.of("module", target)))
         _ * globalDependencySubstitutions.ruleAction >> Actions.doNothing()
 
         then: //user rules follow:

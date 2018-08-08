@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
+import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import spock.lang.Specification
 
@@ -41,6 +42,7 @@ class ModuleForcingResolveRuleSpec extends Specification {
     def "forces modules"() {
         given:
         def details = Mock(DependencySubstitutionInternal)
+        def target = DefaultModuleComponentSelector.newSelector(mid(requested.group, requested.name), forcedVersion)
 
         when:
         new ModuleForcingResolveRule([
@@ -54,7 +56,7 @@ class ModuleForcingResolveRuleSpec extends Specification {
         then:
         _ * details.requested >> DefaultModuleComponentSelector.newSelector(requested)
         _ * details.getOldRequested() >> requested
-        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(mid(requested.group, requested.name), forcedVersion), VersionSelectionReasons.FORCED)
+        1 * details.useTarget(target, VersionSelectionReasons.FORCED.withReason(Describables.of("module", target)))
         0 * details._
 
         where:

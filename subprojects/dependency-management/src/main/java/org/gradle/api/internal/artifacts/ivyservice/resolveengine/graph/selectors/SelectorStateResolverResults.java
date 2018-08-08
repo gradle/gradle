@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.internal.Describables;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
@@ -46,7 +47,7 @@ class SelectorStateResolverResults {
 
             if (selectorState.isForce()) {
                 T forcedComponent = componentForIdResolveResult(componentFactory, idResolveResult, selectorState);
-                forcedComponent.addCause(VersionSelectionReasons.FORCED);
+                forcedComponent.addCause(VersionSelectionReasons.FORCED.withReason(Describables.of("dependency", forcedComponent.getComponentId())));
                 return Collections.singletonList(forcedComponent);
             }
 

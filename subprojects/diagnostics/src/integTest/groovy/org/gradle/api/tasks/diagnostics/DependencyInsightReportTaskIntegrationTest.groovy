@@ -491,10 +491,12 @@ org:foo:1.+ FAILED
 
         then:
         outputContains """
-org:leaf:1.0 (forced)
+org:leaf:1.0
    variant "runtime" [
       org.gradle.status = release (not requested)
    ]
+   Selection reasons:
+      - Forced : module org:leaf:1.0
 
 org:leaf:1.0
 \\--- org:foo:1.0
@@ -912,10 +914,12 @@ org:leaf:latest.integration -> 1.6
 
         then:
         outputContains """
-org:leaf:2.0 (forced)
+org:leaf:2.0
    variant "runtime" [
       org.gradle.status = release (not requested)
    ]
+   Selection reasons:
+      - Forced : module org:leaf:2.0
 
 org:leaf:2.0
 \\--- org:bar:1.0
@@ -958,10 +962,12 @@ org:leaf:1.0 -> 2.0
 
         then:
         outputContains """
-org:leaf:1.5 (forced)
+org:leaf:1.5
    variant "runtime" [
       org.gradle.status = release (not requested)
    ]
+   Selection reasons:
+      - Forced : module org:leaf:1.5
 
 org:leaf:1.0 -> 1.5
 \\--- org:foo:1.0
@@ -1005,10 +1011,12 @@ org:leaf:2.0 -> 1.5
 
         then:
         outputContains """
-org:leaf:1.0 (forced)
+org:leaf:1.0
    variant "default+runtime" [
       org.gradle.status = release (not requested)
    ]
+   Selection reasons:
+      - Forced : dependency org:leaf:1.0
 
 org:leaf:1.0
 +--- conf
@@ -1056,7 +1064,7 @@ org:leaf:2.0
       org.gradle.status = release (not requested)
    ]
    Selection reasons:
-      - Forced
+      - Forced : module org:leaf:2.0
       - By constraint
 
 org:leaf:1.0 -> 2.0
@@ -1189,7 +1197,9 @@ org:middle:1.0 FAILED
         run "insight"
 
         then:
-        outputContains """org:middle:2.0 (forced) FAILED
+        outputContains """org:middle:2.0 FAILED
+   Selection reasons:
+      - Forced : module org:middle:2.0
    Failures:
       - Could not find org:middle:2.0.
         Searched in the following locations:

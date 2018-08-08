@@ -300,7 +300,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         resolve.expectGraph {
             root(":", ":depsub:") {
                 edge("org.utils:impl:1.3", "org.utils:impl:1.5") {
-                    forced()
+                    forced("module org.utils:impl:1.5")
                     edge("org.utils:api:1.5", "org.utils:api:1.6").selectedByRule()
                 }
             }

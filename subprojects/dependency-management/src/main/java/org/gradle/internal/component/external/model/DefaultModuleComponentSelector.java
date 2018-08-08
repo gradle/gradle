@@ -16,6 +16,7 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.base.Objects;
+import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VersionConstraint;
@@ -28,7 +29,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionCon
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-public class DefaultModuleComponentSelector implements ModuleComponentSelector {
+public class DefaultModuleComponentSelector implements ModuleComponentSelector, Describable {
     private final ModuleIdentifier moduleIdentifier;
     private final ImmutableVersionConstraint versionConstraint;
     private final ImmutableAttributes attributes;

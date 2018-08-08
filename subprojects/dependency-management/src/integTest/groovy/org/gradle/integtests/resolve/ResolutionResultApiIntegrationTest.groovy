@@ -79,7 +79,7 @@ class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTes
         output.contains """
 cool-project:5.0 root
 foo:1.0 between versions 0.5 and 1.0
-leaf:2.0 forced
+leaf:2.0 module org:leaf:2.0
 bar:1.0 requested
 baz:1.0 requested
 """
