@@ -178,16 +178,33 @@ public class DependencyInsightReporter {
                 continue;
             }
 
-            String message = null;
             if (hasCustomDescription) {
                 selectionReasons.shouldDisplay();
-                message = descriptor.getDescription();
             }
-            String prettyCause = prettyCause(cause);
-            Section item = new DefaultSection(hasCustomDescription ? prettyCause + " : " + message : prettyCause);
+            Section item = new DefaultSection(render(descriptor));
             selectionReasons.addChild(item);
         }
         return selectionReasons;
+    }
+
+    private static String getReasonDescription(ComponentSelectionReason reason) {
+        ComponentSelectionReasonInternal r = (ComponentSelectionReasonInternal) reason;
+        return getReasonDescription(r);
+    }
+
+    private static String getReasonDescription(ComponentSelectionReasonInternal reason) {
+        if (reason.isExpected()) {
+            return null;
+        }
+        ComponentSelectionDescriptor last = Iterables.getLast(reason.getDescriptions());
+        return render(last).toLowerCase();
+    }
+
+    private static String render(ComponentSelectionDescriptor descriptor) {
+        if (((ComponentSelectionDescriptorInternal) descriptor).hasCustomDescription()) {
+            return prettyCause(descriptor.getCause()) + " : " + descriptor.getDescription();
+        }
+        return prettyCause(descriptor.getCause());
     }
 
     private static String prettyCause(ComponentSelectionCause cause) {
@@ -210,36 +227,6 @@ public class DependencyInsightReporter {
                 return "By constraint";
         }
         return "Unknown";
-    }
-
-    private static String getReasonDescription(ComponentSelectionReason reason) {
-        ComponentSelectionReasonInternal r = (ComponentSelectionReasonInternal) reason;
-        String description = getReasonDescription(r);
-        if (reason.isConstrained()) {
-            if (!r.hasCustomDescriptions()) {
-                return "via constraint";
-            } else {
-                return "via constraint, " + description;
-            }
-        }
-        return description;
-    }
-
-    private static String getReasonDescription(ComponentSelectionReasonInternal reason) {
-        if (!reason.hasCustomDescriptions()) {
-            return reason.isExpected() ? null : Iterables.getLast(reason.getDescriptions()).getDescription();
-        }
-        return getLastCustomReason(reason);
-    }
-
-    private static String getLastCustomReason(ComponentSelectionReasonInternal reason) {
-        String lastCustomReason = null;
-        for (ComponentSelectionDescriptor descriptor : reason.getDescriptions()) {
-            if (((ComponentSelectionDescriptorInternal) descriptor).hasCustomDescription()) {
-                lastCustomReason = descriptor.getDescription();
-            }
-        }
-        return lastCustomReason;
     }
 
     private static class SelectionReasonsSection extends DefaultSection {

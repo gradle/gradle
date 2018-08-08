@@ -445,7 +445,7 @@ org:foo:1.0 FAILED
 org:foo:1.0 FAILED
 \\--- lockedConf
 
-org:foo:1.1 (via constraint) FAILED
+org:foo:1.1 (by constraint) FAILED
    Failures:
       - Could not resolve org:foo:1.1. (already reported)
 
@@ -1796,7 +1796,7 @@ foo:foo:1.0
 
         then:
         if (!rejected) {
-            outputContains """org:foo:$selected (via constraint)
+            outputContains """org:foo:$selected (by constraint)
    variant "default" [
       org.gradle.status = release (not requested)
       Requested attributes not found in the selected variant:
@@ -2131,7 +2131,7 @@ org:foo:[1.0,) -> 1.1
 
         then:
         outputContains """
-org:leaf:1.0 (via constraint)
+org:leaf:1.0 (by constraint)
    variant "compile" [
       org.gradle.status = release (not requested)
       org.gradle.usage  = java-api
@@ -2297,7 +2297,7 @@ org:bar:[1.0,) FAILED
 org:bar:[1.0,) FAILED
 \\--- compileClasspath
 
-org:foo: (via constraint) FAILED
+org:foo: (by constraint) FAILED
    Failures:
       - Could not resolve org:foo.:
           - Cannot find a version of 'org:foo' that satisfies the version constraints: 
