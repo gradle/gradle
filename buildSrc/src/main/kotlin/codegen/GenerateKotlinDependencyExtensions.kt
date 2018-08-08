@@ -112,6 +112,19 @@ val PluginDependenciesSpec.`embedded-kotlin`: PluginDependencySpec
  */
 val PluginDependenciesSpec.`kotlin-dsl`: PluginDependencySpec
     get() = id("org.gradle.kotlin.kotlin-dsl") version "$kotlinDslPluginsVersion"
+
+
+/**
+ * The `kotlin-dsl.precompiled-script-plugins` plugin.
+ *
+ * Equivalent to `id("org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins") version "$kotlinDslPluginsVersion"`
+ *
+ * You can also use `` `kotlin-dsl-precompiled-script-plugins` version "$kotlinDslPluginsVersion" `` if you want to use a different version.
+ *
+ * @see org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins
+ */
+val PluginDependenciesSpec.`kotlin-dsl-precompiled-script-plugins`: PluginDependencySpec
+    get() = id("org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins") version "$kotlinDslPluginsVersion"
 """)
     }
 }

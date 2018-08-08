@@ -174,8 +174,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         withFile("build.gradle.kts", """
 
             plugins {
-                kotlin("jvm") version embeddedKotlinVersion
                 `kotlin-dsl`
+                `kotlin-dsl-precompiled-script-plugins`
                 `java-gradle-plugin`
             }
 
