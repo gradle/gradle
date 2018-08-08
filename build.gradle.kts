@@ -25,9 +25,7 @@ import org.gradle.gradlebuild.ProjectGroups.pluginProjects
 import org.gradle.gradlebuild.ProjectGroups.publishedProjects
 
 buildscript {
-    project.apply {
-        from("$rootDir/gradle/shared-with-buildSrc/mirrors.gradle.kts")
-    }
+    project.apply(from = "$rootDir/gradle/shared-with-buildSrc/mirrors.gradle.kts")
 }
 
 plugins {
@@ -136,6 +134,8 @@ buildTypes {
     }
 }
 
+var kotlinDevMirrorUrl = (project.rootProject.extensions.extraProperties.get("repositoryMirrors") as Map<String, String>).get("kotlindev")
+
 allprojects {
     group = "org.gradle"
 
@@ -144,6 +144,7 @@ allprojects {
         maven(url = "https://repo.gradle.org/gradle/libs")
         maven(url = "https://repo.gradle.org/gradle/libs-milestones")
         maven(url = "https://repo.gradle.org/gradle/libs-snapshots")
+        maven(url = kotlinDevMirrorUrl ?: "https://dl.bintray.com/kotlin/kotlin-dev")
     }
 
     // patchExternalModules lives in the root project - we need to activate normalization there, too.
@@ -278,7 +279,7 @@ tasks.register<PatchExternalModules>("patchExternalModules") {
 
 evaluationDependsOn(":distributions")
 
-val gradle_installPath: Any? by project
+val gradle_installPath: Any? = findProperty("gradle_installPath")
 
 tasks.register<Install>("install") {
     description = "Installs the minimal distribution into directory $gradle_installPath"

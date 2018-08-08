@@ -17,11 +17,9 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.tasks.FileNormalizer;
 
 public interface TaskFilePropertySpec extends TaskPropertySpec {
     FileCollection getPropertyFiles();
     Class<? extends FileNormalizer> getNormalizer();
-    PathNormalizationStrategy getPathNormalizationStrategy();
 }

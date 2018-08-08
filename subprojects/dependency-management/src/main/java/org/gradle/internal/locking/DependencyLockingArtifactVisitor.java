@@ -17,8 +17,10 @@
 package org.gradle.internal.locking;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
@@ -33,9 +35,11 @@ import org.gradle.internal.component.local.model.RootConfigurationMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.util.CollectionUtils;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisitor {
@@ -44,8 +48,9 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
     private final String configurationName;
     private Set<ModuleComponentIdentifier> allResolvedModules;
     private Set<ModuleComponentIdentifier> changingResolvedModules;
-    private Set<ModuleComponentIdentifier> modulesToBeLocked;
     private Set<ModuleComponentIdentifier> extraModules;
+    private Set<ModuleComponentIdentifier> incorrectModules;
+    private Map<ModuleIdentifier, ModuleComponentIdentifier> modulesToBeLocked;
     private DependencyLockingState dependencyLockingState;
 
     public DependencyLockingArtifactVisitor(String configurationName, DependencyLockingProvider dependencyLockingProvider) {
@@ -59,11 +64,15 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
         dependencyLockingState = metadata.getDependencyLockingState();
         if (dependencyLockingState.mustValidateLockState()) {
             Set<ModuleComponentIdentifier> lockedModules = dependencyLockingState.getLockedDependencies();
-            modulesToBeLocked = Sets.newHashSet(lockedModules);
+            modulesToBeLocked = Maps.newHashMapWithExpectedSize(lockedModules.size());
+            for (ModuleComponentIdentifier lockedModule : lockedModules) {
+                modulesToBeLocked.put(lockedModule.getModuleIdentifier(), lockedModule);
+            }
             allResolvedModules = Sets.newHashSetWithExpectedSize(this.modulesToBeLocked.size());
             extraModules = Sets.newHashSet();
+            incorrectModules = Sets.newHashSet();
         } else {
-            modulesToBeLocked = Collections.emptySet();
+            modulesToBeLocked = Collections.emptyMap();
             allResolvedModules = Sets.newHashSet();
         }
     }
@@ -87,8 +96,12 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
                         addChangingModule(id);
                     }
                     if (dependencyLockingState.mustValidateLockState()) {
-                        if (!modulesToBeLocked.remove(id)) {
+                        ModuleComponentIdentifier lockedId = modulesToBeLocked.remove(id.getModuleIdentifier());
+                        if (lockedId == null) {
                             extraModules.add(id);
+                        } else if (!lockedId.getVersion().equals(id.getVersion())) {
+                            node.getIncomingEdges();
+                            incorrectModules.add(lockedId);
                         }
                     }
                 }
@@ -117,7 +130,7 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
     public void finishArtifacts() {
     }
 
-    private Set<String> getSortedDisplayNames(Set<ModuleComponentIdentifier> modules) {
+    private Collection<String> getSortedDisplayNames(Collection<ModuleComponentIdentifier> modules) {
         return CollectionUtils.collect(modules, new Transformer<String, ModuleComponentIdentifier>() {
             @Override
             public String transform(ModuleComponentIdentifier moduleComponentIdentifier) {
@@ -126,21 +139,24 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
         });
     }
 
-    private void throwLockOutOfDateException(Set<String> notResolvedConstraints, Set<String> extraModules) {
-        List<String> errors = Lists.newArrayListWithCapacity(notResolvedConstraints.size() + extraModules.size());
+    private void throwLockOutOfDateException(Collection<String> notResolvedConstraints, Collection<String> extraModules, Collection<String> incorrectModules) {
+        List<String> errors = Lists.newArrayListWithCapacity(notResolvedConstraints.size() + extraModules.size() + incorrectModules.size());
         for (String notResolvedConstraint : notResolvedConstraints) {
             errors.add("Did not resolve '" + notResolvedConstraint + "' which is part of the lock state");
         }
         for (String extraModule : extraModules) {
             errors.add("Resolved '" + extraModule + "' which is not part of the lock state");
         }
+        for (String incorrectModule : incorrectModules) {
+            errors.add("Lock entry '" + incorrectModule + "' is incompatible with declared dependencies");
+        }
         throw LockOutOfDateException.createLockOutOfDateException(configurationName, errors);
     }
 
     public void complete() {
         if (dependencyLockingState.mustValidateLockState()) {
-            if (!modulesToBeLocked.isEmpty() || !extraModules.isEmpty()) {
-                throwLockOutOfDateException(getSortedDisplayNames(modulesToBeLocked), getSortedDisplayNames(extraModules));
+            if (!modulesToBeLocked.isEmpty() || !extraModules.isEmpty() || !incorrectModules.isEmpty()) {
+                throwLockOutOfDateException(getSortedDisplayNames(modulesToBeLocked.values()), getSortedDisplayNames(extraModules), getSortedDisplayNames(incorrectModules));
             }
         }
         Set<ModuleComponentIdentifier> changingModules = this.changingResolvedModules == null ? Collections.<ModuleComponentIdentifier>emptySet() : this.changingResolvedModules;

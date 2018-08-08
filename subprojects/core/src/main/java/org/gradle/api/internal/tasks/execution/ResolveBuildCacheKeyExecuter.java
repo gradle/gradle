@@ -23,8 +23,12 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -33,17 +37,26 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 
 import javax.annotation.Nullable;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeMap;
 
 public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
@@ -119,7 +132,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
     }
 
     @VisibleForTesting
-    static class OperationResultImpl implements SnapshotTaskInputsBuildOperationType.Result {
+    static class OperationResultImpl implements SnapshotTaskInputsBuildOperationType.Result, CustomOperationTraceSerialization {
 
         @VisibleForTesting
         final TaskOutputCachingBuildCacheKey key;
@@ -130,8 +143,8 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
         @Nullable
         @Override
-        public Map<String, String> getInputHashes() {
-            ImmutableSortedMap<String, HashCode> inputHashes = key.getInputs().getInputHashes();
+        public Map<String, String> getInputValueHashes() {
+            ImmutableSortedMap<String, HashCode> inputHashes = key.getInputs().getInputValueHashes();
             if (inputHashes == null || inputHashes.isEmpty()) {
                 return null;
             } else {
@@ -141,6 +154,141 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                         return input.toString();
                     }
                 });
+            }
+        }
+
+        @Override
+        public Map<String, String> getInputHashes() {
+            ImmutableSortedMap.Builder<String, String> builder = ImmutableSortedMap.naturalOrder();
+            Map<String, String> inputValueHashes = getInputValueHashes();
+            if (inputValueHashes != null) {
+                builder.putAll(inputValueHashes);
+            }
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = key.getInputs().getInputFiles();
+            if (inputFiles != null) {
+                for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputFiles.entrySet()) {
+                    builder.put(entry.getKey(), entry.getValue().getHash().toString());
+                }
+            }
+            ImmutableSortedMap<String, String> map = builder.build();
+            return map.isEmpty() ? null : map;
+        }
+
+        @NonNullApi
+        private static class State implements VisitState, PhysicalSnapshotVisitor {
+            final InputFilePropertyVisitor visitor;
+
+            Map<String, NormalizedFileSnapshot> normalizedSnapshots;
+            String propertyName;
+            HashCode propertyHash;
+            FingerprintingStrategy.Identifier propertyNormalizationStrategyIdentifier;
+            String name;
+            String path;
+            HashCode hash;
+            int depth;
+
+            public State(InputFilePropertyVisitor visitor) {
+                this.visitor = visitor;
+            }
+
+            @Override
+            public String getPropertyName() {
+                return propertyName;
+            }
+
+            @Override
+            public String getPropertyHash() {
+                return propertyHash.toString();
+            }
+
+            @Override
+            public String getPropertyNormalizationStrategyName() {
+                return propertyNormalizationStrategyIdentifier.name();
+            }
+
+            @Override
+            public String getName() {
+                return name;
+            }
+
+            @Override
+            public String getPath() {
+                return path;
+            }
+
+            @Override
+            public String getHash() {
+                return hash.toString();
+            }
+
+            @Override
+            public boolean preVisitDirectory(PhysicalDirectorySnapshot physicalSnapshot) {
+                this.path = physicalSnapshot.getAbsolutePath();
+                this.name = physicalSnapshot.getName();
+                this.hash = null;
+
+                if (depth++ == 0) {
+                    visitor.preRoot(this);
+                }
+
+                visitor.preDirectory(this);
+
+                return true;
+            }
+
+            @Override
+            public void visit(PhysicalSnapshot physicalSnapshot) {
+                this.path = physicalSnapshot.getAbsolutePath();
+                this.name = physicalSnapshot.getName();
+
+                NormalizedFileSnapshot snapshot = normalizedSnapshots.get(path);
+                if (snapshot == null) {
+                    return;
+                }
+
+                this.hash = snapshot.getNormalizedContentHash();
+
+                boolean isRoot = depth == 0;
+                if (isRoot) {
+                    visitor.preRoot(this);
+                }
+
+                visitor.file(this);
+
+                if (isRoot) {
+                    visitor.postRoot();
+                }
+            }
+
+            @Override
+            public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+                visitor.postDirectory();
+                if (--depth == 0) {
+                    visitor.postRoot();
+                }
+            }
+
+        }
+
+
+        @Override
+        public void visitInputFileProperties(InputFilePropertyVisitor visitor) {
+            State state = new State(visitor);
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = key.getInputs().getInputFiles();
+            if (inputFiles == null) {
+                return;
+            }
+            for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputFiles.entrySet()) {
+                CurrentFileCollectionFingerprint fingerprint = entry.getValue();
+
+                state.propertyName = entry.getKey();
+                state.propertyHash = fingerprint.getHash();
+                state.propertyNormalizationStrategyIdentifier = fingerprint.getStrategyIdentifier();
+                state.normalizedSnapshots = fingerprint.getSnapshots();
+
+                visitor.preProperty(state);
+                fingerprint.visitRoots(state);
+                visitor.postProperty();
             }
         }
 
@@ -205,6 +353,143 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         public String getBuildCacheKey() {
             return key.isValid() ? key.getHashCode() : null;
         }
+
+        @Override
+        public Object getCustomOperationTraceSerializableModel() {
+            Map<String, Object> model = new TreeMap<String, Object>();
+            model.put("actionClassLoaderHashes", getActionClassLoaderHashes());
+            model.put("actionClassNames", getActionClassNames());
+            model.put("buildCacheKey", getBuildCacheKey());
+            model.put("classLoaderHash", getClassLoaderHash());
+            model.put("inputFileProperties", fileProperties());
+            model.put("inputHashes", getInputHashes());
+            model.put("inputPropertiesLoadedByUnknownClassLoader", getInputPropertiesLoadedByUnknownClassLoader());
+            model.put("inputValueHashes", getInputValueHashes());
+            model.put("outputPropertyNames", getOutputPropertyNames());
+            return model;
+        }
+
+        protected Map<String, Object> fileProperties() {
+            final Map<String, Object> fileProperties = new TreeMap<String, Object>();
+            visitInputFileProperties(new InputFilePropertyVisitor() {
+                Property property;
+                Deque<DirEntry> dirStack = new ArrayDeque<DirEntry>();
+
+                class Property {
+                    private final String hash;
+                    private final String normalization;
+                    private final List<Entry> roots = new ArrayList<Entry>();
+
+                    public Property(String hash, String normalization) {
+                        this.hash = hash;
+                        this.normalization = normalization;
+                    }
+
+                    public String getHash() {
+                        return hash;
+                    }
+
+                    public String getNormalization() {
+                        return normalization;
+                    }
+
+                    public Collection<Entry> getRoots() {
+                        return roots;
+                    }
+                }
+
+                abstract class Entry {
+                    private final String path;
+
+                    public Entry(String path) {
+                        this.path = path;
+                    }
+
+                    public String getPath() {
+                        return path;
+                    }
+
+                }
+
+                class FileEntry extends Entry {
+                    private final String hash;
+
+                    FileEntry(String path, String hash) {
+                        super(path);
+                        this.hash = hash;
+                    }
+
+                    public String getHash() {
+                        return hash;
+                    }
+                }
+
+                class DirEntry extends Entry {
+                    private final List<Entry> children = new ArrayList<Entry>();
+
+                    DirEntry(String path) {
+                        super(path);
+                    }
+
+                    public Collection<Entry> getChildren() {
+                        return children;
+                    }
+                }
+
+                @Override
+                public void preProperty(VisitState state) {
+                    property = new Property(state.getPropertyHash(), state.getPropertyNormalizationStrategyName());
+                    fileProperties.put(state.getPropertyName(), property);
+                }
+
+                @Override
+                public void preRoot(VisitState state) {
+
+                }
+
+                @Override
+                public void preDirectory(VisitState state) {
+                    boolean isRoot = dirStack.isEmpty();
+                    DirEntry dir = new DirEntry(isRoot ? state.getPath() : state.getName());
+                    if (isRoot) {
+                        property.roots.add(dir);
+                    } else {
+                        //noinspection ConstantConditions
+                        dirStack.peek().children.add(dir);
+                    }
+                    dirStack.push(dir);
+                }
+
+                @Override
+                public void file(VisitState state) {
+                    boolean isRoot = dirStack.isEmpty();
+                    FileEntry file = new FileEntry(isRoot ? state.getPath() : state.getName(), state.getHash());
+                    if (isRoot) {
+                        property.roots.add(file);
+                    } else {
+                        //noinspection ConstantConditions
+                        dirStack.peek().children.add(file);
+                    }
+                }
+
+                @Override
+                public void postDirectory() {
+                    dirStack.pop();
+                }
+
+                @Override
+                public void postRoot() {
+
+                }
+
+                @Override
+                public void postProperty() {
+
+                }
+            });
+            return fileProperties;
+        }
+
     }
 
 }

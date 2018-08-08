@@ -21,6 +21,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
 import org.gradle.api.internal.tasks.compile.incremental.deps.AffectedClasses;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.internal.hash.HashCode;
 
@@ -31,16 +32,18 @@ import java.util.Set;
 public class ClasspathEntrySnapshot {
 
     private final ClasspathEntrySnapshotData data;
+    private final ClassSetAnalysis analysis;
 
     public ClasspathEntrySnapshot(ClasspathEntrySnapshotData data) {
         this.data = data;
+        this.analysis = new ClassSetAnalysis(data.getClassAnalysis());
     }
 
     public DependentsSet getAllClasses() {
         final Set<String> result = new HashSet<String>();
         for (Map.Entry<String, HashCode> cls : getHashes().entrySet()) {
             String className = cls.getKey();
-            DependentsSet dependents = getAnalysis().getData().getDependents(className);
+            DependentsSet dependents = getClassAnalysis().getRelevantDependents(className, IntSets.EMPTY_SET);
             if (dependents.isDependencyToAll()) {
                 return dependents;
             }
@@ -52,7 +55,7 @@ public class ClasspathEntrySnapshot {
     public IntSet getAllConstants(DependentsSet dependents) {
         IntSet result = new IntOpenHashSet();
         for (String cn : dependents.getDependentClasses()) {
-            result.addAll(data.data.getConstants(cn));
+            result.addAll(data.getClassAnalysis().getConstants(cn));
         }
         return result;
     }
@@ -60,8 +63,8 @@ public class ClasspathEntrySnapshot {
     public IntSet getRelevantConstants(ClasspathEntrySnapshot other, Set<String> affectedClasses) {
         IntSet result = new IntOpenHashSet();
         for (String affectedClass : affectedClasses) {
-            IntSet difference = new IntOpenHashSet(other.getData().data.getConstants(affectedClass));
-            difference.removeAll(data.data.getConstants(affectedClass));
+            IntSet difference = new IntOpenHashSet(other.getData().getClassAnalysis().getConstants(affectedClass));
+            difference.removeAll(data.getClassAnalysis().getConstants(affectedClass));
             result.addAll(difference);
         }
         return result;
@@ -80,9 +83,18 @@ public class ClasspathEntrySnapshot {
             HashCode otherClassBytes = otherClass.getValue();
             HashCode thisClsBytes = getHashes().get(otherClassName);
             if (thisClsBytes == null || !thisClsBytes.equals(otherClassBytes)) {
-                //removed since or changed since
                 affected.add(otherClassName);
-                DependentsSet dependents = other.getAnalysis().getRelevantDependents(otherClassName, IntSets.EMPTY_SET);
+                DependentsSet dependents = other.getClassAnalysis().getRelevantDependents(otherClassName, IntSets.EMPTY_SET);
+                if (dependents.isDependencyToAll()) {
+                    return dependents;
+                }
+                affected.addAll(dependents.getDependentClasses());
+            }
+        }
+        for (String added : addedSince(other)) {
+            if (added.endsWith(ClassSetAnalysisData.PACKAGE_INFO)) {
+                affected.add(added);
+                DependentsSet dependents = other.getClassAnalysis().getRelevantDependents(added, IntSets.EMPTY_SET);
                 if (dependents.isDependencyToAll()) {
                     return dependents;
                 }
@@ -99,19 +111,19 @@ public class ClasspathEntrySnapshot {
     }
 
     public HashCode getHash() {
-        return data.hash;
+        return data.getHash();
     }
 
     public Map<String, HashCode> getHashes() {
-        return data.hashes;
+        return data.getHashes();
     }
 
-    public ClassSetAnalysis getAnalysis() {
-        return new ClassSetAnalysis(data.data);
+    public ClassSetAnalysis getClassAnalysis() {
+        return analysis;
     }
 
     public Set<String> getClasses() {
-        return data.hashes.keySet();
+        return data.getHashes().keySet();
     }
 
     public ClasspathEntrySnapshotData getData() {

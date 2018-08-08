@@ -21,33 +21,30 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
 import org.apache.commons.io.FileUtils;
-import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.time.CountdownTimer;
+import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.internal.time.Time;
+import org.gradle.internal.time.Timer;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
 
 import static org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache.FILE_HASHES_CACHE_KEY;
 
-public class VersionSpecificCacheCleanupAction {
+public class VersionSpecificCacheCleanupAction implements DirectoryCleanupAction {
 
     @VisibleForTesting static final String MARKER_FILE_PATH = FILE_HASHES_CACHE_KEY + "/" + FILE_HASHES_CACHE_KEY + ".lock";
     private static final Logger LOGGER = Logging.getLogger(VersionSpecificCacheCleanupAction.class);
     private static final long CLEANUP_INTERVAL_IN_HOURS = 24;
-    private static final long CLEANUP_TIMEOUT_MILLIS = 10000;
 
     private final VersionSpecificCacheDirectoryScanner versionSpecificCacheDirectoryScanner;
-    private final List<Action<? super GradleVersion>> postCleanupActions = new ArrayList<Action<? super GradleVersion>>();
     private final long maxUnusedDaysForReleases;
     private final long maxUnusedDaysForSnapshots;
 
@@ -63,17 +60,20 @@ public class VersionSpecificCacheCleanupAction {
         this.maxUnusedDaysForSnapshots = maxUnusedDaysForSnapshots;
     }
 
-    public VersionSpecificCacheCleanupAction andThen(Action<? super GradleVersion> action) {
-        postCleanupActions.add(action);
-        return this;
+    @Override
+    @Nonnull
+    public String getDisplayName() {
+        return "Deleting unused version-specific caches in " + versionSpecificCacheDirectoryScanner.getBaseDir();
     }
 
-    public void execute() {
+    public boolean execute(@Nonnull CleanupProgressMonitor progressMonitor) {
         if (requiresCleanup()) {
-            CountdownTimer timer = Time.startCountdownTimer(CLEANUP_TIMEOUT_MILLIS);
-            performCleanup(timer);
-            LOGGER.debug("Processed version-specific caches for cleanup in {}", timer.getElapsed());
+            Timer timer = Time.startTimer();
+            performCleanup(progressMonitor);
+            LOGGER.debug("Processed version-specific caches at {} for cleanup in {}", versionSpecificCacheDirectoryScanner.getBaseDir(), timer.getElapsed());
+            return true;
         }
+        return false;
     }
 
     private boolean requiresCleanup() {
@@ -95,20 +95,13 @@ public class VersionSpecificCacheCleanupAction {
         return new File(currentVersionCacheDir, "gc.properties");
     }
 
-    @VisibleForTesting
-    protected void performCleanup(CountdownTimer timer) {
+    private void performCleanup(CleanupProgressMonitor progressMonitor) {
         MinimumTimestampProvider minimumTimestampProvider = new MinimumTimestampProvider();
         SortedSetMultimap<GradleVersion, VersionSpecificCacheDirectory> cacheDirsByBaseVersion = scanForVersionSpecificCacheDirs();
-        boolean completelyCleanedUp = true;
         for (GradleVersion baseVersion : cacheDirsByBaseVersion.keySet()) {
-            completelyCleanedUp = performCleanup(cacheDirsByBaseVersion.get(baseVersion), timer, minimumTimestampProvider);
-            if (!completelyCleanedUp) {
-                break;
-            }
+            performCleanup(cacheDirsByBaseVersion.get(baseVersion), minimumTimestampProvider, progressMonitor);
         }
-        if (completelyCleanedUp) {
-            markCleanedUp();
-        }
+        markCleanedUp();
     }
 
     private SortedSetMultimap<GradleVersion, VersionSpecificCacheDirectory> scanForVersionSpecificCacheDirs() {
@@ -119,33 +112,25 @@ public class VersionSpecificCacheCleanupAction {
         return cacheDirsByBaseVersion;
     }
 
-    private boolean performCleanup(SortedSet<VersionSpecificCacheDirectory> cacheDirsWithSameBaseVersion, CountdownTimer timer, MinimumTimestampProvider minimumTimestampProvider) {
+    private void performCleanup(SortedSet<VersionSpecificCacheDirectory> cacheDirsWithSameBaseVersion, MinimumTimestampProvider minimumTimestampProvider, CleanupProgressMonitor progressMonitor) {
         Spec<VersionSpecificCacheDirectory> cleanupCondition = new CleanupCondition(cacheDirsWithSameBaseVersion, minimumTimestampProvider);
         for (VersionSpecificCacheDirectory cacheDir : cacheDirsWithSameBaseVersion) {
-            if (timer.hasExpired()) {
-                return false;
-            }
             if (cleanupCondition.isSatisfiedBy(cacheDir)) {
+                progressMonitor.incrementDeleted();
                 try {
                     deleteCacheDir(cacheDir.getDir());
-                    executePostCleanupActions(cacheDir.getVersion());
                 } catch (Exception e) {
                     LOGGER.error("Failed to process/clean up version-specific cache directory: {}", cacheDir.getDir(), e);
                 }
+            } else {
+                progressMonitor.incrementSkipped();
             }
         }
-        return true;
     }
 
     private void deleteCacheDir(File cacheDir) throws IOException {
         LOGGER.debug("Deleting version-specific cache directory at {}", cacheDir);
         FileUtils.deleteDirectory(cacheDir);
-    }
-
-    private void executePostCleanupActions(GradleVersion version) {
-        for (Action<? super GradleVersion> action : postCleanupActions) {
-            action.execute(version);
-        }
     }
 
     private static class CleanupCondition implements Spec<VersionSpecificCacheDirectory> {

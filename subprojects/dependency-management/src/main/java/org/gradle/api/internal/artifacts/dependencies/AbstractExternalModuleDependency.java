@@ -30,7 +30,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     private final ModuleIdentifier moduleIdentifier;
     private boolean changing;
     private boolean force;
-    private final MutableVersionConstraint versionConstraint;
+    private final DefaultMutableVersionConstraint versionConstraint;
 
     public AbstractExternalModuleDependency(ModuleIdentifier module, String version, String configuration) {
         super(configuration);
@@ -67,7 +67,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     }
 
     public String getVersion() {
-        return Strings.emptyToNull(versionConstraint.getPreferredVersion());
+        return Strings.emptyToNull(versionConstraint.getVersion());
     }
 
     public boolean isForce() {

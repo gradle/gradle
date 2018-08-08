@@ -32,7 +32,7 @@ class BuildLogicFunctionalTest extends Specification {
         buildFile = testProjectDir.newFile('build.gradle')
     }
 
-    // START SNIPPET functional-test-classpath-setup-automatic
+    // tag::functional-test-classpath-setup-automatic[]
     def "hello world task prints hello world"() {
         given:
         buildFile << """
@@ -52,5 +52,5 @@ class BuildLogicFunctionalTest extends Specification {
         result.output.contains('Hello world!')
         result.task(":helloWorld").outcome == SUCCESS
     }
-    // END SNIPPET functional-test-classpath-setup-automatic
+    // end::functional-test-classpath-setup-automatic[]
 }

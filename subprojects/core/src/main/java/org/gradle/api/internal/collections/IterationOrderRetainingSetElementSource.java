@@ -16,99 +16,87 @@
 
 package org.gradle.api.internal.collections;
 
-import org.gradle.api.Action;
+import com.google.common.base.Objects;
+import com.google.common.collect.Iterators;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.specs.Spec;
 
-import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.List;
 
-public class IterationOrderRetainingSetElementSource<T> implements ElementSource<T> {
-    private final Set<T> values = new LinkedHashSet<T>();
-    private final PendingSource<T> pending = new DefaultPendingSource<T>();
-
-    @Override
-    public boolean isEmpty() {
-        return values.isEmpty() && pending.isEmpty();
-    }
-
-    @Override
-    public boolean constantTimeIsEmpty() {
-        return values.isEmpty() && pending.isEmpty();
-    }
-
-    @Override
-    public int size() {
-        return values.size() + pending.size();
-    }
-
-    @Override
-    public int estimatedSize() {
-        return values.size() + pending.size();
-    }
+public class IterationOrderRetainingSetElementSource<T> extends AbstractIterationOrderRetainingElementSource<T> {
+    private final Spec<ValuePointer<T>> noDuplicates = new Spec<ValuePointer<T>>() {
+        @Override
+        public boolean isSatisfiedBy(ValuePointer<T> pointer) {
+            return !pointer.getElement().isDuplicate(pointer.getIndex());
+        }
+    };
 
     @Override
     public Iterator<T> iterator() {
-        pending.realizePending();
-        return values.iterator();
+        realizePending();
+        return new RealizedElementCollectionIterator<T>(getInserted(), noDuplicates);
     }
 
     @Override
     public Iterator<T> iteratorNoFlush() {
-        return values.iterator();
-    }
-
-    @Override
-    public boolean contains(Object element) {
-        pending.realizePending();
-        return values.contains(element);
-    }
-
-    @Override
-    public boolean containsAll(Collection<?> elements) {
-        pending.realizePending();
-        return values.containsAll(elements);
+        return new RealizedElementCollectionIterator<T>(getInserted(), noDuplicates);
     }
 
     @Override
     public boolean add(T element) {
-        return values.add(element);
+        if (!Iterators.contains(iteratorNoFlush(), element)) {
+            getInserted().add(new Element<T>(element));
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
-    public boolean remove(Object o) {
-        return values.remove(o);
+    public boolean addRealized(T value) {
+        markDuplicates(value);
+        return true;
+    }
+
+    private void markDuplicates(T value) {
+        boolean seen = false;
+        for (Element<T> element : getInserted()) {
+            if (element.isRealized()) {
+                List<T> collected = element.getValues();
+                for (int index = 0; index < collected.size(); index++) {
+                    if (Objects.equal(collected.get(index), value)) {
+                        if (seen) {
+                            element.setDuplicate(index);
+                        } else {
+                            seen = true;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     @Override
-    public void clear() {
-        pending.clear();
-        values.clear();
+    public boolean addPending(ProviderInternal<? extends T> provider) {
+        Element<T> element = cachingElement(provider);
+        if (!getInserted().contains(element)) {
+            getInserted().add(element);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
-    public void realizePending() {
-        pending.realizePending();
-    }
-
-    @Override
-    public void realizePending(Class<?> type) {
-        pending.realizePending(type);
-    }
-
-    @Override
-    public void addPending(ProviderInternal<? extends T> provider) {
-        pending.addPending(provider);
-    }
-
-    @Override
-    public void removePending(ProviderInternal<? extends T> provider) {
-        pending.removePending(provider);
-    }
-
-    @Override
-    public void onRealize(Action<ProviderInternal<? extends T>> action) {
-        pending.onRealize(action);
+    public boolean addPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+        Element<T> element = cachingElement(provider);
+        if (!getInserted().contains(element)) {
+            getInserted().add(element);
+            return true;
+        } else {
+            return false;
+        }
     }
 }

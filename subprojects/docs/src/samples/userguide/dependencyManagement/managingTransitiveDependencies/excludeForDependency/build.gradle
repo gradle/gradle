@@ -4,7 +4,7 @@ repositories {
     mavenCentral()
 }
 
-//START SNIPPET exclude-transitive-dependencies
+// tag::exclude-transitive-dependencies[]
 dependencies {
     implementation('log4j:log4j:1.2.15') {
         exclude group: 'javax.jms', module: 'jms'
@@ -12,7 +12,7 @@ dependencies {
         exclude group: 'com.sun.jmx', module: 'jmxri'
     }
 }
-//END SNIPPET exclude-transitive-dependencies
+// end::exclude-transitive-dependencies[]
 
 task copyLibs(type: Copy) {
     from configurations.compileClasspath

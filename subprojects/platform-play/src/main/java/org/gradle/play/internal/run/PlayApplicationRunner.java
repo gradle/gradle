@@ -18,10 +18,9 @@ package org.gradle.play.internal.run;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
-import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.deployment.internal.Deployment;
+import org.gradle.internal.fingerprint.ClasspathFingerprinter;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 import org.gradle.process.internal.JavaExecHandleBuilder;
@@ -34,12 +33,12 @@ import java.io.File;
 public class PlayApplicationRunner {
     private final WorkerProcessFactory workerFactory;
     private final VersionedPlayRunAdapter adapter;
-    private final ClasspathSnapshotter snapshotter;
+    private final ClasspathFingerprinter fingerprinter;
 
-    public PlayApplicationRunner(WorkerProcessFactory workerFactory, VersionedPlayRunAdapter adapter, ClasspathSnapshotter snapshotter) {
+    public PlayApplicationRunner(WorkerProcessFactory workerFactory, VersionedPlayRunAdapter adapter, ClasspathFingerprinter fingerprinter) {
         this.workerFactory = workerFactory;
         this.adapter = adapter;
-        this.snapshotter = snapshotter;
+        this.fingerprinter = fingerprinter;
     }
 
     public PlayApplication start(PlayRunSpec spec, Deployment deployment) {
@@ -58,7 +57,7 @@ public class PlayApplicationRunner {
         private final Deployment delegate;
         private final FileCollection applicationClasspath;
         private final boolean isPlay22;
-        private HashCode snapshot;
+        private HashCode classpathHash;
 
         private PlayClassloaderMonitorDeploymentDecorator(Deployment delegate, PlayRunSpec runSpec, VersionedPlayRunAdapter adapter) {
             this.delegate = delegate;
@@ -105,9 +104,9 @@ public class PlayApplicationRunner {
         }
 
         private boolean applicationClasspathChanged() {
-            HashCode oldSnapshot = snapshot;
-            snapshot = snapshotter.snapshot(applicationClasspath, PathNormalizationStrategy.NONE, InputNormalizationStrategy.NOT_CONFIGURED).getHash();
-            return !snapshot.equals(oldSnapshot);
+            HashCode oldClasspathHash = classpathHash;
+            classpathHash = fingerprinter.fingerprint(applicationClasspath, InputNormalizationStrategy.NO_NORMALIZATION).getHash();
+            return !classpathHash.equals(oldClasspathHash);
         }
     }
 

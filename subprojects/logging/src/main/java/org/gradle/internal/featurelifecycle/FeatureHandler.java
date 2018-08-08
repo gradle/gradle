@@ -21,6 +21,6 @@ package org.gradle.internal.featurelifecycle;
  *
  * <p>Implementations need not be thread-safe.
  */
-public interface FeatureHandler {
-    void featureUsed(FeatureUsage usage);
+public interface FeatureHandler<T extends FeatureUsage> {
+    void featureUsed(T usage);
 }

@@ -40,6 +40,10 @@ abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationS
     // JUnit 5's test case name contains parentheses which might break test assertion, e.g. testMethod() PASSED -> testMethod PASSED
     private static final Pattern TEST_CASE_RESULT_PATTERN = ~/(.*)(\w+)\(\) (PASSED|FAILED|SKIPPED|STANDARD_OUT)/
 
+    def setup() {
+        useRepositoryMirrors()
+    }
+
     @Override
     protected ExecutionResult succeeds(String... tasks) {
         rewriteProjectDirectory()

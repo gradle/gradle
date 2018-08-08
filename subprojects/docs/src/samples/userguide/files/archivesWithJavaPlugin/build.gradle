@@ -1,4 +1,4 @@
-// START SNIPPET create-uber-jar-example
+// tag::create-uber-jar-example[]
 plugins {
     id 'java'
 }
@@ -21,4 +21,4 @@ task uberJar(type: Jar) {
                                          findAll { it.name.endsWith('jar') }.
                                          collect { zipTree(it) }
 }
-// END SNIPPET create-uber-jar-example
+// end::create-uber-jar-example[]

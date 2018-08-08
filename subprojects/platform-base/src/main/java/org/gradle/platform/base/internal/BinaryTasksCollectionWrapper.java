@@ -185,6 +185,11 @@ public class BinaryTasksCollectionWrapper implements BinaryTasksCollection {
     }
 
     @Override
+    public void addAllLater(Provider<? extends Iterable<Task>> provider) {
+        delegate.addAllLater(provider);
+    }
+
+    @Override
     public boolean remove(Object o) {
         return delegate.remove(o);
     }

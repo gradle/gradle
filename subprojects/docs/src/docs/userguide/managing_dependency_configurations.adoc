@@ -13,62 +13,54 @@
 // limitations under the License.
 
 [[managing_dependency_configurations]]
-== Managing Dependency Configurations
+= Managing Dependency Configurations
 
 [[sub:what_is_a_configuration]]
-=== What is a configuration?
+== What is a configuration?
 
-Every dependency declared for a Gradle project applies to a specific scope. For example some dependencies should be used for compiling source code whereas others only need to be available at runtime. Gradle represents the scope of a dependency with the help of a api:org.gradle.api.artifacts.Configuration[]. Every configuration can be identified by a unique name.
+Every dependency declared for a Gradle project applies to a specific scope. For example some dependencies should be used for compiling source code whereas others only need to be available at runtime. Gradle represents the scope of a dependency with the help of a link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html[Configuration]. Every configuration can be identified by a unique name.
 
-Many Gradle plugins add pre-defined configurations to your project. The Java plugin, for example, adds configurations to represent the various classpaths it needs for source code compilation, executing tests and the like. See <<sec:java_plugin_and_dependency_management,the Java plugin chapter>> for an example. The sections above demonstrate how to <<declaring_dependencies,declare dependencies>> for different use cases.
+Many Gradle plugins add pre-defined configurations to your project. The Java plugin, for example, adds configurations to represent the various classpaths it needs for source code compilation, executing tests and the like. See <<java_plugin.adoc#sec:java_plugin_and_dependency_management,the Java plugin chapter>> for an example. The sections above demonstrate how to <<declaring_dependencies.adoc#declaring_dependencies,declare dependencies>> for different use cases.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Configurations use declared dependencies for specific purposes</title>
-    <imageobject>
-        <imagedata fileref="img/dependency-management-configurations.png" width="200mm" />
-    </imageobject>
-</figure>
-+++++
+.Configurations use declared dependencies for specific purposes
+image::dependency-management-configurations.png[]
 
-For more examples on the usage of configurations to navigate, inspect and post-process metadata and artifacts of assigned dependencies, see <<working_with_dependencies>>.
+For more examples on the usage of configurations to navigate, inspect and post-process metadata and artifacts of assigned dependencies, see <<working_with_dependencies.adoc#working_with_dependencies,Working with Dependencies>>.
 
-=== Defining custom configurations
+== Defining custom configurations
 
 You can define configurations yourself, so-called _custom configurations_. A custom configuration is useful for separating the scope of dependencies needed for a dedicated purpose.
 
 Let's say you wanted to declare a dependency on the link:https://tomcat.apache.org/tomcat-9.0-doc/jasper-howto.html[Jasper Ant task] for the purpose of pre-compiling JSP files that should _not_ end up in the classpath for compiling your source code. It's fairly simple to achieve that goal by introducing a custom configuration and using it in a task.
 
-++++
-<sample id="custom-configuration" dir="userguide/dependencyManagement/definingUsingConfigurations/custom" title="Declaring and using a custom configuration">
-    <sourcefile file="build.gradle" snippet="custom-configuration"/>
-</sample>
-++++
+=== Example: Declaring and using a custom configuration
 
-A project's configurations are managed by a `configurations` object. Configurations have a name and can extend each other. To learn more about this API have a look at api:org.gradle.api.artifacts.ConfigurationContainer[].
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/definingUsingConfigurations/custom/build.gradle[tag=custom-configuration]
+----
+
+A project's configurations are managed by a `configurations` object. Configurations have a name and can extend each other. To learn more about this API have a look at link:{groovyDslPath}/org.gradle.api.artifacts.ConfigurationContainer.html[ConfigurationContainer].
 
 [[sub:inheriting_dependencies_from_other_configurations]]
-=== Inheriting dependencies from other configurations
+== Inheriting dependencies from other configurations
 
 A configuration can extend other configurations to form an inheritance hierarchy. Child configurations inherit the whole set of dependencies declared for any of its superconfigurations.
 
-Configuration inheritance is heavily used by Gradle core plugins like the <<sec:java_plugin_and_dependency_management,Java plugin>>. For example the `testImplementation` configuration extends the `implementation` configuration. The configuration hierarchy has a practical purpose: compiling tests requires the dependencies of the source code under test on top of the dependencies needed write the test class. A Java project that uses JUnit to write and execute test code also needs Guava if its classes are imported in the production source code.
+Configuration inheritance is heavily used by Gradle core plugins like the <<java_plugin.adoc#sec:java_plugin_and_dependency_management,Java plugin>>. For example the `testImplementation` configuration extends the `implementation` configuration. The configuration hierarchy has a practical purpose: compiling tests requires the dependencies of the source code under test on top of the dependencies needed write the test class. A Java project that uses JUnit to write and execute test code also needs Guava if its classes are imported in the production source code.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Configuration inheritance provided by the Java plugin</title>
-    <imageobject>
-        <imagedata fileref="img/dependency-management-configuration-inheritance.png" width="140mm" />
-    </imageobject>
-</figure>
-+++++
+.Configuration inheritance provided by the Java plugin
+image::dependency-management-configuration-inheritance.png[]
 
-Under the covers the `testImplementation` and `implementation` configurations form an inheritance hierarchy by calling the method api:org.gradle.api.artifacts.Configuration#extendsFrom(org.gradle.api.artifacts.Configuration...)[]. A configuration can extend any other configuration irrespective of its definition in the build script or a plugin.
+Under the covers the `testImplementation` and `implementation` configurations form an inheritance hierarchy by calling the method link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:extendsFrom(org.gradle.api.artifacts.Configuration++[]++)[Configuration.extendsFrom(org.gradle.api.artifacts.Configuration++[]++)]. A configuration can extend any other configuration irrespective of its definition in the build script or a plugin.
 
 Let's say you wanted to write a suite of smoke tests. Each smoke test makes a HTTP call to verify a web service endpoint. As the underlying test framework the project already uses JUnit. You can define a new configuration named `smokeTest` that extends from the `testImplementation` configuration to reuse the existing test framework dependency.
 
-++++
-<sample id="configuration-inheritance" dir="userguide/dependencyManagement/definingUsingConfigurations/inheritance" title="Extending a configuration from another configuration">
-    <sourcefile file="build.gradle" snippet="configuration-definition"/>
-</sample>
-++++
+=== Example: Extending a configuration from another configuration
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/definingUsingConfigurations/inheritance/build.gradle[tag=configuration-definition]
+----

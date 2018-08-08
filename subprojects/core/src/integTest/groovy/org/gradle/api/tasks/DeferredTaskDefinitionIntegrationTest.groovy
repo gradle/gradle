@@ -54,6 +54,9 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         '''
+        settingsFile << """
+            rootProject.name = 'root'
+        """
     }
 
     def "task is created and configured when included directly in task graph"() {
@@ -308,6 +311,62 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Configure again :task1")
         outputContains("Received :task1")
         result.assertNotOutput("task2")
+    }
+
+    def "reports failure in task constructor when task realized"() {
+        settingsFile << """
+            include "child"
+        """
+        file("child/build.gradle") << """
+            class Broken extends DefaultTask {
+                Broken() {
+                    throw new RuntimeException("broken task")
+                }
+            }
+            tasks.register("broken", Broken)
+        """
+
+        expect:
+        fails("broken")
+        failure.assertHasDescription("A problem occurred configuring project ':child'.")
+        failure.assertHasCause("Could not create task ':child:broken'.")
+        failure.assertHasCause("Could not create task of type 'Broken'.")
+        failure.assertHasCause("broken task")
+    }
+
+    def "reports failure in task configuration block when task created"() {
+        settingsFile << """
+            include "child"
+        """
+        file("child/build.gradle") << """
+            tasks.register("broken") {
+                throw new RuntimeException("broken task")
+            }
+        """
+
+        expect:
+        fails("broken")
+        failure.assertHasDescription("A problem occurred configuring project ':child'.")
+        failure.assertHasCause("Could not create task ':child:broken'.")
+        failure.assertHasCause("broken task")
+    }
+
+    def "reports failure in configure block when task created"() {
+        settingsFile << """
+            include "child"
+        """
+        file("child/build.gradle") << """
+            tasks.configureEach {
+                throw new RuntimeException("broken task")
+            }
+            tasks.register("broken")
+        """
+
+        expect:
+        fails("broken")
+        failure.assertHasDescription("A problem occurred configuring project ':child'.")
+        failure.assertHasCause("Could not create task ':child:broken'.")
+        failure.assertHasCause("broken task")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5148")
@@ -628,7 +687,9 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        failure.assertHasCause("Could not create task 'myTask' (CustomTask)")
+        failure.assertHasCause("Could not create task ':myTask'.")
+        failure.assertHasCause("Could not create task of type 'CustomTask'.")
+        failure.assertHasCause("Unable to determine CustomTask_Decorated argument #2: missing parameter value of type int, or no service of type int")
     }
 
     def "fails to create custom task if all constructor arguments missing"() {
@@ -640,7 +701,9 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        failure.assertHasCause("Could not create task 'myTask' (CustomTask)")
+        failure.assertHasCause("Could not create task ':myTask'.")
+        failure.assertHasCause("Could not create task of type 'CustomTask'.")
+        failure.assertHasCause("Unable to determine CustomTask_Decorated argument #1: missing parameter value of type class java.lang.String, or no service of type class java.lang.String")
     }
 
     @Unroll
@@ -653,7 +716,8 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        failure.assertHasCause("Could not create task 'myTask' (CustomTask)")
+        failure.assertHasCause("Could not create task ':myTask'.")
+        failure.assertHasCause("Could not create task of type 'CustomTask'.")
 
         where:
         description | constructorArgs | argumentNumber | outputType
@@ -671,7 +735,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        failure.assertHasCause("Could not create task 'myTask' (CustomTask)")
+        failure.assertHasCause("Could not create task ':myTask'.")
 
         where:
         position | script
@@ -824,5 +888,205 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "foo"
+    }
+
+    private static final def INVALID_CALL_FROM_LAZY_CONFIGURATION = [
+        ["Project#afterEvaluate(Closure)"  , "afterEvaluate {}"],
+        ["Project#afterEvaluate(Action)"   , "afterEvaluate new Action<Project>() { void execute(Project p) {} }"],
+        ["Project#beforeEvaluate(Closure)" , "beforeEvaluate {}"],
+        ["Project#beforeEvaluate(Action)"  , "beforeEvaluate new Action<Project>() { void execute(Project p) {} }"],
+    ]
+
+    @Unroll
+    def "cannot execute #description during lazy task creation action execution"() {
+        settingsFile << "include 'nested'"
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << """
+            tasks.register("foo") {
+                ${code}
+            }
+        """
+
+        expect:
+        fails "foo"
+        failure.assertHasCause("Could not create task ':foo'.")
+        failure.assertHasCause("$description on root project 'root' cannot be executed in the current context.")
+
+        where:
+        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+    }
+
+    @Unroll
+    def "can execute #description during task creation action execution"() {
+        settingsFile << "include 'nested'"
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << """
+            tasks.create("foo") {
+                ${code}
+            }
+        """
+
+        expect:
+        succeeds "foo"
+
+        where:
+        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+    }
+
+    @Unroll
+    def "cannot execute #description during lazy task configuration action execution"() {
+        settingsFile << "include 'nested'"
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << """
+            tasks.register("foo").configure {
+                ${code}
+            }
+        """
+
+        expect:
+        fails "foo"
+        failure.assertHasCause("Could not create task ':foo'.")
+        failure.assertHasCause("$description on root project 'root' cannot be executed in the current context.")
+
+        where:
+        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+    }
+
+    @Unroll
+    def "can execute #description during task configuration action execution"() {
+        settingsFile << "include 'nested'"
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << """
+            tasks.create("foo")
+            tasks.getByName("foo") {
+                ${code}
+            }
+        """
+
+        expect:
+        succeeds "foo"
+
+        where:
+        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+    }
+
+    @Unroll
+    def "cannot execute #description on another project during lazy task creation action execution"() {
+        settingsFile << "include 'nested', 'other'"
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << """
+            project(":other") {
+                tasks.register("foo") {
+                    rootProject.${code}
+                }
+            }
+        """
+
+        expect:
+        fails "foo"
+        failure.assertHasCause("Could not create task ':other:foo'.")
+        failure.assertHasCause("$description on root project 'root' cannot be executed in the current context.")
+
+        where:
+        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+    }
+
+    @Unroll
+    def "can execute #description on another project during task creation action execution"() {
+        settingsFile << "include 'nested', 'other'"
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << """
+            project(":other") {
+                tasks.create("foo") {
+                    rootProject.${code}
+                }
+            }
+        """
+
+        expect:
+        succeeds "foo"
+
+        where:
+        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+    }
+
+    @Unroll
+    def "cannot execute #description on another project during lazy task configuration action execution"() {
+        settingsFile << "include 'nested', 'other'"
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << """
+            project(":other") {
+                tasks.register("foo").configure {
+                    rootProject.${code}
+                }
+            }
+        """
+
+        expect:
+        fails "foo"
+        failure.assertHasCause("Could not create task ':other:foo'.")
+        failure.assertHasCause("$description on root project 'root' cannot be executed in the current context.")
+
+        where:
+        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+    }
+
+    @Unroll
+    def "can execute #description on another project during task configuration action execution"() {
+        settingsFile << "include 'nested', 'other'"
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << """
+            project(":other") {
+                tasks.create("foo")
+                tasks.getByName("foo") {
+                    rootProject.${code}
+                }
+            }
+        """
+
+        expect:
+        succeeds "foo"
+
+        where:
+        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+    }
+
+    @Unroll
+    def "can execute #description during eager configuration action with registered task"() {
+        buildFile << """
+            tasks.withType(SomeTask) {
+                ${code}
+            }
+            tasks.register("foo", SomeTask)
+        """
+
+        expect:
+        succeeds "foo"
+
+        where:
+        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+    }
+
+    def "can realize a task provider inside a configureEach action"() {
+        buildFile << """
+            def foo = tasks.create("foo", SomeTask)
+            def bar = tasks.register("bar") { println "Create :bar" }
+            def baz = tasks.create("baz", SomeTask)
+            def fizz = tasks.create("fizz", SomeTask)
+            def fuzz = tasks.create("fuzz", SomeTask)
+           
+            tasks.withType(SomeTask).configureEach { task ->
+                println "Configuring " + task.name
+                bar.get()
+            }
+            
+            task some { dependsOn tasks.withType(SomeTask) }
+        """
+
+        expect:
+        succeeds("some")
+
+        and:
+        executed ":foo", ":baz", ":fizz", ":fuzz", ":some"
     }
 }

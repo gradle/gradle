@@ -17,17 +17,18 @@
 package org.gradle.integtests.fixtures
 
 import groovy.transform.CompileStatic
+import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.test.fixtures.dsl.GradleDsl
 
-import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
-import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.GOOGLE_URL
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.MAVEN_CENTRAL_URL
 import static org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler.BINTRAY_JCENTER_URL
+import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
+import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 
 @CompileStatic
 class RepoScriptBlockUtil {
-
     private static enum MirroredRepository {
         JCENTER(BINTRAY_JCENTER_URL, System.getProperty('org.gradle.integtest.mirrors.jcenter'), "maven"),
         MAVEN_CENTRAL(MAVEN_CENTRAL_URL, System.getProperty('org.gradle.integtest.mirrors.mavencentral'), "maven"),
@@ -38,7 +39,14 @@ class RepoScriptBlockUtil {
         SPRING_SNAPSHOTS('https://repo.spring.io/snapshot/', System.getProperty('org.gradle.integtest.mirrors.springsnapshots'), 'maven'),
         RESTLET('https://maven.restlet.com', System.getProperty('org.gradle.integtest.mirrors.restlet'), 'maven'),
         GRADLE('https://repo.gradle.org/gradle/repo', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
-        JBOSS('https://repository.jboss.org/maven2/', System.getProperty('org.gradle.integtest.mirrors.jboss'), 'maven')
+        JBOSS('https://repository.jboss.org/maven2/', System.getProperty('org.gradle.integtest.mirrors.jboss'), 'maven'),
+        GRADLE_PLUGIN("https://plugins.gradle.org/m2", System.getProperty('org.gradle.integtest.mirrors.gradleplugins'), 'maven'),
+        GRADLE_LIB_RELEASES('https://repo.gradle.org/gradle/libs-releases', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
+        GRADLE_LIB_MILESTONES('https://repo.gradle.org/gradle/libs-milestones', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
+        GRADLE_LIB_SNAPSHOTS('https://repo.gradle.org/gradle/libs-snapshots', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
+        GRADLE_JAVASCRIPT('https://repo.gradle.org/gradle/javascript-public', System.getProperty('org.gradle.integtest.mirrors.gradlejavascript'), 'maven'),
+        KOTLIN_EAP('https://dl.bintray.com/kotlin/kotlin-eap/', System.getProperty('org.gradle.integtest.mirrors.kotlineap'), 'maven'),
+        KOTLIN_DEV('https://dl.bintray.com/kotlin/kotlin-dev/', System.getProperty('org.gradle.integtest.mirrors.kotlindev'), 'maven')
 
         String originalUrl
         String mirrorUrl
@@ -69,9 +77,21 @@ class RepoScriptBlockUtil {
                 """
             }
         }
+
+        void configure(RepositoryHandler repositories) {
+            repositories.maven { MavenArtifactRepository repo ->
+                repo.name = name
+                repo.url = mirrorUrl
+            }
+        }
     }
 
     private RepoScriptBlockUtil() {
+    }
+
+    static Map<String, String> repoMirrorUrlsEnvironment() {
+        def mirrors = MirroredRepository.values().collect { MirroredRepository repo -> "${repo.name()}:${repo.mirrorUrl}".toString() }
+        ['REPO_MIRRORS_URL': mirrors.join(',')]
     }
 
     static String jcenterRepository(GradleDsl dsl = GROOVY) {
@@ -80,6 +100,10 @@ class RepoScriptBlockUtil {
                 ${jcenterRepositoryDefinition(dsl)}
             }
         """
+    }
+
+    static void configureJcenter(RepositoryHandler repositories) {
+        MirroredRepository.JCENTER.configure(repositories)
     }
 
     static String mavenCentralRepository(GradleDsl dsl = GROOVY) {
@@ -135,12 +159,20 @@ class RepoScriptBlockUtil {
         MirroredRepository.GRADLE.getRepositoryDefinition(dsl)
     }
 
+    static String gradlePluginRepositoryMirrorUrl() {
+        MirroredRepository.GRADLE_PLUGIN.mirrorUrl
+    }
+
+    static String gradlePluginRepositoryDefinition(GradleDsl dsl = GROOVY) {
+        MirroredRepository.GRADLE_PLUGIN.getRepositoryDefinition(dsl)
+    }
+
     static File createMirrorInitScript() {
         File mirrors = File.createTempFile("mirrors", ".gradle")
         mirrors.deleteOnExit()
         def mirrorConditions = MirroredRepository.values().collect { MirroredRepository mirror ->
             """
-                if (repo.url.toString() == '${mirror.originalUrl}') {
+                if (normalizeUrl(repo.url) == normalizeUrl('${mirror.originalUrl}')) {
                     repo.url = '${mirror.mirrorUrl}'
                 }
             """
@@ -190,6 +222,13 @@ class RepoScriptBlockUtil {
 
                 void mirror(IvyArtifactRepository repo) {
                     ${mirrorConditions}
+                }
+                
+                // We see them as equal:
+                // https://repo.maven.apache.org/maven2/ and http://repo.maven.apache.org/maven2
+                String normalizeUrl(Object url) {
+                    String result = url.toString().replace('https://', 'http://')
+                    return result.endsWith("/") ? result : result + "/"
                 }
             }
         """

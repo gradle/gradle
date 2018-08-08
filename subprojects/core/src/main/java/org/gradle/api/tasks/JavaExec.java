@@ -283,8 +283,19 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     }
 
     /**
-     * Command line arguments passed to the main class.
-     * @param args the command line arguments as a single string. Will be parsed to argument list.
+     * Parses an argument list from {@code args} and passes it to {@link #setArgs(List)}.
+     *
+     * <p>
+     * The parser supports both single quote ({@code '}) and double quote ({@code "}) as quote delimiters.
+     * For example, to pass the argument {@code foo bar}, use {@code "foo bar"}.
+     * </p>
+     * <p>
+     * Note: the parser does <strong>not</strong> support using backslash to escape quotes. If this is needed,
+     * use the other quote delimiter around it.
+     * For example, to pass the argument {@code 'singly quoted'}, use {@code "'singly quoted'"}.
+     * </p>
+     *
+     * @param args Args for the main class. Will be parsed into an argument list.
      * @return this
      * @since 4.9
      */

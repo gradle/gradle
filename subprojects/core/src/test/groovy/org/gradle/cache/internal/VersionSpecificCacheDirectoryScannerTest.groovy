@@ -56,4 +56,9 @@ class VersionSpecificCacheDirectoryScannerTest extends Specification {
         expect:
         versionSpecificCacheDirectoryService.getDirectory(GradleVersion.version("1.2.3")) == cacheBaseDir.file("1.2.3")
     }
+
+    def "returns base directory"() {
+        expect:
+        versionSpecificCacheDirectoryService.getBaseDir() == cacheBaseDir
+    }
 }

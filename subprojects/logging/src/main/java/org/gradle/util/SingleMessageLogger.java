@@ -20,9 +20,11 @@ import com.google.common.annotations.VisibleForTesting;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.Factory;
+import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadaster;
 import org.gradle.internal.featurelifecycle.FeatureHandler;
 import org.gradle.internal.featurelifecycle.FeatureUsage;
+import org.gradle.internal.featurelifecycle.IncubatingFeatureUsage;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.LoggingIncubatingFeatureHandler;
 import org.gradle.internal.featurelifecycle.UsageLocationReporter;
@@ -60,7 +62,11 @@ public class SingleMessageLogger {
 
     public static void nagUserOfReplacedPlugin(String pluginName, String replacement) {
         if (isEnabled()) {
-            nagUserWith(String.format("The %s plugin %s has been deprecated.", pluginName), getRemovalDetails(), String.format("Please use the %s plugin instead.", replacement));
+            nagUserWith(String.format("The %s plugin %s has been deprecated.", pluginName),
+                getRemovalDetails(),
+                String.format("Please use the %s plugin instead.", replacement),
+                null,
+                DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 
@@ -69,69 +75,162 @@ public class SingleMessageLogger {
             nagUserWith(
                 String.format("The %s plugin has been deprecated.", pluginName),
                 getRemovalDetails(),
-                String.format("Consider using the %s plugin instead.", replacement));
+                String.format("Consider using the %s plugin instead.", replacement),
+                null,
+                DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 
     public static void nagUserOfToolReplacedWithExternalOne(String toolName, String replacement) {
         if (isEnabled()) {
             nagUserWith(String.format(
-                    "The %s has been deprecated.", toolName), thisWillBeRemovedMessage(), String.format("Consider using %s instead.", replacement));
+                "The %s has been deprecated.", toolName),
+                thisWillBeRemovedMessage(),
+                String.format("Consider using %s instead.", replacement),
+                null,
+                DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 
     public static void nagUserOfReplacedTask(String taskName, String replacement) {
         if (isEnabled()) {
-            nagUserWith(String.format("The %s task has been deprecated.", taskName), thisWillBeRemovedMessage(), String.format("Please use the %s task instead.", replacement));
+            nagUserWith(String.format("The %s task has been deprecated.", taskName),
+                thisWillBeRemovedMessage(), String.format("Please use the %s task instead.", replacement),
+                null,
+                DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 
     public static void nagUserOfReplacedTaskType(String taskName, String replacement) {
         if (isEnabled()) {
-            nagUserWith(String.format("The %s task type has been deprecated.", taskName), thisWillBeRemovedMessage(), String.format("Please use the %s instead.", replacement));
+            nagUserWith(
+                String.format("The %s task type has been deprecated.", taskName),
+                thisWillBeRemovedMessage(), String.format("Please use the %s instead.", replacement),
+                null,
+                DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 
     public static void nagUserOfReplacedMethod(String methodName, String replacement) {
         if (isEnabled()) {
-            nagUserWith(String.format("The %s method has been deprecated.", methodName), thisWillBeRemovedMessage(), String.format("Please use the %s method instead.", replacement));
+            nagUserWith(
+                String.format("The %s method has been deprecated.", methodName), thisWillBeRemovedMessage(),
+                String.format("Please use the %s method instead.", replacement),
+                null,
+                DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
+        }
+    }
+
+    public static void nagUserOfReplacedMethodWithCustomRemoval(String methodName, String replacement, String removalDetails) {
+        if (isEnabled()) {
+            nagUserWith(
+                String.format("The %s method has been deprecated.", methodName),
+                removalDetails,
+                String.format("Please use the %s method instead.", replacement),
+                null,
+                DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 
     public static void nagUserOfReplacedProperty(String propertyName, String replacement) {
         if (isEnabled()) {
             nagUserWith(String.format(
-                    "The %s property has been deprecated.", propertyName), thisWillBeRemovedMessage(), String.format("Please use the %s property instead.", replacement));
+                "The %s property has been deprecated.", propertyName), thisWillBeRemovedMessage(), String.format("Please use the %s property instead.", replacement), null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 
     public static void nagUserOfDiscontinuedMethod(String methodName) {
         if (isEnabled()) {
-            nagUserWith(String.format("The %s method has been deprecated.", methodName), thisWillBeRemovedMessage(), null);
+            nagUserWith(String.format("The %s method has been deprecated.", methodName),
+                thisWillBeRemovedMessage(),
+                null,
+                null,
+                DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 
     public static void nagUserOfDiscontinuedMethod(String methodName, String advice) {
         if (isEnabled()) {
-            nagUserWith(String.format("The %s method has been deprecated.", methodName), thisWillBeRemovedMessage(), advice);
+            nagUserWith(String.format("The %s method has been deprecated.", methodName),
+                thisWillBeRemovedMessage(),
+                advice,
+                null,
+                DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
+        }
+    }
+
+    public static void nagUserOfDiscontinuedMethod(String methodName, String advice, String contextualAdvice) {
+        if (isEnabled()) {
+            nagUserWith(String.format("The %s method has been deprecated.", methodName),
+                thisWillBeRemovedMessage(),
+                advice,
+                contextualAdvice,
+                DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 
     public static void nagUserOfDiscontinuedProperty(String propertyName, String advice) {
         if (isEnabled()) {
-            nagUserWith(String.format("The %s property has been deprecated.", propertyName), thisWillBeRemovedMessage(), advice);
+            nagUserWith(String.format("The %s property has been deprecated.", propertyName),
+                thisWillBeRemovedMessage(),
+                advice,
+                null,
+                DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 
     public static void nagUserOfDiscontinuedApi(String api, String advice) {
         if (isEnabled()) {
-            nagUserWith(String.format("The %s has been deprecated.", api), thisWillBeRemovedMessage(), advice);
+            nagUserWith(String.format("The %s has been deprecated.", api),
+                thisWillBeRemovedMessage(),
+                advice,
+                null,
+                DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 
     public static void nagUserOfReplacedNamedParameter(String parameterName, String replacement) {
         if (isEnabled()) {
-            nagUserWith(String.format("The %s named parameter has been deprecated.", parameterName), thisWillBeRemovedMessage(), String.format("Please use the %s named parameter instead.", replacement));
+            nagUserWith(String.format("The %s named parameter has been deprecated.", parameterName),
+                thisWillBeRemovedMessage(),
+                String.format("Please use the %s named parameter instead.", replacement),
+                null,
+                DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
+        }
+    }
+
+    /**
+     * Try to avoid using this nagging method. The other methods use a consistent wording for when things will be removed.
+     */
+    public static void nagUserWithDeprecatedIndirectUserCodeCause(String summary) {
+        if (isEnabled()) {
+            nagUserWithDeprecatedIndirectUserCodeCause(summary, null);
+        }
+    }
+
+    public static void nagUserWithDeprecatedBuildInvocationFeature(String summary, String advice) {
+        nagUserWithDeprecatedBuildInvocationFeature(summary, thisWillBeRemovedMessage(), advice);
+    }
+
+    public static void nagUserWithDeprecatedBuildInvocationFeature(String summary, String removalDetails, String advice) {
+        nagUserWith(String.format("%s has been deprecated.", summary), removalDetails, advice, null, DeprecatedFeatureUsage.Type.BUILD_INVOCATION);
+    }
+
+    public static void nagUserWithDeprecatedIndirectUserCodeCause(String summary, @Nullable String advice) {
+        if (isEnabled()) {
+            nagUserWithDeprecatedIndirectUserCodeCause(summary, advice, null);
+        }
+    }
+
+    public static void nagUserWithDeprecatedIndirectUserCodeCause(String summary, @Nullable String advice, @Nullable String contextualAdvice) {
+        if (isEnabled()) {
+            nagUserWith(String.format("%s has been deprecated.", summary), thisWillBeRemovedMessage(), advice, contextualAdvice, DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT);
+        }
+    }
+
+    public static void nagUserWithDeprecatedIndirectUserCodeCause(String summary, String removalDetails, String advice, String contextualAdvice) {
+        if (isEnabled()) {
+            nagUserWith(String.format("%s has been deprecated.", summary), removalDetails, advice, contextualAdvice, DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT);
         }
     }
 
@@ -139,31 +238,34 @@ public class SingleMessageLogger {
      * Try to avoid using this nagging method. The other methods use a consistent wording for when things will be removed.
      */
     @VisibleForTesting
-    static void nagUserWith(String message) {
+    static void nagUserWith(String summary) {
         if (isEnabled()) {
-            nagUserWith(message, getRemovalDetails(), null);
+            nagUserWith(summary, null);
         }
     }
 
     /**
      * Try to avoid using this nagging method. The other methods use a consistent wording for when things will be removed.
      */
-    public static void nagUserWith(String message, String advice) {
+    public static void nagUserWith(String message, @Nullable String advice) {
         if (isEnabled()) {
-            nagUserWith(message, thisWillBeRemovedMessage(), advice);
+            nagUserWith(message, thisWillBeRemovedMessage(), advice, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 
-    /**
-     * Try to avoid using this nagging method. The other methods use a consistent wording for when things will be removed.
-     */
-    public static void nagUserWith(String message, String details, String advice) {
+    public static void nagUserWith(String summary, String removalDetails, String advice, String contextualAdvice) {
         if (isEnabled()) {
-            nagUserWith(deprecatedFeatureHandler, new FeatureUsage(message, details, advice, SingleMessageLogger.class));
+            nagUserWith(deprecatedFeatureHandler, new DeprecatedFeatureUsage(summary, removalDetails, advice, contextualAdvice, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, SingleMessageLogger.class));
         }
     }
 
-    private synchronized static void nagUserWith(FeatureHandler handler, FeatureUsage usage) {
+    public static void nagUserWith(String summary, String removalDetails, @Nullable String advice, @Nullable String contextualAdvice, DeprecatedFeatureUsage.Type usageType) {
+        if (isEnabled()) {
+            nagUserWith(deprecatedFeatureHandler, new DeprecatedFeatureUsage(summary, removalDetails, advice, contextualAdvice, usageType, SingleMessageLogger.class));
+        }
+    }
+
+    private synchronized static <T extends FeatureUsage> void nagUserWith(FeatureHandler<T> handler, T usage) {
         handler.featureUsed(usage);
     }
 
@@ -172,31 +274,35 @@ public class SingleMessageLogger {
      */
     public static void nagUserOfDeprecated(String thing) {
         if (isEnabled()) {
-            nagUserWith(String.format("%s has been deprecated.", thing), thisWillBeRemovedMessage(), null);
+            nagUserWith(String.format("%s has been deprecated.", thing),
+                thisWillBeRemovedMessage(),
+                null,
+                null,
+                DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 
     public static void nagUserOfDeprecated(String thing, String advice) {
         if (isEnabled()) {
-            nagUserWith(String.format("%s has been deprecated.", thing), thisWillBeRemovedMessage(), advice);
+            nagUserWith(String.format("%s has been deprecated.", thing), thisWillBeRemovedMessage(), advice, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 
     public static void nagUserOfDeprecatedBehaviour(String behaviour) {
         if (isEnabled()) {
-            nagUserWith(behaviour, String.format("This behaviour has been deprecated and %s", getRemovalDetails()), null);
+            nagUserWith(behaviour, String.format("This behaviour has been deprecated and %s", getRemovalDetails()), null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 
     public static void nagUserOfDeprecatedThing(String thing) {
         if (isEnabled()) {
-            nagUserWith(thing, String.format("This has been deprecated and %s", getRemovalDetails()), null);
+            nagUserWith(thing, String.format("This has been deprecated and %s", getRemovalDetails()), null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 
     public static void nagUserOfDeprecatedThing(String thing, String advice) {
         if (isEnabled()) {
-            nagUserWith(thing, String.format("This has been deprecated and %s", getRemovalDetails()), advice);
+            nagUserWith(thing, String.format("This has been deprecated and %s", getRemovalDetails()), advice, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 
@@ -228,6 +334,6 @@ public class SingleMessageLogger {
     }
 
     public static void incubatingFeatureUsed(String incubatingFeature) {
-        nagUserWith(incubatingFeatureHandler, new FeatureUsage(incubatingFeature, null, null, SingleMessageLogger.class));
+        nagUserWith(incubatingFeatureHandler, new IncubatingFeatureUsage(incubatingFeature, SingleMessageLogger.class));
     }
 }

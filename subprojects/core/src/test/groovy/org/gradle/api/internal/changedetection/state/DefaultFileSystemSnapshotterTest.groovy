@@ -17,11 +17,13 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTree
-import org.gradle.caching.internal.DefaultBuildCacheHasher
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -32,19 +34,19 @@ class DefaultFileSystemSnapshotterTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def fileHasher = new TestFileHasher()
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
-    def snapshotter = new DefaultFileSystemSnapshotter(fileHasher, new StringInterner(), TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror)
+    def snapshotter = new DefaultFileSystemSnapshotter(fileHasher, new StringInterner(), TestFiles.fileSystem(), fileSystemMirror)
 
     def "fetches details of a file and caches the result"() {
         def f = tmpDir.createFile("f")
 
         expect:
-        def snapshot = snapshotter.snapshotSelf(f)
+        def snapshot = snapshotter.snapshot(f)
         snapshot.absolutePath == f.path
         snapshot.name == "f"
         snapshot.type == FileType.RegularFile
-        snapshot.content == new FileHashSnapshot(fileHasher.hash(f), f.lastModified())
+        snapshot.isContentAndMetadataUpToDate(new PhysicalFileSnapshot(f.path, f.absolutePath, fileHasher.hash(f), TestFiles.fileSystem().stat(f).lastModified))
 
-        def snapshot2 = snapshotter.snapshotSelf(f)
+        def snapshot2 = snapshotter.snapshot(f)
         snapshot2.is(snapshot)
     }
 
@@ -52,12 +54,12 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def d = tmpDir.createDir("d")
 
         expect:
-        def snapshot = snapshotter.snapshotSelf(d)
+        def snapshot = snapshotter.snapshot(d)
         snapshot.absolutePath == d.path
         snapshot.name == "d"
         snapshot.type == FileType.Directory
 
-        def snapshot2 = snapshotter.snapshotSelf(d)
+        def snapshot2 = snapshotter.snapshot(d)
         snapshot2.is(snapshot)
     }
 
@@ -65,12 +67,12 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def f = tmpDir.file("f")
 
         expect:
-        def snapshot = snapshotter.snapshotSelf(f)
+        def snapshot = snapshotter.snapshot(f)
         snapshot.absolutePath == f.path
         snapshot.name == "f"
         snapshot.type == FileType.Missing
 
-        def snapshot2 = snapshotter.snapshotSelf(f)
+        def snapshot2 = snapshotter.snapshot(f)
         snapshot2.is(snapshot)
     }
 
@@ -81,10 +83,10 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         d.createDir("d2")
 
         expect:
-        def snapshot = snapshotter.snapshotDirectoryTree(dirTree(d))
-        getTreeInfo(snapshot) == [d.path, 5]
+        def snapshot = snapshotter.snapshot(d)
+        getSnapshotInfo(snapshot) == [d.path, 5]
 
-        def snapshot2 = snapshotter.snapshotDirectoryTree(dirTree(d))
+        def snapshot2 = snapshotter.snapshot(d)
         snapshot2.is(snapshot)
     }
 
@@ -92,10 +94,10 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def d = tmpDir.createDir("d")
 
         expect:
-        def snapshot = snapshotter.snapshotDirectoryTree(dirTree(d))
-        getTreeInfo(snapshot) == [d.absolutePath, 1]
+        def snapshot = snapshotter.snapshot(d)
+        getSnapshotInfo(snapshot) == [d.absolutePath, 1]
 
-        def snapshot2 = snapshotter.snapshotDirectoryTree(dirTree(d))
+        def snapshot2 = snapshotter.snapshot(d)
         snapshot2.is(snapshot)
     }
 
@@ -108,7 +110,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
 
         expect:
         def snapshot = snapshotter.snapshotDirectoryTree(tree)
-        getTreeInfo(snapshot) == [d.path, 5]
+        getSnapshotInfo(snapshot) == [d.path, 5]
 
         def snapshot2 = snapshotter.snapshotDirectoryTree(tree)
         snapshot2.is(snapshot)
@@ -131,14 +133,14 @@ class DefaultFileSystemSnapshotterTest extends Specification {
 
         expect:
         def snapshot = snapshotter.snapshotDirectoryTree(tree)
-        getTreeInfo(snapshot) == [d.path, 6]
+        getSnapshotInfo(snapshot) == [d.path, 6]
 
         def snapshot2 = snapshotter.snapshotDirectoryTree(tree)
         !snapshot2.is(snapshot)
 
         def snapshot3 = snapshotter.snapshotDirectoryTree(dirTree(d))
         !snapshot3.is(snapshot)
-        getTreeInfo(snapshot3) == [d.path, 8]
+        getSnapshotInfo(snapshot3) == [d.path, 8]
 
         def snapshot4 = snapshotter.snapshotDirectoryTree(dirTree(d))
         !snapshot4.is(snapshot)
@@ -170,25 +172,25 @@ class DefaultFileSystemSnapshotterTest extends Specification {
             private boolean seenRoot = false
 
             @Override
-            boolean preVisitDirectory(String absolutePath, String name) {
+            boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
                 if (!seenRoot) {
                     seenRoot = true
                 } else {
-                    relativePath.addLast(name)
+                    relativePath.addLast(directorySnapshot.name)
                     relativePaths.add(relativePath.join("/"))
                 }
                 return true
             }
 
             @Override
-            void visit(String absolutePath, String name, FileContentSnapshot content) {
-                relativePath.addLast(name)
+            void visit(PhysicalSnapshot fileSnapshot) {
+                relativePath.addLast(fileSnapshot.name)
                 relativePaths.add(relativePath.join("/"))
                 relativePath.removeLast()
             }
 
             @Override
-            void postVisitDirectory() {
+            void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
                 if (relativePath.isEmpty()) {
                     seenRoot = false
                 } else {
@@ -209,7 +211,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshotDirectoryTree(dirTree(d))
 
         then:
-        getTreeInfo(snapshot) == [null, 0]
+        getSnapshotInfo(snapshot) == [null, 0]
     }
 
     def "snapshots file as directory tree"() {
@@ -220,68 +222,24 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshotDirectoryTree(dirTree(d))
 
         then:
-        getTreeInfo(snapshot) == [null, 1]
+        getSnapshotInfo(snapshot) == [null, 1]
         snapshot.accept(new PhysicalSnapshotVisitor() {
             @Override
-            boolean preVisitDirectory(String absolutePath, String name) {
+            boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
                 throw new UnsupportedOperationException()
             }
 
             @Override
-            void visit(String absolutePath, String name, FileContentSnapshot content) {
-                assert absolutePath == d.getAbsolutePath()
-                assert name == d.name
+            void visit(PhysicalSnapshot fileSnapshot) {
+                assert fileSnapshot.absolutePath == d.getAbsolutePath()
+                assert fileSnapshot.name == d.name
             }
 
             @Override
-            void postVisitDirectory() {
+            void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
                 throw new UnsupportedOperationException()
             }
         })
-    }
-
-    def "snapshots a file and caches the result"() {
-        def f = tmpDir.createFile("f")
-
-        expect:
-        def snapshot = snapshotter.snapshotAll(f)
-        snapshotter.snapshotAll(f).is(snapshot)
-
-        fileSystemMirror.beforeTaskOutputChanged()
-        f << "some other content"
-
-        def snapshot2 = snapshotter.snapshotAll(f)
-        hash(snapshot) != hash(snapshot2)
-    }
-
-    def "snapshots a missing file and caches the result"() {
-        def f = tmpDir.file("missing")
-
-        expect:
-        def snapshot = snapshotter.snapshotAll(f)
-        snapshotter.snapshotAll(f).is(snapshot)
-
-        fileSystemMirror.beforeTaskOutputChanged()
-        f.createDir()
-
-        def snapshot2 = snapshotter.snapshotAll(f)
-        hash(snapshot) != hash(snapshot2)
-    }
-
-    def "snapshots a directory tree and caches the result"() {
-        def f = tmpDir.createDir("dir")
-        f.createFile("child1/f")
-        f.createFile("child2/f")
-
-        expect:
-        def snapshot = snapshotter.snapshotAll(f)
-        snapshotter.snapshotAll(f).is(snapshot)
-
-        fileSystemMirror.beforeTaskOutputChanged()
-        f.createFile("newFile")
-
-        def snapshot2 = snapshotter.snapshotAll(f)
-        hash(snapshot) != hash(snapshot2)
     }
 
     def "determines whether file exists when snapshot is cached"() {
@@ -290,9 +248,9 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def m = tmpDir.file("missing")
 
         given:
-        snapshotter.snapshotSelf(f)
-        snapshotter.snapshotSelf(d)
-        snapshotter.snapshotSelf(m)
+        snapshotter.snapshot(f)
+        snapshotter.snapshot(d)
+        snapshotter.snapshot(m)
 
         expect:
         snapshotter.exists(f)
@@ -311,36 +269,30 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         !snapshotter.exists(m)
     }
 
-    def hash(Snapshot snapshot) {
-        def builder = new DefaultBuildCacheHasher()
-        snapshot.appendToHasher(builder)
-        return builder.hash()
-    }
-
     private static DirectoryFileTree dirTree(File dir) {
         TestFiles.directoryFileTreeFactory().create(dir)
     }
 
-    private static List getTreeInfo(PhysicalSnapshot tree) {
+    private static List getSnapshotInfo(FileSystemSnapshot tree) {
         String rootPath = null
         int count = 0
         tree.accept(new PhysicalSnapshotVisitor() {
             @Override
-            boolean preVisitDirectory(String absolutePath, String name) {
+            boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
                 if (rootPath == null) {
-                    rootPath = absolutePath
+                    rootPath = directorySnapshot.absolutePath
                 }
                 count++
                 return true
             }
 
             @Override
-            void visit(String absolutePath, String name, FileContentSnapshot content) {
+            void visit(PhysicalSnapshot fileSnapshot) {
                 count++
             }
 
             @Override
-            void postVisitDirectory() {
+            void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
             }
         })
         return [rootPath, count]

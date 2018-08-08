@@ -17,37 +17,21 @@
 package org.gradle.api.internal.changedetection.state.mirror;
 
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.HashCode;
+
+import java.util.Comparator;
 
 /**
- * A snapshot of a file/directory tree.
+ * A snapshot of a concrete file/directory tree.
  *
  * The file is not required to exist (see {@link PhysicalMissingSnapshot}.
  */
-public interface PhysicalSnapshot {
+public interface PhysicalSnapshot extends FileSystemSnapshot {
 
-    /**
-     * An empty tree.
-     *
-     * Path and name are not available, since we don't know where the root is.
-     */
-    PhysicalSnapshot EMPTY = new PhysicalSnapshot() {
+    Comparator<PhysicalSnapshot> BY_NAME = new Comparator<PhysicalSnapshot>() {
         @Override
-        public FileType getType() {
-            return FileType.Missing;
-        }
-
-        @Override
-        public String getName() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public String getAbsolutePath() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void accept(PhysicalSnapshotVisitor visitor) {
+        public int compare(PhysicalSnapshot o1, PhysicalSnapshot o2) {
+            return o1.getName().compareTo(o2.getName());
         }
     };
 
@@ -67,9 +51,22 @@ public interface PhysicalSnapshot {
     String getAbsolutePath();
 
     /**
-     * Walks the whole hierarchy represented by this snapshot.
+     * The hash of the snapshot.
      *
-     * The walk is depth first.
+     * This makes it possible to uniquely identify the snapshot.
+     * <dl>
+     *     <dt>Directories</dt>
+     *     <dd>The combined hash of the children, calculated by appending the name and the hash of each child to a hasher.</dd>
+     *     <dt>Regular Files</dt>
+     *     <dd>The hash of the content of the file.</dd>
+     *     <dt>Missing files</dt>
+     *     <dd>{@link PhysicalMissingSnapshot#SIGNATURE}</dd>
+     * </dl>
      */
-    void accept(PhysicalSnapshotVisitor visitor);
+    HashCode getHash();
+
+    /**
+     * Whether the content and the metadata (modification date) of the current snapshot is the same as for the given one.
+     */
+    boolean isContentAndMetadataUpToDate(PhysicalSnapshot other);
 }

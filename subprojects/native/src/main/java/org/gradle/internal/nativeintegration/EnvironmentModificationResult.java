@@ -21,7 +21,6 @@ package org.gradle.internal.nativeintegration;
  */
 public enum EnvironmentModificationResult {
     SUCCESS(null),
-    JAVA_9_IMMUTABLE_ENVIRONMENT("Java 9 does not support modifying environment variables."),
     UNSUPPORTED_ENVIRONMENT("There is no native integration with this operating environment.");
 
     private final String reason;

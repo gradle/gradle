@@ -17,39 +17,66 @@
 package org.gradle.vcs.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.Cast;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.vcs.VcsMapping;
 import org.gradle.vcs.VcsMappings;
+
+import javax.inject.Inject;
 
 public class DefaultVcsMappings implements VcsMappings {
     private final VcsMappingsStore vcsMappings;
     private final Gradle gradle;
+    private final NotationParser<Object, ModuleIdentifier> notationParser;
+    private final Object lock = new Object();
 
-    public DefaultVcsMappings(VcsMappingsStore vcsMappings, Gradle gradle) {
+    @Inject
+    public DefaultVcsMappings(VcsMappingsStore vcsMappings, Gradle gradle, NotationParser<Object, ModuleIdentifier> notationParser) {
         this.vcsMappings = vcsMappings;
         this.gradle = gradle;
+        this.notationParser = notationParser;
     }
 
     @Override
     public VcsMappings all(Action<? super VcsMapping> rule) {
-        vcsMappings.addRule(rule, gradle);
+        vcsMappings.addRule(new DslAccessRule(rule, lock), gradle);
         return this;
     }
 
     @Override
     public VcsMappings withModule(String module, Action<? super VcsMapping> rule) {
-        vcsMappings.addRule(new GavFilteredRule(module, rule), gradle);
+        vcsMappings.addRule(new ModuleFilteredRule(notationParser.parseNotation(module), new DslAccessRule(rule, lock)), gradle);
         return this;
     }
 
-    private static class GavFilteredRule implements Action<VcsMapping> {
-        private final String groupName;
+    // Ensure that at most one action that may have access to the mutable state of the build runs at a given time
+    // TODO - move this to a better home and reuse
+    private static class DslAccessRule implements Action<VcsMapping> {
+        private final Object lock;
         private final Action<? super VcsMapping> delegate;
 
-        private GavFilteredRule(String groupName, Action<? super VcsMapping> delegate) {
-            this.groupName = groupName;
+        DslAccessRule(Action<? super VcsMapping> delegate, Object lock) {
+            this.lock = lock;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void execute(VcsMapping vcsMapping) {
+            synchronized (lock) {
+                delegate.execute(vcsMapping);
+            }
+        }
+    }
+
+    private static class ModuleFilteredRule implements Action<VcsMapping> {
+        private final ModuleIdentifier moduleIdentifier;
+        private final Action<? super VcsMapping> delegate;
+
+        private ModuleFilteredRule(ModuleIdentifier moduleIdentifier, Action<? super VcsMapping> delegate) {
+            this.moduleIdentifier = moduleIdentifier;
             this.delegate = delegate;
         }
 
@@ -57,8 +84,7 @@ public class DefaultVcsMappings implements VcsMappings {
         public void execute(VcsMapping mapping) {
             if (mapping.getRequested() instanceof ModuleComponentSelector) {
                 ModuleComponentSelector moduleComponentSelector = Cast.uncheckedCast(mapping.getRequested());
-                // TODO - should use a notation parser to parse the provided string instead
-                if (groupName.equals(moduleComponentSelector.getGroup() + ":" + moduleComponentSelector.getModule())) {
+                if (moduleIdentifier.equals(moduleComponentSelector.getModuleIdentifier())) {
                     delegate.execute(mapping);
                 }
             }

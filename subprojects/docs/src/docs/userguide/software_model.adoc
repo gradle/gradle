@@ -13,21 +13,18 @@
 // limitations under the License.
 
 [[software_model]]
-== Rule based model configuration
+= Rule based model configuration
 
-
-[NOTE]
+[CAUTION]
 ====
-
-Rule based configuration will be deprecated. New plugins should not use this concept.
-
+Rule based configuration link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[will be deprecated]. New plugins should not use this concept.
 ====
 
 Rule based model configuration enables _configuration logic to itself have dependencies_ on other elements of configuration, and to make use of the resolved states of those other elements of configuration while performing its own configuration.
 
 
 [[sec:background]]
-=== Background
+== Background
 
 In a nutshell, the Software Model is a very declarative way to describe how a piece of software is built and the other components it needs as dependencies in the process. It also provides a new, rule-based engine for configuring a Gradle build. When we started to implement the software model we set ourselves the following goals:
 
@@ -35,25 +32,25 @@ In a nutshell, the Software Model is a very declarative way to describe how a pi
 * Make customizations of builds with complex tool chains easier.
 * Provide a richer, more standardized way to model different software ecosystems.
 
-Gradle drastically improved configuration performance through other measures. There is no longer any need for a drastic, incompatible change in how Gradle builds are configured. Gradle's support for building <<native_software,native software>> and <<play_plugin,Play Framework applications>> still use the configuration model.
+Gradle drastically improved configuration performance through other measures. There is no longer any need for a drastic, incompatible change in how Gradle builds are configured. Gradle's support for building <<native_software.adoc#native_software,native software>> and <<play_plugin.adoc#play_plugin,Play Framework applications>> still use the configuration model.
 
 [[sec:basic_concepts]]
-=== Basic Concepts
+== Basic Concepts
 
 
 [[sec:the_model_space]]
-==== The “model space”
+=== The “model space”
 
 The term “model space” is used to refer to the formal model, which can be read and modified by rules.
 
-A counterpart to the model space is the “project space”, which should be familiar to readers. The “project space” is a graph of objects (e.g `project.repositories`, `project.tasks` etc.) having a api:org.gradle.api.Project[] as its root. A build script is effectively adding and configuring objects of this graph. For the most part, the “project space” is opaque to Gradle. It is an arbitrary graph of objects that Gradle only partially understands.
+A counterpart to the model space is the “project space”, which should be familiar to readers. The “project space” is a graph of objects (e.g `project.repositories`, `project.tasks` etc.) having a link:{groovyDslPath}/org.gradle.api.Project.html[Project] as its root. A build script is effectively adding and configuring objects of this graph. For the most part, the “project space” is opaque to Gradle. It is an arbitrary graph of objects that Gradle only partially understands.
 
 Each project also has its own model space, which is distinct from the project space. A key characteristic of the “model space” is that Gradle knows much more about it (which is knowledge that can be put to good use). The objects in the model space are “managed”, to a greater extent than objects in the project space. The origin, structure, state, collaborators and relationships of objects in the model space are first class constructs. This is effectively the characteristic that functionally distinguishes the model space from the project space: the objects of the model space are defined in ways that Gradle can understand them intimately, as opposed to an object that is the result of running relatively opaque code. A “rule” is effectively a building block of this definition.
 
 The model space will eventually replace the project space, becoming the only “space”.
 
 [[sec:rules]]
-==== Rules
+=== Rules
 
 The model space is defined by “rules”. A rule is just a function (in the abstract sense) that either produces a model element, or acts upon a model element. Every rule has a single subject and zero or more inputs. Only the subject can be changed by a rule, while the inputs are effectively immutable.
 
@@ -64,60 +61,73 @@ Model elements are very often defined in terms of other model elements. For exam
 There are several ways to declare rules, and in several forms.
 
 [[sec:rule_sources]]
-=== Rule sources
+== Rule sources
 
-One way to define rules is via a api:org.gradle.model.RuleSource[] subclass. If an object extends RuleSource and contains any methods annotated by '@Mutate', then each such method defines a rule. For each such method, the first argument is the subject, and zero or more subsequent arguments may follow and are inputs of the rule.
+One way to define rules is via a link:{javadocPath}/org/gradle/model/RuleSource.html[RuleSource] subclass. If an object extends RuleSource and contains any methods annotated by '@Mutate', then each such method defines a rule. For each such method, the first argument is the subject, and zero or more subsequent arguments may follow and are inputs of the rule.
 
-++++
-<sample id="basicRuleSourcePlugin-all" dir="modelRules/basicRuleSourcePlugin" title="applying a rule source plugin">
-    <sourcefile file="build.gradle" snippet="managed-type-and-plugin"/>
-    <output args="hello"/>
-</sample>
-++++
+=== Example: applying a rule source plugin
+
+[source,groovy]
+.build.gradle
+----
+include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=managed-type-and-plugin]
+----
+
+.Output of **`gradle hello`**
+----
+> gradle hello
+include::{samplesPath}/modelRules/basicRuleSourcePlugin/basicRuleSourcePlugin-all.out[]
+----
 
 Each of the different methods of the rule source are discrete, independent rules. Their order, or the fact that they belong to the same class, do not affect their behavior.
 
-++++
-<sample id="basicRuleSourcePlugin" dir="modelRules/basicRuleSourcePlugin" title="a model creation rule">
-    <sourcefile file="build.gradle" snippet="create-rule"/>
-</sample>
-++++
+=== Example: a model creation rule
 
-This rule declares that there is a model element at path `"person"` (defined by the method name), of type `Person`. This is the form of the api:org.gradle.model.Model[] type rule for api:org.gradle.model.Managed[] types. Here, the person object is the rule subject. The method could potentially have a body, that mutated the person instance. It could also potentially have more parameters, which would be the rule inputs.
+[source,groovy,indent=0]
+.build.gradle
+----
+include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=create-rule]
+----
 
-++++
-<sample id="basicRuleSourcePlugin" dir="modelRules/basicRuleSourcePlugin" title="a model mutation rule">
-    <sourcefile file="build.gradle" snippet="plugin-mutate-rule"/>
-</sample>
-++++
+This rule declares that there is a model element at path `"person"` (defined by the method name), of type `Person`. This is the form of the link:{javadocPath}/org/gradle/model/Model.html[Model] type rule for link:{javadocPath}/org/gradle/model/Managed.html[Managed] types. Here, the person object is the rule subject. The method could potentially have a body, that mutated the person instance. It could also potentially have more parameters, which would be the rule inputs.
 
-This api:org.gradle.model.Mutate[] rule mutates the person object. The first parameter to the method is the subject. Here, a by-type reference is used as no api:org.gradle.model.Path[] annotation is present on the parameter. It could also potentially have more parameters, that would be the rule inputs.
+=== Example: a model mutation rule
 
-++++
-<sample id="basicRuleSourcePlugin" dir="modelRules/basicRuleSourcePlugin" title="creating a task">
-    <sourcefile file="build.gradle" snippet="task-create-rule"/>
-</sample>
-++++
+[source,groovy,indent=0]
+.build.gradle
+----
+include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=plugin-mutate-rule]
+----
 
-This api:org.gradle.model.Mutate[] rule effectively adds a task, by mutating the tasks collection. The subject here is the `"tasks"` node, which is available as a api:org.gradle.model.ModelMap[] of api:org.gradle.api.Task[]. The only input is our person element. As the person is being used as an input here, it will have been realised before executing this rule. That is, the task container effectively _depends on_ the person element. If there are other configuration rules for the person element, potentially specified in a build script or other plugin, they will also be guaranteed to have been executed.
+This link:{javadocPath}/org/gradle/model/Mutate.html[Mutate] rule mutates the person object. The first parameter to the method is the subject. Here, a by-type reference is used as no link:{javadocPath}/org/gradle/model/Path.html[Path] annotation is present on the parameter. It could also potentially have more parameters, that would be the rule inputs.
 
-As `Person` is a api:org.gradle.model.Managed[] type in this example, any attempt to modify the person parameter in this method would result in an exception being thrown. Managed objects enforce immutability at the appropriate point in their lifecycle.
+=== Example: creating a task
 
-Rule source plugins can be packaged and distributed in the same manner as other types of plugins (see <<custom_plugins>>). They also may be applied in the same manner (to project objects) as api:org.gradle.api.Plugin[] implementations (i.e. via api:org.gradle.api.Project#apply(java.util.Map)[]).
+[source,groovy,indent=0]
+.build.gradle
+----
+include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=task-create-rule]
+----
 
-Please see the documentation for api:org.gradle.model.RuleSource[] for more information on constraints on how rule sources must be implemented and for more types of rules.
+This link:{javadocPath}/org/gradle/model/Mutate.html[Mutate] rule effectively adds a task, by mutating the tasks collection. The subject here is the `"tasks"` node, which is available as a link:{javadocPath}/org/gradle/model/ModelMap.html[ModelMap] of link:{groovyDslPath}/org.gradle.api.Task.html[Task]. The only input is our person element. As the person is being used as an input here, it will have been realised before executing this rule. That is, the task container effectively _depends on_ the person element. If there are other configuration rules for the person element, potentially specified in a build script or other plugin, they will also be guaranteed to have been executed.
+
+As `Person` is a link:{javadocPath}/org/gradle/model/Managed.html[Managed] type in this example, any attempt to modify the person parameter in this method would result in an exception being thrown. Managed objects enforce immutability at the appropriate point in their lifecycle.
+
+Rule source plugins can be packaged and distributed in the same manner as other types of plugins (see <<custom_plugins.adoc#custom_plugins,Custom Plugins>>). They also may be applied in the same manner (to project objects) as link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] implementations (i.e. via link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:apply(java.util.Map)[Project.apply(java.util.Map)]).
+
+Please see the documentation for link:{javadocPath}/org/gradle/model/RuleSource.html[RuleSource] for more information on constraints on how rule sources must be implemented and for more types of rules.
 
 [[sec:advanced_concepts]]
-=== Advanced Concepts
+== Advanced Concepts
 
 
 [[sec:model_paths]]
-==== Model paths
+=== Model paths
 
 A model path identifies the location of an element relative to the root of its model space. A common representation is a period-delimited set of names. For example, the model path `"tasks"` is the path to the element that is the task container. Assuming a task whose name is `hello`, the path `"tasks.hello"` is the path to this task.
 
 [[sec:managed_model_elements]]
-==== Managed model elements
+=== Managed model elements
 
 Currently, any kind of Java object can be part of the model space. However, there is a difference between “managed” and “unmanaged” objects.
 
@@ -127,11 +137,13 @@ An “unmanaged” object is opaque to the model space and does not enforce imm
 
 Managed models can be defined by attaching the `@Managed` annotation to an interface:
 
-++++
-<sample id="basicRuleSourcePlugin" dir="modelRules/basicRuleSourcePlugin" title="a managed type">
-    <sourcefile file="build.gradle" snippet="managed-type"/>
-</sample>
-++++
+=== Example: a managed type
+
+[source,groovy]
+.build.gradle
+----
+include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=managed-type]
+----
 
 By defining a getter/setter pair, you are effectively declaring a managed property. A managed property is a property for which Gradle will enforce semantics such as immutability when a node of the model is not the subject of a rule. Therefore, this example declares properties named _firstName_ and _lastName_ on the managed type _Person_. These properties will only be writable when the view is mutable, that is to say when the _Person_ is the subject of a `Rule` (see below the explanation for rules).
 
@@ -145,107 +157,92 @@ Managed properties can be of any scalar type. In addition, properties can also b
 | `String`
 | Yes
 |
-++++
-<sample id="basicRuleSourcePlugin" dir="modelRules/basicRuleSourcePlugin" title="a String property">
-    <sourcefile file="build.gradle" snippet="property-type-string"/>
-</sample>
-++++
-
+[source,groovy,indent=0]
+----
+include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-string]
+----
 
 | `File`
 | Yes
 |
-++++
-<sample id="basicRuleSourcePlugin" dir="modelRules/basicRuleSourcePlugin" title="a File property">
-    <sourcefile file="build.gradle" snippet="property-type-file"/>
-</sample>
-++++
-
+[source,groovy,indent=0]
+----
+include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-file]
+----
 
 | `Integer`, `Boolean`, `Byte`, `Short`, `Float`, `Long`, `Double`
 | Yes
 |
-++++
-<sample id="basicRuleSourcePlugin" dir="modelRules/basicRuleSourcePlugin" title="a Long property">
-    <sourcefile file="build.gradle" snippet="property-type-long"/>
-</sample>
-++++
-
+[source,groovy,indent=0]
+----
+include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-long]
+----
 
 | `int`, `boolean`, `byte`, `short`, `float`, `long`, `double`
 | No
 |
-++++
-<sample id="basicRuleSourcePlugin" dir="modelRules/basicRuleSourcePlugin" title="a boolean property">
-    <sourcefile file="build.gradle" snippet="property-type-boolean"/>
-</sample>
-++++
+[source,groovy,indent=0]
+----
+include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-boolean]
+----
 
-++++
-<sample id="basicRuleSourcePlugin" dir="modelRules/basicRuleSourcePlugin" title="an int property">
-    <sourcefile file="build.gradle" snippet="property-type-int"/>
-</sample>
-++++
+'''
 
+[source,groovy,indent=0]
+----
+include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-int]
+----
 
 | Another _managed_ type.
 | Only if read/write
 |
-++++
-<sample id="basicRuleSourcePlugin" dir="modelRules/basicRuleSourcePlugin" title="a managed property">
-    <sourcefile file="build.gradle" snippet="property-type-managed"/>
-</sample>
-++++
-
+[source,groovy,indent=0]
+----
+include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-managed]
+----
 
 | An _enumeration_ type.
 | Yes
 |
-++++
-<sample id="basicRuleSourcePlugin" dir="modelRules/basicRuleSourcePlugin" title="an enumeration type property">
-    <sourcefile file="build.gradle" snippet="property-type-enum"/>
-</sample>
-++++
-
+[source,groovy,indent=0]
+----
+include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-enum]
+----
 
 | A `ManagedSet`. A managed set supports the creation of new named model elements, but not their removal.
 | Only if read/write
 |
-++++
-<sample id="basicRuleSourcePlugin" dir="modelRules/basicRuleSourcePlugin" title="a managed set">
-    <sourcefile file="build.gradle" snippet="property-type-managedset"/>
-</sample>
-++++
-
+[source,groovy,indent=0]
+----
+include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-managedset]
+----
 
 | A `Set` or `List` of scalar types. All classic operations on collections are supported: add, remove, clear...
 | Only if read/write
 |
-++++
-<sample id="basicRuleSourcePlugin" dir="modelRules/basicRuleSourcePlugin" title="a scalar collection">
-    <sourcefile file="build.gradle" snippet="property-type-collection-scalar"/>
-</sample>
-++++
-
+[source,groovy,indent=0]
+----
+include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-collection-scalar]
+----
 
 |===
 
 If the type of a property is itself a managed type, it is possible to declare only a getter, in which case you are declaring a read-only property. A read-only property will be instantiated by Gradle, and cannot be replaced with another object of the same type (for example calling a setter). However, the properties of that property can potentially be changed, if, and only if, the property is the subject of a rule. If it's not the case, the property is immutable, like any classic read/write managed property, and properties of the property cannot be changed at all.
 
-Managed types can be defined out of interfaces or abstract classes and are usually defined in plugins, which are written either in Java or Groovy. Please see the api:org.gradle.model.Managed[] annotation for more information on creating managed model objects.
+Managed types can be defined out of interfaces or abstract classes and are usually defined in plugins, which are written either in Java or Groovy. Please see the link:{javadocPath}/org/gradle/model/Managed.html[Managed] annotation for more information on creating managed model objects.
 
 [[sec:model_element_types]]
-==== Model element types
+=== Model element types
 
 There are particular types (language types) supported by the model space and can be generalised as follows:
 
 .Type definitions
-[cols="a,a", options="header"]
+[cols="2,5a"]
 |===
-| Type
-| Definition
+| Type | Definition
+
 | Scalar
-|A scalar type is one of the following:
+| A scalar type is one of the following:
 
 * a primitive type (e.g. `int`) or its boxed type (e.g `Integer`)
 * a `BigInteger` or `BigDecimal`
@@ -253,76 +250,84 @@ There are particular types (language types) supported by the model space and can
 * a `File`
 * an enumeration type
 
-
 | Scalar Collection
 | A java.util.List or java.util.Set containing one of the scalar types
 
 | Managed type
-| Any class which is a valid managed model (i.e.annotated with @api:org.gradle.model.Managed[])
+| Any class which is a valid managed model (i.e.annotated with @link:{javadocPath}/org/gradle/model/Managed.html[Managed])
 
 | Managed collection
-| A api:org.gradle.model.ModelMap[] or api:org.gradle.model.ModelSet[]
+| A link:{javadocPath}/org/gradle/model/ModelMap.html[ModelMap] or link:{javadocPath}/org/gradle/model/ModelSet.html[ModelSet]
 
 |===
 
 There are various contexts in which these types can be used:
 
 .Model type support
-[cols="a,a", options="header"]
+[cols="2,5a"]
 |===
-| Context
-| Supported types
+| Context | Supported types
+
 | Creating top level model elements
 |
 
 * Any managed type
-* api:org.gradle.language.base.FunctionalSourceSet[] (when the api:org.gradle.language.base.plugins.LanguageBasePlugin[] plugin has been applied)
-* Subtypes of api:org.gradle.language.base.LanguageSourceSet[] which have been registered via api:org.gradle.platform.base.ComponentType[]
+* link:{javadocPath}/org/gradle/language/base/FunctionalSourceSet.html[FunctionalSourceSet] (when the link:{javadocPath}/org/gradle/language/base/plugins/LanguageBasePlugin.html[LanguageBasePlugin] plugin has been applied)
+* Subtypes of link:{javadocPath}/org/gradle/language/base/LanguageSourceSet.html[LanguageSourceSet] which have been registered via link:{javadocPath}/org/gradle/platform/base/ComponentType.html[ComponentType]
 
 
 | Properties of managed model elements
 | The properties (attributes) of a managed model elements may be one or more of the following:
 
 * A managed type
-* A type which is annotated with @api:org.gradle.model.Unmanaged[]
+* A type which is annotated with @link:{javadocPath}/org/gradle/model/Unmanaged.html[Unmanaged]
 * A Scalar Collection
 * A Managed collection containing managed types
-* A Managed collection containing api:org.gradle.language.base.FunctionalSourceSet[]'s (when the api:org.gradle.language.base.plugins.LanguageBasePlugin[] plugin has been applied)
-* Subtypes of api:org.gradle.language.base.LanguageSourceSet[] which have been registered via api:org.gradle.platform.base.ComponentType[]
+* A Managed collection containing link:{javadocPath}/org/gradle/language/base/FunctionalSourceSet.html[FunctionalSourceSet]'s (when the link:{javadocPath}/org/gradle/language/base/plugins/LanguageBasePlugin.html[LanguageBasePlugin] plugin has been applied)
+* Subtypes of link:{javadocPath}/org/gradle/language/base/LanguageSourceSet.html[LanguageSourceSet] which have been registered via link:{javadocPath}/org/gradle/platform/base/ComponentType.html[ComponentType]
 
 
 |===
 
 
 [[sec:language_source_sets]]
-==== Language source sets
+=== Language source sets
 
-api:org.gradle.language.base.FunctionalSourceSet[]s and subtypes of api:org.gradle.language.base.LanguageSourceSet[] (which have been registered via api:org.gradle.platform.base.ComponentType[]) can be added to the model space via rules or via the model DSL.
+link:{javadocPath}/org/gradle/language/base/FunctionalSourceSet.html[FunctionalSourceSet]s and subtypes of link:{javadocPath}/org/gradle/language/base/LanguageSourceSet.html[LanguageSourceSet] (which have been registered via link:{javadocPath}/org/gradle/platform/base/ComponentType.html[ComponentType]) can be added to the model space via rules or via the model DSL.
 
-++++
-<sample id="model-language-support-all" dir="modelRules/language-support" includeLocation="true" title="strongly modelling sources sets">
-    <sourcefile file="build.gradle" snippet="model-language-support"/>
-    <output args="help" ignoreExtraLines="true" name="model-language-support-all.out"/>
-</sample>
-++++
+=== Example: Strongly modelling sources sets
+
+[source,groovy]
+.build.gradle
+----
+include::{samplesPath}/modelRules/language-support/build.gradle[tag=model-language-support]
+----
+
+.Output of `gradle help`
+----
+> gradle help
+include::{samplesPath}/modelRules/language-support/model-language-support-all.out[]
+----
+
+NOTE: The code for this example can be found at **`samples/modelRules/language-support`** in the ‘-all’ distribution of Gradle.
 
 
 [[sec:references_binding_and_scopes]]
-==== References, binding and scopes
+=== References, binding and scopes
 
-As previously mentioned, a rule has a subject and zero or more inputs. The rule's subject and inputs are declared as “references” and are “bound” to model elements before execution by Gradle. Each rule must effectively forward declare the subject and inputs as references. Precisely how this is done depends on the form of the rule. For example, the rules provided by a api:org.gradle.model.RuleSource[] declare references as method parameters.
+As previously mentioned, a rule has a subject and zero or more inputs. The rule's subject and inputs are declared as “references” and are “bound” to model elements before execution by Gradle. Each rule must effectively forward declare the subject and inputs as references. Precisely how this is done depends on the form of the rule. For example, the rules provided by a link:{javadocPath}/org/gradle/model/RuleSource.html[RuleSource] declare references as method parameters.
 
 A reference is either “by-path” or “by-type”.
 
-A “by-type” reference identifies a particular model element by its type. For example, a reference to the api:org.gradle.api.tasks.TaskContainer[] effectively identifies the `"tasks"` element in the project model space. The model space is not exhaustively searched for candidates for by-type binding; rather, a rule is given a scope (discussed later) that determines the search space for a by-type binding.
+A “by-type” reference identifies a particular model element by its type. For example, a reference to the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] effectively identifies the `"tasks"` element in the project model space. The model space is not exhaustively searched for candidates for by-type binding; rather, a rule is given a scope (discussed later) that determines the search space for a by-type binding.
 
 A “by-path” reference identifies a particular model element by its path in model space. By-path references are always relative to the rule scope; there is currently no way to path “out” of the scope. All by-path references also have an associated type, but this does not influence what the reference binds to. The element identified by the path must however by type compatible with the reference, or a fatal “binding failure” will occur.
 
 
 [[sec:binding_scope]]
-===== Binding scope
+==== Binding scope
 
-Rules are bound within a “scope”, which determines how references bind. Most rules are bound at the project scope (i.e. the root of the model graph for the project). However, rules can be scoped to a node within the graph. The api:org.gradle.model.ModelMap#named(java.lang.String,java.lang.Class)[] method is an example of a mechanism for applying scoped rules. Rules declared in the build script using the `model {}` block, or via a `RuleSource` applied as a plugin use the root of the model space as the scope. This can be considered the default scope.
+Rules are bound within a “scope”, which determines how references bind. Most rules are bound at the project scope (i.e. the root of the model graph for the project). However, rules can be scoped to a node within the graph. The link:{javadocPath}/org/gradle/model/ModelMap.html#named-java.lang.String,%20java.lang.Class-[ModelMap.named(java.lang.String, java.lang.Class)] method is an example of a mechanism for applying scoped rules. Rules declared in the build script using the `model {}` block, or via a `RuleSource` applied as a plugin use the root of the model space as the scope. This can be considered the default scope.
 
 By-path references are always relative to the rule scope. When the scope is the root, this effectively allows binding to any element in the graph. When it is not, then only the children of the scope can be referenced using "by-path" notation.
 
@@ -335,27 +340,30 @@ When binding by-type references, the following elements are considered:
 For the common case, where the rule is effectively scoped to the root, only the immediate children of the root need to be considered.
 
 [[binding_all_elements_in_scope]]
-===== Binding to all elements in a scope matching type
+==== Binding to all elements in a scope matching type
 
 Mutating or validating all elements of a given type in some scope is a common use-case. To accommodate this, rules can be applied via the `@Each` annotation.
 
-In the example below, a `@Defaults` rule is applied to each `FileItem` in the model setting a default file size of "1024". Another rule applies a api:org.gradle.model.RuleSource[] to every `DirectoryItem` that makes sure all file sizes are positive and divisible by "16".
+In the example below, a `@Defaults` rule is applied to each `FileItem` in the model setting a default file size of "1024". Another rule applies a link:{javadocPath}/org/gradle/model/RuleSource.html[RuleSource] to every `DirectoryItem` that makes sure all file sizes are positive and divisible by "16".
 
-++++
-<sample id="ruleSourcePluginEach" dir="modelRules/ruleSourcePluginEach" includeLocation="true" title="a DSL example applying a rule to every element in a scope">
-    <sourcefile file="build.gradle"/>
-</sample>
-++++
+=== Example: a DSL example applying a rule to every element in a scope
+
+[source,groovy]
+.build.gradle
+----
+include::{samplesPath}/modelRules/ruleSourcePluginEach/build.gradle[]
+----
+NOTE: The code for this example can be found at **`samples/modelRules/ruleSourcePluginEach`** in the ‘-all’ distribution of Gradle.
 
 
 [[model-dsl]]
-=== The model DSL
+== The model DSL
 
 In addition to using a RuleSource, it is also possible to declare a model and rules directly in a build script using the “model DSL”.
 
 [TIP]
 ====
-The model DSL makes heavy use of various Groovy DSL features. Please have a read of <<groovy-dsl-basics>> for an introduction to these Groovy features.
+The model DSL makes heavy use of various Groovy DSL features. Please have a read of <<writing_build_scripts.adoc#groovy-dsl-basics,Groovy DSL basics>> for an introduction to these Groovy features.
 ====
 
 The general form of the model DSL is:
@@ -374,7 +382,7 @@ There are currently 2 kinds of rule that you can define using the model DSL: con
 
 
 [[sec:configuration_rules]]
-==== Configuration rules
+=== Configuration rules
 
 You can define a rule that configures a particular model element. A configuration rule has the following form:
 
@@ -389,35 +397,46 @@ model {
 
 Continuing with the example so far of the model element `"person"` of type `Person` being present, the following DSL snippet adds a configuration rule for the person that sets its `lastName` property.
 
-++++
-<sample id="modelDslConfigure" dir="modelRules/modelDsl" title="DSL configuration rule">
-    <sourcefile file="build.gradle" snippet="configure-rule"/>
-</sample>
-++++
+=== Example: DSL configuration rule
+
+[source,groovy]
+.build.gradle
+----
+include::{samplesPath}/modelRules/modelDsl/build.gradle[tag=configure-rule]
+----
 
 A configuration rule specifies a path to the subject that should be configured and a closure containing the code to run when the subject is configured. The closure is executed with the subject passed as the closure delegate. Exactly what code you can provide in the closure depends on the type of the subject. This is discussed below.
 
 You should note that the configuration code is not executed immediately but is instead executed only when the subject is required. This is an important behaviour of model rules and allows Gradle to configure only those elements that are required for the build, which helps reduce build time. For example, let's run a task that uses the "person" object:
 
-++++
-<sample id="modelDslConfigureRuleRunWhenRequired" dir="userguide/modelRules/configureAsRequired" title="Configuration run when required">
-    <sourcefile file="build.gradle" snippet="configure-rule"/>
-    <output args="showPerson"/>
-</sample>
-++++
+=== Example: Configuration run when required
+
+[source,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/modelRules/configureAsRequired/build.gradle[tag=configure-rule]
+----
+
+.Output of **`gradle showPerson`**
+----
+> gradle showPerson
+include::{samplesPath}/userguide/modelRules/configureAsRequired/modelDslConfigureRuleRunWhenRequired.out[]
+----
 
 You can see that before the task is run, the "person" element is configured by running the rule closure. Now let's run a task that does not require the "person" element:
 
-++++
-<sample id="modelDslConfigureRuleNotRunWhenNotRequired" dir="userguide/modelRules/configureAsRequired" title="Configuration not run when not required">
-    <output args="somethingElse"/>
-</sample>
-++++
+=== Example: Configuration not run when not required
+
+.Output of **`gradle somethingElse`**
+----
+> gradle somethingElse
+include::{samplesPath}/userguide/modelRules/configureAsRequired/modelDslConfigureRuleNotRunWhenNotRequired.out[]
+----
 
 In this instance, you can see that the "person" element is not configured at all.
 
 [[sec:creation_rules]]
-==== Creation rules
+=== Creation rules
 
 It is also possible to create model elements at the root level. The general form of a creation rule is:
 
@@ -433,11 +452,13 @@ model {
 
 The following model rule creates the `"person"` element:
 
-++++
-<sample id="modelDslCreate" dir="modelRules/modelDsl" title="DSL creation rule">
-    <sourcefile file="build.gradle" snippet="create-rule"/>
-</sample>
-++++
+=== Example: DSL creation rule
+
+[source,groovy]
+.build.gradle
+----
+include::{samplesPath}/modelRules/modelDsl/build.gradle[tag=create-rule]
+----
 
 A creation rule definition specifies the path of the element to create, plus its public type, represented as a Java interface or class. Only certain types of model elements can be created.
 
@@ -445,86 +466,108 @@ A creation rule may also provide a closure containing the initialization code to
 
 The initialization closure is optional and can be omitted, for example:
 
-++++
-<sample id="modelDslCreateNoConfig" dir="modelRules/modelDsl" title="DSL creation rule without initialization">
-    <sourcefile file="build.gradle" snippet="create-rule-no-config"/>
-</sample>
-++++
+=== Example: DSL creation rule without initialization
+
+[source,groovy]
+.build.gradle
+----
+include::{samplesPath}/modelRules/modelDsl/build.gradle[tag=create-rule-no-config]
+----
 
 You should note that the initialization code is not executed immediately but is instead executed only when the element is required. The initialization code is executed before any configuration rules are run. For example:
 
-++++
-<sample id="modelDslInitializationRuleRunsBeforeConfigurationRule" dir="userguide/modelRules/initializationRuleRunsBeforeConfigurationRules" title="Initialization before configuration">
-    <sourcefile file="build.gradle" snippet="configure-and-create-rules"/>
-    <output args="showPerson"/>
-</sample>
-++++
+=== Example: Initialization before configuration
+
+[source,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/modelRules/initializationRuleRunsBeforeConfigurationRules/build.gradle[tag=configure-and-create-rules]
+----
+
+.Output of **`gradle showPerson`**
+----
+> gradle showPerson
+include::{samplesPath}/userguide/modelRules/initializationRuleRunsBeforeConfigurationRules/modelDslInitializationRuleRunsBeforeConfigurationRule.out[]
+----
 
 Notice that the creation rule appears in the build script _after_ the configuration rule, but its code runs before the code of the configuration rule. Gradle collects up all the rules for a particular subject before running any of them, then runs the rules in the appropriate order.
 
 [[sec:model_rule_closures]]
-==== Model rule closures
+=== Model rule closures
 
 Most DSL rules take a closure containing some code to run to configure the subject. The code you can use in this closure depends on the type of the subject of the rule.
 
 [TIP]
 ====
-You can use the <<model-report,model report>> to determine the type of a particular model element.
+You can use the <<#model-report,model report>> to determine the type of a particular model element.
 ====
 
 In general, a rule closure may contain arbitrary code, mixed with some type specific DSL syntax.
 
 
 [[sec:modelmap_subject]]
-===== `ModelMap&lt;T&gt;` subject
+==== `ModelMap&lt;T&gt;` subject
 
-A api:org.gradle.model.ModelMap[] is basically a map of model elements, indexed by some name. When a `ModelMap` is used as the subject of a DSL rule, the rule closure can use any of the methods defined on the api:org.gradle.model.ModelMap[] interface.
+A link:{javadocPath}/org/gradle/model/ModelMap.html[ModelMap] is basically a map of model elements, indexed by some name. When a `ModelMap` is used as the subject of a DSL rule, the rule closure can use any of the methods defined on the link:{javadocPath}/org/gradle/model/ModelMap.html[ModelMap] interface.
 
 A rule closure with `ModelMap` as a subject can also include nested creation or configuration rules. These behave in a similar way to the creation and configuration rules that appear directly under the `model` block.
 
 Here is an example of a nested creation rule:
 
-++++
-<sample id="modelDslModelMapNestedCreate" dir="modelRules/modelDsl" title="Nested DSL creation rule">
-    <sourcefile file="build.gradle" snippet="model-map-nested-create-rule"/>
-</sample>
-++++
+=== Example: Nested DSL creation rule
+
+[source,groovy]
+.build.gradle
+----
+include::{samplesPath}/modelRules/modelDsl/build.gradle[tag=model-map-nested-create-rule]
+----
 
 As before, a nested creation rule defines a name and public type for the element, and optionally, a closure containing code to use to initialize the element. The code is run only when the element is required in the build.
 
 Here is an example of a nested configuration rule:
 
-++++
-<sample id="modelDslModelMapNestedConfig" dir="modelRules/modelDsl" title="Nested DSL configuration rule">
-    <sourcefile file="build.gradle" snippet="model-map-nested-configure-rule"/>
-</sample>
-++++
+=== Example: Nested DSL configuration rule
+
+[source,groovy]
+.build.gradle
+----
+include::{samplesPath}/modelRules/modelDsl/build.gradle[tag=model-map-nested-configure-rule]
+----
 
 As before, a nested configuration rule defines the name of the element to configure and a closure containing code to use to configure the element. The code is run only when the element is required in the build.
 
 `ModelMap` introduces several other kinds of rules. For example, you can define a rule that targets each of the elements in the map. The code in the rule closure is executed once for each element in the map, when that element is required. Let's run a task that requires all of the children of the "people" element:
 
-++++
-<sample id="modelDslModelMapNestedAll" dir="userguide/modelRules/configureElementsOfMap" title="DSL configuration rule for each element in a map">
-    <sourcefile file="build.gradle" snippet="create-and-configure"/>
-    <output args="listPeople"/>
-</sample>
-++++
+=== Example: DSL configuration rule for each element in a map
 
-Any method on api:org.gradle.model.ModelMap[] that accepts an api:org.gradle.api.Action[] as its last parameter can also be used to define a nested rule.
+[source,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/modelRules/configureElementsOfMap/build.gradle[tag=create-and-configure]
+----
+
+.Output of **`gradle listPeople`**
+----
+> gradle listPeople
+include::{samplesPath}/userguide/modelRules/configureElementsOfMap/modelDslModelMapNestedAll.out[]
+----
+
+Any method on link:{javadocPath}/org/gradle/model/ModelMap.html[ModelMap] that accepts an link:{javadocPath}/org/gradle/api/Action.html[Action] as its last parameter can also be used to define a nested rule.
 
 [[sec:managed_type_subject]]
-===== `@Managed` type subject
+==== `@Managed` type subject
 
 When a managed type is used as the subject of a DSL rule, the rule closure can use any of the methods defined on the managed type interface.
 
 A rule closure can also configure the properties of the element using nested closures. For example:
 
-++++
-<sample id="modelDslManagedTypeNestedConfigure" dir="modelRules/modelDsl" title="Nested DSL property configuration">
-    <sourcefile file="build.gradle" snippet="managed-type-nested-config-rule"/>
-</sample>
-++++
+=== Example: Nested DSL property configuration
+
+[source,groovy]
+.build.gradle
+----
+include::{samplesPath}/modelRules/modelDsl/build.gradle[tag=managed-type-nested-config-rule]
+----
 
 [NOTE]
 ====
@@ -533,51 +576,55 @@ Currently, the nested closures do not define rules and are executed immediately.
 
 
 [[sec:all_other_subjects]]
-===== All other subjects
+==== All other subjects
 
 For all other types, the rule closure can use any of the methods defined by the type. There is no special DSL defined for these elements.
 
 [[dsl-type-coercion]]
-==== Automatic type coercion
+=== Automatic type coercion
 
 Scalar properties in managed types can be assigned `CharSequence` values (e.g. `String`, `GString`, etc.) and they will be converted to the actual property type for you. This works for all scalar types including `File`s, which will be resolved relative to the current project.
 
-++++
-<sample id="modelDslConversions" dir="modelRules/modelDslCoercion" includeLocation="true" title="a DSL example showing type conversions">
-    <sourcefile file="build.gradle"/>
-</sample>
-++++
+=== Example: a DSL example showing type conversions
+
+[source,groovy]
+.build.gradle
+----
+include::{samplesPath}/modelRules/modelDslCoercion/build.gradle[]
+----
+NOTE: The code for this example can be found at **`samples/modelRules/modelDslCoercion`** in the ‘-all’ distribution of Gradle.
 
 In the above example, an `Item` is created and is initialized in `setDefaults()` by providing the path to the data file. In the `item()` method the resolved `File` is parsed to extract and set the data. In the DSL block at the end, the price is adjusted based on the quantity; if there are fewer than 10 remaining the price is doubled, otherwise it is reduced by 50%. The `GString` expression is a valid value since it resolves to a `float` value in string form.
 
 Finally, in `createDataTask()` we add the `showData` task to display all of the configured values.
 
 [[dsl-rule-input-dependencies]]
-==== Declaring input dependencies
+=== Declaring input dependencies
 
 Rules declared in the DSL may _depend_ on other model elements through the use of a special syntax, which is of the form:
 
 [source,groovy]
 ----
-                $.«path-to-model-element»
+$.«path-to-model-element»
 ----
-
 
 Paths are a period separated list of identifiers. To directly depend on the `firstName` of the person, the following could be used:
 
 [source,groovy]
 ----
-                $.person.firstName
+$.person.firstName
 ----
 
+=== Example: a DSL rule using inputs
 
-++++
-<sample id="modelDslRuleInputs" dir="modelRules/modelDsl" includeLocation="true" title="a DSL rule using inputs">
-    <sourcefile file="build.gradle" snippet="rule-inputs"/>
-</sample>
-++++
+[source,groovy]
+.build.gradle
+----
+include::{samplesPath}/modelRules/modelDsl/build.gradle[tag=rule-inputs]
+----
+NOTE: The code for this example can be found at **`samples/modelRules/modelDsl`** in the ‘-all’ distribution of Gradle.
 
-In the above snippet, the `$.person` construct is an input reference. The construct returns the value of the model element at the specified path, as its default type (i.e. the type advertised by the <<model-report,Model Report>>). It may appear anywhere in the rule that an expression may normally appear. It is not limited to the right hand side of variable assignments.
+In the above snippet, the `$.person` construct is an input reference. The construct returns the value of the model element at the specified path, as its default type (i.e. the type advertised by the <<#model-report,Model Report>>). It may appear anywhere in the rule that an expression may normally appear. It is not limited to the right hand side of variable assignments.
 
 The input element is guaranteed to be fully configured before the rule executes. That is, all of the rules that mutate the element are guaranteed to have been previously executed, leaving the target element in its final, immutable, state.
 
@@ -585,42 +632,35 @@ Most model elements enforce immutability when being used as inputs. Any attempt 
 
 
 [[sec:using_modelmap_as_an_input]]
-===== Using `ModelMap&lt;T&gt;` as an input
+==== Using `ModelMap&lt;T&gt;` as an input
 
-When you use a api:org.gradle.model.ModelMap[] as input, each item in the map is made available as a property.
+When you use a link:{javadocPath}/org/gradle/model/ModelMap.html[ModelMap] as input, each item in the map is made available as a property.
 
 [[model-report]]
-=== The model report
+== The model report
 
-The built-in api:org.gradle.api.reporting.model.ModelReport[] task displays a hierarchical view of the elements in the model space. Each item prefixed with a `+` on the model report is a model element and the visual nesting of these elements correlates to the model path (e.g. `tasks.help`). The model report displays the following details about each model element:
+The built-in link:{groovyDslPath}/org.gradle.api.reporting.model.ModelReport.html[ModelReport] task displays a hierarchical view of the elements in the model space. Each item prefixed with a `+` on the model report is a model element and the visual nesting of these elements correlates to the model path (e.g. `tasks.help`). The model report displays the following details about each model element:
 
 .Model report - model element details
-[cols="a,a", options="header"]
+[%header%autowidth,compact]
 |===
-| Detail
-| Description
-| Type
-| This is the underlying type of the model element and is typically a fully qualified class name.
-
-| Value
-| Is conditionally displayed on the report when a model element can be represented as a string.
-
-| Creator
-| Every model element has a creator. A creator signifies the origin of the model element (i.e. what created the model element).
-
-| Rules
-| Is a listing of the rules, excluding the creator rule, which are executed for a given model element. The order in which the rules are displayed reflects the order in which they are executed.
-
+| Detail | Description
+| Type | This is the underlying type of the model element and is typically a fully qualified class name.
+| Value | Is conditionally displayed on the report when a model element can be represented as a string.
+| Creator | Every model element has a creator. A creator signifies the origin of the model element (i.e. what created the model element).
+| Rules | Is a listing of the rules, excluding the creator rule, which are executed for a given model element. The order in which the rules are displayed reflects the order in which they are executed.
 |===
 
-++++
-<sample id="basicRuleSourcePlugin-model-task" dir="modelRules/basicRuleSourcePlugin" title="model task output">
-    <output args="model" ignoreExtraLines="true"/>
-</sample>
-++++
+=== Example: Model task output
+
+.Output of `gradle model`
+----
+> gradle model
+include::{samplesPath}/modelRules/basicRuleSourcePlugin/basicRuleSourcePlugin-model-task.out[]
+----
 
 
 [[sec:limitations_and_future_direction]]
-=== Limitations and future direction
+== Limitations and future direction
 
 _The rule engine that was part of the Software Model will be deprecated._ Everything under the model block will be ported as extensions to the current model. Native users will no longer have a separate extension model compared to the rest of the Gradle community, and they will be able to make use of the new variant aware dependency management. For more information, see the link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[blog post] on the state and future of the software model.

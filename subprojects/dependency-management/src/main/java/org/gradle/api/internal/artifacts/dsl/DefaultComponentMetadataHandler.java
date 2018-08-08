@@ -88,7 +88,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         this.ruleActionAdapter = ruleActionAdapter;
         this.moduleIdentifierNotationParser = NotationParserBuilder
             .toType(ModuleIdentifier.class)
-            .converter(new ModuleIdentifierNotationConverter(moduleIdentifierFactory))
+            .fromCharSequence(new ModuleIdentifierNotationConverter(moduleIdentifierFactory))
             .toComposite();
         this.ruleExecutor = ruleExecutor;
         this.dependencyMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl.class, stringInterner);

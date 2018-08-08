@@ -17,10 +17,10 @@
 package org.gradle.caching.internal.tasks;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.internal.changedetection.state.CurrentTaskExecution;
 import org.gradle.api.internal.changedetection.state.ValueSnapshot;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Map;
@@ -35,7 +35,7 @@ public class TaskCacheKeyCalculator {
         this.buildCacheDebugLogging = buildCacheDebugLogging;
     }
 
-    public TaskOutputCachingBuildCacheKey calculate(TaskInternal task, TaskExecution execution) {
+    public TaskOutputCachingBuildCacheKey calculate(TaskInternal task, CurrentTaskExecution execution) {
         TaskOutputCachingBuildCacheKeyBuilder builder = new DefaultTaskOutputCachingBuildCacheKeyBuilder(task.getIdentityPath());
         if (buildCacheDebugLogging) {
             builder = new DebuggingTaskOutputCachingBuildCacheKeyBuilder(builder);
@@ -49,16 +49,15 @@ public class TaskCacheKeyCalculator {
             entry.getValue().appendToHasher(newHasher);
             if (newHasher.isValid()) {
                 HashCode hash = newHasher.hash();
-                builder.appendInputPropertyHash(entry.getKey(), hash);
+                builder.appendInputValuePropertyHash(entry.getKey(), hash);
             } else {
                 builder.inputPropertyLoadedByUnknownClassLoader(entry.getKey());
             }
         }
 
-        SortedMap<String, FileCollectionSnapshot> inputFilesSnapshots = execution.getInputFilesSnapshot();
-        for (Map.Entry<String, FileCollectionSnapshot> entry : inputFilesSnapshots.entrySet()) {
-            FileCollectionSnapshot snapshot = entry.getValue();
-            builder.appendInputPropertyHash(entry.getKey(), snapshot.getHash());
+        SortedMap<String, CurrentFileCollectionFingerprint> inputFingerprints = execution.getInputFingerprints();
+        for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputFingerprints.entrySet()) {
+            builder.appendInputFilesProperty(entry.getKey(), entry.getValue());
         }
 
         SortedSet<String> outputPropertyNamesForCacheKey = execution.getOutputPropertyNamesForCacheKey();

@@ -24,7 +24,6 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 import org.gradle.cache.internal.HeapProportionalCacheSizer;
-import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 
 import java.util.Collection;
@@ -32,14 +31,13 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 public class CachingPatternSpecFactory extends PatternSpecFactory {
-    private static final int RESULTS_CACHE_MAX_SIZE = 1200000;
+    private static final int RESULTS_CACHE_MAX_SIZE = 100000;
     private static final int INSTANCES_MAX_SIZE = 30000;
-    private final Cache<CacheKey, Boolean> specResultCache;
-    private final Cache<SpecKey, Spec> specInstanceCache;
+    private final HeapProportionalCacheSizer cacheSizer;
+    private final Cache<SpecKey, Spec<FileTreeElement>> specInstanceCache;
 
     public CachingPatternSpecFactory() {
-        HeapProportionalCacheSizer cacheSizer = new HeapProportionalCacheSizer();
-        specResultCache = CacheBuilder.newBuilder().maximumSize(cacheSizer.scaleCacheSize(RESULTS_CACHE_MAX_SIZE)).build();
+        cacheSizer = new HeapProportionalCacheSizer();
         specInstanceCache = CacheBuilder.newBuilder().maximumSize(cacheSizer.scaleCacheSize(INSTANCES_MAX_SIZE)).build();
     }
 
@@ -47,89 +45,44 @@ public class CachingPatternSpecFactory extends PatternSpecFactory {
     protected Spec<FileTreeElement> createSpec(final Collection<String> patterns, final boolean include, final boolean caseSensitive) {
         final SpecKey key = new SpecKey(ImmutableList.copyOf(patterns), include, caseSensitive);
         try {
-            return Cast.uncheckedCast(specInstanceCache.get(key, new Callable<Spec<FileTreeElement>>() {
+            return specInstanceCache.get(key, new Callable<Spec<FileTreeElement>>() {
                 @Override
                 public Spec<FileTreeElement> call() throws Exception {
                     Spec<FileTreeElement> spec = CachingPatternSpecFactory.super.createSpec(patterns, include, caseSensitive);
-                    return new CachingSpec(key, spec);
+                    return new CachingSpec(spec);
                 }
-            }));
+            });
         } catch (ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
         }
     }
 
     private class CachingSpec implements Spec<FileTreeElement> {
-        private final SpecKey key;
         private final Spec<FileTreeElement> spec;
+        private final Cache<RelativePath, Boolean> resultCache = CacheBuilder.newBuilder().maximumSize(cacheSizer.scaleCacheSize(RESULTS_CACHE_MAX_SIZE)).build();
 
-        CachingSpec(SpecKey key, Spec<FileTreeElement> spec) {
-            this.key = key;
+        CachingSpec(Spec<FileTreeElement> spec) {
             this.spec = spec;
         }
 
         @Override
         public boolean isSatisfiedBy(final FileTreeElement element) {
-            CacheKey cacheKey = new CacheKey(element.getRelativePath(), key);
             try {
-                return specResultCache.get(cacheKey, new Callable<Boolean>() {
+                return resultCache.get(element.getRelativePath(), new Callable<Boolean>() {
                     @Override
-                    public Boolean call() throws Exception {
+                    public Boolean call() {
                         return spec.isSatisfiedBy(element);
                     }
                 });
             } catch (ExecutionException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
+                throw UncheckedException.throwAsUncheckedException(e.getCause());
             }
         }
 
         @Override
         public String toString() {
             return Objects.toStringHelper(this)
-                .add("key", key)
                 .add("spec", spec)
-                .toString();
-        }
-    }
-
-    private static class CacheKey {
-        private final RelativePath relativePath;
-        private final SpecKey specKey;
-        private final int hashCode;
-
-
-        private CacheKey(RelativePath relativePath, SpecKey specKey) {
-            this.relativePath = relativePath;
-            this.specKey = specKey;
-            this.hashCode = Objects.hashCode(relativePath, specKey);
-        }
-
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            CacheKey that = (CacheKey) o;
-
-            return Objects.equal(this.relativePath, that.relativePath)
-                && Objects.equal(this.specKey, that.specKey);
-        }
-
-        @Override
-        public int hashCode() {
-            return hashCode;
-        }
-
-        @Override
-        public String toString() {
-            return Objects.toStringHelper(this)
-                .add("relativePath", relativePath)
-                .add("specKey", specKey)
                 .toString();
         }
     }

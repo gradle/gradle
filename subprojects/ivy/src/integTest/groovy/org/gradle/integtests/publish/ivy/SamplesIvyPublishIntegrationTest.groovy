@@ -16,7 +16,6 @@
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.junit.Before
 import org.junit.Rule
@@ -29,7 +28,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractIntegrationTest {
 
     @Before
     void setup() {
-        executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
+        useRepositoryMirrors()
     }
 
     @Test

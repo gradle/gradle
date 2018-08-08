@@ -21,6 +21,7 @@ import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionGraphListener
+import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
@@ -30,6 +31,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.composite.internal.IncludedBuildTaskGraph
+import org.gradle.configuration.internal.TestListenerBuildOperationDecorator
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
@@ -47,8 +49,11 @@ class DefaultTaskExecutionGraphSpec extends Specification {
     def cancellationToken = Mock(BuildCancellationToken)
     def project = ProjectBuilder.builder().build()
     def listenerManager = new DefaultListenerManager()
+    def graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class)
+    def taskExecutionListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class)
     def workExecutor = Mock(WorkInfoExecutor)
     def buildOperationExecutor = new TestBuildOperationExecutor()
+    def listenerBuildOperationDecorator = new TestListenerBuildOperationDecorator()
     def coordinationService = new DefaultResourceLockCoordinationService()
     def parallelismConfiguration = new DefaultParallelismConfiguration(true, 1)
     def parallelismConfigurationManager = new ParallelismConfigurationManagerFixture(parallelismConfiguration)
@@ -57,7 +62,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
     def thisBuild = project.gradle
     def taskInfoFactory = new TaskInfoFactory(thisBuild, Stub(IncludedBuildTaskGraph))
     def dependencyResolver = new TaskDependencyResolver([new TaskInfoWorkDependencyResolver(taskInfoFactory)])
-    def taskGraph = new DefaultTaskExecutionGraph(listenerManager, new DefaultTaskPlanExecutor(parallelismConfiguration, executorFactory, workerLeases, cancellationToken, coordinationService), [workExecutor], buildOperationExecutor, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver)
+    def taskGraph = new DefaultTaskExecutionGraph(new DefaultTaskPlanExecutor(parallelismConfiguration, executorFactory, workerLeases, cancellationToken, coordinationService), [workExecutor], buildOperationExecutor, listenerBuildOperationDecorator, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver, graphListeners, taskExecutionListeners)
     WorkerLeaseRegistry.WorkerLeaseCompletion parentWorkerLease
     def executedTasks = []
     def failures = []
@@ -332,7 +337,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
 
     def "notifies graph listener before execute"() {
         def taskPlanExecutor = Mock(TaskPlanExecutor)
-        def taskGraph = new DefaultTaskExecutionGraph(listenerManager, taskPlanExecutor, [workExecutor], buildOperationExecutor, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver)
+        def taskGraph = new DefaultTaskExecutionGraph(taskPlanExecutor, [workExecutor], buildOperationExecutor, listenerBuildOperationDecorator, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver, graphListeners, taskExecutionListeners)
         TaskExecutionGraphListener listener = Mock(TaskExecutionGraphListener)
         Task a = task("a")
 
@@ -350,7 +355,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
 
     def "executes whenReady listener before execute"() {
         def taskPlanExecutor = Mock(TaskPlanExecutor)
-        def taskGraph = new DefaultTaskExecutionGraph(listenerManager, taskPlanExecutor, [workExecutor], buildOperationExecutor, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver)
+        def taskGraph = new DefaultTaskExecutionGraph(taskPlanExecutor, [workExecutor], buildOperationExecutor, listenerBuildOperationDecorator, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver, graphListeners, taskExecutionListeners)
         def closure = Mock(Closure)
         def action = Mock(Action)
         Task a = task("a")
@@ -417,8 +422,8 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         when:
         taskGraph.beforeTask(closure)
         taskGraph.beforeTask(action)
-        taskGraph.taskExecutionListenerSource.beforeExecute(a)
-        taskGraph.taskExecutionListenerSource.beforeExecute(b)
+        taskExecutionListeners.source.beforeExecute(a)
+        taskExecutionListeners.source.beforeExecute(b)
 
         then:
         1 * closure.call(a)
@@ -439,8 +444,8 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         when:
         taskGraph.afterTask(closure)
         taskGraph.afterTask(action)
-        taskGraph.taskExecutionListenerSource.afterExecute(a, a.state)
-        taskGraph.taskExecutionListenerSource.afterExecute(b, b.state)
+        taskExecutionListeners.source.afterExecute(a, a.state)
+        taskExecutionListeners.source.afterExecute(b, b.state)
 
         then:
         1 * closure.call(a)

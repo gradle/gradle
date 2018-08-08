@@ -20,8 +20,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 
 /**
@@ -66,7 +64,6 @@ public class SystemProperties {
     private static final Set<String> IMPORTANT_NON_STANDARD_PROPERTIES = Collections.singleton("java.runtime.version");
 
     private static final SystemProperties INSTANCE = new SystemProperties();
-    private final Lock lock = new ReentrantLock();
 
     public static SystemProperties getInstance() {
         return INSTANCE;
@@ -102,14 +99,7 @@ public class SystemProperties {
     }
 
     public File getJavaHomeDir() {
-        lock.lock();
-        File javaHomeDir;
-        try {
-            javaHomeDir = new File(System.getProperty("java.home"));
-        } finally {
-            lock.unlock();
-        }
-        return javaHomeDir;
+        return new File(System.getProperty("java.home"));
     }
 
     /**
@@ -133,19 +123,29 @@ public class SystemProperties {
      * @param factory Instance created by the Factory implementation
      */
     public <T> T withSystemProperty(String propertyName, String value, Factory<T> factory) {
-        lock.lock();
-        String originalValue = System.getProperty(propertyName);
-        System.setProperty(propertyName, value);
+        synchronized (System.getProperties()) {
+            String originalValue = System.getProperty(propertyName);
+            System.setProperty(propertyName, value);
 
-        try {
-            return factory.create();
-        } finally {
-            if (originalValue != null) {
-                System.setProperty(propertyName, originalValue);
-            } else {
-                System.clearProperty(propertyName);
+            try {
+                return factory.create();
+            } finally {
+                if (originalValue != null) {
+                    System.setProperty(propertyName, originalValue);
+                } else {
+                    System.clearProperty(propertyName);
+                }
             }
-            lock.unlock();
+        }
+    }
+
+    /**
+     * Provides safe access to the system properties, preventing concurrent {@link #withSystemProperty(String, String, Factory)} calls.
+     * This can be used to wrap 3rd party APIs that iterate over the system properties, so they won't result in {@link java.util.ConcurrentModificationException}s.
+     */
+    public <T> T withSystemProperties(Factory<T> factory) {
+        synchronized (System.getProperties()) {
+            return factory.create();
         }
     }
 

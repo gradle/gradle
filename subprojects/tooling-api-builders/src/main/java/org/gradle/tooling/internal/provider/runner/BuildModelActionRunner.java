@@ -16,13 +16,13 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.ProjectConfigurer;
+import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
@@ -58,7 +58,7 @@ public class BuildModelActionRunner implements BuildActionRunner {
         }
     }
 
-    private static class BuildResultAdapter extends BuildAdapter {
+    private static class BuildResultAdapter extends InternalBuildAdapter {
         private final GradleInternal gradle;
         private final BuildController buildController;
         private final BuildModelAction buildModelAction;

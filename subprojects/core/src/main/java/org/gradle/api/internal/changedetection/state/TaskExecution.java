@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 import javax.annotation.Nullable;
 
@@ -44,9 +45,9 @@ public interface TaskExecution {
 
     ImmutableSortedMap<String, ValueSnapshot> getInputProperties();
 
-    ImmutableSortedMap<String, FileCollectionSnapshot> getOutputFilesSnapshot();
+    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getOutputFingerprints();
 
-    ImmutableSortedMap<String, FileCollectionSnapshot> getInputFilesSnapshot();
+    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getInputFingerprints();
 
     boolean isSuccessful();
 

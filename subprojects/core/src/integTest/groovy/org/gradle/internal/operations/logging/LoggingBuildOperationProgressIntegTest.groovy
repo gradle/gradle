@@ -32,7 +32,6 @@ import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.internal.operations.trace.BuildOperationRecord
-import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceAccessor
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
@@ -118,7 +117,8 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         applyBuildScriptProgress[0].details.category == 'org.gradle.api.Project'
         applyBuildScriptProgress[0].details.message == 'from build.gradle'
 
-        def notifyTaskGraphProgress = operations.only("Notify task graph whenReady listeners").progress
+        def notifyTaskGraph = operations.only("Notify task graph whenReady listeners")
+        def notifyTaskGraphProgress = notifyTaskGraph.children.first().progress
         notifyTaskGraphProgress.size() == 1
         notifyTaskGraphProgress[0].details.logLevel == 'WARN'
         notifyTaskGraphProgress[0].details.category == 'org.gradle.api.Project'
@@ -140,11 +140,6 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         operations.parentsOf(downloadEvent).find {
             it.hasDetailsOfType(ExecuteTaskBuildOperationType.Details) && it.details.taskPath == ":resolve"
         }
-        def downloadProgress = downloadEvent.progress
-        downloadProgress.size() == 1
-        downloadProgress[0].details.logLevel == 'LIFECYCLE'
-        downloadProgress[0].details.category == ProgressLoggingExternalResourceAccessor.ProgressLoggingExternalResource.name
-        downloadProgress[0].details.description == "Download http://localhost:${server.port}/repo/org/foo/1.0/foo-1.0.jar"
     }
 
     def "captures output from buildSrc"() {
@@ -326,7 +321,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
             apply plugin: 'java'
             
             repositories {
-                jcenter()
+                ${jcenterRepository()}
             }
             dependencies {
                 testCompile 'junit:junit:4.10'

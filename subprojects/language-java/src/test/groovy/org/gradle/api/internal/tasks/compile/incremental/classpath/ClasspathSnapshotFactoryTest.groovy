@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.classpath
 
-import org.gradle.api.file.FileTree
+
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Specification
@@ -79,9 +79,9 @@ class ClasspathSnapshotFactoryTest extends Specification {
         0 * snapshotter.createSnapshot(jar2)
     }
 
-    private ClasspathEntry stubArchive(String name, boolean exists = true) {
-        new ClasspathEntry(new File(name) {
+    private File stubArchive(String name, boolean exists = true) {
+        new File(name) {
             boolean exists() { exists }
-        }, Stub(FileTree))
+        }
     }
 }

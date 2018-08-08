@@ -17,7 +17,9 @@ package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.WithEstimatedSize;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.internal.Cast;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -34,6 +36,11 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
 
     @Override
     public boolean add(S o) {
+        throw new UnsupportedOperationException(String.format("Cannot add '%s' to '%s' as it is a filtered collection", o, this));
+    }
+
+    @Override
+    public boolean addRealized(S o) {
         throw new UnsupportedOperationException(String.format("Cannot add '%s' to '%s' as it is a filtered collection", o, this));
     }
 
@@ -181,15 +188,32 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
     }
 
     @Override
-    public void addPending(ProviderInternal<? extends S> provider) {
-        collection.addPending(provider);
+    public boolean addPending(ProviderInternal<? extends S> provider) {
+        return collection.addPending(provider);
     }
 
     @Override
-    public void removePending(ProviderInternal<? extends S> provider) {
-        collection.removePending(provider);
+    public boolean removePending(ProviderInternal<? extends S> provider) {
+        return collection.removePending(provider);
     }
 
     @Override
-    public void onRealize(Action<ProviderInternal<? extends S>> action) { }
+    public boolean addPendingCollection(CollectionProviderInternal<S, ? extends Iterable<S>> provider) {
+        CollectionProviderInternal<T, ? extends Iterable<T>> providerOfT = Cast.uncheckedCast(provider);
+        return collection.addPendingCollection(providerOfT);
+    }
+
+    @Override
+    public boolean removePendingCollection(CollectionProviderInternal<S, ? extends Iterable<S>> provider) {
+        CollectionProviderInternal<T, ? extends Iterable<T>> providerOfT = Cast.uncheckedCast(provider);
+        return collection.removePendingCollection(providerOfT);
+    }
+
+    @Override
+    public void onRealize(Action<S> action) { }
+
+    @Override
+    public void realizeExternal(ProviderInternal<? extends S> provider) {
+        collection.realizeExternal(provider);
+    }
 }

@@ -1,4 +1,4 @@
-// START SNIPPET jupiter-example
+// tag::jupiter-example[]
 package org.gradle.junitplatform;
 
 import org.junit.jupiter.api.*;
@@ -9,4 +9,4 @@ public class JupiterTest {
         System.out.println("Hello from JUnit Jupiter!");
     }
 }
-// END SNIPPET jupiter-example
+// end::jupiter-example[]

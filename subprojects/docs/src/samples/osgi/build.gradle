@@ -2,9 +2,9 @@ group = 'gradle_tooling'
 version = '1.0'
 
 apply plugin: 'groovy'
-// START SNIPPET use-plugin
+// tag::use-plugin[]
 apply plugin: 'osgi'
-// END SNIPPET use-plugin
+// end::use-plugin[]
 
 repositories {
     mavenCentral()
@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    compile 'org.codehaus.groovy:groovy:2.4.10'
+    compile 'org.codehaus.groovy:groovy:2.4.15'
     compile 'org.eclipse:osgi:3.5.0.v20090520'
 }
 

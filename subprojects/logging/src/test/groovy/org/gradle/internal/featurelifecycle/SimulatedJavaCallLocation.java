@@ -22,14 +22,14 @@ package org.gradle.internal.featurelifecycle;
 public class SimulatedJavaCallLocation {
 
     static FeatureUsage create() {
-        return SimulatedDeprecationMessageLogger.nagUserWith(SimulatedDeprecationMessageLogger.DIRECT_CALL);
+        return SimulatedSingleMessageLogger.nagUserWith(SimulatedSingleMessageLogger.DIRECT_CALL);
     }
 
     static FeatureUsage indirectly() {
-        return SimulatedDeprecationMessageLogger.indirectly(SimulatedDeprecationMessageLogger.INDIRECT_CALL);
+        return SimulatedSingleMessageLogger.indirectly(SimulatedSingleMessageLogger.INDIRECT_CALL);
     }
 
     static FeatureUsage indirectly2() {
-        return SimulatedDeprecationMessageLogger.indirectlySecondLevel(SimulatedDeprecationMessageLogger.INDIRECT_CALL_2);
+        return SimulatedSingleMessageLogger.indirectlySecondLevel(SimulatedSingleMessageLogger.INDIRECT_CALL_2);
     }
 }

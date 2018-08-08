@@ -13,33 +13,35 @@
 // limitations under the License.
 
 [[publishing_ivy]]
-== Ivy Publish Plugin
+= Ivy Publish Plugin
 
 The Ivy Publish Plugin provides the ability to publish build artifacts in the http://ant.apache.org/ivy/[Apache Ivy] format, usually to a repository for consumption by other builds or projects. What is published is one or more artifacts created by the build, and an Ivy _module descriptor_ (normally `ivy.xml`) that describes the artifacts and the dependencies of the artifacts, if any.
 
-A published Ivy module can be consumed by Gradle (see <<declaring_dependencies>>) and other tools that understand the Ivy format. You can learn about the fundamentals of publishing in <<publishing_overview>>.
+A published Ivy module can be consumed by Gradle (see <<declaring_dependencies.adoc#declaring_dependencies,Declaring Dependencies>>) and other tools that understand the Ivy format. You can learn about the fundamentals of publishing in <<publishing_overview.adoc#publishing_overview,Publishing Overview>>.
 
 [[publishing_ivy:usage]]
-=== Usage
+== Usage
 
 To use the Ivy Publish Plugin, include the following in your build script:
 
-++++
-<sample id="publishing_ivy:apply-plugin-snippet" dir="ivy-publish/quickstart" title="Applying the Ivy Publish Plugin">
-    <sourcefile file="build.gradle" snippet="use-plugin"/>
-</sample>
-++++
+=== Example: Applying the Ivy Publish Plugin
 
-The Ivy Publish Plugin uses an extension on the project named `publishing` of type api:org.gradle.api.publish.PublishingExtension[]. This extension provides a container of named publications and a container of named repositories. The Ivy Publish Plugin works with api:org.gradle.api.publish.ivy.IvyPublication[] publications and api:org.gradle.api.artifacts.repositories.IvyArtifactRepository[] repositories.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/ivy-publish/quickstart/build.gradle[tag=use-plugin]
+----
+
+The Ivy Publish Plugin uses an extension on the project named `publishing` of type link:{groovyDslPath}/org.gradle.api.publish.PublishingExtension.html[PublishingExtension]. This extension provides a container of named publications and a container of named repositories. The Ivy Publish Plugin works with link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication] publications and link:{groovyDslPath}/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html[IvyArtifactRepository] repositories.
 
 [[publishing_ivy:tasks]]
-=== Tasks
+== Tasks
 
 [[publishing_ivy:descriptor]]
-`generateDescriptorFileFor__PubName__Publication` — type: api:org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor[]::
+`generateDescriptorFileFor__PubName__Publication` — link:{groovyDslPath}/org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor.html[GenerateIvyDescriptor]::
 Creates an Ivy descriptor file for the publication named _PubName_, populating the known metadata such as project name, project version, and the dependencies. The default location for the descriptor file is _build/publications/$pubName/ivy.xml_.
 
-`publish__PubName__PublicationTo__RepoName__Repository` — type: api:org.gradle.api.publish.ivy.tasks.PublishToIvyRepository[]::
+`publish__PubName__PublicationTo__RepoName__Repository` — link:{groovyDslPath}/org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.html[PublishToIvyRepository]::
 Publishes the _PubName_ publication to the repository named _RepoName_. If you have a repository definition without an explicit name, _RepoName_ will be "Ivy".
 
 `publish`::
@@ -48,39 +50,41 @@ _Depends on_: All `publish__PubName__PublicationTo__RepoName__Repository` tasks
 An aggregate task that publishes all defined publications to all defined repositories.
 
 [[publishing_ivy:publications]]
-=== Publications
+== Publications
 
-This plugin provides <<glossary:publication,publications>> of type api:org.gradle.api.publish.ivy.IvyPublication[]. To learn how to define and use publications, see the section on <<sec:basic_publishing,basic publishing>>.
+This plugin provides <<publishing_overview.adoc#glossary:publication,publications>> of type link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication]. To learn how to define and use publications, see the section on <<publishing_overview.adoc#sec:basic_publishing,basic publishing>>.
 
 There are four main things you can configure in an Ivy publication:
 
- * A <<glossary:component,component>> — via api:org.gradle.api.publish.ivy.IvyPublication#from(org.gradle.api.component.SoftwareComponent)[].
- * <<sec:publishing_custom_artifacts_to_maven,Custom artifacts>> — via the api:org.gradle.api.publish.ivy.IvyPublication#artifact(java.lang.Object)[] method. See api:org.gradle.api.publish.ivy.IvyArtifact[] for the available configuration options for custom Ivy artifacts.
+ * A <<publishing_overview.adoc#glossary:component,component>> — via link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html#org.gradle.api.publish.ivy.IvyPublication:from(org.gradle.api.component.SoftwareComponent)[IvyPublication.from(org.gradle.api.component.SoftwareComponent)].
+ * <<publishing_overview.adoc#sec:publishing_custom_artifacts_to_maven,Custom artifacts>> — via the link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html#org.gradle.api.publish.ivy.IvyPublication:artifact(java.lang.Object)[IvyPublication.artifact(java.lang.Object)] method. See link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyArtifact.html[IvyArtifact] for the available configuration options for custom Ivy artifacts.
  * Standard metadata like `module`, `organisation` and `revision`.
- * Other contents of the module descriptor — via api:org.gradle.api.publish.ivy.IvyPublication#descriptor(org.gradle.api.Action)[].
+ * Other contents of the module descriptor — via link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html#org.gradle.api.publish.ivy.IvyPublication:descriptor(org.gradle.api.Action)[IvyPublication.descriptor(org.gradle.api.Action)].
 
-You can see all of these in action in the <<publishing_ivy:example,complete publishing example>>. The API documentation for `IvyPublication` has additional code samples.
+You can see all of these in action in the <<#publishing_ivy:example,complete publishing example>>. The API documentation for `IvyPublication` has additional code samples.
 
 [[sec:identity_values_for_the_published_project]]
-==== Identity values for the published project
+=== Identity values for the published project
 
 The generated Ivy module descriptor file contains an `&lt;info&gt;` element that identifies the module. The default identity values are derived from the following:
 
-* `organisation` - api:org.gradle.api.Project#getGroup()[]
-* `module` - api:org.gradle.api.Project#getName()[]
-* `revision` - api:org.gradle.api.Project#getVersion()[]
-* `status` - api:org.gradle.api.Project#getStatus()[]
+* `organisation` - link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:group[Project.getGroup()]
+* `module` - link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:name[Project.getName()]
+* `revision` - link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:version[Project.getVersion()]
+* `status` - link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:status[Project.getStatus()]
 * `branch` - (not set)
 
-Overriding the default identity values is easy: simply specify the `organisation`, `module` or `revision` properties when configuring the api:org.gradle.api.publish.ivy.IvyPublication[]. `status` and `branch` can be set via the `descriptor` property — see api:org.gradle.api.publish.ivy.IvyModuleDescriptorSpec[].
+Overriding the default identity values is easy: simply specify the `organisation`, `module` or `revision` properties when configuring the link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication]. `status` and `branch` can be set via the `descriptor` property — see link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyModuleDescriptorSpec.html[IvyModuleDescriptorSpec].
 
 The `descriptor` property can also be used to add additional custom elements as children of the `&lt;info&gt;` element, like so:
 
-++++
-<sample dir="ivy-publish/multiple-publications" id="publishing_ivy:publish-customize-identity" title="customizing the publication identity">
-    <sourcefile file="build.gradle" snippet="customize-identity"/>
-</sample>
-++++
+=== Example: customizing the publication identity
+
+[source.multi-language-sample,groovy,indent=0]
+.build.gradle
+----
+include::{samplesPath}/ivy-publish/multiple-publications/build.gradle[tag=customize-identity]
+----
 
 [TIP]
 ====
@@ -90,57 +94,63 @@ Certain repositories are not able to handle all supported characters. For exampl
 Gradle will handle any valid Unicode character for `organisation`, `module` and `revision` (as well as the artifact's `name`, `extension` and `classifier`). The only values that are explicitly prohibited are `\`, `/` and any ISO control character. The supplied values are validated early during publication.
 
 [[sec:modifying_the_generated_module_descriptor]]
-==== Customizing the generated module descriptor
+=== Customizing the generated module descriptor
 
-At times, the module descriptor file generated from the project information will need to be tweaked before publishing. The Ivy Publish Plugin provides a DSL for that purpose. Please see api:org.gradle.api.publish.ivy.IvyModuleDescriptorSpec[] in the DSL Reference for the complete documentation of available properties and methods.
+At times, the module descriptor file generated from the project information will need to be tweaked before publishing. The Ivy Publish Plugin provides a DSL for that purpose. Please see link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyModuleDescriptorSpec.html[IvyModuleDescriptorSpec] in the DSL Reference for the complete documentation of available properties and methods.
 
 The following sample shows how to use the most common aspects of the DSL:
 
-++++
-<sample dir="ivy-publish/descriptor-customization" id="publishing_ivy:descriptor-customization-snippet" title="Customizing the module descriptor file">
-    <sourcefile file="build.gradle" snippet="customize-descriptor"/>
-</sample>
-++++
+=== Example: Customizing the module descriptor file
+
+[source.multi-language-sample,groovy,indent=0]
+.build.gradle
+----
+include::{samplesPath}/ivy-publish/descriptor-customization/build.gradle[tag=customize-descriptor]
+----
 
 In this example we are simply adding a 'description' element to the generated Ivy dependency descriptor, but this hook allows you to modify any aspect of the generated descriptor. For example, you could replace the version range for a dependency with the actual version used to produce the build.
 
-You can also add arbitrary XML to the descriptor file via api:org.gradle.api.publish.ivy.IvyModuleDescriptorSpec#withXml(org.gradle.api.Action)[], but you can not use it to modify any part of the module identifier (organisation, module, revision).
+You can also add arbitrary XML to the descriptor file via link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyModuleDescriptorSpec.html#org.gradle.api.publish.ivy.IvyModuleDescriptorSpec:withXml(org.gradle.api.Action)[IvyModuleDescriptorSpec.withXml(org.gradle.api.Action)], but you can not use it to modify any part of the module identifier (organisation, module, revision).
 
 CAUTION: It is possible to modify the descriptor in such a way that it is no longer a valid Ivy module descriptor, so care must be taken when using this feature.
 
 [[publishing_ivy:repositories]]
-=== Repositories
+== Repositories
 
-This plugin provides <<sub:terminology_repository,repositories>> of type api:org.gradle.api.artifacts.repositories.IvyArtifactRepository[]. To learn how to define and use repositories for publishing, see the section on <<sec:basic_publishing,basic publishing>>.
+This plugin provides <<dependency_management_terminology.adoc#sub:terminology_repository,repositories>> of type link:{groovyDslPath}/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html[IvyArtifactRepository]. To learn how to define and use repositories for publishing, see the section on <<publishing_overview.adoc#sec:basic_publishing,basic publishing>>.
 
 Here's a simple example of defining a publishing repository:
 
-++++
-<sample dir="ivy-publish/quickstart" id="publishing_ivy:sample_repositories" title="Declaring repositories to publish to">
-    <sourcefile file="build.gradle" snippet="repositories"/>
-</sample>
-++++
+=== Example: Declaring repositories to publish to
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/ivy-publish/quickstart/build.gradle[tag=repositories]
+----
 
 The two main things you will want to configure are the repository's:
 
  * URL (required)
  * Name (optional)
- 
+
 You can define multiple repositories as long as they have unique names within the build script. You may also declare one (and only one) repository without a name. That repository will take on an implicit name of "Ivy".
 
-You can also configure any authentication details that are required to connect to the repository. See api:org.gradle.api.artifacts.repositories.IvyArtifactRepository[] for more details.
+You can also configure any authentication details that are required to connect to the repository. See link:{groovyDslPath}/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html[IvyArtifactRepository] for more details.
 
 
 [[publishing_ivy:example]]
-=== Complete example
+== Complete example
 
 The following example demonstrates publishing with a multi-project build. Each project publishes a Java component and a configured additional source artifact. The descriptor file is customized to include the project description for each project.
 
-++++
-<sample dir="ivy-publish/java-multi-project" id="publishing_ivy:complete_example" title="Publishing a Java module">
-    <sourcefile file="build.gradle"/>
-</sample>
-++++
+=== Example: Publishing a Java module
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/ivy-publish/java-multi-project/build.gradle[tag=all]
+----
 
 The result is that the following artifacts will be published for each project:
 
@@ -150,11 +160,13 @@ The result is that the following artifacts will be published for each project:
 
 When `project1` is published, the module descriptor (i.e. the `ivy.xml` file) that is produced will look like:
 
-++++
-<sample dir="ivy-publish/java-multi-project" id="publishing_ivy:output_ivy.xml" title="Example generated ivy.xml">
-    <sourcefile file="output-ivy.xml" snippet="content"/>
-</sample>
-++++
+=== Example: Generated ivy.xml
+
+[source,xml]
+.output-ivy.xml
+----
+include::{samplesPath}/ivy-publish/java-multi-project/output-ivy.xml[]
+----
 
 [TIP]
 ====

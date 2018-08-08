@@ -17,9 +17,11 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.provider.Provider
+import spock.lang.Unroll
 
 abstract class LockableCollectionPropertySpec<C extends Collection<String>> extends LockablePropertySpec<C> {
     abstract CollectionPropertyInternal<String, C> target()
+
     abstract LockableCollectionProperty<String, C> property(PropertyInternal<C> target)
 
     CollectionPropertyInternal<String, C> target = target()
@@ -77,12 +79,13 @@ abstract class LockableCollectionPropertySpec<C extends Collection<String>> exte
         0 * target._
     }
 
-    def "cannot add elements provider after property is locked"() {
+    @Unroll
+    def "cannot add elements using #display after property is locked"() {
         given:
         property.lockNow()
 
         when:
-        property.addAll(Stub(Provider))
+        property.addAll(value)
 
         then:
         def e = thrown(IllegalStateException)
@@ -90,5 +93,11 @@ abstract class LockableCollectionPropertySpec<C extends Collection<String>> exte
 
         and:
         0 * target._
+
+        where:
+        value                       | display
+        Stub(Provider)              | "provider"
+        ["a", "b", "c"]             | "collection"
+        ["a", "b", "c"] as String[] | "array"
     }
 }

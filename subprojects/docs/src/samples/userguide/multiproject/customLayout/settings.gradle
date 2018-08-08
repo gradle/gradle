@@ -1,12 +1,12 @@
 include 'projectA', 'projectB'
 
-// START SNIPPET lookup-project
+// tag::lookup-project[]
 println rootProject.name
 println project(':projectA').name
-// END SNIPPET lookup-project
+// end::lookup-project[]
 
-// START SNIPPET change-project
+// tag::change-project[]
 rootProject.name = 'main'
 project(':projectA').projectDir = new File(settingsDir, '../my-project-a')
 project(':projectA').buildFileName = 'projectA.gradle'
-// END SNIPPET change-project
+// end::change-project[]

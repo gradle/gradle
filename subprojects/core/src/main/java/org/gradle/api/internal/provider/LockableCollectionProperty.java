@@ -42,15 +42,27 @@ public abstract class LockableCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
-    public void addAll(Provider<? extends Iterable<T>> provider) {
+    public void addAll(Provider<? extends Iterable<? extends T>> provider) {
         assertNotLocked();
         delegate.addAll(provider);
     }
 
     @Override
-    public void set(@Nullable Iterable<? extends T> value) {
+    public void addAll(Iterable<? extends T> elements) {
         assertNotLocked();
-        delegate.set(value);
+        delegate.addAll(elements);
+    }
+
+    @Override
+    public void addAll(T... elements) {
+        assertNotLocked();
+        delegate.addAll(elements);
+    }
+
+    @Override
+    public void set(@Nullable Iterable<? extends T> elements) {
+        assertNotLocked();
+        delegate.set(elements);
     }
 
     @Override

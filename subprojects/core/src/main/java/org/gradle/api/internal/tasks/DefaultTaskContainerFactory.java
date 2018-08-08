@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.TaskContainer;
@@ -50,8 +51,9 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
     private final ProjectAccessListener projectAccessListener;
     private final TaskStatistics statistics;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final CrossProjectConfigurator crossProjectConfigurator;
 
-    public DefaultTaskContainerFactory(ModelRegistry modelRegistry, Instantiator instantiator, ITaskFactory taskFactory, Project project, ProjectAccessListener projectAccessListener, TaskStatistics statistics, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultTaskContainerFactory(ModelRegistry modelRegistry, Instantiator instantiator, ITaskFactory taskFactory, Project project, ProjectAccessListener projectAccessListener, TaskStatistics statistics, BuildOperationExecutor buildOperationExecutor, CrossProjectConfigurator crossProjectConfigurator) {
         this.modelRegistry = modelRegistry;
         this.instantiator = instantiator;
         this.taskFactory = taskFactory;
@@ -59,10 +61,11 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
         this.projectAccessListener = projectAccessListener;
         this.statistics = statistics;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.crossProjectConfigurator = crossProjectConfigurator;
     }
 
     public TaskContainerInternal create() {
-        DefaultTaskContainer tasks = instantiator.newInstance(DefaultTaskContainer.class, project, instantiator, taskFactory, projectAccessListener, statistics, buildOperationExecutor);
+        DefaultTaskContainer tasks = instantiator.newInstance(DefaultTaskContainer.class, project, instantiator, taskFactory, projectAccessListener, statistics, buildOperationExecutor, crossProjectConfigurator);
         bridgeIntoSoftwareModelWhenNeeded(tasks);
         return tasks;
     }
@@ -109,7 +112,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
                     @Override
                     public void execute(MutableModelNode modelNode, Task task) {
                         TaskContainerInternal taskContainer = modelNode.getParent().getPrivateData(TaskContainerInternal.MODEL_TYPE);
-                        taskContainer.add(task);
+                        taskContainer.addInternal(task);
                     }
                 }));
             }

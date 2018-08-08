@@ -17,22 +17,19 @@
 package org.gradle.gradlebuild.test.integrationtests
 
 import accessors.base
-import accessors.java
-import accessors.reporting
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.BasePluginConvention
-import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
-import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Sync
 import org.gradle.gradlebuild.packaging.ShadedJar
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanUpDaemons
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.getValue
+import org.gradle.kotlin.dsl.withType
 import java.io.File
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -51,7 +48,6 @@ class DistributionTestingPlugin : Plugin<Project> {
             setJvmArgsOfTestJvm()
             setSystemPropertiesOfTestJVM(project)
             configureGradleTestEnvironment(rootProject.providers, rootProject.layout, rootProject.base)
-            setDedicatedTestOutputDirectoryPerTask(java, reporting)
             addSetUpAndTearDownActions(gradle)
         }
     }
@@ -73,16 +69,6 @@ class DistributionTestingPlugin : Plugin<Project> {
         // TODO Remove once we go to task specific listeners.
         doLast {
             gradle.removeListener(daemonListener)
-        }
-    }
-
-    private
-    fun DistributionTest.setDedicatedTestOutputDirectoryPerTask(java: JavaPluginConvention, reporting: ReportingExtension) {
-        reports.junitXml.destination = File(java.testResultsDir, name)
-        val htmlDirectory = reporting.baseDirectory.dir(this.name)
-        project.afterEvaluate {
-            // TODO: Replace this with a Provider
-            reports.html.destination = htmlDirectory.get().asFile
         }
     }
 
@@ -137,18 +123,5 @@ class DistributionTestingPlugin : Plugin<Project> {
 
         systemProperties["org.gradle.integtest.multiversion"] =
             ifProperty("testAllVersions", "all") ?: "default"
-
-        val mirrorUrls = collectMirrorUrls()
-        val mirrors = listOf("mavencentral", "jcenter", "lightbendmaven", "ligthbendivy", "google", "springreleases", "springsnapshots", "restlet", "gradle", "jboss")
-        mirrors.forEach { mirror ->
-            systemProperties["org.gradle.integtest.mirrors.$mirror"] = mirrorUrls[mirror] ?: ""
-        }
     }
-
-    fun collectMirrorUrls(): Map<String, String> =
-    // expected env var format: repo1_id:repo1_url,repo2_id:repo2_url,...
-        System.getenv("REPO_MIRROR_URLS")?.split(',')?.associate { nameToUrl ->
-            val (name, url) = nameToUrl.split(':', limit = 2)
-            name to url
-        } ?: emptyMap()
 }

@@ -16,10 +16,10 @@
 
 apply plugin: 'java'
 
-// START SNIPPET ignore-build-info-properties
+// tag::ignore-build-info-properties[]
 normalization {
     runtimeClasspath {
         ignore 'build-info.properties'
     }
 }
-// END SNIPPET ignore-build-info-properties
+// end::ignore-build-info-properties[]

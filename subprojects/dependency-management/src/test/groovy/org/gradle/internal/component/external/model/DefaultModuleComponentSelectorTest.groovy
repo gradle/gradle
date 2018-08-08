@@ -33,11 +33,11 @@ class DefaultModuleComponentSelectorTest extends Specification {
     }
 
     private static ImmutableVersionConstraint v(String version, String branch) {
-        return new DefaultImmutableVersionConstraint(version, [], branch)
+        return new DefaultImmutableVersionConstraint("", version, "", [], branch)
     }
 
     private static ImmutableVersionConstraint b(String branch) {
-        return new DefaultImmutableVersionConstraint("", [], branch)
+        return new DefaultImmutableVersionConstraint("", "", "", [], branch)
     }
 
     def "is instantiated with non-null constructor parameter values"() {
@@ -48,7 +48,9 @@ class DefaultModuleComponentSelectorTest extends Specification {
         selector.group == 'some-group'
         selector.module == 'some-name'
         selector.version == '1.0'
+        selector.versionConstraint.requiredVersion == '1.0'
         selector.versionConstraint.preferredVersion == '1.0'
+        selector.versionConstraint.strictVersion == ''
         selector.versionConstraint.rejectedVersions == []
         selector.displayName == 'some-group:some-name:1.0'
         selector.attributes.empty
@@ -116,7 +118,9 @@ class DefaultModuleComponentSelectorTest extends Specification {
         selector.group == 'some-group'
         selector.module == 'some-name'
         selector.version == '1.0'
+        selector.versionConstraint.requiredVersion == '1.0'
         selector.versionConstraint.preferredVersion == '1.0'
+        selector.versionConstraint.strictVersion == ''
         selector.versionConstraint.rejectedVersions == []
         selector.displayName == 'some-group:some-name:1.0'
         selector.toString() == 'some-group:some-name:1.0'
@@ -133,7 +137,9 @@ class DefaultModuleComponentSelectorTest extends Specification {
         selector.group == 'some-group'
         selector.module == 'some-name'
         selector.version == '1.0'
+        selector.versionConstraint.requiredVersion == '1.0'
         selector.versionConstraint.preferredVersion == '1.0'
+        selector.versionConstraint.strictVersion == ''
         selector.versionConstraint.rejectedVersions == []
         selector.attributes.keySet() == [customAttr, otherAttr] as Set
         selector.attributes.getAttribute(customAttr) == 'foo'

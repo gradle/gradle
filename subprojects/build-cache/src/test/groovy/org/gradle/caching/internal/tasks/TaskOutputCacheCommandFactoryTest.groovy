@@ -19,16 +19,12 @@ package org.gradle.caching.internal.tasks
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSortedMap
-import com.google.common.collect.Iterables
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskArtifactState
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
-import org.gradle.api.internal.changedetection.state.FileHashSnapshot
 import org.gradle.api.internal.changedetection.state.FileSystemMirror
-import org.gradle.api.internal.changedetection.state.mirror.ImmutablePhysicalDirectorySnapshot
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.tasks.OutputType
@@ -36,7 +32,9 @@ import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener
 import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata
 import org.gradle.internal.time.Timer
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -68,7 +66,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
     def localStateFile = temporaryFolder.file("local-state.txt").createFile()
     def localStateFiles = ImmutableFileCollection.of(localStateFile)
 
-    def "load invokes unpacker and snapshots outputs"() {
+    def "load invokes unpacker and fingerprints outputs"() {
         def outputFile = temporaryFolder.file("output.txt")
         def outputDir = temporaryFolder.file("outputDir")
         def outputDirFile = outputDir.file("file.txt")
@@ -79,11 +77,9 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         ] as SortedSet
         def load = commandFactory.createLoad(key, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskArtifactState)
 
-        def outputDirFileContent = new FileHashSnapshot(HashCode.fromInt(123))
-        def outputFileContent = new FileHashSnapshot(HashCode.fromInt(234))
-        def outputFileSnapshot = new PhysicalFileSnapshot(outputFile.absolutePath, outputFile.name, outputFileContent)
+        def outputFileSnapshot = new PhysicalFileSnapshot(outputFile.absolutePath, outputFile.name, HashCode.fromInt(234), 234)
         def fileSnapshots = ImmutableMap.of(
-            "outputDir", new ImmutablePhysicalDirectorySnapshot(outputDir.getAbsolutePath(), outputDir.name, ImmutableList.of(new PhysicalFileSnapshot(outputDirFile.getAbsolutePath(), outputDirFile.name, outputDirFileContent))),
+            "outputDir", new PhysicalDirectorySnapshot(outputDir.getAbsolutePath(), outputDir.name, ImmutableList.of(new PhysicalFileSnapshot(outputDirFile.getAbsolutePath(), outputDirFile.name, HashCode.fromInt(123), 123)), HashCode.fromInt(456)),
             "outputFile", outputFileSnapshot)
 
         when:
@@ -97,22 +93,22 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         1 * packer.unpack(outputProperties, input, _) >> new TaskOutputPacker.UnpackResult(originMetadata, 123, fileSnapshots)
 
         then:
-        1 * fileSystemMirror.putDirectory(_, _) >> { String absolutePath, PhysicalSnapshot dir ->
-            def basePath = dir.absolutePath.toString()
-            assert absolutePath == basePath
-            assert basePath == outputDir.absolutePath
-            assert Iterables.getOnlyElement(dir.children).absolutePath.toString() == outputDirFile.absolutePath
+        1 * fileSystemMirror.putMetadata(outputDir.absolutePath, DefaultFileMetadata.directory())
+        1 * fileSystemMirror.putSnapshot(_ as PhysicalDirectorySnapshot) >> { args ->
+            PhysicalDirectorySnapshot snapshot = args[0]
+            assert snapshot.absolutePath == outputDir.absolutePath
+            assert snapshot.name == outputDir.name
         }
-        1 * fileSystemMirror.putFile(_) >> { args ->
+        1 * fileSystemMirror.putSnapshot(_ as PhysicalFileSnapshot) >> { args ->
             PhysicalFileSnapshot snapshot = args[0]
             assert snapshot.absolutePath == outputFileSnapshot.absolutePath
             assert snapshot.name == outputFileSnapshot.name
-            assert snapshot.content == outputFileSnapshot.content
+            assert snapshot.hash == outputFileSnapshot.hash
         }
-        1 * taskArtifactState.snapshotAfterLoadedFromCache(_, originMetadata) >> { ImmutableSortedMap<String, FileCollectionSnapshot> propertySnapshots, OriginTaskExecutionMetadata metadata ->
-            assert propertySnapshots.keySet() as List == ["outputDir", "outputFile"]
-            assert propertySnapshots["outputFile"].snapshots.keySet() == [outputFile.absolutePath] as Set
-            assert propertySnapshots["outputDir"].snapshots.keySet() == [outputDir, outputDirFile]*.absolutePath as Set
+        1 * taskArtifactState.snapshotAfterLoadedFromCache(_, originMetadata) >> { ImmutableSortedMap<String, CurrentFileCollectionFingerprint> propertyFingerprints, OriginTaskExecutionMetadata metadata ->
+            assert propertyFingerprints.keySet() as List == ["outputDir", "outputFile"]
+            assert propertyFingerprints["outputFile"].snapshots.keySet() == [outputFile.absolutePath] as Set
+            assert propertyFingerprints["outputDir"].snapshots.keySet() == [outputDir, outputDirFile]*.absolutePath as Set
         }
 
         then:
@@ -198,8 +194,8 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
     def "store invokes packer"() {
         def output = Mock(OutputStream)
         def outputProperties = props("output")
-        def outputSnapshots = Mock(Map)
-        def command = commandFactory.createStore(key, outputProperties, outputSnapshots, task, 1)
+        def outputFingerprints = Mock(Map)
+        def command = commandFactory.createStore(key, outputProperties, outputFingerprints, task, 1)
 
         when:
         def result = command.store(output)
@@ -208,7 +204,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         1 * originFactory.createWriter(task, _)
 
         then:
-        1 * packer.pack(outputProperties, outputSnapshots, output, _) >> new TaskOutputPacker.PackResult(123)
+        1 * packer.pack(outputProperties, outputFingerprints, output, _) >> new TaskOutputPacker.PackResult(123)
 
         then:
         result.artifactEntryCount == 123

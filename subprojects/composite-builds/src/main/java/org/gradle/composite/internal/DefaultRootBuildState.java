@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal;
 
+import org.gradle.StartParameter;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
@@ -79,6 +80,11 @@ class DefaultRootBuildState extends AbstractBuildState implements RootBuildState
         } finally {
             buildLifecycleListener.beforeComplete();
         }
+    }
+
+    @Override
+    public StartParameter getStartParameter() {
+        return gradleLauncher.getGradle().getStartParameter();
     }
 
     @Override

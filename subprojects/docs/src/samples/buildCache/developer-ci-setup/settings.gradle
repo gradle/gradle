@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// START SNIPPET developer-ci-setup
+// tag::developer-ci-setup[]
 ext.isCiServer = System.getenv().containsKey("CI")
 
 buildCache {
@@ -26,4 +26,4 @@ buildCache {
         push = isCiServer
     }
 }
-// END SNIPPET developer-ci-setup
+// end::developer-ci-setup[]

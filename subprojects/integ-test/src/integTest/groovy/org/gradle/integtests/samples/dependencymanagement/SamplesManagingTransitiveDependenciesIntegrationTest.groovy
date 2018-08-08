@@ -31,7 +31,7 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
     Sample sample = new Sample(testDirectoryProvider)
 
     def setup() {
-        executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
+        useRepositoryMirrors()
     }
 
     @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/versionsWithConstraints")

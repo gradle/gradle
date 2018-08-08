@@ -21,8 +21,8 @@ import org.gradle.plugins.ide.idea.IdeaPlugin
 import java.io.File
 
 apply<IdeaPlugin>()
-apply { plugin("java") }
-apply { plugin("eclipse") }
+apply(plugin = "java")
+apply(plugin = "eclipse")
 
 repositories {
     mavenCentral()
@@ -33,7 +33,7 @@ dependencies {
     compile("commons-httpclient:commons-httpclient:3.0")
     compile("commons-codec:commons-codec:1.2")
     compile("org.slf4j:jcl-over-slf4j:1.7.10")
-    compile("org.codehaus.groovy:groovy:2.4.10")
+    compile("org.codehaus.groovy:groovy:2.4.15")
     testCompile("junit:junit:4.12")
     runtime("com.googlecode:reflectasm:1.01")
 }

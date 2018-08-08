@@ -18,6 +18,7 @@ package org.gradle.initialization;
 
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.composite.ChildBuildRegisteringSettingsLoader;
 import org.gradle.internal.composite.CommandLineIncludedBuildSettingsLoader;
 import org.gradle.internal.composite.CompositeBuildSettingsLoader;
@@ -27,12 +28,14 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private final SettingsProcessor settingsProcessor;
     private final BuildSourceBuilder buildSourceBuilder;
     private final BuildStateRegistry buildRegistry;
+    private final PublicBuildPath publicBuildPath;
 
-    public DefaultSettingsLoaderFactory(ISettingsFinder settingsFinder, SettingsProcessor settingsProcessor, BuildSourceBuilder buildSourceBuilder, BuildStateRegistry buildRegistry) {
+    public DefaultSettingsLoaderFactory(ISettingsFinder settingsFinder, SettingsProcessor settingsProcessor, BuildSourceBuilder buildSourceBuilder, BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath) {
         this.settingsFinder = settingsFinder;
         this.settingsProcessor = settingsProcessor;
         this.buildSourceBuilder = buildSourceBuilder;
         this.buildRegistry = buildRegistry;
+        this.publicBuildPath = publicBuildPath;
     }
 
     @Override
@@ -42,8 +45,8 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
                 new CommandLineIncludedBuildSettingsLoader(
                     defaultSettingsLoader()
                 ),
-                buildRegistry
-            ),
+                buildRegistry,
+                publicBuildPath),
             buildRegistry);
     }
 
@@ -51,7 +54,9 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     public SettingsLoader forNestedBuild() {
         return new ChildBuildRegisteringSettingsLoader(
             defaultSettingsLoader(),
-            buildRegistry);
+            buildRegistry,
+            publicBuildPath
+        );
     }
 
     private SettingsLoader defaultSettingsLoader() {

@@ -1,8 +1,8 @@
-// START SNIPPET use-plugin
+// tag::use-plugin[]
 plugins {
     id 'maven-publish'
 }
-// END SNIPPET use-plugin
+// end::use-plugin[]
 plugins {
     id 'java'
 }
@@ -10,7 +10,7 @@ plugins {
 group = 'org.gradle.sample'
 version = '1.0'
 
-// START SNIPPET publish-component
+// tag::publish-component[]
 publishing {
     publications {
         mavenJava(MavenPublication) {
@@ -18,8 +18,8 @@ publishing {
         }
     }
 }
-// END SNIPPET publish-component
-// START SNIPPET repositories
+// end::publish-component[]
+// tag::repositories[]
 publishing {
     repositories {
         maven {
@@ -28,5 +28,5 @@ publishing {
         }
     }
 }
-// END SNIPPET repositories
+// end::repositories[]
 

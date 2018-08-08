@@ -33,6 +33,10 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
+    def setup() {
+        useRepositoryMirrors()
+    }
+
     @UsesSample("testKit/gradleRunner/junitQuickstart")
     def junitQuickstart() {
         expect:

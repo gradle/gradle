@@ -16,6 +16,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.io.ByteStreams;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -54,18 +55,18 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
 
     @Nullable
     @Override
-    public HashCode hash(String absolutePath, Iterable<String> relativePath, FileContentSnapshot content) {
-        Path path = Paths.get(absolutePath);
-        if (!isClassFile(absolutePath)) {
+    public HashCode hash(PhysicalFileSnapshot fileSnapshot) {
+        if (!isClassFile(fileSnapshot.getName())) {
             return null;
         }
+        Path path = Paths.get(fileSnapshot.getAbsolutePath());
         InputStream inputStream = null;
         try {
             inputStream = Files.newInputStream(path);
             return hashClassBytes(inputStream);
         } catch (Exception e) {
-            LOGGER.debug("Malformed class file '{}' found on compile classpath. Falling back to full file hash instead of ABI hashing.", path.getFileName().toString(), e);
-            return content.getContentMd5();
+            LOGGER.debug("Malformed class file '{}' found on compile classpath. Falling back to full file hash instead of ABI hashing.", fileSnapshot.getName(), e);
+            return fileSnapshot.getHash();
         } finally {
             IoActions.closeQuietly(inputStream);
         }

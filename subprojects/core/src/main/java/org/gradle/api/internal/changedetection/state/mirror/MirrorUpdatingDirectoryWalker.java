@@ -16,16 +16,20 @@
 
 package org.gradle.api.internal.changedetection.state.mirror;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.FileHashSnapshot;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.MutableReference;
+import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.FileHasher;
@@ -46,9 +50,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -57,44 +58,27 @@ public class MirrorUpdatingDirectoryWalker {
     private final FileHasher hasher;
     private final FileSystem fileSystem;
     private final StringInterner stringInterner;
+    private final DefaultExcludes defaultExcludes;
 
     public MirrorUpdatingDirectoryWalker(FileHasher hasher, FileSystem fileSystem, StringInterner stringInterner) {
         this.hasher = hasher;
         this.fileSystem = fileSystem;
         this.stringInterner = stringInterner;
+        this.defaultExcludes = new DefaultExcludes(DirectoryScanner.getDefaultExcludes());
     }
 
-    public PhysicalSnapshot walk(final PhysicalSnapshot fileSnapshot) {
-        return walk(fileSnapshot, null);
-    }
-
-    public PhysicalSnapshot walk(final PhysicalSnapshot fileSnapshot, @Nullable PatternSet patterns) {
-        if (fileSnapshot.getType() == FileType.Missing) {
-            // The root missing file should not be tracked for trees.
-            return PhysicalSnapshot.EMPTY;
-        }
-        if (fileSnapshot.getType() == FileType.RegularFile) {
-            return fileSnapshot;
-        }
-        Path rootPath = Paths.get(fileSnapshot.getAbsolutePath());
-        return walkDir(rootPath, patterns);
-    }
-
-    private ImmutablePhysicalDirectorySnapshot walkDir(Path rootPath, @Nullable PatternSet patterns) {
-        final Spec<FileTreeElement> spec = patterns == null ? null : patterns.getAsSpec();
-        final MutableReference<ImmutablePhysicalDirectorySnapshot> result = MutableReference.empty();
+    public PhysicalSnapshot walkDir(String absolutePath, @Nullable PatternSet patterns, final MutableBoolean hasBeenFiltered) {
+        Path rootPath = Paths.get(absolutePath);
+        final Spec<FileTreeElement> spec = (patterns == null || patterns.isEmpty()) ? null : patterns.getAsSpec();
+        final MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
 
         try {
             Files.walkFileTree(rootPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new java.nio.file.FileVisitor<Path>() {
-                private final RelativePathTracker relativePath = new RelativePathTracker();
-                private final Deque<List<PhysicalSnapshot>> levelHolder = new ArrayDeque<List<PhysicalSnapshot>>();
-
                 @Override
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
                     String name = stringInterner.intern(dir.getFileName().toString());
-                    if (relativePath.isRoot() || isAllowed(dir, name, true, attrs, relativePath)) {
-                        relativePath.enter(name);
-                        levelHolder.addLast(new ArrayList<PhysicalSnapshot>());
+                    if (builder.isRoot() || isAllowed(dir, name, true, attrs, builder.getRelativePath())) {
+                        builder.preVisitDirectory(internedAbsolutePath(dir), name);
                         return FileVisitResult.CONTINUE;
                     } else {
                         return FileVisitResult.SKIP_SUBTREE;
@@ -104,7 +88,7 @@ public class MirrorUpdatingDirectoryWalker {
                 @Override
                 public FileVisitResult visitFile(Path file, @Nullable BasicFileAttributes attrs) {
                     String name = stringInterner.intern(file.getFileName().toString());
-                    if (isAllowed(file, name, false, attrs, relativePath)) {
+                    if (isAllowed(file, name, false, attrs, builder.getRelativePath())) {
                         if (attrs == null) {
                             throw new GradleException(String.format("Cannot read file '%s': not authorized.", file));
                         }
@@ -122,7 +106,7 @@ public class MirrorUpdatingDirectoryWalker {
                     // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue
                     // so we include all the other files apart from the loop.
                     // This way, we include each file only once.
-                    if (isNotFileSystemLoopException(exc) && isAllowed(file, file.getFileName().toString(), false, null, relativePath)) {
+                    if (isNotFileSystemLoopException(exc) && isAllowed(file, file.getFileName().toString(), false, null, builder.getRelativePath())) {
                         throw new GradleException(String.format("Could not read path '%s'.", file), exc);
                     }
                     return FileVisitResult.CONTINUE;
@@ -136,15 +120,7 @@ public class MirrorUpdatingDirectoryWalker {
                     if (isNotFileSystemLoopException(exc)) {
                         throw new GradleException(String.format("Could not read directory path '%s'.", dir), exc);
                     }
-                    String directoryPath = relativePath.leave();
-                    List<PhysicalSnapshot> children = levelHolder.removeLast();
-                    ImmutablePhysicalDirectorySnapshot directorySnapshot = new ImmutablePhysicalDirectorySnapshot(internedAbsolutePath(dir), directoryPath, children);
-                    List<PhysicalSnapshot> siblings = levelHolder.peekLast();
-                    if (siblings != null) {
-                        siblings.add(directorySnapshot);
-                    } else {
-                        result.set(directorySnapshot);
-                    }
+                    builder.postVisitDirectory();
                     return FileVisitResult.CONTINUE;
                 }
 
@@ -156,28 +132,105 @@ public class MirrorUpdatingDirectoryWalker {
                     Preconditions.checkNotNull(attrs, "Unauthorized access to %", file);
                     DefaultFileMetadata metadata = new DefaultFileMetadata(FileType.RegularFile, attrs.lastModifiedTime().toMillis(), attrs.size());
                     HashCode hash = hasher.hash(file.toFile(), metadata);
-                    PhysicalFileSnapshot fileSnapshot = new PhysicalFileSnapshot(internedAbsolutePath(file), name, new FileHashSnapshot(hash, metadata.getLastModified()));
-                    levelHolder.peekLast().add(fileSnapshot);
+                    PhysicalFileSnapshot fileSnapshot = new PhysicalFileSnapshot(internedAbsolutePath(file), name, hash, metadata.getLastModified());
+                    builder.visit(fileSnapshot);
                 }
 
                 private String internedAbsolutePath(Path file) {
                     return stringInterner.intern(file.toString());
                 }
 
-                private boolean isAllowed(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, RelativePathTracker relativePath) {
+                private boolean isAllowed(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath) {
+                    if (isDirectory) {
+                        if (defaultExcludes.excludeDir(name)) {
+                            return false;
+                        }
+                    } else if (defaultExcludes.excludeFile(name)) {
+                        return false;
+                    }
                     if (spec == null) {
                         return true;
                     }
-                    relativePath.enter(name);
-                    boolean allowed = spec.isSatisfiedBy(new PathBackedFileTreeElement(path, name, isDirectory, attrs, relativePath.getRelativePath(), fileSystem));
-                    relativePath.leave();
+                    boolean allowed = spec.isSatisfiedBy(new PathBackedFileTreeElement(path, name, isDirectory, attrs, relativePath, fileSystem));
+                    if (!allowed) {
+                        hasBeenFiltered.set(true);
+                    }
                     return allowed;
                 }
             });
         } catch (IOException e) {
             throw new GradleException(String.format("Could not list contents of directory '%s'.", rootPath), e);
         }
-        return result.get();
+        return builder.getResult();
+    }
+
+    @VisibleForTesting
+    static class DefaultExcludes {
+        private final ImmutableSet<String> excludeFileNames;
+        private final ImmutableSet<String> excludedDirNames;
+        private final Spec<String> excludedFileNameSpec;
+
+        public DefaultExcludes(String[] defaultExcludes) {
+            final List<String> excludeFiles = Lists.newArrayList();
+            final List<String> excludeDirs = Lists.newArrayList();
+            final List<Spec<String>> excludeFileSpecs = Lists.newArrayList();
+            for (String defaultExclude : defaultExcludes) {
+                if (defaultExclude.startsWith("**/")) {
+                    defaultExclude = defaultExclude.substring(3);
+                }
+                int length = defaultExclude.length();
+                if (defaultExclude.endsWith("/**")) {
+                    excludeDirs.add(defaultExclude.substring(0, length - 3));
+                } else {
+                    int firstStar = defaultExclude.indexOf('*');
+                    if (firstStar == -1) {
+                        excludeFiles.add(defaultExclude);
+                    } else {
+                        Spec<String> start = firstStar == 0 ? Specs.<String>satisfyAll() : new StartMatcher(defaultExclude.substring(0, firstStar));
+                        Spec<String> end = firstStar == length - 1 ? Specs.<String>satisfyAll() : new EndMatcher(defaultExclude.substring(firstStar + 1, length));
+                        excludeFileSpecs.add(Specs.intersect(start, end));
+                    }
+                }
+            }
+
+            this.excludeFileNames = ImmutableSet.copyOf(excludeFiles);
+            this.excludedFileNameSpec = Specs.union(excludeFileSpecs);
+            this.excludedDirNames = ImmutableSet.copyOf(excludeDirs);
+        }
+
+        public boolean excludeDir(String name) {
+            return excludedDirNames.contains(name);
+        }
+
+        public boolean excludeFile(String name) {
+            return excludeFileNames.contains(name) || excludedFileNameSpec.isSatisfiedBy(name);
+        }
+
+        private static class EndMatcher implements Spec<String> {
+            private final String end;
+
+            public EndMatcher(String end) {
+                this.end = end;
+            }
+
+            @Override
+            public boolean isSatisfiedBy(String element) {
+                return element.endsWith(end);
+            }
+        }
+
+        private static class StartMatcher implements Spec<String> {
+            private final String start;
+
+            public StartMatcher(String start) {
+                this.start = start;
+            }
+
+            @Override
+            public boolean isSatisfiedBy(String element) {
+                return element.startsWith(start);
+            }
+        }
     }
 
     private static class PathBackedFileTreeElement implements FileTreeElement {
@@ -252,7 +305,14 @@ public class MirrorUpdatingDirectoryWalker {
 
         @Override
         public RelativePath getRelativePath() {
-            return new RelativePath(!isDirectory, Iterables.toArray(relativePath, String.class));
+            String[] segments = new String[Iterables.size(relativePath) + 1];
+            int i = 0;
+            for (String segment : relativePath) {
+                segments[i] = segment;
+                i++;
+            }
+            segments[i] = name;
+            return new RelativePath(!isDirectory, segments);
         }
 
         @Override

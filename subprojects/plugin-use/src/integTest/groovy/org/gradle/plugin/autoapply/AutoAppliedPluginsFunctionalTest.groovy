@@ -17,7 +17,7 @@
 package org.gradle.plugin.autoapply
 
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
@@ -33,7 +33,7 @@ import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.writeToSt
 
 @Requires(TestPrecondition.ONLINE)
 @LeaksFileHandles
-class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
+class AutoAppliedPluginsFunctionalTest extends AbstractPluginIntegrationTest {
 
     private static final String BUILD_SCAN_LICENSE_QUESTION = 'Publishing a build scan to scans.gradle.com requires accepting the Gradle Terms of Service defined at https://gradle.com/terms-of-service. Do you accept these terms?'
     private static final String BUILD_SCAN_SUCCESSFUL_PUBLISHING = 'Publishing build scan'

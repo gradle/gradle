@@ -23,12 +23,9 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository
-import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotterRegistry
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
 import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter
-import org.gradle.api.internal.changedetection.state.DefaultGenericFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.DefaultTaskHistoryStore
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.changedetection.state.TaskHistoryStore
@@ -52,6 +49,11 @@ import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator
 import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.file.PathToFileResolver
+import org.gradle.internal.fingerprint.FileCollectionFingerprinter
+import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint
+import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
+import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
+import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.id.UniqueId
@@ -89,7 +91,6 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
             return temporaryFolder.createDir("history-cache")
         }
     }
-    DefaultGenericFileCollectionSnapshotter fileCollectionSnapshotter
     DefaultTaskArtifactStateRepository repository
     DefaultFileSystemMirror fileSystemMirror
     TaskOutputFilesRepository taskOutputFilesRepository = Stub(TaskOutputFilesRepository)
@@ -106,20 +107,21 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         def stringInterner = new StringInterner()
         def fileHasher = new TestFileHasher()
         fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
-        fileCollectionSnapshotter = new DefaultGenericFileCollectionSnapshotter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(fileHasher, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
+        FileCollectionFingerprinter inputFileCollectionFingerprinter = new AbsolutePathFileCollectionFingerprinter(stringInterner, new DefaultFileSystemSnapshotter(fileHasher, stringInterner, TestFiles.fileSystem(), fileSystemMirror))
+        FileCollectionFingerprinter outputFileCollectionFingerprinter = new OutputFileCollectionFingerprinter(stringInterner, new DefaultFileSystemSnapshotter(fileHasher, stringInterner, TestFiles.fileSystem(), fileSystemMirror))
         def classLoaderHierarchyHasher = Mock(ConfigurableClassLoaderHierarchyHasher) {
             getClassLoaderHash(_) >> HashCode.fromInt(123)
         }
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry()
-        fileCollectionSnapshotter.registerSerializers(serializerRegistry)
-        def snapshotterRegistry = new DefaultFileCollectionSnapshotterRegistry([fileCollectionSnapshotter])
+        inputFileCollectionFingerprinter.registerSerializers(serializerRegistry)
+        def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([inputFileCollectionFingerprinter, outputFileCollectionFingerprinter])
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(
             cacheAccess,
-            serializerRegistry.build(FileCollectionSnapshot),
+            serializerRegistry.build(HistoricalFileCollectionFingerprint),
             stringInterner,
             classLoaderHierarchyHasher,
             TestUtil.valueSnapshotter(),
-            snapshotterRegistry
+            fingerprinterRegistry
         )
         repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, taskOutputFilesRepository, taskCacheKeyCalculator)
     }
@@ -603,7 +605,27 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         and:
         def state2 = getStateFor(task2)
         state2.isUpToDate([])
-        state2.executionHistory.outputFiles == [outputDirFile2] as Set
+        state2.executionHistory.outputFiles == [outputDir2, outputDirFile2] as Set
+    }
+
+    def "overlapping directories are not included"() {
+        when:
+        TestFile outputDir2 = outputDir.createDir("output-dir-2")
+        TestFile outputDirFile2 = outputDir2.file("output-file-2")
+        TaskInternal task1 = builder.withOutputDirs(dir: [outputDir]).createsFiles(outputDirFile).withPath('task1').task()
+        TaskInternal task2 = builder.withOutputDirs(dir: [outputDir2]).createsFiles(outputDirFile2).withPath('task2').task()
+
+        execute(task1, task2)
+
+        then:
+        def state1 = getStateFor(task1)
+        state1.isUpToDate([])
+        state1.executionHistory.outputFiles == [outputDir, outputDirFile] as Set
+
+        and:
+        def state2 = getStateFor(task2)
+        state2.isUpToDate([])
+        state2.executionHistory.outputFiles == [outputDir2, outputDirFile2] as Set
     }
 
     def "has no origin build ID when not executed"() {

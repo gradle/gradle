@@ -22,12 +22,11 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
-import org.gradle.api.internal.tasks.GenericFileNormalizer
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec
 import org.gradle.api.internal.tasks.TaskPropertySpec
 import org.gradle.api.tasks.FileNormalizer
+import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal
 import spock.lang.Specification
 
@@ -53,7 +52,6 @@ abstract class AbstractTaskStateChangesTest extends Specification {
             return new PropertySpec(
                 propertyName: entry.key,
                 propertyFiles: ImmutableFileCollection.of(new File(entry.value)),
-                pathNormalizationStrategy: PathNormalizationStrategy.ABSOLUTE
             )
         })
     }
@@ -61,8 +59,7 @@ abstract class AbstractTaskStateChangesTest extends Specification {
     protected static class PropertySpec implements TaskInputFilePropertySpec {
         String propertyName
         FileCollection propertyFiles
-        PathNormalizationStrategy pathNormalizationStrategy
-        Class<? extends FileNormalizer> normalizer = GenericFileNormalizer
+        Class<? extends FileNormalizer> normalizer = AbsolutePathInputNormalizer.class
 
         @Override
         int compareTo(TaskPropertySpec o) {

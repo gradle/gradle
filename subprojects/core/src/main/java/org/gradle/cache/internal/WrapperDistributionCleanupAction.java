@@ -27,21 +27,24 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.util.GradleVersion;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -49,12 +52,14 @@ import java.util.zip.ZipFile;
 import static org.apache.commons.io.filefilter.FileFilterUtils.directoryFileFilter;
 import static org.gradle.util.CollectionUtils.single;
 
-public class WrapperDistributionCleanupAction implements Action<GradleVersion> {
+public class WrapperDistributionCleanupAction implements DirectoryCleanupAction {
 
     @VisibleForTesting static final String WRAPPER_DISTRIBUTION_FILE_PATH = "wrapper/dists";
     private static final Logger LOGGER = Logging.getLogger(WrapperDistributionCleanupAction.class);
 
     private static final ImmutableMap<String, Pattern> JAR_FILE_PATTERNS_BY_PREFIX;
+    private static final String BUILD_RECEIPT_ZIP_ENTRY_PATH = StringUtils.removeStart(GradleVersion.RESOURCE_NAME, "/");
+
     static {
         Set<String> prefixes = ImmutableSet.of(
             "gradle-base-services", // 4.x
@@ -69,23 +74,45 @@ public class WrapperDistributionCleanupAction implements Action<GradleVersion> {
     }
 
     private final File distsDir;
-    private Multimap<GradleVersion, File> checksumDirsByVersion;
+    private final UsedGradleVersions usedGradleVersions;
 
-    public WrapperDistributionCleanupAction(File gradleUserHomeDirectory) {
+    public WrapperDistributionCleanupAction(File gradleUserHomeDirectory, UsedGradleVersions usedGradleVersions) {
         this.distsDir = new File(gradleUserHomeDirectory, WRAPPER_DISTRIBUTION_FILE_PATH);
+        this.usedGradleVersions = usedGradleVersions;
     }
 
+    @Nonnull
     @Override
-    public void execute(GradleVersion version) {
-        deleteDistributions(version);
+    public String getDisplayName() {
+        return "Deleting unused Gradle distributions in " + distsDir;
     }
 
-    private void deleteDistributions(GradleVersion version) {
+    public boolean execute(@Nonnull CleanupProgressMonitor progressMonitor) {
+        long maximumTimestamp = Math.max(0, System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1));
+        Set<GradleVersion> usedVersions = this.usedGradleVersions.getUsedGradleVersions();
+        Multimap<GradleVersion, File> checksumDirsByVersion = determineChecksumDirsByVersion();
+        for (GradleVersion version : checksumDirsByVersion.keySet()) {
+            if (!usedVersions.contains(version) && version.compareTo(GradleVersion.current()) < 0) {
+                deleteDistributions(checksumDirsByVersion.get(version), maximumTimestamp, progressMonitor);
+            } else {
+                progressMonitor.incrementSkipped(checksumDirsByVersion.get(version).size());
+            }
+        }
+        return true;
+    }
+
+    private void deleteDistributions(Collection<File> dirs, long maximumTimestamp, CleanupProgressMonitor progressMonitor) {
         Set<File> parentsOfDeletedDistributions = Sets.newLinkedHashSet();
-        for (File checksumDir : getChecksumDirsByVersion().get(version)) {
-            LOGGER.debug("Deleting distribution at {}", checksumDir);
-            if (FileUtils.deleteQuietly(checksumDir)) {
-                parentsOfDeletedDistributions.add(checksumDir.getParentFile());
+        for (File checksumDir : dirs) {
+            if (checksumDir.lastModified() > maximumTimestamp) {
+                progressMonitor.incrementSkipped();
+                LOGGER.debug("Skipping distribution at {} because it was recently added", checksumDir);
+            } else {
+                progressMonitor.incrementDeleted();
+                LOGGER.debug("Deleting distribution at {}", checksumDir);
+                if (FileUtils.deleteQuietly(checksumDir)) {
+                    parentsOfDeletedDistributions.add(checksumDir.getParentFile());
+                }
             }
         }
         for (File parentDir : parentsOfDeletedDistributions) {
@@ -93,13 +120,6 @@ public class WrapperDistributionCleanupAction implements Action<GradleVersion> {
                 parentDir.delete();
             }
         }
-    }
-
-    private Multimap<GradleVersion, File> getChecksumDirsByVersion() {
-        if (checksumDirsByVersion == null) {
-            checksumDirsByVersion = determineChecksumDirsByVersion();
-        }
-        return checksumDirsByVersion;
     }
 
     private Multimap<GradleVersion, File> determineChecksumDirsByVersion() {
@@ -110,8 +130,7 @@ public class WrapperDistributionCleanupAction implements Action<GradleVersion> {
                     GradleVersion gradleVersion = determineGradleVersionFromBuildReceipt(checksumDir);
                     result.put(gradleVersion, checksumDir);
                 } catch (Exception e) {
-                    // TODO see https://github.com/gradle/gradle-private/issues/1379
-                    // LOGGER.debug("Could not determine Gradle version for {}", checksumDir, e);
+                    LOGGER.debug("Could not determine Gradle version for {}: {} ({})", checksumDir, e.getMessage(), e.getClass().getName());
                 }
             }
         }
@@ -153,7 +172,7 @@ public class WrapperDistributionCleanupAction implements Action<GradleVersion> {
     }
 
     private GradleVersion readGradleVersionFromBuildReceipt(ZipFile zipFile) throws Exception {
-        ZipEntry zipEntry = zipFile.getEntry(StringUtils.removeStart(GradleVersion.RESOURCE_NAME, "/"));
+        ZipEntry zipEntry = zipFile.getEntry(BUILD_RECEIPT_ZIP_ENTRY_PATH);
         if (zipEntry == null) {
             return null;
         }

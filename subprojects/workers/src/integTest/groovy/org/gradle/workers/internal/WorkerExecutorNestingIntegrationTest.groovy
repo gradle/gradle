@@ -145,13 +145,13 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
 
                 doLast {
                     // Let the keep-alive time on the thread pool expire
-                    sleep(${DefaultConditionalExecutionQueue.KEEP_ALIVE_TIME_MS + 100})
+                    sleep(${DefaultConditionalExecutionQueue.KEEP_ALIVE_TIME_MS + 500})
 
                     def threadGroup = Thread.currentThread().threadGroup
                     println "\\nWorker Executor threads:"
                     def threads = new Thread[threadGroup.activeCount()]
                     threadGroup.enumerate(threads)                     
-                    def executorThreads = threads.findAll { it.name.startsWith("${WorkerExecutionQueueFactory.QUEUE_DISPLAY_NAME}") } 
+                    def executorThreads = threads.findAll { it?.name.startsWith("${WorkerExecutionQueueFactory.QUEUE_DISPLAY_NAME}") } 
                     executorThreads.each { println it }
                     
                     // Ensure that we don't leave any threads lying around

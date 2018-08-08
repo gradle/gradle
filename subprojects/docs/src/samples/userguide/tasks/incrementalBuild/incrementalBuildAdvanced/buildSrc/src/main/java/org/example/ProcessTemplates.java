@@ -6,10 +6,10 @@ import org.gradle.api.*;
 import org.gradle.api.file.*;
 import org.gradle.api.tasks.*;
 
-// START SNIPPET custom-task-class
+// tag::custom-task-class[]
 public class ProcessTemplates extends DefaultTask {
     // ...
-// END SNIPPET custom-task-class
+// end::custom-task-class[]
     private TemplateEngineType templateEngine;
     private TemplateData templateData;
     private File outputDir;
@@ -18,7 +18,7 @@ public class ProcessTemplates extends DefaultTask {
     public TemplateEngineType getTemplateEngine() {
         return this.templateEngine;
     }
-// START SNIPPET custom-task-class
+// tag::custom-task-class[]
     private FileCollection sourceFiles = getProject().getLayout().files();
 
     @SkipWhenEmpty
@@ -33,15 +33,15 @@ public class ProcessTemplates extends DefaultTask {
     }
 
     // ...
-// END SNIPPET custom-task-class
+// end::custom-task-class[]
 
-// START SNIPPET task-arg-method
+// tag::task-arg-method[]
     // ...
     public void sources(Task inputTask) {
         this.sourceFiles = this.sourceFiles.plus(getProject().getLayout().files(inputTask));
     }
     // ...
-// END SNIPPET task-arg-method
+// end::task-arg-method[]
 
     @Nested
     public TemplateData getTemplateData() {
@@ -68,6 +68,6 @@ public class ProcessTemplates extends DefaultTask {
             }
         });
     }
-// START SNIPPET custom-task-class
+// tag::custom-task-class[]
 }
-// END SNIPPET custom-task-class
+// end::custom-task-class[]

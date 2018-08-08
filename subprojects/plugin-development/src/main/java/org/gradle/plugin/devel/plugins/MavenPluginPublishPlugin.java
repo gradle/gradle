@@ -106,5 +106,7 @@ class MavenPluginPublishPlugin implements Plugin<Project> {
                 version.setTextContent(coordinates.getVersion());
             }
         });
+        publication.getPom().getName().set(declaration.getDisplayName());
+        publication.getPom().getDescription().set(declaration.getDescription());
     }
 }

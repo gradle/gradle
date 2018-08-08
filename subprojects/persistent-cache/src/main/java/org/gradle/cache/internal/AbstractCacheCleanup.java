@@ -19,7 +19,7 @@ package org.gradle.cache.internal;
 import org.apache.commons.io.FileUtils;
 import org.gradle.cache.CleanableStore;
 import org.gradle.cache.CleanupAction;
-import org.gradle.internal.time.CountdownTimer;
+import org.gradle.cache.CleanupProgressMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,18 +36,17 @@ public abstract class AbstractCacheCleanup implements CleanupAction {
     }
 
     @Override
-    public void clean(CleanableStore cleanableStore, CountdownTimer timer) {
+    public void clean(CleanableStore cleanableStore, CleanupProgressMonitor progressMonitor) {
         int filesDeleted = 0;
         for (File file : findEligibleFiles(cleanableStore)) {
-            if (timer.hasExpired()) {
-                LOGGER.debug("{} cleanup was aborted because timeout has expired", cleanableStore.getDisplayName());
-                break;
-            }
             if (shouldDelete(file)) {
+                progressMonitor.incrementDeleted();
                 if (FileUtils.deleteQuietly(file)) {
                     handleDeletion(file);
                     filesDeleted += 1 + deleteEmptyParentDirectories(cleanableStore.getBaseDir(), file.getParentFile());
                 }
+            } else {
+                progressMonitor.incrementSkipped();
             }
         }
         LOGGER.debug("{} cleanup deleted {} files/directories.", cleanableStore.getDisplayName(), filesDeleted);

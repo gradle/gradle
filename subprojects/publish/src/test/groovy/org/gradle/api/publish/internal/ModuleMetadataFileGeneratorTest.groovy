@@ -46,12 +46,16 @@ import static org.gradle.util.TestUtil.attributes
 
 class ModuleMetadataFileGeneratorTest extends Specification {
 
-    VersionConstraint prefers(String version) {
+    VersionConstraint requires(String version) {
         DefaultImmutableVersionConstraint.of(version)
     }
 
+    VersionConstraint strictly(String version) {
+        DefaultImmutableVersionConstraint.of("", "", version, [])
+    }
+
     VersionConstraint prefersAndRejects(String version, List<String> rejects) {
-        DefaultImmutableVersionConstraint.of(version, rejects)
+        DefaultImmutableVersionConstraint.of(version, "", "", rejects)
     }
 
     @Rule
@@ -228,7 +232,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         def d3 = Stub(ExternalDependency)
         d3.group >> "g3"
         d3.name >> "m3"
-        d3.versionConstraint >> prefers("v3")
+        d3.versionConstraint >> requires("v3")
         d3.transitive >> true
         d3.excludeRules >> [new DefaultExcludeRule("g4", "m4"), new DefaultExcludeRule(null, "m5"), new DefaultExcludeRule("g5", null)]
         d3.attributes >> ImmutableAttributes.EMPTY
@@ -236,7 +240,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         def d4 = Stub(ExternalDependency)
         d4.group >> "g4"
         d4.name >> "m4"
-        d4.versionConstraint >> prefers('')
+        d4.versionConstraint >> requires('')
         d4.transitive >> true
         d4.attributes >> ImmutableAttributes.EMPTY
 
@@ -250,7 +254,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         def d6 = Stub(ExternalDependency)
         d6.group >> "g6"
         d6.name >> "m6"
-        d6.versionConstraint >> prefers('1.0')
+        d6.versionConstraint >> strictly('1.0')
         d6.transitive >> true
         d6.reason >> 'custom reason'
         d6.attributes >> ImmutableAttributes.EMPTY
@@ -258,7 +262,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         def d7 = Stub(ExternalDependency)
         d7.group >> "g7"
         d7.name >> "m7"
-        d7.versionConstraint >> prefers('1.0')
+        d7.versionConstraint >> requires('1.0')
         d7.transitive >> true
         d7.attributes >> attributes(foo: 'foo', bar: 'baz')
 
@@ -303,7 +307,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
           "group": "g1",
           "module": "m1",
           "version": {
-            "prefers": "v1"
+            "requires": "v1"
           }
         }
       ]
@@ -335,7 +339,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
           "group": "g3",
           "module": "m3",
           "version": {
-            "prefers": "v3"
+            "requires": "v3"
           },
           "excludes": [
             {
@@ -369,7 +373,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
           "group": "g6",
           "module": "m6",
           "version": {
-            "prefers": "1.0"
+            "strictly": "1.0"
           },
           "reason": "custom reason"
         },
@@ -377,7 +381,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
           "group": "g7",
           "module": "m7",
           "version": {
-            "prefers": "1.0"
+            "requires": "1.0"
           },
           "attributes": {
             "bar": "baz",
@@ -399,7 +403,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         def dc1 = Stub(DependencyConstraint)
         dc1.group >> "g1"
         dc1.name >> "m1"
-        dc1.versionConstraint >> prefers("v1")
+        dc1.versionConstraint >> requires("v1")
         dc1.attributes >> ImmutableAttributes.EMPTY
 
         def dc2 = Stub(DependencyConstraint)
@@ -411,13 +415,13 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         def dc3 = Stub(DependencyConstraint)
         dc3.group >> "g3"
         dc3.name >> "m3"
-        dc3.versionConstraint >> prefers("v3")
+        dc3.versionConstraint >> requires("v3")
         dc3.attributes >> ImmutableAttributes.EMPTY
 
         def dc4 = Stub(DependencyConstraint)
         dc4.group >> "g4"
         dc4.name >> "m4"
-        dc4.versionConstraint >> prefers("v4")
+        dc4.versionConstraint >> strictly("v4")
         dc4.attributes >> attributes(quality: 'awesome', channel: 'canary')
 
         def v1 = Stub(UsageContext)
@@ -460,7 +464,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
           "group": "g1",
           "module": "m1",
           "version": {
-            "prefers": "v1"
+            "requires": "v1"
           }
         }
       ]
@@ -486,14 +490,14 @@ class ModuleMetadataFileGeneratorTest extends Specification {
           "group": "g3",
           "module": "m3",
           "version": {
-            "prefers": "v3"
+            "requires": "v3"
           }
         },
         {
           "group": "g4",
           "module": "m4",
           "version": {
-            "prefers": "v4"
+            "strictly": "v4"
           },
           "attributes": {
             "channel": "canary",

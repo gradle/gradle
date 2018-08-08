@@ -16,13 +16,13 @@
 
 package org.gradle.integtests.samples.bestpractices
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.junit.Rule
 import spock.lang.Unroll
 
-class SamplesAuthoringMaintainableBuildsIntegrationTest extends AbstractIntegrationSpec {
+class SamplesAuthoringMaintainableBuildsIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)

@@ -13,105 +13,75 @@
 // limitations under the License.
 
 [[project_report_plugin]]
-== The Project Report Plugin
+= The Project Report Plugin
 
-The Project report plugin adds some tasks to your project which generate reports containing useful information about your build. These tasks generate the same content that you get by executing the `tasks`, `dependencies`, and `properties` tasks from the command line (see <<sec:command_line_project_reporting>>). In contrast to the command line reports, the report plugin generates the reports into a file. There is also an aggregating task that depends on all report tasks added by the plugin.
+The Project report plugin adds some tasks to your project which generate reports containing useful information about your build. These tasks generate the same content that you get by executing the `tasks`, `dependencies`, and `properties` tasks from the command line (see <<command_line_interface.adoc#sec:command_line_project_reporting,Command-line project reporting>>). In contrast to the command line reports, the report plugin generates the reports into a file. There is also an aggregating task that depends on all report tasks added by the plugin.
 
 We plan to add much more to the existing reports and create additional ones in future releases of Gradle.
 
 
 [[sec:project_reports_usage]]
-=== Usage
+== Usage
 
 To use the Project report plugin, include the following in your build script:
 
-[source,java]
+[source,groovy]
 ----
-
 apply plugin: 'project-report'
-
 ----
-
 
 
 [[sec:project_reports_tasks]]
-=== Tasks
+== Tasks
 
 The project report plugin defines the following tasks:
 
-.Project report plugin - tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+`dependencyReport` — link:{groovyDslPath}/org.gradle.api.tasks.diagnostics.DependencyReportTask.html[DependencyReportTask]::
+Generates the project dependency report.
 
-|  `dependencyReport`
-| -
-| api:org.gradle.api.tasks.diagnostics.DependencyReportTask[]
-| Generates the project dependency report.
+`dependencyReport` — link:{groovyDslPath}/org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.html[HtmlDependencyReportTask]::
+Generates an HTML dependency and dependency insight report for the project or a set of projects.
 
-|  `htmlDependencyReport`
-| -
-| api:org.gradle.api.reporting.dependencies.HtmlDependencyReportTask[]
-| Generates an HTML dependency and dependency insight report for the project or a set of projects.
+`propertyReport` — link:{groovyDslPath}/org.gradle.api.tasks.diagnostics.PropertyReportTask.html[PropertyReportTask]::
+Generates the project property report.
 
-|  `propertyReport`
-| -
-| api:org.gradle.api.tasks.diagnostics.PropertyReportTask[]
-| Generates the project property report.
+`taskReport` — link:{groovyDslPath}/org.gradle.api.tasks.diagnostics.TaskReportTask.html[TaskReportTask]::
+Generates the project task report.
 
-|  `taskReport`
-| -
-| api:org.gradle.api.tasks.diagnostics.TaskReportTask[]
-| Generates the project task report.
-
-|  `projectReport`
-|  `dependencyReport`, `propertyReport`, `taskReport`, `htmlDependencyReport`
-| api:org.gradle.api.Task[]
-| Generates all project reports.
-|===
+`projectReport` — link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
+_Depends on_: `dependencyReport`, `propertyReport`, `taskReport`, `htmlDependencyReport`
++
+Generates all project reports.
 
 
 [[sec:project_reports_project_layout]]
-=== Project layout
+== Project layout
 
 The project report plugin does not require any particular project layout.
 
 [[sec:project_reports_dependency_management]]
-=== Dependency management
+== Dependency management
 
 The project report plugin does not define any dependency configurations.
 
 [[sec:project_reports_convention_properties]]
-=== Convention properties
+== Convention properties
 
 The project report defines the following convention properties:
 
-.Project report plugin - convention properties
-[cols="a,a,a,a", options="header"]
-|===
-| Property name
-| Type
-| Default value
-| Description
+`projects` — `Set&lt;Project&gt;`::
+The projects to generate the reports for. _Default value_: A one element set with the project the plugin was applied to.
 
-include::reportingBasePluginProperties.adoc[]
-|  `projects`
-|  `Set&lt;Project&gt;`
-| A one element set with the project the plugin was applied to.
-| The projects to generate the reports for.
+`projectReportDirName` — `String`::
+The name of the directory to generate the project report into, relative to the reports directory. _Default value_: `"project"`.
 
-|  `projectReportDirName`
-|  `String`
-|  `project`
-| The name of the directory to generate the project report into, relative to the reports directory.
+`projectReportDir` — `File` (read-only)::
+The directory to generate the project report into. _Default value_: `__reportsDir__/__projectReportDirName__`.
 
-|  `projectReportDir`
-|  `File` (read-only)
-|  `__reportsDir__/__projectReportDirName__`
-| The directory to generate the project report into.
-|===
+`reportsDirName` — `String`::
+The name of the directory to generate the project report into, relative to the reports directory. _Default value_: `"reports"`.
 
-These convention properties are provided by a convention object of type api:org.gradle.api.plugins.ProjectReportsPluginConvention[].
+`reportsDir` — `File` (read-only)::
+The directory to generate the project reports into. _Default value_: `__buildDir__/__reportsDirName__`.
+
+These convention properties are provided by a convention object of type link:{groovyDslPath}/org.gradle.api.plugins.ProjectReportsPluginConvention.html[ProjectReportsPluginConvention].

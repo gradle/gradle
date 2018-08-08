@@ -33,10 +33,16 @@ class TestWorkspaceBuilder {
         cl()
     }
 
-    def file(String name) {
-        TestFile file = baseDir.file(name)
-        file.createFile()
-        file
+    TestFile dir(String name) {
+        baseDir.file(name).createDir()
+    }
+
+    TestFile dir(String name, @DelegatesTo(value = TestWorkspaceBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> cl) {
+        dir(name).create(cl)
+    }
+
+    TestFile file(String name) {
+        baseDir.file(name).createFile()
     }
 
     def setMode(int mode) {
@@ -46,8 +52,7 @@ class TestWorkspaceBuilder {
     def methodMissing(String name, Object args) {
         if (args.length == 1 && args[0] instanceof Closure) {
             baseDir.file(name).create(args[0])
-        }
-        else {
+        } else {
             throw new MissingMethodException(name, getClass(), args)
         }
     }

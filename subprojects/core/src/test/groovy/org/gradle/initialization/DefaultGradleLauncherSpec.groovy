@@ -133,7 +133,7 @@ class DefaultGradleLauncherSpec extends Specification {
         return new DefaultGradleLauncher(gradleMock, initScriptHandlerMock, settingsLoaderMock, buildLoaderMock,
             buildConfigurerMock, exceptionAnalyserMock, buildBroadcaster,
             modelListenerMock, buildCompletionListener, buildOperationExecutor, buildConfigurationActionExecuter, buildExecuter,
-            buildServices, [otherService], includedBuildControllers)
+            buildServices, [otherService], includedBuildControllers, null)
     }
 
     void testRun() {

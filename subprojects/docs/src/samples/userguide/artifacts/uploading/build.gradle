@@ -1,22 +1,22 @@
 apply plugin: 'java'
 
-//START SNIPPET archive-artifact
+// tag::archive-artifact[]
 task myJar(type: Jar)
 
 artifacts {
     archives myJar
 }
-//END SNIPPET archive-artifact
+// end::archive-artifact[]
 
-//START SNIPPET file-artifact
+// tag::file-artifact[]
 def someFile = file('build/somefile.txt')
 
 artifacts {
     archives someFile
 }
-//END SNIPPET file-artifact
+// end::file-artifact[]
 
-//START SNIPPET customized-file-artifact
+// tag::customized-file-artifact[]
 task myTask(type:  MyTaskType) {
     destFile = file('build/somefile.txt')
 }
@@ -28,9 +28,9 @@ artifacts {
         builtBy myTask
     }
 }
-//END SNIPPET customized-file-artifact
+// end::customized-file-artifact[]
 
-//START SNIPPET map-file-artifact
+// tag::map-file-artifact[]
 task generate(type:  MyTaskType) {
     destFile = file('build/somefile.txt')
 }
@@ -38,13 +38,13 @@ task generate(type:  MyTaskType) {
 artifacts {
     archives file: generate.destFile, name: 'my-artifact', type: 'text', builtBy: generate
 }
-//END SNIPPET map-file-artifact
+// end::map-file-artifact[]
 
 class MyTaskType extends DefaultTask {
     File destFile
 }
 
-//START SNIPPET uploading
+// tag::uploading[]
 repositories {
     flatDir {
         name "fileRepo"
@@ -64,4 +64,4 @@ uploadArchives {
         }
     }
 }
-//END SNIPPET uploading
+// end::uploading[]

@@ -257,6 +257,19 @@ include("child")
                      scala-library""")
     }
 
+    def "does not warn or fail when initializing a project inside another project"() {
+        given:
+        def sub = file("sub")
+        sub.mkdirs()
+        executer.inDirectory(sub)
+
+        when:
+        file("settings.gradle") << "rootProject.name = 'root'"
+
+        then:
+        succeeds "init"
+    }
+
     private ExecutionResult runInitWith(BuildInitDsl dsl) {
         run 'init', '--dsl', dsl.id
     }

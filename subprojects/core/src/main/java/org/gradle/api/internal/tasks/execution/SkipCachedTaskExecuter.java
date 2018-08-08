@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.execution;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
@@ -32,6 +31,7 @@ import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.caching.internal.tasks.UnrecoverableTaskOutputUnpackingException;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,8 +109,8 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                 if (state.getFailure() == null) {
                     try {
                         TaskArtifactState taskState = context.getTaskArtifactState();
-                        Map<String, FileCollectionSnapshot> outputSnapshots = taskState.getOutputSnapshots();
-                        buildCache.store(buildCacheCommandFactory.createStore(cacheKey, outputProperties, outputSnapshots, task, context.getExecutionTime()));
+                        Map<String, CurrentFileCollectionFingerprint> outputFingerprints = taskState.getOutputFingerprints();
+                        buildCache.store(buildCacheCommandFactory.createStore(cacheKey, outputProperties, outputFingerprints, task, context.getExecutionTime()));
                     } catch (Exception e) {
                         LOGGER.warn("Failed to store cache entry {}", cacheKey.getDisplayName(), e);
                     }

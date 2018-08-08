@@ -1,4 +1,4 @@
-// START SNIPPET evaluate-events
+// tag::evaluate-events[]
 gradle.afterProject {project, projectState ->
     if (projectState.failure) {
         println "Evaluation of $project FAILED"
@@ -6,6 +6,6 @@ gradle.afterProject {project, projectState ->
         println "Evaluation of $project succeeded"
     }
 }
-// END SNIPPET evaluate-events
+// end::evaluate-events[]
 
 task test

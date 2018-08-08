@@ -65,7 +65,7 @@ class ScalaBasePluginTest {
         project.sourceSets.create('custom')
         def task = project.tasks.compileCustomScala
         assert task.zincClasspath instanceof Configuration
-        assert task.zincClasspath.dependencies.find { it.name.contains('zinc') }
+        assert task.zincClasspath.incoming.dependencies.find { it.name.contains('zinc') }
     }
 
     @Test

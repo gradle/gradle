@@ -289,9 +289,12 @@
 
     <section>
         <title>Container types</title>
-        <para>Container types that handle various declarative elements (e.g. dependencies, configurations, artifacts, etc.):</para>
+        <para>Container types that handle various declarative elements (e.g. dependencies, configurations, artifacts, tasks, etc.):</para>
         <table>
             <title>Container types</title>
+            <tr>
+                <td>org.gradle.api.tasks.TaskContainer</td>
+            </tr>
             <tr>
                 <td>org.gradle.api.artifacts.ConfigurationContainer</td>
             </tr>
@@ -325,6 +328,9 @@
                 <td>org.gradle.api.credentials.AwsCredentials</td>
             </tr>
             <tr>
+                <td>org.gradle.api.credentials.HttpHeaderCredentials</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.artifacts.repositories.AuthenticationContainer</td>
             </tr>
             <tr>
@@ -332,6 +338,9 @@
             </tr>
             <tr>
                 <td>org.gradle.authentication.http.BasicAuthentication</td>
+            </tr>
+            <tr>
+                <td>org.gradle.authentication.http.HttpHeaderAuthentication</td>
             </tr>
             <tr>
                 <td>org.gradle.authentication.http.DigestAuthentication</td>

@@ -53,8 +53,8 @@ public class RenderableUnresolvedDependencyResult extends AbstractRenderableDepe
             if(requestedSelector.getGroup().equals(attemptedSelector.getGroup())
                 && requestedSelector.getModule().equals(attemptedSelector.getModule())) {
 
-                String requestedVersion = requestedSelector.getVersionConstraint().getPreferredVersion();
-                String attemptedVersion = attemptedSelector.getVersionConstraint().getPreferredVersion();
+                String requestedVersion = requestedSelector.getVersion();
+                String attemptedVersion = attemptedSelector.getVersion();
                 if (attemptedVersion.equals(requestedVersion)) {
                     return requested.getDisplayName();
                 } else {

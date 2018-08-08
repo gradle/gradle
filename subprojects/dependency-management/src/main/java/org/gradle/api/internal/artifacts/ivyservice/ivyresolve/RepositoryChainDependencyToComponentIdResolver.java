@@ -71,7 +71,7 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
             if (preferredSelector.isDynamic()) {
                 dynamicRevisionResolver.resolve(toModuleDependencyMetadata(dependency), preferredSelector, rejectSelector, consumerAttributes, result);
             } else {
-                String version = resolvedVersionConstraint.getPreferredVersion();
+                String version = preferredSelector.getSelector();
                 ModuleIdentifier moduleId = module.getModuleIdentifier();
                 ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId(moduleId, version);
                 ModuleVersionIdentifier mvId = DefaultModuleVersionIdentifier.newId(moduleId, version);

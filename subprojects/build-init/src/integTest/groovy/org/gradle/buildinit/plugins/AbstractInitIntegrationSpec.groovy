@@ -24,6 +24,7 @@ class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
 
     def setup() {
         requireOwnGradleUserHomeDir() // Isolate Kotlin DSL extensions API jar
+        useRepositoryMirrors()
     }
 
     protected ScriptDslFixture dslFixtureFor(BuildInitDsl dsl) {

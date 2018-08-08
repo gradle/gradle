@@ -25,6 +25,7 @@ import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.collections.FilteredCollection;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -54,10 +55,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         this.type = type;
         this.store = store;
         this.eventRegister = eventRegister;
-        this.store.onRealize(new Action<ProviderInternal<? extends T>>() {
+        this.store.onRealize(new Action<T>() {
             @Override
-            public void execute(ProviderInternal<? extends T> provider) {
-                doAdd(provider.get(), eventRegister.getAddActions());
+            public void execute(T value) {
+                doAddRealized(value, eventRegister.getAddActions());
             }
         });
     }
@@ -67,7 +68,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     protected void realized(ProviderInternal<? extends T> provider) {
-        getStore().removePending(provider);
+        getStore().realizeExternal(provider);
     }
 
     public Class<? extends T> getType() {
@@ -163,10 +164,22 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     @Override
     public void configureEach(Action<? super T> action) {
         eventRegister.registerLazyAddAction(action);
+
+        // copy in case any actions mutate the store
+        Collection<T> copied = null;
         Iterator<T> iterator = iteratorNoFlush();
         while (iterator.hasNext()) {
-            T next = iterator.next();
-            action.execute(next);
+            // only create an intermediate collection if there's something to copy
+            if (copied == null) {
+                copied = Lists.newArrayListWithExpectedSize(estimatedSize());
+            }
+            copied.add(iterator.next());
+        }
+
+        if (copied != null) {
+            for (T next : copied) {
+                action.execute(next);
+            }
         }
     }
 
@@ -236,6 +249,16 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
     }
 
+    private <I extends T> boolean doAddRealized(I toAdd, Action<? super I> notification) {
+        if (getStore().addRealized(toAdd)) {
+            didAdd(toAdd);
+            notification.execute(toAdd);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     @Override
     public void addLater(Provider<? extends T> provider) {
         assertMutable();
@@ -245,6 +268,19 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             return;
         }
         store.addPending(providerInternal);
+    }
+
+    @Override
+    public void addAllLater(Provider<? extends Iterable<T>> provider) {
+        assertMutable();
+        CollectionProviderInternal<T, ? extends Iterable<T>> providerInternal = Cast.uncheckedCast(provider);
+        if (eventRegister.isSubscribed(providerInternal.getElementType())) {
+            for (T value : provider.get()) {
+                doAdd(value, eventRegister.getAddActions());
+            }
+            return;
+        }
+        store.addPendingCollection(providerInternal);
     }
 
     protected void didAdd(T toAdd) {

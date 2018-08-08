@@ -26,30 +26,72 @@ import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.trace.BuildOperationRecord
-import org.gradle.test.fixtures.file.TestFile
 
 class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
     def buildOperations = new BuildOperationsFixture(executer, testDirectoryProvider)
 
-    def "does not emit build ops when not collecting task stats"() {
-        given:
-        create('eager')
-        replace('eager')
-        register('deferred')
+    def "configure actions for eager creation are nested in realization build op"() {
+        buildFile << """
+            tasks.all {
+                logger.lifecycle 'create 1'
+            }
+            tasks.configureEach {
+                logger.lifecycle 'create 2'
+            }
+            tasks.create('foo') {
+                logger.lifecycle 'create 3'
+            }
+            tasks.all {
+                logger.lifecycle 'ignore'
+            }
+        """
 
         when:
-        run 'deferred'
+        run('foo')
 
         then:
-        // no ops captured
-        buildOperations.none(RegisterTaskBuildOperationType, withAnyPath(':eager', ':deferred'))
-        buildOperations.none(RealizeTaskBuildOperationType, withAnyPath(':eager', ':deferred'))
+        verifyTaskIds()
+        def realize = verifyTaskDetails(RealizeTaskBuildOperationType, withPath(':', ':foo'))
+        realize.progress.size() == 3
+        realize.progress[0].detailsClassName == LogEvent.name
+        realize.progress[0].details.message.startsWith("create 1")
+        realize.progress[1].detailsClassName == LogEvent.name
+        realize.progress[1].details.message.startsWith("create 2")
+        realize.progress[2].detailsClassName == LogEvent.name
+        realize.progress[2].details.message.startsWith("create 3")
+    }
+
+    def "configure actions for lazy creation are nested in realization build op"() {
+        buildFile << """
+            tasks.configureEach {
+                logger.lifecycle 'create 1'
+            }
+            def p = tasks.register('foo') {
+                logger.lifecycle 'create 2'
+            }
+            p.configure {
+                logger.lifecycle 'create 3'
+            }
+        """
+
+        when:
+        run('foo')
+
+        then:
+        verifyTaskIds()
+        def realize = verifyTaskDetails(RealizeTaskBuildOperationType, withPath(':', ':foo'))
+        realize.progress.size() == 3
+        realize.progress[0].detailsClassName == LogEvent.name
+        realize.progress[0].details.message.startsWith("create 1")
+        realize.progress[1].detailsClassName == LogEvent.name
+        realize.progress[1].details.message.startsWith("create 2")
+        realize.progress[2].detailsClassName == LogEvent.name
+        realize.progress[2].details.message.startsWith("create 3")
     }
 
     def "emits registration build ops when tasks not realized"() {
         given:
-        enable()
         stopBeforeTaskGraphCalculation()
         register('foo')
 
@@ -64,7 +106,6 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
 
     def "emits two ops for eager lazy realization"() {
         given:
-        enable()
         stopBeforeTaskGraphCalculation()
         register('foo')
 
@@ -82,15 +123,10 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
 
     def "op during realize are child ops"() {
         given:
-        enable()
         register('foo')
         register('bar')
         buildFile << """
-            tasks.configureEach {
-                logger.lifecycle "output 1"
-            }
             tasks.named("foo").configure {
-                logger.lifecycle "output 2"
                 tasks.named("bar").get()   
             }
         """
@@ -102,11 +138,6 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         verifyTaskIds()
         verifyTaskDetails(RegisterTaskBuildOperationType, withPath(':', ':foo')).children.empty
         def realize = verifyTaskDetails(RealizeTaskBuildOperationType, withPath(':', ':foo'))
-        realize.progress.size() == 2
-        realize.progress[0].detailsClassName == LogEvent.name
-        realize.progress[0].details.message.startsWith("output 1")
-        realize.progress[1].detailsClassName == LogEvent.name
-        realize.progress[1].details.message.startsWith("output 2")
         realize.children.size() == 1
         buildOperations.isType(realize.children[0], RealizeTaskBuildOperationType)
         withPath(":", ":bar").isSatisfiedBy(realize.children[0])
@@ -114,7 +145,6 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
 
     def "emits registration, realization build ops when tasks later realized"() {
         given:
-        enable()
         register('foo')
         register('bar')
 
@@ -131,7 +161,6 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
 
     def "emits creation, replace build ops when tasks eagerly created and replaced realized"() {
         given:
-        enable()
         create('foo')
         create('bar')
         replace('bar')
@@ -168,12 +197,11 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
             """
         }
         multiProjectBuild('root', ['sub'], createTasks)
-        def buildSrcDir = includedBuild('buildSrc').multiProjectBuild('buildSrc', ['sub'], createTasks)
+        includedBuild('buildSrc').multiProjectBuild('buildSrc', ['sub'], createTasks)
         includedBuild('comp').multiProjectBuild('comp', ['sub'], createTasks).settingsFile
         buildFile << """
             tasks.named('build').configure { it.dependsOn gradle.includedBuild('comp').task(':build') }
         """
-        enable(buildSrcDir.settingsFile) // set system prop early enough
 
         when:
         run 'build'
@@ -192,12 +220,6 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
             verifyTaskDetails(RegisterTaskBuildOperationType, it)
             verifyTaskDetails(RealizeTaskBuildOperationType, it, eager: false)
         }
-    }
-
-    private void enable(TestFile file = settingsFile) {
-        file << """
-            System.setProperty("org.gradle.internal.tasks.createops", "true")
-        """
     }
 
     private void stopBeforeTaskGraphCalculation() {
@@ -248,10 +270,6 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
     }
 
     private static Spec<? super BuildOperationRecord> withPath(String buildPath, String taskPath) {
-        return { (it.details.buildPath as String) == buildPath && (it.details.taskPath as String) == taskPath }
-    }
-
-    private static Spec<? super BuildOperationRecord> noChildren(String buildPath, String taskPath) {
         return { (it.details.buildPath as String) == buildPath && (it.details.taskPath as String) == taskPath }
     }
 

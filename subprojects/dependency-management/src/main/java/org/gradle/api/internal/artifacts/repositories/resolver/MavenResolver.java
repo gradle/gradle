@@ -178,7 +178,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         if (mavenMetadata.timestamp != null) {
             // we have found a timestamp, so this is a snapshot unique version
             String timestamp = mavenMetadata.timestamp + "-" + mavenMetadata.buildNumber;
-            return new MavenUniqueSnapshotModuleSource(getName(), timestamp);
+            return new MavenUniqueSnapshotModuleSource(timestamp);
         }
         return null;
     }
@@ -189,7 +189,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         if (!matcher.matches()) {
             return null;
         }
-        return new MavenUniqueSnapshotModuleSource(getName(), matcher.group(1));
+        return new MavenUniqueSnapshotModuleSource(matcher.group(1));
     }
 
     private MavenMetadata parseMavenMetadata(ExternalResourceName metadataLocation) {

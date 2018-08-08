@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
 import javax.annotation.Nullable;
 
@@ -32,7 +33,7 @@ public interface TaskHistoryRepository {
 
         void updateCurrentExecution();
 
-        void updateCurrentExecutionWithOutputs(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot);
+        void updateCurrentExecutionWithOutputs(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newOutputSnapshot);
 
         void persist();
     }

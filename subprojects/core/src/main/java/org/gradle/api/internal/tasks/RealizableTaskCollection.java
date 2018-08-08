@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.Namer;
 import org.gradle.api.Rule;
 import org.gradle.api.Task;
@@ -132,6 +133,11 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
     @Override
     public void addLater(Provider<? extends T> provider) {
         delegate.addLater(provider);
+    }
+
+    @Override
+    public void addAllLater(Provider<? extends Iterable<T>> provider) {
+        delegate.addAllLater(provider);
     }
 
     @Override
@@ -282,5 +288,10 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
     @Override
     public TaskProvider<T> named(String name) throws InvalidUserDataException {
         return delegate.named(name);
+    }
+
+    @Override
+    public NamedDomainObjectCollectionSchema getCollectionSchema() {
+        return delegate.getCollectionSchema();
     }
 }

@@ -23,7 +23,7 @@ import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
-@IntegrationTestTimeout(60)
+@IntegrationTestTimeout(120)
 @IgnoreIf({ GradleContextualExecuter.parallel })
 class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     @Rule
@@ -400,7 +400,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                     println "\\nWorker Executor threads:"
                     def threads = new Thread[threadGroup.activeCount()]
                     threadGroup.enumerate(threads) 
-                    def executorThreads = threads.findAll { it.name.startsWith("${WorkerExecutionQueueFactory.QUEUE_DISPLAY_NAME}") } 
+                    def executorThreads = threads.findAll { it?.name.startsWith("${WorkerExecutionQueueFactory.QUEUE_DISPLAY_NAME}") } 
                     executorThreads.each { println it }
                     
                     // Ensure that we don't leave any threads lying around

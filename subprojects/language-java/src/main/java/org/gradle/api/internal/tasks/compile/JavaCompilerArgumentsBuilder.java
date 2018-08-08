@@ -164,6 +164,10 @@ public class JavaCompilerArgumentsBuilder {
             args.add("-s");
             args.add(compileOptions.getAnnotationProcessorGeneratedSourcesDirectory().getPath());
         }
+        if (compileOptions.getHeaderOutputDirectory() != null) {
+            args.add("-h");
+            args.add(compileOptions.getHeaderOutputDirectory().getPath());
+        }
 
         if (compileOptions.isDebug()) {
             if (compileOptions.getDebugOptions().getDebugLevel() != null) {
@@ -224,7 +228,7 @@ public class JavaCompilerArgumentsBuilder {
             String current = argIterator.next();
             if (current.equals("-sourcepath") || current.equals("--source-path")) {
                 if (!silently) {
-                    DeprecationLogger.nagUserOfDeprecated(
+                    DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause(
                         "Specifying the source path in the CompilerOptions compilerArgs property",
                         "Instead, use the CompilerOptions sourcepath property directly");
                 }

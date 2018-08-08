@@ -16,10 +16,11 @@
 
 package org.gradle.api.internal.changedetection.state.mirror
 
+import org.apache.tools.ant.DirectoryScanner
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.state.FileContentSnapshot
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.internal.MutableBoolean
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -52,8 +53,9 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
         def visited = []
         def relativePaths = []
 
+        def actuallyFiltered = new MutableBoolean(false)
         when:
-        def root = walkDir(rootDir, null, walker)
+        def root = walkDir(rootDir, null, walker, actuallyFiltered)
         root.accept(new RelativePathTrackingVisitor() {
             @Override
             void visit(String absolutePath, Deque<String> relativePath) {
@@ -63,6 +65,7 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
         })
 
         then:
+        ! actuallyFiltered.get()
         visited.contains(rootTextFile.absolutePath)
         visited.contains(nestedTextFile.absolutePath)
         visited.contains(nestedSiblingTextFile.absolutePath)
@@ -97,8 +100,9 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
         def visited = []
         def relativePaths = []
 
+        def actuallyFiltered = new MutableBoolean(false)
         when:
-        def root = walkDir(rootDir, patterns, walker)
+        def root = walkDir(rootDir, patterns, walker, actuallyFiltered)
         root.accept(new RelativePathTrackingVisitor() {
             @Override
             void visit(String absolutePath, Deque<String> relativePath) {
@@ -108,6 +112,7 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
         })
 
         then:
+        actuallyFiltered.get()
         visited.contains(rootTextFile.absolutePath)
         visited.contains(nestedTextFile.absolutePath)
         visited.contains(nestedSiblingTextFile.absolutePath)
@@ -124,8 +129,29 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
         ] as Set
     }
 
-    private static PhysicalSnapshot walkDir(File dir, PatternSet patterns, MirrorUpdatingDirectoryWalker walker) {
-        walker.walk(new ImmutablePhysicalDirectorySnapshot(dir.absolutePath, dir.getName(), []), patterns)
+    def "default excludes are correctly parsed"() {
+        def defaultExcludes = new MirrorUpdatingDirectoryWalker.DefaultExcludes(DirectoryScanner.getDefaultExcludes())
+
+        expect:
+        DirectoryScanner.getDefaultExcludes() as Set == ['**/%*%', '**/.git/**', '**/SCCS', '**/.bzr', '**/.hg/**', '**/.bzrignore', '**/.git', '**/SCCS/**', '**/.hg', '**/.#*', '**/vssver.scc', '**/.bzr/**', '**/._*', '**/#*#', '**/*~', '**/CVS', '**/.hgtags', '**/.svn/**', '**/.hgignore', '**/.svn', '**/.gitignore', '**/.gitmodules', '**/.hgsubstate', '**/.gitattributes', '**/CVS/**', '**/.hgsub', '**/.DS_Store', '**/.cvsignore'] as Set
+
+        ['%some%', 'SCCS', '.bzr', '.bzrignore', '.git', '.hg', '.#anything', '.#', 'vssver.scc', '._something', '#anyt#', '##', 'temporary~', '~'].each {
+            assert defaultExcludes.excludeFile(it)
+        }
+
+        ['.git', '.hg', 'CVS'].each {
+            assert defaultExcludes.excludeDir(it)
+        }
+
+        !defaultExcludes.excludeDir('#some#')
+        !defaultExcludes.excludeDir('.cvsignore')
+
+        !defaultExcludes.excludeFile('.svnsomething')
+        !defaultExcludes.excludeFile('#some')
+    }
+
+    private static FileSystemSnapshot walkDir(File dir, PatternSet patterns, MirrorUpdatingDirectoryWalker walker, MutableBoolean actuallyFiltered) {
+        walker.walkDir(dir.absolutePath, patterns, actuallyFiltered)
     }
 }
 
@@ -133,21 +159,21 @@ abstract class RelativePathTrackingVisitor implements PhysicalSnapshotVisitor {
     private Deque<String> relativePath = new ArrayDeque<String>()
 
     @Override
-    boolean preVisitDirectory(String absolutePath, String name) {
-        relativePath.addLast(name)
-        visit(absolutePath, relativePath)
+    boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+        relativePath.addLast(directorySnapshot.name)
+        visit(directorySnapshot.absolutePath, relativePath)
         return true
     }
 
     @Override
-    void visit(String absolutePath, String name, FileContentSnapshot content) {
-        relativePath.addLast(name)
-        visit(absolutePath, relativePath)
+    void visit(PhysicalSnapshot fileSnapshot) {
+        relativePath.addLast(fileSnapshot.name)
+        visit(fileSnapshot.absolutePath, relativePath)
         relativePath.removeLast()
     }
 
     @Override
-    void postVisitDirectory() {
+    void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
         relativePath.removeLast()
     }
 

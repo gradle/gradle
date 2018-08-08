@@ -63,8 +63,9 @@ public class RuntimeShadedJarFactory {
 
                     @Override
                     public BuildOperationDescriptor.Builder description() {
-                        String displayName = "Generating Jar " + file;
-                        return BuildOperationDescriptor.displayName(displayName).progressDisplayName(displayName);
+                        return BuildOperationDescriptor
+                            .displayName("Generate " + file)
+                            .progressDisplayName("Generating " + file.getName());
                     }
                 });
 

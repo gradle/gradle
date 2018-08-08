@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal
 
+import groovy.transform.NotYetImplemented
 import org.gradle.api.Namer
 import org.gradle.api.Rule
 import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSource
@@ -39,6 +40,35 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
 
     def setup() {
         container.clear()
+    }
+
+    @NotYetImplemented
+    def "named finds objects created by rules"() {
+        def rule = Mock(Rule)
+        def bean = new Bean("bean")
+
+        given:
+        container.addRule(rule)
+
+        when:
+        def result = container.named("bean")
+
+        then:
+        result.present
+        result.get() == bean
+
+        and:
+        1 * rule.apply("bean") >> { container.add(bean) }
+        0 * rule._
+    }
+
+    def "named finds objects added to container"() {
+        container.add(a)
+        when:
+        def result = container.named("a")
+        then:
+        result.present
+        result.get() == a
     }
 
     def "getNames"() {
@@ -111,8 +141,57 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
         0 * rule._
     }
 
+    def "can configure domain objects through provider"() {
+        container.add(a)
+        when:
+        def result = container.named("a")
+        result.configure {
+            it.value = "changed"
+        }
+        then:
+        result.get().value == "changed"
+    }
+
+    def "can extract schema from collection with domain objects"() {
+        container.add(a)
+        expect:
+        assertSchemaIs(
+            a: "DefaultNamedDomainObjectCollectionTest.BeanSub1"
+        )
+        // schema isn't cached
+        container.add(b)
+        container.add(d)
+        assertSchemaIs(
+            a: "DefaultNamedDomainObjectCollectionTest.BeanSub1",
+            b: "DefaultNamedDomainObjectCollectionTest.BeanSub1",
+            d: "DefaultNamedDomainObjectCollectionTest.BeanSub2"
+        )
+    }
+
+    def "can extract schema from empty collection"() {
+        expect:
+        assertSchemaIs([:])
+    }
+
+    protected void assertSchemaIs(Map<String, String> expectedSchema) {
+        def actualSchema = container.collectionSchema
+        Map<String, String> actualSchemaMap = actualSchema.elements.collectEntries { schema ->
+            [ schema.name, schema.publicType.simpleName ]
+        }
+        // Same size
+        assert expectedSchema.size() == actualSchemaMap.size()
+        // Same keys
+        assert expectedSchema.keySet().containsAll(actualSchemaMap.keySet())
+        // Keys have the same values
+        expectedSchema.each { entry ->
+            assert entry.value == actualSchemaMap[entry.key]
+        }
+    }
+
     static class Bean {
         public final String name
+
+        String value = "original"
 
         Bean(String name) {
             this.name = name

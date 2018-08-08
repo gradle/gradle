@@ -1,4 +1,4 @@
-//START SNIPPET dependency-declaration
+// tag::dependency-declaration[]
 repositories {
     jcenter()
 }
@@ -10,4 +10,4 @@ configurations {
 dependencies {
     scm 'org.eclipse.jgit:org.eclipse.jgit:4.9.2.201712150930-r'
 }
-//END SNIPPET dependency-declaration
+// end::dependency-declaration[]

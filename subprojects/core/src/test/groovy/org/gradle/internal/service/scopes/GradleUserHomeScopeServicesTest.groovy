@@ -52,6 +52,7 @@ import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.internal.remote.MessagingServer
 import org.gradle.internal.resource.local.FileAccessTimeJournal
 import org.gradle.internal.service.ServiceRegistry
@@ -80,6 +81,9 @@ class GradleUserHomeScopeServicesTest extends WorkspaceTest {
                             return new File("")
                         }
                     }
+                }
+                ProgressLoggerFactory createProgressLoggerFactory() {
+                    return new NoOpProgressLoggerFactory();
                 }
             })
             .provider(new GradleUserHomeScopeServices(parent))

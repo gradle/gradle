@@ -19,21 +19,20 @@ package org.gradle.vcs.internal;
 import com.google.common.base.Preconditions;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.vcs.VersionControlSpec;
+
+import javax.inject.Inject;
 
 public class DefaultVcsMapping implements VcsMappingInternal {
     private final ComponentSelector requested;
     private final VersionControlSpecFactory specFactory;
-    private ClassLoaderScope classLoaderScope;
     private VersionControlSpec versionControlSpec;
 
+    @Inject
     public DefaultVcsMapping(ComponentSelector requested, VersionControlSpecFactory specFactory) {
         this.requested = requested;
         this.specFactory = specFactory;
     }
-
-
 
     @Override
     public ComponentSelector getRequested() {
@@ -48,7 +47,7 @@ public class DefaultVcsMapping implements VcsMappingInternal {
 
     @Override
     public <T extends VersionControlSpec> void from(Class<T> type, Action<? super T> configureAction) {
-        T spec = specFactory.create(type, classLoaderScope);
+        T spec = specFactory.create(type);
         configureAction.execute(spec);
         this.versionControlSpec = spec;
     }
@@ -61,9 +60,5 @@ public class DefaultVcsMapping implements VcsMappingInternal {
     @Override
     public boolean hasRepository() {
         return versionControlSpec != null;
-    }
-
-    public void setClassLoaderScope(ClassLoaderScope classLoaderScope) {
-        this.classLoaderScope = classLoaderScope;
     }
 }

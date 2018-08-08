@@ -18,6 +18,7 @@ package org.gradle.internal.resource.transport.aws.s3
 
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.model.AmazonS3Exception
+import com.amazonaws.services.s3.model.CannedAccessControlList
 import com.amazonaws.services.s3.model.ObjectListing
 import com.amazonaws.services.s3.model.PutObjectRequest
 import com.google.common.base.Optional
@@ -47,6 +48,7 @@ class S3ClientTest extends Specification {
             PutObjectRequest putObjectRequest = args[0]
             assert putObjectRequest.bucketName == 'localhost'
             assert putObjectRequest.key == 'maven/snapshot/myFile.txt'
+            assert putObjectRequest.cannedAcl == CannedAccessControlList.BucketOwnerFullControl
             assert putObjectRequest.metadata.contentLength == 12
         }
     }

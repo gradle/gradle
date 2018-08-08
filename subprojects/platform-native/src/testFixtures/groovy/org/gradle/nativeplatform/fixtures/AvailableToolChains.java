@@ -54,7 +54,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.*;
+import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.VISUALSTUDIO_2012;
+import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.VISUALSTUDIO_2013;
+import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.VISUALSTUDIO_2015;
+import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.VISUALSTUDIO_2017;
 
 public class AvailableToolChains {
     private static List<ToolChainCandidate> toolChains;
@@ -383,22 +386,24 @@ public class AvailableToolChains {
             super(displayName);
         }
 
-        protected String find(String tool) {
+        protected File find(String tool) {
             if (getPathEntries().isEmpty()) {
-                return tool;
+                return OperatingSystem.current().findInPath(tool);
             }
-            return new File(getPathEntries().get(0), tool).getAbsolutePath();
+            return new File(getPathEntries().get(0), tool);
         }
 
-        public String getLinker() {
+        public File getLinker() {
             return getCCompiler();
         }
 
-        public String getStaticLibArchiver() {
+        public File getStaticLibArchiver() {
             return find("ar");
         }
 
-        public abstract String getCCompiler();
+        public abstract File getCppCompiler();
+
+        public abstract File getCCompiler();
 
         @Override
         public String getUnitTestPlatform() {
@@ -432,14 +437,21 @@ public class AvailableToolChains {
         }
 
         @Override
-        public String getCCompiler() {
+        public File getCppCompiler() {
+            return find("g++");
+        }
+
+        @Override
+        public File getCCompiler() {
             return find("gcc");
         }
 
+        @Override
         public String getInstanceDisplayName() {
             return String.format("Tool chain '%s' (GNU GCC)", getId());
         }
 
+        @Override
         public String getImplementationClass() {
             return Gcc.class.getSimpleName();
         }
@@ -554,6 +566,7 @@ public class AvailableToolChains {
     public static class InstalledVisualCpp extends InstalledToolChain {
         private VersionNumber version;
         private File installDir;
+        private File cppCompiler;
 
         public InstalledVisualCpp(VisualStudioVersion version) {
             super("visual c++ " + version.getYear() + " (" + version.getVersion().toString() + ")");
@@ -568,7 +581,9 @@ public class AvailableToolChains {
             DefaultNativePlatform targetPlatform = new DefaultNativePlatform("default");
             installDir = install.getVisualStudioDir();
             version = install.getVersion();
-            pathEntries.addAll(install.getVisualCpp().forPlatform(targetPlatform).getPath());
+            org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualCpp visualCpp = install.getVisualCpp().forPlatform(targetPlatform);
+            cppCompiler = visualCpp.getCompilerExecutable();
+            pathEntries.addAll(visualCpp.getPath());
             return this;
         }
 
@@ -606,10 +621,12 @@ public class AvailableToolChains {
             return config;
         }
 
+        @Override
         public String getImplementationClass() {
             return VisualCpp.class.getSimpleName();
         }
 
+        @Override
         public String getInstanceDisplayName() {
             return String.format("Tool chain '%s' (Visual Studio)", getId());
         }
@@ -619,12 +636,17 @@ public class AvailableToolChains {
             return MicrosoftVisualCppCompilerPlugin.class.getSimpleName();
         }
 
+        @Override
         public boolean isVisualCpp() {
             return true;
         }
 
         public VersionNumber getVersion() {
             return version;
+        }
+
+        public File getCppCompiler() {
+            return cppCompiler;
         }
 
         @Override
@@ -661,10 +683,16 @@ public class AvailableToolChains {
         }
 
         @Override
-        public String getCCompiler() {
+        public File getCppCompiler() {
+            return find("clang++");
+        }
+
+        @Override
+        public File getCCompiler() {
             return find("clang");
         }
 
+        @Override
         public String getInstanceDisplayName() {
             return String.format("Tool chain '%s' (Clang)", getId());
         }

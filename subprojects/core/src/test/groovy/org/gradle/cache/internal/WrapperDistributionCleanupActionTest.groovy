@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal
 
+import org.gradle.cache.CleanupProgressMonitor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
@@ -24,26 +25,37 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-class WrapperDistributionCleanupActionTest extends Specification implements VersionSpecificCacheAndWrapperDistributionCleanupServiceFixture {
+class WrapperDistributionCleanupActionTest extends Specification implements GradleUserHomeCleanupFixture {
 
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def userHomeDir = temporaryFolder.createDir("user-home")
+    def usedGradleVersions = Mock(UsedGradleVersions) {
+        getUsedGradleVersions() >> ([] as SortedSet)
+    }
+    def progressMonitor = Mock(CleanupProgressMonitor)
 
-    @Subject def cleanupAction = new WrapperDistributionCleanupAction(userHomeDir)
+    @Subject def cleanupAction = new WrapperDistributionCleanupAction(userHomeDir, usedGradleVersions)
 
     def "deletes distributions for unused versions"() {
         given:
-        def versionToCleanUp = GradleVersion.version("2.3.4")
-        def oldDist = createDistributionChecksumDir(versionToCleanUp)
+        def unusedDist = createDistributionChecksumDir(GradleVersion.version("2.3.4"))
+        def usedVersion = GradleVersion.version("3.4.5")
+        def stillUsedDist = createDistributionChecksumDir(usedVersion)
         def currentDist = createDistributionChecksumDir(currentVersion)
+        def unusedFutureDist = createDistributionChecksumDir(currentVersion.nextMajor)
 
         when:
-        cleanupAction.execute(versionToCleanUp)
+        cleanupAction.execute(progressMonitor)
 
         then:
-        oldDist.parentFile.assertDoesNotExist()
+        1 * usedGradleVersions.getUsedGradleVersions() >> ([usedVersion] as SortedSet)
+        3 * progressMonitor.incrementSkipped(1)
+        1 * progressMonitor.incrementDeleted()
+        unusedDist.parentFile.assertDoesNotExist()
+        stillUsedDist.assertExists()
         currentDist.assertExists()
+        unusedFutureDist.assertExists()
     }
 
     def "deletes custom distributions for unused versions"() {
@@ -55,9 +67,11 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         def currentBinDist = createCustomDistributionChecksumDir("my-bin-dist-${currentVersion.version}", currentVersion)
 
         when:
-        cleanupAction.execute(versionToCleanUp)
+        cleanupAction.execute(progressMonitor)
 
         then:
+        1 * progressMonitor.incrementSkipped(2)
+        2 * progressMonitor.incrementDeleted()
         oldAllDist.parentFile.assertDoesNotExist()
         oldBinDist.parentFile.assertDoesNotExist()
         currentAllDist.assertExists()
@@ -71,9 +85,11 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         def currentDist = createCustomDistributionChecksumDir("my-dist", currentVersion)
 
         when:
-        cleanupAction.execute(versionToCleanUp)
+        cleanupAction.execute(progressMonitor)
 
         then:
+        1 * progressMonitor.incrementSkipped(1)
+        1 * progressMonitor.incrementDeleted()
         oldDist.assertDoesNotExist()
         currentDist.assertExists()
     }
@@ -85,48 +101,84 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         distributionWithMultipleSubDirectories.createDir("foo")
 
         when:
-        cleanupAction.execute(versionToCleanUp)
+        cleanupAction.execute(progressMonitor)
 
         then:
+        0 * progressMonitor._
         distributionWithMultipleSubDirectories.assertExists()
     }
 
     def "ignores custom distributions without gradle-base-services JAR"() {
         given:
         def versionToCleanUp = GradleVersion.version("2.3.4")
-        def distributionWithoutJar = createCustomDistributionChecksumDir("my-dist", versionToCleanUp, DEFAULT_JAR_PREFIX, { version, jarFile -> })
+        def distributionWithoutJar = createCustomDistributionChecksumDir("my-dist", versionToCleanUp, DEFAULT_JAR_PREFIX, System.currentTimeMillis(), { version, jarFile -> })
 
         when:
-        cleanupAction.execute(versionToCleanUp)
+        cleanupAction.execute(progressMonitor)
 
         then:
+        0 * progressMonitor._
         distributionWithoutJar.assertExists()
     }
 
     def "ignores custom distributions without build receipt in gradle-base-services JAR"() {
         given:
         def versionToCleanUp = GradleVersion.version("2.3.4")
-        def distributionWithoutBuildReceiptInJar = createCustomDistributionChecksumDir("my-dist", versionToCleanUp, DEFAULT_JAR_PREFIX) { version, jarFile ->
+        def distributionWithoutBuildReceiptInJar = createCustomDistributionChecksumDir("my-dist", versionToCleanUp, DEFAULT_JAR_PREFIX, System.currentTimeMillis()) { version, jarFile ->
             jarFile << JarUtils.jarWithContents(foo: "bar")
         }
 
         when:
-        cleanupAction.execute(versionToCleanUp)
+        cleanupAction.execute(progressMonitor)
 
         then:
+        0 * progressMonitor._
         distributionWithoutBuildReceiptInJar.assertExists()
+    }
+
+    def "ignores distributions with missing gradle version"() {
+        given:
+        def versionToCleanUp = GradleVersion.version("2.3.4")
+        def distributionWithMissingVersion = createCustomDistributionChecksumDir("gradle-1-invalid-all", versionToCleanUp, DEFAULT_JAR_PREFIX, System.currentTimeMillis(), { version, jarFile -> })
+
+        when:
+        cleanupAction.execute(progressMonitor)
+
+        then:
+        0 * progressMonitor._
+        distributionWithMissingVersion.assertExists()
     }
 
     def "ignores distributions with invalid gradle version"() {
         given:
         def versionToCleanUp = GradleVersion.version("2.3.4")
-        def distributionWithInvalidVersionInDirName = createCustomDistributionChecksumDir("gradle-1-invalid-all", versionToCleanUp, DEFAULT_JAR_PREFIX, { version, jarFile -> })
+        def distributionWithInvalidVersion = createCustomDistributionChecksumDir("gradle-1-invalid-all", versionToCleanUp, DEFAULT_JAR_PREFIX, System.currentTimeMillis()) { version, jarFile ->
+            jarFile << JarUtils.jarWithContents((GradleVersion.RESOURCE_NAME.substring(1)): "${GradleVersion.VERSION_NUMBER_PROPERTY}: foo")
+        }
 
         when:
-        cleanupAction.execute(versionToCleanUp)
+        cleanupAction.execute(progressMonitor)
 
         then:
-        distributionWithInvalidVersionInDirName.assertExists()
+        0 * progressMonitor._
+        distributionWithInvalidVersion.assertExists()
+    }
+
+    def "ignores distributions with unreadable JAR files"() {
+        given:
+        def versionToCleanUp = GradleVersion.version("2.3.4")
+        def distributionWithUnreadableJarFile = createCustomDistributionChecksumDir("gradle-1-invalid-all", versionToCleanUp)
+        def distDir = distributionWithUnreadableJarFile.listFiles()[0]
+        def libDir = distDir.listFiles()[0]
+        def jarFile = libDir.listFiles()[0]
+        jarFile.text = "not a JAR"
+
+        when:
+        cleanupAction.execute(progressMonitor)
+
+        then:
+        0 * progressMonitor._
+        distributionWithUnreadableJarFile.assertExists()
     }
 
     def "checks for gradle-core-*.jar"() {
@@ -135,9 +187,11 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         def distribution = createDistributionChecksumDir(version, "gradle-core")
 
         when:
-        cleanupAction.execute(version)
+        cleanupAction.execute(progressMonitor)
 
         then:
+        1 * progressMonitor.incrementDeleted()
+        0 * progressMonitor._
         distribution.assertDoesNotExist()
     }
 
@@ -147,9 +201,11 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         def distribution = createDistributionChecksumDir(version, "gradle-version-info")
 
         when:
-        cleanupAction.execute(version)
+        cleanupAction.execute(progressMonitor)
 
         then:
+        1 * progressMonitor.incrementDeleted()
+        0 * progressMonitor._
         distribution.assertDoesNotExist()
     }
 
@@ -159,10 +215,23 @@ class WrapperDistributionCleanupActionTest extends Specification implements Vers
         def distribution = createDistributionChecksumDir(version, "some-other-jar")
 
         when:
-        cleanupAction.execute(version)
+        cleanupAction.execute(progressMonitor)
 
         then:
+        0 * progressMonitor._
         distribution.assertExists()
+    }
+
+    def "does not delete recently downloaded but unused distributions"() {
+        given:
+        def justDownloadedButUnusedDist = createDistributionChecksumDir(GradleVersion.version("2.3.4"), DEFAULT_JAR_PREFIX, System.currentTimeMillis())
+
+        when:
+        cleanupAction.execute(progressMonitor)
+
+        then:
+        1 * progressMonitor.incrementSkipped()
+        justDownloadedButUnusedDist.assertExists()
     }
 
     @Override

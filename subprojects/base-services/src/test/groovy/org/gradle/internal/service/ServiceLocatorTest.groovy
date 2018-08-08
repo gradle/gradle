@@ -72,7 +72,7 @@ class ServiceLocatorTest extends Specification {
 
         then:
         RuntimeException e = thrown()
-        e.message == "Could not load implementation class 'org.gradle.ImplClass' for service 'java.lang.String' specified in resource '${serviceFile}'."
+        e.message == "Could not load implementation class 'org.gradle.ImplClass' for service 'java.lang.String' specified in resource '" + serviceFile + "'."
         e.cause == failure
         1 * classLoader.getResources("META-INF/services/java.lang.String") >> Collections.enumeration([serviceFile])
         1 * classLoader.loadClass('org.gradle.ImplClass') >> { throw failure }
@@ -115,7 +115,7 @@ org.gradle.ImplClass2""")
 
         then:
         RuntimeException e = thrown()
-        e.message == "Could not determine implementation class for service 'java.lang.String' specified in resource '${serviceFile}'."
+        e.message == "Could not determine implementation class for service 'java.lang.String' specified in resource '" + serviceFile + "'."
         e.cause.message == "No implementation class for service 'java.lang.String' specified."
         1 * classLoader.getResources("META-INF/services/java.lang.String") >> Collections.enumeration([serviceFile])
     }

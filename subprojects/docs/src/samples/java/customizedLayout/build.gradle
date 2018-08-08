@@ -8,7 +8,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
-// START SNIPPET define-main
+// tag::define-main[]
 sourceSets {
     main {
         java {
@@ -18,7 +18,7 @@ sourceSets {
             srcDirs = ['src/resources']
         }
     }
-// END SNIPPET define-main
+// end::define-main[]
     test {
         java {
             srcDir 'test/java'
@@ -27,6 +27,6 @@ sourceSets {
             srcDir 'test/resources'
         }
     }
-// START SNIPPET define-main
+// tag::define-main[]
 }
-// END SNIPPET define-main
+// end::define-main[]

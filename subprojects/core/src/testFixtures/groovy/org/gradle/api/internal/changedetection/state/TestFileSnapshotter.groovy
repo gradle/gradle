@@ -16,11 +16,12 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
-import org.gradle.api.internal.file.FileTreeInternal
-import org.gradle.api.internal.file.collections.DirectoryFileTree
+import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 
 class TestFileSnapshotter implements FileSystemSnapshotter {
@@ -30,26 +31,23 @@ class TestFileSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    PhysicalSnapshot snapshotSelf(File file) {
+    HashCode getRegularFileContentHash(File file) {
+        return file.isFile() ? Hashing.md5().hashBytes(file.bytes) : null
+    }
+
+    @Override
+    PhysicalSnapshot snapshot(File file) {
         if (file.isFile()) {
-            return new PhysicalFileSnapshot(file.getAbsolutePath(), file.getName(), new FileHashSnapshot(Hashing.sha1().hashBytes(file.bytes)))
+            return new PhysicalFileSnapshot(file.absolutePath, file.name, Hashing.md5().hashBytes(file.bytes), file.lastModified())
         }
-        return new PhysicalMissingSnapshot(null, null)
-    }
-
-    @Override
-    Snapshot snapshotAll(File file) {
-        throw new UnsupportedOperationException()
-    }
-
-
-    @Override
-    PhysicalSnapshot snapshotDirectoryTree(DirectoryFileTree dirTree) {
+        if (!file.exists()) {
+            return new PhysicalMissingSnapshot(file.absolutePath, file.name)
+        }
         throw new UnsupportedOperationException()
     }
 
     @Override
-    PhysicalSnapshot snapshotTree(FileTreeInternal tree) {
+    List<FileSystemSnapshot> snapshot(FileCollectionInternal fileCollection) {
         throw new UnsupportedOperationException()
     }
 }

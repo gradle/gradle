@@ -19,7 +19,7 @@ package org.gradle.workers.internal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 
-@IntegrationTestTimeout(60)
+@IntegrationTestTimeout(120)
 class WorkerDaemonExpirationIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {

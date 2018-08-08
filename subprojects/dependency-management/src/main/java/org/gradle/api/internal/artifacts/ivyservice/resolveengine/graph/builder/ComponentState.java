@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChainModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
@@ -115,7 +116,10 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public String getRepositoryName() {
         ModuleSource moduleSource = metadata.getSource();
-        return moduleSource == null ? null : moduleSource.getRepositoryName();
+        if (moduleSource instanceof RepositoryChainModuleSource) {
+            return ((RepositoryChainModuleSource) moduleSource).getRepositoryName();
+        }
+        return null;
     }
 
     @Override
@@ -146,6 +150,11 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public ComponentResolveMetadata getMetadata() {
         resolve();
+        return metadata;
+    }
+
+    ComponentResolveMetadata getMetadataWithoutRetryMissing() {
+        resolve(false);
         return metadata;
     }
 
@@ -184,6 +193,10 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     public void resolve() {
+        resolve(true);
+    }
+
+    public void resolve(boolean retryMissing) {
         if (alreadyResolved()) {
             return;
         }
@@ -191,7 +204,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         // Any metadata overrides (e.g classifier/artifacts/client-module) will be taken from the first dependency that referenced this component
         ComponentOverrideMetadata componentOverrideMetadata = DefaultComponentOverrideMetadata.forDependency(firstSelectedBy.getDependencyMetadata());
 
-        DefaultBuildableComponentResolveResult result = new DefaultBuildableComponentResolveResult();
+        DefaultBuildableComponentResolveResult result = new DefaultBuildableComponentResolveResult(retryMissing);
         resolver.resolve(componentIdentifier, componentOverrideMetadata, result);
         if (result.getFailure() != null) {
             metadataResolveFailure = result.getFailure();

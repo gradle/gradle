@@ -13,65 +13,65 @@
 // limitations under the License.
 
 [[declaring_repositories]]
-== Declaring Repositories
+= Declaring Repositories
 
-Gradle can resolve dependencies from one or many repositories based on Maven, Ivy or flat directory formats. Check out the <<repository_types,full reference on all types of repositories>> for more information.
+Gradle can resolve dependencies from one or many repositories based on Maven, Ivy or flat directory formats. Check out the <<repository_types.adoc#repository_types,full reference on all types of repositories>> for more information.
 
 [[sec:declaring_public_repository]]
-=== Declaring a publicly-available repository
+== Declaring a publicly-available repository
 
 Organizations building software may want to leverage public binary repositories to download and consume open source dependencies. Popular public repositories include Maven Central, Bintray JCenter and the Google Android repository. Gradle provides built-in shortcut methods for the most widely-used repositories.
 
-+++++
-<figure xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Declaring a repository with the help of shortcut methods</title>
-    <imageobject>
-        <imagedata fileref="img/dependency-management-shortcut-repositories.png" width="120mm" />
-    </imageobject>
-</figure>
-+++++
+.Declaring a repository with the help of shortcut methods
+image::dependency-management-shortcut-repositories.png[]
 
 To declare JCenter as repository, add this code to your build script:
 
-++++
-<sample id="public-repository" dir="userguide/dependencyManagement/declaringRepositories/publicRepository" title="Declaring JCenter repository as source for resolving dependencies">
-    <sourcefile file="build.gradle" snippet="public-repository"/>
-</sample>
-++++
+=== Example: Declaring JCenter repository as source for resolving dependencies
 
-Under the covers Gradle resolves dependencies from the respective URL of the public repository defined by the shortcut method. All shortcut methods are available via the api:org.gradle.api.artifacts.dsl.RepositoryHandler[] API. Alternatively, you can <<sec:declaring_custom_repository,spell out the URL of the repository>> for more fine-grained control.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/declaringRepositories/publicRepository/build.gradle[tag=public-repository]
+----
+
+Under the covers Gradle resolves dependencies from the respective URL of the public repository defined by the shortcut method. All shortcut methods are available via the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API. Alternatively, you can <<#sec:declaring_custom_repository,spell out the URL of the repository>> for more fine-grained control.
 
 [[sec:declaring_custom_repository]]
-=== Declaring a custom repository by URL
+== Declaring a custom repository by URL
 
 Most enterprise projects set up a binary repository available only within an intranet. In-house repositories enable teams to publish internal binaries, setup user management and security measure and ensure uptime and availability. Specifying a custom URL is also helpful if you want to declare a less popular, but publicly-available repository.
 
 Add the following code to declare an in-house repository for your build reachable through a custom URL.
 
-++++
-<sample id="custom-repository" dir="userguide/dependencyManagement/declaringRepositories/customRepository" title="Declaring a custom repository by URL">
-    <sourcefile file="build.gradle" snippet="custom-repository"/>
-</sample>
-++++
+=== Example: Declaring a custom repository by URL
 
-Repositories with custom URLs can be specified as Maven or Ivy repositories by calling the corresponding methods available on the api:org.gradle.api.artifacts.dsl.RepositoryHandler[] API. Gradle supports other protocols than `http` or `https` as part of the custom URL e.g. `file`, `sftp` or `s3`. For a full coverage see the <<sub:supported_transport_protocols,reference manual on supported transport protocols>>.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/declaringRepositories/customRepository/build.gradle[tag=custom-repository]
+----
 
-You can also <<sec:defining_custom_pattern_layout_for_an_ivy_repository,define your own repository layout>> by using `ivy { }` repositories as they are very flexible in terms of how modules are organised in a repository.
+Repositories with custom URLs can be specified as Maven or Ivy repositories by calling the corresponding methods available on the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API. Gradle supports other protocols than `http` or `https` as part of the custom URL e.g. `file`, `sftp` or `s3`. For a full coverage see the <<repository_types.adoc#sub:supported_transport_protocols,reference manual on supported transport protocols>>.
+
+You can also <<repository_types.adoc#sec:defining_custom_pattern_layout_for_an_ivy_repository,define your own repository layout>> by using `ivy { }` repositories as they are very flexible in terms of how modules are organised in a repository.
 
 [[sec:declaring_multiple_repositories]]
-=== Declaring multiple repositories
+== Declaring multiple repositories
 
-You can define more than one repository for resolving dependencies. Declaring multiple repositories is helpful if some dependencies are only available in one repository but not the other. You can mix any type of repository described in the <<repository_types,reference section>>.
+You can define more than one repository for resolving dependencies. Declaring multiple repositories is helpful if some dependencies are only available in one repository but not the other. You can mix any type of repository described in the <<repository_types.adoc#repository_types,reference section>>.
 
 This example demonstrates how to declare various shortcut and custom URL repositories for a project:
 
-++++
-<sample id="multiple-repositories" dir="userguide/dependencyManagement/declaringRepositories/multipleRepositories" title="Declaring multiple repositories">
-    <sourcefile file="build.gradle" snippet="multiple-repositories"/>
-</sample>
-++++
+=== Example: Declaring multiple repositories
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/declaringRepositories/multipleRepositories/build.gradle[tag=multiple-repositories]
+----
 
 [NOTE]
 ====
-The order of declaration determines how Gradle will check for dependencies at runtime. If Gradle finds a module descriptor in a particular repository, it will attempt to download all of the artifacts for that module from _the same repository_. You can learn more about the inner workings of <<sec:dependency_resolution,Gradle's resolution mechanism>>.
+The order of declaration determines how Gradle will check for dependencies at runtime. If Gradle finds a module descriptor in a particular repository, it will attempt to download all of the artifacts for that module from _the same repository_. You can learn more about the inner workings of <<introduction_dependency_management.adoc#sec:dependency_resolution,Gradle's resolution mechanism>>.
 ====

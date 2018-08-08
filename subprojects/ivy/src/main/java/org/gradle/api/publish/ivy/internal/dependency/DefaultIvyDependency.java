@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy.internal.dependency;
 
+import com.google.common.base.Strings;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExternalDependency;
@@ -36,7 +37,7 @@ public class DefaultIvyDependency implements IvyDependencyInternal {
     public DefaultIvyDependency(String organisation, String module, String revision, String confMapping, boolean transitive) {
         this.organisation = organisation;
         this.module = module;
-        this.revision = revision;
+        this.revision = Strings.nullToEmpty(revision);
         this.confMapping = confMapping;
         this.transitive = transitive;
     }
@@ -52,7 +53,7 @@ public class DefaultIvyDependency implements IvyDependencyInternal {
     }
 
     public DefaultIvyDependency(ExternalDependency dependency, String confMapping) {
-        this(dependency.getGroup(), dependency.getName(), dependency.getVersionConstraint().getPreferredVersion(), confMapping, dependency.isTransitive(), dependency.getArtifacts(), dependency.getExcludeRules());
+        this(dependency.getGroup(), dependency.getName(), dependency.getVersion(), confMapping, dependency.isTransitive(), dependency.getArtifacts(), dependency.getExcludeRules());
     }
 
     public String getOrganisation() {

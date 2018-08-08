@@ -24,6 +24,7 @@ import org.gradle.configuration.ScriptTarget
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.internal.Actions
 import org.gradle.internal.hash.Hashing
+
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -59,7 +60,7 @@ class BuildScriptTransformerSpec extends Specification {
         }
         def loader = getClass().getClassLoader()
         def transformer = new BuildScriptTransformer(source, target)
-        def operation = new FactoryBackedCompileOperation<BuildScriptData>("id", transformer, transformer, new BuildScriptDataSerializer())
+        def operation = new FactoryBackedCompileOperation<BuildScriptData>("id", 'stage', transformer, transformer, new BuildScriptDataSerializer())
         scriptCompilationHandler.compileToDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, Actions.doNothing())
         return scriptCompilationHandler.loadFromDir(source, sourceHashCode, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, classLoaderId)
     }

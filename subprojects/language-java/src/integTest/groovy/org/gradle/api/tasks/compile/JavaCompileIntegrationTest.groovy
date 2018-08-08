@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
 import org.gradle.util.Resources
@@ -28,7 +28,7 @@ import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
-class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
+class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
     @Rule
     Resources resources = new Resources()
@@ -916,5 +916,46 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         ! file("build/classes/java/main/com/foo").exists()
+    }
+
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "can configure custom header output"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            compileJava.options.headerOutputDirectory = file("build/headers/java/main")
+        """
+        file('src/main/java/Foo.java') << """
+            public class Foo {
+                public native void foo();
+            }
+        """
+        when:
+        succeeds "compileJava"
+
+        then:
+        file("build/headers/java/main/Foo.h").exists()
+    }
+
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "deletes stale header files"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            compileJava.options.headerOutputDirectory = file("build/headers/java/main")
+        """
+        def header = file('src/main/java/Foo.java') << """
+            public class Foo {
+                public native void foo();
+            }
+        """
+        succeeds "compileJava"
+
+        when:
+        header.delete()
+        succeeds "compileJava"
+
+        then:
+        !file("build/headers/java/main/Foo.h").exists()
     }
 }

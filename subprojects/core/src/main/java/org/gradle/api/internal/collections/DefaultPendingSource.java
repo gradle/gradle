@@ -18,18 +18,21 @@ package org.gradle.api.internal.collections;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
+import org.gradle.api.internal.provider.Collectors.*;
 import org.gradle.api.internal.provider.ProviderInternal;
 
+import java.util.Iterator;
 import java.util.List;
 
 public class DefaultPendingSource<T> implements PendingSource<T> {
-    private final List<ProviderInternal<? extends T>> pending = Lists.newArrayList();
-    private Action<ProviderInternal<? extends T>> flushAction;
+    private final List<TypedCollector<T>> pending = Lists.newArrayList();
+    private Action<T> flushAction;
 
     @Override
     public void realizePending() {
         if (!pending.isEmpty()) {
-            List<ProviderInternal<? extends T>> copied = Lists.newArrayList(pending);
+            List<TypedCollector<T>> copied = Lists.newArrayList(pending);
             realize(copied);
         }
     }
@@ -37,21 +40,25 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
     @Override
     public void realizePending(Class<?> type) {
         if (!pending.isEmpty()) {
-            List<ProviderInternal<? extends T>> copied = Lists.newArrayList();
-            for (ProviderInternal<? extends T> provider : pending) {
-                if (provider.getType() == null || type.isAssignableFrom(provider.getType())) {
-                    copied.add(provider);
+            List<TypedCollector<T>> copied = Lists.newArrayList();
+            for (TypedCollector<T> collector : pending) {
+                if (collector.getType() == null || type.isAssignableFrom(collector.getType())) {
+                    copied.add(collector);
                 }
             }
             realize(copied);
         }
     }
 
-    private void realize(Iterable<ProviderInternal<? extends T>> elements) {
-        for (ProviderInternal<? extends T> provider : elements) {
+    private void realize(Iterable<TypedCollector<T>> collectors) {
+        for (TypedCollector<T> collector : collectors) {
             if (flushAction != null) {
-                pending.remove(provider);
-                flushAction.execute(provider);
+                pending.remove(collector);
+                List<T> realized = Lists.newArrayList();
+                collector.collectInto(realized);
+                for (T element : realized) {
+                    flushAction.execute(element);
+                }
             } else {
                 throw new IllegalStateException("Cannot realize pending elements when realize action is not set");
             }
@@ -59,18 +66,45 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
     }
 
     @Override
-    public void addPending(ProviderInternal<? extends T> provider) {
-        pending.add(provider);
+    public boolean addPending(ProviderInternal<? extends T> provider) {
+        return pending.add(new TypedCollector<T>(provider.getType(), new ElementFromProvider<T>(provider)));
     }
 
     @Override
-    public void removePending(ProviderInternal<? extends T> provider) {
-        pending.remove(provider);
+    public boolean removePending(ProviderInternal<? extends T> provider) {
+        return removeByProvider(provider);
+    }
+
+    private boolean removeByProvider(ProviderInternal<?> provider) {
+        Iterator<TypedCollector<T>> iterator = pending.iterator();
+        while (iterator.hasNext()) {
+            TypedCollector<T> collector = iterator.next();
+            if (collector.isProvidedBy(provider)) {
+                iterator.remove();
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
-    public void onRealize(Action<ProviderInternal<? extends T>> action) {
+    public boolean addPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+        return pending.add(new TypedCollector<T>(provider.getElementType(), new ElementsFromCollectionProvider<T>(provider)));
+    }
+
+    @Override
+    public boolean removePendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+        return removeByProvider(provider);
+    }
+
+    @Override
+    public void onRealize(Action<T> action) {
         this.flushAction = action;
+    }
+
+    @Override
+    public void realizeExternal(ProviderInternal<? extends T> provider) {
+        removePending(provider);
     }
 
     @Override
@@ -80,7 +114,11 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
 
     @Override
     public int size() {
-        return pending.size();
+        int count = 0;
+        for (TypedCollector<T> collector : pending) {
+            count += collector.size();
+        }
+        return count;
     }
 
     @Override

@@ -29,6 +29,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
+import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
@@ -45,8 +46,8 @@ public class DefaultSwiftXCTestExecutable extends DefaultSwiftXCTestBinary imple
     private final RegularFileProperty debuggerExecutableFile;
 
     @Inject
-    public DefaultSwiftXCTestExecutable(String name, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean testable, FileCollection source, FileOperations fileOperations, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        super(name, projectLayout, objectFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
+    public DefaultSwiftXCTestExecutable(Names names, ProjectLayout projectLayout, ObjectFactory objectFactory, Provider<String> module, boolean testable, FileCollection source, FileOperations fileOperations, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+        super(names, projectLayout, objectFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
         debuggerExecutableFile = projectLayout.fileProperty();
         linkTask = objectFactory.property(LinkExecutable.class);
         installTask = objectFactory.property(InstallExecutable.class);

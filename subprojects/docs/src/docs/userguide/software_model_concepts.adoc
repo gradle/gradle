@@ -13,19 +13,14 @@
 // limitations under the License.
 
 [[software_model_concepts]]
-== Software model concepts
+= Software model concepts
 
-
-[NOTE]
+[CAUTION]
 ====
- 
-Support for the software model is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
- 
+Rule based configuration link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[will be deprecated]. New plugins should not use this concept.
 ====
 
 The software model describes how a piece of software is built and how the components of the software relate to each other. The software model is organized around some key concepts:
-
- 
 
 * A _component_ is a general concept that represents some logical piece of software. Examples of components are a command-line application, a web application or a library. A component is often composed of other components. Most Gradle builds will produce at least one component.
 * A _library_ is a reusable component that is linked into or combined into some other component. In the Java ecosystem, a library is often built as a Jar file, and then later bundled into an application of some kind. In the native ecosystem, a library may be built as a shared library or static library, or both.
@@ -33,4 +28,3 @@ The software model describes how a piece of software is built and how the compon
 * A _binary_ represents some output that is built for a component. A component may produce multiple different output binaries. For example, for a C++ library, both a shared library and a static library binary may be produced. Each binary is initially configured to be built from the component sources, but additional source sets can be added to specific binary variants.
 * A _variant_ represents some mutually exclusive binary of a component. A library, for example, might target Java 7 and Java 8, effectively producing two distinct binaries: a Java 7 Jar and a Java 8 Jar. These are different variants of the library.
 * The _API_ of a library represents the artifacts and dependencies that are required to compile against that library. The API typically consists of a binary together with a set of dependencies.
- 

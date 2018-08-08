@@ -25,9 +25,11 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.logging.progress.ProgressLogger;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.serialize.Serializer;
-import org.gradle.internal.time.CountdownTimer;
 import org.gradle.internal.time.Time;
+import org.gradle.internal.time.Timer;
 import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,12 +45,6 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
 
     public static final int CLEANUP_INTERVAL_IN_HOURS = 24;
 
-    // Cleanup is performed while the file lock is being held. Using a timeout
-    // well below the limit used by another process to wait for the lock avoids
-    // those from timing out while waiting to acquire the file lock. Cleanup is
-    // usually much faster than this timeout.
-    private static final int DEFAULT_CLEANUP_TIMEOUT = DefaultFileLockManager.DEFAULT_LOCK_TIMEOUT / 3;
-
     private final File dir;
     private final CacheBuilder.LockTarget lockTarget;
     private final LockOptions lockOptions;
@@ -58,9 +54,10 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     private final String displayName;
     protected final File propertiesFile;
     private final File gcFile;
+    private final ProgressLoggerFactory progressLoggerFactory;
     private CacheCoordinator cacheAccess;
 
-    public DefaultPersistentDirectoryStore(File dir, String displayName, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, CleanupAction cleanupAction, FileLockManager fileLockManager, ExecutorFactory executorFactory) {
+    public DefaultPersistentDirectoryStore(File dir, String displayName, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, CleanupAction cleanupAction, FileLockManager fileLockManager, ExecutorFactory executorFactory, ProgressLoggerFactory progressLoggerFactory) {
         this.dir = dir;
         this.lockTarget = lockTarget;
         this.lockOptions = lockOptions;
@@ -69,6 +66,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         this.executorFactory = executorFactory;
         this.propertiesFile = new File(dir, "cache.properties");
         this.gcFile = new File(dir, "gc.properties");
+        this.progressLoggerFactory = progressLoggerFactory;
         this.displayName = displayName != null ? (displayName + " (" + dir + ")") : ("cache directory " + dir.getName() + " (" + dir + ")");
     }
 
@@ -206,14 +204,15 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         @Override
         public void cleanup() {
             if (cleanupAction != null) {
-                CountdownTimer timer = Time.startCountdownTimer(DEFAULT_CLEANUP_TIMEOUT);
-                cleanupAction.clean(DefaultPersistentDirectoryStore.this, timer);
-                if (timer.hasExpired()) {
-                    LOGGER.info("{} partially cleaned up in {}. Cleanup was aborted because it took too long to complete but will be resumed next time.",
-                        DefaultPersistentDirectoryStore.this, timer.getElapsed());
-                } else {
+                String description = "Cleaning " + getDisplayName();
+                ProgressLogger progressLogger = progressLoggerFactory.newOperation(CacheCleanupAction.class).start(description, description);
+                Timer timer = Time.startTimer();
+                try {
+                    cleanupAction.clean(DefaultPersistentDirectoryStore.this, new DefaultCleanupProgressMonitor(progressLogger));
                     GFileUtils.touch(gcFile);
-                    LOGGER.info("{} fully cleaned up in {}.", DefaultPersistentDirectoryStore.this, timer.getElapsed());
+                } finally {
+                    LOGGER.info("{} cleaned up in {}.", DefaultPersistentDirectoryStore.this, timer.getElapsed());
+                    progressLogger.completed();
                 }
             }
         }

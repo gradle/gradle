@@ -263,4 +263,85 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
         def e = thrown(GradleException)
         e.message == "Cannot register a factory for type Person because a factory for this type is already registered."
     }
+
+    def "can register objects"() {
+        container.registerFactory(Person, { new DefaultPerson(name: it) } as NamedDomainObjectFactory)
+        container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it) } as NamedDomainObjectFactory)
+        when:
+        def fred = container.register("fred", Person)
+        def bob = container.register("bob", AgeAwarePerson) {
+            it.age = 50
+        }
+        then:
+        fred.present
+        fred.get().name == "fred"
+        bob.present
+        bob.get().age == 50
+    }
+
+    def "can look up objects by name"() {
+        container.registerFactory(Person, { new DefaultPerson(name: it) } as NamedDomainObjectFactory)
+        when:
+        container.register("fred", Person)
+        container.create("bob", Person)
+        def fred = container.named("fred")
+        def bob = container.named("bob")
+
+        then:
+        fred.present
+        fred.get().name == "fred"
+        bob.present
+        bob.get().name == "bob"
+    }
+
+    def "can configure objects via provider"() {
+        given:
+        container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it) } as NamedDomainObjectFactory)
+
+        when:
+        container.register("fred", AgeAwarePerson).configure {
+            it.age = 50
+        }
+        container.create("bob", AgeAwarePerson)
+
+        def fred = container.named("fred")
+        def bob = container.named("bob")
+        bob.configure {
+            it.age = 50
+        }
+        then:
+        fred.present
+        fred.get().age == 50
+        bob.present
+        bob.get().age == 50
+    }
+
+    def "can extract schema from container that mixes register and create"() {
+        given:
+        container.registerFactory(Person, { new DefaultPerson(name: it) } as NamedDomainObjectFactory)
+
+        when:
+        container.register("fred", Person)
+        container.create("bob", Person)
+        then:
+        assertSchemaIs(
+            fred: "DefaultPolymorphicDomainObjectContainerTest.Person",
+            bob: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson"
+        )
+    }
+
+    protected void assertSchemaIs(Map<String, String> expectedSchema) {
+        def actualSchema = container.collectionSchema
+        Map<String, String> actualSchemaMap = actualSchema.elements.collectEntries { schema ->
+            [ schema.name, schema.publicType.simpleName ]
+        }
+        // Same size
+        assert expectedSchema.size() == actualSchemaMap.size()
+        // Same keys
+        assert expectedSchema.keySet().containsAll(actualSchemaMap.keySet())
+        // Keys have the same values
+        expectedSchema.each { entry ->
+            assert entry.value == actualSchemaMap[entry.key]
+        }
+    }
 }

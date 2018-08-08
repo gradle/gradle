@@ -24,11 +24,8 @@ import org.gradle.test.fixtures.file.TestFile
 @SelfType(AbstractIntegrationSpec)
 trait SourceDependencies {
     TestFile checkoutDir(String repoName, String versionId, String repoId, TestFile baseDir=testDirectory) {
-        def hashedRepo = hashRepositoryId(repoId)
-        baseDir.file(".gradle/vcsWorkingDirs/${hashedRepo}-${versionId}/${repoName}")
-    }
-
-    String hashRepositoryId(String repoId) {
-        HashUtil.createCompactMD5(repoId)
+        def prefix = repoName.take(9)
+        def hashedCommit = HashUtil.createCompactMD5("${repoId}-${versionId}")
+        return baseDir.file(".gradle/vcs-1/${prefix}_${hashedCommit}/${repoName}")
     }
 }

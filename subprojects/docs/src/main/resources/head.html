@@ -1,0 +1,45 @@
+<link crossorigin href="//assets.gradle.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css?family=Inconsolata:400,700" rel="stylesheet"/>
+<script type="text/javascript">
+    // Polyfill Element.matches()
+    if (!Element.prototype.matches) {
+        Element.prototype.matches = Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
+    }
+    // Polyfill Element.closest()
+    if (!Element.prototype.closest) {
+        Element.prototype.closest = function (s) {
+            var el = this;
+            if (!document.documentElement.contains(el)) return null;
+            do {
+                if (typeof el.matches === "function" && el.matches(s)) return el;
+                el = el.parentElement || el.parentNode;
+            } while (el !== null);
+            return null;
+        };
+    }
+
+    [].forEach.call(document.querySelectorAll(".docs-navigation a[href$='"+ window.location.pathname +"']"), function(link) {
+        // Add "active" to all links same as current URL
+        link.classList.add("active");
+
+        // Expand all parent navigation
+        var parentListEl = link.closest("li");
+        while (parentListEl !== null) {
+            var dropDownEl = parentListEl.querySelector(".nav-dropdown");
+            if (dropDownEl !== null) {
+                dropDownEl.classList.add("expanded");
+            }
+            parentListEl = parentListEl.parentNode.closest("li");
+        }
+    });
+
+    // Expand/contract multi-level side navigation
+    [].forEach.call(document.querySelectorAll(".docs-navigation .nav-dropdown"), function registerSideNavActions(collapsibleElement) {
+        collapsibleElement.addEventListener("click", function toggleExpandedSideNav(evt) {
+            evt.preventDefault();
+            evt.target.classList.toggle("expanded");
+            evt.target.setAttribute("aria-expanded", evt.target.classList.contains("expanded").toString());
+            return false;
+        }, false);
+    });
+</script>

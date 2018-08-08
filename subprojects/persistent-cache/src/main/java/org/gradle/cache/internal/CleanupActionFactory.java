@@ -18,11 +18,11 @@ package org.gradle.cache.internal;
 
 import org.gradle.cache.CleanableStore;
 import org.gradle.cache.CleanupAction;
+import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.time.CountdownTimer;
 
 public class CleanupActionFactory {
     private final BuildOperationExecutor buildOperationExecutor;
@@ -45,11 +45,11 @@ public class CleanupActionFactory {
         }
 
         @Override
-        public void clean(final CleanableStore persistentCache, final CountdownTimer timer) {
+        public void clean(final CleanableStore persistentCache, final CleanupProgressMonitor progressMonitor) {
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
-                    delegate.clean(persistentCache, timer);
+                    delegate.clean(persistentCache, progressMonitor);
                 }
 
                 @Override

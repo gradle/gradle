@@ -18,8 +18,6 @@ package org.gradle.cache.internal;
 
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
@@ -27,7 +25,6 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
@@ -116,17 +113,15 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
             // TODO - don't calculate the same value concurrently
             V value = cache.get(file);
             if (value == null) {
-                PhysicalSnapshot fileSnapshot = fileSystemSnapshotter.snapshotSelf(file);
-                FileType fileType = fileSnapshot.getType();
-                if (fileType == FileType.RegularFile) {
-                    HashCode hashCode = ((PhysicalFileSnapshot) fileSnapshot).getContent().getContentMd5();
-                    value = contentCache.get(hashCode);
+                HashCode contentHash = fileSystemSnapshotter.getRegularFileContentHash(file);
+                if (contentHash != null) {
+                    value = contentCache.get(contentHash);
                     if (value == null) {
-                        value = calculator.calculate(file, fileType);
-                        contentCache.put(hashCode, value);
+                        value = calculator.calculate(file, true);
+                        contentCache.put(contentHash, value);
                     }
                 } else {
-                    value = calculator.calculate(file, fileType);
+                    value = calculator.calculate(file, false);
                 }
                 cache.put(file, value);
             }

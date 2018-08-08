@@ -67,6 +67,14 @@ public final class ApplyScriptPluginBuildOperationType implements BuildOperation
         @Nullable
         String getBuildPath();
 
+        /**
+         * A unique ID for this plugin application, within this build operation tree.
+         *
+         * @see org.gradle.configuration.internal.ExecuteListenerBuildOperationType.Details#getApplicationId()
+         * @since 4.10
+         */
+        long getApplicationId();
+
     }
 
     public interface Result {

@@ -52,6 +52,11 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
     }
 
     @Override
+    public String getRepositoryId(ResolvedComponentResult resolvedComponentResult) {
+        return ((ResolvedComponentResultInternal) resolvedComponentResult).getRepositoryName();
+    }
+
+    @Override
     public Object getCustomOperationTraceSerializableModel() {
         Map<String, Object> model = new HashMap<String, Object>();
         model.put("resolvedDependenciesCount", getRootComponent().getDependencies().size());

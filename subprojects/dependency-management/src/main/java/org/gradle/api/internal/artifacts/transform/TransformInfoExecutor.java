@@ -22,16 +22,18 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 
 public class TransformInfoExecutor implements WorkInfoExecutor {
     private final BuildOperationExecutor buildOperationExecutor;
+    private final ArtifactTransformListener transformListener;
 
-    public TransformInfoExecutor(BuildOperationExecutor buildOperationExecutor) {
+    public TransformInfoExecutor(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
         this.buildOperationExecutor = buildOperationExecutor;
+        this.transformListener = transformListener;
     }
 
     @Override
     public boolean execute(WorkInfo work) {
         if (work instanceof TransformInfo) {
             final TransformInfo transform = (TransformInfo) work;
-            transform.execute(buildOperationExecutor);
+            transform.execute(buildOperationExecutor, transformListener);
             return true;
         } else {
             return false;

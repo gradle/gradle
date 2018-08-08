@@ -1,9 +1,9 @@
 apply plugin: 'eclipse'
-// START SNIPPET use-plugin
+// tag::use-plugin[]
 apply plugin: 'scala'
-// END SNIPPET use-plugin
+// end::use-plugin[]
 
-// START SNIPPET scala-dependency
+// tag::scala-dependency[]
 repositories {
     mavenCentral()
 }
@@ -13,7 +13,7 @@ dependencies {
     testCompile 'org.scalatest:scalatest_2.11:3.0.0'
     testCompile 'junit:junit:4.12'
 }
-// END SNIPPET scala-dependency
+// end::scala-dependency[]
 
 dependencies {
     compile 'commons-collections:commons-collections:3.2.2'

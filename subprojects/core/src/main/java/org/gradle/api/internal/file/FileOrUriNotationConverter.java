@@ -19,7 +19,7 @@ package org.gradle.api.internal.file;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -36,20 +36,19 @@ import java.util.regex.Pattern;
 
 public class FileOrUriNotationConverter implements NotationConverter<Object, Object> {
 
-    private static final Pattern URI_SCHEME = Pattern.compile("[a-zA-Z][a-zA-Z0-9+-\\.]*:.+");
+    private static final Pattern URI_SCHEME = Pattern.compile("([a-zA-Z][a-zA-Z0-9+-\\.]*:).+");
     private static final Pattern ENCODED_URI = Pattern.compile("%([0-9a-fA-F]{2})");
-    private final FileSystem fileSystem;
 
-    public FileOrUriNotationConverter(FileSystem fileSystem) {
-        this.fileSystem = fileSystem;
+    public FileOrUriNotationConverter() {
     }
 
-    public static NotationParser<Object, Object> parser(FileSystem fileSystem) {
+    public static NotationParser<Object, Object> parser() {
         return NotationParserBuilder
-                .toType(Object.class)
-                .typeDisplayName("a File or URI")
-                .converter(new FileOrUriNotationConverter(fileSystem))
-                .toComposite();
+            .toType(Object.class)
+            .typeDisplayName("a File or URI")
+            .noImplicitConverters()
+            .converter(new FileOrUriNotationConverter())
+            .toComposite();
     }
 
     @Override
@@ -69,11 +68,11 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
             return;
         }
         if (notation instanceof Path) {
-            result.converted(((Path)notation).toFile());
+            result.converted(((Path) notation).toFile());
             return;
         }
         if (notation instanceof FileSystemLocation) {
-            result.converted(((FileSystemLocation)notation).getAsFile());
+            result.converted(((FileSystemLocation) notation).getAsFile());
             return;
         }
         if (notation instanceof URL) {
@@ -98,27 +97,33 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
                 result.converted(new File(uriDecode(notationString.substring(5))));
                 return;
             }
-            if (URI_SCHEME.matcher(notationString).matches()) {
-                for (File file : File.listRoots()) {
-                    String rootPath = file.getAbsolutePath();
-                    String normalisedStr = notationString;
-                    if (!fileSystem.isCaseSensitive()) {
-                        rootPath = rootPath.toLowerCase();
-                        normalisedStr = normalisedStr.toLowerCase();
-                    }
-                    if (normalisedStr.startsWith(rootPath) || normalisedStr.startsWith(rootPath.replace(File.separatorChar, '/'))) {
-                        result.converted(new File(notationString));
-                        return;
-                    }
-                }
-                try {
-                    result.converted(new URI(notationString));
+            if (notationString.startsWith("http:") || notationString.startsWith("https:")) {
+                convertToUrl(notationString, result);
+                return;
+            }
+            Matcher schemeMatcher = URI_SCHEME.matcher(notationString);
+            if (schemeMatcher.matches()) {
+                String scheme = schemeMatcher.group(1);
+                if (isWindowsRootDirectory(scheme)) {
+                    result.converted(new File(notationString));
                     return;
-                } catch (URISyntaxException e) {
-                    throw new UncheckedIOException(e);
                 }
+                convertToUrl(notationString, result);
+                return;
             }
             result.converted(new File(notationString));
+        }
+    }
+
+    private boolean isWindowsRootDirectory(String scheme) {
+        return scheme.length() == 2 && Character.isLetter(scheme.charAt(0)) && scheme.charAt(1) == ':' && OperatingSystem.current().isWindows();
+    }
+
+    private void convertToUrl(String notationString, NotationConvertResult<? super Object> result) {
+        try {
+            result.converted(new URI(notationString));
+        } catch (URISyntaxException e) {
+            throw new UncheckedIOException(e);
         }
     }
 

@@ -18,6 +18,7 @@ package org.gradle.internal.featurelifecycle;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -27,11 +28,39 @@ import java.util.List;
  */
 @UsedByScanPlugin
 public interface DeprecatedUsageProgressDetails {
-    String getMessage();
 
-    String getDetails();
+    /**
+     * See {@link DeprecatedFeatureUsage#getSummary()}
+     */
+    String getSummary();
 
+    /**
+     * See {@link DeprecatedFeatureUsage#getRemovalDetails()}
+     */
+    String getRemovalDetails();
+
+    /**
+     * See {@link DeprecatedFeatureUsage#getAdvice()}
+     */
+    @Nullable
     String getAdvice();
 
+    /**
+     * See {@link DeprecatedFeatureUsage#getContextualAdvice()}
+     */
+    @Nullable
+    String getContextualAdvice();
+
+    /**
+     * See {@link DeprecatedFeatureUsage#getType()}.
+     *
+     * Value is always of {@link DeprecatedFeatureUsage.Type#name()}.
+     */
+    String getType();
+
+    /**
+     * See {@link DeprecatedFeatureUsage#getStack()}
+     */
     List<StackTraceElement> getStackTrace();
+
 }

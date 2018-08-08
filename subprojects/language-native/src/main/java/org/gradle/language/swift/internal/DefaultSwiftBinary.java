@@ -73,8 +73,8 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
     private final Property<SwiftVersion> sourceCompatibility;
     private final Configuration importPathConfiguration;
 
-    public DefaultSwiftBinary(String name, ProjectLayout projectLayout, final ObjectFactory objectFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration componentImplementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        super(name, objectFactory, projectLayout, componentImplementation);
+    public DefaultSwiftBinary(Names names, ProjectLayout projectLayout, final ObjectFactory objectFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration componentImplementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+        super(names, objectFactory, projectLayout, componentImplementation);
         this.module = module;
         this.testable = testable;
         this.source = source;
@@ -84,8 +84,6 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
         this.toolChain = toolChain;
         this.platformToolProvider = platformToolProvider;
         this.sourceCompatibility = objectFactory.property(SwiftVersion.class);
-
-        Names names = getNames();
 
         // TODO - reduce duplication with C++ binary
         importPathConfiguration = configurations.create(names.withPrefix("swiftCompile"));

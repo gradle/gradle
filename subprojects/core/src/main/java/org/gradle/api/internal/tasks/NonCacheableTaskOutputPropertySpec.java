@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.FileNormalizer;
 
@@ -52,11 +51,6 @@ public class NonCacheableTaskOutputPropertySpec extends TaskOutputsDeprecationSu
     @Override
     public Class<? extends FileNormalizer> getNormalizer() {
         return parent.getNormalizer();
-    }
-
-    @Override
-    public PathNormalizationStrategy getPathNormalizationStrategy() {
-        return parent.getPathNormalizationStrategy();
     }
 
     @Override

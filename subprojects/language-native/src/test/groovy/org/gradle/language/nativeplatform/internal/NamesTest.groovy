@@ -29,6 +29,8 @@ class NamesTest extends Specification {
         name.dirName == "main/"
         name.withPrefix("compile") == "compile"
         name.withSuffix("implementation") == "implementation"
+
+        name.append("debug").dirName == "main/debug/"
     }
 
     def "names for single dimension variant of main"() {
@@ -41,6 +43,8 @@ class NamesTest extends Specification {
         name.dirName == "main/debug/"
         name.withPrefix("compile") == "compileDebug"
         name.withSuffix("implementation") == "debugImplementation"
+
+        name.append("shared").dirName == "main/debug/shared/"
     }
 
     def "names for multi-dimension variant of main"() {
@@ -53,6 +57,8 @@ class NamesTest extends Specification {
         name.dirName == "main/debug/static/"
         name.withPrefix("compile") == "compileDebugStatic"
         name.withSuffix("implementation") == "debugStaticImplementation"
+
+        name.append("cpp17").dirName == "main/debug/static/cpp17/"
     }
 
     def "names for custom"() {
@@ -65,6 +71,8 @@ class NamesTest extends Specification {
         name.dirName == "custom/"
         name.withPrefix("compile") == "compileCustom"
         name.withSuffix("implementation") == "customImplementation"
+
+        name.append("debug").dirName == "custom/debug/"
     }
 
     def "names for single dimension variant of custom"() {
@@ -77,6 +85,8 @@ class NamesTest extends Specification {
         name.dirName == "custom/release/"
         name.withPrefix("compile") == "compileCustomRelease"
         name.withSuffix("implementation") == "customReleaseImplementation"
+
+        name.append("static").dirName == "custom/release/static/"
     }
 
     def "names for multi-dimension variant of custom"() {
@@ -89,17 +99,7 @@ class NamesTest extends Specification {
         name.dirName == "custom/release/static/"
         name.withPrefix("compile") == "compileCustomReleaseStatic"
         name.withSuffix("implementation") == "customReleaseStaticImplementation"
-    }
 
-    def "names for test variants of custom"() {
-        expect:
-        def name = Names.of("customExecutable")
-        name.baseName == "custom"
-        name.lowerBaseName == "custom"
-        name.getCompileTaskName("cpp") == "compileCustomCpp"
-        name.getTaskName("link") == "linkCustom"
-        name.dirName == "custom/"
-        name.withPrefix("compile") == "compileCustom"
-        name.withSuffix("implementation") == "customImplementation"
+        name.append("cpp17").dirName == "custom/release/static/cpp17/"
     }
 }

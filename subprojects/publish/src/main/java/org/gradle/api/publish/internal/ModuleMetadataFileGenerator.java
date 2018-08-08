@@ -27,7 +27,6 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.VersionConstraint;
@@ -137,7 +136,16 @@ public class ModuleMetadataFileGenerator {
 
         jsonWriter.name("version");
         jsonWriter.beginObject();
-        if (!versionConstraint.getPreferredVersion().isEmpty()) {
+
+        // For now, 'requires' implies 'prefers', and 'strictly' implies 'requires'
+        // Only publish the defining constraint.
+        if (!versionConstraint.getStrictVersion().isEmpty()) {
+            jsonWriter.name("strictly");
+            jsonWriter.value(versionConstraint.getStrictVersion());
+        } else if (!versionConstraint.getRequiredVersion().isEmpty()) {
+            jsonWriter.name("requires");
+            jsonWriter.value(versionConstraint.getRequiredVersion());
+        } else if (!versionConstraint.getPreferredVersion().isEmpty()) {
             jsonWriter.name("prefers");
             jsonWriter.value(versionConstraint.getPreferredVersion());
         }
@@ -383,7 +391,7 @@ public class ModuleMetadataFileGenerator {
             jsonWriter.name("module");
             jsonWriter.value(dependency.getName());
             VersionConstraint vc;
-            if (dependency instanceof ModuleVersionSelector) {
+            if (dependency instanceof ExternalDependency) {
                 vc = ((ExternalDependency) dependency).getVersionConstraint();
             } else {
                 vc = DefaultImmutableVersionConstraint.of(Strings.nullToEmpty(dependency.getVersion()));

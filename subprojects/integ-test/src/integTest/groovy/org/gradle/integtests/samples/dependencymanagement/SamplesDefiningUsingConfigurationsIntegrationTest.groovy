@@ -17,7 +17,6 @@
 package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.util.Requires
@@ -31,7 +30,7 @@ class SamplesDefiningUsingConfigurationsIntegrationTest extends AbstractIntegrat
     Sample sample = new Sample(testDirectoryProvider)
 
     def setup() {
-        executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
+        useRepositoryMirrors()
     }
 
     @Requires(JDK8_OR_LATER)

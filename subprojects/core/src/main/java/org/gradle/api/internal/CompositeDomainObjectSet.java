@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.internal.collections.ElementSource;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
@@ -213,6 +214,11 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
 
         @Override
+        public boolean addRealized(T element) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public boolean remove(Object o) {
             throw new UnsupportedOperationException();
         }
@@ -272,17 +278,32 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
 
         @Override
-        public void addPending(ProviderInternal<? extends T> provider) {
+        public boolean addPending(ProviderInternal<? extends T> provider) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public void removePending(ProviderInternal<? extends T> provider) {
+        public boolean removePending(ProviderInternal<? extends T> provider) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public void onRealize(Action<ProviderInternal<? extends T>> action) {
+        public boolean addPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean removePendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void onRealize(Action<T> action) {
+
+        }
+
+        @Override
+        public void realizeExternal(ProviderInternal<? extends T> provider) {
 
         }
     }

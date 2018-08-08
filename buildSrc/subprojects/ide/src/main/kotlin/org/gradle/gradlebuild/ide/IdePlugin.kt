@@ -65,9 +65,7 @@ open class IdePlugin : Plugin<Project> {
 
     private
     fun Project.configureEclipseForAllProjects() = allprojects {
-        apply {
-            plugin("eclipse")
-        }
+        apply(plugin = "eclipse")
 
         plugins.withType<JavaPlugin> {
             eclipse {
@@ -94,9 +92,7 @@ open class IdePlugin : Plugin<Project> {
 
     private
     fun Project.configureIdeaForAllProjects() = allprojects {
-        apply {
-            plugin("idea")
-        }
+        apply(plugin = "idea")
         idea {
             module {
                 configureLanguageLevel(this)
@@ -122,6 +118,7 @@ open class IdePlugin : Plugin<Project> {
             }
 
             project {
+                jdkName = "9.0"
                 wildcards.add("?*.gradle")
                 vcs = "Git"
                 ipr {

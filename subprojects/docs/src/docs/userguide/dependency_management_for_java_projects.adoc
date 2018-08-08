@@ -13,42 +13,46 @@
 // limitations under the License.
 
 [[dependency_management_for_java_projects]]
-== Dependency Management for Java Projects
+= Dependency Management for Java Projects
 
-This chapter explains how to apply basic dependency management concepts to Java-based projects. For a detailed introduction to dependency management, see <<introduction_dependency_management>>.
+This chapter explains how to apply basic dependency management concepts to Java-based projects. For a detailed introduction to dependency management, see <<introduction_dependency_management.adoc#introduction_dependency_management,Introduction to Dependency Management>>.
 
 [[sec:setting_up_a_standard_build_script_java_tutorial]]
-=== Dissecting a typical build script
+== Dissecting a typical build script
 
-Let's have a look at a very simple build script for a Java-based project. It applies the <<java_library_plugin,Java Library plugin>> which automatically introduces a standard project layout, provides tasks for performing typical work and adequate support for dependency management.
+Let's have a look at a very simple build script for a Java-based project. It applies the <<java_library_plugin.adoc#java_library_plugin,Java Library plugin>> which automatically introduces a standard project layout, provides tasks for performing typical work and adequate support for dependency management.
 
-++++
-<sample id="basicDependencyDeclarations" dir="userguide/artifacts/dependencyBasics" title="Dependency declarations for a Java-based project">
-    <sourcefile file="build.gradle"/>
-</sample>
-++++
+=== Example: Dependency declarations for a Java-based project
 
-The api:org.gradle.api.Project#dependencies[] code block declares that Hibernate core 3.6.7.Final is required to compile the project's production source code. It also states that junit &gt;= 4.0 is required to compile the project's tests. All dependencies are supposed to be looked up in the Maven Central repository as defined by api:org.gradle.api.Project#repositories[]. The following sections explain each aspect in more detail.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/artifacts/dependencyBasics/build.gradle[]
+----
+
+The link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:dependencies(groovy.lang.Closure)[Project.dependencies{}] code block declares that Hibernate core 3.6.7.Final is required to compile the project's production source code. It also states that junit &gt;= 4.0 is required to compile the project's tests. All dependencies are supposed to be looked up in the Maven Central repository as defined by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:repositories(groovy.lang.Closure)[Project.repositories{}]. The following sections explain each aspect in more detail.
 
 [[sec:module_dependencies_java_tutorial]]
-=== Declaring module dependencies
+== Declaring module dependencies
 
-There are various <<dependency_types,types of dependencies>> that you can declare. One such type is a _module dependency_. A <<sec:declaring_dependency_to_module,module dependency>> represents a dependency on a module with a specific version built outside the current build. Modules are usually stored in a repository, such as Maven Central, a corporate Maven or Ivy repository, or a directory in the local file system.
+There are various <<dependency_types.adoc#dependency_types,types of dependencies>> that you can declare. One such type is a _module dependency_. A <<declaring_dependencies.adoc#sec:declaring_dependency_to_module,module dependency>> represents a dependency on a module with a specific version built outside the current build. Modules are usually stored in a repository, such as Maven Central, a corporate Maven or Ivy repository, or a directory in the local file system.
 
-To define an module dependency, you add it to a <<sec:configurations_java_tutorial,dependency configuration>>:
+To define an module dependency, you add it to a <<#sec:configurations_java_tutorial,dependency configuration>>:
 
-++++
-<sample id="externalDependencies" dir="userguide/artifacts/externalDependencies" title="Definition of a module dependency">
-    <sourcefile file="build.gradle" snippet="define-dependency"/>
-</sample>
-++++
+=== Example: Definition of a module dependency
 
-To find out more about defining dependencies, have a look at <<declaring_dependencies>>.
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/artifacts/externalDependencies/build.gradle[tag=define-dependency]
+----
+
+To find out more about defining dependencies, have a look at <<declaring_dependencies.adoc#declaring_dependencies,Declaring Dependencies>>.
 
 [[sec:configurations_java_tutorial]]
-=== Using dependency configurations
+== Using dependency configurations
 
-A api:org.gradle.api.artifacts.Configuration[] is a named set of dependencies and artifacts. There are three main purposes for a _configuration_:
+A link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html[Configuration] is a named set of dependencies and artifacts. There are three main purposes for a _configuration_:
 
 Declaring dependencies::
 A plugin uses configurations to make it easy for build authors to declare what other subprojects or external artifacts are needed for various purposes during the execution of tasks defined by the plugin. For example a plugin may need the Spring web framework dependency to compile the source code.
@@ -57,7 +61,7 @@ A plugin uses configurations to find (and possibly download) inputs to the tasks
 Exposing artifacts for consumption::
 A plugin uses configurations to define what _artifacts_ it generates for other projects to consume. For example the project would like to publish its compiled source code packaged in the JAR file to an in-house Artifactory repository.
 
-With those three purposes in mind, let's take a look at a few of the <<sec:java_library_configurations_graph,standard configurations defined by the Java Library Plugin>>.
+With those three purposes in mind, let's take a look at a few of the <<java_library_plugin.adoc#sec:java_library_configurations_graph,standard configurations defined by the Java Library Plugin>>.
 
 implementation::
 The dependencies required to compile the production source of the project which _are not_ part of the API exposed by the project. For example the project uses Hibernate for its internal persistence layer implementation.
@@ -66,44 +70,50 @@ The dependencies required to compile the production source of the project which 
 testImplementation::
 The dependencies required to compile and run the test source of the project. For example the project decided to write test code with the test framework JUnit.
 
-Various plugins add further standard configurations. You can also define your own custom configurations in your build via api:org.gradle.api.Project#configurations[]. See <<managing_dependency_configurations>> for the details of defining and customizing dependency configurations.
+Various plugins add further standard configurations. You can also define your own custom configurations in your build via link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:configurations(groovy.lang.Closure)[Project.configurations{}]. See <<managing_dependency_configurations.adoc#managing_dependency_configurations,Managing Dependency Configurations>> for the details of defining and customizing dependency configurations.
 
 [[sec:repositories_java_tutorial]]
-=== Declaring common Java repositories
+== Declaring common Java repositories
 
-How does Gradle know where to find the files for external dependencies? Gradle looks for them in a _repository_. A repository is a collection of modules, organized by `group`, `name` and `version`. Gradle understands different <<repository_types,repository types>>, such as Maven and Ivy, and supports various ways of accessing the repository via HTTP or other protocols.
+How does Gradle know where to find the files for external dependencies? Gradle looks for them in a _repository_. A repository is a collection of modules, organized by `group`, `name` and `version`. Gradle understands different <<repository_types.adoc#repository_types,repository types>>, such as Maven and Ivy, and supports various ways of accessing the repository via HTTP or other protocols.
 
-By default, Gradle does not define any repositories. You need to define at least one with the help of api:org.gradle.api.Project#repositories[] before you can use module dependencies. One option is use the Maven Central repository:
+By default, Gradle does not define any repositories. You need to define at least one with the help of link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:repositories(groovy.lang.Closure)[Project.repositories{}] before you can use module dependencies. One option is use the Maven Central repository:
 
-++++
-<sample id="defineMavenCentral" dir="userguide/artifacts/defineRepository" title="Usage of Maven central repository">
-    <sourcefile file="build.gradle" snippet="maven-central"/>
-</sample>
-++++
+=== Example: Usage of Maven central repository
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/artifacts/defineRepository/build.gradle[tag=maven-central]
+----
 
 You can also have repositories on the local file system. This works for both Maven and Ivy repositories.
 
-++++
-<sample id="defineRemoteIvyRepo" dir="userguide/artifacts/defineRepository" title="Usage of a local Ivy directory">
-    <sourcefile file="build.gradle" snippet="local-ivy-repo"/>
-</sample>
-++++
+=== Example: Usage of a local Ivy directory
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/artifacts/defineRepository/build.gradle[tag=local-ivy-repo]
+----
 
 A project can have multiple repositories. Gradle will look for a dependency in each repository in the order they are specified, stopping at the first repository that contains the requested module.
 
-To find out more about defining repositories, have a look at <<declaring_repositories>>.
+To find out more about defining repositories, have a look at <<declaring_repositories.adoc#declaring_repositories,Declaring Repositories>>.
 
 [[sec:publishing_artifacts_java_tutorial]]
-=== Publishing artifacts
+== Publishing artifacts
 
 Dependency configurations are also used to publish files. Gradle calls these files _publication artifacts_, or usually just _artifacts_. As a user you will need to tell Gradle where to publish the artifacts. You do this by declaring repositories for the `uploadArchives` task. Here's an example of publishing to a Maven repository:
 
-++++
-<sample id="publishMavenRepository" dir="userguide/artifacts/maven" title="Publishing to a Maven repository">
-    <sourcefile file="build.gradle" snippet="upload-file"/>
-</sample>
-++++
+=== Example: Publishing to a Maven repository
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/artifacts/maven/build.gradle[tag=upload-file]
+----
 
 Now, when you run `gradle uploadArchives`, Gradle will build the JAR file, generate a `.pom` file and upload the artifacts.
 
-To learn more about publishing artifacts, have a look at <<artifact_management>>.
+To learn more about publishing artifacts, have a look at <<artifact_management.adoc#artifact_management,Legacy Publishing>>.

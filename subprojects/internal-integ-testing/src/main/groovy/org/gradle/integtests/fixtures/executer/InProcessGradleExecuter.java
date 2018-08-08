@@ -42,6 +42,7 @@ import org.gradle.initialization.ReportedException;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 import org.gradle.internal.Factory;
+import org.gradle.internal.InternalListener;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.event.ListenerManager;
@@ -385,7 +386,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         return this;
     }
 
-    private static class BuildListenerImpl implements TaskExecutionGraphListener {
+    private static class BuildListenerImpl implements TaskExecutionGraphListener, InternalListener {
         private final List<String> executedTasks = new CopyOnWriteArrayList<String>();
         private final Set<String> skippedTasks = new CopyOnWriteArraySet<String>();
 

@@ -17,19 +17,19 @@
 package org.gradle.vcs.internal;
 
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.api.model.ObjectFactory;
 
 public class DefaultVcsMappingFactory implements VcsMappingFactory {
-    private final Instantiator instantiator;
+    private final ObjectFactory objectFactory;
     private final VersionControlSpecFactory specFactory;
 
-    public DefaultVcsMappingFactory(Instantiator instantiator, VersionControlSpecFactory specFactory) {
-        this.instantiator = instantiator;
+    public DefaultVcsMappingFactory(ObjectFactory objectFactory, VersionControlSpecFactory specFactory) {
+        this.objectFactory = objectFactory;
         this.specFactory = specFactory;
     }
 
     @Override
     public VcsMappingInternal create(ComponentSelector selector) {
-        return instantiator.newInstance(DefaultVcsMapping.class, selector, specFactory);
+        return objectFactory.newInstance(DefaultVcsMapping.class, selector, specFactory);
     }
 }

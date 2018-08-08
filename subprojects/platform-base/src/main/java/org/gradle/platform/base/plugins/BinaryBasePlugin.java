@@ -22,6 +22,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.model.Each;
@@ -68,13 +69,14 @@ public class BinaryBasePlugin implements Plugin<Project> {
         @Mutate
         void copyBinaryTasksToTaskContainer(TaskContainer tasks, BinaryContainer binaries) {
             for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
+                TaskContainerInternal tasksInternal = (TaskContainerInternal) tasks;
                 if (binary.isLegacyBinary()) {
                     continue;
                 }
-                tasks.addAll(binary.getTasks());
+                tasksInternal.addAllInternal(binary.getTasks());
                 Task buildTask = binary.getBuildTask();
                 if (buildTask != null) {
-                    tasks.add(buildTask);
+                    tasksInternal.addInternal(buildTask);
                 }
             }
         }

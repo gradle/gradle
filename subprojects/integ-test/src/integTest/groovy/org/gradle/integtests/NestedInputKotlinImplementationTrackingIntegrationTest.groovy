@@ -16,14 +16,14 @@
 
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires([TestPrecondition.KOTLIN_SCRIPT])
 @LeaksFileHandles
-class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractIntegrationSpec {
+class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPluginIntegrationTest {
 
     @Override
     protected String getDefaultBuildFileName() {
@@ -87,6 +87,16 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
     }
 
     private void setupTaskWithNestedAction(String actionType, String actionInvocation) {
+        // TODO:kotlin-dsl
+        // In order to facilitate the upgrade to the latest version of the
+        // Kotlin DSL, which ships with Kotlin 1.2.60-eap-44,
+        // the presence of settings.gradle.kts causes
+        // the kotlin-dev repository to be added to settings.buildscript.repositories,
+        // settings.pluginManagement.repositories and to every project.repositories
+        // and project.buildscript.repositories.
+        // This behaviour is temporary and will be removed once the Kotlin DSL
+        // upgrades to the next GA release of Kotlin.
+        file('buildSrc/settings.gradle.kts') << ""
         file('buildSrc/build.gradle.kts') << """
             plugins {
                 `kotlin-dsl`

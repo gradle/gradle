@@ -33,6 +33,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     @Unroll
     def "repositories used when resolving project configurations are exposed via build operation (repo: #repo)"() {
         setup:
+        disablePluginRepoMirror()
         m2.generateUserSettingsFile(m2.mavenRepo())
         using m2
         buildFile << """
@@ -93,8 +94,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             name == 'maven'
             type == 'MAVEN'
             properties == [
-                URL: getMavenHttpRepo().uri.toString(),
                 ARTIFACT_URLS: [],
+                AUTHENTICATED: false,
+                AUTHENTICATION_SCHEMES: [],
+                URL: getMavenHttpRepo().uri.toString(),
                 METADATA_SOURCES: ['mavenPom', 'artifact']
             ]
         }
@@ -127,9 +130,11 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             name == 'maven'
             type == 'MAVEN'
             properties == [
-                URL: getMavenHttpRepo().uri.toString(),
                 ARTIFACT_URLS: [],
-                METADATA_SOURCES: ['mavenPom', 'artifact']
+                AUTHENTICATED: false,
+                AUTHENTICATION_SCHEMES: [],
+                METADATA_SOURCES: ['mavenPom', 'artifact'],
+                URL: getMavenHttpRepo().uri.toString(),
             ]
         }
     }
@@ -325,9 +330,11 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             name: 'maven',
             type: 'MAVEN',
             properties: [
-                URL: null,
                 ARTIFACT_URLS: [],
-                METADATA_SOURCES: ['mavenPom', 'artifact']
+                METADATA_SOURCES: ['mavenPom', 'artifact'],
+                AUTHENTICATED: false,
+                AUTHENTICATION_SCHEMES: [],
+                URL: null,
             ]
         ]
     }
@@ -342,12 +349,14 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             name: 'ivy',
             type: 'IVY',
             properties: [
-                URL: null,
+                ARTIFACT_PATTERNS: ['[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])'],
+                AUTHENTICATED: false,
+                AUTHENTICATION_SCHEMES: [],
+                IVY_PATTERNS: ['[organisation]/[module]/[revision]/ivy-[revision].xml'],
                 LAYOUT_TYPE: 'Gradle',
                 M2_COMPATIBLE: false,
-                IVY_PATTERNS: ['[organisation]/[module]/[revision]/ivy-[revision].xml'],
-                ARTIFACT_PATTERNS: ['[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])'],
-                METADATA_SOURCES: ['ivyDescriptor', 'artifact']
+                METADATA_SOURCES: ['ivyDescriptor', 'artifact'],
+                URL: null
             ]
         ]
     }
@@ -377,9 +386,11 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             name: 'MavenLocal',
             type: 'MAVEN',
             properties: [
-                URL: null,
                 ARTIFACT_URLS: [],
-                METADATA_SOURCES: ['mavenPom', 'artifact']
+                AUTHENTICATED: false,
+                AUTHENTICATION_SCHEMES: [],
+                METADATA_SOURCES: ['mavenPom', 'artifact'],
+                URL: null,
             ]
         ]
     }
@@ -394,9 +405,11 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             name: 'MavenRepo',
             type: 'MAVEN',
             properties: [
-                URL: 'https://repo.maven.apache.org/maven2/',
                 ARTIFACT_URLS: [],
-                METADATA_SOURCES: ['mavenPom', 'artifact']
+                AUTHENTICATED: false,
+                AUTHENTICATION_SCHEMES: [],
+                METADATA_SOURCES: ['mavenPom', 'artifact'],
+                URL: 'https://repo.maven.apache.org/maven2/',
             ]
         ]
     }
@@ -411,9 +424,11 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             name: 'BintrayJCenter',
             type: 'MAVEN',
             properties: [
-                URL: 'https://jcenter.bintray.com/',
                 ARTIFACT_URLS: [],
-                METADATA_SOURCES: ['mavenPom', 'artifact']
+                METADATA_SOURCES: ['mavenPom', 'artifact'],
+                AUTHENTICATED: false,
+                AUTHENTICATION_SCHEMES: [],
+                URL: 'https://jcenter.bintray.com/',
             ]
         ]
     }
@@ -428,9 +443,11 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             name: 'Google',
             type: 'MAVEN',
             properties: [
-                URL: 'https://dl.google.com/dl/android/maven2/',
                 ARTIFACT_URLS: [],
-                METADATA_SOURCES: ['mavenPom', 'artifact']
+                AUTHENTICATED: false,
+                AUTHENTICATION_SCHEMES: [],
+                METADATA_SOURCES: ['mavenPom', 'artifact'],
+                URL: 'https://dl.google.com/dl/android/maven2/',
             ]
         ]
     }
@@ -445,9 +462,11 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             name: 'Gradle Central Plugin Repository',
             type: 'MAVEN',
             properties: [
-                URL: 'https://plugins.gradle.org/m2',
                 ARTIFACT_URLS: [],
-                METADATA_SOURCES: ['mavenPom', 'artifact']
+                AUTHENTICATED: false,
+                AUTHENTICATION_SCHEMES: [],
+                METADATA_SOURCES: ['mavenPom', 'artifact'],
+                URL: 'https://plugins.gradle.org/m2',
             ]
         ]
     }

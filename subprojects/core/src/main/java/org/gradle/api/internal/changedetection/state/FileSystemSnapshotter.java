@@ -17,11 +17,14 @@
 package org.gradle.api.internal.changedetection.state;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
-import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.internal.hash.HashCode;
 
+import javax.annotation.Nullable;
 import java.io.File;
+import java.util.List;
 
 /**
  * Provides access to snapshots of the content and metadata of the file system.
@@ -41,28 +44,20 @@ public interface FileSystemSnapshotter {
     boolean exists(File file);
 
     /**
+     * Returns the hash of the content of the file if the file is a regular file and {@code null} otherwise.
+     */
+    @Nullable
+    HashCode getRegularFileContentHash(File file);
+
+    /**
      * Returns the current snapshot of the contents and meta-data of the given file.
      * The file may be a regular file, a directory or missing.
-     * When the specified file is a directory, details about the directory itself is returned,
-     * rather than details about the children of the directory.
+     * When the specified file is a directory, details about the directory and its children are returned.
      */
-    PhysicalSnapshot snapshotSelf(File file);
+    PhysicalSnapshot snapshot(File file);
 
     /**
-     * Returns a simple snapshot of the contents and meta-data of the given file.
-     * The file may or may not be a regular file, a directory or missing.
-     * When the specified file is a directory, the directory and all its children are hashed.
+     * Returns snapshots of the roots of a file collection.
      */
-    Snapshot snapshotAll(File file);
-
-    /**
-     * Returns the current snapshot of the contents and meta-data of the given directory tree.
-     */
-    PhysicalSnapshot snapshotDirectoryTree(DirectoryFileTree dirTree);
-
-    /**
-     * Returns the current snapshot of the contents and meta-data of the given file tree.
-     * Note: currently does not include the root elements, if any.
-     */
-    PhysicalSnapshot snapshotTree(FileTreeInternal tree);
+    List<FileSystemSnapshot> snapshot(FileCollectionInternal fileCollection);
 }

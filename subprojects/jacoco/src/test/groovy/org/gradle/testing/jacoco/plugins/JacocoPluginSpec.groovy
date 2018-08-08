@@ -17,6 +17,7 @@ package org.gradle.testing.jacoco.plugins
 
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.testing.Test
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.Requires
@@ -51,7 +52,7 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
     def 'jacoco task extension can be configured. includeNoLocationClasses: #includeNoLocationClassesValue'() {
         given:
         project.apply plugin: 'java'
-        project.repositories.jcenter()
+        RepoScriptBlockUtil.configureJcenter(project.repositories)
         def testTask = project.tasks.getByName('test')
         JacocoTaskExtension extension = testTask.extensions.getByType(JacocoTaskExtension)
 

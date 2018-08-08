@@ -18,20 +18,20 @@ package org.gradle.api.internal.changedetection.rules;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 import java.util.SortedMap;
 
 @NonNullApi
-public class InputFilePropertyTaskStateChanges extends AbstractPropertyTaskStateChanges<FileCollectionSnapshot> {
+public class InputFilePropertyTaskStateChanges extends AbstractPropertyTaskStateChanges<FileCollectionFingerprint> {
 
     public InputFilePropertyTaskStateChanges(TaskExecution previous, TaskExecution current, Task task) {
         super(previous, current, "Input file", task);
     }
 
     @Override
-    protected SortedMap<String, FileCollectionSnapshot> getProperties(TaskExecution execution) {
-        return execution.getInputFilesSnapshot();
+    protected SortedMap<String, ? extends FileCollectionFingerprint> getProperties(TaskExecution execution) {
+        return execution.getInputFingerprints();
     }
 }

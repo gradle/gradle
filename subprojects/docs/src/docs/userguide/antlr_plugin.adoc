@@ -13,58 +13,39 @@
 // limitations under the License.
 
 [[antlr_plugin]]
-== The ANTLR Plugin
+= The ANTLR Plugin
 
 The ANTLR plugin extends the Java plugin to add support for generating parsers using http://www.antlr.org/[ANTLR].
 
-[NOTE]
-====
-
-The ANTLR plugin supports ANTLR version 2, 3 and 4.
-
-====
-
+NOTE: The ANTLR plugin supports ANTLR version 2, 3 and 4.
 
 [[sec:antlr_usage]]
-=== Usage
+== Usage
 
 To use the ANTLR plugin, include the following in your build script:
 
-++++
-<sample id="useAntlrPlugin" dir="antlr" title="Using the ANTLR plugin">
-            <sourcefile file="build.gradle" snippet="use-plugin"/>
-        </sample>
-++++
+=== Example: Using the ANTLR plugin
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/antlr/build.gradle[tag=use-plugin]
+----
 
 
 [[sec:antlr_tasks]]
-=== Tasks
+== Tasks
 
 The ANTLR plugin adds a number of tasks to your project, as shown below.
 
-.ANTLR plugin - tasks
-[cols="a,a,a,a", options="header"]
-|===
-| Task name
-| Depends on
-| Type
-| Description
+`generateGrammarSource` — link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[AntlrTask]::
+Generates the source files for all production ANTLR grammars.
 
-| `generateGrammarSource`
-| -
-| api:org.gradle.api.plugins.antlr.AntlrTask[]
-| Generates the source files for all production ANTLR grammars.
+`generateTestGrammarSource` — link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[AntlrTask]::
+Generates the source files for all test ANTLR grammars.
 
-| `generateTestGrammarSource`
-| -
-| api:org.gradle.api.plugins.antlr.AntlrTask[]
-| Generates the source files for all test ANTLR grammars.
-
-| `generate__SourceSet__GrammarSource`
-| -
-| api:org.gradle.api.plugins.antlr.AntlrTask[]
-| Generates the source files for all ANTLR grammars for the given source set.
-|===
+`generate__SourceSet__GrammarSource` — link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[AntlrTask]::
+Generates the source files for all ANTLR grammars for the given source set.
 
 The ANTLR plugin adds the following dependencies to tasks added by the Java plugin.
 
@@ -85,76 +66,60 @@ The ANTLR plugin adds the following dependencies to tasks added by the Java plug
 
 
 [[sec:antlr_project_layout]]
-=== Project layout
+== Project layout
 
+`src/main/antlr`::
+Production ANTLR grammar files. If the ANTLR grammar is organized in packages, the structure in the antlr folder should reflect the package structure. This ensures that the generated sources end up in the correct target subfolder.
 
-.ANTLR plugin - project layout
-[cols="a,a", options="header"]
-|===
-| Directory
-| Meaning
+`src/test/antlr`::
+Test ANTLR grammar files.
 
-| `src/main/antlr`
-| Production ANTLR grammar files. If the ANTLR grammar is organized in packages, the structure in the antlr folder should reflect the package structure. This ensures that the generated sources end up in the correct target subfolder.
-
-| `src/test/antlr`
-| Test ANTLR grammar files.
-
-| `src/__sourceSet__/antlr`
-| ANTLR grammar files for the given source set.
-|===
+`src/__sourceSet__/antlr`::
+ANTLR grammar files for the given source set.
 
 
 [[sec:antlr_dependency_management]]
-=== Dependency management
+== Dependency management
 
 The ANTLR plugin adds an `antlr` dependency configuration which provides the ANTLR implementation to use. The following example shows how to use ANTLR version 3.
 
-++++
-<sample id="declareAntlrVersion" dir="antlr" title="Declare ANTLR version">
-            <sourcefile file="build.gradle" snippet="declare-dependency"/>
-        </sample>
-++++
+=== Example: Declare ANTLR version
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/antlr/build.gradle[tag=declare-dependency]
+----
 
 If no dependency is declared, `antlr:antlr:2.7.7` will be used as the default. To use a different ANTLR version add the appropriate dependency to the `antlr` dependency configuration as above.
 
 [[sec:antlr_convention_properties]]
-=== Convention properties
+== Convention properties
 
 The ANTLR plugin does not add any convention properties.
 
 [[sec:antlr_source_set_properties]]
-=== Source set properties
+== Source set properties
 
 The ANTLR plugin adds the following properties to each source set in the project.
 
-.ANTLR plugin - source set properties
-[cols="a,a,a,a", options="header"]
-|===
-| Property name
-| Type
-| Default value
-| Description
+`antlr` — link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]::
+The ANTLR grammar files of this source set. Contains all `.g` or `.g4` files found in the ANTLR source directories, and excludes all other types of files. _Default value is non-null._
 
-| `antlr`
-| api:org.gradle.api.file.SourceDirectorySet[] (read-only)
-| Not null
-| The ANTLR grammar files of this source set. Contains all `.g` or `.g4` files found in the ANTLR source directories, and excludes all other types of files.
-
-| `antlr.srcDirs`
-| `Set&lt;File&gt;`. Can set using anything described in <<sec:specifying_multiple_files>>.
-| `[__projectDir__/src/__name__/antlr]`
-| The source directories containing the ANTLR grammar files of this source set.
-|===
-
+`antlr.srcDirs` — `Set&lt;File&gt;`::
+The source directories containing the ANTLR grammar files of this source set.
+Can set using anything <<working_with_files.adoc#sec:specifying_multiple_files, that implicitly converts to a file collection>>.
+Default value is `[__projectDir__/src/__name__/antlr]`.
 
 [[sec:controlling_the_antlr_generator_process]]
-=== Controlling the ANTLR generator process
+== Controlling the ANTLR generator process
 
-The ANTLR tool is executed in a forked process. This allows fine grained control over memory settings for the ANTLR process. To set the heap size of an ANTLR process, the `maxHeapSize` property of api:org.gradle.api.plugins.antlr.AntlrTask[] can be used. To pass additional command-line arguments, append to the `arguments` property of api:org.gradle.api.plugins.antlr.AntlrTask[].
+The ANTLR tool is executed in a forked process. This allows fine grained control over memory settings for the ANTLR process. To set the heap size of an ANTLR process, the `maxHeapSize` property of link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[AntlrTask] can be used. To pass additional command-line arguments, append to the `arguments` property of link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[AntlrTask].
 
-++++
-<sample id="advanced" dir="antlr" title="setting custom max heap size and extra arguments for ANTLR">
-            <sourcefile file="build.gradle" snippet="generate-grammar-settings"/>
-        </sample>
-++++
+=== Example: Setting custom max heap size and extra arguments for ANTLR
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/antlr/build.gradle[tag=generate-grammar-settings]
+----

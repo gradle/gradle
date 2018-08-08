@@ -59,7 +59,7 @@ enum class ModuleType(val source: JavaVersion, val target: JavaVersion, val requ
 
 class UnitTestAndCompilePlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
-        apply { plugin("groovy") }
+        apply(plugin = "groovy")
 
         val extension = extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", this)
 
@@ -158,6 +158,10 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
                 // enable class unloading
                 jvmArgs("-XX:+UseConcMarkSweepGC", "-XX:+CMSClassUnloadingEnabled")
             }
+            if (javaInstallationForTest.javaVersion.isJava9Compatible) {
+                //allow embedded executer to modify environment variables
+                jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
+            }
             // Includes JVM vendor and major version
             inputs.property("javaInstallation", javaInstallationForTest.displayName)
             doFirst {
@@ -175,7 +179,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 
             override fun asArguments(): Iterable<String> {
                 return if (BuildEnvironment.isCiServer) {
-                    mapOf(
+                    getRepoMirrorSystemProperties() + mapOf(
                         "org.gradle.test.maxParallelForks" to test.maxParallelForks,
                         "org.gradle.ci.agentCount" to 2,
                         "org.gradle.ci.agentNum" to agentNum
@@ -188,6 +192,19 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             }
         }
     }
+
+    private
+    fun getRepoMirrorSystemProperties(): List<String> = collectMirrorUrls().map {
+        "-Dorg.gradle.integtest.mirrors.${it.key}=${it.value}"
+    }
+
+    private
+    fun collectMirrorUrls(): Map<String, String> =
+    // expected env var format: repo1_id:repo1_url,repo2_id:repo2_url,...
+        System.getenv("REPO_MIRROR_URLS")?.split(',')?.associate { nameToUrl ->
+            val (name, url) = nameToUrl.split(':', limit = 2)
+            name to url
+        } ?: emptyMap()
 }
 
 

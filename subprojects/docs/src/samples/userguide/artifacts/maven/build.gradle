@@ -1,21 +1,21 @@
 apply plugin: 'java'
-//START SNIPPET upload-file
+// tag::upload-file[]
 apply plugin: 'maven'
 
-//START SNIPPET builder
-//START SNIPPET customize-pom
-//START SNIPPET multiple-poms
+// tag::builder[]
+// tag::customize-pom[]
+// tag::multiple-poms[]
 uploadArchives {
     repositories {
         mavenDeployer {
             repository(url: "file://localhost/tmp/myRepo/")
-//END SNIPPET upload-file
-//END SNIPPET multiple-poms
-//END SNIPPET builder
+// end::upload-file[]
+// end::multiple-poms[]
+// end::builder[]
             pom.version = '1.0Maven'
             pom.artifactId = 'myMavenName'
-//END SNIPPET customize-pom
-//START SNIPPET builder
+// end::customize-pom[]
+// tag::builder[]
             pom.project {
                 licenses {
                     license {
@@ -25,8 +25,8 @@ uploadArchives {
                     }
                 }
             }
-//END SNIPPET builder
-//START SNIPPET multiple-poms
+// end::builder[]
+// tag::multiple-poms[]
             addFilter('api') {artifact, file ->
                 artifact.name == 'api'
             }
@@ -34,18 +34,18 @@ uploadArchives {
                 artifact.name == 'service'
             }
             pom('api').version = 'mySpecialMavenVersion'
-//START SNIPPET customize-pom
-//START SNIPPET upload-file
-//START SNIPPET builder
+// tag::customize-pom[]
+// tag::upload-file[]
+// tag::builder[]
         }
     }
 }
-//END SNIPPET customize-pom
-//END SNIPPET multiple-poms
-//END SNIPPET upload-file
-//END SNIPPET builder
+// end::customize-pom[]
+// end::multiple-poms[]
+// end::upload-file[]
+// end::builder[]
 
-//START SNIPPET upload-with-ssh
+// tag::upload-with-ssh[]
 configurations {
     deployerJars
 }
@@ -66,21 +66,21 @@ uploadArchives {
         }
     }
 }
-//END SNIPPET upload-with-ssh
+// end::upload-with-ssh[]
 
-//START SNIPPET customize-installer
+// tag::customize-installer[]
 install {
     repositories.mavenInstaller {
         pom.version = '1.0Maven'
         pom.artifactId = 'myName'
     }
 }
-//END SNIPPET customize-installer
+// end::customize-installer[]
 
-//START SNIPPET mappings
+// tag::mappings[]
 task mappings {
     doLast {
         println conf2ScopeMappings.mappings
     }
 }
-//END SNIPPET mappings
+// end::mappings[]

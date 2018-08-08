@@ -24,7 +24,9 @@ dependencies {
     compile project(':core')
     compile project(':platformNative')
     compile project(':maven')
+    compile project(':toolingApi')
 
+    implementation project(':versionControl')
     implementation libraries.commons_io.coordinates
 
     integTestRuntimeOnly project(":ideNative")
