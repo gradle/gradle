@@ -685,6 +685,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<ExcludeRule> getExcludeRules() {
+        initExcludeRules();
+        return Collections.unmodifiableSet(parsedExcludeRules);
+    }
+
+    /**
+     * Synchronize read access to excludes. Mutation does not need to be thread-safe.
+     */
+    private synchronized void initExcludeRules() {
         if (parsedExcludeRules == null) {
             NotationParser<Object, ExcludeRule> parser = ExcludeRuleNotationConverter.parser();
             parsedExcludeRules = Sets.newLinkedHashSet();
@@ -692,7 +700,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 parsedExcludeRules.add(parser.parseNotation(excludeRule));
             }
         }
-        return Collections.unmodifiableSet(parsedExcludeRules);
     }
 
     public void setExcludeRules(Set<ExcludeRule> excludeRules) {
