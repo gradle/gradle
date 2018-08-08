@@ -234,6 +234,15 @@ public abstract class TypeOf<T> {
         return type.getDisplayName();
     }
 
+    /**
+     * Concrete class.
+     *
+     * @return Underlying Java Class of this type.
+     */
+    public Class<T> getConcreteClass() {
+        return type.getConcreteClass();
+    }
+
     @Override
     public final String toString() {
         return type.toString();

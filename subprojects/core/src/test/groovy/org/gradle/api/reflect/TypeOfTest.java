@@ -74,6 +74,7 @@ public class TypeOfTest {
         assertTrue(type.isSimple());
         assertFalse(type.isArray());
         assertFalse(type.isParameterized());
+        assertEquals(type.getConcreteClass(), String.class);
     }
 
     @Test

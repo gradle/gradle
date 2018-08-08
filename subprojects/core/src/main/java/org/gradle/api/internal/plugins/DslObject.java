@@ -80,17 +80,14 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
     }
 
     public Class getDeclaredType() {
-        if (object instanceof DynamicObjectAware) {
-            return object.getClass().getSuperclass();
-        }
-        return object.getClass();
+        return getPublicType().getConcreteClass();
     }
 
     public TypeOf<Object> getPublicType() {
         if (object instanceof HasPublicType) {
             return uncheckedCast(((HasPublicType) object).getPublicType());
         }
-        return TypeOf.<Object>typeOf(firstNonSyntheticClassOf(getDeclaredType()));
+        return TypeOf.<Object>typeOf(firstNonSyntheticClassOf(object.getClass()));
     }
 
     private Class<?> firstNonSyntheticClassOf(Class<?> clazz) {
