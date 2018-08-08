@@ -14,8 +14,8 @@ apiMetadata {
     sources.from(provider {
         javaProjects.map { it.sourceSets["main"].allJava }
     })
-    includes.addAll(PublicApi.includes)
-    excludes.addAll(PublicApi.excludes)
+    includes.addAll(provider { PublicApi.includes })
+    excludes.addAll(provider { PublicApi.excludes })
     classpath.from(rootProject.configurations.runtime)
     classpath.from(rootProject.configurations["gradlePlugins"])
 }
