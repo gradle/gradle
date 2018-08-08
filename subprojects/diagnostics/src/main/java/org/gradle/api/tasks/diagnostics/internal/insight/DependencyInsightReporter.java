@@ -172,6 +172,12 @@ public class DependencyInsightReporter {
             ComponentSelectionDescriptorInternal descriptor = (ComponentSelectionDescriptorInternal) entry;
             ComponentSelectionCause cause = descriptor.getCause();
             boolean hasCustomDescription = descriptor.hasCustomDescription();
+
+            if (cause.isExpected() && !hasCustomDescription) {
+                // Don't render empty 'requested' reason
+                continue;
+            }
+
             String message = null;
             if (hasCustomDescription) {
                 selectionReasons.shouldDisplay();

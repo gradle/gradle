@@ -75,4 +75,8 @@ public enum ComponentSelectionCause {
     public String getDefaultReason() {
         return defaultReason;
     }
+
+    public boolean isExpected() {
+        return this == REQUESTED || this == ROOT;
+    }
 }

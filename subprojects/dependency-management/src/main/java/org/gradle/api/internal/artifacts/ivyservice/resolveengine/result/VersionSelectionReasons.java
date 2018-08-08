@@ -98,7 +98,7 @@ public class VersionSelectionReasons {
 
         public boolean isExpected() {
             ComponentSelectionCause cause = Iterables.getLast(descriptions).getCause();
-            return cause == ComponentSelectionCause.ROOT || cause == ComponentSelectionCause.REQUESTED;
+            return cause.isExpected();
         }
 
         public boolean isCompositeSubstitution() {

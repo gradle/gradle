@@ -199,7 +199,6 @@ org:leaf2:2.5
       org.gradle.status = release (not requested)
    ]
    Selection reasons:
-      - Was requested
       - By conflict resolution : between versions 1.5, 2.5 and 1.0
 
 org:leaf2:2.5
@@ -330,7 +329,6 @@ org:leaf2:2.5
       org.gradle.status = release (not requested)
    ]
    Selection reasons:
-      - Was requested
       - By conflict resolution : between versions 1.5, 2.5 and 1.0
 
 org:leaf2:2.5
@@ -662,7 +660,6 @@ org.test:bar:2.0
       org.gradle.status = release (not requested)
    ]
    Selection reasons:
-      - Was requested
       - Selected by rule : why not?
 
 org:bar:1.0 -> org.test:bar:2.0
@@ -681,7 +678,6 @@ org:foo:2.0
       org.gradle.status = release (not requested)
    ]
    Selection reasons:
-      - Was requested
       - Selected by rule : because I am in control
 
 org:foo:1.0 -> 2.0
@@ -726,7 +722,6 @@ org:foo:1.0 -> 2.0
       org.gradle.status = release (not requested)
    ]
    Selection reasons:
-      - Was requested
       - Selected by rule : foo superceded by bar
 
 org:foo:1.0 -> org:bar:1.0
@@ -819,7 +814,6 @@ org:leaf:2.0 -> org:new-leaf:77
       org.gradle.status = release (not requested)
    ]
    Selection reasons:
-      - Was requested
       - Selected by rule : I am not sure I want to explain
 
 org:bar:1.0 -> 2.0
@@ -830,7 +824,6 @@ org:foo:2.0
       org.gradle.status = release (not requested)
    ]
    Selection reasons:
-      - Was requested
       - Selected by rule : I want to
 
 org:foo:1.0 -> 2.0
@@ -873,7 +866,6 @@ org:leaf:1.6
       org.gradle.status = integration (not requested)
    ]
    Selection reasons:
-      - Was requested
       - By conflict resolution : between versions 1.6 and 1.6
 
 org:leaf:1.+ -> 1.6
@@ -1822,7 +1814,6 @@ org:foo -> $selected
          org.gradle.usage  = java-api
    ]
    Selection reasons:
-      - Was requested
       - By constraint : $rejected
 
 org:foo -> $selected
@@ -1876,7 +1867,6 @@ org:foo -> $selected
          org.gradle.usage  = java-api
    ]
    Selection reasons:
-      - Was requested
       - By constraint : ${rejected}${reason}
 
 org:foo -> $selected
@@ -2092,7 +2082,6 @@ org:bar:1.0
          org.gradle.usage  = java-api
    ]
    Selection reasons:
-      - Was requested
       - Rejection : 1.2 by rule because version 1.2 is bad
       - Rejection : 1.1 by rule because version 1.1 is bad
 
@@ -2432,7 +2421,6 @@ org:foo:1.0
          org.gradle.usage  = java-api
    ]
    Selection reasons:
-      - Was requested
       - Rejection : version 1.2:
           - Attribute 'color' didn't match. Requested 'blue', was: 'red'
           - Attribute 'org.gradle.usage' didn't match. Requested 'java-api', was: not found
@@ -2497,7 +2485,6 @@ planet:mercury:1.0.2
          org.gradle.usage  = java-api
    ]
    Selection reasons:
-      - Was requested
       - By conflict resolution : between versions 1.0.2 and 1.0.1
 
 planet:mercury:1.0.2
@@ -2525,7 +2512,6 @@ planet:venus:2.0.1
          org.gradle.usage  = java-api
    ]
    Selection reasons:
-      - Was requested
       - By conflict resolution : between versions 2.0.0, 2.0.1 and 1.0
 
 planet:venus:2.0.1
