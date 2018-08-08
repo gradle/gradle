@@ -19,7 +19,7 @@ repositories {
 dependencies {
     compileOnly(project(":provider"))
 
-    implementation("gradle.plugin.org.jlleitschuh.gradle:ktlint-gradle:4.1.0")
+    implementation("gradle.plugin.org.jlleitschuh.gradle:ktlint-gradle:5.0.0")
     implementation(futureKotlin("stdlib-jdk8"))
 
     testImplementation(project(":test-fixtures"))
@@ -37,7 +37,7 @@ bundledGradlePlugin(
 
 // default versions ---------------------------------------------------
 
-val ktlintVersion = "0.24.0"
+val ktlintVersion = "0.27.0"
 
 val basePackagePath = "org/gradle/kotlin/dsl/experiments/plugins"
 val processResources: ProcessResources by tasks
