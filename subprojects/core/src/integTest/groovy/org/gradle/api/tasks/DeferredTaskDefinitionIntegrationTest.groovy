@@ -1117,9 +1117,9 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                 if (taskName == "bar") {
                     tasks.register("bar")
                 } else if (taskName == "baz") {
-                    tasks.register("baz", SomeTask)
+                    tasks.create("baz")
                 } else if (taskName == "notByRule") {
-                    tasks.register("notByRule) {
+                    tasks.register("notByRule") {
                         throw new Exception("This should not be called")
                     }
                 }
@@ -1128,7 +1128,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             
             task foo {
                 dependsOn tasks.named("bar")
-                dependsOn tasks.withType(SomeTask).named("baz")
+                dependsOn tasks.named("baz")
                 dependsOn "notByRule"
             }
             
