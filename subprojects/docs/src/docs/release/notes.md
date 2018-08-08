@@ -92,8 +92,8 @@ However, we strongly recommend that build and plugin authors use Gradle properti
 
 ### Incremental build uses less memory
 
-Some improvements made to up-to-date checking results in less heap space being used.
-For a build similar to Gradle's own this results in a 60 MB reduction in heap usage.
+Memory usage for up-to-date checking has been improved.
+For the gradle/gradle build, heap usage dropped by 60 MB to 450 MB, that is a 12% reduction.
 
 ## Promoted features
 
