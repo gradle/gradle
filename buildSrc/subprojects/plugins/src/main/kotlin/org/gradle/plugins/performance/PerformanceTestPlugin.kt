@@ -243,7 +243,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
 
         create("performanceExperiment") {
-            (options as JUnitOptions).includeCategories(performanceExperimentCategory)
+            filter.includeTest("org.gradle.performance.experiment.java.KotlinPerformanceComparison", null)
         }
 
         create("fullPerformanceTest")
@@ -270,7 +270,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             channel = "commits"
         }
         create("distributedPerformanceExperiment") {
-            (options as JUnitOptions).includeCategories(performanceExperimentCategory)
+            filter.includeTest("org.gradle.performance.experiment.java.KotlinPerformanceComparison", null)
             channel = "experiments"
         }
         create("distributedFullPerformanceTest") {
