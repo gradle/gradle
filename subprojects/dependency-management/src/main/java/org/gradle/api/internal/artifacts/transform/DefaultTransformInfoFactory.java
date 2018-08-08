@@ -62,7 +62,7 @@ public class DefaultTransformInfoFactory implements TransformInfoFactory {
                 transformInfo = TransformInfo.initial(transformerChain.iterator().next(), singleArtifactSet);
             } else {
                 TransformInfo previous = getOrCreate(singleArtifactSet, transformerChain.subList(0, transformerChain.size() - 1));
-                transformInfo = TransformInfo.chained(transformerChain.get(transformerChain.size() - 1), previous);
+                transformInfo = TransformInfo.chained(transformerChain.get(transformerChain.size() - 1), previous, singleArtifactSet.getArtifactId());
             }
             transformations.put(key, transformInfo);
         }

@@ -205,10 +205,10 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         then:
         output.count("> Transform lib1.jar (project :lib) with MakeBlueToGreenThings") == 1
         output.count("> Transform lib2.jar (project :lib) with MakeBlueToGreenThings") == 1
-        output.count("> Transform lib1.jar.green with MakeGreenToYellowThings") == 1
-        output.count("> Transform lib2.jar.green with MakeGreenToYellowThings") == 1
-        output.count("> Transform lib1.jar.green with MakeGreenToRedThings") == 1
-        output.count("> Transform lib2.jar.green with MakeGreenToRedThings") == 1
+        output.count("> Transform lib1.jar (project :lib) with MakeGreenToYellowThings") == 1
+        output.count("> Transform lib2.jar (project :lib) with MakeGreenToYellowThings") == 1
+        output.count("> Transform lib1.jar (project :lib) with MakeGreenToRedThings") == 1
+        output.count("> Transform lib2.jar (project :lib) with MakeGreenToRedThings") == 1
     }
 
     def "each file is transformed once per set of configuration parameters"() {

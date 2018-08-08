@@ -62,6 +62,7 @@ trait ToolingApiClasspathProvider {
         sharedSpec.allowPackage('org.gradle.play.integtest.fixtures')
         sharedSpec.allowPackage('org.gradle.plugins.ide.fixtures')
         sharedSpec.allowPackage('org.gradle.test.fixtures')
+        sharedSpec.allowPackage('org.gradle.nativeplatform.fixtures')
         sharedSpec.allowPackage('org.gradle.launcher.daemon.testing')
         sharedSpec.allowClass(OperatingSystem)
         sharedSpec.allowClass(Requires)
