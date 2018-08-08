@@ -15,10 +15,8 @@
  */
 package org.gradle.integtests
 
-
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
-import org.gradle.util.GradleVersion
 import spock.lang.Issue
 /**
  * Tests that task classes compiled against earlier versions of Gradle using the static Groovy compiler are still compatible.
@@ -36,7 +34,7 @@ class StaticGroovyTaskSubclassingBinaryCompatibilityCrossVersionSpec extends Cro
         file("producer/build.gradle") << """
             apply plugin: 'groovy'
             dependencies {
-                ${previous.version < GradleVersion.version("1.4-rc-1") ? "groovy" : "compile"} localGroovy()
+                compile localGroovy()
                 compile gradleApi()
             }
         """
