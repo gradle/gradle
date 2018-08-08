@@ -57,7 +57,7 @@ public class MerkleDirectorySnapshotBuilder implements PhysicalSnapshotVisitor {
     }
 
     @Override
-    public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+    public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
         return preVisitDirectory(directorySnapshot.getAbsolutePath(), directorySnapshot.getName());
     }
 
@@ -71,7 +71,7 @@ public class MerkleDirectorySnapshotBuilder implements PhysicalSnapshotVisitor {
     }
 
     @Override
-    public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+    public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
         postVisitDirectory(true);
     }
 
@@ -95,7 +95,7 @@ public class MerkleDirectorySnapshotBuilder implements PhysicalSnapshotVisitor {
             hasher.putString(child.getName());
             hasher.putHash(child.getHash());
         }
-        PhysicalDirectorySnapshot directorySnapshot = new PhysicalDirectorySnapshot(absolutePath, name, children, hasher.hash());
+        DirectorySnapshot directorySnapshot = new DirectorySnapshot(absolutePath, name, children, hasher.hash());
         List<PhysicalSnapshot> siblings = levelHolder.peekLast();
         if (siblings != null) {
             siblings.add(directorySnapshot);

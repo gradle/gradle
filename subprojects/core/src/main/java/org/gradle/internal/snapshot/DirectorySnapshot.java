@@ -24,11 +24,11 @@ import java.util.List;
 /**
  * A file snapshot which can have children (i.e. a directory).
  */
-public class PhysicalDirectorySnapshot extends AbstractPhysicalSnapshot implements PhysicalSnapshot {
+public class DirectorySnapshot extends AbstractPhysicalSnapshot implements PhysicalSnapshot {
     private final List<PhysicalSnapshot> children;
     private final HashCode contentHash;
 
-    public PhysicalDirectorySnapshot(String absolutePath, String name, List<PhysicalSnapshot> children, HashCode contentHash) {
+    public DirectorySnapshot(String absolutePath, String name, List<PhysicalSnapshot> children, HashCode contentHash) {
         super(absolutePath, name);
         this.children = children;
         this.contentHash = contentHash;
@@ -46,7 +46,7 @@ public class PhysicalDirectorySnapshot extends AbstractPhysicalSnapshot implemen
 
     @Override
     public boolean isContentAndMetadataUpToDate(PhysicalSnapshot other) {
-        return other instanceof PhysicalDirectorySnapshot;
+        return other instanceof DirectorySnapshot;
     }
 
     @Override

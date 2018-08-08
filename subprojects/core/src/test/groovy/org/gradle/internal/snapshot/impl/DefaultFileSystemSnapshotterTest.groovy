@@ -22,11 +22,11 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.TestFileHasher
+import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.PhysicalDirectorySnapshot
-import org.gradle.internal.snapshot.PhysicalFileSnapshot
 import org.gradle.internal.snapshot.PhysicalSnapshot
 import org.gradle.internal.snapshot.PhysicalSnapshotVisitor
+import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -45,7 +45,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         snapshot.absolutePath == f.path
         snapshot.name == "f"
         snapshot.type == FileType.RegularFile
-        snapshot.isContentAndMetadataUpToDate(new PhysicalFileSnapshot(f.path, f.absolutePath, fileHasher.hash(f), TestFiles.fileSystem().stat(f).lastModified))
+        snapshot.isContentAndMetadataUpToDate(new RegularFileSnapshot(f.path, f.absolutePath, fileHasher.hash(f), TestFiles.fileSystem().stat(f).lastModified))
 
         def snapshot2 = snapshotter.snapshot(f)
         snapshot2.is(snapshot)
@@ -173,7 +173,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
             private boolean seenRoot = false
 
             @Override
-            boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+            boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                 if (!seenRoot) {
                     seenRoot = true
                 } else {
@@ -191,7 +191,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
             }
 
             @Override
-            void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+            void postVisitDirectory(DirectorySnapshot directorySnapshot) {
                 if (relativePath.isEmpty()) {
                     seenRoot = false
                 } else {
@@ -226,7 +226,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         getSnapshotInfo(snapshot) == [null, 1]
         snapshot.accept(new PhysicalSnapshotVisitor() {
             @Override
-            boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+            boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                 throw new UnsupportedOperationException()
             }
 
@@ -237,7 +237,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
             }
 
             @Override
-            void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+            void postVisitDirectory(DirectorySnapshot directorySnapshot) {
                 throw new UnsupportedOperationException()
             }
         })
@@ -279,7 +279,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         int count = 0
         tree.accept(new PhysicalSnapshotVisitor() {
             @Override
-            boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+            boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                 if (rootPath == null) {
                     rootPath = directorySnapshot.absolutePath
                 }
@@ -293,7 +293,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
             }
 
             @Override
-            void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+            void postVisitDirectory(DirectorySnapshot directorySnapshot) {
             }
         })
         return [rootPath, count]

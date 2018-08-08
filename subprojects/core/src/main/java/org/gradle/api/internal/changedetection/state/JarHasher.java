@@ -27,7 +27,7 @@ import org.gradle.internal.fingerprint.FileFingerprint;
 import org.gradle.internal.fingerprint.impl.DefaultFileFingerprint;
 import org.gradle.internal.fingerprint.impl.NormalizedPathFingerprintCompareStrategy;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.PhysicalFileSnapshot;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +53,7 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
 
     @Nullable
     @Override
-    public HashCode hash(PhysicalFileSnapshot fileSnapshot) {
+    public HashCode hash(RegularFileSnapshot fileSnapshot) {
         return hashJarContents(fileSnapshot);
     }
 
@@ -64,7 +64,7 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
         classpathResourceFilter.appendConfigurationToHasher(hasher);
     }
 
-    private HashCode hashJarContents(PhysicalFileSnapshot jarFileSnapshot) {
+    private HashCode hashJarContents(RegularFileSnapshot jarFileSnapshot) {
         try {
             List<FileFingerprint> fingerprints = fingerprintZipEntries(jarFileSnapshot.getAbsolutePath());
             if (fingerprints.isEmpty()) {
@@ -118,7 +118,7 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
         }
     }
 
-    private HashCode hashMalformedZip(PhysicalFileSnapshot jarFileSnapshot, Exception e) {
+    private HashCode hashMalformedZip(RegularFileSnapshot jarFileSnapshot, Exception e) {
         LOGGER.debug("Malformed jar '{}' found on classpath. Falling back to full content hash instead of classpath hashing.", jarFileSnapshot.getName(), e);
         return jarFileSnapshot.getHash();
     }

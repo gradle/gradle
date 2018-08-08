@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.PhysicalDirectorySnapshot;
 import org.gradle.internal.snapshot.PhysicalSnapshot;
 import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
 
@@ -49,7 +49,7 @@ public enum AbsolutePathFingerprintingStrategy implements FingerprintingStrategy
             root.accept(new PhysicalSnapshotVisitor() {
 
                 @Override
-                public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+                public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                     String absolutePath = directorySnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
                         builder.put(absolutePath, new DefaultFileFingerprint(directorySnapshot.getAbsolutePath(), directorySnapshot));
@@ -69,7 +69,7 @@ public enum AbsolutePathFingerprintingStrategy implements FingerprintingStrategy
                 }
 
                 @Override
-                public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+                public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
                 }
 
             });

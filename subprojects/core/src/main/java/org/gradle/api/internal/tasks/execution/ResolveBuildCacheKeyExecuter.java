@@ -43,7 +43,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
-import org.gradle.internal.snapshot.PhysicalDirectorySnapshot;
+import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.PhysicalSnapshot;
 import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
 
@@ -222,7 +222,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             }
 
             @Override
-            public boolean preVisitDirectory(PhysicalDirectorySnapshot physicalSnapshot) {
+            public boolean preVisitDirectory(DirectorySnapshot physicalSnapshot) {
                 this.path = physicalSnapshot.getAbsolutePath();
                 this.name = physicalSnapshot.getName();
                 this.hash = null;
@@ -261,7 +261,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             }
 
             @Override
-            public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+            public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
                 visitor.postDirectory();
                 if (--depth == 0) {
                     visitor.postRoot();

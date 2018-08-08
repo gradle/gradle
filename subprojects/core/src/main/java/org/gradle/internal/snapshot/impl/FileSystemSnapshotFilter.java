@@ -24,9 +24,9 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
-import org.gradle.internal.snapshot.PhysicalDirectorySnapshot;
 import org.gradle.internal.snapshot.PhysicalSnapshot;
 import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
 import org.gradle.internal.snapshot.RelativePathSegmentsTracker;
@@ -47,7 +47,7 @@ public class FileSystemSnapshotFilter {
             private final RelativePathSegmentsTracker relativePathTracker = new RelativePathSegmentsTracker();
 
             @Override
-            public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+            public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                 boolean root = relativePathTracker.isRoot();
                 relativePathTracker.enter(directorySnapshot);
                 if (root || spec.isSatisfiedBy(new LogicalFileTreeElement(directorySnapshot, relativePathTracker.getRelativePath(), fileSystem))) {
@@ -73,7 +73,7 @@ public class FileSystemSnapshotFilter {
             }
 
             @Override
-            public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+            public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
                 relativePathTracker.leave();
                 builder.postVisitDirectory();
             }

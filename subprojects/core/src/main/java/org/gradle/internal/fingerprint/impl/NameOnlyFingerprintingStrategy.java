@@ -19,8 +19,8 @@ package org.gradle.internal.fingerprint.impl;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.fingerprint.FileFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.PhysicalDirectorySnapshot;
 import org.gradle.internal.snapshot.PhysicalSnapshot;
 import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
 
@@ -48,7 +48,7 @@ public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
                 private boolean root = true;
 
                 @Override
-                public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+                public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                     String absolutePath = directorySnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
                         FileFingerprint fingerprint = isRoot() ? IgnoredPathFingerprint.DIRECTORY : new DefaultFileFingerprint(directorySnapshot.getName(), directorySnapshot);
@@ -73,7 +73,7 @@ public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
                 }
 
                 @Override
-                public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+                public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
                 }
             });
         }

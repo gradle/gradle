@@ -52,9 +52,9 @@ import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerpr
 import org.gradle.internal.fingerprint.impl.EmptyHistoricalFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
-import org.gradle.internal.snapshot.PhysicalDirectorySnapshot;
 import org.gradle.internal.snapshot.PhysicalSnapshot;
 import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
@@ -222,10 +222,10 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             afterExecution.visitRoots(new PhysicalSnapshotVisitor() {
                 private MerkleDirectorySnapshotBuilder merkleBuilder;
                 private boolean currentRootFiltered = false;
-                private PhysicalDirectorySnapshot currentRoot;
+                private DirectorySnapshot currentRoot;
 
                 @Override
-                public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+                public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                     if (merkleBuilder == null) {
                         merkleBuilder = MerkleDirectorySnapshotBuilder.noSortingRequired();
                         currentRoot = directorySnapshot;
@@ -250,7 +250,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 }
 
                 @Override
-                public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+                public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
                     boolean isOutputDir = isOutputEntry(directorySnapshot, beforeExecutionSnapshots, afterPreviousFingerprints);
                     boolean includedDir = merkleBuilder.postVisitDirectory(isOutputDir);
                     if (!includedDir) {
@@ -445,7 +445,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         private final Map<String, PhysicalSnapshot> snapshots = new HashMap<String, PhysicalSnapshot>();
 
         @Override
-        public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+        public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
             snapshots.put(directorySnapshot.getAbsolutePath(), directorySnapshot);
             return true;
         }
@@ -456,7 +456,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
 
         @Override
-        public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+        public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
         }
 
         public Map<String, PhysicalSnapshot> getSnapshots() {

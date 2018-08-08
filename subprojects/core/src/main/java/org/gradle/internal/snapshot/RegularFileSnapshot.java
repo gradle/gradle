@@ -18,31 +18,37 @@ package org.gradle.internal.snapshot;
 
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hashing;
 
 /**
- * Represents a missing file.
+ * A file snapshot for a regular file.
  */
-public class PhysicalMissingSnapshot extends AbstractPhysicalSnapshot {
-    private static final HashCode SIGNATURE = Hashing.md5().hashString(PhysicalMissingSnapshot.class.getName());
+public class RegularFileSnapshot extends AbstractPhysicalSnapshot {
+    private final HashCode contentHash;
+    private final long lastModified;
 
-    public PhysicalMissingSnapshot(String absolutePath, String name) {
+    public RegularFileSnapshot(String absolutePath, String name, HashCode contentHash, long lastModified) {
         super(absolutePath, name);
+        this.contentHash = contentHash;
+        this.lastModified = lastModified;
     }
 
     @Override
     public FileType getType() {
-        return FileType.Missing;
+        return FileType.RegularFile;
     }
 
     @Override
     public HashCode getHash() {
-        return SIGNATURE;
+        return contentHash;
     }
 
     @Override
     public boolean isContentAndMetadataUpToDate(PhysicalSnapshot other) {
-        return other instanceof PhysicalMissingSnapshot;
+        if (!(other instanceof RegularFileSnapshot)) {
+            return false;
+        }
+        RegularFileSnapshot otherSnapshot = (RegularFileSnapshot) other;
+        return lastModified == otherSnapshot.lastModified && contentHash.equals(otherSnapshot.contentHash);
     }
 
     @Override

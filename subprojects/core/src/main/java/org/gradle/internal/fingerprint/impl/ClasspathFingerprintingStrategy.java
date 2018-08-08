@@ -31,11 +31,11 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.PhysicalDirectorySnapshot;
-import org.gradle.internal.snapshot.PhysicalFileSnapshot;
 import org.gradle.internal.snapshot.PhysicalSnapshot;
 import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathSegmentsTracker;
 import org.gradle.internal.snapshot.RelativePathStringTracker;
 
@@ -135,7 +135,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         }
 
         @Override
-        public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+        public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
             relativePathSegmentsTracker.enter(directorySnapshot);
             return delegate.preVisitDirectory(directorySnapshot);
         }
@@ -143,7 +143,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         @Override
         public void visit(PhysicalSnapshot fileSnapshot) {
             if (fileSnapshot.getType() == FileType.RegularFile) {
-                HashCode normalizedContent = fingerprintFile((PhysicalFileSnapshot) fileSnapshot);
+                HashCode normalizedContent = fingerprintFile((RegularFileSnapshot) fileSnapshot);
                 if (normalizedContent != null) {
                     delegate.visit(fileSnapshot, normalizedContent);
                 }
@@ -151,12 +151,12 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         }
 
         @Nullable
-        private HashCode fingerprintFile(PhysicalFileSnapshot fileSnapshot) {
+        private HashCode fingerprintFile(RegularFileSnapshot fileSnapshot) {
             return relativePathSegmentsTracker.isRoot() ? fingerprintRootFile(fileSnapshot) : fingerprintTreeFile(fileSnapshot);
         }
 
         @Nullable
-        private HashCode fingerprintTreeFile(PhysicalFileSnapshot fileSnapshot) {
+        private HashCode fingerprintTreeFile(RegularFileSnapshot fileSnapshot) {
             relativePathSegmentsTracker.enter(fileSnapshot);
             boolean shouldBeIgnored = classpathResourceFilter.shouldBeIgnored(relativePathFactory);
             relativePathSegmentsTracker.leave();
@@ -167,7 +167,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         }
 
         @Override
-        public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+        public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
             relativePathSegmentsTracker.leave();
             delegate.postVisitDirectory();
         }
@@ -175,7 +175,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
 
 
     @Nullable
-    private HashCode fingerprintRootFile(PhysicalFileSnapshot fileSnapshot) {
+    private HashCode fingerprintRootFile(RegularFileSnapshot fileSnapshot) {
         if (FileUtils.hasExtensionIgnoresCase(fileSnapshot.getName(), ".jar")) {
             return fingerprintJarContents(fileSnapshot);
         }
@@ -183,7 +183,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
     }
 
     @Nullable
-    private HashCode fingerprintJarContents(PhysicalFileSnapshot fileSnapshot) {
+    private HashCode fingerprintJarContents(RegularFileSnapshot fileSnapshot) {
         return cacheService.hashFile(fileSnapshot, jarHasher, jarHasherConfigurationHash);
     }
 

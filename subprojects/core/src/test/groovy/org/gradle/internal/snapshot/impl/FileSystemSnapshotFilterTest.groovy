@@ -24,12 +24,12 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotter
-import org.gradle.internal.snapshot.PhysicalDirectorySnapshot
-import org.gradle.internal.snapshot.PhysicalFileSnapshot
 import org.gradle.internal.snapshot.PhysicalSnapshot
 import org.gradle.internal.snapshot.PhysicalSnapshotVisitor
+import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class FileSystemSnapshotFilterTest extends AbstractProjectBuilderSpec {
@@ -76,8 +76,8 @@ class FileSystemSnapshotFilterTest extends AbstractProjectBuilderSpec {
         def root = temporaryFolder.createFile("root")
 
         expect:
-        filteredPaths(new PhysicalDirectorySnapshot(root.absolutePath, root.name, [], HashCode.fromInt(789)), include("different")) == [root] as Set
-        filteredPaths(new PhysicalFileSnapshot(root.absolutePath, root.name, HashCode.fromInt(1234), 1234), include("different")) == [root] as Set
+        filteredPaths(new DirectorySnapshot(root.absolutePath, root.name, [], HashCode.fromInt(789)), include("different")) == [root] as Set
+        filteredPaths(new RegularFileSnapshot(root.absolutePath, root.name, HashCode.fromInt(1234), 1234), include("different")) == [root] as Set
     }
 
     def "returns original tree if nothing is excluded"() {
@@ -97,7 +97,7 @@ class FileSystemSnapshotFilterTest extends AbstractProjectBuilderSpec {
         def result = [] as Set
         FileSystemSnapshotFilter.filterSnapshot(patterns.asSpec, unfiltered, fileSystem).accept(new PhysicalSnapshotVisitor() {
             @Override
-            boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+            boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                 result << new File(directorySnapshot.absolutePath)
                 return true
             }
@@ -108,7 +108,7 @@ class FileSystemSnapshotFilterTest extends AbstractProjectBuilderSpec {
             }
 
             @Override
-            void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+            void postVisitDirectory(DirectorySnapshot directorySnapshot) {
             }
         })
         return result

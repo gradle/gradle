@@ -39,9 +39,9 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.snapshot.FileSystemMirror;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
-import org.gradle.internal.snapshot.PhysicalFileSnapshot;
-import org.gradle.internal.snapshot.PhysicalMissingSnapshot;
+import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.PhysicalSnapshot;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -170,9 +170,9 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         String name = stringInterner.intern(file.getName());
         switch (metadata.getType()) {
             case Missing:
-                return new PhysicalMissingSnapshot(absolutePath, name);
+                return new MissingFileSnapshot(absolutePath, name);
             case RegularFile:
-                return new PhysicalFileSnapshot(absolutePath, name, hasher.hash(file, metadata), metadata.getLastModified());
+                return new RegularFileSnapshot(absolutePath, name, hasher.hash(file, metadata), metadata.getLastModified());
             case Directory:
                 return mirrorUpdatingDirectoryWalker.walkDir(absolutePath, patternSet, hasBeenFiltered);
             default:
@@ -224,11 +224,11 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
 
             @Override
             public void visitFile(FileVisitDetails fileDetails) {
-                builder.addFile(fileDetails.getFile(), fileDetails.getRelativePath().getSegments(), physicalFileSnapshot(fileDetails));
+                builder.addFile(fileDetails.getFile(), fileDetails.getRelativePath().getSegments(), regularFileSnapshot(fileDetails));
             }
 
-            private PhysicalFileSnapshot physicalFileSnapshot(FileVisitDetails fileDetails) {
-                return new PhysicalFileSnapshot(stringInterner.intern(fileDetails.getFile().getAbsolutePath()), fileDetails.getName(), hasher.hash(fileDetails), fileDetails.getLastModified());
+            private RegularFileSnapshot regularFileSnapshot(FileVisitDetails fileDetails) {
+                return new RegularFileSnapshot(stringInterner.intern(fileDetails.getFile().getAbsolutePath()), fileDetails.getName(), hasher.hash(fileDetails), fileDetails.getLastModified());
             }
         });
         return builder.build();

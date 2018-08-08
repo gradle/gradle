@@ -22,8 +22,8 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.MutableBoolean
 import org.gradle.internal.hash.TestFileHasher
+import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.PhysicalDirectorySnapshot
 import org.gradle.internal.snapshot.PhysicalSnapshot
 import org.gradle.internal.snapshot.PhysicalSnapshotVisitor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -163,7 +163,7 @@ abstract class RelativePathTrackingVisitor implements PhysicalSnapshotVisitor {
     private Deque<String> relativePath = new ArrayDeque<String>()
 
     @Override
-    boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+    boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
         relativePath.addLast(directorySnapshot.name)
         visit(directorySnapshot.absolutePath, relativePath)
         return true
@@ -177,7 +177,7 @@ abstract class RelativePathTrackingVisitor implements PhysicalSnapshotVisitor {
     }
 
     @Override
-    void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+    void postVisitDirectory(DirectorySnapshot directorySnapshot) {
         relativePath.removeLast()
     }
 

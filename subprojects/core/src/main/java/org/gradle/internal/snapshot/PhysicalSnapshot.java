@@ -24,7 +24,7 @@ import java.util.Comparator;
 /**
  * A snapshot of a concrete file/directory tree.
  *
- * The file is not required to exist (see {@link PhysicalMissingSnapshot}.
+ * The file is not required to exist (see {@link MissingFileSnapshot}.
  */
 public interface PhysicalSnapshot extends FileSystemSnapshot {
 
@@ -60,7 +60,7 @@ public interface PhysicalSnapshot extends FileSystemSnapshot {
      *     <dt>Regular Files</dt>
      *     <dd>The hash of the content of the file.</dd>
      *     <dt>Missing files</dt>
-     *     <dd>{@link PhysicalMissingSnapshot#SIGNATURE}</dd>
+     *     <dd>{@link MissingFileSnapshot#SIGNATURE}</dd>
      * </dl>
      */
     HashCode getHash();

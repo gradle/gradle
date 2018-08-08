@@ -20,7 +20,7 @@ import com.google.common.base.Preconditions;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
-import org.gradle.internal.snapshot.PhysicalFileSnapshot;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import java.io.File;
 import java.util.HashMap;
@@ -32,7 +32,7 @@ public class FileSystemSnapshotBuilder {
     private DirectoryBuilder rootDirectoryBuilder;
     private String rootPath;
     private String rootName;
-    private PhysicalFileSnapshot rootFileSnapshot;
+    private RegularFileSnapshot rootFileSnapshot;
 
     public FileSystemSnapshotBuilder(StringInterner stringInterner) {
         this.stringInterner = stringInterner;
@@ -44,7 +44,7 @@ public class FileSystemSnapshotBuilder {
         rootBuilder.addDir(segments, 0);
     }
 
-    public void addFile(File file, String[] segments, PhysicalFileSnapshot fileSnapshot) {
+    public void addFile(File file, String[] segments, RegularFileSnapshot fileSnapshot) {
         checkNoRootFileSnapshot("another root file", file);
         if (segments.length == 0) {
             rootFileSnapshot = fileSnapshot;
@@ -89,9 +89,9 @@ public class FileSystemSnapshotBuilder {
 
     private class DirectoryBuilder {
         private final Map<String, DirectoryBuilder> subDirs = new HashMap<String, DirectoryBuilder>();
-        private final Map<String, PhysicalFileSnapshot> files = new HashMap<String, PhysicalFileSnapshot>();
+        private final Map<String, RegularFileSnapshot> files = new HashMap<String, RegularFileSnapshot>();
 
-        public void addFile(String[] segments, int offset, PhysicalFileSnapshot fileSnapshot) {
+        public void addFile(String[] segments, int offset, RegularFileSnapshot fileSnapshot) {
             if (segments.length == offset) {
                 throw new IllegalStateException("A file cannot be in the same place as a directory: " + fileSnapshot.getAbsolutePath());
             }
@@ -119,7 +119,7 @@ public class FileSystemSnapshotBuilder {
 
         private DirectoryBuilder getOrCreateSubDir(String currentSegment) {
             if (files.containsKey(currentSegment)) {
-                PhysicalFileSnapshot fileSnapshot = files.get(currentSegment);
+                RegularFileSnapshot fileSnapshot = files.get(currentSegment);
                 throw new IllegalStateException("A file cannot be added in the same place as a directory:" + fileSnapshot.getAbsolutePath());
             }
             DirectoryBuilder subDir = subDirs.get(currentSegment);
@@ -138,7 +138,7 @@ public class FileSystemSnapshotBuilder {
                 entry.getValue().accept(dirPath, builder);
                 builder.postVisitDirectory();
             }
-            for (PhysicalFileSnapshot fileSnapshot : files.values()) {
+            for (RegularFileSnapshot fileSnapshot : files.values()) {
                 builder.visit(fileSnapshot);
             }
         }

@@ -19,11 +19,11 @@ package org.gradle.internal.snapshot.impl
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.PhysicalDirectorySnapshot
-import org.gradle.internal.snapshot.PhysicalFileSnapshot
 import org.gradle.internal.snapshot.PhysicalSnapshot
 import org.gradle.internal.snapshot.PhysicalSnapshotVisitor
+import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.RelativePathSegmentsTracker
 import spock.lang.Specification
 
@@ -50,7 +50,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
             private final relativePathTracker = new RelativePathSegmentsTracker()
 
             @Override
-            boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+            boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                 def isRoot = relativePathTracker.root
                 relativePathTracker.enter(directorySnapshot)
                 if (!isRoot) {
@@ -69,7 +69,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
             }
 
             @Override
-            void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+            void postVisitDirectory(DirectorySnapshot directorySnapshot) {
                 relativePathTracker.leave()
             }
         })
@@ -126,7 +126,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
         builder.build() == FileSystemSnapshot.EMPTY
     }
 
-    private PhysicalFileSnapshot fileSnapshot(String relativePath, String name) {
-        new PhysicalFileSnapshot("${basePath}/${relativePath.empty ? "" : (relativePath + '/')}${name}", name, HashCode.fromInt(1234), 1234)
+    private RegularFileSnapshot fileSnapshot(String relativePath, String name) {
+        new RegularFileSnapshot("${basePath}/${relativePath.empty ? "" : (relativePath + '/')}${name}", name, HashCode.fromInt(1234), 1234)
     }
 }

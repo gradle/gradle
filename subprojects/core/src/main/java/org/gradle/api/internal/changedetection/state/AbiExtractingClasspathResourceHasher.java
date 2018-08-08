@@ -23,7 +23,7 @@ import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.snapshot.PhysicalFileSnapshot;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.objectweb.asm.ClassReader;
 
 import javax.annotation.Nullable;
@@ -55,7 +55,7 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
 
     @Nullable
     @Override
-    public HashCode hash(PhysicalFileSnapshot fileSnapshot) {
+    public HashCode hash(RegularFileSnapshot fileSnapshot) {
         if (!isClassFile(fileSnapshot.getName())) {
             return null;
         }

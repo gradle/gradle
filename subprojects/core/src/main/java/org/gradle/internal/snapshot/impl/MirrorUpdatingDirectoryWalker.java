@@ -38,8 +38,8 @@ import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.filesystem.Stat;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
-import org.gradle.internal.snapshot.PhysicalFileSnapshot;
 import org.gradle.internal.snapshot.PhysicalSnapshot;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -135,7 +135,7 @@ public class MirrorUpdatingDirectoryWalker {
                     Preconditions.checkNotNull(attrs, "Unauthorized access to %", file);
                     DefaultFileMetadata metadata = new DefaultFileMetadata(FileType.RegularFile, attrs.lastModifiedTime().toMillis(), attrs.size());
                     HashCode hash = hasher.hash(file.toFile(), metadata);
-                    PhysicalFileSnapshot fileSnapshot = new PhysicalFileSnapshot(internedAbsolutePath(file), name, hash, metadata.getLastModified());
+                    RegularFileSnapshot fileSnapshot = new RegularFileSnapshot(internedAbsolutePath(file), name, hash, metadata.getLastModified());
                     builder.visit(fileSnapshot);
                 }
 

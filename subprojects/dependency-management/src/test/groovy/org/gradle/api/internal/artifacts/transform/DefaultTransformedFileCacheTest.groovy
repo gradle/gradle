@@ -28,7 +28,7 @@ import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.local.FileAccessTimeJournal
 import org.gradle.internal.snapshot.FileSystemSnapshotter
-import org.gradle.internal.snapshot.PhysicalFileSnapshot
+import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.util.BiFunction
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestFile
@@ -395,6 +395,6 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
     }
 
     def snapshot(HashCode hashCode) {
-        return new PhysicalFileSnapshot("/path/to/some.txt", "some.txt", hashCode, 0)
+        return new RegularFileSnapshot("/path/to/some.txt", "some.txt", hashCode, 0)
     }
 }

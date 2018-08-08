@@ -21,9 +21,9 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotter
-import org.gradle.internal.snapshot.PhysicalFileSnapshot
-import org.gradle.internal.snapshot.PhysicalMissingSnapshot
+import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.PhysicalSnapshot
+import org.gradle.internal.snapshot.RegularFileSnapshot
 
 class TestFileSnapshotter implements FileSystemSnapshotter {
     @Override
@@ -39,10 +39,10 @@ class TestFileSnapshotter implements FileSystemSnapshotter {
     @Override
     PhysicalSnapshot snapshot(File file) {
         if (file.isFile()) {
-            return new PhysicalFileSnapshot(file.absolutePath, file.name, Hashing.md5().hashBytes(file.bytes), file.lastModified())
+            return new RegularFileSnapshot(file.absolutePath, file.name, Hashing.md5().hashBytes(file.bytes), file.lastModified())
         }
         if (!file.exists()) {
-            return new PhysicalMissingSnapshot(file.absolutePath, file.name)
+            return new MissingFileSnapshot(file.absolutePath, file.name)
         }
         throw new UnsupportedOperationException()
     }
