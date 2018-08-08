@@ -16,8 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -98,15 +97,24 @@ public class DependencyInsightReporter {
     }
 
     private DependencyReportHeader createHeaderForDependency(DependencyEdge dependency, Set<Throwable> alreadyReportedErrors) {
-        ComponentSelectionReason reason = dependency.getReason();
-        String reasonDescription = getReasonDescription(reason);
-        SelectionReasonsSection selectionReasonsSection = buildSelectionReasonSection(reason);
-        if (selectionReasonsSection.replacesShortDescription) {
-            reasonDescription = null;
+        ComponentSelectionReasonInternal reason = (ComponentSelectionReasonInternal) dependency.getReason();
+        Section selectionReasonsSection = buildSelectionReasonSection(reason);
+        List<Section> reasonSections = selectionReasonsSection.getChildren();
+
+        String reasonShortDescription;
+        List<Section> extraDetails = Lists.newArrayList();
+
+        boolean displayFullReasonSection = reason.hasCustomDescriptions() || reasonSections.size() > 1;
+        if (displayFullReasonSection) {
+            reasonShortDescription = null;
+            extraDetails.add(selectionReasonsSection);
+        } else {
+            reasonShortDescription = reasonSections.isEmpty() ? null : reasonSections.get(0).getDescription().toLowerCase();
         }
-        List<Section> extraDetails = buildExtraDetails(!selectionReasonsSection.replacesShortDescription ? null : selectionReasonsSection, buildFailureSection(dependency, alreadyReportedErrors));
+
+        buildFailureSection(dependency, alreadyReportedErrors, extraDetails);
         ResolvedVariantResult selectedVariant = dependency.getSelectedVariant();
-        return new DependencyReportHeader(dependency, reasonDescription, selectedVariant, extraDetails);
+        return new DependencyReportHeader(dependency, reasonShortDescription, selectedVariant, extraDetails);
     }
 
     private RequestedVersion newRequestedVersion(LinkedList<RenderableDependency> out, DependencyEdge dependency) {
@@ -121,7 +129,7 @@ public class DependencyInsightReporter {
         return DependencyResultSorter.sort(edges, versionSelectorScheme, versionComparator, versionParser);
     }
 
-    private static Section buildFailureSection(DependencyEdge edge, Set<Throwable> alreadyReportedErrors) {
+    private static void buildFailureSection(DependencyEdge edge, Set<Throwable> alreadyReportedErrors, List<Section> sections) {
         if (edge instanceof UnresolvedDependencyEdge) {
             UnresolvedDependencyEdge unresolved = (UnresolvedDependencyEdge) edge;
             Throwable failure = unresolved.getFailure();
@@ -129,10 +137,9 @@ public class DependencyInsightReporter {
                 DefaultSection failures = new DefaultSection("Failures");
                 String errorMessage = collectErrorMessages(failure, alreadyReportedErrors);
                 failures.addChild(new DefaultSection(errorMessage));
-                return failures;
+                sections.add(failures);
             }
         }
-        return null;
     }
 
     private static String collectErrorMessages(Throwable failure, Set<Throwable> alreadyReportedErrors) {
@@ -156,18 +163,8 @@ public class DependencyInsightReporter {
         }
     }
 
-    private static List<Section> buildExtraDetails(Section... sections) {
-        ImmutableList.Builder<Section> builder = new ImmutableList.Builder<Section>();
-        for (Section section : sections) {
-            if (section != null) {
-                builder.add(section);
-            }
-        }
-        return builder.build();
-    }
-
-    private static SelectionReasonsSection buildSelectionReasonSection(ComponentSelectionReason reason) {
-        SelectionReasonsSection selectionReasons = new SelectionReasonsSection();
+    private static DefaultSection buildSelectionReasonSection(ComponentSelectionReason reason) {
+        DefaultSection selectionReasons = new DefaultSection("Selection reasons");
         for (ComponentSelectionDescriptor entry : reason.getDescriptions()) {
             ComponentSelectionDescriptorInternal descriptor = (ComponentSelectionDescriptorInternal) entry;
             ComponentSelectionCause cause = descriptor.getCause();
@@ -178,26 +175,10 @@ public class DependencyInsightReporter {
                 continue;
             }
 
-            if (hasCustomDescription) {
-                selectionReasons.shouldDisplay();
-            }
             Section item = new DefaultSection(render(descriptor));
             selectionReasons.addChild(item);
         }
         return selectionReasons;
-    }
-
-    private static String getReasonDescription(ComponentSelectionReason reason) {
-        ComponentSelectionReasonInternal r = (ComponentSelectionReasonInternal) reason;
-        return getReasonDescription(r);
-    }
-
-    private static String getReasonDescription(ComponentSelectionReasonInternal reason) {
-        if (reason.isExpected()) {
-            return null;
-        }
-        ComponentSelectionDescriptor last = Iterables.getLast(reason.getDescriptions());
-        return render(last).toLowerCase();
     }
 
     private static String render(ComponentSelectionDescriptor descriptor) {
@@ -228,18 +209,4 @@ public class DependencyInsightReporter {
         }
         return "Unknown";
     }
-
-    private static class SelectionReasonsSection extends DefaultSection {
-
-        private boolean replacesShortDescription;
-
-        public SelectionReasonsSection() {
-            super("Selection reasons");
-        }
-
-        public void shouldDisplay() {
-            replacesShortDescription = true;
-        }
-    }
-
 }
