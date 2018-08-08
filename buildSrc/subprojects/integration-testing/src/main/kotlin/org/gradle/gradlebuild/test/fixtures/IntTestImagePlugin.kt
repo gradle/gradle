@@ -106,6 +106,7 @@ open class IntTestImagePlugin : Plugin<Project> {
                     val libsThisProjectDoesNotUse = (rootProject.configurations["runtime"] + rootProject.configurations["gradlePlugins"]) - runtimeClasspathConfigurations
 
                     into("lib") {
+                        from(Callable { project(":apiMetadata").tasks.getByName("jar").outputs.files })
                         from(rootProject.configurations["runtime"] - libsThisProjectDoesNotUse)
                         into("plugins") {
                             from(rootProject.configurations["gradlePlugins"] - rootProject.configurations["runtime"] - libsThisProjectDoesNotUse)

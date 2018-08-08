@@ -142,7 +142,6 @@ allprojects {
         maven(url = "https://repo.gradle.org/gradle/libs")
         maven(url = "https://repo.gradle.org/gradle/libs-milestones")
         maven(url = "https://repo.gradle.org/gradle/libs-snapshots")
-        maven(url = "https://dl.bintray.com/kotlin/kotlin-dev")
     }
 
     // patchExternalModules lives in the root project - we need to activate normalization there, too.
@@ -264,6 +263,8 @@ dependencies {
     coreRuntimeExtensions(project(":pluginUse"))
     coreRuntimeExtensions(project(":workers"))
     coreRuntimeExtensions(patchedExternalModules)
+
+    testRuntime(project(":apiMetadata"))
 }
 
 extra["allCoreRuntimeExtensions"] = coreRuntimeExtensions.allDependencies

@@ -13,8 +13,8 @@ dependencies {
 }
 
 gradlePlugin {
-    (plugins) {
-        "ide" {
+    plugins {
+        register("ide") {
             id = "gradlebuild.ide"
             implementationClass = "org.gradle.gradlebuild.ide.IdePlugin"
         }

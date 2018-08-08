@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,17 @@
 
 package org.gradle.integtests.fixtures
 
-abstract class KotlinScriptIntegrationTest extends AbstractIntegrationSpec {
+import org.gradle.test.fixtures.dsl.GradleDsl
 
-    @Override
-    protected String getDefaultBuildFileName() {
-        'build.gradle.kts'
-    }
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 
-    def setup() {
-        settingsFile << "rootProject.buildFileName = '$defaultBuildFileName'"
-    }
+class KotlinDslTestUtil {
 
-    protected void withKotlinBuildSrc() {
-        file("buildSrc/build.gradle.kts") << KotlinDslTestUtil.kotlinDslBuildSrcScript
+    static String getKotlinDslBuildSrcScript() {
+        """
+            plugins { `kotlin-dsl` }
+
+            ${jcenterRepository(GradleDsl.KOTLIN)} 
+        """
     }
 }

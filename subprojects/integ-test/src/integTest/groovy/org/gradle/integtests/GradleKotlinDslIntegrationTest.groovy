@@ -105,7 +105,7 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
 
         def scriptFile = file("script.gradle.kts") << """
             tasks {
-                "hello" {
+                register("hello") {
                     doLast { 
                         println("Hello!") 
                     }
