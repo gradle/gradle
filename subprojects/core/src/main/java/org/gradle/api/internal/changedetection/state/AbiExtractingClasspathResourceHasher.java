@@ -16,7 +16,6 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.io.ByteStreams;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -24,6 +23,7 @@ import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.snapshot.PhysicalFileSnapshot;
 import org.objectweb.asm.ClassReader;
 
 import javax.annotation.Nullable;

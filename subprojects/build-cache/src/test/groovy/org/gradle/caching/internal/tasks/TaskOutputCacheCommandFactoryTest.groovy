@@ -22,9 +22,6 @@ import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskArtifactState
-import org.gradle.api.internal.changedetection.state.FileSystemMirror
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.tasks.OutputType
@@ -35,6 +32,9 @@ import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata
+import org.gradle.internal.snapshot.FileSystemMirror
+import org.gradle.internal.snapshot.PhysicalDirectorySnapshot
+import org.gradle.internal.snapshot.PhysicalFileSnapshot
 import org.gradle.internal.time.Timer
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -107,8 +107,8 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         }
         1 * taskArtifactState.snapshotAfterLoadedFromCache(_, originMetadata) >> { ImmutableSortedMap<String, CurrentFileCollectionFingerprint> propertyFingerprints, OriginTaskExecutionMetadata metadata ->
             assert propertyFingerprints.keySet() as List == ["outputDir", "outputFile"]
-            assert propertyFingerprints["outputFile"].snapshots.keySet() == [outputFile.absolutePath] as Set
-            assert propertyFingerprints["outputDir"].snapshots.keySet() == [outputDir, outputDirFile]*.absolutePath as Set
+            assert propertyFingerprints["outputFile"].fingerprints.keySet() == [outputFile.absolutePath] as Set
+            assert propertyFingerprints["outputDir"].fingerprints.keySet() == [outputDir, outputDirFile]*.absolutePath as Set
         }
 
         then:

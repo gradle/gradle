@@ -19,26 +19,25 @@ package org.gradle.internal.fingerprint.impl;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.JarHasher;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
-import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
-import org.gradle.api.internal.changedetection.state.mirror.RelativePathSegmentsTracker;
-import org.gradle.api.internal.changedetection.state.mirror.RelativePathStringTracker;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.FileFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
-import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.PhysicalDirectorySnapshot;
+import org.gradle.internal.snapshot.PhysicalFileSnapshot;
+import org.gradle.internal.snapshot.PhysicalSnapshot;
+import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
+import org.gradle.internal.snapshot.RelativePathSegmentsTracker;
+import org.gradle.internal.snapshot.RelativePathStringTracker;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
@@ -92,12 +91,12 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
     }
 
     @Override
-    public Map<String, NormalizedFileSnapshot> collectSnapshots(Iterable<FileSystemSnapshot> roots) {
-        ImmutableMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableMap.builder();
+    public Map<String, FileFingerprint> collectFingerprints(Iterable<FileSystemSnapshot> roots) {
+        ImmutableMap.Builder<String, FileFingerprint> builder = ImmutableMap.builder();
         HashSet<String> processedEntries = new HashSet<String>();
         for (FileSystemSnapshot root : roots) {
-            ClasspathSnapshotVisitor snapshotVisitor = new ClasspathSnapshotVisitor(processedEntries, builder);
-            root.accept(new ClasspathContentSnapshottingVisitor(snapshotVisitor));
+            ClasspathFingerprintVisitor fingerprintVisitor = new ClasspathFingerprintVisitor(processedEntries, builder);
+            root.accept(new ClasspathContentFingerprintingVisitor(fingerprintVisitor));
         }
         return builder.build();
     }
@@ -121,8 +120,8 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         public abstract HashCode determineNonJarFingerprint(HashCode original);
     }
 
-    private class ClasspathContentSnapshottingVisitor implements PhysicalSnapshotVisitor {
-        private final ClasspathSnapshotVisitor delegate;
+    private class ClasspathContentFingerprintingVisitor implements PhysicalSnapshotVisitor {
+        private final ClasspathFingerprintVisitor delegate;
         private final RelativePathSegmentsTracker relativePathSegmentsTracker = new RelativePathSegmentsTracker();
         private final Factory<String[]> relativePathFactory = new Factory<String[]>() {
             @Override
@@ -131,7 +130,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
             }
         };
 
-        public ClasspathContentSnapshottingVisitor(ClasspathSnapshotVisitor delegate) {
+        public ClasspathContentFingerprintingVisitor(ClasspathFingerprintVisitor delegate) {
             this.delegate = delegate;
         }
 
@@ -178,13 +177,13 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
     @Nullable
     private HashCode fingerprintRootFile(PhysicalFileSnapshot fileSnapshot) {
         if (FileUtils.hasExtensionIgnoresCase(fileSnapshot.getName(), ".jar")) {
-            return snapshotJarContents(fileSnapshot);
+            return fingerprintJarContents(fileSnapshot);
         }
         return nonJarFingerprintingStrategy.determineNonJarFingerprint(fileSnapshot.getHash());
     }
 
     @Nullable
-    private HashCode snapshotJarContents(PhysicalFileSnapshot fileSnapshot) {
+    private HashCode fingerprintJarContents(PhysicalFileSnapshot fileSnapshot) {
         return cacheService.hashFile(fileSnapshot, jarHasher, jarHasherConfigurationHash);
     }
 
@@ -198,12 +197,12 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         return identifier;
     }
 
-    private class ClasspathSnapshotVisitor {
+    private class ClasspathFingerprintVisitor {
         private final RelativePathStringTracker relativePathStringTracker;
         private final HashSet<String> processedEntries;
-        private final ImmutableMap.Builder<String, NormalizedFileSnapshot> builder;
+        private final ImmutableMap.Builder<String, FileFingerprint> builder;
 
-        public ClasspathSnapshotVisitor(HashSet<String> processedEntries, ImmutableMap.Builder<String, NormalizedFileSnapshot> builder) {
+        public ClasspathFingerprintVisitor(HashSet<String> processedEntries, ImmutableMap.Builder<String, FileFingerprint> builder) {
             this.processedEntries = processedEntries;
             this.builder = builder;
             this.relativePathStringTracker = new RelativePathStringTracker();
@@ -217,18 +216,18 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         public void visit(PhysicalSnapshot fileSnapshot, HashCode normalizedContentHash) {
             String absolutePath = fileSnapshot.getAbsolutePath();
             if (processedEntries.add(absolutePath)) {
-                NormalizedFileSnapshot normalizedFileSnapshot = relativePathStringTracker.isRoot() ? IgnoredPathFingerprint.create(fileSnapshot.getType(), normalizedContentHash) : createNormalizedSnapshot(fileSnapshot, normalizedContentHash);
+                FileFingerprint fileFingerprint = relativePathStringTracker.isRoot() ? IgnoredPathFingerprint.create(fileSnapshot.getType(), normalizedContentHash) : createFileFingerprint(fileSnapshot, normalizedContentHash);
                 builder.put(
                     absolutePath,
-                    normalizedFileSnapshot);
+                    fileFingerprint);
             }
         }
 
-        private NormalizedFileSnapshot createNormalizedSnapshot(PhysicalSnapshot snapshot, HashCode content) {
+        private FileFingerprint createFileFingerprint(PhysicalSnapshot snapshot, HashCode content) {
             relativePathStringTracker.enter(snapshot);
-            NormalizedFileSnapshot normalizedFileSnapshot = new DefaultNormalizedFileSnapshot(stringInterner.intern(relativePathStringTracker.getRelativePathString()), FileType.RegularFile, content);
+            FileFingerprint fileFingerprint = new DefaultFileFingerprint(stringInterner.intern(relativePathStringTracker.getRelativePathString()), FileType.RegularFile, content);
             relativePathStringTracker.leave();
-            return normalizedFileSnapshot;
+            return fileFingerprint;
         }
 
         public void postVisitDirectory() {

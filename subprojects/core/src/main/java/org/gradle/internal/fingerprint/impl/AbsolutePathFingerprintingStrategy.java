@@ -17,14 +17,13 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.FileFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
-import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.PhysicalDirectorySnapshot;
+import org.gradle.internal.snapshot.PhysicalSnapshot;
+import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -43,8 +42,8 @@ public enum AbsolutePathFingerprintingStrategy implements FingerprintingStrategy
     }
 
     @Override
-    public Map<String, NormalizedFileSnapshot> collectSnapshots(Iterable<FileSystemSnapshot> roots) {
-        final ImmutableMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableMap.builder();
+    public Map<String, FileFingerprint> collectFingerprints(Iterable<FileSystemSnapshot> roots) {
+        final ImmutableMap.Builder<String, FileFingerprint> builder = ImmutableMap.builder();
         final HashSet<String> processedEntries = new HashSet<String>();
         for (FileSystemSnapshot root : roots) {
             root.accept(new PhysicalSnapshotVisitor() {
@@ -53,7 +52,7 @@ public enum AbsolutePathFingerprintingStrategy implements FingerprintingStrategy
                 public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
                     String absolutePath = directorySnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        builder.put(absolutePath, new DefaultNormalizedFileSnapshot(directorySnapshot.getAbsolutePath(), directorySnapshot));
+                        builder.put(absolutePath, new DefaultFileFingerprint(directorySnapshot.getAbsolutePath(), directorySnapshot));
                     }
                     return true;
                 }
@@ -65,7 +64,7 @@ public enum AbsolutePathFingerprintingStrategy implements FingerprintingStrategy
                     }
                     String absolutePath = fileSnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        builder.put(absolutePath, new DefaultNormalizedFileSnapshot(fileSnapshot.getAbsolutePath(), fileSnapshot));
+                        builder.put(absolutePath, new DefaultFileFingerprint(fileSnapshot.getAbsolutePath(), fileSnapshot));
                     }
                 }
 

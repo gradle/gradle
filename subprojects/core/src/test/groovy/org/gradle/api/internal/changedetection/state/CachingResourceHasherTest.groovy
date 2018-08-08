@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.HashCodeSerializer
+import org.gradle.internal.snapshot.PhysicalFileSnapshot
 import org.gradle.testfixtures.internal.InMemoryIndexedCache
 import spock.lang.Specification
 

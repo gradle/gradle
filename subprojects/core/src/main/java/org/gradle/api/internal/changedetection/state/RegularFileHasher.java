@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.PhysicalFileSnapshot;
 
 import javax.annotation.Nullable;
 

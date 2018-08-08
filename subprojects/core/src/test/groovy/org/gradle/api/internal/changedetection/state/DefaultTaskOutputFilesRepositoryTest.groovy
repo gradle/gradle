@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.PersistentCache
 import org.gradle.internal.serialize.BaseSerializerFactory
+import org.gradle.internal.snapshot.impl.TestFileSnapshotter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryIndexedCache

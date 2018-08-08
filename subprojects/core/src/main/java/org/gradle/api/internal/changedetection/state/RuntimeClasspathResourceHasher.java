@@ -17,12 +17,12 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.io.ByteStreams;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.hash.HashingOutputStream;
 import org.gradle.internal.io.NullOutputStream;
+import org.gradle.internal.snapshot.PhysicalFileSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.IOException;

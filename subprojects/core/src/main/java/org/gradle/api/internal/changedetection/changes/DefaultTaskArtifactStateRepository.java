@@ -134,7 +134,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             ImmutableCollection<HistoricalFileCollectionFingerprint> outputFingerprints = previousExecution.getOutputFingerprints().values();
             Set<File> outputs = new HashSet<File>();
             for (FileCollectionFingerprint fileCollectionFingerprint : outputFingerprints) {
-                for (String absolutePath : fileCollectionFingerprint.getSnapshots().keySet()) {
+                for (String absolutePath : fileCollectionFingerprint.getFingerprints().keySet()) {
                     outputs.add(new File(absolutePath));
                 }
             }

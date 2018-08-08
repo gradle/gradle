@@ -16,9 +16,7 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener
 import org.gradle.api.invocation.Gradle
 import org.gradle.cache.AsyncCacheAccess
@@ -28,6 +26,8 @@ import org.gradle.cache.MultiProcessSafePersistentIndexedCache
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.BaseSerializerFactory
+import org.gradle.internal.snapshot.FileSystemSnapshotter
+import org.gradle.internal.snapshot.PhysicalFileSnapshot
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.gradle.util.GradleVersion

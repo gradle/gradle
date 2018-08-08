@@ -16,8 +16,8 @@
 
 package org.gradle.internal.fingerprint;
 
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
 
 /**
  * A file collection fingerprint taken during this build.
