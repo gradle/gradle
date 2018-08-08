@@ -31,6 +31,8 @@ import org.gradle.tooling.model.cpp.CppTestSuite
 @ToolingApiVersion(">=4.10")
 @TargetGradleVersion(">=4.10")
 class CppModelCrossVersionSpec extends ToolingApiSpecification {
+    def toolchain = AvailableToolChains.defaultToolChain
+
     def "has empty model when root project does not apply any C++ plugins"() {
         buildFile << """
             apply plugin: 'java-library'
@@ -84,11 +86,11 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         debugBinary.compilationDetails.macroDefines.empty
         debugBinary.compilationDetails.macroUndefines.empty
         debugBinary.compilationDetails.additionalArgs.empty
-        debugBinary.compilationDetails.compilerExecutable == AvailableToolChains.defaultToolChain.cppCompiler
+        debugBinary.compilationDetails.compilerExecutable == toolchain.cppCompiler
         debugBinary.compilationDetails.compileWorkingDir == projectDir.file("build/obj/main/debug")
         debugBinary.compilationDetails.compileTask.path == ":compileDebugCpp"
         debugBinary.compilationDetails.compileTask.name == "compileDebugCpp"
-        debugBinary.linkageDetails.outputLocation == file("build/exe/main/debug/app")
+        debugBinary.linkageDetails.outputLocation == toolchain.executable(file("build/exe/main/debug/app")).file
         debugBinary.linkageDetails.additionalArgs.empty
         debugBinary.linkageDetails.linkTask.path == ":linkDebug"
         debugBinary.linkageDetails.linkTask.name == "linkDebug"
@@ -106,14 +108,19 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         releaseBinary.compilationDetails.macroDefines.empty
         releaseBinary.compilationDetails.macroUndefines.empty
         releaseBinary.compilationDetails.additionalArgs.empty
-        releaseBinary.compilationDetails.compilerExecutable == AvailableToolChains.defaultToolChain.cppCompiler
+        releaseBinary.compilationDetails.compilerExecutable == toolchain.cppCompiler
         releaseBinary.compilationDetails.compileWorkingDir == projectDir.file("build/obj/main/release")
         releaseBinary.compilationDetails.compileTask.path == ":compileReleaseCpp"
         releaseBinary.compilationDetails.compileTask.name == "compileReleaseCpp"
-        releaseBinary.linkageDetails.outputLocation == file("build/exe/main/release/stripped/app")
+        releaseBinary.linkageDetails.outputLocation == toolchain.executable(file("build/exe/main/release/app")).strippedRuntimeFile
         releaseBinary.linkageDetails.additionalArgs.empty
-        releaseBinary.linkageDetails.linkTask.path == ":stripSymbolsRelease"
-        releaseBinary.linkageDetails.linkTask.name == "stripSymbolsRelease"
+        if (toolchain.visualCpp) {
+            releaseBinary.linkageDetails.linkTask.path == ":linkRelease"
+            releaseBinary.linkageDetails.linkTask.name == "linkRelease"
+        } else {
+            releaseBinary.linkageDetails.linkTask.path == ":stripSymbolsRelease"
+            releaseBinary.linkageDetails.linkTask.name == "stripSymbolsRelease"
+        }
 
         project.testComponent == null
     }
@@ -154,7 +161,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         debugBinary.compilationDetails.additionalArgs.empty
         debugBinary.compilationDetails.compileTask.path == ":compileDebugCpp"
         debugBinary.compilationDetails.compileTask.name == "compileDebugCpp"
-        debugBinary.linkageDetails.outputLocation == file("build/lib/main/debug/liblib.dylib")
+        debugBinary.linkageDetails.outputLocation == toolchain.sharedLibrary(file("build/lib/main/debug/lib")).linkFile
         debugBinary.linkageDetails.additionalArgs.empty
         debugBinary.linkageDetails.linkTask.path == ":linkDebug"
         debugBinary.linkageDetails.linkTask.name == "linkDebug"
@@ -174,10 +181,15 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         releaseBinary.compilationDetails.additionalArgs.empty
         releaseBinary.compilationDetails.compileTask.path == ":compileReleaseCpp"
         releaseBinary.compilationDetails.compileTask.name == "compileReleaseCpp"
-        releaseBinary.linkageDetails.outputLocation == file("build/lib/main/release/stripped/liblib.dylib")
+        releaseBinary.linkageDetails.outputLocation == toolchain.sharedLibrary(file("build/lib/main/release/lib")).strippedLinkFile
         releaseBinary.linkageDetails.additionalArgs.empty
-        releaseBinary.linkageDetails.linkTask.path == ":stripSymbolsRelease"
-        releaseBinary.linkageDetails.linkTask.name == "stripSymbolsRelease"
+        if (toolchain.visualCpp) {
+            releaseBinary.linkageDetails.linkTask.path == ":linkRelease"
+            releaseBinary.linkageDetails.linkTask.name == "linkRelease"
+        } else {
+            releaseBinary.linkageDetails.linkTask.path == ":stripSymbolsRelease"
+            releaseBinary.linkageDetails.linkTask.name == "stripSymbolsRelease"
+        }
 
         project.testComponent == null
     }
@@ -304,7 +316,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         debugBinary.compilationDetails.macroDefines.value == ['mainDebug']
         debugBinary.compilationDetails.macroUndefines.empty
         debugBinary.compilationDetails.additionalArgs == ['--compile=mainDebug']
-        debugBinary.linkageDetails.outputLocation == file("build/exe/main/debug/some-app")
+        debugBinary.linkageDetails.outputLocation == toolchain.executable(file("build/exe/main/debug/some-app")).file
         debugBinary.linkageDetails.additionalArgs == ['--link=mainDebug']
 
         def releaseBinary = project.mainComponent.binaries[1]
@@ -319,7 +331,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         releaseBinary.compilationDetails.macroDefines.value == ['mainRelease']
         releaseBinary.compilationDetails.macroUndefines.empty
         releaseBinary.compilationDetails.additionalArgs == ['--compile=mainRelease']
-        releaseBinary.linkageDetails.outputLocation == file("build/exe/main/release/stripped/some-app")
+        releaseBinary.linkageDetails.outputLocation == toolchain.executable(file("build/exe/main/release/some-app")).strippedRuntimeFile
         releaseBinary.linkageDetails.additionalArgs == ['--link=mainRelease']
     }
 
@@ -364,7 +376,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         debugStaticBinary.compilationDetails.headerDirs == [publicHeaders] as Set
         debugStaticBinary.compilationDetails.userHeaderSearchPaths == [publicHeaders]
         debugStaticBinary.compilationDetails.compileTask.path == ":compileDebugStaticCpp"
-        debugStaticBinary.linkageDetails.outputLocation == file("build/lib/main/debug/static/libsome-lib.a")
+        debugStaticBinary.linkageDetails.outputLocation == toolchain.staticLibrary(file("build/lib/main/debug/static/some-lib")).file
         debugStaticBinary.linkageDetails.additionalArgs.empty
         debugStaticBinary.linkageDetails.linkTask.path == ":createDebugStatic"
         def debugSharedBinary = project.mainComponent.binaries[1]
@@ -375,7 +387,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         debugSharedBinary.compilationDetails.headerDirs == [publicHeaders] as Set
         debugSharedBinary.compilationDetails.userHeaderSearchPaths == [publicHeaders, otherHeaders]
         debugSharedBinary.compilationDetails.compileTask.path == ":compileDebugSharedCpp"
-        debugSharedBinary.linkageDetails.outputLocation == file("build/lib/main/debug/shared/libsome-lib.dylib")
+        debugSharedBinary.linkageDetails.outputLocation == toolchain.sharedLibrary(file("build/lib/main/debug/shared/some-lib")).linkFile
         debugSharedBinary.linkageDetails.additionalArgs == ["--link=mainDebugShared"]
         debugSharedBinary.linkageDetails.linkTask.path == ":linkDebugShared"
         def releaseStaticBinary = project.mainComponent.binaries[2]
@@ -386,7 +398,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         releaseStaticBinary.compilationDetails.headerDirs == [publicHeaders] as Set
         releaseStaticBinary.compilationDetails.userHeaderSearchPaths == [publicHeaders]
         releaseStaticBinary.compilationDetails.compileTask.path == ":compileReleaseStaticCpp"
-        releaseStaticBinary.linkageDetails.outputLocation == file("build/lib/main/release/static/libsome-lib.a")
+        releaseStaticBinary.linkageDetails.outputLocation == toolchain.staticLibrary(file("build/lib/main/release/static/some-lib")).file
         releaseStaticBinary.linkageDetails.additionalArgs.empty
         releaseStaticBinary.linkageDetails.linkTask.path == ":createReleaseStatic"
         def releaseSharedBinary = project.mainComponent.binaries[3]
@@ -397,9 +409,13 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         releaseSharedBinary.compilationDetails.headerDirs == [publicHeaders] as Set
         releaseSharedBinary.compilationDetails.userHeaderSearchPaths == [publicHeaders, otherHeaders]
         releaseSharedBinary.compilationDetails.compileTask.path == ":compileReleaseSharedCpp"
-        releaseSharedBinary.linkageDetails.outputLocation == file("build/lib/main/release/shared/stripped/libsome-lib.dylib")
+        releaseSharedBinary.linkageDetails.outputLocation == toolchain.sharedLibrary(file("build/lib/main/release/shared/some-lib")).strippedLinkFile
         releaseSharedBinary.linkageDetails.additionalArgs == ["--link=mainReleaseShared"]
-        releaseSharedBinary.linkageDetails.linkTask.path == ":stripSymbolsReleaseShared"
+        if (toolchain.visualCpp) {
+            releaseSharedBinary.linkageDetails.linkTask.path == ":linkReleaseShared"
+        } else {
+            releaseSharedBinary.linkageDetails.linkTask.path == ":stripSymbolsReleaseShared"
+        }
     }
 
     def "can query the models for each project in a build"() {
