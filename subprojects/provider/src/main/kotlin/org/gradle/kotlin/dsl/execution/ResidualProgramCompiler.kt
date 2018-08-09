@@ -218,7 +218,12 @@ class ResidualProgramCompiler(
 
     fun emitStage2ProgramFor(scriptFile: File, originalPath: String) {
 
-        val precompiledScriptClass = compileScript(scriptFile, originalPath, stage2ScriptDefinition, "BODY")
+        val precompiledScriptClass = compileScript(
+            scriptFile,
+            originalPath,
+            stage2ScriptDefinition,
+            StableDisplayNameFor.stage2
+        )
 
         program<ExecutableProgram> {
 
@@ -504,7 +509,12 @@ class ResidualProgramCompiler(
     fun compileStage1(source: ProgramSource, scriptDefinition: KotlinScriptDefinition): String {
         withTemporaryScriptFileFor(source.path, source.text) { scriptFile ->
             val originalScriptPath = source.path
-            return compileScript(scriptFile, originalScriptPath, scriptDefinition, "CLASSPATH")
+            return compileScript(
+                scriptFile,
+                originalScriptPath,
+                scriptDefinition,
+                StableDisplayNameFor.stage1
+            )
         }
     }
 
@@ -521,6 +531,19 @@ class ResidualProgramCompiler(
                     else path
                 })
         }
+
+    /**
+     * Stage descriptions for build operations.
+     *
+     * Changes to these constants must be coordinated with the GE team.
+     */
+    private
+    object StableDisplayNameFor {
+
+        const val stage1 = "CLASSPATH"
+
+        const val stage2 = "BODY"
+    }
 
     private
     val stage1ScriptDefinition
