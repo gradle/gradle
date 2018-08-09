@@ -9,7 +9,7 @@ import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
 
-
+@org.junit.Ignore
 class SourceDistributionResolverIntegrationTest : AbstractIntegrationTest() {
 
     @Test
