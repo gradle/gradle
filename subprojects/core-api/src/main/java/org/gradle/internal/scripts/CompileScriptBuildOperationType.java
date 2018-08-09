@@ -31,6 +31,7 @@ public class CompileScriptBuildOperationType implements BuildOperationType<Compi
     public interface Details {
         /**
          * The build script backing language.
+         * The language should be upper case. E.g GROOVY
          * */
         String getLanguage();
 
