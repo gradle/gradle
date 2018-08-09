@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -1088,5 +1089,34 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         executed ":foo", ":baz", ":fizz", ":fuzz", ":some"
+    }
+
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle/issues/6319")
+    def "can use getTasksByName from a lazy configuration action"() {
+        settingsFile << """
+            include "sub"
+        """
+        buildFile << """
+            plugins {
+                id 'base'
+            }
+            tasks.whenTaskAdded {
+                // force realization of all tasks
+            }
+            tasks.register("foo") {
+                dependsOn(project.getTasksByName("clean", true))
+            }
+        """
+        file("sub/build.gradle") << """
+            plugins {
+                id 'base'
+            }
+            afterEvaluate {
+                tasks.register("foo")
+            }
+        """
+        expect:
+        succeeds("help")
     }
 }
