@@ -430,7 +430,6 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
       org.gradle.status = release (not requested)
    ]
    Selection reasons:
-      - Was requested
       - Selected by rule : $expected
 
 org:a:1 -> org:b:1""")
