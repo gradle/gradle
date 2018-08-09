@@ -59,14 +59,14 @@ class GroovyCompileScriptBuildOperationIntegrationTest extends AbstractIntegrati
         ]
 
         scriptCompiles.details*.language == [
-            'groovy',
-            'groovy',
-            'groovy',
-            'groovy',
-            'groovy',
-            'groovy',
-            'groovy',
-            'groovy'
+            'GROOVY',
+            'GROOVY',
+            'GROOVY',
+            'GROOVY',
+            'GROOVY',
+            'GROOVY',
+            'GROOVY',
+            'GROOVY'
         ]
         scriptCompiles.details*.stage == [
             CLASSPATH,
