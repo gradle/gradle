@@ -58,7 +58,7 @@ configurations {
 }
 
 dependencies {
-    asciidoctor "org.gradle:docs-asciidoctor-extensions:0.3.0"
+    asciidoctor "org.gradle:docs-asciidoctor-extensions:0.4.0"
     asciidoctor project.files("src/main/resources")
 
     userGuideTask 'xalan:xalan:2.7.1', 'xerces:xercesImpl:2.11.0'
@@ -306,8 +306,7 @@ tasks.withType(AsciidoctorTask).configureEach {
     inputs.dir file("src/main/resources")
     inputs.dir samplesSrcDir
 
-    attributes \
-        stylesdir           : '../css/',
+    attributes stylesdir           : '../css/',
         stylesheet          : 'manual.css',
         imagesdir           : 'img',
         nofooter            : true,
@@ -326,7 +325,8 @@ tasks.withType(AsciidoctorTask).configureEach {
         gradleVersion       : version,
         groovyDslPath       : "../dsl",
         javadocPath         : "../javadoc",
-        samplesPath         : "../../samples"
+        samplesPath         : "../../samples",
+        'samples-dir'       : "$projectDir/src/samples"
 }
 
 def userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask) {

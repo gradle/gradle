@@ -104,12 +104,7 @@ You can also hook into Gradle's logging system from within other classes used in
 
 === Example: Using SLF4J to write log messages
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tutorial/logging/build.gradle[tag=use-slf4j]
-----
-
+include::sample[dir="userguide/tutorial/logging",files="build.gradle[tags=use-slf4j]"]
 
 [[sec:external_tools]]
 == Logging from external tools and libraries
@@ -118,23 +113,21 @@ Internally, Gradle uses Ant and Ivy. Both have their own logging system. Gradle 
 
 There are many tools out there which still use standard output for logging. By default, Gradle redirects standard output to the `QUIET` log level and standard error to the `ERROR` level. This behavior is configurable. The project object provides a link:{javadocPath}/org/gradle/api/logging/LoggingManager.html[LoggingManager], which allows you to change the log levels that standard out or error are redirected to when your build script is evaluated.
 
-=== Example: Configuring standard output capture
+.Configuring standard output capture
+====
+include::sample[dir="userguide/tutorial/logging",files="build.gradle[tags=capture-stdout]"]
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tutorial/logging/build.gradle[tag=capture-stdout]
-----
+include::sample[dir="userguide/tutorial/loggingKts",files="build.gradle.kts[tags=capture-stdout]"]
+====
 
 To change the log level for standard out or error during task execution, tasks also provide a link:{javadocPath}/org/gradle/api/logging/LoggingManager.html[LoggingManager].
 
-=== Example: Configuring standard output capture for a task
+.Configuring standard output capture for a task
+====
+include::sample[dir="userguide/tutorial/logging",files="build.gradle[tags=task-capture-stdout]"]
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tutorial/logging/build.gradle[tag=task-capture-stdout]
-----
+include::sample[dir="userguide/tutorial/loggingKts",files="build.gradle.kts[tags=task-capture-stdout]"]
+====
 
 Gradle also provides integration with the Java Util Logging, Jakarta Commons Logging and Log4j logging toolkits. Any log messages which your build classes write using these logging toolkits will be redirected to Gradle's logging system.
 
@@ -143,18 +136,22 @@ Gradle also provides integration with the Java Util Logging, Jakarta Commons Log
 
 You can replace much of Gradle's logging UI with your own. You might do this, for example, if you want to customize the UI in some way - to log more or less information, or to change the formatting. You replace the logging using the link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html#org.gradle.api.invocation.Gradle:useLogger(java.lang.Object)[Gradle.useLogger(java.lang.Object)] method. This is accessible from a build script, or an init script, or via the embedding API. Note that this completely disables Gradle's default output. Below is an example init script which changes how task execution and build completion is logged.
 
-=== Example: Customizing what Gradle logs
+.Customizing what Gradle logs
+====
+include::sample[dir="userguide/initScripts/customLogger",files="init.gradle[]"]
 
-[source.multi-language-sample,groovy]
-.init.gradle
-----
-include::{samplesPath}/userguide/initScripts/customLogger/init.gradle[]
-----
+include::sample[dir="userguide/initScripts/customLoggerKts",files="customLogger.init.gradle.kts[]"]
+====
 
-.Output of **`gradle -I init.gradle build`**
+[.multi-language-text.lang-groovy]
 ----
 > gradle -I init.gradle build
 include::{samplesPath}/userguide/initScripts/customLogger/custom_logging_ui.out[]
+----
+[.multi-language-text.lang-kotlin]
+----
+> gradle -I customLoggerKts.init.gradle.kts build
+include::{samplesPath}/userguide/initScripts/customLoggerKts/customLoggerKts.out[]
 ----
 
 Your logger can implement any of the listener interfaces listed below. When you register a logger, only the logging for the interfaces that it implements is replaced. Logging for the other interfaces is left untouched. You can find out more about the listener interfaces in <<build_lifecycle.adoc#build_lifecycle_events,Build lifecycle events>>.
