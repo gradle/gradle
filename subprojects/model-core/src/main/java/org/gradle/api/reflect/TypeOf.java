@@ -237,6 +237,8 @@ public abstract class TypeOf<T> {
     /**
      * Concrete class.
      *
+     * @since 4.11
+     * 
      * @return Underlying Java Class of this type.
      */
     public Class<T> getConcreteClass() {
