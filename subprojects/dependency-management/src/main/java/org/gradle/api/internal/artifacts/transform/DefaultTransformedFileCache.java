@@ -179,7 +179,7 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
 
     private CacheKey getCacheKey(File inputFile, HashCode inputsHash) {
         PhysicalSnapshot snapshot = fileSystemSnapshotter.snapshot(inputFile);
-        return new CacheKey(inputsHash, snapshot.getName(), snapshot.getHash());
+        return new CacheKey(inputsHash, snapshot.getAbsolutePath(), snapshot.getHash());
     }
 
     /**
@@ -188,12 +188,12 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
      * operation, so we only calculate it when we have a cache miss in memory.
      */
     private static class CacheKey {
-        private final String fileName;
+        private final String absolutePath;
         private final HashCode fileContentHash;
         private final HashCode inputHash;
 
-        public CacheKey(HashCode inputHash, String fileName, HashCode fileContentHash) {
-            this.fileName = fileName;
+        public CacheKey(HashCode inputHash, String absolutePath, HashCode fileContentHash) {
+            this.absolutePath = absolutePath;
             this.fileContentHash = fileContentHash;
             this.inputHash = inputHash;
         }
@@ -201,7 +201,7 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
         public HashCode getPersistentCacheKey() {
             DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
             hasher.putHash(inputHash);
-            hasher.putString(fileName);
+            hasher.putString(absolutePath);
             hasher.putHash(fileContentHash);
             return hasher.hash();
         }
@@ -223,13 +223,13 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
             if (!inputHash.equals(cacheKey.inputHash)) {
                 return false;
             }
-            return fileName.equals(cacheKey.fileName);
+            return absolutePath.equals(cacheKey.absolutePath);
         }
 
         @Override
         public int hashCode() {
             int result = fileContentHash.hashCode();
-            result = 31 * result + fileName.hashCode();
+            result = 31 * result + absolutePath.hashCode();
             result = 31 * result + inputHash.hashCode();
             return result;
         }
