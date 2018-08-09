@@ -62,11 +62,15 @@ open class Benchmark : DefaultTask() {
 
     @Option(option = "exclude-sample", description = "Excludes a sample from the benchmark.")
     @get:Internal
-    var excludedSamplePatterns = mutableListOf("android")
+    var excludedSamplePatterns = mutableListOf<String>()
 
     @Option(option = "include-sample", description = "Includes a sample in the benchmark (disables automatic inclusion).")
     @get:Internal
     var includedSamplePatterns = mutableListOf<String>()
+
+    fun excludingSamplesMatching(vararg patterns: String) {
+        excludedSamplePatterns.addAll(patterns)
+    }
 
     @Suppress("unused")
     @TaskAction

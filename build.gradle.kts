@@ -97,8 +97,12 @@ val customInstallation by task<Copy> {
 
 // -- Performance testing ----------------------------------------------
 val benchmark by task<integration.Benchmark> {
-    dependsOn(customInstallation)
+    excludingSamplesMatching(
+        "android",
+        "source-control"
+    )
     latestInstallation = customInstallationDir
+    dependsOn(customInstallation)
 }
 
 
