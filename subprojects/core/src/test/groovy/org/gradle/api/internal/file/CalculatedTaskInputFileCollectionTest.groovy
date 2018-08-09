@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class CalculatedTaskInputFileCollectionTest extends Specification {
     def "querying value before task has started executing does not cache"() {
-        def calculated = Stub(MinimalFileSet)
+        def calculated = Mock(MinimalFileSet)
         def fileCollection = new CalculatedTaskInputFileCollection(":task", calculated)
 
         calculated.displayName >> "<files>"
@@ -33,11 +33,11 @@ class CalculatedTaskInputFileCollectionTest extends Specification {
         fileCollection.files
 
         then:
-        2 * calculated._
+        2 * calculated.files
     }
 
     def "querying value after task has completed executing does not cache"() {
-        def calculated = Stub(MinimalFileSet)
+        def calculated = Mock(MinimalFileSet)
         def fileCollection = new CalculatedTaskInputFileCollection(":task", calculated)
 
         calculated.displayName >> "<files>"
@@ -52,7 +52,7 @@ class CalculatedTaskInputFileCollectionTest extends Specification {
         fileCollection.files
 
         then:
-        2 * calculated._
+        2 * calculated.files
     }
 
     def "caches the result during task execution"() {

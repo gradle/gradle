@@ -266,15 +266,34 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         with(aCompileJava.source) {
             hash != null
             normalization == "NAME_ONLY"
-            roots.size() == 4
+            roots.size() == 1
             with(roots[0]) {
-                path == file("a/src/main/java/a/a/A.java").absolutePath
-            }
-            with(roots[1]) {
-                path == file("a/src/main/java/a/A.java").absolutePath
-            }
-            with(roots[2]) {
-                path == file("a/src/main/java/A.java").absolutePath
+                path == file("a/src/main/java").absolutePath
+                children.size() == 3
+                with(children[0]) {
+                    path == "A.java"
+                    hash != null
+                }
+                with(children[1]) {
+                    path == "B.java"
+                    hash != null
+                }
+                with(children[2]) {
+                    path == "a"
+                    children.size() == 2
+                    with(children[0]) {
+                        path == "A.java"
+                        hash != null
+                    }
+                    with(children[1]) {
+                        path == "a"
+                        children.size() == 1
+                        with(children[0]) {
+                            path == "A.java"
+                            hash != null
+                        }
+                    }
+                }
             }
         }
 
@@ -291,22 +310,26 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             hash != null
             roots.size() == 2
             with(roots[0]) {
-                path == file("b/src/main/java/Thing.java").absolutePath
+                path == file("b/src/main/java").absolutePath
+                children.size() == 1
+                children[0].path == "Thing.java"
             }
             with(roots[1]) {
-                path == file("b/other/Other.java").absolutePath
+                path == file("b/other").absolutePath
+                children.size() == 1
+                children[0].path == "Other.java"
             }
         }
 
         def bJar = snapshotResults(":b:jar").inputFileProperties
         with(bJar["rootSpec\$1"]) {
             hash != null
-            roots.size() == 2
+            roots.size() == 1
             with(roots[0]) {
-                path == file("b/build/classes/java/main/Other.class").absolutePath
-            }
-            with(roots[1]) {
-                path == file("b/build/classes/java/main/Thing.class").absolutePath
+                path == file("b/build/classes/java/main").absolutePath
+                children.size() == 2
+                children[0].path == "Other.class"
+                children[1].path == "Thing.class"
             }
         }
     }

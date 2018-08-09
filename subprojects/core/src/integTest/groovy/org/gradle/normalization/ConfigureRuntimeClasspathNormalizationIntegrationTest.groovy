@@ -159,8 +159,11 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
                 return """
                     task customTask {
                         def outputFile = file("\$temporaryDir/output.txt")
-                        inputs.files("classpath/dirEntry", "library.jar")
+                        inputs.files("classpath/dirEntry")
                             .withPropertyName("classpath")
+                            .withNormalizer(ClasspathNormalizer)
+                        inputs.file("library.jar")
+                            .withPropertyName("jar")
                             .withNormalizer(ClasspathNormalizer)
                         outputs.file(outputFile)
                             .withPropertyName("outputFile")
