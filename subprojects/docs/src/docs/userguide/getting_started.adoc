@@ -46,16 +46,16 @@ There are also many other {guidesUrl}/[tutorials and guides] available, which yo
 
 If you follow any of the tutorials linked above, you will execute a Gradle build. But what do you do if you're given a Gradle build without any instructions?
 
- 1. Determine whether the project has a Gradle wrapper and <<sec:using_wrapper,use it if it's there>>.
+ 1. Determine whether the project has a Gradle wrapper and <<gradle_wrapper#sec:using_wrapper,use it if it's there>>.
  2. Determine whether it's a single-project or multi-project build.
 +
-Either import the build with an IDE (preferring the wrapper if it exists) or run `gradle projects`. If only the root project is listed, it's a single-project build. Otherwise it's a multi-project build.
+Either import the build with an IDE (preferring the wrapper if it exists) or run `gradle projects`. If only the root project is listed, it's a single-project build. Otherwise it's a <<intro_multi_project_builds#intro_multi_project_builds,multi-project build>>.
  3. Find out what tasks you can run.
 +
 If you have imported the build into an IDE, you should have access to a view that displays all the available tasks. From the command line, run `gradle tasks`.
  4. Run the task that you are interested in.
 +
-Many convention-based builds integrate with Gradle's <<sec:base_tasks,lifecycle tasks>>, so use those when you don't have something more specific you want to do with the build.
+Many convention-based builds integrate with Gradle's <<base_plugin#sec:base_tasks,lifecycle tasks>>, so use those when you don't have something more specific you want to do with the build.
 
 Most builds will follow standard conventions on project structure and tasks, so if you're familiar with other builds of the same type — for example Java, Android or native builds — then the file and directory structure of the build should be familiar, as well as many of the tasks and project properties.
 

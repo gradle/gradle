@@ -116,10 +116,11 @@ Gradle allows you to introduce new concepts into a build beyond tasks, files and
 
 It's easy to view Gradle's build scripts as executable code, because that's what they are. But that's an implementation detail: well-designed build scripts describe _what_ steps are needed to build the software, not _how_ those steps should do the work. That's a job for custom task types and plugins.
 
-Yet there is one area in which it is useful to view a build script as executable code: in understanding how the syntax of the build script maps to Gradle's API. The API documentation lists methods and properties, and refers to closures and actions. What do these mean within the context of a build script?
+Yet there is one area in which it is useful to view a build script as executable code: in understanding how the syntax of the build script maps to Gradle's API. The API documentation — formed of the link:{groovyDslPath}/[Groovy DSL Reference] and the link:{javadocPath}/[Javadocs] — lists methods and properties, and refers to closures and actions. What do these mean within the context of a build script?
+
+Check out the <<groovy_build_script_primer#groovy_build_script_primer,Groovy Build Script Primer>> to learn the answer to that question and make effective use of the API documentation.
 
 NOTE: As Gradle runs on the JVM, build scripts can also use the standard {javaApi}[Java API]. Groovy build scripts can additionally use the Groovy APIs, while Kotlin build scripts can use the Kotlin ones.
 
-++[++This section needs more detail, or a dedicated chapter that it can link to. I don't think anything exists right now.]
 
 
