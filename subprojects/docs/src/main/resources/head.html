@@ -42,4 +42,263 @@
             return false;
         }, false);
     });
+
+    // Polyfill Element.matches()
+    if (!Element.prototype.matches) {
+        Element.prototype.matches = Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
+    }
+    // Polyfill Element.closest()
+    if (!Element.prototype.closest) {
+        Element.prototype.closest = function(s) {
+            var el = this;
+            if (!document.documentElement.contains(el)) return null;
+            do {
+                if (typeof el.matches === "function" && el.matches(s)) return el;
+                el = el.parentElement || el.parentNode;
+            } while (el !== null);
+            return null;
+        };
+    }
+
+    function registerNavigationActions() {
+        var navigationButton = document.querySelector(".site-header__navigation-button");
+        var navigationCollapsible = document.querySelector(".site-header__navigation-collapsible");
+
+        if (navigationButton) {
+            navigationButton.addEventListener("click", function () {
+                navigationCollapsible.classList.toggle("site-header__navigation-collapsible--collapse");
+            });
+        }
+
+        var allSubmenus = document.querySelectorAll(".site-header__navigation-submenu-section");
+        Array.prototype.forEach.call(allSubmenus, function (submenu) {
+            var focusinOpensSubmenu = false;
+
+            document.addEventListener("focusout", function (event) {
+                if (submenu.contains(event.target)) {
+                    focusinOpensSubmenu = false;
+                }
+            });
+
+            document.addEventListener("focusin", function () {
+                if (submenu.contains(document.activeElement)) {
+                    submenu.classList.add("open");
+                    focusinOpensSubmenu = true;
+                } else {
+                    submenu.classList.remove("open");
+                }
+            });
+
+            document.addEventListener("click", function (event) {
+                if (!focusinOpensSubmenu) {
+                    if (submenu.contains(event.target)) {
+                        submenu.classList.toggle("open");
+                    } else {
+                        submenu.classList.remove("open");
+                    }
+                } else {
+                    focusinOpensSubmenu = false;
+                }
+            });
+        });
+    }
+
+    // Add "active" class to TOC link corresponding to subsection at top of page
+    function setActiveSubsection(activeHref) {
+        var tocLinkToActivate = document.querySelector(".toc a[href$='"+activeHref+"']");
+        var currentActiveTOCLink = document.querySelector(".toc a.active");
+        if (tocLinkToActivate != null) {
+            if (currentActiveTOCLink != null && currentActiveTOCLink !== tocLinkToActivate) {
+                currentActiveTOCLink.classList.remove("active");
+            }
+            tocLinkToActivate.classList.add("active");
+        }
+    }
+
+    function calculateActiveSubsectionFromLink(event) {
+        var closestLink = event.target.closest("a[href]");
+        if (closestLink) {
+            setActiveSubsection(closestLink.getAttribute("href"));
+        }
+    }
+
+    function calculateActiveSubsectionFromScrollPosition() {
+        var subsections = document.querySelectorAll("h2.title > a[name],h3.title > a[name]");
+
+        // Assign active section: take advantage of fact that querySelectorAll returns elements in source order
+        var activeSection = subsections[0];
+        Array.prototype.forEach.call(subsections, function(section) {
+            if (Math.floor(section.offsetTop) <= (window.scrollY + 50)) {
+                activeSection = section;
+            }
+        });
+
+        if (activeSection != null && activeSection.hasAttribute("href")) {
+            setActiveSubsection(activeSection.getAttribute("href"));
+        }
+    }
+
+    function postProcessUserguideNavigation() {
+        [].forEach.call(document.querySelectorAll(".docs-navigation a[href$='"+ window.location.pathname +"']"), function(link) {
+            // Add "active" to all links same as current URL
+            link.classList.add("active");
+
+            // Expand all parent navigation
+            var parentListEl = link.closest("li");
+            while (parentListEl !== null) {
+                var dropDownEl = parentListEl.querySelector(".nav-dropdown");
+                if (dropDownEl !== null) {
+                    dropDownEl.classList.add("expanded");
+                }
+                parentListEl = parentListEl.parentNode.closest("li");
+            }
+        });
+
+        function throttle(fn, periodMs) {
+            var time = Date.now();
+            var context = this;
+            var args = Array.prototype.slice.call(arguments);
+            return function() {
+                if ((time + periodMs - Date.now()) < 0) {
+                    fn.apply(context, args);
+                    time = Date.now();
+                }
+            }
+        }
+
+        window.addEventListener("click", calculateActiveSubsectionFromLink);
+        window.addEventListener("scroll", throttle(calculateActiveSubsectionFromScrollPosition, 50));
+        calculateActiveSubsectionFromScrollPosition();
+    }
+
+    function postProcessNavigation() {
+        registerNavigationActions();
+        postProcessUserguideNavigation();
+    }
+
+    function postProcessFooter() {
+        var footerTimeEl = document.querySelector("footer time");
+        if (footerTimeEl !== null) {
+            footerTimeEl.innerHTML = new Date().getFullYear();
+        }
+    }
+
+    function postProcessCodeBlocks() {
+        // Assumptions:
+        //  1) All siblings that are marked with class="multi-language-sample" should be grouped
+        //  2) Only one language can be selected per domain (to allow selection to persist across all docs pages)
+        //  3) There is exactly 1 small set of languages to choose from. This does not allow for multiple language preferences. For example, users cannot prefer both Kotlin and ZSH.
+        //  4) Only 1 sample of each language can exist in the same collection.
+
+        var GRADLE_DSLs = ["groovy", "kotlin"];
+        var preferredBuildScriptLanguage = initPreferredBuildScriptLanguage();
+
+        // Ensure preferred DSL is valid, defaulting to Groovy DSL
+        function initPreferredBuildScriptLanguage() {
+            var lang = window.localStorage.getItem("preferred-gradle-dsl");
+            if (GRADLE_DSLs.indexOf(lang) === -1) {
+                window.localStorage.setItem("preferred-gradle-dsl", "groovy");
+                lang = "groovy";
+            }
+            return lang;
+        }
+
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        function processSampleEl(sampleEl, prefLangId) {
+            var codeEl = sampleEl.querySelector("code[data-lang]");
+            if (codeEl != null) {
+                sampleEl.setAttribute("data-lang", codeEl.getAttribute("data-lang"));
+                if (codeEl.getAttribute("data-lang") !== prefLangId) {
+                    sampleEl.classList.add("hidden");
+                } else {
+                    sampleEl.classList.remove("hidden");
+                }
+            }
+        }
+
+        function switchSampleLanguage(languageId) {
+            var multiLanguageSampleElements = [].slice.call(document.querySelectorAll(".multi-language-sample"));
+
+            // Array of Arrays, each top-level array representing a single collection of samples
+            var multiLanguageSets = [];
+            for (var i = 0; i < multiLanguageSampleElements.length; i++) {
+                var currentCollection = [multiLanguageSampleElements[i]];
+                var currentSampleElement = multiLanguageSampleElements[i];
+                processSampleEl(currentSampleElement, languageId);
+                while (currentSampleElement.nextElementSibling != null && currentSampleElement.nextElementSibling.classList.contains("multi-language-sample")) {
+                    currentCollection.push(currentSampleElement.nextElementSibling);
+                    currentSampleElement = currentSampleElement.nextElementSibling;
+                    processSampleEl(currentSampleElement, languageId);
+                    i++;
+                }
+
+                multiLanguageSets.push(currentCollection);
+            }
+
+            multiLanguageSets.forEach(function (sampleCollection) {
+                // Create selector element if not existing
+                if (sampleCollection.length > 1 &&
+                    (sampleCollection[0].previousElementSibling == null ||
+                        !sampleCollection[0].previousElementSibling.classList.contains("multi-language-selector"))) {
+                    var languageSelectorFragment = document.createDocumentFragment();
+                    var multiLanguageSelectorElement = document.createElement("div");
+                    multiLanguageSelectorElement.classList.add("multi-language-selector");
+                    languageSelectorFragment.appendChild(multiLanguageSelectorElement);
+
+
+                    sampleCollection.forEach(function (sampleEl) {
+                        var optionEl = document.createElement("code");
+                        var sampleLanguage = sampleEl.getAttribute("data-lang");
+                        optionEl.setAttribute("data-lang", sampleLanguage);
+                        optionEl.setAttribute("role", "button");
+                        optionEl.classList.add("language-option");
+
+                        optionEl.innerText = capitalizeFirstLetter(sampleLanguage);
+
+                        optionEl.addEventListener("click", function updatePreferredLanguage(evt) {
+                            var preferredLanguageId = optionEl.getAttribute("data-lang");
+                            window.localStorage.setItem("preferred-gradle-dsl", preferredLanguageId);
+
+                            // Record how far down the page the clicked element is before switching all samples
+                            var beforeOffset = evt.target.offsetTop;
+
+                            switchSampleLanguage(preferredLanguageId);
+
+                            // Scroll the window to account for content height differences between different sample languages
+                            window.scrollBy(0, evt.target.offsetTop - beforeOffset);
+                        });
+                        multiLanguageSelectorElement.appendChild(optionEl);
+                    });
+                    sampleCollection[0].parentNode.insertBefore(languageSelectorFragment, sampleCollection[0]);
+                }
+            });
+
+            [].slice.call(document.querySelectorAll(".multi-language-selector .language-option")).forEach(function (optionEl) {
+                if (optionEl.getAttribute("data-lang") === languageId) {
+                    optionEl.classList.add("selected");
+                } else {
+                    optionEl.classList.remove("selected");
+                }
+            });
+
+            [].slice.call(document.querySelectorAll(".multi-language-text")).forEach(function (el) {
+                if (!el.classList.contains("lang-" + languageId)) {
+                    el.classList.add("hidden");
+                } else {
+                    el.classList.remove("hidden");
+                }
+            });
+        }
+
+        switchSampleLanguage(preferredBuildScriptLanguage);
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        postProcessNavigation();
+        postProcessCodeBlocks();
+        postProcessFooter();
+    });
 </script>
