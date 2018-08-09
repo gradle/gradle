@@ -13,7 +13,7 @@ Add-->
 ### Incremental build uses less memory
 
 Memory usage for up-to-date checking has been improved.
-For the gradle/gradle build, heap usage dropped by 60 MB to 450 MB, that is a 12% reduction.
+For the gradle/gradle build, heap usage dropped by 600 MB to 450 MB, that is a 12% reduction.
 
 ## Promoted features
 
