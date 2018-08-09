@@ -23,7 +23,6 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.MutableBoolean
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.DirectorySnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.PhysicalSnapshot
 import org.gradle.internal.snapshot.PhysicalSnapshotVisitor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -32,14 +31,14 @@ import org.junit.Rule
 import spock.lang.Specification
 
 @UsesNativeServices
-class MirrorUpdatingDirectoryWalkerTest extends Specification {
+class DirectorySnapshotterTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def fileHasher = new TestFileHasher()
-    def walker = new MirrorUpdatingDirectoryWalker(fileHasher, TestFiles.fileSystem(), new StringInterner())
+    def directorySnapshotter = new DirectorySnapshotter(fileHasher, TestFiles.fileSystem(), new StringInterner())
 
-    def "basic directory walking works"() {
+    def "should snapshot without filters"() {
         given:
         def rootDir = tmpDir.createDir("root")
         def rootTextFile = rootDir.file("a.txt").createFile()
@@ -59,8 +58,8 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
 
         def actuallyFiltered = new MutableBoolean(false)
         when:
-        def root = walkDir(rootDir, null, walker, actuallyFiltered)
-        root.accept(new RelativePathTrackingVisitor() {
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered)
+        snapshot.accept(new RelativePathTrackingVisitor() {
             @Override
             void visit(String absolutePath, Deque<String> relativePath) {
                 visited << absolutePath
@@ -86,7 +85,7 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
         ].collect { 'root/' + it }) as Set
     }
 
-    def "filtering works"() {
+    def "should snapshot with filters"() {
         given:
         def rootDir = tmpDir.createDir("root")
         def rootTextFile = rootDir.file("a.txt").createFile()
@@ -106,8 +105,8 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
 
         def actuallyFiltered = new MutableBoolean(false)
         when:
-        def root = walkDir(rootDir, patterns, walker, actuallyFiltered)
-        root.accept(new RelativePathTrackingVisitor() {
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, patterns, actuallyFiltered)
+        snapshot.accept(new RelativePathTrackingVisitor() {
             @Override
             void visit(String absolutePath, Deque<String> relativePath) {
                 visited << absolutePath
@@ -134,7 +133,7 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
     }
 
     def "default excludes are correctly parsed"() {
-        def defaultExcludes = new MirrorUpdatingDirectoryWalker.DefaultExcludes(DirectoryScanner.getDefaultExcludes())
+        def defaultExcludes = new DirectorySnapshotter.DefaultExcludes(DirectoryScanner.getDefaultExcludes())
 
         expect:
         DirectoryScanner.getDefaultExcludes() as Set == ['**/%*%', '**/.git/**', '**/SCCS', '**/.bzr', '**/.hg/**', '**/.bzrignore', '**/.git', '**/SCCS/**', '**/.hg', '**/.#*', '**/vssver.scc', '**/.bzr/**', '**/._*', '**/#*#', '**/*~', '**/CVS', '**/.hgtags', '**/.svn/**', '**/.hgignore', '**/.svn', '**/.gitignore', '**/.gitmodules', '**/.hgsubstate', '**/.gitattributes', '**/CVS/**', '**/.hgsub', '**/.DS_Store', '**/.cvsignore'] as Set
@@ -152,10 +151,6 @@ class MirrorUpdatingDirectoryWalkerTest extends Specification {
 
         !defaultExcludes.excludeFile('.svnsomething')
         !defaultExcludes.excludeFile('#some')
-    }
-
-    private static FileSystemSnapshot walkDir(File dir, PatternSet patterns, MirrorUpdatingDirectoryWalker walker, MutableBoolean actuallyFiltered) {
-        walker.walkDir(dir.absolutePath, patterns, actuallyFiltered)
     }
 }
 

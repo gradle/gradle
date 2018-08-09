@@ -66,14 +66,14 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     private final FileSystem fileSystem;
     private final FileSystemMirror fileSystemMirror;
     private final ProducerGuard<String> producingSnapshots = ProducerGuard.striped();
-    private final MirrorUpdatingDirectoryWalker mirrorUpdatingDirectoryWalker;
+    private final DirectorySnapshotter directorySnapshotter;
 
     public DefaultFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, FileSystemMirror fileSystemMirror) {
         this.hasher = hasher;
         this.stringInterner = stringInterner;
         this.fileSystem = fileSystem;
         this.fileSystemMirror = fileSystemMirror;
-        this.mirrorUpdatingDirectoryWalker = new MirrorUpdatingDirectoryWalker(hasher, fileSystem, stringInterner);
+        this.directorySnapshotter = new DirectorySnapshotter(hasher, fileSystem, stringInterner);
     }
 
     @Override
@@ -161,7 +161,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             case RegularFile:
                 return new RegularFileSnapshot(absolutePath, name, hasher.hash(file, metadata), metadata.getLastModified());
             case Directory:
-                return mirrorUpdatingDirectoryWalker.walkDir(absolutePath, patternSet, hasBeenFiltered);
+                return directorySnapshotter.snapshot(absolutePath, patternSet, hasBeenFiltered);
             default:
                 throw new IllegalArgumentException("Unrecognized file type: " + metadata.getType());
         }

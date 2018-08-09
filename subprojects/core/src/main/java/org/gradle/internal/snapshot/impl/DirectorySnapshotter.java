@@ -57,20 +57,20 @@ import java.util.EnumSet;
 import java.util.List;
 
 @SuppressWarnings("Since15")
-public class MirrorUpdatingDirectoryWalker {
+public class DirectorySnapshotter {
     private final FileHasher hasher;
     private final FileSystem fileSystem;
     private final StringInterner stringInterner;
     private final DefaultExcludes defaultExcludes;
 
-    public MirrorUpdatingDirectoryWalker(FileHasher hasher, FileSystem fileSystem, StringInterner stringInterner) {
+    public DirectorySnapshotter(FileHasher hasher, FileSystem fileSystem, StringInterner stringInterner) {
         this.hasher = hasher;
         this.fileSystem = fileSystem;
         this.stringInterner = stringInterner;
         this.defaultExcludes = new DefaultExcludes(DirectoryScanner.getDefaultExcludes());
     }
 
-    public PhysicalSnapshot walkDir(String absolutePath, @Nullable PatternSet patterns, final MutableBoolean hasBeenFiltered) {
+    public PhysicalSnapshot snapshot(String absolutePath, @Nullable PatternSet patterns, final MutableBoolean hasBeenFiltered) {
         Path rootPath = Paths.get(absolutePath);
         final Spec<FileTreeElement> spec = (patterns == null || patterns.isEmpty()) ? null : patterns.getAsSpec();
         final MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
