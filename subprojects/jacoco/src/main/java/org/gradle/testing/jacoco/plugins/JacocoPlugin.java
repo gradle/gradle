@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -29,6 +30,7 @@ import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.internal.reflect.Instantiator;
@@ -37,6 +39,7 @@ import org.gradle.testing.jacoco.tasks.JacocoBase;
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification;
 import org.gradle.testing.jacoco.tasks.JacocoMerge;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
+import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -82,7 +85,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         configureAgentDependencies(agent, extension);
         configureTaskClasspathDefaults(extension);
         applyToDefaultTasks(extension);
-        configureDefaultOutputPathForJacocoMerge();
+        configureDefaultOutputPathForJacocoMergeLazy();
         configureJacocoReportsDefaults(extension);
         addDefaultReportAndCoverageVerificationTasks(extension);
     }
@@ -126,7 +129,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
      */
     private void configureTaskClasspathDefaults(final JacocoPluginExtension extension) {
         final Configuration config = this.project.getConfigurations().getAt(ANT_CONFIGURATION_NAME);
-        project.getTasks().withType(JacocoBase.class, new Action<JacocoBase>() {
+        project.getTasks().withType(JacocoBase.class).configureEach(new Action<JacocoBase>() {
             @Override
             public void execute(JacocoBase task) {
                 task.setJacocoClasspath(config);
@@ -146,7 +149,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
      * @param extension the extension to apply Jacoco with
      */
     private void applyToDefaultTasks(final JacocoPluginExtension extension) {
-        project.getTasks().withType(Test.class, new Action<Test>() {
+        project.getTasks().withType(Test.class).configureEach(new Action<Test>() {
             @Override
             public void execute(Test task) {
                 extension.applyTo(task);
@@ -154,8 +157,8 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    public Object configureDefaultOutputPathForJacocoMerge() {
-        return project.getTasks().withType(JacocoMerge.class, new Action<JacocoMerge>() {
+    private Action<JacocoMerge> configureJacocoMergeAction() {
+        return new Action<JacocoMerge>() {
             @Override
             public void execute(final JacocoMerge task) {
                 task.setDestinationFile(project.provider(new Callable<File>() {
@@ -165,12 +168,26 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
                     }
                 }));
             }
-        });
+        };
+    }
+
+    /**
+     * @deprecated Don't use this.
+     */
+    @Deprecated
+    public Object configureDefaultOutputPathForJacocoMerge() {
+        DeprecationLogger
+            .nagUserOfDiscontinuedMethod("JacocoPlugin.configureDefaultOutputPathForJacocoMerge()");
+        return project.getTasks().withType(JacocoMerge.class, configureJacocoMergeAction());
+    }
+
+    private void configureDefaultOutputPathForJacocoMergeLazy() {
+        project.getTasks().withType(JacocoMerge.class).configureEach(configureJacocoMergeAction());
     }
 
 
     private void configureJacocoReportsDefaults(final JacocoPluginExtension extension) {
-        project.getTasks().withType(JacocoReport.class, new Action<JacocoReport>() {
+        project.getTasks().withType(JacocoReport.class).configureEach(new Action<JacocoReport>() {
             @Override
             public void execute(JacocoReport reportTask) {
                 configureJacocoReportDefaults(extension, reportTask);
@@ -178,16 +195,10 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void configureJacocoReportDefaults(final JacocoPluginExtension extension, final JacocoReport reportTask) {
-        reportTask.getReports().all(new Action<ConfigurableReport>() {
+    private Action<ConfigurableReport> configureReportOutputDirectory(final JacocoPluginExtension extension, final JacocoReport reportTask) {
+        return new Action<ConfigurableReport>() {
             @Override
             public void execute(final ConfigurableReport report) {
-                report.setEnabled(project.provider(new Callable<Boolean>() {
-                    @Override
-                    public Boolean call() throws Exception {
-                        return report.getName().equals("html");
-                    }
-                }));
                 if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
                     report.setDestination(project.provider(new Callable<File>() {
                         @Override
@@ -204,7 +215,22 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
                     }));
                 }
             }
+        };
+    }
+
+    private void configureJacocoReportDefaults(final JacocoPluginExtension extension, final JacocoReport reportTask) {
+        reportTask.getReports().all(new Action<ConfigurableReport>() {
+            @Override
+            public void execute(final ConfigurableReport report) {
+                report.setEnabled(project.provider(new Callable<Boolean>() {
+                    @Override
+                    public Boolean call() throws Exception {
+                        return report.getName().equals("html");
+                    }
+                }));
+            }
         });
+        reportTask.getReports().all(configureReportOutputDirectory(extension, reportTask));
     }
 
     /**
@@ -216,52 +242,45 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
             @Override
             public void execute(JavaPlugin javaPlugin) {
-                project.getTasks().withType(Test.class, new Action<Test>() {
-                    @Override
-                    public void execute(Test task) {
-                        if (task.getName().equals(JavaPlugin.TEST_TASK_NAME)) {
-                            addDefaultReportTask(extension, task);
-                            addDefaultCoverageVerificationTask(task);
-                        }
-                    }
-                });
+                final TaskProvider<Task> testTaskProvider = project.getTasks().named(JavaPlugin.TEST_TASK_NAME);
+                addDefaultReportTask(extension, testTaskProvider);
+                addDefaultCoverageVerificationTask(testTaskProvider);
             }
         });
     }
 
-    private void addDefaultReportTask(final JacocoPluginExtension extension, final Test task) {
-        final JacocoReport reportTask = project.getTasks().create("jacoco" + StringUtils.capitalize(task.getName()) + "Report", JacocoReport.class);
-        reportTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
-        reportTask.setDescription(String.format("Generates code coverage report for the %s task.", task.getName()));
-        reportTask.executionData(task);
-        reportTask.sourceSets(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main"));
-        reportTask.getReports().all(new Action<ConfigurableReport>() {
+    private void addDefaultReportTask(final JacocoPluginExtension extension, final TaskProvider<Task> testTaskProvider) {
+        final Action<JacocoReport> configureJacocoReport = new Action<JacocoReport>() {
             @Override
-            public void execute(final ConfigurableReport report) {
-                if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
-                    report.setDestination(project.provider(new Callable<File>() {
-                        @Override
-                        public File call() throws Exception {
-                            return new File(extension.getReportsDir(), task.getName() + "/" + report.getName());
-                        }
-                    }));
-                } else {
-                    report.setDestination(project.provider(new Callable<File>() {
-                        @Override
-                        public File call() throws Exception {
-                            return new File(extension.getReportsDir(), task.getName() + "/" + reportTask.getName() + "." + report.getName());
-                        }
-                    }));
-                }
+            public void execute(final JacocoReport reportTask) {
+                reportTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+                reportTask.setDescription(String.format("Generates code coverage report for the %s task.", testTaskProvider.getName()));
+                reportTask.executionData(testTaskProvider);
+                reportTask.sourceSets(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main"));
+                reportTask.getReports().all(configureReportOutputDirectory(extension, reportTask));
             }
-        });
+        };
+        project.getTasks().register(
+            "jacoco" + StringUtils.capitalize(testTaskProvider.getName()) + "Report",
+            JacocoReport.class,
+            configureJacocoReport);
+
     }
 
-    private void addDefaultCoverageVerificationTask(final Test task) {
-        final JacocoCoverageVerification coverageVerificationTask = project.getTasks().create("jacoco" + StringUtils.capitalize(task.getName()) + "CoverageVerification", JacocoCoverageVerification.class);
-        coverageVerificationTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
-        coverageVerificationTask.setDescription(String.format("Verifies code coverage metrics based on specified rules for the %s task.", task.getName()));
-        coverageVerificationTask.executionData(task);
-        coverageVerificationTask.sourceSets(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main"));
+    private void addDefaultCoverageVerificationTask(final TaskProvider<Task> testTaskProvider) {
+        final Action<JacocoCoverageVerification> configureCoverageVerification = new Action<JacocoCoverageVerification>() {
+            @Override
+            public void execute(final JacocoCoverageVerification coverageVerificationTask) {
+                coverageVerificationTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+                coverageVerificationTask.setDescription(String.format("Verifies code coverage metrics based on specified rules for the %s task.", testTaskProvider.getName()));
+                coverageVerificationTask.executionData(testTaskProvider);
+                coverageVerificationTask.sourceSets(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main"));
+            }
+        };
+        project.getTasks().register(
+            "jacoco" + StringUtils.capitalize(testTaskProvider.getName()) + "CoverageVerification",
+            JacocoCoverageVerification.class,
+            configureCoverageVerification);
+
     }
 }
