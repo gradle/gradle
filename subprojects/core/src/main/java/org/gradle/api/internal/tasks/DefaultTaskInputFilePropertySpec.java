@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskInputs;
@@ -27,12 +28,14 @@ import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer;
 import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
 import org.gradle.internal.fingerprint.RelativePathInputNormalizer;
 
+import java.io.File;
+
 @NonNullApi
 public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSupport implements DeclaredTaskInputFileProperty {
 
     private final ValidatingValue value;
     private final ValidationAction validationAction;
-    private final TaskPropertyFileCollection files;
+    private final FileCollection files;
     private String propertyName;
     private boolean skipWhenEmpty;
     private boolean optional;
@@ -42,7 +45,16 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
     public DefaultTaskInputFilePropertySpec(String taskName, FileResolver resolver, ValidatingValue path, ValidationAction validationAction) {
         this.value = path;
         this.validationAction = validationAction;
-        this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, path);
+        this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, path).filter(new Spec<File>() {
+            @Override
+            public boolean isSatisfiedBy(File element) {
+                if (optional) {
+                    return !element.isDirectory();
+                } else {
+                    return element.isFile();
+                }
+            }
+        });
     }
 
     @Override
