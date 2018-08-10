@@ -29,7 +29,11 @@ plugins {
 
 val testPublishRuntime by configurations.creating
 
-val buildReceipt: Provider<RegularFile> = rootProject.tasks.withType(BuildReceipt::class.java).named("createBuildReceipt").map { layout.file(provider { it.receiptFile }).get() }
+// TODO: This isn't quite right.  We're losing dependency information here.
+// This should really be done as a publication from the root project.
+val buildReceipt: Provider<RegularFile> = rootProject.tasks.withType(BuildReceipt::class.java).named("createBuildReceipt").map {
+    it.receiptFile.get()
+}
 
 the<ShadedJarExtension>().apply {
     shadedConfiguration.exclude(mapOf("group" to "org.slf4j", "module" to "slf4j-api"))

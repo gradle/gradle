@@ -18,11 +18,10 @@ package org.gradle.build
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFile
+import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.*
 
 import java.text.SimpleDateFormat
 
@@ -62,13 +61,10 @@ class BuildReceipt extends DefaultTask {
     Date buildTimestamp
 
     @Internal
-    File destinationDir
+    final DirectoryProperty destinationDirectory = project.layout.getBuildDirectory()
 
     @OutputFile
-    File getReceiptFile() {
-        assert destinationDir != null
-        new File(destinationDir, BUILD_RECEIPT_FILE_NAME)
-    }
+    final Provider<RegularFile> receiptFile = destinationDirectory.file(BUILD_RECEIPT_FILE_NAME)
 
     @TaskAction
     void generate() {
@@ -81,8 +77,7 @@ class BuildReceipt extends DefaultTask {
             buildTimestampIso: getBuildTimestampAsIsoString(),
         ]
 
-        destinationDir.mkdirs()
-        ReproduciblePropertiesWriter.store(data, receiptFile)
+        ReproduciblePropertiesWriter.store(data, receiptFile.get().asFile)
     }
 
     private String getBuildTimestampAsString() {

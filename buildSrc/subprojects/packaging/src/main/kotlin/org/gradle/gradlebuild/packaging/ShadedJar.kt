@@ -19,7 +19,6 @@ package org.gradle.gradlebuild.packaging
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
@@ -49,7 +48,7 @@ open class ShadedJar : DefaultTask() {
      * The file will be included in the shaded jar under {@code /org/gradle/build-receipt.properties}.
      */
     @InputFile
-    val buildReceiptFile: RegularFileProperty = project.layout.fileProperty()
+    val buildReceiptFile = newInputFile()
 
     /**
       * The output Jar file.
