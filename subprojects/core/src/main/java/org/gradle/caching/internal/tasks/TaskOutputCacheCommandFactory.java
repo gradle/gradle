@@ -23,10 +23,6 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
-import org.gradle.api.internal.changedetection.state.FileSystemMirror;
-import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalMissingSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
@@ -42,6 +38,10 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
+import org.gradle.internal.snapshot.FileSystemMirror;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.MissingFileSnapshot;
+import org.gradle.internal.snapshot.PhysicalSnapshot;
 
 import java.io.File;
 import java.io.IOException;
@@ -150,7 +150,7 @@ public class TaskOutputCacheCommandFactory {
 
                 if (snapshot == null) {
                     fileSystemMirror.putMetadata(absolutePath, DefaultFileMetadata.missing());
-                    fileSystemMirror.putSnapshot(new PhysicalMissingSnapshot(absolutePath, property.getOutputFile().getName()));
+                    fileSystemMirror.putSnapshot(new MissingFileSnapshot(absolutePath, property.getOutputFile().getName()));
                     propertyFingerprintsBuilder.put(propertyName, fingerprintingStrategy.getIdentifier().getEmptyFingerprint());
                     continue;
                 }

@@ -18,10 +18,10 @@ package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
+import org.gradle.internal.fingerprint.FileFingerprint;
 import org.gradle.internal.hash.HashCode;
 
-public class IgnoredPathFingerprint implements NormalizedFileSnapshot {
+public class IgnoredPathFingerprint implements FileFingerprint {
 
     public static final IgnoredPathFingerprint DIRECTORY = new IgnoredPathFingerprint(FileType.Directory, DIR_SIGNATURE);
     private static final IgnoredPathFingerprint MISSING_FILE = new IgnoredPathFingerprint(FileType.Missing, MISSING_FILE_SIGNATURE);
@@ -63,7 +63,7 @@ public class IgnoredPathFingerprint implements NormalizedFileSnapshot {
     }
 
     @Override
-    public int compareTo(NormalizedFileSnapshot o) {
+    public int compareTo(FileFingerprint o) {
         if (!(o instanceof IgnoredPathFingerprint)) {
             return -1;
         }

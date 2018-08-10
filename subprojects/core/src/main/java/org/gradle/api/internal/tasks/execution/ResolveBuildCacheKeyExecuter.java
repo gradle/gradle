@@ -26,9 +26,6 @@ import com.google.common.collect.Maps;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -38,14 +35,17 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
-import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
+import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.PhysicalSnapshot;
+import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
@@ -178,7 +178,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         private static class State implements VisitState, PhysicalSnapshotVisitor {
             final InputFilePropertyVisitor visitor;
 
-            Map<String, NormalizedFileSnapshot> normalizedSnapshots;
+            Map<String, FileFingerprint> fingerprints;
             String propertyName;
             HashCode propertyHash;
             FingerprintingStrategy.Identifier propertyNormalizationStrategyIdentifier;
@@ -222,7 +222,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             }
 
             @Override
-            public boolean preVisitDirectory(PhysicalDirectorySnapshot physicalSnapshot) {
+            public boolean preVisitDirectory(DirectorySnapshot physicalSnapshot) {
                 this.path = physicalSnapshot.getAbsolutePath();
                 this.name = physicalSnapshot.getName();
                 this.hash = null;
@@ -241,12 +241,12 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                 this.path = physicalSnapshot.getAbsolutePath();
                 this.name = physicalSnapshot.getName();
 
-                NormalizedFileSnapshot snapshot = normalizedSnapshots.get(path);
-                if (snapshot == null) {
+                FileFingerprint fingerprint = fingerprints.get(path);
+                if (fingerprint == null) {
                     return;
                 }
 
-                this.hash = snapshot.getNormalizedContentHash();
+                this.hash = fingerprint.getNormalizedContentHash();
 
                 boolean isRoot = depth == 0;
                 if (isRoot) {
@@ -261,15 +261,13 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             }
 
             @Override
-            public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+            public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
                 visitor.postDirectory();
                 if (--depth == 0) {
                     visitor.postRoot();
                 }
             }
-
         }
-
 
         @Override
         public void visitInputFileProperties(InputFilePropertyVisitor visitor) {
@@ -284,10 +282,10 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                 state.propertyName = entry.getKey();
                 state.propertyHash = fingerprint.getHash();
                 state.propertyNormalizationStrategyIdentifier = fingerprint.getStrategyIdentifier();
-                state.normalizedSnapshots = fingerprint.getSnapshots();
+                state.fingerprints = fingerprint.getFingerprints();
 
                 visitor.preProperty(state);
-                fingerprint.visitRoots(state);
+                fingerprint.accept(state);
                 visitor.postProperty();
             }
         }

@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
@@ -27,16 +26,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.MerkleDirectorySnapshotBuilder;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
-import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionVisitor;
-import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
@@ -50,21 +39,24 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.fingerprint.FileFingerprint;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.EmptyHistoricalFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
+import org.gradle.internal.snapshot.PhysicalSnapshot;
+import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
-import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -78,7 +70,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheBackedTaskHistoryRepository.class);
 
     private final PersistentIndexedCache<String, HistoricalTaskExecution> taskHistoryCache;
-    private final StringInterner stringInterner;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ValueSnapshotter valueSnapshotter;
     private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
@@ -86,12 +77,10 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     public CacheBackedTaskHistoryRepository(
         TaskHistoryStore cacheAccess,
         Serializer<HistoricalFileCollectionFingerprint> fileCollectionFingerprintSerializer,
-        StringInterner stringInterner,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter,
         FileCollectionFingerprinterRegistry fingerprinterRegistry
     ) {
-        this.stringInterner = stringInterner;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.valueSnapshotter = valueSnapshotter;
         this.fingerprinterRegistry = fingerprinterRegistry;
@@ -158,7 +147,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         ImmutableSortedMap<String, ValueSnapshot> inputProperties = snapshotTaskInputProperties(task, taskProperties, previousInputProperties, valueSnapshotter);
 
         ImmutableSortedSet<String> outputPropertyNames = getOutputPropertyNamesForCacheKey(taskProperties);
-        ImmutableSet<String> declaredOutputFilePaths = getDeclaredOutputFilePaths(taskProperties, stringInterner);
 
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = fingerprintTaskFiles(task, "Input", normalizationStrategy, taskProperties.getInputFileProperties(), fingerprinterRegistry);
 
@@ -171,7 +159,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             taskActionImplementations,
             inputProperties,
             outputPropertyNames,
-            declaredOutputFilePaths,
             inputFiles,
             outputFiles,
             overlappingOutputs
@@ -213,19 +200,19 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     ) {
         CurrentFileCollectionFingerprint filesFingerprint;
         final Map<String, PhysicalSnapshot> beforeExecutionSnapshots = getAllSnapshots(beforeExecution);
-        if (!beforeExecution.getSnapshots().isEmpty() && !afterExecution.getSnapshots().isEmpty()) {
-            final Map<String, NormalizedFileSnapshot> afterPreviousSnapshots = afterPreviousExecution != null ? afterPreviousExecution.getSnapshots() : ImmutableMap.<String, NormalizedFileSnapshot>of();
+        if (!beforeExecution.getFingerprints().isEmpty() && !afterExecution.getFingerprints().isEmpty()) {
+            final Map<String, FileFingerprint> afterPreviousFingerprints = afterPreviousExecution != null ? afterPreviousExecution.getFingerprints() : ImmutableMap.<String, FileFingerprint>of();
 
             final List<FileSystemSnapshot> newRoots = new ArrayList<FileSystemSnapshot>();
             final MutableBoolean hasBeenFiltered = new MutableBoolean(false);
 
-            afterExecution.visitRoots(new PhysicalSnapshotVisitor() {
+            afterExecution.accept(new PhysicalSnapshotVisitor() {
                 private MerkleDirectorySnapshotBuilder merkleBuilder;
                 private boolean currentRootFiltered = false;
-                private PhysicalDirectorySnapshot currentRoot;
+                private DirectorySnapshot currentRoot;
 
                 @Override
-                public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+                public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                     if (merkleBuilder == null) {
                         merkleBuilder = MerkleDirectorySnapshotBuilder.noSortingRequired();
                         currentRoot = directorySnapshot;
@@ -237,7 +224,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
                 @Override
                 public void visit(PhysicalSnapshot fileSnapshot) {
-                    if (!isOutputEntry(fileSnapshot, beforeExecutionSnapshots, afterPreviousSnapshots)) {
+                    if (!isOutputEntry(fileSnapshot, beforeExecutionSnapshots, afterPreviousFingerprints)) {
                         hasBeenFiltered.set(true);
                         currentRootFiltered = true;
                         return;
@@ -250,8 +237,8 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 }
 
                 @Override
-                public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
-                    boolean isOutputDir = isOutputEntry(directorySnapshot, beforeExecutionSnapshots, afterPreviousSnapshots);
+                public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+                    boolean isOutputDir = isOutputEntry(directorySnapshot, beforeExecutionSnapshots, afterPreviousFingerprints);
                     boolean includedDir = merkleBuilder.postVisitDirectory(isOutputDir);
                     if (!includedDir) {
                         currentRootFiltered = true;
@@ -283,7 +270,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     private static Map<String, PhysicalSnapshot> getAllSnapshots(CurrentFileCollectionFingerprint fingerprint) {
         GetAllSnapshotsVisitor afterExecutionVisitor = new GetAllSnapshotsVisitor();
-        fingerprint.visitRoots(afterExecutionVisitor);
+        fingerprint.accept(afterExecutionVisitor);
         return afterExecutionVisitor.getSnapshots();
     }
 
@@ -295,7 +282,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
      * <li>an entry that did wasn't changed during the execution, but was already considered an output during the previous execution</li>
      * </ul>
      */
-    private static boolean isOutputEntry(PhysicalSnapshot fileSnapshot, Map<String, PhysicalSnapshot> beforeSnapshots, Map<String, NormalizedFileSnapshot> afterPreviousSnapshots) {
+    private static boolean isOutputEntry(PhysicalSnapshot fileSnapshot, Map<String, PhysicalSnapshot> beforeSnapshots, Map<String, FileFingerprint> afterPreviousFingerprints) {
         if (fileSnapshot.getType() == FileType.Missing) {
             return false;
         }
@@ -309,7 +296,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             return true;
         }
         // Did we already consider it as an output after the previous execution?
-        return afterPreviousSnapshots.containsKey(fileSnapshot.getAbsolutePath());
+        return afterPreviousFingerprints.containsKey(fileSnapshot.getAbsolutePath());
     }
 
     private static ImmutableList<ImplementationSnapshot> collectActionImplementations(Collection<ContextAwareTaskAction> taskActions, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
@@ -408,44 +395,11 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         return ImmutableSortedSet.copyOf(outputPropertyNames);
     }
 
-    private static ImmutableSet<String> getDeclaredOutputFilePaths(final TaskProperties taskProperties, final StringInterner stringInterner) {
-        final ImmutableSet.Builder<String> declaredOutputFilePaths = ImmutableSortedSet.naturalOrder();
-        FileCollectionInternal outputFiles = (FileCollectionInternal) taskProperties.getOutputFiles();
-        outputFiles.visitRootElements(new FileCollectionVisitor() {
-            @Override
-            public void visitCollection(FileCollectionInternal fileCollection) {
-                addAllPaths(fileCollection, declaredOutputFilePaths, stringInterner);
-            }
-
-            @Override
-            public void visitTree(FileTreeInternal fileTree) {
-                DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause("The ability to add non-directory-based file trees as declared outputs");
-                addAllPaths(fileTree, declaredOutputFilePaths, stringInterner);
-            }
-
-            @Override
-            public void visitDirectoryTree(DirectoryFileTree directoryTree) {
-                addPath(directoryTree.getDir(), declaredOutputFilePaths, stringInterner);
-            }
-        });
-        return declaredOutputFilePaths.build();
-    }
-
-    private static void addAllPaths(Iterable<File> files, ImmutableSet.Builder<String> builder, StringInterner stringInterner) {
-        for (File file : files) {
-            addPath(file, builder, stringInterner);
-        }
-    }
-
-    private static void addPath(File file, ImmutableSet.Builder<String> builder, StringInterner stringInterner) {
-        builder.add(stringInterner.intern(file.getAbsolutePath()));
-    }
-
     private static class GetAllSnapshotsVisitor implements PhysicalSnapshotVisitor {
         private final Map<String, PhysicalSnapshot> snapshots = new HashMap<String, PhysicalSnapshot>();
 
         @Override
-        public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+        public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
             snapshots.put(directorySnapshot.getAbsolutePath(), directorySnapshot);
             return true;
         }
@@ -456,7 +410,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
 
         @Override
-        public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+        public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
         }
 
         public Map<String, PhysicalSnapshot> getSnapshots() {
