@@ -24,7 +24,7 @@ import org.gradle.internal.MutableBoolean
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
-import org.gradle.internal.snapshot.PhysicalSnapshotVisitor
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -154,7 +154,7 @@ class DirectorySnapshotterTest extends Specification {
     }
 }
 
-abstract class RelativePathTrackingVisitor implements PhysicalSnapshotVisitor {
+abstract class RelativePathTrackingVisitor implements FileSystemSnapshotVisitor {
     private Deque<String> relativePath = new ArrayDeque<String>()
 
     @Override

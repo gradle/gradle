@@ -27,8 +27,8 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
-import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
 import org.gradle.internal.snapshot.RelativePathSegmentsTracker;
 import org.gradle.util.GFileUtils;
 
@@ -43,7 +43,7 @@ public class FileSystemSnapshotFilter {
     public static FileSystemSnapshot filterSnapshot(final Spec<FileTreeElement> spec, FileSystemSnapshot unfiltered, final FileSystem fileSystem) {
         final MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
         final MutableBoolean hasBeenFiltered = new MutableBoolean(false);
-        unfiltered.accept(new PhysicalSnapshotVisitor() {
+        unfiltered.accept(new FileSystemSnapshotVisitor() {
             private final RelativePathSegmentsTracker relativePathTracker = new RelativePathSegmentsTracker();
 
             @Override

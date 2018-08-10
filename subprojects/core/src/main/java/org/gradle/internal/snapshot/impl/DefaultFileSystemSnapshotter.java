@@ -127,25 +127,25 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     private FileSystemLocationSnapshot snapshotAndCache(File file, @Nullable PatternSet patternSet) {
-        InternableString internableAbsolutePath = new InternableString(file.getAbsolutePath());
-        FileMetadataSnapshot metadata = statAndCache(internableAbsolutePath, file);
-        return snapshotAndCache(internableAbsolutePath, file, metadata, patternSet);
+        InternableString absolutePath = new InternableString(file.getAbsolutePath());
+        FileMetadataSnapshot metadata = statAndCache(absolutePath, file);
+        return snapshotAndCache(absolutePath, file, metadata, patternSet);
     }
 
-    private FileMetadataSnapshot statAndCache(InternableString internableAbsolutePath, File file) {
-        FileMetadataSnapshot metadata = fileSystemMirror.getMetadata(internableAbsolutePath.asNonInterned());
+    private FileMetadataSnapshot statAndCache(InternableString absolutePath, File file) {
+        FileMetadataSnapshot metadata = fileSystemMirror.getMetadata(absolutePath.asNonInterned());
         if (metadata == null) {
             metadata = fileSystem.stat(file);
-            fileSystemMirror.putMetadata(internableAbsolutePath.asInterned(), metadata);
+            fileSystemMirror.putMetadata(absolutePath.asInterned(), metadata);
         }
         return metadata;
     }
 
-    private FileSystemLocationSnapshot snapshotAndCache(InternableString internableAbsolutePath, File file, FileMetadataSnapshot metadata, @Nullable PatternSet patternSet) {
-        FileSystemLocationSnapshot fileSystemLocationSnapshot = fileSystemMirror.getSnapshot(internableAbsolutePath.asNonInterned());
+    private FileSystemLocationSnapshot snapshotAndCache(InternableString absolutePath, File file, FileMetadataSnapshot metadata, @Nullable PatternSet patternSet) {
+        FileSystemLocationSnapshot fileSystemLocationSnapshot = fileSystemMirror.getSnapshot(absolutePath.asNonInterned());
         if (fileSystemLocationSnapshot == null) {
             MutableBoolean hasBeenFiltered = new MutableBoolean(false);
-            fileSystemLocationSnapshot = snapshot(internableAbsolutePath.asInterned(), patternSet, file, metadata, hasBeenFiltered);
+            fileSystemLocationSnapshot = snapshot(absolutePath.asInterned(), patternSet, file, metadata, hasBeenFiltered);
             if (!hasBeenFiltered.get()) {
                 fileSystemMirror.putSnapshot(fileSystemLocationSnapshot);
             }
@@ -201,7 +201,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         });
     }
 
-    private FileSystemSnapshot snapshotTree(final FileTreeInternal tree) {
+    private FileSystemSnapshot snapshotFileTree(final FileTreeInternal tree) {
         final FileSystemSnapshotBuilder builder = new FileSystemSnapshotBuilder(stringInterner);
         tree.visitTreeOrBackingFile(new FileVisitor() {
             @Override
@@ -238,21 +238,18 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         @Override
         public void visitCollection(FileCollectionInternal fileCollection) {
             for (File file : fileCollection) {
-                FileSystemLocationSnapshot snapshot = snapshot(file);
-                roots.add(snapshot);
+                roots.add(snapshot(file));
             }
         }
 
         @Override
         public void visitTree(FileTreeInternal fileTree) {
-            FileSystemSnapshot snapshot = snapshotTree(fileTree);
-            roots.add(snapshot);
+            roots.add(snapshotFileTree(fileTree));
         }
 
         @Override
         public void visitDirectoryTree(DirectoryFileTree directoryTree) {
-            FileSystemSnapshot snapshot = snapshotDirectoryTree(directoryTree);
-            roots.add(snapshot);
+            roots.add(snapshotDirectoryTree(directoryTree));
         }
 
         public List<FileSystemSnapshot> getRoots() {

@@ -50,7 +50,7 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot implem
     }
 
     @Override
-    public void accept(PhysicalSnapshotVisitor visitor) {
+    public void accept(FileSystemSnapshotVisitor visitor) {
         if (!visitor.preVisitDirectory(this)) {
             return;
         }

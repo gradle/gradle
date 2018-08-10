@@ -46,7 +46,7 @@ public class MissingFileSnapshot extends AbstractFileSystemLocationSnapshot {
     }
 
     @Override
-    public void accept(PhysicalSnapshotVisitor visitor) {
+    public void accept(FileSystemSnapshotVisitor visitor) {
         visitor.visit(this);
     }
 }

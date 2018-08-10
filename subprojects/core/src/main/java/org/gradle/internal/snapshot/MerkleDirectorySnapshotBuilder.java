@@ -28,7 +28,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 
-public class MerkleDirectorySnapshotBuilder implements PhysicalSnapshotVisitor {
+public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotVisitor {
     private static final HashCode DIR_SIGNATURE = Hashing.md5().hashString("DIR");
 
     private final RelativePathSegmentsTracker relativePathSegmentsTracker = new RelativePathSegmentsTracker();

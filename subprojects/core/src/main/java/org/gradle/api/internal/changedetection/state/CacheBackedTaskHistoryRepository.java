@@ -49,8 +49,8 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
-import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 import org.slf4j.Logger;
@@ -206,7 +206,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             final List<FileSystemSnapshot> newRoots = new ArrayList<FileSystemSnapshot>();
             final MutableBoolean hasBeenFiltered = new MutableBoolean(false);
 
-            afterExecution.accept(new PhysicalSnapshotVisitor() {
+            afterExecution.accept(new FileSystemSnapshotVisitor() {
                 private MerkleDirectorySnapshotBuilder merkleBuilder;
                 private boolean currentRootFiltered = false;
                 private DirectorySnapshot currentRoot;
@@ -395,7 +395,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         return ImmutableSortedSet.copyOf(outputPropertyNames);
     }
 
-    private static class GetAllSnapshotsVisitor implements PhysicalSnapshotVisitor {
+    private static class GetAllSnapshotsVisitor implements FileSystemSnapshotVisitor {
         private final Map<String, FileSystemLocationSnapshot> snapshots = new HashMap<String, FileSystemLocationSnapshot>();
 
         @Override

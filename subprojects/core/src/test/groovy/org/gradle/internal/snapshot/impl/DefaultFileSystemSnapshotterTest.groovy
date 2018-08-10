@@ -25,7 +25,7 @@ import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.PhysicalSnapshotVisitor
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -168,7 +168,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         when:
         def snapshot = snapshotter.snapshotDirectoryTree(filteredTree)
         def relativePaths = [] as Set
-        snapshot.accept(new PhysicalSnapshotVisitor() {
+        snapshot.accept(new FileSystemSnapshotVisitor() {
             private Deque<String> relativePath = new ArrayDeque<String>()
             private boolean seenRoot = false
 
@@ -224,7 +224,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
 
         then:
         getSnapshotInfo(snapshot) == [null, 1]
-        snapshot.accept(new PhysicalSnapshotVisitor() {
+        snapshot.accept(new FileSystemSnapshotVisitor() {
             @Override
             boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                 throw new UnsupportedOperationException()
@@ -250,7 +250,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
     private static List getSnapshotInfo(FileSystemSnapshot tree) {
         String rootPath = null
         int count = 0
-        tree.accept(new PhysicalSnapshotVisitor() {
+        tree.accept(new FileSystemSnapshotVisitor() {
             @Override
             boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                 if (rootPath == null) {

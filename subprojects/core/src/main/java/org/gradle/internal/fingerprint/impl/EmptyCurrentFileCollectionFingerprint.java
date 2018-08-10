@@ -26,7 +26,7 @@ import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
 import java.util.Collections;
 import java.util.Map;
@@ -57,7 +57,7 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
     }
 
     @Override
-    public void accept(PhysicalSnapshotVisitor visitor) {
+    public void accept(FileSystemSnapshotVisitor visitor) {
     }
 
     public Multimap<String, HashCode> getRootHashes() {

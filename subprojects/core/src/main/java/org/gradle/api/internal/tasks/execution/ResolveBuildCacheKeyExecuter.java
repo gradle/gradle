@@ -45,7 +45,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
@@ -175,7 +175,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         }
 
         @NonNullApi
-        private static class State implements VisitState, PhysicalSnapshotVisitor {
+        private static class State implements VisitState, FileSystemSnapshotVisitor {
             final InputFilePropertyVisitor visitor;
 
             Map<String, FileFingerprint> fingerprints;

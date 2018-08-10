@@ -56,11 +56,12 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
     }
 
     @Override
-    public void putSnapshot(FileSystemLocationSnapshot file) {
-        if (wellKnownFileLocations.isImmutable(file.getAbsolutePath())) {
-            cacheFiles.put(file.getAbsolutePath(), file);
+    public void putSnapshot(FileSystemLocationSnapshot snapshot) {
+        String absolutePath = snapshot.getAbsolutePath();
+        if (wellKnownFileLocations.isImmutable(absolutePath)) {
+            cacheFiles.put(absolutePath, snapshot);
         } else {
-            files.put(file.getAbsolutePath(), file);
+            files.put(absolutePath, snapshot);
         }
     }
 

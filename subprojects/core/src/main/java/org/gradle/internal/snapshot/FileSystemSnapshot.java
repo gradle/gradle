@@ -25,7 +25,7 @@ public interface FileSystemSnapshot {
      */
     FileSystemSnapshot EMPTY = new FileSystemSnapshot() {
         @Override
-        public void accept(PhysicalSnapshotVisitor visitor) {
+        public void accept(FileSystemSnapshotVisitor visitor) {
         }
     };
 
@@ -34,5 +34,5 @@ public interface FileSystemSnapshot {
      *
      * The walk is depth first.
      */
-    void accept(PhysicalSnapshotVisitor visitor);
+    void accept(FileSystemSnapshotVisitor visitor);
 }

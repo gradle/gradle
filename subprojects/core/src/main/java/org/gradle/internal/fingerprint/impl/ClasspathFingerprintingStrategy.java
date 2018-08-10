@@ -34,7 +34,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathSegmentsTracker;
 import org.gradle.internal.snapshot.RelativePathStringTracker;
@@ -120,7 +120,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         public abstract HashCode determineNonJarFingerprint(HashCode original);
     }
 
-    private class ClasspathContentFingerprintingVisitor implements PhysicalSnapshotVisitor {
+    private class ClasspathContentFingerprintingVisitor implements FileSystemSnapshotVisitor {
         private final ClasspathFingerprintVisitor delegate;
         private final RelativePathSegmentsTracker relativePathSegmentsTracker = new RelativePathSegmentsTracker();
         private final Factory<String[]> relativePathFactory = new Factory<String[]>() {
