@@ -53,7 +53,7 @@ testFixtures {
     from(":core")
 }
 
-tasks.named("processResources").configureAs<Copy> {
+tasks.withType(Copy::class.java).named("processResources").configure {
     from(css) {
         into("org/gradle/api/plugins/buildcomparison/render/internal/html")
         include("base.css")

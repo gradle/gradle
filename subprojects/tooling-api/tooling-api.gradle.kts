@@ -29,7 +29,7 @@ plugins {
 
 val testPublishRuntime by configurations.creating
 
-val buildReceipt: Provider<RegularFile> = rootProject.tasks.withType<BuildReceipt>().named("createBuildReceipt").map { layout.file(provider { it.receiptFile }).get() }
+val buildReceipt: Provider<RegularFile> = rootProject.tasks.withType(BuildReceipt::class.java).named("createBuildReceipt").map { layout.file(provider { it.receiptFile }).get() }
 
 the<ShadedJarExtension>().apply {
     shadedConfiguration.exclude(mapOf("group" to "org.slf4j", "module" to "slf4j-api"))
@@ -73,7 +73,7 @@ testFixtures {
 
 apply(from = "buildship.gradle")
 
-tasks.named("sourceJar").configureAs<Jar> {
+tasks.withType(Jar::class.java).named("sourceJar").configure {
     configurations.compile.allDependencies.withType<ProjectDependency>().forEach {
         from(it.dependencyProject.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].groovy.srcDirs)
         from(it.dependencyProject.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].java.srcDirs)

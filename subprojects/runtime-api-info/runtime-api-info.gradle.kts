@@ -41,7 +41,7 @@ val generateTestKitPackageList = tasks.register<PackageListGenerator>("generateT
     outputFile = file("$runtimeShadedPath/test-kit-relocated.txt")
 }
 
-tasks.named("jar").configureAs<Jar> {
+tasks.withType(Jar::class.java).named("jar").configure {
     into("org/gradle/api/internal/runtimeshaded") {
         from(generateGradleApiPackageList)
         from(generateTestKitPackageList)

@@ -72,6 +72,6 @@ testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
 
-tasks.named("classpathManifest").configureAs<ClasspathManifest> {
+tasks.withType(ClasspathManifest::class.java).named("classpathManifest").configure {
     additionalProjects = listOf(project(":runtimeApiInfo"))
 }

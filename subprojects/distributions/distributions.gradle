@@ -154,4 +154,8 @@ integTestTasks.configureEach {
     systemProperty 'org.gradle.public.api.excludes', PublicApi.excludes.join(':')
 }
 
+tasks.register("buildDists") {
+    dependsOn(":internalAndroidPerformanceTesting:distZip")
+}
+
 apply from: 'binary-compatibility.gradle'
