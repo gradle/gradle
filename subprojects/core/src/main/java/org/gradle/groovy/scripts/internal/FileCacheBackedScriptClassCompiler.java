@@ -21,12 +21,12 @@ import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
-import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.HashUtil;
@@ -53,6 +53,7 @@ import java.net.URI;
  * A {@link ScriptClassCompiler} which compiles scripts to a cache directory, and loads them from there.
  */
 public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, Closeable {
+    private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
     private final ScriptCompilationHandler scriptCompilationHandler;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final CacheRepository cacheRepository;
@@ -300,6 +301,9 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             if (o instanceof Type) {
                 return Type.getType(remap(((Type) o).getDescriptor()));
             }
+            if (o instanceof String) {
+                return remap((String) o);
+            }
             if (RuleVisitor.SOURCE_URI_TOKEN.equals(o)) {
                 URI uri = scriptSource.getResource().getLocation().getURI();
                 return uri == null ? null : uri.toString();
@@ -308,6 +312,17 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                 return scriptSource.getDisplayName();
             }
             return o;
+        }
+
+        private Object[] remap(int count, Object[] original) {
+            if (count == 0) {
+                return EMPTY_OBJECT_ARRAY;
+            }
+            Object[] remapped = new Object[count];
+            for (int idx = 0; idx < count; idx++) {
+                remapped[idx] = remap(original[idx]);
+            }
+            return remapped;
         }
 
         public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
@@ -371,8 +386,11 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                 return super.visitAnnotation(remap(desc), visible);
             }
 
+            @Override
+            public void visitFrame(int type, int nLocal, Object[] local, int nStack, Object[] stack) {
+                super.visitFrame(type, nLocal, remap(nLocal, local), nStack, remap(nStack, stack));
+            }
         }
-
     }
 
     private class RemapBuildScriptsAction<M, T extends Script> implements Action<PersistentCache> {
