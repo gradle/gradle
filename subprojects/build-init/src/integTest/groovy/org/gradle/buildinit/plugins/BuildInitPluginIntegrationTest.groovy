@@ -253,6 +253,7 @@ include("child")
                      groovy-library
                      java-application
                      java-library
+                     kotlin-application
                      kotlin-library
                      pom
                      scala-library""")
