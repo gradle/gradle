@@ -64,6 +64,9 @@ public class TemplateOperationFactory {
 
         public TemplateOperationBuilder withTemplate(final String relativeTemplatePath) {
             this.templateUrl = getClass().getResource(templatepackage + "/" + relativeTemplatePath);
+            if (templateUrl == null) {
+                throw new IllegalArgumentException(String.format("Could not find template '%s' in classpath.", relativeTemplatePath));
+            }
             return this;
         }
 

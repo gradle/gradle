@@ -18,24 +18,13 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.testing.internal.util.RetryRule
-import org.junit.Rule
 import spock.lang.Unroll
-
-import static org.gradle.integtests.fixtures.RetryRuleUtil.getRootCauseMessage
-import static org.gradle.testing.internal.util.RetryRule.retryIf
 
 class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_APP_CLASS = "src/main/java/App.java"
     public static final String SAMPLE_APP_TEST_CLASS = "src/test/java/AppTest.java"
     public static final String SAMPLE_APP_SPOCK_TEST_CLASS = "src/test/groovy/AppTest.groovy"
-
-    @Rule
-    RetryRule retryRule = retryIf { Throwable t ->
-        //retry on Jcenter connectivity issue
-        getRootCauseMessage(t).startsWith("Could not GET")
-    }
 
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
