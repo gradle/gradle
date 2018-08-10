@@ -1135,5 +1135,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         """
         expect:
         succeeds("foo")
+        result.assertTasksExecuted(":notByRule", ":bar", ":baz", ":foo")
     }
 }
