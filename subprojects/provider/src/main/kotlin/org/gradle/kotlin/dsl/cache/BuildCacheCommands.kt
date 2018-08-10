@@ -30,12 +30,22 @@ import java.io.OutputStream
 internal
 class ScriptBuildCacheKey(
     private val displayName: String,
-    private val cacheKey: String
+    prefixedCacheKey: String
 ) : BuildCacheKey {
+
+    private
+    val cacheKey = prefixedCacheKey.withoutPrefix()
 
     override fun getDisplayName(): String = displayName
 
     override fun getHashCode(): String = cacheKey
+}
+
+
+private
+fun String.withoutPrefix(): String {
+    require(contains('/')) { "Expecting a prefixed cache key, got `$this`" }
+    return substringAfter('/')
 }
 
 
