@@ -31,6 +31,7 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
+import org.apache.ivy.core.module.descriptor.ExtraInfoHolder;
 import org.apache.ivy.core.module.descriptor.IncludeRule;
 import org.apache.ivy.core.module.descriptor.License;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
@@ -49,7 +50,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
-import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.component.ArtifactType;
@@ -1220,7 +1220,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 buffer = null;
                 state = State.INFO;
             } else if (state == State.EXTRA_INFO) {
-                getMd().getExtraInfo().put(new NamespaceId(uri, localName), buffer == null ? "" : buffer.toString());
+                getMd().getExtraInfos().add(new ExtraInfoHolder(localName, buffer == null ? "" : buffer.toString()));
                 buffer = null;
                 state = State.INFO;
             } else if (state == State.DESCRIPTION) {
