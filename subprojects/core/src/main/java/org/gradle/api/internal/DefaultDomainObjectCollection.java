@@ -263,24 +263,22 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     public void addLater(Provider<? extends T> provider) {
         assertMutable();
         ProviderInternal<? extends T> providerInternal = Cast.uncheckedCast(provider);
+        store.addPending(providerInternal);
         if (eventRegister.isSubscribed(providerInternal.getType())) {
             doAdd(provider.get(), eventRegister.getAddActions());
-            return;
         }
-        store.addPending(providerInternal);
     }
 
     @Override
     public void addAllLater(Provider<? extends Iterable<T>> provider) {
         assertMutable();
         CollectionProviderInternal<T, ? extends Iterable<T>> providerInternal = Cast.uncheckedCast(provider);
+        store.addPendingCollection(providerInternal);
         if (eventRegister.isSubscribed(providerInternal.getElementType())) {
             for (T value : provider.get()) {
                 doAdd(value, eventRegister.getAddActions());
             }
-            return;
         }
-        store.addPendingCollection(providerInternal);
     }
 
     protected void didAdd(T toAdd) {
