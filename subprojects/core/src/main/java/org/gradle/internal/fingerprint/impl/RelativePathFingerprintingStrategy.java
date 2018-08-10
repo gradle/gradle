@@ -21,8 +21,8 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.fingerprint.FileFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.PhysicalSnapshot;
 import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
 import org.gradle.internal.snapshot.RelativePathStringTracker;
 
@@ -62,15 +62,15 @@ public class RelativePathFingerprintingStrategy implements FingerprintingStrateg
                 }
 
                 @Override
-                public void visit(PhysicalSnapshot fileSnapshot) {
+                public void visit(FileSystemLocationSnapshot fileSnapshot) {
                     String absolutePath = fileSnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        FileFingerprint fingerprint = relativePathStringTracker.isRoot() ? new DefaultFileFingerprint(fileSnapshot.getName(), fileSnapshot) : createNormalizedFileSnapshot(fileSnapshot);
+                        FileFingerprint fingerprint = relativePathStringTracker.isRoot() ? new DefaultFileFingerprint(fileSnapshot.getName(), fileSnapshot) : createFileFingerprint(fileSnapshot);
                         builder.put(absolutePath, fingerprint);
                     }
                 }
 
-                private FileFingerprint createNormalizedFileSnapshot(PhysicalSnapshot fileSnapshot) {
+                private FileFingerprint createFileFingerprint(FileSystemLocationSnapshot fileSnapshot) {
                     relativePathStringTracker.enter(fileSnapshot);
                     FileFingerprint fileFingerprint = new DefaultFileFingerprint(stringInterner.intern(relativePathStringTracker.getRelativePathString()), fileSnapshot);
                     relativePathStringTracker.leave();

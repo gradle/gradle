@@ -32,8 +32,8 @@ import org.gradle.internal.fingerprint.FileFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.PhysicalSnapshot;
 import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathSegmentsTracker;
@@ -141,7 +141,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         }
 
         @Override
-        public void visit(PhysicalSnapshot fileSnapshot) {
+        public void visit(FileSystemLocationSnapshot fileSnapshot) {
             if (fileSnapshot.getType() == FileType.RegularFile) {
                 HashCode normalizedContent = fingerprintFile((RegularFileSnapshot) fileSnapshot);
                 if (normalizedContent != null) {
@@ -208,12 +208,12 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
             this.relativePathStringTracker = new RelativePathStringTracker();
         }
 
-        public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
+        public boolean preVisitDirectory(FileSystemLocationSnapshot directorySnapshot) {
             relativePathStringTracker.enter(directorySnapshot);
             return true;
         }
 
-        public void visit(PhysicalSnapshot fileSnapshot, HashCode normalizedContentHash) {
+        public void visit(FileSystemLocationSnapshot fileSnapshot, HashCode normalizedContentHash) {
             String absolutePath = fileSnapshot.getAbsolutePath();
             if (processedEntries.add(absolutePath)) {
                 FileFingerprint fileFingerprint = relativePathStringTracker.isRoot() ? IgnoredPathFingerprint.create(fileSnapshot.getType(), normalizedContentHash) : createFileFingerprint(fileSnapshot, normalizedContentHash);
@@ -223,7 +223,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
             }
         }
 
-        private FileFingerprint createFileFingerprint(PhysicalSnapshot snapshot, HashCode content) {
+        private FileFingerprint createFileFingerprint(FileSystemLocationSnapshot snapshot, HashCode content) {
             relativePathStringTracker.enter(snapshot);
             FileFingerprint fileFingerprint = new DefaultFileFingerprint(stringInterner.intern(relativePathStringTracker.getRelativePathString()), FileType.RegularFile, content);
             relativePathStringTracker.leave();

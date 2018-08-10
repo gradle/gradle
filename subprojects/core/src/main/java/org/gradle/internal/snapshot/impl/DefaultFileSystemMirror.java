@@ -20,8 +20,8 @@ import org.gradle.api.internal.changedetection.state.WellKnownFileLocations;
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemMirror;
-import org.gradle.internal.snapshot.PhysicalSnapshot;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -35,8 +35,8 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
     private final Map<String, FileMetadataSnapshot> metadata = new ConcurrentHashMap<String, FileMetadataSnapshot>();
     private final Map<String, FileMetadataSnapshot> cacheMetadata = new ConcurrentHashMap<String, FileMetadataSnapshot>();
     // Maps from interned absolute path for a file to snapshot for the file.
-    private final Map<String, PhysicalSnapshot> files = new ConcurrentHashMap<String, PhysicalSnapshot>();
-    private final Map<String, PhysicalSnapshot> cacheFiles = new ConcurrentHashMap<String, PhysicalSnapshot>();
+    private final Map<String, FileSystemLocationSnapshot> files = new ConcurrentHashMap<String, FileSystemLocationSnapshot>();
+    private final Map<String, FileSystemLocationSnapshot> cacheFiles = new ConcurrentHashMap<String, FileSystemLocationSnapshot>();
 
     private final WellKnownFileLocations wellKnownFileLocations;
 
@@ -46,7 +46,7 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
 
     @Nullable
     @Override
-    public PhysicalSnapshot getSnapshot(String absolutePath) {
+    public FileSystemLocationSnapshot getSnapshot(String absolutePath) {
         // Could potentially also look whether we have the details for an ancestor directory tree
         // Could possibly infer that the path refers to a directory, if we have details for a descendant path (and it's not a missing file)
         if (wellKnownFileLocations.isImmutable(absolutePath)) {
@@ -56,7 +56,7 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
     }
 
     @Override
-    public void putSnapshot(PhysicalSnapshot file) {
+    public void putSnapshot(FileSystemLocationSnapshot file) {
         if (wellKnownFileLocations.isImmutable(file.getAbsolutePath())) {
             cacheFiles.put(file.getAbsolutePath(), file);
         } else {

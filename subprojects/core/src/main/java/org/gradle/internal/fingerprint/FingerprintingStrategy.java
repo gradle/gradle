@@ -19,13 +19,13 @@ package org.gradle.internal.fingerprint;
 import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy;
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.PhysicalSnapshot;
 
 import java.util.Map;
 
 /**
- * Strategy for converting a sequence of {@link PhysicalSnapshot}s into a {@link FileCollectionFingerprint}.
+ * Strategy for converting a sequence of {@link FileSystemLocationSnapshot}s into a {@link FileCollectionFingerprint}.
  */
 public interface FingerprintingStrategy {
 

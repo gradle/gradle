@@ -21,9 +21,9 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 
 /**
- * Represents a missing file.
+ * A snapshot of a missing file.
  */
-public class MissingFileSnapshot extends AbstractPhysicalSnapshot {
+public class MissingFileSnapshot extends AbstractFileSystemLocationSnapshot {
     private static final HashCode SIGNATURE = Hashing.md5().hashString(MissingFileSnapshot.class.getName());
 
     public MissingFileSnapshot(String absolutePath, String name) {
@@ -41,7 +41,7 @@ public class MissingFileSnapshot extends AbstractPhysicalSnapshot {
     }
 
     @Override
-    public boolean isContentAndMetadataUpToDate(PhysicalSnapshot other) {
+    public boolean isContentAndMetadataUpToDate(FileSystemLocationSnapshot other) {
         return other instanceof MissingFileSnapshot;
     }
 

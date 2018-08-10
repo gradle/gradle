@@ -23,8 +23,8 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.DirectorySnapshot
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.PhysicalSnapshot
 import org.gradle.internal.snapshot.PhysicalSnapshotVisitor
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -184,7 +184,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
             }
 
             @Override
-            void visit(PhysicalSnapshot fileSnapshot) {
+            void visit(FileSystemLocationSnapshot fileSnapshot) {
                 relativePath.addLast(fileSnapshot.name)
                 relativePaths.add(relativePath.join("/"))
                 relativePath.removeLast()
@@ -231,7 +231,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
             }
 
             @Override
-            void visit(PhysicalSnapshot fileSnapshot) {
+            void visit(FileSystemLocationSnapshot fileSnapshot) {
                 assert fileSnapshot.absolutePath == d.getAbsolutePath()
                 assert fileSnapshot.name == d.name
             }
@@ -261,7 +261,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
             }
 
             @Override
-            void visit(PhysicalSnapshot fileSnapshot) {
+            void visit(FileSystemLocationSnapshot fileSnapshot) {
                 count++
             }
 

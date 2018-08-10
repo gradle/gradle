@@ -23,7 +23,7 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.MutableBoolean
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.DirectorySnapshot
-import org.gradle.internal.snapshot.PhysicalSnapshot
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.PhysicalSnapshotVisitor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -165,7 +165,7 @@ abstract class RelativePathTrackingVisitor implements PhysicalSnapshotVisitor {
     }
 
     @Override
-    void visit(PhysicalSnapshot fileSnapshot) {
+    void visit(FileSystemLocationSnapshot fileSnapshot) {
         relativePath.addLast(fileSnapshot.name)
         visit(fileSnapshot.absolutePath, relativePath)
         relativePath.removeLast()

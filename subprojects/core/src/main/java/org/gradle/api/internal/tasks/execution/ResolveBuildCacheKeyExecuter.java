@@ -44,7 +44,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.internal.snapshot.DirectorySnapshot;
-import org.gradle.internal.snapshot.PhysicalSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
 
 import javax.annotation.Nullable;
@@ -237,9 +237,9 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
             }
 
             @Override
-            public void visit(PhysicalSnapshot physicalSnapshot) {
-                this.path = physicalSnapshot.getAbsolutePath();
-                this.name = physicalSnapshot.getName();
+            public void visit(FileSystemLocationSnapshot snapshot) {
+                this.path = snapshot.getAbsolutePath();
+                this.name = snapshot.getName();
 
                 FileFingerprint fingerprint = fingerprints.get(path);
                 if (fingerprint == null) {

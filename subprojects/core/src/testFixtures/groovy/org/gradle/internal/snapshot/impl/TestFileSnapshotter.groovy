@@ -19,10 +19,10 @@ package org.gradle.internal.snapshot.impl
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotter
 import org.gradle.internal.snapshot.MissingFileSnapshot
-import org.gradle.internal.snapshot.PhysicalSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 
 class TestFileSnapshotter implements FileSystemSnapshotter {
@@ -33,7 +33,7 @@ class TestFileSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    PhysicalSnapshot snapshot(File file) {
+    FileSystemLocationSnapshot snapshot(File file) {
         if (file.isFile()) {
             return new RegularFileSnapshot(file.absolutePath, file.name, Hashing.md5().hashBytes(file.bytes), file.lastModified())
         }

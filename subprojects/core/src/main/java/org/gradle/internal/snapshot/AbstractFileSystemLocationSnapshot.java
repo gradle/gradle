@@ -16,11 +16,11 @@
 
 package org.gradle.internal.snapshot;
 
-public abstract class AbstractPhysicalSnapshot implements PhysicalSnapshot {
+public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLocationSnapshot {
     private final String absolutePath;
     private final String name;
 
-    public AbstractPhysicalSnapshot(String absolutePath, String name) {
+    public AbstractFileSystemLocationSnapshot(String absolutePath, String name) {
         this.absolutePath = absolutePath;
         this.name = name;
     }

@@ -43,8 +43,8 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
-import org.gradle.internal.snapshot.PhysicalSnapshot;
 import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathStringTracker;
@@ -179,7 +179,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         });
         TarArchiveEntry tarEntry;
         OriginTaskExecutionMetadata originMetadata = null;
-        Map<String, PhysicalSnapshot> fileSnapshots = new HashMap<String, PhysicalSnapshot>();
+        Map<String, FileSystemLocationSnapshot> snapshots = new HashMap<String, FileSystemLocationSnapshot>();
 
         tarEntry = tarInput.getNextTarEntry();
         AtomicInteger entries = new AtomicInteger(0);
@@ -206,18 +206,18 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
 
                 boolean outputMissing = matcher.group(1) != null;
                 String childPath = matcher.group(3);
-                tarEntry = unpackPropertyEntry(propertySpec, tarInput, tarEntry, childPath, outputMissing, fileSnapshots, entries);
+                tarEntry = unpackPropertyEntry(propertySpec, tarInput, tarEntry, childPath, outputMissing, snapshots, entries);
             }
         }
         if (originMetadata == null) {
             throw new IllegalStateException("Cached result format error, no origin metadata was found.");
         }
 
-        return new UnpackResult(originMetadata, entries.get(), fileSnapshots);
+        return new UnpackResult(originMetadata, entries.get(), snapshots);
     }
 
     @Nullable
-    private TarArchiveEntry unpackPropertyEntry(ResolvedTaskOutputFilePropertySpec propertySpec, TarArchiveInputStream input, TarArchiveEntry rootEntry, String childPath, boolean missing, Map<String, PhysicalSnapshot> snapshots, AtomicInteger entries) throws IOException {
+    private TarArchiveEntry unpackPropertyEntry(ResolvedTaskOutputFilePropertySpec propertySpec, TarArchiveInputStream input, TarArchiveEntry rootEntry, String childPath, boolean missing, Map<String, FileSystemLocationSnapshot> snapshots, AtomicInteger entries) throws IOException {
         File propertyRoot = propertySpec.getOutputFile();
         String propertyName = propertySpec.getPropertyName();
         if (propertyRoot == null) {
@@ -279,7 +279,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
     }
 
     @Nullable
-    private TarArchiveEntry unpackDirectoryTree(TarArchiveInputStream input, TarArchiveEntry rootEntry, Map<String, PhysicalSnapshot> snapshots, AtomicInteger entries, File propertyRoot, String propertyName) throws IOException {
+    private TarArchiveEntry unpackDirectoryTree(TarArchiveInputStream input, TarArchiveEntry rootEntry, Map<String, FileSystemLocationSnapshot> snapshots, AtomicInteger entries, File propertyRoot, String propertyName) throws IOException {
         RelativePathParser parser = new RelativePathParser();
         parser.rootPath(rootEntry.getName());
 
@@ -374,7 +374,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
         }
 
         @Override
-        public void visit(PhysicalSnapshot fileSnapshot) {
+        public void visit(FileSystemLocationSnapshot fileSnapshot) {
             boolean root = relativePathStringTracker.isRoot();
             relativePathStringTracker.enter(fileSnapshot);
             String targetPath = getTargetPath(root);
@@ -403,7 +403,7 @@ public class TarTaskOutputPacker implements TaskOutputPacker {
             return entries;
         }
 
-        private void assertCorrectType(boolean root, PhysicalSnapshot snapshot) {
+        private void assertCorrectType(boolean root, FileSystemLocationSnapshot snapshot) {
             if (root) {
                 switch (outputType) {
                     case DIRECTORY:

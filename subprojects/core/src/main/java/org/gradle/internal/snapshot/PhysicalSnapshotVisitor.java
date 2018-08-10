@@ -17,7 +17,7 @@
 package org.gradle.internal.snapshot;
 
 /**
- * Visitor for {@link PhysicalSnapshot}.
+ * Visitor for {@link FileSystemLocationSnapshot}.
  */
 public interface PhysicalSnapshotVisitor {
 
@@ -31,7 +31,7 @@ public interface PhysicalSnapshotVisitor {
     /**
      * Called for each regular/missing file.
      */
-    void visit(PhysicalSnapshot fileSnapshot);
+    void visit(FileSystemLocationSnapshot fileSnapshot);
 
     /**
      * Called when leaving a directory.

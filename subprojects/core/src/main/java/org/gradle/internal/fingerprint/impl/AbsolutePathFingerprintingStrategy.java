@@ -21,8 +21,8 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.PhysicalSnapshot;
 import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
 
 import java.util.HashSet;
@@ -58,7 +58,7 @@ public enum AbsolutePathFingerprintingStrategy implements FingerprintingStrategy
                 }
 
                 @Override
-                public void visit(PhysicalSnapshot fileSnapshot) {
+                public void visit(FileSystemLocationSnapshot fileSnapshot) {
                     if (!includeMissing && fileSnapshot.getType() == FileType.Missing) {
                         return;
                     }

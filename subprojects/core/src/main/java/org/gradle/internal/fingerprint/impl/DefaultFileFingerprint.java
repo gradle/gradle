@@ -18,7 +18,7 @@ package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.PhysicalSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 public class DefaultFileFingerprint extends AbstractFileFingerprint {
     private final String normalizedPath;
@@ -28,7 +28,7 @@ public class DefaultFileFingerprint extends AbstractFileFingerprint {
         this.normalizedPath = normalizedPath;
     }
 
-    public DefaultFileFingerprint(String normalizedPath, PhysicalSnapshot snapshot) {
+    public DefaultFileFingerprint(String normalizedPath, FileSystemLocationSnapshot snapshot) {
         this(normalizedPath, snapshot.getType(), snapshot.getHash());
     }
 

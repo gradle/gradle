@@ -25,9 +25,9 @@ import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
-import org.gradle.internal.snapshot.PhysicalSnapshot;
 import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
 import org.gradle.internal.snapshot.RelativePathSegmentsTracker;
 import org.gradle.util.GFileUtils;
@@ -61,7 +61,7 @@ public class FileSystemSnapshotFilter {
             }
 
             @Override
-            public void visit(PhysicalSnapshot fileSnapshot) {
+            public void visit(FileSystemLocationSnapshot fileSnapshot) {
                 boolean root = relativePathTracker.isRoot();
                 relativePathTracker.enter(fileSnapshot);
                 if (root || spec.isSatisfiedBy(new LogicalFileTreeElement(fileSnapshot, relativePathTracker.getRelativePath(), fileSystem))) {
@@ -85,7 +85,7 @@ public class FileSystemSnapshotFilter {
     }
 
     /**
-     * Adapts a {@link PhysicalSnapshot} to the {@link FileTreeElement} interface, e.g. to allow
+     * Adapts a {@link FileSystemLocationSnapshot} to the {@link FileTreeElement} interface, e.g. to allow
      * passing it to a {@link org.gradle.api.tasks.util.PatternSet} for filtering.
      *
      * The fields on this class are prefixed with _ to avoid users from accidentally referencing them
@@ -94,11 +94,11 @@ public class FileSystemSnapshotFilter {
     private static class LogicalFileTreeElement extends AbstractFileTreeElement {
         private final Iterable<String> _relativePathIterable;
         private final FileSystem _fileSystem;
-        private final PhysicalSnapshot _snapshot;
+        private final FileSystemLocationSnapshot _snapshot;
         private RelativePath _relativePath;
         private File _file;
 
-        public LogicalFileTreeElement(PhysicalSnapshot snapshot, Iterable<String> relativePathIterable, FileSystem fileSystem) {
+        public LogicalFileTreeElement(FileSystemLocationSnapshot snapshot, Iterable<String> relativePathIterable, FileSystem fileSystem) {
             super(fileSystem);
             this._snapshot = snapshot;
             this._relativePathIterable = relativePathIterable;

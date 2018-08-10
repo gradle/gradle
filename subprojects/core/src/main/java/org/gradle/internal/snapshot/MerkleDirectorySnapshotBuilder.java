@@ -32,10 +32,10 @@ public class MerkleDirectorySnapshotBuilder implements PhysicalSnapshotVisitor {
     private static final HashCode DIR_SIGNATURE = Hashing.md5().hashString("DIR");
 
     private final RelativePathSegmentsTracker relativePathSegmentsTracker = new RelativePathSegmentsTracker();
-    private final Deque<List<PhysicalSnapshot>> levelHolder = new ArrayDeque<List<PhysicalSnapshot>>();
+    private final Deque<List<FileSystemLocationSnapshot>> levelHolder = new ArrayDeque<List<FileSystemLocationSnapshot>>();
     private final Deque<String> directoryAbsolutePaths = new ArrayDeque<String>();
     private final boolean sortingRequired;
-    private PhysicalSnapshot result;
+    private FileSystemLocationSnapshot result;
 
     public static MerkleDirectorySnapshotBuilder sortingRequired() {
         return new MerkleDirectorySnapshotBuilder(true);
@@ -51,7 +51,7 @@ public class MerkleDirectorySnapshotBuilder implements PhysicalSnapshotVisitor {
 
     public boolean preVisitDirectory(String absolutePath, String name) {
         relativePathSegmentsTracker.enter(name);
-        levelHolder.addLast(new ArrayList<PhysicalSnapshot>());
+        levelHolder.addLast(new ArrayList<FileSystemLocationSnapshot>());
         directoryAbsolutePaths.addLast(absolutePath);
         return true;
     }
@@ -62,7 +62,7 @@ public class MerkleDirectorySnapshotBuilder implements PhysicalSnapshotVisitor {
     }
 
     @Override
-    public void visit(PhysicalSnapshot fileSnapshot) {
+    public void visit(FileSystemLocationSnapshot fileSnapshot) {
         if (relativePathSegmentsTracker.isRoot()) {
             result = fileSnapshot;
         } else {
@@ -81,22 +81,22 @@ public class MerkleDirectorySnapshotBuilder implements PhysicalSnapshotVisitor {
 
     public boolean postVisitDirectory(boolean includeEmpty) {
         String name = relativePathSegmentsTracker.leave();
-        List<PhysicalSnapshot> children = levelHolder.removeLast();
+        List<FileSystemLocationSnapshot> children = levelHolder.removeLast();
         String absolutePath = directoryAbsolutePaths.removeLast();
         if (children.isEmpty() && !includeEmpty) {
             return false;
         }
         if (sortingRequired) {
-            Collections.sort(children, PhysicalSnapshot.BY_NAME);
+            Collections.sort(children, FileSystemLocationSnapshot.BY_NAME);
         }
         BuildCacheHasher hasher = new DefaultBuildCacheHasher();
         hasher.putHash(DIR_SIGNATURE);
-        for (PhysicalSnapshot child : children) {
+        for (FileSystemLocationSnapshot child : children) {
             hasher.putString(child.getName());
             hasher.putHash(child.getHash());
         }
         DirectorySnapshot directorySnapshot = new DirectorySnapshot(absolutePath, name, children, hasher.hash());
-        List<PhysicalSnapshot> siblings = levelHolder.peekLast();
+        List<FileSystemLocationSnapshot> siblings = levelHolder.peekLast();
         if (siblings != null) {
             siblings.add(directorySnapshot);
         } else {
@@ -114,7 +114,7 @@ public class MerkleDirectorySnapshotBuilder implements PhysicalSnapshotVisitor {
     }
 
     @Nullable
-    public PhysicalSnapshot getResult() {
+    public FileSystemLocationSnapshot getResult() {
         return result;
     }
 }

@@ -20,9 +20,9 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
 /**
- * A file snapshot for a regular file.
+ * A snapshot of a regular file.
  */
-public class RegularFileSnapshot extends AbstractPhysicalSnapshot {
+public class RegularFileSnapshot extends AbstractFileSystemLocationSnapshot {
     private final HashCode contentHash;
     private final long lastModified;
 
@@ -43,7 +43,7 @@ public class RegularFileSnapshot extends AbstractPhysicalSnapshot {
     }
 
     @Override
-    public boolean isContentAndMetadataUpToDate(PhysicalSnapshot other) {
+    public boolean isContentAndMetadataUpToDate(FileSystemLocationSnapshot other) {
         if (!(other instanceof RegularFileSnapshot)) {
             return false;
         }

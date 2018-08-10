@@ -28,8 +28,8 @@ import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.PhysicalSnapshot;
 import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
 
 import java.util.Map;
@@ -69,7 +69,7 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
             }
 
             @Override
-            public void visit(PhysicalSnapshot fileSnapshot) {
+            public void visit(FileSystemLocationSnapshot fileSnapshot) {
                 builder.put(fileSnapshot.getAbsolutePath(), fileSnapshot.getHash());
             }
 

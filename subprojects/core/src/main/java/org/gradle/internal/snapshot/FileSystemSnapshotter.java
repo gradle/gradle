@@ -46,7 +46,7 @@ public interface FileSystemSnapshotter {
      * The file may be a regular file, a directory or missing.
      * When the specified file is a directory, details about the directory and its children are returned.
      */
-    PhysicalSnapshot snapshot(File file);
+    FileSystemLocationSnapshot snapshot(File file);
 
     /**
      * Returns snapshots of the roots of a file collection.

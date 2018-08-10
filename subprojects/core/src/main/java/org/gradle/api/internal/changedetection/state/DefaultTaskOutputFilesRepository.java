@@ -22,8 +22,8 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.PhysicalSnapshot;
 import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
 
 import java.io.Closeable;
@@ -73,13 +73,13 @@ public class DefaultTaskOutputFilesRepository implements TaskOutputFilesReposito
                 }
 
                 @Override
-                public void visit(PhysicalSnapshot fileSnapshot) {
+                public void visit(FileSystemLocationSnapshot fileSnapshot) {
                     if (fileSnapshot.getType() == FileType.RegularFile) {
                         recordOutputSnapshot(fileSnapshot);
                     }
                 }
 
-                private void recordOutputSnapshot(PhysicalSnapshot directorySnapshot) {
+                private void recordOutputSnapshot(FileSystemLocationSnapshot directorySnapshot) {
                     String outputFilePath = directorySnapshot.getAbsolutePath();
                     File outputFile = new File(outputFilePath);
                     outputFiles.put(outputFilePath, Boolean.TRUE);
