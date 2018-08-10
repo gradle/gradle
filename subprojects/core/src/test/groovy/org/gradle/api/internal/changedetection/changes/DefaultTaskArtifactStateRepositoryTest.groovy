@@ -40,7 +40,6 @@ import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext
 import org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecuter
-import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.api.internal.tasks.properties.PropertyWalker
 import org.gradle.api.tasks.incremental.InputFileDetails
 import org.gradle.cache.CacheRepository
@@ -653,7 +652,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
     private void outOfDate(TaskInternal task) {
         final state = getStateFor(task)
         assert !state.isUpToDate([])
-        assert !state.getInputChanges(Mock(TaskProperties)).incremental
+        assert !state.getInputChanges().incremental
     }
 
     private TaskArtifactState getStateFor(TaskInternal task) {
@@ -672,7 +671,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         final state = getStateFor(task)
         assert !state.isUpToDate([])
 
-        final inputChanges = state.getInputChanges(Mock(TaskProperties))
+        final inputChanges = state.getInputChanges()
         assert inputChanges.incremental
 
         final changedFiles = new ChangedFiles()

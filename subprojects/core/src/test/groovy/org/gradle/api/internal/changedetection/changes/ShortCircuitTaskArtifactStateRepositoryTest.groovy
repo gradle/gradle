@@ -21,6 +21,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository
+import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.api.specs.AndSpec
 import org.gradle.internal.reflect.DirectInstantiator
@@ -30,7 +31,7 @@ class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
 
     def startParameter = new StartParameter()
     def delegate = Mock(TaskArtifactStateRepository)
-    def repository = new ShortCircuitTaskArtifactStateRepository(startParameter, DirectInstantiator.INSTANCE, delegate)
+    def repository = new ShortCircuitTaskArtifactStateRepository(startParameter, DirectInstantiator.INSTANCE, Stub(TaskHistoryRepository), delegate)
     def taskArtifactState = Mock(TaskArtifactState)
     def inputs = Mock(TaskInputsInternal)
     def outputs = Mock(TaskOutputsInternal)
@@ -91,7 +92,7 @@ class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         !messages.empty
 
         and:
-        !state.getInputChanges(taskProperties).incremental
+        !state.getInputChanges().incremental
     }
 
     def taskArtifactsAreAlwaysOutOfDateWhenUpToDateSpecReturnsFalse() {
@@ -113,7 +114,7 @@ class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         !messages.empty
 
         and:
-        !state.getInputChanges(taskProperties).incremental
+        !state.getInputChanges().incremental
     }
 
 }
