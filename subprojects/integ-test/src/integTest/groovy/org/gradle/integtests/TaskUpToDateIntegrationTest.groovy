@@ -321,23 +321,22 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
                 }
             }           
             
-            File inputDir = file("inputDir" + property("select"))
-            inputDir.mkdirs()
-            
             task myTask(type: MyTask) {
-                input = inputDir
+                input = file(inputDir)
                 output = project.file("build/output.txt")
-            } 
+            }          
+
+            myTask.input.mkdirs()
         """
         String myTask = ':myTask'
 
         when:
-        run myTask, '-Pselect=1'
+        run myTask, '-PinputDir=inputDir1'
         then:
         executedAndNotSkipped(myTask)
 
         when:
-        run myTask, '-Pselect=2'
+        run myTask, '-PinputDir=inputDir2'
         then:
         executedAndNotSkipped(myTask)
 
