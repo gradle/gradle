@@ -1,21 +1,47 @@
+/**
+ * An example Gradle task.
+ */
+open class GreetingTask : DefaultTask() {
+
+    val message = project.objects.property<String>()
+
+    @TaskAction
+    fun greet() = println(message.get())
+}
 
 tasks {
 
-    val hello by registering { // refactor friendly task definition
-        doLast { println("Hello!") }
+    // `hello` is a `TaskProvider<GreetingTask>`
+    val hello by registering(GreetingTask::class) {
+        message.set("Hello!")
     }
 
-    register("goodbye") {
-        dependsOn(hello)  // dependsOn task reference
-        doLast { println("Goodbye!") }
+    // `goodbye` is a `TaskProvider<GreetingTask>`
+    val goodbye by registering(GreetingTask::class)
+
+    // Every `NamedDomainObjectProvider<T>` can be lazily configured as follows
+    goodbye {
+        dependsOn(hello)
     }
 
-    register("chat") {
-        dependsOn("goodbye") // dependsOn task name
+    // Existing container elements can be lazily configured via the `String` invoke DSL
+    "goodbye"(GreetingTask::class) {
+        message.set("Goodbye!")
     }
 
-    register("mixItUp") {
-        dependsOn(hello, "goodbye")
+    // Regular API members are also available
+    register("chat")
+}
+
+// ...
+
+tasks {
+
+    // Existing container elements can be lazily brought into scope
+    val goodbye by existing
+
+    "chat" {
+        dependsOn(goodbye)
     }
 }
 
