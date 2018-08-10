@@ -1,4 +1,5 @@
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.gradlebuild.BuildClassPath
 
 plugins {
     application
@@ -26,26 +27,7 @@ application {
 }
 
 tasks.register<BuildClassPath>("buildClassPath") {
-    val jar: Jar by tasks
-    dependsOn(jar)
-    classpath = androidTools + files(jar.archivePath)
-    outputFile = buildDir.resolve("classpath.txt")
-}
-
-
-open class BuildClassPath : DefaultTask() {
-
-    @InputFiles
-    lateinit var classpath: FileCollection
-
-    @OutputFile
-    lateinit var outputFile: File
-
-    @TaskAction
-    fun buildClasspath() =
-        outputFile.printWriter().use { wrt ->
-            classpath.asFileTree.files.forEach {
-                wrt.println(it.absolutePath)
-            }
-        }
+    classpath.from(androidTools)
+    classpath.from(tasks.named("jar"))
+    outputFile.set(project.layout.buildDirectory.file("classpath.txt"))
 }
