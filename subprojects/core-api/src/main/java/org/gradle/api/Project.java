@@ -632,7 +632,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     Map<Project, Set<Task>> getAllTasks(boolean recursive);
 
     /**
-     * <p>Returns the set of tasks with the given name contained in this project, and optionally its subprojects.</p>
+     * <p>Returns the set of tasks with the given name contained in this project, and optionally its subprojects.
+     *
+     * <b>NOTE:</b> This is an expensive operation since it requires all projects to be configured.
+     * </p>
      *
      * @param name The name of the task to locate.
      * @param recursive If true, returns the tasks of this project and its subprojects. If false, returns the tasks of
