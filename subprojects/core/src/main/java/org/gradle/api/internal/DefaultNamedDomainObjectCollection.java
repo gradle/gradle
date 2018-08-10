@@ -20,11 +20,11 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.NamedDomainObjectCollectionSchema;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Namer;
 import org.gradle.api.Rule;
 import org.gradle.api.UnknownDomainObjectException;
@@ -751,12 +751,36 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     @Nullable
     protected NamedDomainObjectProvider<? extends T> findDomainObject(String name) {
-        T object = findByNameWithoutRules(name);
-        if (object == null) {
-            // TODO: Need to check for proper type/cast
-            return Cast.uncheckedCast(findByNameLaterWithoutRules(name));
+        NamedDomainObjectProvider<? extends T> provider = searchForDomainObject(name);
+        // Run the rules and try to find something again.
+        if (provider == null) {
+            if (applyRules(name)) {
+                return searchForDomainObject(name);
+            }
         }
 
+        return provider;
+    }
+
+    @Nullable
+    private NamedDomainObjectProvider<? extends T> searchForDomainObject(String name) {
+        // Look for a realized object
+        T object = findByNameWithoutRules(name);
+        if (object != null) {
+            return createExistingProvider(name, object);
+        }
+
+        // Look for a provider with that name
+        ProviderInternal<? extends T> provider = findByNameLaterWithoutRules(name);
+        if (provider != null) {
+            // TODO: Need to check for proper type/cast
+            return Cast.uncheckedCast(provider);
+        }
+
+        return null;
+    }
+
+    protected NamedDomainObjectProvider<? extends T> createExistingProvider(String name, T object) {
         return Cast.uncheckedCast(getInstantiator().newInstance(ExistingNamedDomainObjectProvider.class, this, object, name));
     }
 
