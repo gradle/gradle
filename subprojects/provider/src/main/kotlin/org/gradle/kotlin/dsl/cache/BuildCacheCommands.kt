@@ -30,13 +30,29 @@ import java.io.OutputStream
 internal
 class ScriptBuildCacheKey(
     private val displayName: String,
-    private val cacheKey: String
+    originalCacheKey: String
 ) : BuildCacheKey {
+
+    private
+    val cacheKey = originalCacheKey.withoutInvalidBuildCacheKeyChars()
 
     override fun getDisplayName(): String = displayName
 
     override fun getHashCode(): String = cacheKey
 }
+
+
+private
+fun String.withoutInvalidBuildCacheKeyChars() =
+    replace(invalidBuildCacheKeyChars, "")
+
+
+/**
+ * Pattern matching the characters present in the cache key prefixes used by the Kotlin DSL
+ * which are not valid as remote build cache keys.
+ */
+private
+val invalidBuildCacheKeyChars = "[-/]".toRegex()
 
 
 /**
