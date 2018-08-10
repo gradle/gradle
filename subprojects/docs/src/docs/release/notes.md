@@ -4,16 +4,16 @@ First and foremost, this release of Gradle features an improved [incremental Jav
 This will result in significantly reduced Java compilation time in subsequent builds when outputs are not up-to-date or resolved from the build cache.
 
 Chances are caches in those `.gradle/` directories have accumulated a few (or a few dozen) gigabytes over time.
-If so, you'll be relieved to know that Gradle will now [periodically clean up unused `/caches`](#periodic-cache-cleanup) under `GRADLE_USER_HOME` and project root directories. 
+If so, you'll be relieved to know that Gradle will now [periodically clean up unused `/caches`](#periodic-cache-cleanup) under `GRADLE_USER_HOME` and project root directories.
 
-A moment you have anticipated is nearly here, as the [Kotlin DSL reaches version 1.0 RC1](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC1). 
+A moment you have anticipated is nearly here, as the [Kotlin DSL reaches version 1.0 RC1](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC1).
 Configuration avoidance, `buildSrc` refactoring propagation to the IDE, and lots of DSL polish make this the release to try.
 Gradle Kotlin DSL 1.0 will ship with the next version of Gradle.
 Please give it a go and file issues in the [gradle/kotlin-dsl](https://github.com/gradle/kotlin-dsl) project.
 _If you are interested in using the Kotlin DSL, please check out the [Gradle guides](https://gradle.org/guides/), especially the [Groovy DSL to Kotlin DSL migration guide](https://guides.gradle.org/migrating-build-logic-from-groovy-to-kotlin/)._
 
 You can now use [SNAPSHOT plugin versions with the `plugins {}`](#use-snapshot-plugin-versions-with-the-plugins-{}-block) and `pluginManagement {}` blocks.
-This is especially good news for Kotlin DSL users, who will get code assistance and auto-completion for these `SNAPSHOT` plugins. 
+This is especially good news for Kotlin DSL users, who will get code assistance and auto-completion for these `SNAPSHOT` plugins.
 Special thanks to [Sébastien Deleuze](https://github.com/sdeleuze) for contributing.
 
 Last but not least, [included builds can now be nested](#nested-included-builds).
@@ -51,12 +51,7 @@ We are now confident that the incremental compiler is ready to be used in every 
 
 ### Periodic cache cleanup
 
-Caching has always been one of the strong suits of Gradle. Over time, more and more persistent caches have been added to improve performance and support new features, requiring more and more disk space on build servers and developer workstations. Gradle now addresses one of the most highly voted issues on GitHub and introduces the following cleanup strategies:
-
-- Version-specific cache directories in `GRADLE_USER_HOME/caches/<gradle-version>/` are checked periodically (at most every 24 hours) for whether they are still in use. If not, directories for release versions are deleted after 30 days of inactivity, snapshot versions after 7 days of inactivity. Moreover, the corresponding Gradle distributions in `GRADLE_USER_HOME/wrapper/dists/` are deleted as well, if present.
-- Similarly, after building a project, version-specific cache directories in `PROJECT_DIR/.gradle/<gradle-version>/` are checked periodically (at most every 24 hours) for whether they are still in use. They are deleted if they haven't been used for 7 days.
-- Shared versioned cache directories in `GRADLE_USER_HOME/caches/` (e.g. `jars-*`) are checked periodically (at most every 24 hours) for whether they are still in use. If there's no Gradle version that still uses them, they are deleted.
-- Files in shared caches used by the current Gradle version in `GRADLE_USER_HOME/caches/` (e.g. `jars-3` or `modules-2`) are checked periodically (at most every 24 hours) for when they were last accessed. Depending on whether the file can be recreated locally or would have to be downloaded from a remote repository again, it will be deleted after 7 or 30 days of not being accessed, respectively.
+Caching has always been one of the strong suits of Gradle. Over time, more and more persistent caches have been added to improve performance and support new features, requiring more and more disk space on build servers and developer workstations. Gradle now addresses one of the most highly voted issues on GitHub and introduces the cleanup strategies for the caches in the [Gradle user home directory](userguide/directory_layout.html#dir:gradle_user_home:cache_cleanup) and the [project root directory](userguide/directory_layout.html#dir:project_root:cache_cleanup).
 
 ### Use SNAPSHOT plugin versions with the `plugins {}` block
 
@@ -152,7 +147,7 @@ The Kotlin DSL enables experimental Kotlin compiler features in order to expose 
 The DSL types and behavior of containers elements delegated properties (e.g. `val jar by tasks`) and containers scopes (e.g. `tasks { }`) changed.
 
 The source set container can now be accessed using `project.sourceSets`, or just `sourceSets`.
-Previously it was located at `project.java.sourceSets`, or just `java.sourceSets`.  
+Previously it was located at `project.java.sourceSets`, or just `java.sourceSets`.
 
 All these changes could cause script compilation errors.
 
