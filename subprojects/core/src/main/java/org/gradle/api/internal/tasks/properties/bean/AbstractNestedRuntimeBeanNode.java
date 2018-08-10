@@ -152,7 +152,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
                     context.recordValidationMessage(ERROR, String.format("No value has been specified for property '%s'.", propertyName));
                 }
             } else {
-                valueValidator.validate(propertyName, optional, unpacked, context, ERROR);
+                valueValidator.validate(propertyName, unpacked, context, ERROR);
             }
         }
     }
