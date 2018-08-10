@@ -416,7 +416,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         }
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == "No operation is currently running."
     }
 

@@ -43,7 +43,7 @@ class IgnoreUnavailableAnnouncerTest extends Specification {
         announcer.send("title", "message")
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
     }
 }

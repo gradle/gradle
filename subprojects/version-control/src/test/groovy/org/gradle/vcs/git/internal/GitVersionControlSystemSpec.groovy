@@ -209,7 +209,7 @@ class GitVersionControlSystemSpec extends Specification {
         gitVcs.populate(target, repoHead, repoSpec)
 
         then:
-        GradleException e = thrown()
+        def e = thrown GradleException
         e.message.contains('Could not clone from https://notarepo.invalid in')
         e.cause != null
         e.cause.message.contains('Exception caught during execution of fetch command')

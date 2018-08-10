@@ -286,7 +286,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         repository.createResolver()
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message == 'You must specify a base url or at least one artifact pattern for an Ivy repository.'
     }
 

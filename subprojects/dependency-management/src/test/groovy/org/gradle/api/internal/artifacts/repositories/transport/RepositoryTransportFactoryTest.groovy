@@ -52,7 +52,7 @@ class RepositoryTransportFactoryTest extends Specification {
         repositoryTransportFactory.createTransport(['unsupported'] as Set, null, [])
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message == "Not a supported repository protocol 'unsupported': valid protocols are [protocol1, protocol2a, protocol2b]"
     }
 
@@ -61,7 +61,7 @@ class RepositoryTransportFactoryTest extends Specification {
         repositoryTransportFactory.createTransport(['protocol1', 'protocol2b'] as Set, null, [])
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message == "You cannot mix different URL schemes for a single repository. Please declare separate repositories."
     }
 

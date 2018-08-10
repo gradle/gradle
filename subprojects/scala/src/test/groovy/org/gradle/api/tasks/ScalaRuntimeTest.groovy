@@ -56,7 +56,7 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
         scalaClasspath.files
 
         then:
-        GradleException e = thrown()
+        def e = thrown GradleException
         e.message == "Cannot infer Scala class path because no repository is declared in $project"
     }
 
@@ -70,7 +70,7 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
         scalaClasspath.files
 
         then:
-        GradleException e = thrown()
+        def e = thrown GradleException
         e.message.startsWith("Cannot infer Scala class path because no Scala library Jar was found. Does root project 'test' declare dependency to scala-library? Searched classpath:")
     }
 

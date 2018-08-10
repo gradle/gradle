@@ -144,7 +144,7 @@ class DefaultPhasedBuildActionExecuterTest extends ConcurrentSpec {
         }
 
         then:
-        GradleConnectionException e = thrown()
+        def e = thrown GradleConnectionException
         e.message == 'Could not run phased build action using testConnection.'
         e.cause == failure
 

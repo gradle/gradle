@@ -68,7 +68,7 @@ class DirectInstantiatorTest extends Specification {
         instantiator.newInstance(TypeWithAmbiguousConstructor, "param")
 
         then:
-        ObjectInstantiationException e = thrown()
+        def e = thrown ObjectInstantiationException
         e.cause instanceof IllegalArgumentException
         e.cause.message == "Found multiple public constructors for ${TypeWithAmbiguousConstructor} which accept parameters [java.lang.String]."
 
@@ -76,7 +76,7 @@ class DirectInstantiatorTest extends Specification {
         instantiator.newInstance(TypeWithAmbiguousConstructor, true)
 
         then:
-        e = thrown()
+        e = thrown ObjectInstantiationException
         e.cause.message == "Found multiple public constructors for ${TypeWithAmbiguousConstructor} which accept parameters [java.lang.Boolean]."
     }
 
@@ -87,7 +87,7 @@ class DirectInstantiatorTest extends Specification {
         instantiator.newInstance(SomeType, param)
 
         then:
-        ObjectInstantiationException e = thrown()
+        def e = thrown ObjectInstantiationException
         e.cause instanceof IllegalArgumentException
         e.cause.message == "Could not find any public constructor for ${SomeType} which accepts parameters [java.lang.Object]."
 
@@ -95,14 +95,14 @@ class DirectInstantiatorTest extends Specification {
         instantiator.newInstance(SomeType, "a", "b")
 
         then:
-        e = thrown()
+        e = thrown ObjectInstantiationException
         e.cause.message == "Could not find any public constructor for ${SomeType} which accepts parameters [java.lang.String, java.lang.String]."
 
         when:
         instantiator.newInstance(SomeType, false)
 
         then:
-        e = thrown()
+        e = thrown ObjectInstantiationException
         e.cause.message == "Could not find any public constructor for ${SomeType} which accepts parameters [java.lang.Boolean]."
 
         when:
@@ -110,7 +110,7 @@ class DirectInstantiatorTest extends Specification {
         instantiator.newInstance(SomeTypeWithPrimitiveTypes, "a")
 
         then:
-        e = thrown()
+        e = thrown ObjectInstantiationException
         e.cause.message == "Could not find any public constructor for ${SomeTypeWithPrimitiveTypes} which accepts parameters [java.lang.String]."
 
         when:
@@ -118,7 +118,7 @@ class DirectInstantiatorTest extends Specification {
         instantiator.newInstance(SomeTypeWithPrimitiveTypes, 22)
 
         then:
-        e = thrown()
+        e = thrown ObjectInstantiationException
         e.cause.message == "Could not find any public constructor for ${SomeTypeWithPrimitiveTypes} which accepts parameters [java.lang.Integer]."
 
         when:
@@ -126,7 +126,7 @@ class DirectInstantiatorTest extends Specification {
         instantiator.newInstance(SomeTypeWithPrimitiveTypes, [null] as Object[])
 
         then:
-        e = thrown()
+        e = thrown ObjectInstantiationException
         e.cause.message == "Could not find any public constructor for ${SomeTypeWithPrimitiveTypes} which accepts parameters [null]."
     }
 
@@ -135,7 +135,7 @@ class DirectInstantiatorTest extends Specification {
         instantiator.newInstance(BrokenType, false)
 
         then:
-        ObjectInstantiationException e = thrown()
+        def e = thrown ObjectInstantiationException
         e.cause instanceof RuntimeException
         e.cause.message == 'broken'
     }

@@ -71,7 +71,7 @@ class DefaultBuildableArtifactResolveResultTest extends Specification {
         result.result
 
         then:
-        ArtifactResolveException e = thrown()
+        def e = thrown ArtifactResolveException
         e == failure
     }
 
@@ -80,7 +80,7 @@ class DefaultBuildableArtifactResolveResultTest extends Specification {
         result.result
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'No result has been specified.'
     }
 
@@ -89,7 +89,7 @@ class DefaultBuildableArtifactResolveResultTest extends Specification {
         result.failure
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'No result has been specified.'
     }
 
@@ -101,7 +101,7 @@ class DefaultBuildableArtifactResolveResultTest extends Specification {
         result.result
 
         then:
-        ArtifactResolveException e = thrown()
+        def e = thrown ArtifactResolveException
         e == failure
     }
 }

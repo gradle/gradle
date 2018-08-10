@@ -85,7 +85,7 @@ class NormalizingJavaCompilerTest extends Specification {
         compiler.execute(spec)
 
         then:
-        CompilationFailedException e = thrown()
+        def e = thrown CompilationFailedException
         e == failure
     }
 
@@ -110,7 +110,7 @@ class NormalizingJavaCompilerTest extends Specification {
         compiler.execute(spec)
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
     }
 

@@ -62,7 +62,7 @@ class MutableActionSetTest extends Specification {
         broadcast.execute('value')
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
 
         and:

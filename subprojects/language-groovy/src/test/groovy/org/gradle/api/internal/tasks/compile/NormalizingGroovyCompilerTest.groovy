@@ -69,7 +69,7 @@ class NormalizingGroovyCompilerTest extends Specification {
         compiler.execute(spec)
 
         then:
-        CompilationFailedException e = thrown()
+        def e = thrown CompilationFailedException
         e == failure
     }
 

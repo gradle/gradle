@@ -210,7 +210,7 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
         attributes.attribute(FOO, "foo")
 
         then:
-        UnsupportedOperationException t = thrown()
+        def t = thrown UnsupportedOperationException
         t.message == "Mutation of attributes is not allowed"
     }
 
@@ -251,7 +251,7 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
         factory.safeConcat(set1, set2)
 
         then:
-        AttributeMergingException e = thrown()
+        def e = thrown AttributeMergingException
         e.attribute == BAR
         e.leftValue == "bar1"
         e.rightValue == "bar2"
@@ -266,7 +266,7 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
         factory.safeConcat(set1, set2)
 
         then:
-        AttributeMergingException e = thrown()
+        def e = thrown AttributeMergingException
         e.attribute == OTHER_BAR
         e.leftValue == "bar1"
         e.rightValue == "bar2"

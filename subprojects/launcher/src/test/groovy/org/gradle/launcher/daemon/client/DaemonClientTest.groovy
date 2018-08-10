@@ -70,7 +70,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         client.execute(Stub(BuildAction), Stub(BuildRequestContext), Stub(BuildActionParameters), Stub(ServiceRegistry))
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
         1 * processEnvironment.maybeGetPid()
         1 * connector.connect(compatibilitySpec) >> connection
@@ -93,7 +93,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         client.execute(Stub(BuildAction), buildRequestContext, Stub(BuildActionParameters), Stub(ServiceRegistry))
 
         then:
-        BuildCancelledException gce = thrown()
+        def gce = thrown BuildCancelledException
         1 * processEnvironment.maybeGetPid()
         1 * connector.connect(compatibilitySpec) >> connection
         _ * connection.daemon >> Stub(DaemonConnectDetails)
@@ -124,7 +124,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         client.execute(Stub(BuildAction), buildRequestContext, Stub(BuildActionParameters), Stub(ServiceRegistry))
 
         then:
-        BuildCancelledException gce = thrown()
+        def gce = thrown BuildCancelledException
         gce == cancelledException
         1 * processEnvironment.maybeGetPid()
         1 * connector.connect(compatibilitySpec) >> connection

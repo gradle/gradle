@@ -350,7 +350,7 @@ class ProtocolToModelAdapterTest extends Specification {
         model.project
 
         then:
-        UnsupportedMethodException e = thrown()
+        def e = thrown UnsupportedMethodException
         e.message.contains "TestModel.getProject()"
     }
 
@@ -364,7 +364,7 @@ class ProtocolToModelAdapterTest extends Specification {
 
         then:
         protocolModel.name >> { throw failure }
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
     }
 

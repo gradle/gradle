@@ -56,7 +56,7 @@ class HashUtilTest extends Specification {
         HashUtil.createHash(file, "MD5")
 
         then:
-        UncheckedIOException e = thrown()
+        def e = thrown UncheckedIOException
         e.message.contains(filename)
         e.message.contains("MD5")
     }
@@ -77,7 +77,7 @@ class HashUtilTest extends Specification {
         HashUtil.createHash(stubInputStream, "MD5")
 
         then:
-        UncheckedIOException e = thrown()
+        def e = thrown UncheckedIOException
         e.cause == ioe
     }
 

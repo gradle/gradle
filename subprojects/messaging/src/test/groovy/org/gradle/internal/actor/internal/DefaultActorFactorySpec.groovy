@@ -196,7 +196,7 @@ class DefaultActorFactorySpec extends ConcurrentSpec {
         actor.stop()
 
         then:
-        DispatchException e = thrown()
+        def e = thrown DispatchException
         e.message.startsWith("Could not dispatch message")
         e.cause == failure
     }
@@ -281,7 +281,7 @@ class DefaultActorFactorySpec extends ConcurrentSpec {
         proxy.doStuff('param')
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'This actor has been stopped.'
     }
 
@@ -296,7 +296,7 @@ class DefaultActorFactorySpec extends ConcurrentSpec {
         proxy.doStuff('param')
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message.startsWith('Cannot dispatch message, as this message dispatch has been stopped.')
     }
 }

@@ -103,7 +103,7 @@ class InstallTest extends Specification {
         install.createDist(configuration)
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
 
         and:

@@ -116,7 +116,7 @@ class ParameterAcceptingConsumerConnectionTest extends Specification {
         connection.run(action, parameters)
 
         then:
-        BuildActionFailureException e = thrown()
+        def e = thrown BuildActionFailureException
         e.message == /The supplied build action failed with an exception./
         e.cause == failure
 
@@ -133,7 +133,7 @@ class ParameterAcceptingConsumerConnectionTest extends Specification {
         connection.run(action, parameters)
 
         then:
-        InternalBuildCancelledException e = thrown()
+        def e = thrown InternalBuildCancelledException
         e.cause == failure
 
         and:
@@ -150,7 +150,7 @@ class ParameterAcceptingConsumerConnectionTest extends Specification {
         connection.run(phasedAction, parameters)
 
         then:
-        UnsupportedVersionException e = thrown()
+        def e = thrown UnsupportedVersionException
         e.message == 'The version of Gradle you are using (4.4) does not support the PhasedBuildActionExecuter API. Support for this is available in Gradle 4.8 and all later versions.'
     }
 

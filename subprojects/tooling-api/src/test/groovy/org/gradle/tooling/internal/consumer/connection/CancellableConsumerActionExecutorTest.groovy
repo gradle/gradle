@@ -51,6 +51,6 @@ class CancellableConsumerActionExecutorTest extends Specification {
         0 * _._
 
         and:
-        BuildCancelledException e = thrown()
+        def e = thrown BuildCancelledException
     }
 }

@@ -432,7 +432,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent)
 
         then:
-        ConfigurationNotFoundException e = thrown()
+        def e = thrown ConfigurationNotFoundException
         e.message == "Thing a declares a dependency from configuration 'from' to configuration 'to' which is not declared in the descriptor for thing b."
 
         where:

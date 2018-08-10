@@ -93,7 +93,7 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
         connection.run(GradleProject, parameters)
 
         then:
-        UnknownModelException e = thrown()
+        def e = thrown UnknownModelException
         e.message == /No model of type 'GradleProject' is available in this build./
     }
 
@@ -131,7 +131,7 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
         connection.run(Stub(BuildAction), parameters)
 
         then:
-        UnsupportedVersionException e = thrown()
+        def e = thrown UnsupportedVersionException
         e.message == /The version of Gradle you are using (1.6) does not support the <api>. Support for this is available in Gradle 1.8 and all later versions./
     }
 

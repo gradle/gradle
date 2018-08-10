@@ -85,7 +85,7 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
         container.create('obj')
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message == 'Cannot add a TestObject with name \'obj\' as a TestObject with that name already exists.'
     }
 
@@ -138,7 +138,7 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
         }
 
         then:
-        groovy.lang.MissingMethodException e = thrown()
+        def e = thrown MissingMethodException
         e.method == 'unknown'
         e.type == TestObject
     }
@@ -152,7 +152,7 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
         }
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e.is(failure)
     }
 
@@ -175,7 +175,7 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
         }
 
         then:
-        MissingPropertyException missingProp = thrown()
+        def missingProp = thrown MissingPropertyException
         missingProp.property == 'obj1'
     }
 
@@ -184,14 +184,14 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
         container.obj1
 
         then:
-        MissingPropertyException missingProp = thrown()
+        def missingProp = thrown MissingPropertyException
         missingProp.property == 'obj1'
 
         when:
         container.obj2 { }
 
         then:
-        MissingMethodException missingMethod = thrown()
+        def missingMethod = thrown MissingMethodException
         missingMethod.method == 'obj2'
 
         when:
@@ -202,7 +202,7 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
         }
 
         then:
-        missingProp = thrown()
+        missingProp = thrown MissingPropertyException
         missingProp.property == 'nested'
 
         when:
@@ -213,7 +213,7 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
         }
 
         then:
-        missingProp = thrown()
+        missingProp = thrown MissingPropertyException
         missingProp.property == 'nested'
     }
 

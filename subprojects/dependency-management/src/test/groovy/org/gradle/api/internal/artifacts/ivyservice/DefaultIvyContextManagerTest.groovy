@@ -109,7 +109,7 @@ class DefaultIvyContextManagerTest extends ConcurrentSpec {
         manager.withIvy(action)
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
 
         and:

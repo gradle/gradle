@@ -52,7 +52,7 @@ class BasicFileResolverTest extends Specification {
         resolver.transform("http://127.0.0.1")
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message == "Cannot convert URL 'http://127.0.0.1' to a file."
     }
 }

@@ -61,7 +61,7 @@ class DefaultBuildControllerTest extends Specification {
         controller.getModel(null, modelId)
 
         then:
-        InternalUnsupportedModelException e = thrown()
+        def e = thrown InternalUnsupportedModelException
         e.cause == failure
     }
 

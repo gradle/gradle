@@ -205,7 +205,7 @@ publishing {
         publications.publications
 
         then:
-        UnsupportedVersionException e = thrown()
+        def e = thrown UnsupportedVersionException
         e.message.contains('does not support building a model of type \'ProjectPublications\'.') ||
         e.message.contains('No model of type \'ProjectPublications\' is available in this build.')
     }

@@ -50,13 +50,13 @@ class ImmutableDomainObjectSetTest extends Specification {
         set[4]
 
         then:
-        IndexOutOfBoundsException e = thrown()
+        thrown IndexOutOfBoundsException
 
         when:
         set[-1]
 
         then:
-        e = thrown()
+        thrown IndexOutOfBoundsException
     }
 
     def iteratorOfEmptySetHasNoElements() {
@@ -96,6 +96,6 @@ class ImmutableDomainObjectSetTest extends Specification {
         set.add('a')
 
         then:
-        UnsupportedOperationException e = thrown()
+        def e = thrown UnsupportedOperationException
     }
 }

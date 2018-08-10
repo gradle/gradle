@@ -79,7 +79,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 25.91-b14, mixed mode)
         detector.parseJavaVersionCommandOutput("/usr/bin/java", new BufferedReader(new StringReader(output)))
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e.message == "Could not determine Java version using executable /usr/bin/java."
 
         where:

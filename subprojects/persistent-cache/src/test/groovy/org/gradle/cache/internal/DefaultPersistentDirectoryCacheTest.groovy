@@ -161,7 +161,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         }
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e.cause.is(failure)
 
         when:

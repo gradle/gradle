@@ -117,7 +117,7 @@ class InitBuildSpec extends Specification {
         init.setupProjectLayout()
 
         then:
-        GradleException e = thrown()
+        def e = thrown GradleException
         e.message == "The requested DSL 'kotlin' is not supported for 'some-type' setup type"
     }
 
@@ -134,7 +134,7 @@ class InitBuildSpec extends Specification {
         init.setupProjectLayout()
 
         then:
-        GradleException e = thrown()
+        def e = thrown GradleException
         e.message == "Project name is not supported for 'some-type' setup type."
     }
 
@@ -151,7 +151,7 @@ class InitBuildSpec extends Specification {
         init.setupProjectLayout()
 
         then:
-        GradleException e = thrown()
+        def e = thrown GradleException
         e.message == "Package name is not supported for 'some-type' setup type."
     }
 

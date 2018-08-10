@@ -154,7 +154,7 @@ class FileOrUriNotationConverterTest extends Specification {
         parse(12)
 
         then:
-        UnsupportedNotationException e = thrown()
+        def e = thrown UnsupportedNotationException
         e.message == toPlatformLineSeparators("""Cannot convert the provided notation to a File or URI: 12.
 The following types/formats are supported:
   - A String or CharSequence path, for example 'src/main/java' or '/usr/include'.

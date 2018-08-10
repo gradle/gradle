@@ -248,14 +248,14 @@ class MessageTest extends Specification {
         transported.message
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e.message == 'broken getMessage()'
 
         when:
         transported.toString()
 
         then:
-        RuntimeException e2 = thrown()
+        def e2 = thrown RuntimeException
         e2.message == 'broken toString()'
     }
 

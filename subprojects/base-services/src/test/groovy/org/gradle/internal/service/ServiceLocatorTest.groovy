@@ -71,7 +71,7 @@ class ServiceLocatorTest extends Specification {
         serviceLocator.findFactory(String.class)
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e.message == "Could not load implementation class 'org.gradle.ImplClass' for service 'java.lang.String' specified in resource '" + serviceFile + "'."
         e.cause == failure
         1 * classLoader.getResources("META-INF/services/java.lang.String") >> Collections.enumeration([serviceFile])
@@ -114,7 +114,7 @@ org.gradle.ImplClass2""")
         serviceLocator.findFactory(String.class)
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e.message == "Could not determine implementation class for service 'java.lang.String' specified in resource '" + serviceFile + "'."
         e.cause.message == "No implementation class for service 'java.lang.String' specified."
         1 * classLoader.getResources("META-INF/services/java.lang.String") >> Collections.enumeration([serviceFile])
@@ -128,7 +128,7 @@ org.gradle.ImplClass2""")
         serviceLocator.findFactory(String)
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e.message.startsWith("Could not load implementation class 'java.lang.Integer' for service 'java.lang.String' specified in resource '")
         e.cause.message == "Implementation class 'java.lang.Integer' is not assignable to service class 'java.lang.String'."
     }
@@ -149,7 +149,7 @@ org.gradle.ImplClass2""")
         serviceLocator.get(CharSequence)
 
         then:
-        UnknownServiceException e = thrown()
+        def e = thrown UnknownServiceException
         e.message == "Could not find meta-data resource 'META-INF/services/java.lang.CharSequence' for service 'java.lang.CharSequence'."
         1 * classLoader.getResources("META-INF/services/java.lang.CharSequence") >> Collections.enumeration([])
     }
@@ -174,7 +174,7 @@ org.gradle.ImplClass2""")
         serviceLocator.getFactory(CharSequence)
 
         then:
-        UnknownServiceException e = thrown()
+        def e = thrown UnknownServiceException
         e.message == "Could not find meta-data resource 'META-INF/services/java.lang.CharSequence' for service 'java.lang.CharSequence'."
         1 * classLoader.getResources("META-INF/services/java.lang.CharSequence") >> Collections.enumeration([])
     }

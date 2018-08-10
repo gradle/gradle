@@ -49,7 +49,7 @@ class BuildScriptModelCrossVersionSpec extends ToolingApiSpecification {
         project.buildScript
 
         then:
-        UnsupportedMethodException e = thrown()
+        def e = thrown UnsupportedMethodException
         e.message.startsWith('Unsupported method: GradleProject.getBuildScript().')
 
         when:

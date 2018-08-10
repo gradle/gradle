@@ -568,14 +568,14 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         impl.unknown
 
         then:
-        MissingPropertyException e = thrown()
+        def e = thrown MissingPropertyException
         e.message == "No such property: unknown for class: ${SomeType.name}"
 
         when:
         impl.unknown = '12'
 
         then:
-        e = thrown()
+        e = thrown MissingPropertyException
         e.message == "No such property: unknown for class: ${SomeType.name}"
     }
 
@@ -587,7 +587,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         impl.readOnly = '12'
 
         then:
-        ReadOnlyPropertyException e = thrown()
+        def e = thrown ReadOnlyPropertyException
         e.message == "Cannot set readonly property: readOnly for class: ${SomeTypeWithReadOnly.name}"
     }
 
@@ -599,7 +599,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         impl.unknown('12')
 
         then:
-        MissingMethodException e = thrown()
+        def e = thrown MissingMethodException
         e.message.startsWith("No signature of method: ${SomeType.name}.unknown() is applicable")
     }
 
@@ -611,7 +611,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         impl.value { broken }
 
         then:
-        MissingMethodException e = thrown()
+        def e = thrown MissingMethodException
         e.message.startsWith("No signature of method: ${SomeType.name}.value() is applicable")
     }
 
@@ -624,7 +624,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         impl.readOnly Boolean.FALSE
 
         then:
-        MissingMethodException e = thrown()
+        def e = thrown MissingMethodException
         e.message.startsWith("No signature of method: ${SomeTypeWithReadOnlyProperty.name}.readOnly() is applicable")
     }
 

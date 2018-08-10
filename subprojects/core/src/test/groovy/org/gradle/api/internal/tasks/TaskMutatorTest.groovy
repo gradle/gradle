@@ -50,7 +50,7 @@ class TaskMutatorTest extends Specification {
         nagger.mutate("Task.thing()", action)
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot call Task.thing() on <task> after task has started execution.'
     }
 
@@ -71,7 +71,7 @@ class TaskMutatorTest extends Specification {
         wrappedAction.execute(task)
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot call Task.thing() on <task> after task has started execution. Check the configuration of <task> as you may have misused \'<<\' at task declaration.'
     }
 }

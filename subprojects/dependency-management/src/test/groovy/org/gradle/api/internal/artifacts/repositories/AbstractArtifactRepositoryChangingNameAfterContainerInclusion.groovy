@@ -30,7 +30,7 @@ class AbstractArtifactRepositoryChangingNameAfterContainerInclusion extends Abst
         repo.name = "changed"
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'The name of an ArtifactRepository cannot be changed after it has been added to a repository container. You should set the name when creating the repository.'
     }
 

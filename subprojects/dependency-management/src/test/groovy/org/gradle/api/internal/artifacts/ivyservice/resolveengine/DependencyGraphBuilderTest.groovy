@@ -743,7 +743,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        ResolveException e = thrown()
+        def e = thrown ResolveException
         e.cause instanceof ModuleVersionResolveException
         e.cause.message.contains "project :root > group:a:1.0"
         e.cause.message.contains "project :root > group:b:1.0"
@@ -770,7 +770,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        ResolveException e = thrown()
+        def e = thrown ResolveException
         e.cause instanceof ModuleVersionResolveException
         e.cause.message.contains "project :root > group:a:1.0"
         e.cause.message.contains "project :root > group:b:1.0"
@@ -796,7 +796,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        ResolveException e = thrown()
+        def e = thrown ResolveException
         e.cause instanceof ModuleVersionResolveException
         e.cause.message.contains "project :root > group:a:1.0"
         e.cause.message.contains "project :root > group:b:1.0"
@@ -823,7 +823,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        ResolveException e = thrown()
+        def e = thrown ResolveException
         e.cause instanceof ModuleVersionNotFoundException
         e.cause.message.contains "project :root > group:a:1.0"
         e.cause.message.contains "project :root > group:b:1.0"
@@ -850,7 +850,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        ResolveException e = thrown()
+        def e = thrown ResolveException
         e.cause instanceof ModuleVersionNotFoundException
         e.cause.message.contains "project :root > group:a:1.0"
         e.cause.message.contains "project :root > group:b:1.0"
@@ -876,7 +876,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        ResolveException e = thrown()
+        def e = thrown ResolveException
         e.cause instanceof ModuleVersionNotFoundException
         e.cause.message.contains "project :root > group:a:1.0 > group:b:1.0"
     }
@@ -911,7 +911,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.rethrowFailure()
 
         then:
-        ResolveException ex = thrown()
+        def ex = thrown ResolveException
         ex.cause instanceof ModuleVersionNotFoundException
         !ex.cause.message.contains("group:a:1.1")
         ex.cause.message.contains "project :root > group:a:1.2"
@@ -941,7 +941,7 @@ class DependencyGraphBuilderTest extends Specification {
         }
 
         and:
-        ResolveException e = thrown()
+        def e = thrown ResolveException
         e.cause instanceof ModuleVersionNotFoundException
         e.cause.message.contains("project :root")
     }

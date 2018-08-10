@@ -250,7 +250,7 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
         }
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Some child operations have not yet completed.'
 
         cleanup:
@@ -278,7 +278,7 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
         registry.currentWorkerLease
 
         then:
-        NoAvailableWorkerLeaseException e = thrown()
+        def e = thrown NoAvailableWorkerLeaseException
         e.message == 'No worker lease associated with the current thread'
 
         when:
@@ -286,7 +286,7 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
         registry.currentWorkerLease
 
         then:
-        e = thrown()
+        e = thrown NoAvailableWorkerLeaseException
         e.message == 'No worker lease associated with the current thread'
 
         cleanup:
@@ -319,7 +319,7 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
         }
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Some child operations have not yet completed.'
 
         cleanup:

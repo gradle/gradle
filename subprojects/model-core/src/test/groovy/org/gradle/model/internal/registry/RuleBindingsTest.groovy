@@ -591,7 +591,7 @@ class RuleBindingsTest extends RegistrySpec {
         addNode(node("b", Long))
 
         then:
-        InvalidModelRuleException e = thrown()
+        def e = thrown InvalidModelRuleException
         e.cause instanceof ModelRuleBindingException
         TextUtil.normaliseLineSeparators(e.cause.message) == '''Type-only model reference of type java.lang.Long is ambiguous as multiple model elements are available for this type:
   - a (created by: test)
@@ -607,7 +607,7 @@ class RuleBindingsTest extends RegistrySpec {
         addNode(node("b", Long))
 
         then:
-        InvalidModelRuleException e = thrown()
+        def e = thrown InvalidModelRuleException
         e.cause instanceof ModelRuleBindingException
         TextUtil.normaliseLineSeparators(e.cause.message) == '''Type-only model reference of type java.lang.Long is ambiguous as multiple model elements are available for this type:
   - a (created by: test)
@@ -623,7 +623,7 @@ class RuleBindingsTest extends RegistrySpec {
         addNode(node("a.2", Long))
 
         then:
-        InvalidModelRuleException e = thrown()
+        def e = thrown InvalidModelRuleException
         e.cause instanceof ModelRuleBindingException
         TextUtil.normaliseLineSeparators(e.cause.message) == '''Type-only model reference of type java.lang.Long is ambiguous as multiple model elements are available for this type:
   - a (created by: test)
@@ -639,7 +639,7 @@ class RuleBindingsTest extends RegistrySpec {
         bindings.add(rule(Long))
 
         then:
-        InvalidModelRuleException e = thrown()
+        def e = thrown InvalidModelRuleException
         e.cause instanceof ModelRuleBindingException
         TextUtil.normaliseLineSeparators(e.cause.message) == '''Type-only model reference of type java.lang.Long is ambiguous as multiple model elements are available for this type:
   - a (created by: test)
@@ -655,7 +655,7 @@ class RuleBindingsTest extends RegistrySpec {
         bindings.add(rule("other") { it.inputReference(Long) })
 
         then:
-        InvalidModelRuleException e = thrown()
+        def e = thrown InvalidModelRuleException
         e.cause instanceof ModelRuleBindingException
         TextUtil.normaliseLineSeparators(e.cause.message) == '''Type-only model reference of type java.lang.Long is ambiguous as multiple model elements are available for this type:
   - a (created by: test)
@@ -673,7 +673,7 @@ class RuleBindingsTest extends RegistrySpec {
         bindings.add(rule)
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == "Cannot add rule <rule> for model element 'a' at state ${requiredState.previous()} as this element is already at state $currentState."
 
         where:
@@ -697,7 +697,7 @@ class RuleBindingsTest extends RegistrySpec {
         bindings.add(rule)
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == "Cannot add rule <rule> with input model element 'a' at state $requiredState as this element is already at state $currentState."
 
         where:

@@ -27,7 +27,7 @@ class GradleVersionTest extends Specification {
         GradleVersion.version(versionString)
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "'$versionString' is not a valid Gradle version string (examples: '1.0', '1.0-rc-1')"
 
         where:

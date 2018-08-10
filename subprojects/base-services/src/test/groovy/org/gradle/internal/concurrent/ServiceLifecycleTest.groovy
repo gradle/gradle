@@ -76,7 +76,7 @@ class ServiceLifecycleTest extends ConcurrentSpec {
         lifecycle.use { }
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot use [service] as it has been stopped.'
     }
 
@@ -86,7 +86,7 @@ class ServiceLifecycleTest extends ConcurrentSpec {
         lifecycle.use { }
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot use [service] as it has been stopped.'
     }
 
@@ -105,7 +105,7 @@ class ServiceLifecycleTest extends ConcurrentSpec {
         }
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot use [service] as it is currently stopping.'
     }
 
@@ -130,7 +130,7 @@ class ServiceLifecycleTest extends ConcurrentSpec {
         }
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot use [service] as it is currently stopping.'
     }
 
@@ -197,7 +197,7 @@ class ServiceLifecycleTest extends ConcurrentSpec {
         }
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot stop [service] from a thread that is using it.'
     }
 

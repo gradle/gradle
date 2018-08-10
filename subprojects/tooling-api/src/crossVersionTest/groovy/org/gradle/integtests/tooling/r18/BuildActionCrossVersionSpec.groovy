@@ -89,7 +89,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         withConnection { it.action(new BrokenAction()).run() }
 
         then:
-        BuildActionFailureException e = thrown()
+        def e = thrown BuildActionFailureException
         e.message == /The supplied build action failed with an exception./
         e.cause instanceof BrokenAction.CustomException
     }
@@ -112,7 +112,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         // TODO:ADAM - clean this up
-        BuildException e = thrown()
+        def e = thrown BuildException
         e.message.startsWith('Could not run build action using')
     }
 
@@ -123,7 +123,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         withConnection { it.action(new FetchCustomModel()).run() }
 
         then:
-        UnsupportedVersionException e = thrown()
+        def e = thrown UnsupportedVersionException
         e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support the BuildActionExecuter API. Support for this is available in Gradle 1.8 and all later versions."
     }
 }

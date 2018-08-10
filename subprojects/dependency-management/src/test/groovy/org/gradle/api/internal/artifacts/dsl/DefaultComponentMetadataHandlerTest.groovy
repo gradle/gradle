@@ -276,7 +276,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         handler.createComponentMetadataProcessor(context).processMetadata(metadata.asImmutable())
 
         then:
-        InvalidUserCodeException e = thrown()
+        def e = thrown InvalidUserCodeException
         e.message == "There was an error while evaluating a component metadata rule for group:module:version."
         e.cause == failure
     }
@@ -393,7 +393,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         handler.all { String s -> }
 
         then:
-        InvalidUserCodeException e = thrown()
+        def e = thrown InvalidUserCodeException
         e.message == "The closure provided is not valid as a rule for 'ComponentMetadataHandler'."
         e.cause instanceof RuleActionValidationException
         e.cause.message == "First parameter of rule action closure must be of type 'ComponentMetadataDetails'."
@@ -404,7 +404,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         handler.all { ComponentMetadataDetails details, String str -> }
 
         then:
-        InvalidUserCodeException e = thrown()
+        def e = thrown InvalidUserCodeException
         e.message == "The closure provided is not valid as a rule for 'ComponentMetadataHandler'."
         e.cause instanceof RuleActionValidationException
         e.cause.message == "Rule may not have an input parameter of type: java.lang.String. Second parameter must be of type: org.gradle.api.artifacts.ivy.IvyModuleDescriptor."

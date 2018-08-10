@@ -156,7 +156,7 @@ class BaseDirFileResolverSpec extends Specification {
         resolver().resolve(12)
 
         then:
-        UnsupportedNotationException e = thrown()
+        def e = thrown UnsupportedNotationException
         e.message == toPlatformLineSeparators("""Cannot convert the provided notation to a File or URI: 12.
 The following types/formats are supported:
   - A String or CharSequence path, for example 'src/main/java' or '/usr/include'.
@@ -185,7 +185,7 @@ The following types/formats are supported:
             }
         }, baseDir)
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "Cannot convert path to File. path='null returning Callable'"
     }
 

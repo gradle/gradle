@@ -39,7 +39,7 @@ class HttpClientHelperTest extends AbstractHttpClientTest {
         client.performRequest(new HttpGet("http://gradle.org"), false)
 
         then:
-        HttpRequestException e = thrown()
+        def e = thrown HttpRequestException
         e.cause.message == "ouch"
     }
 

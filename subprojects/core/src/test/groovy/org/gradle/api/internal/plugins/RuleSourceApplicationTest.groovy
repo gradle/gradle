@@ -57,7 +57,7 @@ class RuleSourceApplicationTest extends Specification {
         project.apply type: String
 
         then:
-        PluginApplicationException e = thrown()
+        def e = thrown PluginApplicationException
         e.cause instanceof InvalidPluginException
         e.cause.message == "'${String.name}' is neither a plugin or a rule source and cannot be applied."
     }
@@ -68,7 +68,7 @@ class RuleSourceApplicationTest extends Specification {
         project.gradle.apply plugin: "custom-rule-source"
 
         then:
-        PluginApplicationException e = thrown()
+        def e = thrown PluginApplicationException
         e.cause instanceof UnsupportedOperationException
         e.cause.message == "Cannot apply model rules of plugin '${CustomRuleSource.name}' as the target 'build 'test'' is not model rule aware"
     }
