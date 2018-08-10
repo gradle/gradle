@@ -21,19 +21,14 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.internal.file.PathToFileResolver;
 
 public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescriptor {
-
     private final PathToFileResolver fileResolver;
-    private final BuildContentGenerator settingsGenerator;
 
-    public BasicTemplateBasedProjectInitDescriptor(PathToFileResolver fileResolver, BuildContentGenerator settingsGenerator) {
+    public BasicTemplateBasedProjectInitDescriptor(PathToFileResolver fileResolver) {
         this.fileResolver = fileResolver;
-        this.settingsGenerator = settingsGenerator;
     }
 
     @Override
     public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
-        settingsGenerator.generate(dsl, testFramework);
-
         new BuildScriptBuilder(dsl, fileResolver, "build")
             .fileComment("This is a general purpose Gradle build.\n"
                 + "Learn how to create Gradle builds at https://guides.gradle.org/creating-new-gradle-builds/")

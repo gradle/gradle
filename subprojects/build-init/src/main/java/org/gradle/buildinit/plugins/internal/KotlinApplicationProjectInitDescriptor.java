@@ -21,8 +21,8 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 public class KotlinApplicationProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
-    public KotlinApplicationProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, DefaultTemplateLibraryVersionProvider versionProvider, BuildContentGenerator settingsGenerator) {
-        super("kotlin", templateOperationFactory, fileResolver, versionProvider, settingsGenerator);
+    public KotlinApplicationProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, DefaultTemplateLibraryVersionProvider versionProvider) {
+        super("kotlin", templateOperationFactory, fileResolver, versionProvider);
     }
 
     @Override
@@ -32,8 +32,6 @@ public class KotlinApplicationProjectInitDescriptor extends LanguageLibraryProje
 
     @Override
     public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
-        globalSettingsDescriptor.generate(dsl, testFramework);
-
         String kotlinVersion = libraryVersionProvider.getVersion("kotlin");
         BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(dsl, fileResolver, "build")
             .fileComment("This generated file contains a sample Kotlin application project to get you started.")
