@@ -385,7 +385,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
                                     // We do not currently keep track of the type used when creating
                                     // a domain object (via create) or the type of the container when
                                     // a domain object is added directly (via add).
-                                    return TypeOf.typeOf(new DslObject(e.getValue()).getDeclaredType());
+                                    return new DslObject(e.getValue()).getPublicType();
                                 }
                             };
                         }
