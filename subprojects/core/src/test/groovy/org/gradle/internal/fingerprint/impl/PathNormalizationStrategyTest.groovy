@@ -139,7 +139,7 @@ class PathNormalizationStrategyTest extends AbstractProjectBuilderSpec {
         Map<File, String> fingerprints = [:]
         strategy.collectFingerprints(roots).each { path, normalizedFingerprint ->
             String normalizedPath
-            if (normalizedFingerprint instanceof IgnoredPathFingerprint) {
+            if (normalizedFingerprint instanceof IgnoredPathFileSystemLocationFingerprint) {
                 normalizedPath = IGNORED
             } else {
                 normalizedPath = normalizedFingerprint.normalizedPath

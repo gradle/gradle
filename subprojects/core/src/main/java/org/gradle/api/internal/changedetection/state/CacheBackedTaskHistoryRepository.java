@@ -39,7 +39,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
-import org.gradle.internal.fingerprint.FileFingerprint;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
@@ -201,7 +201,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         CurrentFileCollectionFingerprint filesFingerprint;
         final Map<String, FileSystemLocationSnapshot> beforeExecutionSnapshots = getAllSnapshots(beforeExecution);
         if (!beforeExecution.getFingerprints().isEmpty() && !afterExecution.getFingerprints().isEmpty()) {
-            final Map<String, FileFingerprint> afterPreviousFingerprints = afterPreviousExecution != null ? afterPreviousExecution.getFingerprints() : ImmutableMap.<String, FileFingerprint>of();
+            final Map<String, FileSystemLocationFingerprint> afterPreviousFingerprints = afterPreviousExecution != null ? afterPreviousExecution.getFingerprints() : ImmutableMap.<String, FileSystemLocationFingerprint>of();
 
             final List<FileSystemSnapshot> newRoots = new ArrayList<FileSystemSnapshot>();
             final MutableBoolean hasBeenFiltered = new MutableBoolean(false);
@@ -282,7 +282,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
      * <li>an entry that did wasn't changed during the execution, but was already considered an output during the previous execution</li>
      * </ul>
      */
-    private static boolean isOutputEntry(FileSystemLocationSnapshot snapshot, Map<String, FileSystemLocationSnapshot> beforeSnapshots, Map<String, FileFingerprint> afterPreviousFingerprints) {
+    private static boolean isOutputEntry(FileSystemLocationSnapshot snapshot, Map<String, FileSystemLocationSnapshot> beforeSnapshots, Map<String, FileSystemLocationFingerprint> afterPreviousFingerprints) {
         if (snapshot.getType() == FileType.Missing) {
             return false;
         }

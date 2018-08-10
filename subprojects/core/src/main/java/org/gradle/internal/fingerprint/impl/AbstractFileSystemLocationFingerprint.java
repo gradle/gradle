@@ -18,14 +18,14 @@ package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.FileFingerprint;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
 
-public abstract class AbstractFileFingerprint implements FileFingerprint {
+public abstract class AbstractFileSystemLocationFingerprint implements FileSystemLocationFingerprint {
     private final FileType type;
     private final HashCode normalizedContentHash;
 
-    public AbstractFileFingerprint(FileType type, HashCode normalizedContentHash) {
+    public AbstractFileSystemLocationFingerprint(FileType type, HashCode normalizedContentHash) {
         this.type = type;
         this.normalizedContentHash = normalizedContentHash;
     }
@@ -47,7 +47,7 @@ public abstract class AbstractFileFingerprint implements FileFingerprint {
     }
 
     @Override
-    public final int compareTo(FileFingerprint o) {
+    public final int compareTo(FileSystemLocationFingerprint o) {
         int result = getNormalizedPath().compareTo(o.getNormalizedPath());
         if (result == 0) {
             result = getNormalizedContentHash().compareTo(o.getNormalizedContentHash());
@@ -63,7 +63,7 @@ public abstract class AbstractFileFingerprint implements FileFingerprint {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        AbstractFileFingerprint that = (AbstractFileFingerprint) o;
+        AbstractFileSystemLocationFingerprint that = (AbstractFileSystemLocationFingerprint) o;
         return normalizedContentHash.equals(that.normalizedContentHash)
             && getNormalizedPath().equals(that.getNormalizedPath());
     }

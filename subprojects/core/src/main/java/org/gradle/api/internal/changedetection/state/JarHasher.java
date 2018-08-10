@@ -23,8 +23,8 @@ import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.FilePathUtil;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.FileFingerprint;
-import org.gradle.internal.fingerprint.impl.DefaultFileFingerprint;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.impl.NormalizedPathFingerprintCompareStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
@@ -66,7 +66,7 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
 
     private HashCode hashJarContents(RegularFileSnapshot jarFileSnapshot) {
         try {
-            List<FileFingerprint> fingerprints = fingerprintZipEntries(jarFileSnapshot.getAbsolutePath());
+            List<FileSystemLocationFingerprint> fingerprints = fingerprintZipEntries(jarFileSnapshot.getAbsolutePath());
             if (fingerprints.isEmpty()) {
                 return null;
             }
@@ -79,8 +79,8 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
     }
 
     @SuppressWarnings("Since15")
-    private List<FileFingerprint> fingerprintZipEntries(String jarFile) throws IOException {
-        List<FileFingerprint> fingerprints = Lists.newArrayList();
+    private List<FileSystemLocationFingerprint> fingerprintZipEntries(String jarFile) throws IOException {
+        List<FileSystemLocationFingerprint> fingerprints = Lists.newArrayList();
         InputStream fileInputStream = null;
         try {
             fileInputStream = Files.newInputStream(Paths.get(jarFile));
@@ -95,7 +95,7 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
                 }
                 HashCode hash = classpathResourceHasher.hash(zipEntry, zipInput);
                 if (hash != null) {
-                    fingerprints.add(new DefaultFileFingerprint(zipEntry.getName(), FileType.RegularFile, hash));
+                    fingerprints.add(new DefaultFileSystemLocationFingerprint(zipEntry.getName(), FileType.RegularFile, hash));
                 }
             }
 

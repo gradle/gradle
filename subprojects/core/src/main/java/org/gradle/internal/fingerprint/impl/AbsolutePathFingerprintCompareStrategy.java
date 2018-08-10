@@ -19,7 +19,7 @@ package org.gradle.internal.fingerprint.impl;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.internal.fingerprint.FileFingerprint;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Collection;
@@ -33,15 +33,15 @@ import java.util.Set;
 public class AbsolutePathFingerprintCompareStrategy implements FingerprintCompareStrategy.Impl {
 
     @Override
-    public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileFingerprint> current, Map<String, FileFingerprint> previous, String propertyTitle, boolean includeAdded) {
+    public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded) {
         Set<String> unaccountedForPreviousFingerprints = new LinkedHashSet<String>(previous.keySet());
 
-        for (Map.Entry<String, FileFingerprint> currentEntry : current.entrySet()) {
+        for (Map.Entry<String, FileSystemLocationFingerprint> currentEntry : current.entrySet()) {
             String currentAbsolutePath = currentEntry.getKey();
-            FileFingerprint currentFingerprint = currentEntry.getValue();
+            FileSystemLocationFingerprint currentFingerprint = currentEntry.getValue();
             HashCode currentContentHash = currentFingerprint.getNormalizedContentHash();
             if (unaccountedForPreviousFingerprints.remove(currentAbsolutePath)) {
-                FileFingerprint previousFingerprint = previous.get(currentAbsolutePath);
+                FileSystemLocationFingerprint previousFingerprint = previous.get(currentAbsolutePath);
                 HashCode previousContentHash = previousFingerprint.getNormalizedContentHash();
                 if (!currentContentHash.equals(previousContentHash)) {
                     if (!visitor.visitChange(FileChange.modified(currentAbsolutePath, propertyTitle, previousFingerprint.getType(), currentFingerprint.getType()))) {
@@ -65,7 +65,7 @@ public class AbsolutePathFingerprintCompareStrategy implements FingerprintCompar
     }
 
     @Override
-    public void appendToHasher(BuildCacheHasher hasher, Collection<FileFingerprint> fingerprints) {
+    public void appendToHasher(BuildCacheHasher hasher, Collection<FileSystemLocationFingerprint> fingerprints) {
         NormalizedPathFingerprintCompareStrategy.appendSortedToHasher(hasher, fingerprints);
     }
 }

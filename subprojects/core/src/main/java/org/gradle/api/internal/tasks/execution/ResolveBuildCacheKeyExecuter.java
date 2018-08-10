@@ -35,7 +35,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileFingerprint;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -178,7 +178,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         private static class State implements VisitState, FileSystemSnapshotVisitor {
             final InputFilePropertyVisitor visitor;
 
-            Map<String, FileFingerprint> fingerprints;
+            Map<String, FileSystemLocationFingerprint> fingerprints;
             String propertyName;
             HashCode propertyHash;
             FingerprintingStrategy.Identifier propertyNormalizationStrategyIdentifier;
@@ -241,7 +241,7 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                 this.path = snapshot.getAbsolutePath();
                 this.name = snapshot.getName();
 
-                FileFingerprint fingerprint = fingerprints.get(path);
+                FileSystemLocationFingerprint fingerprint = fingerprints.get(path);
                 if (fingerprint == null) {
                     return;
                 }

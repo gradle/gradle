@@ -18,7 +18,7 @@ package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.FileFingerprint;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -42,8 +42,8 @@ public enum AbsolutePathFingerprintingStrategy implements FingerprintingStrategy
     }
 
     @Override
-    public Map<String, FileFingerprint> collectFingerprints(Iterable<FileSystemSnapshot> roots) {
-        final ImmutableMap.Builder<String, FileFingerprint> builder = ImmutableMap.builder();
+    public Map<String, FileSystemLocationFingerprint> collectFingerprints(Iterable<FileSystemSnapshot> roots) {
+        final ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         final HashSet<String> processedEntries = new HashSet<String>();
         for (FileSystemSnapshot root : roots) {
             root.accept(new FileSystemSnapshotVisitor() {
@@ -52,7 +52,7 @@ public enum AbsolutePathFingerprintingStrategy implements FingerprintingStrategy
                 public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                     String absolutePath = directorySnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        builder.put(absolutePath, new DefaultFileFingerprint(directorySnapshot.getAbsolutePath(), directorySnapshot));
+                        builder.put(absolutePath, new DefaultFileSystemLocationFingerprint(directorySnapshot.getAbsolutePath(), directorySnapshot));
                     }
                     return true;
                 }
@@ -64,7 +64,7 @@ public enum AbsolutePathFingerprintingStrategy implements FingerprintingStrategy
                     }
                     String absolutePath = fileSnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        builder.put(absolutePath, new DefaultFileFingerprint(fileSnapshot.getAbsolutePath(), fileSnapshot));
+                        builder.put(absolutePath, new DefaultFileSystemLocationFingerprint(fileSnapshot.getAbsolutePath(), fileSnapshot));
                     }
                 }
 

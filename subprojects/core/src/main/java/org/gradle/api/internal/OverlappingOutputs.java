@@ -18,7 +18,7 @@ package org.gradle.api.internal;
 
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileFingerprint;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 
@@ -36,14 +36,14 @@ public class OverlappingOutputs {
 
     @Nullable
     public static OverlappingOutputs detect(String propertyName, HistoricalFileCollectionFingerprint previousExecution, FileCollectionFingerprint beforeExecution) {
-        Map<String, FileFingerprint> previousFingerprints = previousExecution.getFingerprints();
-        Map<String, FileFingerprint> beforeFingerprints = beforeExecution.getFingerprints();
+        Map<String, FileSystemLocationFingerprint> previousFingerprints = previousExecution.getFingerprints();
+        Map<String, FileSystemLocationFingerprint> beforeFingerprints = beforeExecution.getFingerprints();
 
-        for (Map.Entry<String, FileFingerprint> beforeEntry : beforeFingerprints.entrySet()) {
+        for (Map.Entry<String, FileSystemLocationFingerprint> beforeEntry : beforeFingerprints.entrySet()) {
             String path = beforeEntry.getKey();
-            FileFingerprint beforeFingerprint = beforeEntry.getValue();
+            FileSystemLocationFingerprint beforeFingerprint = beforeEntry.getValue();
             HashCode contentHash = beforeFingerprint.getNormalizedContentHash();
-            FileFingerprint previousFingerprint = previousFingerprints.get(path);
+            FileSystemLocationFingerprint previousFingerprint = previousFingerprints.get(path);
             HashCode previousContentHash = previousFingerprint == null ? null : previousFingerprint.getNormalizedContentHash();
             // Missing files can be ignored
             if (beforeFingerprint.getType() != FileType.Missing) {

@@ -38,7 +38,7 @@ public interface FileCollectionFingerprint {
     /**
      * The underlying fingerprints.
      */
-    Map<String, FileFingerprint> getFingerprints();
+    Map<String, FileSystemLocationFingerprint> getFingerprints();
 
     /**
      * The Merkle hashes of the roots which make up this file collection fingerprint.

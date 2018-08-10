@@ -17,7 +17,7 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.internal.fingerprint.FileFingerprint;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -40,8 +40,8 @@ public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
     }
 
     @Override
-    public Map<String, FileFingerprint> collectFingerprints(Iterable<FileSystemSnapshot> roots) {
-        final ImmutableMap.Builder<String, FileFingerprint> builder = ImmutableMap.builder();
+    public Map<String, FileSystemLocationFingerprint> collectFingerprints(Iterable<FileSystemSnapshot> roots) {
+        final ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         final HashSet<String> processedEntries = new HashSet<String>();
         for (FileSystemSnapshot root : roots) {
             root.accept(new FileSystemSnapshotVisitor() {
@@ -51,7 +51,7 @@ public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
                 public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                     String absolutePath = directorySnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        FileFingerprint fingerprint = isRoot() ? IgnoredPathFingerprint.DIRECTORY : new DefaultFileFingerprint(directorySnapshot.getName(), directorySnapshot);
+                        FileSystemLocationFingerprint fingerprint = isRoot() ? IgnoredPathFileSystemLocationFingerprint.DIRECTORY : new DefaultFileSystemLocationFingerprint(directorySnapshot.getName(), directorySnapshot);
                         builder.put(absolutePath, fingerprint);
                     }
                     root = false;
@@ -64,7 +64,7 @@ public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
                     if (processedEntries.add(absolutePath)) {
                         builder.put(
                             absolutePath,
-                            new DefaultFileFingerprint(fileSnapshot.getName(), fileSnapshot));
+                            new DefaultFileSystemLocationFingerprint(fileSnapshot.getName(), fileSnapshot));
                     }
                 }
 

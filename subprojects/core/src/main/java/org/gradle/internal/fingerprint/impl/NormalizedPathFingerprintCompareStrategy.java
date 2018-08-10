@@ -22,7 +22,7 @@ import com.google.common.collect.MultimapBuilder;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.internal.fingerprint.FileFingerprint;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -34,9 +34,9 @@ import java.util.Map;
  * Compares by normalized path (relative/name only) and file contents. Order does not matter.
  */
 public class NormalizedPathFingerprintCompareStrategy implements FingerprintCompareStrategy.Impl {
-    private static final Comparator<Map.Entry<FileFingerprint, ?>> ENTRY_COMPARATOR = new Comparator<Map.Entry<FileFingerprint, ?>>() {
+    private static final Comparator<Map.Entry<FileSystemLocationFingerprint, ?>> ENTRY_COMPARATOR = new Comparator<Map.Entry<FileSystemLocationFingerprint, ?>>() {
         @Override
-        public int compare(Map.Entry<FileFingerprint, ?> o1, Map.Entry<FileFingerprint, ?> o2) {
+        public int compare(Map.Entry<FileSystemLocationFingerprint, ?> o1, Map.Entry<FileSystemLocationFingerprint, ?> o2) {
             return o1.getKey().compareTo(o2.getKey());
         }
     };
@@ -45,7 +45,7 @@ public class NormalizedPathFingerprintCompareStrategy implements FingerprintComp
      * Determines changes by:
      *
      * <ul>
-     *     <li>Determining which {@link FileFingerprint}s are only in the previous or current fingerprint collection.</li>
+     *     <li>Determining which {@link FileSystemLocationFingerprint}s are only in the previous or current fingerprint collection.</li>
      *     <li>
      *         For those only in the previous fingerprint collection it checks if some entry with the same normalized path is in the current collection.
      *         If it is, file is reported as modified, if not as removed.
@@ -54,18 +54,18 @@ public class NormalizedPathFingerprintCompareStrategy implements FingerprintComp
      * </ul>
      */
     @Override
-    public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileFingerprint> currentFingerprints, Map<String, FileFingerprint> previousFingerprints, String propertyTitle, boolean includeAdded) {
-        ListMultimap<FileFingerprint, FilePathWithType> unaccountedForPreviousFiles = MultimapBuilder.hashKeys(previousFingerprints.size()).linkedListValues().build();
+    public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> currentFingerprints, Map<String, FileSystemLocationFingerprint> previousFingerprints, String propertyTitle, boolean includeAdded) {
+        ListMultimap<FileSystemLocationFingerprint, FilePathWithType> unaccountedForPreviousFiles = MultimapBuilder.hashKeys(previousFingerprints.size()).linkedListValues().build();
         ListMultimap<String, FilePathWithType> addedFilesByNormalizedPath = MultimapBuilder.linkedHashKeys().linkedListValues().build();
-        for (Map.Entry<String, FileFingerprint> entry : previousFingerprints.entrySet()) {
+        for (Map.Entry<String, FileSystemLocationFingerprint> entry : previousFingerprints.entrySet()) {
             String absolutePath = entry.getKey();
-            FileFingerprint previousFingerprint = entry.getValue();
+            FileSystemLocationFingerprint previousFingerprint = entry.getValue();
             unaccountedForPreviousFiles.put(previousFingerprint, new FilePathWithType(absolutePath, previousFingerprint.getType()));
         }
 
-        for (Map.Entry<String, FileFingerprint> entry : currentFingerprints.entrySet()) {
+        for (Map.Entry<String, FileSystemLocationFingerprint> entry : currentFingerprints.entrySet()) {
             String currentAbsolutePath = entry.getKey();
-            FileFingerprint currentFingerprint = entry.getValue();
+            FileSystemLocationFingerprint currentFingerprint = entry.getValue();
             List<FilePathWithType> previousFilesForFingerprint = unaccountedForPreviousFiles.get(currentFingerprint);
             if (previousFilesForFingerprint.isEmpty()) {
                 addedFilesByNormalizedPath.put(currentFingerprint.getNormalizedPath(), new FilePathWithType(currentAbsolutePath, currentFingerprint.getType()));
@@ -73,10 +73,10 @@ public class NormalizedPathFingerprintCompareStrategy implements FingerprintComp
                 previousFilesForFingerprint.remove(0);
             }
         }
-        List<Map.Entry<FileFingerprint, FilePathWithType>> unaccountedForPreviousEntries = Lists.newArrayList(unaccountedForPreviousFiles.entries());
+        List<Map.Entry<FileSystemLocationFingerprint, FilePathWithType>> unaccountedForPreviousEntries = Lists.newArrayList(unaccountedForPreviousFiles.entries());
         Collections.sort(unaccountedForPreviousEntries, ENTRY_COMPARATOR);
-        for (Map.Entry<FileFingerprint, FilePathWithType> unaccountedForPreviousFingerprintEntry : unaccountedForPreviousEntries) {
-            FileFingerprint previousFingerprint = unaccountedForPreviousFingerprintEntry.getKey();
+        for (Map.Entry<FileSystemLocationFingerprint, FilePathWithType> unaccountedForPreviousFingerprintEntry : unaccountedForPreviousEntries) {
+            FileSystemLocationFingerprint previousFingerprint = unaccountedForPreviousFingerprintEntry.getKey();
             String normalizedPath = previousFingerprint.getNormalizedPath();
             List<FilePathWithType> addedFilesForNormalizedPath = addedFilesByNormalizedPath.get(normalizedPath);
             if (!addedFilesForNormalizedPath.isEmpty()) {
@@ -104,14 +104,14 @@ public class NormalizedPathFingerprintCompareStrategy implements FingerprintComp
     }
 
     @Override
-    public void appendToHasher(BuildCacheHasher hasher, Collection<FileFingerprint> fingerprints) {
+    public void appendToHasher(BuildCacheHasher hasher, Collection<FileSystemLocationFingerprint> fingerprints) {
         appendSortedToHasher(hasher, fingerprints);
     }
 
-    public static void appendSortedToHasher(BuildCacheHasher hasher, Collection<FileFingerprint> fingerprints) {
-        List<FileFingerprint> sortedFingerprints = Lists.newArrayList(fingerprints);
+    public static void appendSortedToHasher(BuildCacheHasher hasher, Collection<FileSystemLocationFingerprint> fingerprints) {
+        List<FileSystemLocationFingerprint> sortedFingerprints = Lists.newArrayList(fingerprints);
         Collections.sort(sortedFingerprints);
-        for (FileFingerprint normalizedSnapshot : sortedFingerprints) {
+        for (FileSystemLocationFingerprint normalizedSnapshot : sortedFingerprints) {
             normalizedSnapshot.appendToHasher(hasher);
         }
     }
