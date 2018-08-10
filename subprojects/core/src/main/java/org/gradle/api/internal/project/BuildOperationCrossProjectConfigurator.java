@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.project;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.internal.Actions;
@@ -25,28 +24,21 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.util.ConfigureUtil;
 
 import java.util.Collections;
 
 public class BuildOperationCrossProjectConfigurator implements CrossProjectConfigurator {
 
     private final BuildOperationExecutor buildOperationExecutor;
-    private final ThreadLocal<Integer> nestedActionExecutionCount = new ThreadLocal<Integer>() {
+    private final ThreadLocal<Boolean> allowExection = new ThreadLocal<Boolean>() {
         @Override
-        protected Integer initialValue() {
-            return 0;
+        protected Boolean initialValue() {
+            return true;
         }
     };
 
     public BuildOperationCrossProjectConfigurator(BuildOperationExecutor buildOperationExecutor) {
         this.buildOperationExecutor = buildOperationExecutor;
-    }
-
-    @Override
-    public Project project(Project project, Closure<? super Project> configureClosure) {
-        runProjectConfigureClosure(project, configureClosure);
-        return project;
     }
 
     @Override
@@ -56,18 +48,8 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
     }
 
     @Override
-    public void subprojects(Iterable<Project> projects, Closure<? super Project> configureClosure) {
-        runBlockConfigureClosure(BlockConfigureBuildOperation.SUBPROJECTS_DETAILS, projects, configureClosure);
-    }
-
-    @Override
     public void subprojects(Iterable<Project> projects, Action<? super Project> configureAction) {
         runBlockConfigureAction(BlockConfigureBuildOperation.SUBPROJECTS_DETAILS, projects, configureAction);
-    }
-
-    @Override
-    public void allprojects(Iterable<Project> projects, Closure<? super Project> configureClosure) {
-        runBlockConfigureClosure(BlockConfigureBuildOperation.ALLPROJECTS_DETAILS, projects, configureClosure);
     }
 
     @Override
@@ -81,15 +63,6 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
         return project;
     }
 
-    private void runBlockConfigureClosure(final BuildOperationDescriptor.Builder details, final Iterable<Project> projects, final Closure<? super Project> configureClosure) {
-        buildOperationExecutor.run(new BlockConfigureBuildOperation(details, projects) {
-            @Override
-            protected void doRunProjectConfigure(Project project) {
-                runProjectConfigureClosure(project, configureClosure);
-            }
-        });
-    }
-
     private void runBlockConfigureAction(final BuildOperationDescriptor.Builder details, final Iterable<Project> projects, final Action<? super Project> configureAction) {
         buildOperationExecutor.run(new BlockConfigureBuildOperation(details, projects) {
             @Override
@@ -99,28 +72,18 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
         });
     }
 
-    private void runProjectConfigureClosure(final Project project, final Closure<? super Project> configureClosure) {
-        buildOperationExecutor.run(new CrossConfigureProjectBuildOperation(project) {
-
-            @Override
-            public void run(BuildOperationContext context) {
-                ConfigureUtil.configure(configureClosure, project);
-            }
-        });
-    }
-
     private void runProjectConfigureAction(final Project project, final Action<? super Project> configureAction) {
         buildOperationExecutor.run(new CrossConfigureProjectBuildOperation(project) {
             @Override
             public void run(BuildOperationContext context) {
-                Actions.with(project, configureAction);
+                Actions.with(project, withCrossProjectConfigurationAllowed(configureAction));
             }
         });
     }
 
     @Override
     public void assertCrossProjectConfigurationAllowed(String methodName, Project target) {
-        if (isCrossConfigurationAllowed()) {
+        if (!isCrossConfigurationAllowed()) {
             throw createIllegalStateException(methodName, target);
         }
     }
@@ -130,11 +93,27 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
         return new Action<T>() {
             @Override
             public void execute(T t) {
-                nestedActionExecutionCount.set(nestedActionExecutionCount.get() + 1);
+                allowExection.set(false);
                 try {
                     action.execute(t);
                 } finally {
-                    nestedActionExecutionCount.set(nestedActionExecutionCount.get() - 1);
+                    allowExection.set(true);
+                }
+            }
+        };
+    }
+
+    // TODO: Promote to CrossProjectConfigurator interface if this is needed elsewhere.
+    public <T> Action<T> withCrossProjectConfigurationAllowed(final Action<? super T> action) {
+        return new Action<T>() {
+            @Override
+            public void execute(T t) {
+                boolean save = allowExection.get();
+                allowExection.set(true);
+                try {
+                    Actions.with(t, action);
+                } finally {
+                    allowExection.set(save);
                 }
             }
         };
@@ -145,7 +124,7 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
     }
 
     private boolean isCrossConfigurationAllowed() {
-        return nestedActionExecutionCount.get() != 0;
+        return allowExection.get();
     }
 
     @Contextual

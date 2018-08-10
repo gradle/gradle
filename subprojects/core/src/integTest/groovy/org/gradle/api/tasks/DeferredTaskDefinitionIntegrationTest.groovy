@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks
 
-import groovy.transform.NotYetImplemented
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -901,7 +901,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "cannot execute #description during lazy task creation action execution"() {
         settingsFile << "include 'nested'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             tasks.register("foo") {
                 ${code}
@@ -920,7 +919,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "can execute #description during task creation action execution"() {
         settingsFile << "include 'nested'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             tasks.create("foo") {
                 ${code}
@@ -937,7 +935,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "cannot execute #description during lazy task configuration action execution"() {
         settingsFile << "include 'nested'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             tasks.register("foo").configure {
                 ${code}
@@ -956,7 +953,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "can execute #description during task configuration action execution"() {
         settingsFile << "include 'nested'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             tasks.create("foo")
             tasks.getByName("foo") {
@@ -974,7 +970,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "cannot execute #description on another project during lazy task creation action execution"() {
         settingsFile << "include 'nested', 'other'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             project(":other") {
                 tasks.register("foo") {
@@ -995,7 +990,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "can execute #description on another project during task creation action execution"() {
         settingsFile << "include 'nested', 'other'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             project(":other") {
                 tasks.create("foo") {
@@ -1014,7 +1008,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "cannot execute #description on another project during lazy task configuration action execution"() {
         settingsFile << "include 'nested', 'other'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             project(":other") {
                 tasks.register("foo").configure {
@@ -1035,7 +1028,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "can execute #description on another project during task configuration action execution"() {
         settingsFile << "include 'nested', 'other'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             project(":other") {
                 tasks.create("foo")
@@ -1091,7 +1083,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         executed ":foo", ":baz", ":fizz", ":fuzz", ":some"
     }
 
-    @NotYetImplemented
     @Issue("https://github.com/gradle/gradle/issues/6319")
     def "can use getTasksByName from a lazy configuration action"() {
         settingsFile << """
