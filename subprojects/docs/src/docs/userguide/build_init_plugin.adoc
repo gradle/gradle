@@ -129,6 +129,36 @@ Alternative test framework can be specified by supplying a `--test-framework` ar
 * `gradle init --type java-library --test-framework testng`: Uses http://testng.org/doc/index.html[TestNG] for testing instead of JUnit
 
 
+[[sec:kotlinapplication_]]
+=== `kotlin-application`
+
+The “`kotlin-application`” build init type is not inferable. It must be explicitly specified.
+
+It has the following features:
+
+* Uses the “`org.jetbrains.kotlin.jvm`” and "`application`" plugins to produce a command-line application implemented in Kotlin
+* Uses the “`jcenter`” dependency repository
+* Uses Kotlin 1.x
+* Uses https://kotlinlang.org/api/latest/kotlin.test/index.html[Kotlin test library] for testing
+* Has directories in the conventional locations for source code
+* Contains a sample Kotlin class and an associated Kotlin test class, if there are no existing source or test files
+
+
+[[sec:kotlinlibrary_]]
+=== `kotlin-library`
+
+The “`kotlin-library`” build init type is not inferable. It must be explicitly specified.
+
+It has the following features:
+
+* Uses the “`org.jetbrains.kotlin.jvm`” plugin to produce a library Jar
+* Uses the “`jcenter`” dependency repository
+* Uses Kotlin 1.x
+* Uses https://kotlinlang.org/api/latest/kotlin.test/index.html[Kotlin test library] for testing
+* Has directories in the conventional locations for source code
+* Contains a sample Kotlin class and an associated Kotlin test class, if there are no existing source or test files
+
+
 [[sec:scalalibrary_]]
 === `scala-library`
 
@@ -138,7 +168,7 @@ It has the following features:
 
 * Uses the “`scala`” plugin to produce a library Jar
 * Uses the “`jcenter`” dependency repository
-* Uses Scala 2.10
+* Uses Scala 2.11
 * Uses http://www.scalatest.org[ScalaTest] for testing
 * Has directories in the conventional locations for source code
 * Contains a sample scala class and an associated ScalaTest test suite, if there are no existing source or test files
@@ -179,6 +209,6 @@ It has the following features:
 [[sec:basic]]
 === `basic`
 
-The “`basic`” build init type is useful for creating a fresh new Gradle project. It creates a sample `build.gradle` file, with comments and links to help get started.
+The “`basic`” build init type is useful for creating a fresh new Gradle project. It creates sample settings and build files, with comments and links to help get started.
 
 This type is used when no type was explicitly specified, and no type could be inferred.
