@@ -24,13 +24,34 @@ import org.gradle.testing.internal.util.Specification
 
 class BuildOperationCrossProjectConfiguratorTest extends Specification {
     def service = new BuildOperationCrossProjectConfigurator(new TestBuildOperationExecutor())
+    def project = Mock(Project)
+    def calledAction = false
+    def actionCallingDisallowedMethod = new Action<Project>() {
+        @Override
+        void execute(Project project) {
+            calledAction = true
+            disallowedMethod()
+        }
+    }
+
+    def "does not throw exception when calling a disallowed method when allowed"() {
+        given:
+        def action = service.withCrossProjectConfigurationEnabled(actionCallingDisallowedMethod)
+
+        when:
+        action.execute(project)
+
+        then:
+        noExceptionThrown()
+        calledAction
+    }
 
     def "throws IllegalStateException when calling a disallowed method when disallowed"() {
         given:
-        def action = service.withCrossProjectConfigurationDisabled(newActionThatCallsDisallowedMethod())
+        def action = service.withCrossProjectConfigurationDisabled(actionCallingDisallowedMethod)
 
         when:
-        action.execute(new Object())
+        action.execute(project)
 
         then:
         def ex = thrown(IllegalStateException)
@@ -39,7 +60,54 @@ class BuildOperationCrossProjectConfiguratorTest extends Specification {
 
     def "doesn't throw exception when calling disallowed method when allowed"() {
         when:
-        callsDisallowedMethod(new Object())
+        disallowedMethod()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "call to withCrossProjectConfigurationDisabled does not disable disallow check"() {
+        def action = service.withCrossProjectConfigurationDisabled(new Action<Project>() {
+            @Override
+            void execute(Project project) {
+                service.withCrossProjectConfigurationDisabled(Actions.doNothing()).execute(project)
+                disallowedMethod()
+            }
+        })
+        when:
+        action.execute(project)
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "someProtectedMethod() on Mock for type 'Project' cannot be executed in the current context."
+    }
+
+    def "call to withCrossProjectConfigurationEnabled does not disable disallow check"() {
+        def action = service.withCrossProjectConfigurationDisabled(new Action<Project>() {
+            @Override
+            void execute(Project project) {
+                service.withCrossProjectConfigurationEnabled(Actions.doNothing()).execute(project)
+                disallowedMethod()
+            }
+        })
+        when:
+        action.execute(project)
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "someProtectedMethod() on Mock for type 'Project' cannot be executed in the current context."
+    }
+
+    def "call to withCrossProjectConfigurationDisabled does enable disallow check outside scope"() {
+        def action = service.withCrossProjectConfigurationEnabled(new Action<Project>() {
+            @Override
+            void execute(Project project) {
+                service.withCrossProjectConfigurationDisabled(Actions.doNothing()).execute(project)
+                disallowedMethod()
+            }
+        })
+        when:
+        action.execute(project)
 
         then:
         noExceptionThrown()
@@ -47,18 +115,13 @@ class BuildOperationCrossProjectConfiguratorTest extends Specification {
 
     def "doesn't protect across thread boundaries"() {
         given:
-        def innerAction = Mock(Action)
-        def action = service.withCrossProjectConfigurationDisabled(new Action<Object>() {
+        def action = service.withCrossProjectConfigurationDisabled(new Action<Project>() {
             @Override
-            void execute(Object o) {
+            void execute(Project project) {
                 def thread = new Thread(new Runnable() {
                     @Override
                     void run() {
-                        try {
-                            callsDisallowedMethod(o, innerAction)
-                        } catch (Throwable ex) {
-                            assert false : "this should never occur"
-                        }
+                        actionCallingDisallowedMethod.execute(project)
                     }
                 })
                 thread.start()
@@ -67,24 +130,14 @@ class BuildOperationCrossProjectConfiguratorTest extends Specification {
         })
 
         when:
-        action.execute(new Object())
+        action.execute(project)
 
         then:
         noExceptionThrown()
-        1 * innerAction.execute(_)
+        calledAction
     }
 
-    private Action<Object> newActionThatCallsDisallowedMethod() {
-        return new Action<Object>() {
-            @Override
-            void execute(Object o) {
-                callsDisallowedMethod(o)
-            }
-        }
-    }
-
-    private void callsDisallowedMethod(Object o, Action action = Actions.doNothing()) {
-        action.execute(o)
+    private void disallowedMethod() {
         service.assertCrossProjectConfigurationAllowed("someProtectedMethod()", Mock(Project))
     }
 }

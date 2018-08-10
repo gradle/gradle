@@ -30,7 +30,7 @@ import java.util.Collections;
 public class BuildOperationCrossProjectConfigurator implements CrossProjectConfigurator {
 
     private final BuildOperationExecutor buildOperationExecutor;
-    private final ThreadLocal<Boolean> allowExection = new ThreadLocal<Boolean>() {
+    private final ThreadLocal<Boolean> allowExecution = new ThreadLocal<Boolean>() {
         @Override
         protected Boolean initialValue() {
             return true;
@@ -76,7 +76,7 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
         buildOperationExecutor.run(new CrossConfigureProjectBuildOperation(project) {
             @Override
             public void run(BuildOperationContext context) {
-                Actions.with(project, withCrossProjectConfigurationAllowed(configureAction));
+                Actions.with(project, withCrossProjectConfigurationEnabled(configureAction));
             }
         });
     }
@@ -90,30 +90,24 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
 
     @Override
     public <T> Action<T> withCrossProjectConfigurationDisabled(final Action<? super T> action) {
-        return new Action<T>() {
-            @Override
-            public void execute(T t) {
-                allowExection.set(false);
-                try {
-                    action.execute(t);
-                } finally {
-                    allowExection.set(true);
-                }
-            }
-        };
+        return executeActionWithMutation(action, false);
     }
 
     // TODO: Promote to CrossProjectConfigurator interface if this is needed elsewhere.
-    public <T> Action<T> withCrossProjectConfigurationAllowed(final Action<? super T> action) {
+    public <T> Action<T> withCrossProjectConfigurationEnabled(final Action<? super T> action) {
+        return executeActionWithMutation(action, true);
+    }
+
+    private <T> Action<T> executeActionWithMutation(final Action<? super T> action, final boolean allowMutationMethods) {
         return new Action<T>() {
             @Override
             public void execute(T t) {
-                boolean save = allowExection.get();
-                allowExection.set(true);
+                boolean save = allowExecution.get();
+                allowExecution.set(allowMutationMethods);
                 try {
-                    Actions.with(t, action);
+                    action.execute(t);
                 } finally {
-                    allowExection.set(save);
+                    allowExecution.set(save);
                 }
             }
         };
@@ -124,7 +118,7 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
     }
 
     private boolean isCrossConfigurationAllowed() {
-        return allowExection.get();
+        return allowExecution.get();
     }
 
     @Contextual
