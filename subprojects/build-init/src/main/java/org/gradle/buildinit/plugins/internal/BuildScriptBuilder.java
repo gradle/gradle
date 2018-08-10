@@ -53,7 +53,7 @@ public class BuildScriptBuilder {
 
     private final List<String> headerLines = new ArrayList<String>();
     private final ListMultimap<String, DepSpec> dependencies = MultimapBuilder.linkedHashKeys().arrayListValues().build();
-    private final Map<String, String> plugins = new LinkedHashMap<String, String>();
+    private final Map<String, PluginSpec> plugins = new LinkedHashMap<String, PluginSpec>();
     private final List<ConfigSpec> configSpecs = new ArrayList<ConfigSpec>();
 
     public BuildScriptBuilder(BuildInitDsl dsl, PathToFileResolver fileResolver, String fileNameWithoutExtension) {
@@ -76,7 +76,17 @@ public class BuildScriptBuilder {
      * @param comment A description of why the plugin is required
      */
     public BuildScriptBuilder plugin(String comment, String pluginId) {
-        plugins.put(pluginId, comment);
+        plugins.put(pluginId, new PluginSpec(pluginId, null, comment));
+        return this;
+    }
+
+    /**
+     * Adds a plugin to be applied
+     *
+     * @param comment A description of why the plugin is required
+     */
+    public BuildScriptBuilder plugin(String comment, String pluginId, String version) {
+        plugins.put(pluginId, new PluginSpec(pluginId, version, comment));
         return this;
     }
 
@@ -161,7 +171,7 @@ public class BuildScriptBuilder {
                     try {
                         PrettyPrinter printer = prettyPrinterFor(dsl, writer);
                         printer.printFileHeader(headerLines);
-                        printer.printPlugins(plugins);
+                        printer.printPlugins(plugins.values());
                         printer.printConfigSpecs(configSpecs);
                         if (!dependencies.isEmpty()) {
                             printer.printDependencies(dependencies);
@@ -193,6 +203,19 @@ public class BuildScriptBuilder {
                 return new GroovySyntax();
             default:
                 throw new IllegalStateException();
+        }
+    }
+
+    private static class PluginSpec {
+        final String id;
+        @Nullable
+        final String version;
+        final String comment;
+
+        public PluginSpec(String id, @Nullable String version, String comment) {
+            this.id = id;
+            this.version = version;
+            this.comment = comment;
         }
     }
 
@@ -341,19 +364,17 @@ public class BuildScriptBuilder {
             println(" */");
         }
 
-        public void printPlugins(Map<String, String> plugins) {
+        public void printPlugins(Collection<PluginSpec> plugins) {
             if (plugins.isEmpty()) {
                 return;
             }
 
             println();
             println("plugins {");
-            for (Iterator<Map.Entry<String, String>> it = plugins.entrySet().iterator(); it.hasNext();) {
-                Map.Entry<String, String> entry = it.next();
-                String pluginId = entry.getKey();
-                String comment = entry.getValue();
-                println("    // " + comment);
-                println("    " + pluginDependencySpec(pluginId));
+            for (Iterator<PluginSpec> it = plugins.iterator(); it.hasNext();) {
+                PluginSpec spec = it.next();
+                println("    // " + spec.comment);
+                println("    " + pluginDependencySpec(spec.id, spec.version));
 
                 if (it.hasNext()) {
                     println();
@@ -559,8 +580,8 @@ public class BuildScriptBuilder {
             return syntax.dependencySpec(config, notation);
         }
 
-        private String pluginDependencySpec(String pluginId) {
-            return syntax.pluginDependencySpec(pluginId);
+        private String pluginDependencySpec(String pluginId, @Nullable String version) {
+            return syntax.pluginDependencySpec(pluginId, version);
         }
 
         private void println(String s) {
@@ -574,7 +595,7 @@ public class BuildScriptBuilder {
 
     private interface Syntax {
 
-        String pluginDependencySpec(String pluginId);
+        String pluginDependencySpec(String pluginId, @Nullable String version);
 
         String dependencySpec(String config, String notation);
 
@@ -589,7 +610,10 @@ public class BuildScriptBuilder {
     private static final class KotlinSyntax implements Syntax {
 
         @Override
-        public String pluginDependencySpec(String pluginId) {
+        public String pluginDependencySpec(String pluginId, @Nullable String version) {
+            if (version != null) {
+                return "id(\"" + pluginId + "\").version(\"" + version + "\")";
+            }
             return pluginId.matches("[a-z]+") ? pluginId : "`" + pluginId + "`";
         }
 
@@ -637,9 +661,11 @@ public class BuildScriptBuilder {
     }
 
     private static final class GroovySyntax implements Syntax {
-
         @Override
-        public String pluginDependencySpec(String pluginId) {
+        public String pluginDependencySpec(String pluginId, @Nullable String version) {
+            if (version != null) {
+                return "id '" + pluginId + "' version '" + version + "'";
+            }
             return "id '" + pluginId + "'";
         }
 

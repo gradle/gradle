@@ -31,9 +31,9 @@ public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor 
     public JavaLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory,
                                             FileResolver fileResolver,
                                             TemplateLibraryVersionProvider libraryVersionProvider,
-                                            ProjectInitDescriptor globalSettingsDescriptor,
+                                            BuildContentGenerator settingsGenerator,
                                             DocumentationRegistry documentationRegistry) {
-        super(templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor, documentationRegistry);
+        super(templateOperationFactory, fileResolver, libraryVersionProvider, settingsGenerator, documentationRegistry);
     }
 
     @Override

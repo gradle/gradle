@@ -38,9 +38,9 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
     public JavaProjectInitDescriptor(TemplateOperationFactory templateOperationFactory,
                                      FileResolver fileResolver,
                                      TemplateLibraryVersionProvider libraryVersionProvider,
-                                     ProjectInitDescriptor globalSettingsDescriptor,
+                                     BuildContentGenerator settingsGenerator,
                                      DocumentationRegistry documentationRegistry) {
-        super("java", templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor);
+        super("java", templateOperationFactory, fileResolver, libraryVersionProvider, settingsGenerator);
         this.documentationRegistry = documentationRegistry;
     }
 

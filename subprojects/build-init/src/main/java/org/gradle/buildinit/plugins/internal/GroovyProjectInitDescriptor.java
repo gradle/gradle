@@ -28,8 +28,8 @@ public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProject
     private final DocumentationRegistry documentationRegistry;
 
     public GroovyProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
-                                       TemplateLibraryVersionProvider libraryVersionProvider, ProjectInitDescriptor globalSettingsDescriptor, DocumentationRegistry documentationRegistry) {
-        super("groovy", templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor);
+                                       TemplateLibraryVersionProvider libraryVersionProvider, BuildContentGenerator settingsGenerator, DocumentationRegistry documentationRegistry) {
+        super("groovy", templateOperationFactory, fileResolver, libraryVersionProvider, settingsGenerator);
         this.documentationRegistry = documentationRegistry;
     }
 

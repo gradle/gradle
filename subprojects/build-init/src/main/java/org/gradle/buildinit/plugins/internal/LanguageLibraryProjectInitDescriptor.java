@@ -26,15 +26,14 @@ public abstract class LanguageLibraryProjectInitDescriptor implements ProjectIni
     protected final FileResolver fileResolver;
     protected final TemplateOperationFactory templateOperationFactory;
     protected final TemplateLibraryVersionProvider libraryVersionProvider;
-    protected final ProjectInitDescriptor globalSettingsDescriptor;
+    protected final BuildContentGenerator globalSettingsDescriptor;
 
-    public LanguageLibraryProjectInitDescriptor(String language, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
-                                                TemplateLibraryVersionProvider libraryVersionProvider, ProjectInitDescriptor globalSettingsDescriptor){
+    public LanguageLibraryProjectInitDescriptor(String language, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, BuildContentGenerator settingsGenerator){
         this.language = language;
         this.fileResolver = fileResolver;
         this.templateOperationFactory = templateOperationFactory;
         this.libraryVersionProvider = libraryVersionProvider;
-        this.globalSettingsDescriptor = globalSettingsDescriptor;
+        this.globalSettingsDescriptor = settingsGenerator;
     }
 
     @Override
