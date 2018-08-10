@@ -31,8 +31,8 @@ import org.gradle.vcs.internal.VcsResolver;
  */
 public class BuildScanConfigServices {
 
-    BuildScanPluginCompatibility createBuildScanPluginCompatibility() {
-        return new BuildScanPluginCompatibility();
+    BuildScanPluginCompatibility createBuildScanPluginCompatibility(StartParameter startParameter) {
+        return new BuildScanPluginCompatibility(startParameter);
     }
 
     BuildScanConfigManager createBuildScanConfigManager(
