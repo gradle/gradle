@@ -23,7 +23,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GroovyJarFile {
-    private static final Pattern FILE_NAME_PATTERN = Pattern.compile("(groovy(?:-all)?)-(\\d.*?)(-indy)?.jar");
+    private static final Pattern FILE_NAME_PATTERN = Pattern.compile("(groovy)-(\\d.*?)(-indy)?.jar");
 
     private final File file;
     private final Matcher matcher;
@@ -46,7 +46,7 @@ public class GroovyJarFile {
     }
 
     public boolean isGroovyAll() {
-        return getBaseName().equals("groovy-all");
+        return getBaseName().equals("groovy");
     }
 
     public boolean isIndy() {
