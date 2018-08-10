@@ -27,13 +27,12 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
     FileResolver fileResolver = Mock()
     TemplateOperationFactory templateOperationFactory = Mock()
     TemplateLibraryVersionProvider libraryVersionProvider = Mock()
-    ProjectInitDescriptor globalSettingsDescriptor = Mock()
     LanguageLibraryProjectInitDescriptor descriptor
     TemplateOperationFactory.TemplateOperationBuilder templateOperationBuilder = Mock(TemplateOperationFactory.TemplateOperationBuilder)
 
     def "generates from template within sourceSet"(){
         setup:
-        descriptor = new TestLanguageLibraryProjectInitDescriptor(language, templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor)
+        descriptor = new TestLanguageLibraryProjectInitDescriptor(language, templateOperationFactory, fileResolver, libraryVersionProvider)
         1 * templateOperationFactory.newTemplateOperation() >> templateOperationBuilder
 
         when:
@@ -56,7 +55,7 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
         def mainSourceDirectory = Mock(FileTreeInternal)
         def testSourceDirectory = Mock(FileTreeInternal)
         def delegate = Mock(TemplateOperation)
-        descriptor = new TestLanguageLibraryProjectInitDescriptor("somelang", templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor)
+        descriptor = new TestLanguageLibraryProjectInitDescriptor("somelang", templateOperationFactory, fileResolver, libraryVersionProvider)
 
         when:
         descriptor.whenNoSourcesAvailable(delegate).generate()
@@ -77,9 +76,8 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
 
     class TestLanguageLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
 
-        TestLanguageLibraryProjectInitDescriptor(String language, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
-                                                 TemplateLibraryVersionProvider libraryVersionProvider, ProjectInitDescriptor globalSettingsDescriptor) {
-            super(language, templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor)
+        TestLanguageLibraryProjectInitDescriptor(String language, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider) {
+            super(language, templateOperationFactory, fileResolver, libraryVersionProvider)
         }
 
         @Override

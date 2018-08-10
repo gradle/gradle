@@ -28,15 +28,13 @@ public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProject
     private final DocumentationRegistry documentationRegistry;
 
     public GroovyProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
-                                       TemplateLibraryVersionProvider libraryVersionProvider, BuildContentGenerator settingsGenerator, DocumentationRegistry documentationRegistry) {
-        super("groovy", templateOperationFactory, fileResolver, libraryVersionProvider, settingsGenerator);
+                                       TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+        super("groovy", templateOperationFactory, fileResolver, libraryVersionProvider);
         this.documentationRegistry = documentationRegistry;
     }
 
     @Override
     public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
-        globalSettingsDescriptor.generate(dsl, testFramework);
-
         BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(dsl, fileResolver, "build")
             .fileComment("This generated file contains a sample Groovy project to get you started.")
             .fileComment("For more details take a look at the Groovy Quickstart chapter in the Gradle")

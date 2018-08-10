@@ -38,15 +38,13 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
     public JavaProjectInitDescriptor(TemplateOperationFactory templateOperationFactory,
                                      FileResolver fileResolver,
                                      TemplateLibraryVersionProvider libraryVersionProvider,
-                                     BuildContentGenerator settingsGenerator,
                                      DocumentationRegistry documentationRegistry) {
-        super("java", templateOperationFactory, fileResolver, libraryVersionProvider, settingsGenerator);
+        super("java", templateOperationFactory, fileResolver, libraryVersionProvider);
         this.documentationRegistry = documentationRegistry;
     }
 
     @Override
     public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
-        globalSettingsDescriptor.generate(dsl, testFramework);
         Description desc = getDescription();
         BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(dsl, fileResolver, "build")
             .fileComment("This generated file contains a sample " + desc.projectType + " project to get you started.")
