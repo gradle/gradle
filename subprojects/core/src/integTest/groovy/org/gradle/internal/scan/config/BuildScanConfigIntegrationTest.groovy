@@ -39,7 +39,6 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-
     def "enabled and disabled are false with no flags"() {
         when:
         succeeds "t"
@@ -224,6 +223,28 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         then:
         scanPlugin.assertUnsupportedMessage(output, BuildScanPluginCompatibility.UNSUPPORTED_TOGGLE_MESSAGE)
         scanPlugin.attributes(output) != null
+    }
+
+    def "unsupported for pre 1.15.2 versions when kotlin script build caching used"() {
+        given:
+        scanPlugin.runtimeVersion = "1.15.1"
+
+        when:
+        succeeds "t", "-P${BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE}=true"
+
+        then:
+        scanPlugin.assertUnsupportedMessage(output, BuildScanPluginCompatibility.UNSUPPORTED_KOTLIN_SCRIPT_BUILD_CACHING_MESSAGE)
+    }
+
+    def "supported for 1.15.2 versions when kotlin script build caching used"() {
+        given:
+        scanPlugin.runtimeVersion = "1.15.2"
+
+        when:
+        succeeds "t", "-P${BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE}=true"
+
+        then:
+        scanPlugin.assertUnsupportedMessage(output, null)
     }
 
     void installVcsMappings() {
