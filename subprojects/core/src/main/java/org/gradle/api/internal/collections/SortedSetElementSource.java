@@ -17,6 +17,7 @@
 package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 
@@ -108,7 +109,16 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     }
 
     @Override
-    public boolean addPending(ProviderInternal<? extends T> provider) {
+    public boolean addPending(final ProviderInternal<? extends T> provider) {
+        if (provider instanceof ChangingValue) {
+            ((ChangingValue<T>)provider).onValueChange(new Action<T>() {
+                @Override
+                public void execute(T previousValue) {
+                    values.remove(previousValue);
+                    pending.addPending(provider);
+                }
+            });
+        }
         return pending.addPending(provider);
     }
 
@@ -118,7 +128,18 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     }
 
     @Override
-    public boolean addPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+    public boolean addPendingCollection(final CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+        if (provider instanceof ChangingValue) {
+            ((ChangingValue<Iterable<T>>)provider).onValueChange(new Action<Iterable<T>>() {
+                @Override
+                public void execute(Iterable<T> previousValues) {
+                    for (T value : previousValues) {
+                        values.remove(value);
+                    }
+                    pending.addPendingCollection(provider);
+                }
+            });
+        }
         return pending.addPendingCollection(provider);
     }
 
