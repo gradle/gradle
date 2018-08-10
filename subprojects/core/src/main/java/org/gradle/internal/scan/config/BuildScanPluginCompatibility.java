@@ -16,6 +16,7 @@
 
 package org.gradle.internal.scan.config;
 
+import org.gradle.StartParameter;
 import org.gradle.util.VersionNumber;
 
 class BuildScanPluginCompatibility {
@@ -29,9 +30,20 @@ class BuildScanPluginCompatibility {
     public static final String UNSUPPORTED_VCS_MAPPINGS_MESSAGE =
         "Build scans are not supported when using VCS mappings. It may be supported when using newer versions of the build scan plugin.";
 
+    public static final VersionNumber MIN_VERSION_FOR_KOTLIN_SCRIPT_BUILD_CACHING = VersionNumber.parse("1.15.2");
+    public static final String UNSUPPORTED_KOTLIN_SCRIPT_BUILD_CACHING_MESSAGE =
+        "Build scans are not supported when using using the build cache to cache Kotlin build scripts.";
+
     // Used just to test the mechanism
     public static final String UNSUPPORTED_TOGGLE = "org.gradle.internal.unsupported-scan-plugin";
     public static final String UNSUPPORTED_TOGGLE_MESSAGE = "Build scan support disabled by secret toggle";
+    public static final String KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE = "org.gradle.kotlin.dsl.caching.buildcache";
+
+    private final StartParameter startParameter;
+
+    public BuildScanPluginCompatibility(StartParameter startParameter) {
+        this.startParameter = startParameter;
+    }
 
     String unsupportedReason(VersionNumber pluginVersion, BuildScanConfig.Attributes attributes) {
         if (isEarlierThan(pluginVersion, MIN_SUPPORTED_VERSION)) {
@@ -42,11 +54,19 @@ class BuildScanPluginCompatibility {
             return UNSUPPORTED_VCS_MAPPINGS_MESSAGE;
         }
 
+        if (isEarlierThan(pluginVersion, MIN_VERSION_FOR_KOTLIN_SCRIPT_BUILD_CACHING) && isKotlinBuildCachingEnabled()) {
+            return UNSUPPORTED_KOTLIN_SCRIPT_BUILD_CACHING_MESSAGE;
+        }
+
         if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
             return UNSUPPORTED_TOGGLE_MESSAGE;
         }
 
         return null;
+    }
+
+    private boolean isKotlinBuildCachingEnabled() {
+        return Boolean.valueOf(startParameter.getProjectProperties().get(KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE));
     }
 
     private static boolean isEarlierThan(VersionNumber pluginVersion, VersionNumber minSupportedVersion) {
