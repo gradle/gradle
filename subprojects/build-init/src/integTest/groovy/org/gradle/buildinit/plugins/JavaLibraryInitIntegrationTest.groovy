@@ -31,7 +31,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'java-library', '--dsl', scriptDsl.id)
+        run('init', '--type', 'java-library', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
@@ -43,7 +43,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         buildFileSeparatesImplementationAndApi(dslFixture)
 
         when:
-        succeeds("build")
+        run("build")
 
         then:
         assertTestPassed("testSomeLibraryMethod")
@@ -55,7 +55,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "creates sample source using spock instead of junit with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'java-library', '--test-framework', 'spock', '--dsl', scriptDsl.id)
+        run('init', '--type', 'java-library', '--test-framework', 'spock', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
@@ -67,7 +67,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         buildFileSeparatesImplementationAndApi(dslFixture, 'org.spockframework')
 
         when:
-        succeeds("build")
+        run("build")
 
         then:
         assertTestPassed("someLibraryMethod returns true")
@@ -79,7 +79,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "creates sample source using testng instead of junit with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'java-library', '--test-framework', 'testng', '--dsl', scriptDsl.id)
+        run('init', '--type', 'java-library', '--test-framework', 'testng', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
@@ -91,7 +91,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         buildFileSeparatesImplementationAndApi(dslFixture, 'org.testng')
 
         when:
-        succeeds("build")
+        run("build")
 
         then:
         assertTestPassed("someLibraryMethodReturnsTrue")
@@ -112,11 +112,11 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         file("src/test/java/org/acme/SampleMainTest.java") << """
                 package org.acme;
 
-                public class SampleMain{
+                public class SampleMainTest {
                 }
         """
         when:
-        succeeds('init', '--type', 'java-library', '--dsl', scriptDsl.id)
+        run('init', '--type', 'java-library', '--dsl', scriptDsl.id)
 
         then:
         !file(SAMPLE_LIBRARY_CLASS).exists()
@@ -126,6 +126,12 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         def dslFixture = dslFixtureFor(scriptDsl)
         dslFixture.assertGradleFilesGenerated()
         buildFileSeparatesImplementationAndApi(dslFixture)
+
+        when:
+        run("build")
+
+        then:
+        executed(":test")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

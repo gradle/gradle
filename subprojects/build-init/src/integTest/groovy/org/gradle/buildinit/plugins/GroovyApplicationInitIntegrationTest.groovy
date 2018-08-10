@@ -28,7 +28,7 @@ class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'groovy-application', '--dsl', scriptDsl.id)
+        run('init', '--type', 'groovy-application', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_APP_CLASS).exists()
@@ -36,13 +36,13 @@ class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:
-        succeeds("build")
+        run("build")
 
         then:
         assertTestPassed("application has a greeting")
 
         when:
-        succeeds("run")
+        run("run")
 
         then:
         outputContains("Hello world")
@@ -54,7 +54,7 @@ class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "creates sample source using spock instead of junit with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'groovy-application', '--test-framework', 'spock', '--dsl', scriptDsl.id)
+        run('init', '--type', 'groovy-application', '--test-framework', 'spock', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_APP_CLASS).exists()
@@ -62,7 +62,7 @@ class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:
-        succeeds("build")
+        run("build")
 
         then:
         assertTestPassed("application has a greeting")
@@ -99,12 +99,18 @@ class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
                 }
         """
         when:
-        succeeds('init', '--type', 'groovy-application', '--dsl', scriptDsl.id)
+        run('init', '--type', 'groovy-application', '--dsl', scriptDsl.id)
 
         then:
         !file(SAMPLE_APP_CLASS).exists()
         !file(SAMPLE_APP_SPOCK_TEST_CLASS).exists()
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
+
+        when:
+        run("build")
+
+        then:
+        executed(":test")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

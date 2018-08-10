@@ -29,7 +29,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'kotlin-library', '--dsl', scriptDsl.id)
+        run('init', '--type', 'kotlin-library', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
@@ -37,7 +37,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:
-        succeeds("build")
+        run("build")
 
         then:
         TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
@@ -64,12 +64,18 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
                     }
             """
         when:
-        succeeds('init', '--type', 'kotlin-library', '--dsl', scriptDsl.id)
+        run('init', '--type', 'kotlin-library', '--dsl', scriptDsl.id)
 
         then:
         !file(SAMPLE_LIBRARY_CLASS).exists()
         !file(SAMPLE_LIBRARY_TEST_CLASS).exists()
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
+
+        when:
+        run("build")
+
+        then:
+        executed(":test")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

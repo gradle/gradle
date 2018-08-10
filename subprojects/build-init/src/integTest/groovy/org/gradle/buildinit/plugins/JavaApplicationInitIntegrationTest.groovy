@@ -40,7 +40,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'java-application', '--dsl', scriptDsl.id)
+        run('init', '--type', 'java-application', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_APP_CLASS).exists()
@@ -48,13 +48,13 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:
-        succeeds("build")
+        run("build")
 
         then:
         assertTestPassed("testAppHasAGreeting")
 
         when:
-        succeeds("run")
+        run("run")
 
         then:
         outputContains("Hello world")
@@ -66,7 +66,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "creates sample source using spock instead of junit with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'java-application', '--test-framework', 'spock', '--dsl', scriptDsl.id)
+        run('init', '--type', 'java-application', '--test-framework', 'spock', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_APP_CLASS).exists()
@@ -74,7 +74,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:
-        succeeds("build")
+        run("build")
 
         then:
         assertTestPassed("application has a greeting")
@@ -86,7 +86,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "creates sample source using testng instead of junit with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'java-application', '--test-framework', 'testng', '--dsl', scriptDsl.id)
+        run('init', '--type', 'java-application', '--test-framework', 'testng', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_APP_CLASS).exists()
@@ -94,7 +94,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:
-        succeeds("build")
+        run("build")
 
         then:
         assertTestPassed("appHasAGreeting")
@@ -115,16 +115,22 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         file("src/test/java/org/acme/SampleMainTest.java") << """
                 package org.acme;
 
-                public class SampleMain{
+                public class SampleMainTest {
                 }
         """
         when:
-        succeeds('init', '--type', 'java-application', '--dsl', scriptDsl.id)
+        run('init', '--type', 'java-application', '--dsl', scriptDsl.id)
 
         then:
         !file(SAMPLE_APP_CLASS).exists()
         !file(SAMPLE_APP_TEST_CLASS).exists()
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
+
+        when:
+        run("build")
+
+        then:
+        executed(":test")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

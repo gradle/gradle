@@ -29,7 +29,7 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'groovy-library', '--dsl', scriptDsl.id)
+        run('init', '--type', 'groovy-library', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
@@ -37,7 +37,7 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:
-        succeeds("build")
+        run("build")
 
         then:
         TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
@@ -51,12 +51,20 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "supports the Spock test framework with #scriptDsl build scripts"() {
         when:
-        succeeds('init', '--type', 'groovy-library', '--test-framework', 'spock', '--dsl', scriptDsl.id)
+        run('init', '--type', 'groovy-library', '--test-framework', 'spock', '--dsl', scriptDsl.id)
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
         file(SAMPLE_LIBRARY_TEST_CLASS).exists()
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
+
+        when:
+        run("build")
+
+        then:
+        TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
+        testResult.assertTestClassesExecuted("LibraryTest")
+        testResult.testClass("LibraryTest").assertTestPassed("someLibraryMethod returns true")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -78,12 +86,18 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
                     }
             """
         when:
-        succeeds('init', '--type', 'groovy-library', '--dsl', scriptDsl.id)
+        run('init', '--type', 'groovy-library', '--dsl', scriptDsl.id)
 
         then:
         !file(SAMPLE_LIBRARY_CLASS).exists()
         !file(SAMPLE_LIBRARY_TEST_CLASS).exists()
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
+
+        when:
+        run("build")
+
+        then:
+        executed(":test")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
