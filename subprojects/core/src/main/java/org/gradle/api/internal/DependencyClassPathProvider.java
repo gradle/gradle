@@ -76,6 +76,6 @@ public class DependencyClassPathProvider implements ClassPathProvider {
     }
 
     private ClassPath localGroovy() {
-        return moduleRegistry.getExternalModule("groovy-all").getClasspath();
+        return moduleRegistry.getExternalModule("groovy").getClasspath();
     }
 }
