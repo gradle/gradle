@@ -27,11 +27,11 @@ import org.junit.Test
 class ScriptBuildCacheKeyTest {
 
     @Test
-    fun `it removes invalid characters from the cache key prefix`() {
+    fun `it discards the local cache key prefix`() {
 
         assertThat(
             buildCacheKeyFor("gradle-kotlin-dsl/dx7phw87epyvb7zje5dti3tvl"),
-            equalTo("gradlekotlindsldx7phw87epyvb7zje5dti3tvl")
+            equalTo("dx7phw87epyvb7zje5dti3tvl")
         )
     }
 
