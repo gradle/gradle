@@ -22,8 +22,8 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 public class GroovyLibraryProjectInitDescriptor extends GroovyProjectInitDescriptor {
 
-    public GroovyLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, ProjectInitDescriptor projectInitDescriptor, DocumentationRegistry documentationRegistry) {
-        super(templateOperationFactory, fileResolver, libraryVersionProvider, projectInitDescriptor, documentationRegistry);
+    public GroovyLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, BuildContentGenerator settingsGenerator, DocumentationRegistry documentationRegistry) {
+        super(templateOperationFactory, fileResolver, libraryVersionProvider, settingsGenerator, documentationRegistry);
     }
 
     @Override

@@ -26,8 +26,8 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
     private final DocumentationRegistry documentationRegistry;
 
     public ScalaLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
-                                             TemplateLibraryVersionProvider libraryVersionProvider, ProjectInitDescriptor globalSettingsDescriptor, DocumentationRegistry documentationRegistry) {
-        super("scala", templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor);
+                                             TemplateLibraryVersionProvider libraryVersionProvider, BuildContentGenerator settingsGenerator, DocumentationRegistry documentationRegistry) {
+        super("scala", templateOperationFactory, fileResolver, libraryVersionProvider, settingsGenerator);
         this.documentationRegistry = documentationRegistry;
     }
 

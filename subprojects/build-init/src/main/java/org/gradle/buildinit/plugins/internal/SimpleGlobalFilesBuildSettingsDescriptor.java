@@ -21,7 +21,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.internal.file.PathToFileResolver;
 
-public class SimpleGlobalFilesBuildSettingsDescriptor implements ProjectInitDescriptor {
+public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGenerator {
 
     private final PathToFileResolver fileResolver;
     private final DocumentationRegistry documentationRegistry;
@@ -41,15 +41,5 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements ProjectInitDesc
             .propertyAssignment(null, "rootProject.name", fileResolver.resolve(".").getName())
             .create()
             .generate();
-    }
-
-    @Override
-    public boolean supports(BuildInitDsl dsl) {
-        return true;
-    }
-
-    @Override
-    public boolean supports(BuildInitTestFramework testFramework) {
-        return false;
     }
 }

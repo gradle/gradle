@@ -23,16 +23,16 @@ import org.gradle.internal.file.PathToFileResolver;
 public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescriptor {
 
     private final PathToFileResolver fileResolver;
-    private final ProjectInitDescriptor globalSettingsDescriptor;
+    private final BuildContentGenerator settingsGenerator;
 
-    public BasicTemplateBasedProjectInitDescriptor(PathToFileResolver fileResolver, ProjectInitDescriptor globalSettingsDescriptor) {
+    public BasicTemplateBasedProjectInitDescriptor(PathToFileResolver fileResolver, BuildContentGenerator settingsGenerator) {
         this.fileResolver = fileResolver;
-        this.globalSettingsDescriptor = globalSettingsDescriptor;
+        this.settingsGenerator = settingsGenerator;
     }
 
     @Override
     public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
-        globalSettingsDescriptor.generate(dsl, testFramework);
+        settingsGenerator.generate(dsl, testFramework);
 
         new BuildScriptBuilder(dsl, fileResolver, "build")
             .fileComment("This is a general purpose Gradle build.\n"
