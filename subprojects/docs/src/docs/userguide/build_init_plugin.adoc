@@ -16,14 +16,7 @@
 = Build Init Plugin
 
 
-[NOTE]
-====
-
-The Build Init plugin is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
-
-====
-
-The Gradle Build Init plugin can be used to bootstrap the process of creating a new Gradle build. It supports creating brand new projects of different types as well as converting existing builds (e.g. An Apache Maven build) to be Gradle builds.
+The Gradle Build Init plugin can be used to create a new Gradle build. It supports creating brand new projects of different types as well as converting existing builds (e.g. An Apache Maven build) to be Gradle builds.
 
 Gradle plugins typically need to be _applied_ to a project before they can be used (see <<plugins.adoc#sec:using_plugins,Using plugins>>). The Build Init plugin is an automatically applied plugin, which means you do not need to apply it explicitly. To use the plugin, simply execute the task named `init` where you would like to create the Gradle build. There is no need to create a “stub” `build.gradle` file in order to apply the plugin.
 
@@ -56,16 +49,10 @@ The `init` plugin also supports generating build scripts using either the Gradle
 
 All build setup types include the setup of the Gradle Wrapper.
 
-Note that the migration from Maven builds only supports the Groovy DSL for generated build scripts.
+Note that the migration from Maven builds currently only supports the Groovy DSL for generated build scripts.
 
 [[sec:build_init_types]]
 == Build init types
-
-
-[NOTE]
-====
-As this plugin is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>, only a few build init types are currently supported. More types will be added in future Gradle releases.
-====
 
 
 [[sec:pom_maven_conversion_]]
