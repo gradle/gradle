@@ -229,4 +229,54 @@ dependencies {
         }
     }
 
+    @RequiredFeatures([
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false"),
+        @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "true")
+    ])
+    def "optional dependency version will not upgrade version from non-optional dependency"() {
+        given:
+        repository {
+            'org.gradle:test:1.45' {
+                dependsOn group:'org.gradle', artifact:'not-upgraded', version:'1.45', optional: 'true'
+                dependsOn group:'org.gradle', artifact:'recommended', version:'1.45', optional: 'true'
+            }
+            'org.gradle:not-upgraded:1.44'()
+            'org.gradle:recommended:1.45'()
+        }
+        and:
+
+        buildFile << """
+dependencies {
+    conf "org.gradle:test:1.45"
+    conf "org.gradle:not-upgraded:1.44"
+    conf "org.gradle:recommended"
+}
+"""
+
+        repositoryInteractions {
+            'org.gradle:test:1.45' {
+                expectResolve()
+            }
+            'org.gradle:not-upgraded:1.44' {
+                expectResolve()
+            }
+            'org.gradle:recommended:1.45' {
+                expectResolve()
+            }
+        }
+
+        expect:
+        succeeds "checkDep"
+        resolve.expectGraph {
+            root(':', ':testproject:') {
+                module("org.gradle:not-upgraded:1.44")
+                edge("org.gradle:recommended", "org.gradle:recommended:1.45")
+                module("org.gradle:test:1.45") {
+                    edge("org.gradle:not-upgraded:1.45", "org.gradle:not-upgraded:1.44")
+                    module("org.gradle:recommended:1.45")
+                }
+            }
+        }
+    }
+
 }
