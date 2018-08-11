@@ -26,6 +26,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.buildinit.plugins.internal.BuildInitTypeIds;
+import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.ProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
@@ -45,6 +46,7 @@ public class InitBuild extends DefaultTask {
     private String type;
     private String dsl;
     private String testFramework;
+    private String projectName;
 
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
@@ -71,6 +73,19 @@ public class InitBuild extends DefaultTask {
     @Input
     public String getDsl() {
         return isNullOrEmpty(dsl) ? BuildInitDsl.GROOVY.getId() : dsl;
+    }
+
+    /**
+     * The name of the project, defaults to the name of the directory.
+     *
+     * This property can be set via command-line option '--project-name'.
+     *
+     * @since 4.11
+     */
+    @Incubating
+    @Input
+    public String getProjectName() {
+        return projectName == null ? getProject().getProjectDir().getName() : projectName;
     }
 
     /**
@@ -126,7 +141,7 @@ public class InitBuild extends DefaultTask {
             }
         }
 
-        initDescriptor.generate(dsl, testFramework);
+        initDescriptor.generate(new InitSettings(getProjectName(), dsl, testFramework));
     }
 
     @Option(option = "type", description = "Set type of build to create.")
@@ -163,18 +178,34 @@ public class InitBuild extends DefaultTask {
         return BuildInitDsl.listSupported();
     }
 
+    /**
+     * Set alternative test framework to be used.
+     */
     @Option(option = "test-framework", description = "Set alternative test framework to be used.")
     public void setTestFramework(@Nullable String testFramework) {
         this.testFramework = testFramework;
     }
 
+    /**
+     * Available test frameworks.
+     */
     @OptionValues("test-framework")
     @SuppressWarnings("unused")
     public List<String> getAvailableTestFrameworks() {
         return BuildInitTestFramework.listSupported();
     }
 
-    public void setProjectLayoutRegistry(ProjectLayoutSetupRegistry projectLayoutRegistry) {
+    /**
+     * Set the project name.
+     *
+     * @since 4.11
+     */
+    @Option(option = "project-name", description = "Set project name.")
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
+    }
+
+    void setProjectLayoutRegistry(ProjectLayoutSetupRegistry projectLayoutRegistry) {
         this.projectLayoutRegistry = projectLayoutRegistry;
     }
 

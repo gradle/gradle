@@ -17,7 +17,6 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 import java.util.Collections;
@@ -39,9 +38,9 @@ public class KotlinApplicationProjectInitDescriptor extends LanguageLibraryProje
     }
 
     @Override
-    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
+    public void generate(InitSettings settings) {
         String kotlinVersion = libraryVersionProvider.getVersion("kotlin");
-        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(dsl, fileResolver, "build")
+        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(settings.getDsl(), fileResolver, "build")
             .fileComment("This generated file contains a sample Kotlin application project to get you started.")
             .plugin("Apply the Kotlin JVM plugin to add support for Kotlin on the JVM", "org.jetbrains.kotlin.jvm", kotlinVersion)
             .plugin("Apply the application to add support for building a CLI application", "application")

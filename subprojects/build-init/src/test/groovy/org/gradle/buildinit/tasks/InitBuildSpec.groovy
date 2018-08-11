@@ -60,21 +60,23 @@ class InitBuildSpec extends Specification {
         init.setupProjectLayout()
 
         then:
-        1 * projectSetupDescriptor.generate(GROOVY, NONE)
+        1 * projectSetupDescriptor.generate({it.dsl == GROOVY && it.testFramework == NONE})
     }
 
-    def "should delegate to setup descriptor with specified type and modifier"() {
+    def "should delegate to setup descriptor with specified type and dsl and test framework"() {
         given:
         supportedType(BuildInitTypeIds.JAVA_LIBRARY, projectSetupDescriptor)
         projectSetupDescriptor.testFrameworks >> [SPOCK]
+        projectSetupDescriptor.supports(KOTLIN) >> true
         init.type = "java-library"
+        init.dsl = "kotlin"
         init.testFramework = "spock"
 
         when:
         init.setupProjectLayout()
 
         then:
-        1 * projectSetupDescriptor.generate(GROOVY, SPOCK)
+        1 * projectSetupDescriptor.generate({it.dsl == KOTLIN && it.testFramework == SPOCK})
     }
 
     def "should throw exception if requested test framework is not supported"() {

@@ -16,9 +16,6 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
-
 public interface BuildContentGenerator {
-    void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework);
+    void generate(InitSettings settings);
 }

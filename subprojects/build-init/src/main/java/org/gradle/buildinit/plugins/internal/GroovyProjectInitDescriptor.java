@@ -18,7 +18,6 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 import java.util.Arrays;
@@ -39,8 +38,8 @@ public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProject
     }
 
     @Override
-    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
-        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(dsl, fileResolver, "build")
+    public void generate(InitSettings settings) {
+        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(settings.getDsl(), fileResolver, "build")
             .fileComment("This generated file contains a sample Groovy project to get you started.")
             .fileComment("For more details take a look at the Groovy Quickstart chapter in the Gradle")
             .fileComment("user guide available at " + documentationRegistry.getDocumentationFor("tutorial_groovy_projects"))
@@ -53,7 +52,7 @@ public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProject
         buildScriptBuilder.create().generate();
 
         TemplateOperation groovySourceTemplate = sourceTemplateOperation();
-        whenNoSourcesAvailable(groovySourceTemplate, testTemplateOperation(testFramework)).generate();
+        whenNoSourcesAvailable(groovySourceTemplate, testTemplateOperation(settings.getTestFramework())).generate();
     }
 
     @Override

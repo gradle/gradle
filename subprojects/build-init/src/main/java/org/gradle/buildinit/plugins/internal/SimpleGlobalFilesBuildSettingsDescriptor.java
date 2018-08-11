@@ -17,8 +17,6 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.internal.file.PathToFileResolver;
 
 public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGenerator {
@@ -32,13 +30,13 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGen
     }
 
     @Override
-    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
-        new BuildScriptBuilder(dsl, fileResolver, "settings")
+    public void generate(InitSettings settings) {
+        new BuildScriptBuilder(settings.getDsl(), fileResolver, "settings")
             .fileComment(
                 "The settings file is used to specify which projects to include in your build.\n\n"
                     + "Detailed information about configuring a multi-project build in Gradle can be found\n"
                     + "in the user guide at " + documentationRegistry.getDocumentationFor("multi_project_builds"))
-            .propertyAssignment(null, "rootProject.name", fileResolver.resolve(".").getName())
+            .propertyAssignment(null, "rootProject.name", settings.getProjectName())
             .create()
             .generate();
     }
