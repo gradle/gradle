@@ -52,7 +52,7 @@ public class InitBuild extends DefaultTask {
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
 
     /**
-     * The desired type of build to create, defaults to 'pom' if 'pom.xml' is found in project root if no pom.xml is found, it defaults to 'basic'.
+     * The desired type of build to create, defaults to 'pom' if a 'pom.xml' is found in the project root and if no 'pom.xml' is found, it defaults to 'basic'.
      *
      * This property can be set via command-line option '--type'.
      */
@@ -76,7 +76,7 @@ public class InitBuild extends DefaultTask {
     }
 
     /**
-     * The name of the project, defaults to the name of the directory.
+     * The name of the generated project, defaults to the name of the directory the project is generated in.
      *
      * This property can be set via command-line option '--project-name'.
      *
@@ -89,7 +89,7 @@ public class InitBuild extends DefaultTask {
     }
 
     /**
-     * Alternative test framework to be used in the generated project.
+     * The test framework to be used in the generated project.
      *
      * This property can be set via command-line option '--test-framework'
      */
@@ -144,7 +144,7 @@ public class InitBuild extends DefaultTask {
         initDescriptor.generate(new InitSettings(getProjectName(), dsl, testFramework));
     }
 
-    @Option(option = "type", description = "Set type of build to create.")
+    @Option(option = "type", description = "Set the type of build to create.")
     public void setType(String type) {
         this.type = type;
     }
@@ -156,12 +156,12 @@ public class InitBuild extends DefaultTask {
     }
 
     /**
-     * Set alternative build script DSL to be used.
+     * Set the build script DSL to be used.
      *
      * @since 4.5
      */
     @Incubating
-    @Option(option = "dsl", description = "Set alternative build script DSL to be used.")
+    @Option(option = "dsl", description = "Set the build script DSL to be used in generated scripts.")
     public void setDsl(String dsl) {
         this.dsl = dsl;
     }
@@ -179,9 +179,9 @@ public class InitBuild extends DefaultTask {
     }
 
     /**
-     * Set alternative test framework to be used.
+     * Set the test framework to be used.
      */
-    @Option(option = "test-framework", description = "Set alternative test framework to be used.")
+    @Option(option = "test-framework", description = "Set the test framework to be used.")
     public void setTestFramework(@Nullable String testFramework) {
         this.testFramework = testFramework;
     }
@@ -200,7 +200,7 @@ public class InitBuild extends DefaultTask {
      *
      * @since 4.11
      */
-    @Option(option = "project-name", description = "Set project name.")
+    @Option(option = "project-name", description = "Set the project name.")
     public void setProjectName(String projectName) {
         this.projectName = projectName;
     }
