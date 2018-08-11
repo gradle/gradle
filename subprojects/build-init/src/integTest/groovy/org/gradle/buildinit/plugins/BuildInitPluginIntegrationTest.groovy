@@ -203,7 +203,16 @@ include("child")
         fails('init', '--type', 'some-unknown-library')
 
         then:
-        failure.assertHasCause("The requested build setup type 'some-unknown-library' is not supported.")
+        failure.assertHasCause("""The requested build setup type 'some-unknown-library' is not supported. Supported types:
+  - 'basic'
+  - 'groovy-application'
+  - 'groovy-library'
+  - 'java-application'
+  - 'java-library'
+  - 'kotlin-application'
+  - 'kotlin-library'
+  - 'pom'
+  - 'scala-library'""")
     }
 
     def "gives decent error message when triggered with unknown dsl"() {
@@ -211,7 +220,9 @@ include("child")
         fails('init', '--dsl', 'some-unknown-dsl')
 
         then:
-        failure.assertHasCause("The requested build script DSL 'some-unknown-dsl' is not supported.")
+        failure.assertHasCause("""The requested build script DSL 'some-unknown-dsl' is not supported. Supported DSLs:
+  - 'groovy'
+  - 'kotlin'""")
     }
 
     def "gives decent error message when using unknown test framework"() {
@@ -219,7 +230,7 @@ include("child")
         fails('init', '--type', 'basic', '--test-framework', 'fake')
 
         then:
-        failure.assertHasCause("The requested test framework 'fake' is not supported.")
+        failure.assertHasCause("The requested test framework 'fake' is not supported for 'basic' setup type. Supported frameworks: 'none'")
     }
 
     def "gives decent error message when test framework is not supported by specific type"() {
@@ -227,7 +238,7 @@ include("child")
         fails('init', '--type', 'basic', '--test-framework', 'spock')
 
         then:
-        failure.assertHasCause("The requested test framework 'spock' is not supported in 'basic' setup type")
+        failure.assertHasCause("The requested test framework 'spock' is not supported for 'basic' setup type. Supported frameworks: 'none'")
     }
 
     def "displays all build types and modifiers in help command output"() {
@@ -243,6 +254,9 @@ include("child")
 
      --test-framework     Set alternative test framework to be used.
                           Available values are:
+                               junit
+                               kotlin
+                               scalatest
                                spock
                                testng
 

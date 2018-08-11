@@ -18,8 +18,12 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
+import java.util.Set;
+
 public interface ProjectInitDescriptor extends BuildContentGenerator {
     boolean supports(BuildInitDsl dsl);
 
-    boolean supports(BuildInitTestFramework testFramework);
+    Set<BuildInitTestFramework> getTestFrameworks();
+
+    BuildInitTestFramework getDefaultTestFramework();
 }

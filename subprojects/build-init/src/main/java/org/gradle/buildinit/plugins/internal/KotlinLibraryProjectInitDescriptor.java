@@ -20,14 +20,22 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
+import java.util.Collections;
+import java.util.Set;
+
 public class KotlinLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
     public KotlinLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, DefaultTemplateLibraryVersionProvider versionProvider) {
         super("kotlin", templateOperationFactory, fileResolver, versionProvider);
     }
 
     @Override
-    public boolean supports(BuildInitTestFramework testFramework) {
-        return false;
+    public BuildInitTestFramework getDefaultTestFramework() {
+        return BuildInitTestFramework.KOTLIN;
+    }
+
+    @Override
+    public Set<BuildInitTestFramework> getTestFrameworks() {
+        return Collections.singleton(BuildInitTestFramework.KOTLIN);
     }
 
     @Override

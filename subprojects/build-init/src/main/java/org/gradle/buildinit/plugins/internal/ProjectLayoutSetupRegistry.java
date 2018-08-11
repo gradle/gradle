@@ -18,6 +18,7 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.text.TreeFormatter;
 import org.gradle.util.CollectionUtils;
 
 import java.util.HashMap;
@@ -38,6 +39,16 @@ public class ProjectLayoutSetupRegistry {
     }
 
     public ProjectInitDescriptor get(String type) {
+        if (!supports(type)) {
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node("The requested build setup type '" + type + "' is not supported. Supported types");
+            formatter.startChildren();
+            for (String supportedType : getSupportedTypes()) {
+                formatter.node("'" + supportedType + "'");
+            }
+            formatter.endChildren();
+            throw new GradleException(formatter.toString());
+        }
         return registeredProjectDescriptors.get(type);
     }
 
@@ -50,7 +61,7 @@ public class ProjectLayoutSetupRegistry {
     }
 
     public boolean supports(String type) {
-        return get(type) != null;
+        return registeredProjectDescriptors.containsKey(type);
     }
 
 }

@@ -82,13 +82,16 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
 
         @Override
         void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
-
         }
 
+        @Override
+        Set<BuildInitTestFramework> getTestFrameworks() {
+            return []
+        }
 
         @Override
-        boolean supports(BuildInitTestFramework testFramework) {
-            return false
+        BuildInitTestFramework getDefaultTestFramework() {
+            return BuildInitTestFramework.NONE
         }
     }
 }

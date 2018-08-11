@@ -27,6 +27,7 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Set;
 
 public class PomProjectInitDescriptor implements ProjectInitDescriptor {
@@ -57,7 +58,12 @@ public class PomProjectInitDescriptor implements ProjectInitDescriptor {
     }
 
     @Override
-    public boolean supports(BuildInitTestFramework testFramework) {
-        return false;
+    public BuildInitTestFramework getDefaultTestFramework() {
+        return BuildInitTestFramework.NONE;
+    }
+
+    @Override
+    public Set<BuildInitTestFramework> getTestFrameworks() {
+        return Collections.singleton(BuildInitTestFramework.NONE);
     }
 }

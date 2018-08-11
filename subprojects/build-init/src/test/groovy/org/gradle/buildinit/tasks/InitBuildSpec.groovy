@@ -23,12 +23,14 @@ import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.gradle.util.TextUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.NONE
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK
 
@@ -50,18 +52,6 @@ class InitBuildSpec extends Specification {
         init.projectLayoutRegistry = projectLayoutRegistry
     }
 
-    def "throws GradleException if requested setupDescriptor not supported"() {
-        setup:
-        _ * projectLayoutRegistry.get("aType") >> null
-        _ * projectLayoutRegistry.getSupportedTypes() >> ['supported-type', 'another-supported-type']
-        init.type = "aType"
-        when:
-        init.setupProjectLayout()
-        then:
-        def e = thrown(GradleException)
-        e.message == "The requested build setup type 'aType' is not supported. Supported types: 'supported-type', 'another-supported-type'."
-    }
-
     def "delegates task action to referenced setupDescriptor"() {
         given:
         supportedType(BuildInitTypeIds.BASIC, projectSetupDescriptor)
@@ -76,7 +66,7 @@ class InitBuildSpec extends Specification {
     def "should delegate to setup descriptor with specified type and modifier"() {
         given:
         supportedType(BuildInitTypeIds.JAVA_LIBRARY, projectSetupDescriptor)
-        projectSetupDescriptor.supports(SPOCK) >> true
+        projectSetupDescriptor.testFrameworks >> [SPOCK]
         init.type = "java-library"
         init.testFramework = "spock"
 
@@ -91,27 +81,32 @@ class InitBuildSpec extends Specification {
         given:
         supportedType(BuildInitTypeIds.BASIC, projectSetupDescriptor)
         init.testFramework = "unknown"
+        projectSetupDescriptor.testFrameworks >> [NONE, JUNIT]
 
         when:
         init.setupProjectLayout()
 
         then:
         GradleException e = thrown()
-        e.message == "The requested test framework 'unknown' is not supported."
+        e.message == TextUtil.toPlatformLineSeparators("""The requested test framework 'unknown' is not supported for 'basic' setup type. Supported frameworks:
+  - 'none'
+  - 'junit'""")
     }
 
     def "should throw exception if requested test framework is not supported for the specified type"() {
         given:
         supportedType(BuildInitTypeIds.BASIC, projectSetupDescriptor)
-        projectSetupDescriptor.supports(SPOCK) >> false
         init.testFramework = "spock"
+        projectSetupDescriptor.testFrameworks >> [NONE, JUNIT]
 
         when:
         init.setupProjectLayout()
 
         then:
         GradleException e = thrown()
-        e.message == "The requested test framework 'spock' is not supported in 'basic' setup type"
+        e.message == TextUtil.toPlatformLineSeparators("""The requested test framework 'spock' is not supported for 'basic' setup type. Supported frameworks:
+  - 'none'
+  - 'junit'""")
     }
 
     def "should throw exception if requested DSL is not supported for the specified type"() {
@@ -126,12 +121,12 @@ class InitBuildSpec extends Specification {
 
         then:
         GradleException e = thrown()
-        e.message == "The requested DSL 'kotlin' is not supported in 'pom' setup type"
+        e.message == "The requested DSL 'kotlin' is not supported for 'pom' setup type"
     }
 
     private void supportedType(String type, BuildInitDsl dsl = GROOVY, ProjectInitDescriptor projectSetupDescriptor) {
         projectSetupDescriptor.supports(dsl) >> true
-        projectLayoutRegistry.supports(type) >> true
         projectLayoutRegistry.get(type) >> projectSetupDescriptor
+        projectSetupDescriptor.defaultTestFramework >> NONE
     }
 }

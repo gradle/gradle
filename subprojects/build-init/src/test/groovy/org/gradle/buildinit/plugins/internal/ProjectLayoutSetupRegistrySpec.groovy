@@ -17,12 +17,11 @@
 package org.gradle.buildinit.plugins.internal
 
 import org.gradle.api.GradleException
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 
 class ProjectLayoutSetupRegistrySpec extends Specification {
-
-
     ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry()
 
     def "can add multiple projectlayoutdescriptors"() {
@@ -57,5 +56,20 @@ class ProjectLayoutSetupRegistrySpec extends Specification {
         registry.add("desc3", Mock(ProjectInitDescriptor))
         expect:
         registry.getSupportedTypes() == ["desc1", "desc2", "desc3"]
+    }
+
+    def "lookup fails for unknown type"() {
+        setup:
+        registry.add("desc1", Mock(ProjectInitDescriptor))
+        registry.add("desc2", Mock(ProjectInitDescriptor))
+        registry.add("desc3", Mock(ProjectInitDescriptor))
+        when:
+        registry.get("unknown")
+        then:
+        def e = thrown(GradleException)
+        e.message == TextUtil.toPlatformLineSeparators("""The requested build setup type 'unknown' is not supported. Supported types:
+  - 'desc1'
+  - 'desc2'
+  - 'desc3'""")
     }
 }

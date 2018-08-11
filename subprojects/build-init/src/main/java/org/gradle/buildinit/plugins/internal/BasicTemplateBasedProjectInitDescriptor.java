@@ -20,6 +20,9 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.internal.file.PathToFileResolver;
 
+import java.util.Collections;
+import java.util.Set;
+
 public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescriptor {
     private final PathToFileResolver fileResolver;
 
@@ -42,7 +45,12 @@ public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescr
     }
 
     @Override
-    public boolean supports(BuildInitTestFramework testFramework) {
-        return false;
+    public BuildInitTestFramework getDefaultTestFramework() {
+        return BuildInitTestFramework.NONE;
+    }
+
+    @Override
+    public Set<BuildInitTestFramework> getTestFrameworks() {
+        return Collections.singleton(BuildInitTestFramework.NONE);
     }
 }

@@ -16,9 +16,6 @@
 
 package org.gradle.buildinit.tasks;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
@@ -33,6 +30,7 @@ import org.gradle.buildinit.plugins.internal.ProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.internal.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -97,26 +95,35 @@ public class InitBuild extends DefaultTask {
 
     @TaskAction
     public void setupProjectLayout() {
-        final String type = getType();
-        BuildInitDsl dsl = BuildInitDsl.fromName(getDsl());
-        BuildInitTestFramework testFramework = BuildInitTestFramework.fromName(getTestFramework());
-        final ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
-        if (!projectLayoutRegistry.supports(type)) {
-            String supportedTypes = Joiner.on(", ").join(Iterables.transform(projectLayoutRegistry.getSupportedTypes(), new Function<String, String>() {
-                @Override
-                public String apply(String input) {
-                    return "'" + input + "'";
-                }
-            }));
-            throw new GradleException("The requested build setup type '" + type + "' is not supported. Supported types: " + supportedTypes + ".");
-        }
-
+        String type = getType();
+        ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
         ProjectInitDescriptor initDescriptor = projectLayoutRegistry.get(type);
+
+        BuildInitDsl dsl = BuildInitDsl.fromName(getDsl());
+
         if (!initDescriptor.supports(dsl)) {
-            throw new GradleException("The requested DSL '" + dsl + "' is not supported in '" + type + "' setup type");
+            throw new GradleException("The requested DSL '" + dsl + "' is not supported for '" + type + "' setup type");
         }
-        if (!testFramework.equals(BuildInitTestFramework.NONE) && !initDescriptor.supports(testFramework)) {
-            throw new GradleException("The requested test framework '" + testFramework.getId() + "' is not supported in '" + type + "' setup type");
+        BuildInitTestFramework testFramework = null;
+        if (getTestFramework() == null) {
+            testFramework = initDescriptor.getDefaultTestFramework();
+        } else {
+            for (BuildInitTestFramework candidate : initDescriptor.getTestFrameworks()) {
+                if (getTestFramework().equals(candidate.getId())) {
+                    testFramework = candidate;
+                    break;
+                }
+            }
+            if (testFramework == null) {
+                TreeFormatter formatter = new TreeFormatter();
+                formatter.node("The requested test framework '" + getTestFramework() + "' is not supported for '" + type + "' setup type. Supported frameworks");
+                formatter.startChildren();
+                for (BuildInitTestFramework framework : initDescriptor.getTestFrameworks()) {
+                    formatter.node("'" + framework.getId() + "'");
+                }
+                formatter.endChildren();
+                throw new GradleException(formatter.toString());
+            }
         }
 
         initDescriptor.generate(dsl, testFramework);
