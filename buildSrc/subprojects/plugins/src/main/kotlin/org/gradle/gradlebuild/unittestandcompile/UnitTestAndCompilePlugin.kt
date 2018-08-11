@@ -102,7 +102,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             when (compileTask) {
                 is JavaCompile -> jdkForCompilation
                 else -> availableJavaInstallations.currentJavaInstallation
-            }.vendor
+            }.vendorAndMajorVersion
         })
     }
 
@@ -165,7 +165,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
                 jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
             }
             // Includes JVM vendor and major version
-            inputs.property("javaInstallation", Callable { javaInstallationForTest.vendor })
+            inputs.property("javaInstallation", Callable { javaInstallationForTest.vendorAndMajorVersion })
             doFirst {
                 if (BuildEnvironment.isCiServer) {
                     logger.lifecycle("maxParallelForks for '$path' is $maxParallelForks")

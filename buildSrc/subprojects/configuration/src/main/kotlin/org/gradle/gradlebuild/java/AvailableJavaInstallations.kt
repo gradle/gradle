@@ -16,10 +16,10 @@ import java.io.File
 class JavaInstallation(val current: Boolean, val jvm: JavaInfo, val javaVersion: JavaVersion, private val javaInstallationProbe: JavaInstallationProbe) {
     val javaHome = jvm.javaHome
 
-    override fun toString(): String = "$vendor (${javaHome.absolutePath})"
+    override fun toString(): String = "$vendorAndMajorVersion (${javaHome.absolutePath})"
 
     val toolsJar: File? by lazy { jvm.toolsJar }
-    val vendor: String by lazy {
+    val vendorAndMajorVersion: String by lazy {
         ProbedLocalJavaInstallation(jvm.javaHome).apply {
             javaInstallationProbe.checkJdk(jvm.javaHome).configure(this)
         }.displayName
@@ -119,7 +119,7 @@ open class AvailableJavaInstallations(project: Project, private val javaInstalla
     fun validateProductionEnvironment() {
         val validationErrors = validateCompilationJdks() +
             mapOf(
-                validationMessage(testJavaHomePropertyName, javaInstallationForTest, oracleJdk8) to (javaInstallationForTest.vendor != oracleJdk8)
+                validationMessage(testJavaHomePropertyName, javaInstallationForTest, oracleJdk8) to (javaInstallationForTest.vendorAndMajorVersion != oracleJdk8)
             ).filterValues { it }.keys
         if (validationErrors.isNotEmpty()) {
             throw GradleException(formatValidationError("JDKs not configured correctly for production build.", validationErrors))
@@ -131,9 +131,9 @@ open class AvailableJavaInstallations(project: Project, private val javaInstalla
         val jdkForCompilation = javaInstallations.values.firstOrNull()
         return mapOf(
             "Must set project or system property '$java7HomePropertyName' to the path of an $oracleJdk7, is currently unset." to (jdkForCompilation == null),
-            validationMessage(java7HomePropertyName, jdkForCompilation, oracleJdk7) to (jdkForCompilation != null && jdkForCompilation.vendor != oracleJdk7),
-            "Must use Oracle JDK 8/9 to perform this build. Is currently ${currentJavaInstallation.vendor} at ${currentJavaInstallation.javaHome}." to
-                (currentJavaInstallation.vendor != oracleJdk8 && currentJavaInstallation.vendor != oracleJdk9)
+            validationMessage(java7HomePropertyName, jdkForCompilation, oracleJdk7) to (jdkForCompilation != null && jdkForCompilation.vendorAndMajorVersion != oracleJdk7),
+            "Must use Oracle JDK 8/9 to perform this build. Is currently ${currentJavaInstallation.vendorAndMajorVersion} at ${currentJavaInstallation.javaHome}." to
+                (currentJavaInstallation.vendorAndMajorVersion != oracleJdk8 && currentJavaInstallation.vendorAndMajorVersion != oracleJdk9)
         ).filterValues { it }.keys
     }
 
@@ -146,7 +146,7 @@ open class AvailableJavaInstallations(project: Project, private val javaInstalla
 
     private
     fun validationMessage(propertyName: String, javaInstallation: JavaInstallation?, requiredVersion: String) =
-        "Must set project or system property '$propertyName' to the path of an $requiredVersion, is currently ${javaInstallation?.vendor} at ${javaInstallation?.javaHome}."
+        "Must set project or system property '$propertyName' to the path of an $requiredVersion, is currently ${javaInstallation?.vendorAndMajorVersion} at ${javaInstallation?.javaHome}."
 
     private
     fun findJavaInstallations(javaHomes: List<String>) =
