@@ -47,10 +47,10 @@ public class CompositeProjectInitDescriptor implements ProjectInitDescriptor {
     }
 
     @Override
-    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
+    public void generate(InitSettings settings) {
         for (BuildContentGenerator generator : generators) {
-            generator.generate(dsl, testFramework);
+            generator.generate(settings);
         }
-        descriptor.generate(dsl, testFramework);
+        descriptor.generate(settings);
     }
 }

@@ -18,7 +18,6 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 import java.util.Arrays;
@@ -49,19 +48,19 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
     }
 
     @Override
-    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
+    public void generate(InitSettings settings) {
         Description desc = getDescription();
-        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(dsl, fileResolver, "build")
+        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(settings.getDsl(), fileResolver, "build")
             .fileComment("This generated file contains a sample " + desc.projectType + " project to get you started.")
             .fileComment("For more details take a look at the " + desc.chapterName + " chapter in the Gradle")
             .fileComment("user guide available at " + documentationRegistry.getDocumentationFor(desc.userguideId))
             .plugin("Apply the " + desc.pluginName + " plugin to add support for " + desc.projectType, desc.pluginName);
         configureBuildScript(buildScriptBuilder);
-        addTestFramework(testFramework, buildScriptBuilder);
+        addTestFramework(settings.getTestFramework(), buildScriptBuilder);
         buildScriptBuilder.create().generate();
 
         TemplateOperation javaSourceTemplate = sourceTemplateOperation();
-        whenNoSourcesAvailable(javaSourceTemplate, testTemplateOperation(testFramework)).generate();
+        whenNoSourcesAvailable(javaSourceTemplate, testTemplateOperation(settings.getTestFramework())).generate();
     }
 
     protected Description getDescription() {

@@ -18,7 +18,6 @@ package org.gradle.buildinit.plugins.internal
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.FileTreeInternal
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
 import spock.lang.Specification
 
@@ -81,7 +80,7 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
         }
 
         @Override
-        void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
+        void generate(InitSettings settings) {
         }
 
         @Override

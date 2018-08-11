@@ -16,8 +16,6 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.internal.file.PathToFileResolver;
 
 public class ResourceDirsGenerator implements BuildContentGenerator {
@@ -28,7 +26,7 @@ public class ResourceDirsGenerator implements BuildContentGenerator {
     }
 
     @Override
-    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
+    public void generate(InitSettings settings) {
         fileResolver.resolve("src/main/resources").mkdirs();
         fileResolver.resolve("src/test/resources").mkdirs();
     }

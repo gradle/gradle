@@ -31,8 +31,8 @@ public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescr
     }
 
     @Override
-    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
-        new BuildScriptBuilder(dsl, fileResolver, "build")
+    public void generate(InitSettings settings) {
+        new BuildScriptBuilder(settings.getDsl(), fileResolver, "build")
             .fileComment("This is a general purpose Gradle build.\n"
                 + "Learn how to create Gradle builds at https://guides.gradle.org/creating-new-gradle-builds/")
             .create()

@@ -40,7 +40,7 @@ public class PomProjectInitDescriptor implements ProjectInitDescriptor {
     }
 
     @Override
-    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
+    public void generate(InitSettings initSettings) {
         SingleMessageLogger.incubatingFeatureUsed("Maven to Gradle conversion");
         File pom = fileResolver.resolve("pom.xml");
         try {

@@ -252,6 +252,8 @@ include("child")
                     groovy
                     kotlin
 
+     --project-name     Set project name.
+
      --test-framework     Set alternative test framework to be used.
                           Available values are:
                                junit
