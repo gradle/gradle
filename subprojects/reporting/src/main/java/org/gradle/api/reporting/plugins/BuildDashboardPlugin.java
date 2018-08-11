@@ -41,7 +41,7 @@ public class BuildDashboardPlugin implements Plugin<Project> {
 
         final TaskProvider<GenerateBuildDashboard> buildDashboard = project.getTasks().register(BUILD_DASHBOARD_TASK_NAME, GenerateBuildDashboard.class, new Action<GenerateBuildDashboard>() {
             @Override
-            public void execute(GenerateBuildDashboard buildDashboardTask) {
+            public void execute(final GenerateBuildDashboard buildDashboardTask) {
                 buildDashboardTask.setDescription("Generates a dashboard of all the reports produced by this build.");
                 buildDashboardTask.setGroup("reporting");
 
@@ -52,28 +52,33 @@ public class BuildDashboardPlugin implements Plugin<Project> {
                         return project.getExtensions().getByType(ReportingExtension.class).file("buildDashboard");
                     }
                 });
+                for (Project aProject : project.getAllprojects()) {
+                    aProject.getTasks().all(new Action<Task>() {
+                        @Override
+                        public void execute(Task task) {
+                            if (!(task instanceof Reporting)) {
+                                return;
+                            }
+                            Reporting reporting = (Reporting) task;
+                            buildDashboardTask.aggregate(reporting);
+                        }
+                    });
+                }
             }
         });
 
-        Action<Task> captureReportingTasks = new Action<Task>() {
-            public void execute(Task task) {
-                if (!(task instanceof Reporting)) {
-                    return;
-                }
-
-                Reporting reporting = (Reporting) task;
-
-                GenerateBuildDashboard buildDashboardTask = buildDashboard.get();
-                buildDashboardTask.aggregate(reporting);
-
-                if (!task.equals(buildDashboardTask)) {
-                    task.finalizedBy(buildDashboardTask);
-                }
-            }
-        };
-
         for (Project aProject : project.getAllprojects()) {
-            aProject.getTasks().configureEach(captureReportingTasks);
+            aProject.getTasks().configureEach(new Action<Task>() {
+                public void execute(Task task) {
+                    if (!(task instanceof Reporting)) {
+                        return;
+                    }
+
+                    if (!task.getName().equals(BUILD_DASHBOARD_TASK_NAME)) {
+                        task.finalizedBy(buildDashboard);
+                    }
+                }
+            });
         }
     }
 }
