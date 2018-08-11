@@ -247,14 +247,14 @@ include("child")
 
         then:
         outputContains("""Options
-     --dsl     Set alternative build script DSL to be used.
+     --dsl     Set the build script DSL to be used in generated scripts.
                Available values are:
                     groovy
                     kotlin
 
-     --project-name     Set project name.
+     --project-name     Set the project name.
 
-     --test-framework     Set alternative test framework to be used.
+     --test-framework     Set the test framework to be used.
                           Available values are:
                                junit
                                kotlin
@@ -262,7 +262,7 @@ include("child")
                                spock
                                testng
 
-     --type     Set type of build to create.
+     --type     Set the type of build to create.
                 Available values are:
                      basic
                      groovy-application
