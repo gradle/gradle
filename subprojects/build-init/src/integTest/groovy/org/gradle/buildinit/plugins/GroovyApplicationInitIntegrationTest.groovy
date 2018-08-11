@@ -77,7 +77,9 @@ class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         fails('init', '--type', 'groovy-application', '--test-framework', 'testng', '--dsl', scriptDsl.id)
 
         then:
-        failure.assertHasCause("The requested test framework 'testng' is not supported in 'groovy-application' setup type")
+        failure.assertHasCause("""The requested test framework 'testng' is not supported for 'groovy-application' setup type. Supported frameworks:
+  - 'junit'
+  - 'spock'""")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

@@ -21,6 +21,9 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
+import java.util.Collections;
+import java.util.Set;
+
 public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
 
     private final DocumentationRegistry documentationRegistry;
@@ -60,7 +63,12 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     @Override
-    public boolean supports(BuildInitTestFramework testFramework) {
-        return false;
+    public BuildInitTestFramework getDefaultTestFramework() {
+        return BuildInitTestFramework.SCALATEST;
+    }
+
+    @Override
+    public Set<BuildInitTestFramework> getTestFrameworks() {
+        return Collections.singleton(BuildInitTestFramework.SCALATEST);
     }
 }

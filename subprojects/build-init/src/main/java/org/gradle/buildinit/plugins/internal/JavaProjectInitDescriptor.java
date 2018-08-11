@@ -21,6 +21,11 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.TreeSet;
+
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT;
 import static org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME;
 import static org.gradle.api.plugins.JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK;
@@ -111,8 +116,13 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
     protected abstract TemplateOperation testTemplateOperation(BuildInitTestFramework testFramework);
 
     @Override
-    public boolean supports(BuildInitTestFramework testFramework) {
-        return testFramework == SPOCK || testFramework == TESTNG;
+    public BuildInitTestFramework getDefaultTestFramework() {
+        return JUNIT;
+    }
+
+    @Override
+    public Set<BuildInitTestFramework> getTestFrameworks() {
+        return new TreeSet<BuildInitTestFramework>(Arrays.asList(JUNIT, TESTNG, SPOCK));
     }
 
     protected static class Description {

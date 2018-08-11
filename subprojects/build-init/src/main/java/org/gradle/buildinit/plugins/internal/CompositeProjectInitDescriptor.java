@@ -19,6 +19,8 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
+import java.util.Set;
+
 public class CompositeProjectInitDescriptor implements ProjectInitDescriptor {
     private final BuildContentGenerator settingsGenerator;
     private final ProjectInitDescriptor descriptor;
@@ -34,8 +36,13 @@ public class CompositeProjectInitDescriptor implements ProjectInitDescriptor {
     }
 
     @Override
-    public boolean supports(BuildInitTestFramework testFramework) {
-        return descriptor.supports(testFramework);
+    public BuildInitTestFramework getDefaultTestFramework() {
+        return descriptor.getDefaultTestFramework();
+    }
+
+    @Override
+    public Set<BuildInitTestFramework> getTestFrameworks() {
+        return descriptor.getTestFrameworks();
     }
 
     @Override

@@ -16,28 +16,17 @@
 
 package org.gradle.buildinit.plugins.internal.modifiers;
 
-import org.gradle.api.GradleException;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public enum BuildInitTestFramework {
 
     NONE,
+    JUNIT,
+    TESTNG,
     SPOCK,
-    TESTNG;
-
-    public static BuildInitTestFramework fromName(String name) {
-        if (name == null) {
-            return NONE;
-        }
-        for (BuildInitTestFramework testFramework : values()) {
-            if (testFramework.getId().equals(name)) {
-                return testFramework;
-            }
-        }
-        throw new GradleException("The requested test framework '" + name + "' is not supported.");
-    }
+    KOTLIN,
+    SCALATEST;
 
     public static List<String> listSupported() {
         List<String> result = new ArrayList<String>();

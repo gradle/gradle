@@ -21,6 +21,11 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.TreeSet;
+
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK;
 
 public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
@@ -52,8 +57,13 @@ public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProject
     }
 
     @Override
-    public boolean supports(BuildInitTestFramework testFramework) {
-        return testFramework == SPOCK;
+    public BuildInitTestFramework getDefaultTestFramework() {
+        return JUNIT;
+    }
+
+    @Override
+    public Set<BuildInitTestFramework> getTestFrameworks() {
+        return new TreeSet<BuildInitTestFramework>(Arrays.asList(JUNIT, SPOCK));
     }
 
     protected abstract TemplateOperation sourceTemplateOperation();
