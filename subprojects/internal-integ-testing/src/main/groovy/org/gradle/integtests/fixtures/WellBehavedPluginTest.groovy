@@ -95,7 +95,6 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
             'java-library-distribution',
             'distribution',
             'play-application',
-            'build-dashboard',
         ])
 
         applyPlugin()
