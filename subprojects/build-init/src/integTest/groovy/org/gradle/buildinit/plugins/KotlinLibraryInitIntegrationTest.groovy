@@ -34,7 +34,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
         file(SAMPLE_LIBRARY_TEST_CLASS).exists()
-        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
+        commonFilesGenerated(scriptDsl)
 
         when:
         run("build")

@@ -27,6 +27,12 @@ class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         useRepositoryMirrors()
     }
 
+    protected void commonFilesGenerated(BuildInitDsl scriptDsl) {
+        file("src/main/resources").assertIsDir()
+        file("src/test/resources").assertIsDir()
+        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
+    }
+
     protected ScriptDslFixture dslFixtureFor(BuildInitDsl dsl) {
         ScriptDslFixture.of(dsl, testDirectory)
     }
