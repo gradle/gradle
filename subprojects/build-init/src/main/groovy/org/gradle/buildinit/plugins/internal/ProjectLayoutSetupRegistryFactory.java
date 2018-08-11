@@ -15,9 +15,12 @@
  */
 package org.gradle.buildinit.plugins.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.file.FileResolver;
+
+import java.util.List;
 
 public class ProjectLayoutSetupRegistryFactory {
     private final DocumentationRegistry documentationRegistry;
@@ -35,20 +38,23 @@ public class ProjectLayoutSetupRegistryFactory {
         ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry();
         TemplateOperationFactory templateOperationBuilder = new TemplateOperationFactory("/org/gradle/buildinit/tasks/templates", fileResolver, documentationRegistry);
         BuildContentGenerator settingsDescriptor = new SimpleGlobalFilesBuildSettingsDescriptor(fileResolver, documentationRegistry);
-        registry.add(BuildInitTypeIds.JAVA_LIBRARY, withSettings(settingsDescriptor, new JavaLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry)));
-        registry.add(BuildInitTypeIds.JAVA_APPLICATION, withSettings(settingsDescriptor, new JavaApplicationProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider,  documentationRegistry)));
-        registry.add(BuildInitTypeIds.GROOVY_APPLICATION, withSettings(settingsDescriptor, new GroovyApplicationProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry)));
-        registry.add(BuildInitTypeIds.GROOVY_LIBRARY, withSettings(settingsDescriptor, new GroovyLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry)));
-        registry.add(BuildInitTypeIds.SCALA_LIBRARY, withSettings(settingsDescriptor, new ScalaLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry)));
-        registry.add(BuildInitTypeIds.KOTLIN_APPLICATION, withSettings(settingsDescriptor, new KotlinApplicationProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider)));
-        registry.add(BuildInitTypeIds.KOTLIN_LIBRARY, withSettings(settingsDescriptor, new KotlinLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider)));
-        registry.add(BuildInitTypeIds.BASIC, withSettings(settingsDescriptor, new BasicTemplateBasedProjectInitDescriptor(fileResolver)));
+        BuildContentGenerator resourcesGenerator = new ResourceDirsGenerator(fileResolver);
+        List<BuildContentGenerator> jvmProjectGenerators = ImmutableList.of(settingsDescriptor, resourcesGenerator);
+        List<BuildContentGenerator> commonGenerators = ImmutableList.of(settingsDescriptor);
+        registry.add(BuildInitTypeIds.JAVA_LIBRARY, of(new JavaLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
+        registry.add(BuildInitTypeIds.JAVA_APPLICATION, of(new JavaApplicationProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider,  documentationRegistry), jvmProjectGenerators));
+        registry.add(BuildInitTypeIds.GROOVY_APPLICATION, of(new GroovyApplicationProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
+        registry.add(BuildInitTypeIds.GROOVY_LIBRARY, of(new GroovyLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
+        registry.add(BuildInitTypeIds.SCALA_LIBRARY, of(new ScalaLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
+        registry.add(BuildInitTypeIds.KOTLIN_APPLICATION, of(new KotlinApplicationProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider), jvmProjectGenerators));
+        registry.add(BuildInitTypeIds.KOTLIN_LIBRARY, of(new KotlinLibraryProjectInitDescriptor(templateOperationBuilder, fileResolver, libraryVersionProvider), jvmProjectGenerators));
+        registry.add(BuildInitTypeIds.BASIC, of(new BasicTemplateBasedProjectInitDescriptor(fileResolver), commonGenerators));
         registry.add(BuildInitTypeIds.POM, new PomProjectInitDescriptor(fileResolver, mavenSettingsProvider));
         return registry;
     }
 
-    private ProjectInitDescriptor withSettings(BuildContentGenerator settings, ProjectInitDescriptor descriptor) {
-        return new CompositeProjectInitDescriptor(settings, descriptor);
+    private ProjectInitDescriptor of(ProjectInitDescriptor descriptor, List<BuildContentGenerator> generators) {
+        return new CompositeProjectInitDescriptor(descriptor, generators);
     }
 
 }

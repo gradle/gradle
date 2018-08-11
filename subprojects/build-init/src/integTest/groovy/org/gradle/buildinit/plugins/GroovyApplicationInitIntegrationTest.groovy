@@ -33,7 +33,7 @@ class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         then:
         file(SAMPLE_APP_CLASS).exists()
         file(SAMPLE_APP_SPOCK_TEST_CLASS).exists()
-        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
+        commonFilesGenerated(scriptDsl)
 
         when:
         run("build")

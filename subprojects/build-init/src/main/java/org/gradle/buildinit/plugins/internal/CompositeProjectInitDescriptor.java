@@ -19,14 +19,15 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
+import java.util.List;
 import java.util.Set;
 
 public class CompositeProjectInitDescriptor implements ProjectInitDescriptor {
-    private final BuildContentGenerator settingsGenerator;
     private final ProjectInitDescriptor descriptor;
+    private final List<? extends BuildContentGenerator> generators;
 
-    public CompositeProjectInitDescriptor(BuildContentGenerator settingsGenerator, ProjectInitDescriptor descriptor) {
-        this.settingsGenerator = settingsGenerator;
+    public CompositeProjectInitDescriptor(ProjectInitDescriptor descriptor, List<? extends BuildContentGenerator> generators) {
+        this.generators = generators;
         this.descriptor = descriptor;
     }
 
@@ -47,7 +48,9 @@ public class CompositeProjectInitDescriptor implements ProjectInitDescriptor {
 
     @Override
     public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
-        settingsGenerator.generate(dsl, testFramework);
+        for (BuildContentGenerator generator : generators) {
+            generator.generate(dsl, testFramework);
+        }
         descriptor.generate(dsl, testFramework);
     }
 }

@@ -38,8 +38,8 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         file(SAMPLE_LIBRARY_TEST_CLASS).exists()
 
         and:
+        commonFilesGenerated(scriptDsl)
         def dslFixture = dslFixtureFor(scriptDsl)
-        dslFixture.assertGradleFilesGenerated()
         buildFileSeparatesImplementationAndApi(dslFixture)
 
         when:
@@ -141,7 +141,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         new DefaultTestExecutionResult(testDirectory).testClass("LibraryTest").assertTestPassed(name)
     }
 
-    private static void buildFileSeparatesImplementationAndApi(ScriptDslFixture dslFixture, String testFramework = 'junit:junit:') {
+    private void buildFileSeparatesImplementationAndApi(ScriptDslFixture dslFixture, String testFramework = 'junit:junit:') {
         dslFixture.buildFile.assertContents(
             allOf(
                 dslFixture.containsConfigurationDependencyNotation('api', 'org.apache.commons:commons-math3'),
