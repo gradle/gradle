@@ -259,7 +259,27 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
                     reportTask.setDescription(String.format("Generates code coverage report for the %s task.", testTaskProvider.getName()));
                     reportTask.executionData(testTaskProvider.get());
                     reportTask.sourceSets(project.getExtensions().getByType(SourceSetContainer.class).getByName("main"));
-                    reportTask.getReports().all(configureReportOutputDirectory(extension, reportTask));
+                    // TODO: Change the default location for these reports to follow the convention defined in #configureReportOutputDirectory
+                    reportTask.getReports().all(new Action<ConfigurableReport>() {
+                        @Override
+                        public void execute(final ConfigurableReport report) {
+                            if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
+                                report.setDestination(project.provider(new Callable<File>() {
+                                    @Override
+                                    public File call() throws Exception {
+                                        return new File(extension.getReportsDir(), testTaskProvider.getName() + "/" + report.getName());
+                                    }
+                                }));
+                            } else {
+                                report.setDestination(project.provider(new Callable<File>() {
+                                    @Override
+                                    public File call() throws Exception {
+                                        return new File(extension.getReportsDir(), testTaskProvider.getName() + "/" + reportTask.getName() + "." + report.getName());
+                                    }
+                                }));
+                            }
+                        }
+                    });
                 }
             });
     }
