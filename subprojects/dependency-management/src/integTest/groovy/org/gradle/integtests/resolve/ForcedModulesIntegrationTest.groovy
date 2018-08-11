@@ -395,7 +395,7 @@ task checkDeps {
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                edge('org:foo:1.1', 'org:foo:1.0').forced()
+                edge('org:foo:1.1', 'org:foo:1.0').forced("dependency org:foo:1.0")
                 module('org:foo:1.0')
             }
         }
