@@ -15,25 +15,37 @@
 [[upgrade_version_4]]
 = Upgrading Gradle Version 4.x to 5.0
 
-This chapter provides the information you need to migrate your older Gradle 4.x builds to the latest version. In most cases, you will need to apply the changes from all versions that come after the one you're upgrading from. For example, if you're upgrading from Gradle 4.3, you will also need to apply the changes from 4.4, 4.5, etc.
+This chapter provides the information you need to migrate your older Gradle 4.x builds to Gradle 5.0. In most cases, you will need to apply the changes from all versions that come after the one you're upgrading from. For example, if you're upgrading from Gradle 4.3, you will also need to apply the changes from 4.4, 4.5, etc.
 
 A few pointers about upgrading:
 
- * Run `gradle help` with the version of Gradle you're upgrading to in order to see any deprecations that apply to your build.
- * Make sure you update the versions of plugins you use in your build when upgrading the Gradle version. Some plugins will break with newer versions of Gradle.
- * In most cases, deprecated features, properties and methods will be removed in Gradle 5.0, resulting in build errors if you try to use them.
+ * Run `gradle --warn --warning-mode=all build` — or whatever task performs a full build — with the version of Gradle you're upgrading to in order to see any deprecations that apply to your build.
+ * Make sure you update the versions of plugins you use in your build when upgrading the Gradle version. Some plugins will break with newer versions of Gradle, for example because they use internal APIs that have been removed or changed.
 
-The most significant changes include the following:
+Here are some significant new and improved features to try:
 
- * A recommendation to <<#rel4.7:switch_to_publishing_plugins, switch to the Maven Publish and Ivy Publish plugins>> if you're not already using them. They now support digital signatures with the Signing Plugin.
- * A change that means you should <<#rel4.7:configure_internal_tasks,configure existing `wrapper` and `init` tasks>> rather than defining your own.
- * The <<#rel4.7:pom_wildcard_exclusions,honoring of implicit wildcards in Maven POM exclusions>>, which may result in dependencies being excluded that weren't before.
- * A <<#upgrade_4.5,recommendation to enable the new and improved POM support>> in your builds.
- * A <<#rel4.5:annotation_processor_configuration,change to the way you add Java annotation processors to a project>>.
- * The <<custom_tasks.adoc#worker_api,Worker API>> for enabling units of work to execute in parallel.
+ * <<#rel4.7:switch_to_publishing_plugins,Maven Publish and Ivy Publish Plugins>> that now support digital signatures with the <<signing_plugin#signing_plugin,Signing Plugin>>.
+ * <<#upgrade_4.5,New and improved POM support>> for your builds.
+ * The <<custom_tasks.adoc#worker_api,Worker API>> for enabling units of work to run in parallel.
  * A new, <<feature_lifecycle#sec:incubating_state,incubating>> API for <<#rel4.8:lazy_task_creation,creating and configuring tasks lazily>> that can significantly improve your build's configuration time.
 
-There are many other changes that we list by Gradle version in the rest of the guide.
+Significant other changes to watch out for as they may break your build include:
+
+ * A change that means you should <<#rel4.7:configure_internal_tasks,configure existing `wrapper` and `init` tasks>> rather than defining your own.
+ * The <<#rel4.7:pom_wildcard_exclusions,honoring of implicit wildcards in Maven POM exclusions>>, which may result in dependencies being excluded that weren't before.
+ * A <<#rel4.5:annotation_processor_configuration,change to the way you add Java annotation processors to a project>>.
+
+Read the sections relevant to your particular upgrade to get a comprehensive overview of the changes you might need to account for in your build.
+
+[[upgrade_4.10]]
+== From 4.10
+
+TBD
+
+[[upgrade_4.9]]
+== From 4.9
+
+TBD
 
 [[upgrade_4.8]]
 == From 4.8
@@ -42,7 +54,6 @@ There are many other changes that we list by Gradle version in the rest of the g
 
 === Potential breaking changes
 
- * `whenMerged {}` and `beforeMerged {}` blocks for link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.model.EclipseProject.html[EclipseProject] are now executed by Buildship.
  * You can no longer use GPath syntax with link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-[tasks.withType()].
 +
 Use http://docs.groovy-lang.org/latest/html/documentation/#_spread_operator[Groovy's spread operator] instead. For example, you would replace `tasks.withType(JavaCompile).name` with `tasks.withType(JavaCompile)*.name`.
@@ -274,7 +285,9 @@ You can learn more about lazily creating tasks in the <<task_configuration_avoid
 [[rel4.7:switch_to_publishing_plugins]]
 === [4.7] Switch to the Maven Publish and Ivy Publish Plugins
 
-Now that the publishing plugins are stable, the <<artifact_management.adoc#artifact_management,legacy publishing>> mechanism based on `Upload` tasks is deprecated. You should replace `upload<Conf>` configuration with a `publishing` block instead. See the <<publishing_overview.adoc#publishing_overview,publishing overview chapter>> for information on how to use the publishing plugins.
+Now that the publishing plugins are stable, we recommend that you migrate from the <<artifact_management.adoc#artifact_management,legacy publishing>> mechanism for standard Java projects, i.e. those based on the <<java_plugin#java_plugin,Java Plugin>>. That includes projects that use any one of: <<java_library_plugin#java_library_plugin,Java Library Plugin>>, <<application_plugin#application_plugin,Application Plugin>> or <<war_plugin#war_plugin,War Plugin>>.
+
+To use the new approach, simply replace any `upload<Conf>` configuration with a `publishing {}` block. See the <<publishing_overview.adoc#publishing_overview,publishing overview chapter>> for more information.
 
 [[rel4.7:deferred_configuration]]
 === [4.7] Use deferred configuration for publishing plugins
@@ -357,7 +370,7 @@ The plain console mode now formats output consistently with the rich console, wh
 
  * The output produced by a given task is now grouped together, even when other tasks execute in parallel with it.
  * Task execution headers are printed with a "> Task" prefix.
- * All output produced during build execution is written to the standard output file handle. This includes messages written to System.err unless you're are redirecting standard error to a file or any other non-console destination.
+ * All output produced during build execution is written to the standard output file handle. This includes messages written to System.err unless you are redirecting standard error to a file or any other non-console destination.
 
 This may break tools that scrape details from the plain console output.
 
@@ -432,7 +445,7 @@ Gradle now creates a <<managing_transitive_dependencies.adoc#sec:dependency_cons
  * The dependency module is ignored if it is only ever declared as optional.
  * If the dependency module is also declared elsewhere as not optional, then the constraint derived from the optional dependency declaration is considered when picking the version.
 
-In other words, if an optional dependency has a declared version higher than another, non-optional one, the optional dependency's version is used. However, Gradle does not resolve optional dependencies.
+In other words, if an optional dependency has a declared version higher than another, non-optional one, the optional dependency's version is used by default. However, Gradle does add solely optional dependencies to the dependency graph, which means you won't see them in the associated configuration's set of files.
 
 [[rel4.5:pom_compile_runtime_separation]]
 === [4.5] Separation of compile and runtime dependencies when consuming POMs

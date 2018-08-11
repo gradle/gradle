@@ -24,7 +24,8 @@ import java.lang.annotation.Target;
 /**
  * Indicates that the value of an element can be null.
  *
- * @deprecated Use {@link javax.annotation.Nullable} instead.
+ * @deprecated Use {@lcode javax.annotation.Nullable} instead, which is automatically
+ * available to all your build scripts and build classes.
  */
 @Deprecated
 @Documented
