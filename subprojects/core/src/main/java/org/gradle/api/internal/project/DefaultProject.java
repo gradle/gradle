@@ -1141,17 +1141,17 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void subprojects(Closure configureClosure) {
-        getProjectConfigurator().subprojects(getSubprojects(), configureClosure);
+        getProjectConfigurator().subprojects(getSubprojects(), ConfigureUtil.<Project>configureUsing(configureClosure));
     }
 
     @Override
     public void allprojects(Closure configureClosure) {
-        getProjectConfigurator().allprojects(getAllprojects(), configureClosure);
+        getProjectConfigurator().allprojects(getAllprojects(), ConfigureUtil.<Project>configureUsing(configureClosure));
     }
 
     @Override
     public Project project(String path, Closure configureClosure) {
-        return getProjectConfigurator().project(project(path), configureClosure);
+        return getProjectConfigurator().project(project(path), ConfigureUtil.<Project>configureUsing(configureClosure));
     }
 
     @Override
