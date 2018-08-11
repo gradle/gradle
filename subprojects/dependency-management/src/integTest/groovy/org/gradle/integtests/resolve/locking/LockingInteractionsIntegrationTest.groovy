@@ -139,12 +139,14 @@ dependencies {
     }
 
     @Unroll
-    def "can write lock when using latest.#level"() {
+    def "can write lock when using #version"() {
         mavenRepo.module('org', 'bar', '1.0').publish()
-        mavenRepo.module('org', 'bar', '1.0-SNAPSHOT').withNonUniqueSnapshots().publish()
+        mavenRepo.module('org', 'bar', '1.0-SNAPSHOT').publish()
         mavenRepo.module('org', 'bar', '1.1').publish()
-        mavenRepo.module('org', 'bar', '1.1-SNAPSHOT').publish()
-        mavenRepo.module('org', 'bar', '1.2-SNAPSHOT').publish()
+        mavenRepo.module('org', 'bar', '2.0').publish()
+        mavenRepo.module('org', 'bar', '2.1-SNAPSHOT').publish()
+        mavenRepo.module('org', 'bar', '2.1').publish()
+        mavenRepo.module('org', 'bar', '2.2-SNAPSHOT').publish()
 
         buildFile << """
 dependencyLocking {
@@ -162,7 +164,7 @@ configurations {
 }
 
 dependencies {
-    lockedConf 'org:bar:latest.$level'
+    lockedConf 'org:bar:$version'
 }
 """
 
@@ -170,15 +172,19 @@ dependencies {
         succeeds 'dependencies', '--write-locks'
 
         then:
-        outputContains("org:bar:latest.$level -> $resolvedVersion")
+        outputContains("org:bar:$version -> $expectedVersion")
 
         and:
-        lockfileFixture.verifyLockfile('lockedConf', ["org:bar:$resolvedVersion"])
+        lockfileFixture.verifyLockfile('lockedConf', ["org:bar:$expectedVersion"])
 
         where:
-        level         | resolvedVersion
-        'release'     | '1.1'
-        'integration' | '1.2-SNAPSHOT'
+        version              | expectedVersion
+        '[1.0, 2.0)'         | '1.1'
+        '1.+'                | '1.1'
+        '[1.0,)'             | '2.2-SNAPSHOT'
+        '+'                  | '2.2-SNAPSHOT'
+        'latest.release'     | '2.1'
+        'latest.integration' | '2.2-SNAPSHOT'
 
     }
 
@@ -224,10 +230,14 @@ dependencies {
     def "can update a single lock entry when using #version"() {
         mavenRepo.module('org', 'bar', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.1').publish()
-        mavenRepo.module('org', 'bar', '1.2-SNAPSHOT').withNonUniqueSnapshots().publish()
+        mavenRepo.module('org', 'bar', '2.0').publish()
+        mavenRepo.module('org', 'bar', '2.1').publish()
+        mavenRepo.module('org', 'bar', '2.2-SNAPSHOT').withNonUniqueSnapshots().publish()
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
-        mavenRepo.module('org', 'foo', '1.2-SNAPSHOT').withNonUniqueSnapshots().publish()
+        mavenRepo.module('org', 'foo', '2.0').publish()
+        mavenRepo.module('org', 'foo', '2.1').publish()
+        mavenRepo.module('org', 'foo', '2.2-SNAPSHOT').withNonUniqueSnapshots().publish()
 
         buildFile << """
 dependencyLocking {
@@ -257,11 +267,12 @@ dependencies {
 
         where:
         version              | expectedVersion
-        '[1.0, 2.0)'         | '1.2-SNAPSHOT'
-        '1.+'                | '1.2-SNAPSHOT'
-        '+'                  | '1.2-SNAPSHOT'
-        'latest.release'     | '1.1'
-        'latest.integration' | '1.2-SNAPSHOT'
+        '[1.0, 2.0)'         | '1.1'
+        '1.+'                | '1.1'
+        '[1.0,)'             | '2.2-SNAPSHOT'
+        '+'                  | '2.2-SNAPSHOT'
+        'latest.release'     | '2.1'
+        'latest.integration' | '2.2-SNAPSHOT'
     }
 
     def 'locking works with default dependency action'() {
