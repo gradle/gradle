@@ -25,11 +25,11 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.jacoco.JacocoAgentJar;
@@ -163,7 +163,9 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
     }
 
     /**
-     * @deprecated Don't use this. It will be made private in a future version of Gradle.
+     * Don't use this.
+     *
+     * @deprecated This method will be made private in a future version of Gradle.
      */
     @Deprecated
     public Object configureDefaultOutputPathForJacocoMerge() {
@@ -256,7 +258,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
                     reportTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
                     reportTask.setDescription(String.format("Generates code coverage report for the %s task.", testTaskProvider.getName()));
                     reportTask.executionData(testTaskProvider.get());
-                    reportTask.sourceSets(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main"));
+                    reportTask.sourceSets(project.getExtensions().getByType(SourceSetContainer.class).getByName("main"));
                     reportTask.getReports().all(configureReportOutputDirectory(extension, reportTask));
                 }
             });
@@ -272,7 +274,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
                     coverageVerificationTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
                     coverageVerificationTask.setDescription(String.format("Verifies code coverage metrics based on specified rules for the %s task.", testTaskProvider.getName()));
                     coverageVerificationTask.executionData(testTaskProvider.get());
-                    coverageVerificationTask.sourceSets(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main"));
+                    coverageVerificationTask.sourceSets(project.getExtensions().getByType(SourceSetContainer.class).getByName("main"));
                 }
             });
     }
