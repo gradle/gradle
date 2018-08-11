@@ -412,6 +412,7 @@ dependencies {
     def 'upgrades lock file'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
+        mavenRepo.module('org', 'foo', '2.0').publish()
 
         buildFile << """
 dependencyLocking {
