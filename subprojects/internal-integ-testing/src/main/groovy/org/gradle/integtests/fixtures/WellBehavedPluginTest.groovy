@@ -92,7 +92,6 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
             'ivy-publish',
             'ear',
             'war',
-            'jacoco',
             'java-library-distribution',
             'distribution',
             'play-application',
