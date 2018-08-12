@@ -38,6 +38,8 @@ class DefaultUserInputHandlerTest extends Specification {
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
         0 * outputEventBroadcaster._
         1 * userInputReader.readInput() >> enteredUserInput
+
+        and:
         input == sanitizedUserInput
 
         where:
@@ -49,16 +51,121 @@ class DefaultUserInputHandlerTest extends Specification {
         'y\u0000es '     | true
     }
 
-    def "re-requests user input if invalid"() {
+    def "yes/no question returns null on end-of-input"() {
+        when:
+        def input = userInputHandler.askYesNoQuestion(TEXT)
+
+        then:
+        1 * userInputReader.readInput() >> null
+
+        and:
+        input == null
+    }
+
+    def "re-requests user input if invalid response to yes/no question"() {
         when:
         def input = userInputHandler.askYesNoQuestion(TEXT)
 
         then:
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
-        0 * outputEventBroadcaster._
         1 * userInputReader.readInput() >> 'bla'
+        1 * userInputReader.readInput() >> ''
         1 * userInputReader.readInput() >> 'no'
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
+        0 * outputEventBroadcaster._
+
+        and:
         input == false
     }
+
+    def "can ask select question"() {
+        when:
+        def input = userInputHandler.selectOption(TEXT, [11, 12, 13], 12)
+
+        then:
+        1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
+        1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
+        0 * outputEventBroadcaster._
+        1 * userInputReader.readInput() >> "3"
+
+        and:
+        input == 13
+    }
+
+    def "select question returns default when empty input line received"() {
+        when:
+        def input = userInputHandler.selectOption(TEXT, [11, 12, 13], 12)
+
+        then:
+        1 * userInputReader.readInput() >> ""
+
+        and:
+        input == 12
+    }
+
+    def "re-requests user input if invalid response to select question"() {
+        when:
+        def input = userInputHandler.selectOption(TEXT, [11, 12, 13], 12)
+
+        then:
+        1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
+        1 * userInputReader.readInput() >> 'bla'
+        1 * userInputReader.readInput() >> '4'
+        1 * userInputReader.readInput() >> '0'
+        1 * userInputReader.readInput() >> '-2'
+        1 * userInputReader.readInput() >> '1'
+        1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
+        0 * outputEventBroadcaster._
+
+        and:
+        input == 11
+    }
+
+    def "select question returns default on end-of-input"() {
+        when:
+        def input = userInputHandler.selectOption(TEXT, [11, 12, 13], 12)
+
+        then:
+        1 * userInputReader.readInput() >> null
+
+        and:
+        input == 12
+    }
+
+    def "can ask text question"() {
+        when:
+        def input = userInputHandler.askQuestion(TEXT, "default")
+
+        then:
+        1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
+        1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
+        0 * outputEventBroadcaster._
+        1 * userInputReader.readInput() >> "thing"
+
+        and:
+        input == "thing"
+    }
+
+    def "select text returns default when empty input line received"() {
+        when:
+        def input = userInputHandler.askQuestion(TEXT, "default")
+
+        then:
+        1 * userInputReader.readInput() >> ""
+
+        and:
+        input == "default"
+    }
+
+    def "select text returns default on end of input"() {
+        when:
+        def input = userInputHandler.askQuestion(TEXT, "default")
+
+        then:
+        1 * userInputReader.readInput() >> null
+
+        and:
+        input == "default"
+    }
+
 }

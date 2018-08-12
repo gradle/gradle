@@ -32,7 +32,6 @@ public class PromptOutputEvent extends RenderableOutputEvent {
     @Override
     public void render(StyledTextOutput output) {
         output.text(message);
-        output.println();
     }
 
     @Override

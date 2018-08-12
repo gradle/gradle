@@ -45,7 +45,7 @@ class UserInputConsoleRendererTest extends Specification {
         1 * console.getBuildProgressArea() >> buildProgressArea
         1 * buildProgressArea.setVisible(false)
         1 * console.getBuildOutputArea() >> textArea
-        1 * textArea.println(prompt)
+        1 * textArea.append(prompt)
         1 * console.flush()
         0 * console._
         0 * listener.onOutput(_)
@@ -91,7 +91,7 @@ class UserInputConsoleRendererTest extends Specification {
         1 * console.getBuildProgressArea() >> buildProgressArea
         1 * buildProgressArea.setVisible(false)
         1 * console.getBuildOutputArea() >> textArea
-        1 * textArea.println(prompt)
+        1 * textArea.append(prompt)
         1 * console.flush()
         0 * console._
         0 * listener.onOutput(_)
