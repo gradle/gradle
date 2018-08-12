@@ -171,7 +171,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
     public Object configureDefaultOutputPathForJacocoMerge() {
         DeprecationLogger
             .nagUserOfDiscontinuedMethod("JacocoPlugin.configureDefaultOutputPathForJacocoMerge()");
-        project.getTasks().withType(JacocoMerge.class, new Action<JacocoMerge>() {
+        project.getTasks().withType(JacocoMerge.class).configureEach(new Action<JacocoMerge>() {
             @Override
             public void execute(final JacocoMerge task) {
                 task.setDestinationFile(project.provider(new Callable<File>() {
@@ -263,6 +263,12 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
                     reportTask.getReports().all(new Action<ConfigurableReport>() {
                         @Override
                         public void execute(final ConfigurableReport report) {
+                            /*
+                             * For someone looking for the difference between this and the duplicate code above
+                             * this one uses the `testTaskProvider` and the `reportTask`. The other just
+                             * uses the `reportTask`.
+                             * https://github.com/gradle/gradle/issues/6343
+                             */
                             if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
                                 report.setDestination(project.provider(new Callable<File>() {
                                     @Override
