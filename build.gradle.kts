@@ -301,9 +301,10 @@ fun distributionImage(named: String) =
     project(":distributions").property(named) as CopySpec
 
 val validateBuildCacheConfiguration = tasks.register("validateBuildCacheConfiguration") {
+    enabled = gradle.startParameter.isBuildCacheEnabled
     doLast {
-        if (gradle.startParameter.isBuildCacheEnabled) {
-            rootProject.availableJavaInstallations.validateBuildCacheConfiguration(rootProject.buildCacheConfiguration())
+        if (rootProject.buildCacheConfiguration().remote?.isEnabled == true) {
+            rootProject.availableJavaInstallations.validateForRemoteBuildCacheUsage()
         }
     }
 }

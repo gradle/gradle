@@ -3,7 +3,6 @@ package org.gradle.gradlebuild.java
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.caching.configuration.BuildCacheConfiguration
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmVersionDetector
@@ -101,20 +100,18 @@ open class AvailableJavaInstallations(project: Project, private val javaInstalla
         else -> throw IllegalArgumentException("No Java installation found which supports Java version $javaVersion")
     }
 
-    fun validateBuildCacheConfiguration(buildCacheConfiguration: BuildCacheConfiguration) {
+    fun validateForRemoteBuildCacheUsage() {
         val validationErrors = validateCompilationJdks()
         if (validationErrors.isNotEmpty()) {
             val message = formatValidationError(
                 "In order to have cache hits from the remote build cache, your environment needs to be configured accordingly!",
                 validationErrors
             )
-            if (buildCacheConfiguration.remote?.isEnabled == true) {
-                throw GradleException(message)
-            }
+            throw GradleException(message)
         }
     }
 
-    fun validateProductionEnvironment() {
+    fun validateForProductionEnvironment() {
         val validationErrors = validateCompilationJdks() +
             mapOf(
                 validationMessage(testJavaHomePropertyName, javaInstallationForTest, oracleJdk8) to (javaInstallationForTest.vendorAndMajorVersion != oracleJdk8)
