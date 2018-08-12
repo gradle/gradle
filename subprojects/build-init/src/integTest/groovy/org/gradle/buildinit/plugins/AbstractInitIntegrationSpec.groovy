@@ -19,12 +19,19 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
 class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
 
     def setup() {
         requireOwnGradleUserHomeDir() // Isolate Kotlin DSL extensions API jar
         useRepositoryMirrors()
+    }
+
+    void assertTestPassed(String className, String name) {
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted(className)
+        result.testClass(className).assertTestPassed(name)
     }
 
     protected void commonFilesGenerated(BuildInitDsl scriptDsl) {

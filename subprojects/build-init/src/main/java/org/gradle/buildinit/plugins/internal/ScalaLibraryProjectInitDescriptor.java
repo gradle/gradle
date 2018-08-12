@@ -27,9 +27,9 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
 
     private final DocumentationRegistry documentationRegistry;
 
-    public ScalaLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
+    public ScalaLibraryProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
                                              TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
-        super("scala", templateOperationFactory, fileResolver, libraryVersionProvider);
+        super("scala", scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
         this.documentationRegistry = documentationRegistry;
     }
 
@@ -41,7 +41,7 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
         String junitVersion = libraryVersionProvider.getVersion("junit");
         String scalaXmlVersion = libraryVersionProvider.getVersion("scala-xml");
 
-        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(settings.getDsl(), fileResolver, "build")
+        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), "build")
             .fileComment("This generated file contains a sample Scala library project to get you started.")
             .fileComment("For more details take a look at the Scala plugin chapter in the Gradle")
             .fileComment("user guide available at " + documentationRegistry.getDocumentationFor("scala_plugin"))
@@ -56,8 +56,8 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
 
         buildScriptBuilder.create().generate();
 
-        TemplateOperation scalaLibTemplateOperation = fromClazzTemplate("scalalibrary/Library.scala.template", "main");
-        TemplateOperation scalaTestTemplateOperation = fromClazzTemplate("scalalibrary/LibrarySuite.scala.template", "test");
+        TemplateOperation scalaLibTemplateOperation = fromClazzTemplate("scalalibrary/Library.scala.template", settings, "main");
+        TemplateOperation scalaTestTemplateOperation = fromClazzTemplate("scalalibrary/LibrarySuite.scala.template", settings, "test");
         whenNoSourcesAvailable(scalaLibTemplateOperation, scalaTestTemplateOperation).generate();
     }
 

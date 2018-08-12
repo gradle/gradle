@@ -23,8 +23,8 @@ import java.util.Collections;
 import java.util.Set;
 
 public class KotlinApplicationProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
-    public KotlinApplicationProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, DefaultTemplateLibraryVersionProvider versionProvider) {
-        super("kotlin", templateOperationFactory, fileResolver, versionProvider);
+    public KotlinApplicationProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, DefaultTemplateLibraryVersionProvider versionProvider) {
+        super("kotlin", scriptBuilderFactory, templateOperationFactory, fileResolver, versionProvider);
     }
 
     @Override
@@ -40,7 +40,7 @@ public class KotlinApplicationProjectInitDescriptor extends LanguageLibraryProje
     @Override
     public void generate(InitSettings settings) {
         String kotlinVersion = libraryVersionProvider.getVersion("kotlin");
-        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(settings.getDsl(), fileResolver, "build")
+        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), "build")
             .fileComment("This generated file contains a sample Kotlin application project to get you started.")
             .plugin("Apply the Kotlin JVM plugin to add support for Kotlin on the JVM", "org.jetbrains.kotlin.jvm", kotlinVersion)
             .plugin("Apply the application to add support for building a CLI application", "application")
@@ -50,12 +50,12 @@ public class KotlinApplicationProjectInitDescriptor extends LanguageLibraryProje
             .testCompileDependency("Use the Kotlin JUnit integration", "org.jetbrains.kotlin:kotlin-test-junit")
             .conventionPropertyAssignment(
                 "Define the main class for the application",
-                "application", "mainClassName", "AppKt");
+                "application", "mainClassName", withPackage(settings, "AppKt"));
 
         buildScriptBuilder.create().generate();
 
-        TemplateOperation kotlinSourceTemplate = fromClazzTemplate("kotlinapp/App.kt.template", "main");
-        TemplateOperation kotlinTestTemplate = fromClazzTemplate("kotlinapp/AppTest.kt.template", "test");
+        TemplateOperation kotlinSourceTemplate = fromClazzTemplate("kotlinapp/App.kt.template", settings, "main");
+        TemplateOperation kotlinTestTemplate = fromClazzTemplate("kotlinapp/AppTest.kt.template", settings, "test");
         whenNoSourcesAvailable(kotlinSourceTemplate, kotlinTestTemplate).generate();
     }
 }

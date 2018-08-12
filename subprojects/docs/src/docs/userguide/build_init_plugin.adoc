@@ -47,9 +47,11 @@ If the type could not be inferred, the type “`basic`” will be used.
 
 The `init` plugin also supports generating build scripts using either the Gradle Groovy DSL or the Gradle Kotlin DSL. The build script DSL to use defaults to the Groovy DSL and is specified by supplying a `--dsl` argument value. For example, to create a Java library project with Kotlin DSL build scripts simply execute: `gradle init --type java-library --dsl kotlin`.
 
-All build setup types include the setup of the Gradle Wrapper.
+You can change the name of the generated project using the `--project-name` option. It defaults to the name of the directory where the `init` task is run.
 
-Note that the migration from Maven builds currently only supports the Groovy DSL for generated build scripts.
+You can change the package used for generated source files using the `--package` option. It defaults to the default package.
+
+All build setup types include the setup of the Gradle Wrapper.
 
 [[sec:build_init_types]]
 == Build init types
@@ -61,6 +63,8 @@ Note that the migration from Maven builds currently only supports the Groovy DSL
 The “`pom`” type can be used to convert an Apache Maven build to a Gradle build. This works by converting the POM to one or more Gradle files. It is only able to be used if there is a valid “`pom.xml`” file in the directory that the `init` task is invoked in or, if invoked via the "`-p`" <<command_line_interface.adoc#command_line_interface,command line option>>, in the specified project directory. This “`pom`” type will be automatically inferred if such a file exists.
 
 The Maven conversion implementation was inspired by the https://github.com/jbaruch/maven2gradle[maven2gradle tool] that was originally developed by Gradle community members.
+
+Note that the migration from Maven builds currently only supports the Groovy DSL for generated build scripts.
 
 The conversion process has the following features:
 

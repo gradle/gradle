@@ -17,7 +17,6 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import spock.lang.Unroll
 
 class ScalaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
@@ -39,14 +38,34 @@ class ScalaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("build")
 
         then:
-        new DefaultTestExecutionResult(testDirectory).testClass("LibrarySuite").assertTestPassed("someLibraryMethod is always true")
+        assertTestPassed("LibrarySuite", "someLibraryMethod is always true")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Unroll
-    def "setupProjectLayout is skipped when scala sources detected with #scriptDsl build scripts"() {
+    def "creates sample source with package and #scriptDsl build scripts"() {
+        when:
+        run('init', '--type', 'scala-library', '--package', 'my.lib', '--dsl', scriptDsl.id)
+
+        then:
+        file("src/main/scala/my/lib/Library.scala").exists()
+        file("src/test/scala/my/lib/LibrarySuite.scala").exists()
+        commonFilesGenerated(scriptDsl)
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("my.lib.LibrarySuite", "someLibraryMethod is always true")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Unroll
+    def "source generation is skipped when scala sources detected with #scriptDsl build scripts"() {
         setup:
         file("src/main/scala/org/acme/SampleMain.scala") << """
             package org.acme;

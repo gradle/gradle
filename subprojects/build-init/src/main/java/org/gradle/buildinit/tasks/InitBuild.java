@@ -47,6 +47,7 @@ public class InitBuild extends DefaultTask {
     private String dsl;
     private String testFramework;
     private String projectName;
+    private String packageName;
 
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
@@ -86,6 +87,19 @@ public class InitBuild extends DefaultTask {
     @Input
     public String getProjectName() {
         return projectName == null ? getProject().getProjectDir().getName() : projectName;
+    }
+
+    /**
+     * The name of the package to use for generated source.
+     *
+     * This property can be set via command-line option '--package'.
+     *
+     * @since 4.11
+     */
+    @Incubating
+    @Input
+    public String getPackageName() {
+        return packageName == null ? "" : packageName;
     }
 
     /**
@@ -141,7 +155,11 @@ public class InitBuild extends DefaultTask {
             }
         }
 
-        initDescriptor.generate(new InitSettings(getProjectName(), dsl, testFramework));
+        if (!getPackageName().isEmpty() && !initDescriptor.supportsPackage()) {
+            throw new GradleException("Package name is not supported for '" + type + "' setup type.");
+        }
+
+        initDescriptor.generate(new InitSettings(getProjectName(), dsl, getPackageName(), testFramework));
     }
 
     @Option(option = "type", description = "Set the type of build to create.")
@@ -203,6 +221,16 @@ public class InitBuild extends DefaultTask {
     @Option(option = "project-name", description = "Set the project name.")
     public void setProjectName(String projectName) {
         this.projectName = projectName;
+    }
+
+    /**
+     * Set the package name.
+     *
+     * @since 4.11
+     */
+    @Option(option = "package", description = "Set the package for source files.")
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
     }
 
     void setProjectLayoutRegistry(ProjectLayoutSetupRegistry projectLayoutRegistry) {

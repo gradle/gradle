@@ -41,4 +41,9 @@ public enum BuildInitTestFramework {
     public String getId() {
         return name().toLowerCase();
     }
+
+    @Override
+    public String toString() {
+        return getId();
+    }
 }

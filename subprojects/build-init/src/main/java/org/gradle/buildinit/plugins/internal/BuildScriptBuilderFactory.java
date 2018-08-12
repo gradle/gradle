@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.internal.file.PathToFileResolver;
 
-import java.util.Set;
+public class BuildScriptBuilderFactory {
+    private final PathToFileResolver fileResolver;
 
-public interface ProjectInitDescriptor extends BuildContentGenerator {
-    boolean supports(BuildInitDsl dsl);
+    public BuildScriptBuilderFactory(PathToFileResolver fileResolver) {
+        this.fileResolver = fileResolver;
+    }
 
-    boolean supportsPackage();
-
-    Set<BuildInitTestFramework> getTestFrameworks();
-
-    BuildInitTestFramework getDefaultTestFramework();
+    public BuildScriptBuilder script(BuildInitDsl dsl, String pathWithoutExtension) {
+        return new BuildScriptBuilder(dsl, fileResolver, pathWithoutExtension);
+    }
 }

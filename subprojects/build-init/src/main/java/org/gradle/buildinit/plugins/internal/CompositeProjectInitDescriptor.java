@@ -37,6 +37,11 @@ public class CompositeProjectInitDescriptor implements ProjectInitDescriptor {
     }
 
     @Override
+    public boolean supportsPackage() {
+        return descriptor.supportsPackage();
+    }
+
+    @Override
     public BuildInitTestFramework getDefaultTestFramework() {
         return descriptor.getDefaultTestFramework();
     }

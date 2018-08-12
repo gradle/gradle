@@ -39,28 +39,30 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
     );
     private final DocumentationRegistry documentationRegistry;
 
-    public JavaProjectInitDescriptor(TemplateOperationFactory templateOperationFactory,
+    public JavaProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory,
+                                     TemplateOperationFactory templateOperationFactory,
                                      FileResolver fileResolver,
                                      TemplateLibraryVersionProvider libraryVersionProvider,
                                      DocumentationRegistry documentationRegistry) {
-        super("java", templateOperationFactory, fileResolver, libraryVersionProvider);
+        super("java", scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
         this.documentationRegistry = documentationRegistry;
     }
 
     @Override
     public void generate(InitSettings settings) {
         Description desc = getDescription();
-        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(settings.getDsl(), fileResolver, "build")
+        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), "build")
             .fileComment("This generated file contains a sample " + desc.projectType + " project to get you started.")
             .fileComment("For more details take a look at the " + desc.chapterName + " chapter in the Gradle")
             .fileComment("user guide available at " + documentationRegistry.getDocumentationFor(desc.userguideId))
             .plugin("Apply the " + desc.pluginName + " plugin to add support for " + desc.projectType, desc.pluginName);
-        configureBuildScript(buildScriptBuilder);
+        configureBuildScript(settings, buildScriptBuilder);
         addTestFramework(settings.getTestFramework(), buildScriptBuilder);
         buildScriptBuilder.create().generate();
 
-        TemplateOperation javaSourceTemplate = sourceTemplateOperation();
-        whenNoSourcesAvailable(javaSourceTemplate, testTemplateOperation(settings.getTestFramework())).generate();
+        TemplateOperation sourceTemplate = sourceTemplateOperation(settings);
+        TemplateOperation testSourceTemplate = testTemplateOperation(settings);
+        whenNoSourcesAvailable(sourceTemplate, testSourceTemplate).generate();
     }
 
     protected Description getDescription() {
@@ -103,16 +105,16 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
         }
     }
 
-    protected void configureBuildScript(BuildScriptBuilder buildScriptBuilder) {
+    protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         // todo: once we use "implementation" for Java projects too, we need to change the comment
         buildScriptBuilder.dependency(getImplementationConfigurationName(),
             "This dependency is found on compile classpath of this component and consumers.",
             "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
     }
 
-    protected abstract TemplateOperation sourceTemplateOperation();
+    protected abstract TemplateOperation sourceTemplateOperation(InitSettings settings);
 
-    protected abstract TemplateOperation testTemplateOperation(BuildInitTestFramework testFramework);
+    protected abstract TemplateOperation testTemplateOperation(InitSettings settings);
 
     @Override
     public BuildInitTestFramework getDefaultTestFramework() {

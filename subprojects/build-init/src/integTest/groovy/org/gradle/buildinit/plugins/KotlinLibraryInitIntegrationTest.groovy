@@ -17,8 +17,6 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TestExecutionResult
 import spock.lang.Unroll
 
 class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
@@ -40,16 +38,34 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("build")
 
         then:
-        TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
-        testResult.assertTestClassesExecuted("LibraryTest")
-        testResult.testClass("LibraryTest").assertTestPassed("testSomeLibraryMethod")
+        assertTestPassed("LibraryTest", "testSomeLibraryMethod")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Unroll
-    def "setupProjectLayout is skipped when kotlin sources detected with #scriptDsl build scripts"() {
+    def "creates sample source with package and #scriptDsl build scripts"() {
+        when:
+        run('init', '--type', 'kotlin-library', '--package', 'my.lib', '--dsl', scriptDsl.id)
+
+        then:
+        file("src/main/kotlin/my/lib/Library.kt").exists()
+        file("src/test/kotlin/my/lib/LibraryTest.kt").exists()
+        commonFilesGenerated(scriptDsl)
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("my.lib.LibraryTest", "testSomeLibraryMethod")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Unroll
+    def "source generation is skipped when kotlin sources detected with #scriptDsl build scripts"() {
         setup:
         file("src/main/kotlin/org/acme/SampleMain.kt") << """
             package org.acme

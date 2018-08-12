@@ -26,9 +26,11 @@ public abstract class LanguageLibraryProjectInitDescriptor implements ProjectIni
     protected final FileResolver fileResolver;
     protected final TemplateOperationFactory templateOperationFactory;
     protected final TemplateLibraryVersionProvider libraryVersionProvider;
+    protected final BuildScriptBuilderFactory scriptBuilderFactory;
 
-    public LanguageLibraryProjectInitDescriptor(String language, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider){
+    public LanguageLibraryProjectInitDescriptor(String language, BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider) {
         this.language = language;
+        this.scriptBuilderFactory = scriptBuilderFactory;
         this.fileResolver = fileResolver;
         this.templateOperationFactory = templateOperationFactory;
         this.libraryVersionProvider = libraryVersionProvider;
@@ -36,6 +38,11 @@ public abstract class LanguageLibraryProjectInitDescriptor implements ProjectIni
 
     @Override
     public boolean supports(BuildInitDsl dsl) {
+        return true;
+    }
+
+    @Override
+    public boolean supportsPackage() {
         return true;
     }
 
@@ -47,19 +54,44 @@ public abstract class LanguageLibraryProjectInitDescriptor implements ProjectIni
         }, operations);
     }
 
+    protected String withPackage(InitSettings settings, String className) {
+        if (settings.getPackageName().isEmpty()) {
+            return className;
+        } else {
+            return settings.getPackageName() + "." + className;
+        }
+    }
+
     protected TemplateOperation fromClazzTemplate(String clazzTemplate, String sourceSetName) {
         return fromClazzTemplate(clazzTemplate, sourceSetName, this.language);
     }
 
+    protected TemplateOperation fromClazzTemplate(String clazzTemplate, InitSettings settings, String sourceSetName) {
+        return fromClazzTemplate(clazzTemplate, settings, sourceSetName, this.language);
+    }
+
     protected TemplateOperation fromClazzTemplate(String clazzTemplate, String sourceSetName, String language) {
+        return fromClazzTemplate(clazzTemplate, (InitSettings) null, sourceSetName, language);
+    }
+
+    protected TemplateOperation fromClazzTemplate(String clazzTemplate, InitSettings settings, String sourceSetName, String language) {
         String targetFileName = clazzTemplate.substring(clazzTemplate.lastIndexOf("/") + 1).replace(".template", "");
-        return fromClazzTemplate(clazzTemplate, sourceSetName, language, targetFileName);
+        String packageDecl = "";
+        if (settings != null && !settings.getPackageName().isEmpty()) {
+            packageDecl = "package " + settings.getPackageName();
+            targetFileName = settings.getPackageName().replace(".", "/") + "/" + targetFileName;
+        }
+        return templateOperationFactory.newTemplateOperation()
+            .withTemplate(clazzTemplate)
+            .withTarget("src/" + sourceSetName + "/" + language + "/" + targetFileName)
+            .withBinding("packageDecl", packageDecl)
+            .create();
     }
 
     protected TemplateOperation fromClazzTemplate(String clazzTemplate, String sourceSetName, String language, String targetFileName) {
         return templateOperationFactory.newTemplateOperation()
-                .withTemplate(clazzTemplate)
-                .withTarget("src/" + sourceSetName + "/" + language + "/" + targetFileName)
-                .create();
+            .withTemplate(clazzTemplate)
+            .withTarget("src/" + sourceSetName + "/" + language + "/" + targetFileName)
+            .create();
     }
 }

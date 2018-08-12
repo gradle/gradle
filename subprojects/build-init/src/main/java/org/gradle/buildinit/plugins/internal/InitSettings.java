@@ -21,12 +21,14 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 public class InitSettings {
     private final BuildInitDsl dsl;
+    private final String packageName;
     private final BuildInitTestFramework testFramework;
     private final String projectName;
 
-    public InitSettings(String projectName, BuildInitDsl dsl, BuildInitTestFramework testFramework) {
+    public InitSettings(String projectName, BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework) {
         this.projectName = projectName;
         this.dsl = dsl;
+        this.packageName = packageName;
         this.testFramework = testFramework;
     }
 
@@ -36,6 +38,10 @@ public class InitSettings {
 
     public BuildInitDsl getDsl() {
         return dsl;
+    }
+
+    public String getPackageName() {
+        return packageName;
     }
 
     public BuildInitTestFramework getTestFramework() {
