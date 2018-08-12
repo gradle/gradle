@@ -77,7 +77,7 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
         DistributionContainer distributions = project.getExtensions().create(DistributionContainer.class, "distributions", DefaultDistributionContainer.class, Distribution.class, instantiator, fileOperations);
 
         // TODO - refactor this action out so it can be unit tested
-        distributions.all(new Action<Distribution>() {
+        distributions.configureEach(new Action<Distribution>() {
             @Override
             public void execute(final Distribution dist) {
                 ((IConventionAware) dist).getConventionMapping().map("baseName", new Callable<Object>() {
