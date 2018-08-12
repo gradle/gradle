@@ -110,8 +110,6 @@ open class AvailableJavaInstallations(project: Project, private val javaInstalla
             )
             if (buildCacheConfiguration.remote?.isEnabled == true) {
                 throw GradleException(message)
-            } else {
-                logger.warn(message)
             }
         }
     }
