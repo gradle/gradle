@@ -45,6 +45,7 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
     private final BlockingQueue<PlayAppLifecycleUpdate> events = new SynchronousQueue<PlayAppLifecycleUpdate>();
 
     private boolean stopRequested;
+    private boolean serverStarted;
     private Reloader.Result latestStatus;
 
     public PlayWorkerServer(PlayRunSpec runSpec, VersionedPlayRunAdapter runAdapter) {
@@ -58,6 +59,7 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
         context.getServerConnection().addIncoming(PlayRunWorkerServerProtocol.class, this);
         context.getServerConnection().connect();
         final PlayAppLifecycleUpdate result = start();
+        serverStarted = true;
         try {
             clientProtocol.update(result);
             while (!stopRequested) {
@@ -127,6 +129,9 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
     public Result requireUpToDate() throws InterruptedException {
         lock.lock();
         try {
+            if (!serverStarted) {
+                return new Result(true, null);
+            }
             if (!stopRequested) {
                 LOGGER.debug("requireUpToDate");
                 events.put(PlayAppLifecycleUpdate.reloadRequested());
