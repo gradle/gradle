@@ -18,11 +18,11 @@ package org.gradle.api.distribution.plugins;
 
 import org.codehaus.groovy.runtime.StringGroovyMethods;
 import org.gradle.api.Action;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
@@ -145,27 +145,35 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
             taskName = "install" + StringGroovyMethods.capitalize(distribution.getName()) + "Dist";
         }
 
-        Sync installTask = project.getTasks().create(taskName, Sync.class);
-        installTask.setDescription("Installs the project as a distribution as-is.");
-        installTask.setGroup(DISTRIBUTION_GROUP);
-        installTask.with(distribution.getContents());
-        installTask.into(new Callable<File>() {
+        project.getTasks().register(taskName, Sync.class, new Action<Sync>() {
             @Override
-            public File call() throws Exception {
-                return project.file("" + project.getBuildDir() + "/install/" + distribution.getBaseName());
+            public void execute(Sync installTask){
+                installTask.setDescription("Installs the project as a distribution as-is.");
+                installTask.setGroup(DISTRIBUTION_GROUP);
+                installTask.with(distribution.getContents());
+                installTask.into(new Callable<File>() {
+                    @Override
+                    public File call() {
+                        return project.file("" + project.getBuildDir() + "/install/" + distribution.getBaseName());
+                    }
+                });
             }
         });
     }
 
-    private void addAssembleTask(Project project, Distribution distribution, TaskProvider<?>... tasks) {
+    private void addAssembleTask(Project project, final Distribution distribution, final TaskProvider<?>... tasks) {
         String taskName = TASK_ASSEMBLE_NAME;
         if (!MAIN_DISTRIBUTION_NAME.equals(distribution.getName())) {
             taskName = "assemble" + StringGroovyMethods.capitalize(distribution.getName()) + "Dist";
         }
 
-        Task assembleTask = project.getTasks().create(taskName);
-        assembleTask.setDescription("Assembles the " + distribution.getName() + " distributions");
-        assembleTask.setGroup(DISTRIBUTION_GROUP);
-        assembleTask.dependsOn((Object[]) tasks);
+        project.getTasks().register(taskName, DefaultTask.class, new Action<DefaultTask>() {
+            @Override
+            public void execute(DefaultTask assembleTask) {
+                assembleTask.setDescription("Assembles the " + distribution.getName() + " distributions");
+                assembleTask.setGroup(DISTRIBUTION_GROUP);
+                assembleTask.dependsOn((Object[]) tasks);
+            }
+        });
     }
 }
