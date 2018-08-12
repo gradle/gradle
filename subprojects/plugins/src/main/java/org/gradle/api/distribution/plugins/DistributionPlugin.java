@@ -142,7 +142,7 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
     private void addInstallTask(final Project project, final Distribution distribution) {
         String taskName = TASK_INSTALL_NAME;
         if (!MAIN_DISTRIBUTION_NAME.equals(distribution.getName())) {
-            taskName = "install" + StringGroovyMethods.capitalize(distribution.getName()) + "Dist";
+            taskName = "install" + StringGroovyMethods.capitalize((CharSequence) distribution.getName()) + "Dist";
         }
 
         project.getTasks().register(taskName, Sync.class, new Action<Sync>() {
@@ -164,7 +164,7 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
     private void addAssembleTask(Project project, final Distribution distribution, final TaskProvider<?>... tasks) {
         String taskName = TASK_ASSEMBLE_NAME;
         if (!MAIN_DISTRIBUTION_NAME.equals(distribution.getName())) {
-            taskName = "assemble" + StringGroovyMethods.capitalize(distribution.getName()) + "Dist";
+            taskName = "assemble" + StringGroovyMethods.capitalize((CharSequence) distribution.getName()) + "Dist";
         }
 
         project.getTasks().register(taskName, DefaultTask.class, new Action<DefaultTask>() {
