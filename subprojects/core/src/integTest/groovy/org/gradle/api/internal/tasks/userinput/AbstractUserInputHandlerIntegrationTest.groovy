@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.userinput
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class AbstractUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
+abstract class AbstractUserInputHandlerIntegrationTest extends AbstractIntegrationSpec {
 
     protected void interactiveExecution() {
         executer.withStdinPipe().withForceInteractive(true)

@@ -44,7 +44,7 @@ public class UserInputConsoleRenderer extends AbstractUserInputRenderer {
     }
 
     private void printToBuildProgressArea(String message) {
-        console.getBuildOutputArea().println(message);
+        console.getBuildOutputArea().append(message);
     }
 
     private void flushConsole() {

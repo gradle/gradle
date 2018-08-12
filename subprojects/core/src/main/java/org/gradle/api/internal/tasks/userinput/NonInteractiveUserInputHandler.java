@@ -16,10 +16,21 @@
 
 package org.gradle.api.internal.tasks.userinput;
 
-public class NonInteractiveUserInputHandler implements UserInputHandler {
+import java.util.Collection;
 
+public class NonInteractiveUserInputHandler implements UserInputHandler {
     @Override
     public Boolean askYesNoQuestion(String question) {
         return null;
+    }
+
+    @Override
+    public <T> T selectOption(String question, Collection<T> options, T defaultOption) {
+        return defaultOption;
+    }
+
+    @Override
+    public String askQuestion(String question, String defaultValue) {
+        return defaultValue;
     }
 }

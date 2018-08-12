@@ -19,6 +19,7 @@ package org.gradle.buildinit.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
+import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -35,6 +36,7 @@ import org.gradle.internal.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -124,21 +126,39 @@ public class InitBuild extends DefaultTask {
 
     @TaskAction
     public void setupProjectLayout() {
-        String type = getType();
+        UserInputHandler inputHandler = getServices().get(UserInputHandler.class);
+
+        String type;
+        if (isNullOrEmpty(this.type)) {
+            type = inputHandler.selectOption("Select build setup type", getAvailableBuildTypes(), detectType());
+        } else {
+            type = this.type;
+        }
+
         ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
         ProjectInitDescriptor initDescriptor = projectLayoutRegistry.get(type);
 
-        BuildInitDsl dsl = BuildInitDsl.fromName(getDsl());
+        BuildInitDsl dsl;
+        if (isNullOrEmpty(this.dsl)) {
+            dsl = inputHandler.selectOption("Select build script DSL", Arrays.asList(BuildInitDsl.values()), BuildInitDsl.GROOVY);
+        } else {
+            dsl = BuildInitDsl.fromName(getDsl());
+        }
 
         if (!initDescriptor.supports(dsl)) {
             throw new GradleException("The requested DSL '" + dsl + "' is not supported for '" + type + "' setup type");
         }
+
         BuildInitTestFramework testFramework = null;
-        if (getTestFramework() == null) {
-            testFramework = initDescriptor.getDefaultTestFramework();
+        if (isNullOrEmpty(this.testFramework)) {
+            if (initDescriptor.getTestFrameworks().size() == 1) {
+                testFramework = initDescriptor.getDefaultTestFramework();
+            } else {
+                testFramework = inputHandler.selectOption("Select test framework", initDescriptor.getTestFrameworks(), initDescriptor.getDefaultTestFramework());
+            }
         } else {
             for (BuildInitTestFramework candidate : initDescriptor.getTestFrameworks()) {
-                if (getTestFramework().equals(candidate.getId())) {
+                if (this.testFramework.equals(candidate.getId())) {
                     testFramework = candidate;
                     break;
                 }
@@ -155,11 +175,21 @@ public class InitBuild extends DefaultTask {
             }
         }
 
-        if (!getPackageName().isEmpty() && !initDescriptor.supportsPackage()) {
+        String projectName = this.projectName;
+        if (isNullOrEmpty(projectName)) {
+            projectName = inputHandler.askQuestion("Project name", getProjectName());
+        }
+
+        String packageName = this.packageName;
+        if (initDescriptor.supportsPackage()) {
+            if (isNullOrEmpty(packageName)) {
+                packageName = inputHandler.askQuestion("Source package", getPackageName());
+            }
+        } else if (!isNullOrEmpty(packageName)) {
             throw new GradleException("Package name is not supported for '" + type + "' setup type.");
         }
 
-        initDescriptor.generate(new InitSettings(getProjectName(), dsl, getPackageName(), testFramework));
+        initDescriptor.generate(new InitSettings(projectName, dsl, packageName, testFramework));
     }
 
     @Option(option = "type", description = "Set the type of build to create.")

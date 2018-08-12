@@ -55,6 +55,7 @@ class InitBuildSpec extends Specification {
     def "delegates task action to referenced setupDescriptor"() {
         given:
         supportedType(BuildInitTypeIds.BASIC, projectSetupDescriptor)
+        projectSetupDescriptor.testFrameworks >> []
 
         when:
         init.setupProjectLayout()
