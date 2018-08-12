@@ -241,6 +241,14 @@ include("child")
         failure.assertHasCause("The requested test framework 'spock' is not supported for 'basic' setup type. Supported frameworks: 'none'")
     }
 
+    def "gives decent error message when package name option is not supported by specific type"() {
+        when:
+        fails('init', '--type', 'basic', '--package', 'thing')
+
+        then:
+        failure.assertHasCause("Package name is not supported for 'basic' setup type.")
+    }
+
     def "displays all build types and modifiers in help command output"() {
         when:
         run('help', '--task', 'init')
@@ -251,6 +259,8 @@ include("child")
                Available values are:
                     groovy
                     kotlin
+
+     --package     Set the package for source files.
 
      --project-name     Set the project name.
 

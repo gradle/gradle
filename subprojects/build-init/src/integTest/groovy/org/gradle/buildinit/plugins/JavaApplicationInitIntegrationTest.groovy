@@ -17,7 +17,7 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
 import spock.lang.Unroll
 
 class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
@@ -40,7 +40,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("build")
 
         then:
-        assertTestPassed("testAppHasAGreeting")
+        assertTestPassed("AppTest", "testAppHasAGreeting")
 
         when:
         run("run")
@@ -60,13 +60,13 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         then:
         file(SAMPLE_APP_CLASS).exists()
         file(SAMPLE_APP_SPOCK_TEST_CLASS).exists()
-        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
+        commonFilesGenerated(scriptDsl)
 
         when:
         run("build")
 
         then:
-        assertTestPassed("application has a greeting")
+        assertTestPassed("AppTest", "application has a greeting")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -80,20 +80,76 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         then:
         file(SAMPLE_APP_CLASS).exists()
         file(SAMPLE_APP_TEST_CLASS).exists()
-        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
+        commonFilesGenerated(scriptDsl)
 
         when:
         run("build")
 
         then:
-        assertTestPassed("appHasAGreeting")
+        assertTestPassed("AppTest", "appHasAGreeting")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Unroll
-    def "setupProjectLayout is skipped when java sources detected with #scriptDsl build scripts"() {
+    def "creates sample source with package and #testFramework and #scriptDsl build scripts"() {
+        when:
+        run('init', '--type', 'java-application', '--test-framework', 'testng', '--package', 'my.app', '--dsl', scriptDsl.id)
+
+        then:
+        file("src/main/java/my/app/App.java").exists()
+        file("src/test/java/my/app/AppTest.java").exists()
+
+        and:
+        commonFilesGenerated(scriptDsl)
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("my.app.AppTest", "appHasAGreeting")
+
+        when:
+        run("run")
+
+        then:
+        outputContains("Hello world")
+
+        where:
+        [scriptDsl, testFramework] << [ScriptDslFixture.SCRIPT_DSLS, [BuildInitTestFramework.JUNIT, BuildInitTestFramework.TESTNG]].combinations()
+    }
+
+    @Unroll
+    def "creates sample source with package and spock and #scriptDsl build scripts"() {
+        when:
+        run('init', '--type', 'java-application', '--test-framework', 'spock', '--package', 'my.app', '--dsl', scriptDsl.id)
+
+        then:
+        file("src/main/java/my/app/App.java").exists()
+        file("src/test/groovy/my/app/AppTest.groovy").exists()
+
+        and:
+        commonFilesGenerated(scriptDsl)
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("my.app.AppTest", "application has a greeting")
+
+        when:
+        run("run")
+
+        then:
+        outputContains("Hello world")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Unroll
+    def "source generation is skipped when java sources detected with #scriptDsl build scripts"() {
         setup:
         file("src/main/java/org/acme/SampleMain.java") << """
         package org.acme;
@@ -123,9 +179,5 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
-    }
-
-    void assertTestPassed(String name) {
-        new DefaultTestExecutionResult(testDirectory).testClass("AppTest").assertTestPassed(name)
     }
 }

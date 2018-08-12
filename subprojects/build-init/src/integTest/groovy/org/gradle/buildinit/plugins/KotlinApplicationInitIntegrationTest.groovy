@@ -17,7 +17,6 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import spock.lang.Unroll
 
 class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
@@ -39,7 +38,33 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("build")
 
         then:
-        assertTestPassed("testAppHasAGreeting")
+        assertTestPassed("AppTest", "testAppHasAGreeting")
+
+        when:
+        run("run")
+
+        then:
+        outputContains("Hello world")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Unroll
+    def "creates sample source with package and #scriptDsl build scripts"() {
+        when:
+        run('init', '--type', 'kotlin-application', '--package', 'my.app', '--dsl', scriptDsl.id)
+
+        then:
+        file("src/main/kotlin/my/app/App.kt").exists()
+        file("src/test/kotlin/my/app/AppTest.kt").exists()
+        commonFilesGenerated(scriptDsl)
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("my.app.AppTest", "testAppHasAGreeting")
 
         when:
         run("run")
@@ -82,9 +107,5 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
-    }
-
-    void assertTestPassed(String name) {
-        new DefaultTestExecutionResult(testDirectory).testClass("AppTest").assertTestPassed(name)
     }
 }

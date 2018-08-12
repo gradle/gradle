@@ -17,21 +17,19 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.internal.file.PathToFileResolver;
 
 public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGenerator {
-
-    private final PathToFileResolver fileResolver;
     private final DocumentationRegistry documentationRegistry;
+    private final BuildScriptBuilderFactory scriptBuilderFactory;
 
-    public SimpleGlobalFilesBuildSettingsDescriptor(PathToFileResolver fileResolver, DocumentationRegistry documentationRegistry) {
-        this.fileResolver = fileResolver;
+    public SimpleGlobalFilesBuildSettingsDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, DocumentationRegistry documentationRegistry) {
+        this.scriptBuilderFactory = scriptBuilderFactory;
         this.documentationRegistry = documentationRegistry;
     }
 
     @Override
     public void generate(InitSettings settings) {
-        new BuildScriptBuilder(settings.getDsl(), fileResolver, "settings")
+        scriptBuilderFactory.script(settings.getDsl(), "settings")
             .fileComment(
                 "The settings file is used to specify which projects to include in your build.\n\n"
                     + "Detailed information about configuring a multi-project build in Gradle can be found\n"

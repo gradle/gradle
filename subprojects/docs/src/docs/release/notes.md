@@ -21,7 +21,9 @@ The [Build Init plugin](userguide/build_init_plugin.html) now generates build sc
 
 ### Build init plugin improvements
 
-The build init plugin can generate a Kotlin library or application.
+The `init` task can now generate a Kotlin library or application, using the `--kotlin-library` or `--kotlin-application` setup type.
+
+The `init` task also provides a `--project-name` option to allow you to adjust the name of the generated project, and a `--package` option to allow you to adjust the package for the generated source.
 
 ## Promoted features
 

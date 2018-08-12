@@ -18,21 +18,20 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
-import org.gradle.internal.file.PathToFileResolver;
 
 import java.util.Collections;
 import java.util.Set;
 
 public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescriptor {
-    private final PathToFileResolver fileResolver;
+    private final BuildScriptBuilderFactory scriptBuilderFactory;
 
-    public BasicTemplateBasedProjectInitDescriptor(PathToFileResolver fileResolver) {
-        this.fileResolver = fileResolver;
+    public BasicTemplateBasedProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory) {
+        this.scriptBuilderFactory = scriptBuilderFactory;
     }
 
     @Override
     public void generate(InitSettings settings) {
-        new BuildScriptBuilder(settings.getDsl(), fileResolver, "build")
+        scriptBuilderFactory.script(settings.getDsl(), "build")
             .fileComment("This is a general purpose Gradle build.\n"
                 + "Learn how to create Gradle builds at https://guides.gradle.org/creating-new-gradle-builds/")
             .create()
@@ -42,6 +41,11 @@ public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescr
     @Override
     public boolean supports(BuildInitDsl dsl) {
         return true;
+    }
+
+    @Override
+    public boolean supportsPackage() {
+        return false;
     }
 
     @Override

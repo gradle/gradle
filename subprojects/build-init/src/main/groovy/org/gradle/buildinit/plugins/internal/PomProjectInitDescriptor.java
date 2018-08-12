@@ -58,6 +58,11 @@ public class PomProjectInitDescriptor implements ProjectInitDescriptor {
     }
 
     @Override
+    public boolean supportsPackage() {
+        return false;
+    }
+
+    @Override
     public BuildInitTestFramework getDefaultTestFramework() {
         return BuildInitTestFramework.NONE;
     }

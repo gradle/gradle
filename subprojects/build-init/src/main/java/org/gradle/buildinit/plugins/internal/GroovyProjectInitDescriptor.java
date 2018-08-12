@@ -20,26 +20,23 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Set;
-import java.util.TreeSet;
 
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK;
 
 public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
-
     private final DocumentationRegistry documentationRegistry;
 
-    public GroovyProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
+    public GroovyProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
                                        TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
-        super("groovy", templateOperationFactory, fileResolver, libraryVersionProvider);
+        super("groovy", scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
         this.documentationRegistry = documentationRegistry;
     }
 
     @Override
     public void generate(InitSettings settings) {
-        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(settings.getDsl(), fileResolver, "build")
+        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), "build")
             .fileComment("This generated file contains a sample Groovy project to get you started.")
             .fileComment("For more details take a look at the Groovy Quickstart chapter in the Gradle")
             .fileComment("user guide available at " + documentationRegistry.getDocumentationFor("tutorial_groovy_projects"))
@@ -48,27 +45,28 @@ public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProject
                 "org.codehaus.groovy:groovy-all:" + libraryVersionProvider.getVersion("groovy"))
             .testImplementationDependency("Use the awesome Spock testing and specification framework",
                 "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"));
-        configureBuildScript(buildScriptBuilder);
+        configureBuildScript(settings, buildScriptBuilder);
         buildScriptBuilder.create().generate();
 
-        TemplateOperation groovySourceTemplate = sourceTemplateOperation();
-        whenNoSourcesAvailable(groovySourceTemplate, testTemplateOperation(settings.getTestFramework())).generate();
+        TemplateOperation sourceTemplate = sourceTemplateOperation(settings);
+        TemplateOperation testSourceTemplate = testTemplateOperation(settings);
+        whenNoSourcesAvailable(sourceTemplate, testSourceTemplate).generate();
     }
 
     @Override
     public BuildInitTestFramework getDefaultTestFramework() {
-        return JUNIT;
+        return SPOCK;
     }
 
     @Override
     public Set<BuildInitTestFramework> getTestFrameworks() {
-        return new TreeSet<BuildInitTestFramework>(Arrays.asList(JUNIT, SPOCK));
+        return Collections.singleton(SPOCK);
     }
 
-    protected abstract TemplateOperation sourceTemplateOperation();
+    protected abstract TemplateOperation sourceTemplateOperation(InitSettings settings);
 
-    protected abstract TemplateOperation testTemplateOperation(BuildInitTestFramework testFramework);
+    protected abstract TemplateOperation testTemplateOperation(InitSettings settings);
 
-    protected void configureBuildScript(BuildScriptBuilder buildScriptBuilder) {
+    protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
     }
 }

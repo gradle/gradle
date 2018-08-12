@@ -17,8 +17,6 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TestExecutionResult
 import spock.lang.Unroll
 
 class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
@@ -40,9 +38,7 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("build")
 
         then:
-        TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
-        testResult.assertTestClassesExecuted("LibraryTest")
-        testResult.testClass("LibraryTest").assertTestPassed("someLibraryMethod returns true")
+        assertTestPassed("LibraryTest", "someLibraryMethod returns true")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -56,22 +52,40 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
         file(SAMPLE_LIBRARY_TEST_CLASS).exists()
-        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
+        commonFilesGenerated(scriptDsl)
 
         when:
         run("build")
 
         then:
-        TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
-        testResult.assertTestClassesExecuted("LibraryTest")
-        testResult.testClass("LibraryTest").assertTestPassed("someLibraryMethod returns true")
+        assertTestPassed("LibraryTest", "someLibraryMethod returns true")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Unroll
-    def "setupProjectLayout is skipped when groovy sources detected with #scriptDsl build scripts"() {
+    def "creates sample source with package and #scriptDsl build scripts"() {
+        when:
+        run('init', '--type', 'groovy-library', '--package', 'my.lib', '--dsl', scriptDsl.id)
+
+        then:
+        file("src/main/groovy/my/lib/Library.groovy").exists()
+        file("src/test/groovy/my/lib/LibraryTest.groovy").exists()
+        commonFilesGenerated(scriptDsl)
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("my.lib.LibraryTest", "someLibraryMethod returns true")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Unroll
+    def "source generation is skipped when groovy sources detected with #scriptDsl build scripts"() {
         setup:
         file("src/main/groovy/org/acme/SampleMain.groovy") << """
             package org.acme;

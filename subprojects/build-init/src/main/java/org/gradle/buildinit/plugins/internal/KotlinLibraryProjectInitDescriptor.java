@@ -23,8 +23,8 @@ import java.util.Collections;
 import java.util.Set;
 
 public class KotlinLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
-    public KotlinLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, DefaultTemplateLibraryVersionProvider versionProvider) {
-        super("kotlin", templateOperationFactory, fileResolver, versionProvider);
+    public KotlinLibraryProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, DefaultTemplateLibraryVersionProvider versionProvider) {
+        super("kotlin", scriptBuilderFactory, templateOperationFactory, fileResolver, versionProvider);
     }
 
     @Override
@@ -40,7 +40,7 @@ public class KotlinLibraryProjectInitDescriptor extends LanguageLibraryProjectIn
     @Override
     public void generate(InitSettings settings) {
         String kotlinVersion = libraryVersionProvider.getVersion("kotlin");
-        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(settings.getDsl(), fileResolver, "build")
+        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), "build")
             .fileComment("This generated file contains a sample Kotlin library project to get you started.")
             .plugin("Apply the Kotlin JVM plugin to add support for Kotlin on the JVM", "org.jetbrains.kotlin.jvm", kotlinVersion)
             .compileDependency("Use the Kotlin standard library", "org.jetbrains.kotlin:kotlin-stdlib")
@@ -50,8 +50,8 @@ public class KotlinLibraryProjectInitDescriptor extends LanguageLibraryProjectIn
 
         buildScriptBuilder.create().generate();
 
-        TemplateOperation kotlinSourceTemplate = fromClazzTemplate("kotlinlibrary/Library.kt.template", "main");
-        TemplateOperation kotlinTestTemplate = fromClazzTemplate("kotlinlibrary/LibraryTest.kt.template", "test");
+        TemplateOperation kotlinSourceTemplate = fromClazzTemplate("kotlinlibrary/Library.kt.template", settings, "main");
+        TemplateOperation kotlinTestTemplate = fromClazzTemplate("kotlinlibrary/LibraryTest.kt.template", settings, "test");
         whenNoSourcesAvailable(kotlinSourceTemplate, kotlinTestTemplate).generate();
     }
 }

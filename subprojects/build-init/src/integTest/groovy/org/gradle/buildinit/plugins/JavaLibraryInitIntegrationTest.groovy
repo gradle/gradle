@@ -17,7 +17,7 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
 import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.allOf
@@ -46,7 +46,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("build")
 
         then:
-        assertTestPassed("testSomeLibraryMethod")
+        assertTestPassed("LibraryTest", "testSomeLibraryMethod")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -62,15 +62,15 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         file(SAMPLE_SPOCK_LIBRARY_TEST_CLASS).exists()
 
         and:
+        commonFilesGenerated(scriptDsl)
         def dslFixture = dslFixtureFor(scriptDsl)
-        dslFixture.assertGradleFilesGenerated()
         buildFileSeparatesImplementationAndApi(dslFixture, 'org.spockframework')
 
         when:
         run("build")
 
         then:
-        assertTestPassed("someLibraryMethod returns true")
+        assertTestPassed("LibraryTest", "someLibraryMethod returns true")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -86,22 +86,66 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         file(SAMPLE_LIBRARY_TEST_CLASS).exists()
 
         and:
+        commonFilesGenerated(scriptDsl)
         def dslFixture = dslFixtureFor(scriptDsl)
-        dslFixture.assertGradleFilesGenerated()
         buildFileSeparatesImplementationAndApi(dslFixture, 'org.testng')
 
         when:
         run("build")
 
         then:
-        assertTestPassed("someLibraryMethodReturnsTrue")
+        assertTestPassed("LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Unroll
-    def "setupProjectLayout is skipped when java sources detected with #scriptDsl build scripts"() {
+    def "creates sample source with package and #testFramework and #scriptDsl build scripts"() {
+        when:
+        run('init', '--type', 'java-library', '--test-framework', 'testng', '--package', 'my.lib', '--dsl', scriptDsl.id)
+
+        then:
+        file("src/main/java/my/lib/Library.java").exists()
+        file("src/test/java/my/lib/LibraryTest.java").exists()
+
+        and:
+        commonFilesGenerated(scriptDsl)
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("my.lib.LibraryTest", "someLibraryMethodReturnsTrue")
+
+        where:
+        [scriptDsl, testFramework] << [ScriptDslFixture.SCRIPT_DSLS, [BuildInitTestFramework.JUNIT, BuildInitTestFramework.TESTNG]].combinations()
+    }
+
+    @Unroll
+    def "creates sample source with package and spock and #scriptDsl build scripts"() {
+        when:
+        run('init', '--type', 'java-library', '--test-framework', 'spock', '--package', 'my.lib', '--dsl', scriptDsl.id)
+
+        then:
+        file("src/main/java/my/lib/Library.java").exists()
+        file("src/test/groovy/my/lib/LibraryTest.groovy").exists()
+
+        and:
+        commonFilesGenerated(scriptDsl)
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("my.lib.LibraryTest", "someLibraryMethod returns true")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Unroll
+    def "source generation is skipped when java sources detected with #scriptDsl build scripts"() {
         setup:
         file("src/main/java/org/acme/SampleMain.java") << """
         package org.acme;
@@ -135,10 +179,6 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
-    }
-
-    void assertTestPassed(String name) {
-        new DefaultTestExecutionResult(testDirectory).testClass("LibraryTest").assertTestPassed(name)
     }
 
     private void buildFileSeparatesImplementationAndApi(ScriptDslFixture dslFixture, String testFramework = 'junit:junit:') {
