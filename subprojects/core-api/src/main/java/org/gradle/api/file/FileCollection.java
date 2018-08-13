@@ -107,22 +107,6 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
     FileCollection filter(Spec<? super File> filterSpec);
 
     /**
-     * <p>Converts this collection into an object of the specified type. Supported types are: {@code Collection}, {@code
-     * List}, {@code Set}, {@code Object[]}, {@code File[]}, {@code File}, and {@link FileTree}.</p>
-     *
-     * <p>You can call this method in your build script using the {@code as} operator.</p>
-     *
-     * @param type The type to convert to.
-     * @return The converted value.
-     * @throws org.codehaus.groovy.runtime.typehandling.GroovyCastException When an unsupported type is specified.
-     *
-     * @deprecated This method will be removed in Gradle 5.0. Type conversions with the Groovy {@code as} keyword will keep working
-     * for the collection types. For other conversions use {@link #getSingleFile()} and {@link #getAsFileTree()}.
-     */
-    @Deprecated
-    Object asType(Class<?> type);
-
-    /**
      * <p>Adds another collection to this collection. This is an optional operation.</p>
      *
      * @param collection The collection to add.

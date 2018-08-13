@@ -36,55 +36,6 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec {
         type << ["Object", "Object[]", "Set", "LinkedHashSet", "List", "LinkedList", "Collection", "FileCollection"]
     }
 
-    def "using 'as' operator with File type produces deprecation warning"() {
-        buildFile << """
-            def fileCollection = files("input.txt")
-            def castValue = fileCollection as File
-            assert castValue instanceof File
-            assert castValue.name == "input.txt"
-        """
-
-        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
-
-        expect:
-        succeeds "help"
-        output.contains "Do not cast FileCollection to File. This has been deprecated and is scheduled to be removed in Gradle 5.0. Call getSingleFile() instead."
-    }
-
-    def "using 'as' operator with File[] type produces deprecation warning"() {
-        buildFile << """
-            def fileCollection = files("input.txt")
-            def castValue = fileCollection as File[]
-            assert castValue instanceof File[]
-            assert castValue*.name == ["input.txt"]
-        """
-
-        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
-
-        expect:
-        succeeds "help"
-        output.contains "Do not cast FileCollection to File[]. This has been deprecated and is scheduled to be removed in Gradle 5.0"
-    }
-
-    def "using 'as' operator with FileTree type produces deprecation warning"() {
-        file("input.txt").createFile()
-        buildFile << """
-            def fileCollection = files("input.txt")
-            def castValue = fileCollection as FileTree
-            assert castValue instanceof FileTree
-            castValue.visit { entry ->
-                println "- \$entry"
-            }
-        """
-
-        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
-
-        expect:
-        succeeds "help"
-        output.contains "input.txt"
-        output.contains "Do not cast FileCollection to FileTree. This has been deprecated and is scheduled to be removed in Gradle 5.0. Call getAsFileTree() instead."
-    }
-
     def "using 'FileCollection.add()' produces deprecation warning"() {
         file("input.txt").createFile()
         buildFile << """

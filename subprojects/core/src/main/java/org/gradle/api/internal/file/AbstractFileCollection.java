@@ -19,7 +19,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterators;
 import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
@@ -167,31 +166,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     @Override
     public boolean isEmpty() {
         return getFiles().isEmpty();
-    }
-
-    @Deprecated
-    @Override
-    public Object asType(Class<?> type) throws UnsupportedOperationException {
-        if (type.isAssignableFrom(Object[].class)) {
-            return getFiles().toArray();
-        }
-        if (type.isAssignableFrom(File[].class)) {
-            DeprecationLogger.nagUserOfDeprecatedThing("Do not cast FileCollection to File[].");
-            Set<File> files = getFiles();
-            return files.toArray(new File[0]);
-        }
-        if (type.isAssignableFrom(File.class)) {
-            DeprecationLogger.nagUserOfDeprecatedThing("Do not cast FileCollection to File.", "Call getSingleFile() instead.");
-            return getSingleFile();
-        }
-        if (type.isAssignableFrom(FileCollection.class)) {
-            return this;
-        }
-        if (type.isAssignableFrom(FileTree.class)) {
-            DeprecationLogger.nagUserOfDeprecatedThing("Do not cast FileCollection to FileTree.", "Call getAsFileTree() instead.");
-            return getAsFileTree();
-        }
-        return DefaultGroovyMethods.asType(this, type);
     }
 
     @Override
