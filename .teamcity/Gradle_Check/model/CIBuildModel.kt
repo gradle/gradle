@@ -1,6 +1,7 @@
 package model
 
 import configurations.BuildDistributions
+import configurations.CompileAll
 import configurations.DependenciesCheck
 import configurations.Gradleception
 import configurations.SanityCheck
@@ -19,7 +20,7 @@ data class CIBuildModel (
         val stages: List<Stage> = listOf(
             Stage("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer)",
                     specificBuilds = listOf(
-                            SpecificBuild.SanityCheck),
+                            SpecificBuild.CompileAll, SpecificBuild.SanityCheck),
                     functionalTests = listOf(
                             TestCoverage(TestType.quick, OS.linux, JvmVersion.java8)), omitsSlowProjects = true),
             Stage("Quick Feedback", "Run checks and functional tests (embedded executer)",
@@ -261,6 +262,11 @@ enum class Trigger {
 }
 
 enum class SpecificBuild {
+    CompileAll {
+        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+            return CompileAll(model, stage)
+        }
+    },
     SanityCheck {
         override fun create(model: CIBuildModel, stage: Stage): BuildType {
             return SanityCheck(model, stage)
