@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
 public class WrapperExecutor {
     public static final String DISTRIBUTION_URL_PROPERTY = "distributionUrl";
@@ -77,7 +78,12 @@ public class WrapperExecutor {
         if (properties.getProperty(DISTRIBUTION_URL_PROPERTY) == null) {
             reportMissingProperty(DISTRIBUTION_URL_PROPERTY);
         }
-        return new URI(getProperty(DISTRIBUTION_URL_PROPERTY));
+        String distributionUrl = getProperty(DISTRIBUTION_URL_PROPERTY);
+        if (System.getenv("GRADLE_DISTRIBUTION_MIRROR")) {
+            Pattern regex = Pattern.compile("^https?://[^/]+");
+            distributionUrl = regex.matcher(distributionUrl).replaceFirst(System.getenv("GRADLE_DISTRIBUTION_MIRROR"));
+        }
+        return new URI(distributionUrl);
     }
 
     private static void loadProperties(File propertiesFile, Properties properties) throws IOException {
