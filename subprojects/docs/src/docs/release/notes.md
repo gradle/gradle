@@ -6,7 +6,7 @@ This will result in significantly reduced Java compilation time in subsequent bu
 Chances are caches in those `.gradle/` directories have accumulated a few (or a few dozen) gigabytes over time.
 If so, you'll be relieved to know that Gradle will now [periodically clean up unused `/caches`](#periodic-cache-cleanup) under `GRADLE_USER_HOME` and project root directories.
 
-A moment you have anticipated is nearly here, as the [Kotlin DSL reaches version 1.0 RC2](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC2).
+A moment you have anticipated is nearly here, as the [Kotlin DSL reaches version 1.0 RC3](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC3).
 Configuration avoidance, `buildSrc` refactoring propagation to the IDE, and lots of DSL polish make this the release to try.
 Gradle Kotlin DSL 1.0 will ship with the next version of Gradle.
 Please give it a go and file issues in the [gradle/kotlin-dsl](https://github.com/gradle/kotlin-dsl) project.
@@ -151,7 +151,7 @@ Previously it was located at `project.java.sourceSets`, or just `java.sourceSets
 
 All these changes could cause script compilation errors.
 
-See the [Gradle Kotlin DSL release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC2) for more information and how to fix builds broken by the changes described above.
+See the [Gradle Kotlin DSL release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC3) for more information and how to fix builds broken by the changes described above.
 
 ### Restricting cross-configuration and lifecycle hooks from lazy configuration APIs
 
