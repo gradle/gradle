@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import org.gradle.testing.performance.generator.tasks.*
-
 // === Gradle Build ===
 tasks.register("gradleBuildCurrent", RemoteProject) {
     dependsOn rootProject.determineCommitId
@@ -27,7 +24,7 @@ tasks.register("gradleBuildBaseline", RemoteProject) {
     remoteUri = rootDir.absolutePath
     // Remember to update accordingly when rebasing/squashing
     // Do not use the "Rebase and merge" nor "Squash and merge" Github buttons when merging a PR that change the baseline
-    ref = 'f4ab367701a1183a3bddfe026b1438e35066ffcd'
+    ref = 'b1f9b6ff5ce6b00f96f49faf486345409de97ae4'
 }
 
 // === Java ===
