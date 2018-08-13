@@ -27,9 +27,6 @@ import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFacto
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskFactory
-import org.gradle.api.internal.tasks.TaskExecuter
-import org.gradle.api.internal.tasks.TaskExecutionContext
-import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Actions
 import org.gradle.internal.MutableBoolean
@@ -140,19 +137,6 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
 
         then:
         thrown(InvalidUserDataException)
-    }
-
-    def testExecuteDelegatesToTaskExecuter() {
-        final AbstractTask task = getTask()
-        TaskExecuter executer = Mock()
-        task.setExecuter(executer)
-
-        when:
-        task.execute()
-
-        then:
-        1 * executer.execute(task, _ as TaskStateInternal, _ as TaskExecutionContext)
-
     }
 
     def setGetDescription() {

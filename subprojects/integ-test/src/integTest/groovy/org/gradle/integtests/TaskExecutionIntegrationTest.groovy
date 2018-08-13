@@ -733,25 +733,6 @@ task someTask(dependsOn: [someDep, someOtherDep])
         succeeds "custom", "--rerun-tasks"
     }
 
-    def "calling `Task.execute()` is deprecated"() {
-        buildFile << """
-            task myTask
-            
-            task executer {
-                doLast {
-                    myTask.execute()
-                }
-            }
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        succeeds "executer"
-
-        then:
-        output.contains("The TaskInternal.execute() method has been deprecated. This is scheduled to be removed in Gradle 5.0. There are better ways to re-use task logic, see ")
-    }
-
     def "#description `Task.executer` is deprecated"() {
         buildFile << """
             task myTask

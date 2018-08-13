@@ -49,7 +49,6 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.TaskMutator;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.logging.Logger;
@@ -375,19 +374,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public Path getIdentityPath() {
         return identity.identityPath;
-    }
-
-    @Override
-    public final void execute() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskInternal.execute()", getReuseTaskLogicAdvice());
-        TaskExecuter executer = DeprecationLogger.whileDisabled(new Factory<TaskExecuter>() {
-            @Override
-            public TaskExecuter create() {
-                return getExecuter();
-            }
-        });
-        executer.execute(this, _state, new DefaultTaskExecutionContext());
-        _state.rethrowFailure();
     }
 
     @Override
