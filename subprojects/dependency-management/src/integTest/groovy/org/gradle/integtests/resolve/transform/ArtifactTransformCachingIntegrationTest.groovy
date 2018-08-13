@@ -27,6 +27,7 @@ import java.util.regex.Pattern
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS
 import static java.util.concurrent.TimeUnit.SECONDS
+import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture {
     private final static long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
@@ -1058,6 +1059,108 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         gcFile.lastModified() >= SECONDS.toMillis(beforeCleanup)
     }
 
+    def "cache cleanup does not delete entries that are currently being created"() {
+        given:
+        requireOwnGradleUserHomeDir() // needs its own journal
+
+        and:
+        def transformBarrier = file("transform-barrier").touch()
+        def cleaningBarrier = file("cleaning-barrier").touch()
+        buildFile << declareAttributes() << """
+            class BlockingTransform extends ArtifactTransform {
+                List<File> transform(File input) {
+                    def output = new File(outputDirectory, "\${input.name}.txt");
+                    output.text = ""
+                    println "Transformed \$input.name to \$output.name into \$outputDirectory"
+                    def barrier = new File('${transformBarrier.absolutePath}')
+                    while (barrier.exists()) {
+                        println "Waiting for \$barrier.name to be deleted"
+                        Thread.sleep(1000)
+                    }
+                    return [output]
+                }
+            }
+            
+            project(':lib') {
+                task jar1(type: Jar) {
+                    archiveName = 'util1.jar'
+                }
+                artifacts {
+                    compile jar1
+                }
+            }
+    
+            project(':app') {
+                dependencies {
+                    registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "blocking")
+                        artifactTransform(BlockingTransform)
+                    }
+                    compile project(':lib')
+                }
+                
+                task waitForCleaningBarrier {
+                    doLast {
+                        println "Waiting for ${cleaningBarrier.name}"
+                        def barrier = new File('${cleaningBarrier.absolutePath}')
+                        while (barrier.exists()) {
+                            println "Waiting for \$barrier.name to be deleted"
+                            Thread.sleep(1000)
+                        }
+                    }
+                }
+                
+                task waitForTransformBarrier {
+                    doLast {
+                        def files = configurations.compile.incoming.artifactView {
+                            attributes { it.attribute(artifactType, 'blocking') }
+                        }.artifacts.artifactFiles
+                        println "files: " + files.collect { it.name }
+                    }
+                }
+            }
+"""
+
+        and: 'preconditions for cleanup of untracked files'
+        gcFile.createFile().lastModified = daysAgo(2)
+        writeJournalInceptionTimestamp(daysAgo(8))
+
+        when: 'cleaning build is started'
+        def cleaningBuild = executer.withTasks("waitForCleaningBarrier").withArgument("--no-daemon").start()
+
+        then: 'cleaning build starts and waits on its barrier'
+        poll {
+            assert cleaningBuild.standardOutput.contains("Waiting for ${cleaningBarrier.name}")
+        }
+
+        when: 'transforming build is started'
+        def transformingBuild = executer.withTasks("waitForTransformBarrier").start()
+
+        then: 'transforming build starts artifact transform'
+        def cachedTransform
+        poll {
+            cachedTransform = outputDir("util1.jar", "util1.jar.txt") {
+                transformingBuild.standardOutput
+            }
+        }
+
+        when: 'cleanup is triggered'
+        def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
+        cleaningBarrier.delete()
+        cleaningBuild.waitForFinish()
+
+        then: 'cleanup runs and preserves the cached transform'
+        gcFile.lastModified() >= SECONDS.toMillis(beforeCleanup)
+        cachedTransform.assertExists()
+
+        when: 'transforming build is allowed to finish'
+        transformBarrier.delete()
+
+        then: 'transforming build finishes successfully'
+        transformingBuild.waitForFinish()
+    }
+
     def multiProjectWithJarSizeTransform(Map options = [:]) {
         def paramValue = options.paramValue ?: "1"
         def fileValue = options.fileValue ?: "String.valueOf(input.length())"
@@ -1209,19 +1312,19 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         assert output.count("into " + dirs.first()) == 1
     }
 
-    TestFile outputDir(String from, String to) {
-        def dirs = outputDirs(from, to)
+    TestFile outputDir(String from, String to, Closure<String> stream = { output }) {
+        def dirs = outputDirs(from, to, stream)
         if (dirs.size() == 1) {
             return dirs.first()
         }
         throw new AssertionError("Could not find exactly one output directory for $from -> $to in output: $output")
     }
 
-    Set<TestFile> outputDirs(String from, String to) {
+    Set<TestFile> outputDirs(String from, String to, Closure<String> stream = { output }) {
         Set<TestFile> dirs = []
         def baseDir = cacheDir.file(CacheLayout.TRANSFORMS_STORE.getKey(), from).absolutePath + File.separator
         def pattern = Pattern.compile("Transformed " + Pattern.quote(from) + " to " + Pattern.quote(to) + " into (" + Pattern.quote(baseDir) + "\\w+)")
-        for (def line : output.readLines()) {
+        for (def line : stream.call().readLines()) {
             def matcher = pattern.matcher(line)
             if (matcher.matches()) {
                 dirs.add(new TestFile(matcher.group(1)))
