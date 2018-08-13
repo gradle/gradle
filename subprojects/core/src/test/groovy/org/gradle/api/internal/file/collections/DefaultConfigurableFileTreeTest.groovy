@@ -23,7 +23,6 @@ import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.copy.FileCopier
 import org.gradle.api.internal.tasks.TaskResolver
-import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.util.AbstractTestForPatternSet
 import org.gradle.api.tasks.util.PatternFilterable
@@ -41,14 +40,21 @@ import org.junit.Test
 
 import static org.gradle.api.file.FileVisitorUtil.assertCanStopVisiting
 import static org.gradle.api.file.FileVisitorUtil.assertVisits
-import static org.gradle.api.internal.file.TestFiles.*
+import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory
+import static org.gradle.api.internal.file.TestFiles.getPatternSetFactory
+import static org.gradle.api.internal.file.TestFiles.resolver
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes
 import static org.gradle.util.Matchers.isEmpty
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.instanceOf
+import static org.hamcrest.Matchers.notNullValue
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertFalse
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.assertTrue
 
 class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
-    JUnit4Mockery context = new JUnit4GroovyMockery();
+    JUnit4Mockery context = new JUnit4GroovyMockery()
     TaskResolver taskResolverStub = context.mock(TaskResolver)
     DefaultConfigurableFileTree fileSet
     @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -60,35 +66,41 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         return fileSet
     }
 
-    @Before public void setUp() {
+    @Before
+    void setUp() {
         super.setUp()
         NativeServicesTestFixture.initialize()
         fileSet = new DefaultConfigurableFileTree(testDir, fileResolverStub, taskResolverStub, fileCopier, directoryFileTreeFactory())
         fileCopier = new FileCopier(DirectInstantiator.INSTANCE, fileResolverStub, context.mock(FileLookup), directoryFileTreeFactory())
     }
 
-    @Test public void testFileSetConstructionWithBaseDir() {
+    @Test
+    void testFileSetConstructionWithBaseDir() {
         assertEquals(testDir, fileSet.dir)
     }
 
-    @Test public void testFileSetConstructionFromMap() {
+    @Test
+    void testFileSetConstructionFromMap() {
         fileSet = new DefaultConfigurableFileTree(fileResolverStub, taskResolverStub, dir: testDir, includes: ['include'], builtBy: ['a'], fileCopier, directoryFileTreeFactory())
         assertEquals(testDir, fileSet.dir)
         assertEquals(['include'] as Set, fileSet.includes)
         assertEquals(['a'] as Set, fileSet.builtBy)
     }
 
-    @Test(expected = InvalidUserDataException) public void testFileSetConstructionWithNoBaseDirSpecified() {
+    @Test(expected = InvalidUserDataException)
+    void testFileSetConstructionWithNoBaseDirSpecified() {
         DefaultConfigurableFileTree fileSet = new DefaultConfigurableFileTree([:], fileResolverStub, taskResolverStub, fileCopier, directoryFileTreeFactory())
         fileSet.contains(new File('unknown'))
     }
 
-    @Test public void testFileSetConstructionWithBaseDirAsString() {
+    @Test
+    void testFileSetConstructionWithBaseDirAsString() {
         DefaultConfigurableFileTree fileSet = new DefaultConfigurableFileTree(fileResolverStub, taskResolverStub, dir: 'dirname', fileCopier, directoryFileTreeFactory())
         assertEquals(tmpDir.file("dirname"), fileSet.dir);
     }
 
-    @Test public void testResolveAddsADirectoryFileTree() {
+    @Test
+    void testResolveAddsADirectoryFileTree() {
         FileCollectionResolveContext resolveContext = context.mock(FileCollectionResolveContext)
 
         context.checking {
@@ -102,7 +114,8 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         fileSet.visitContents(resolveContext)
     }
 
-    @Test public void testResolveAddsBuildDependenciesIfNotEmpty() {
+    @Test
+    void testResolveAddsBuildDependenciesIfNotEmpty() {
         FileCollectionResolveContext resolveContext = context.mock(FileCollectionResolveContext)
         fileSet.builtBy("classes")
 
@@ -114,7 +127,8 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         fileSet.visitContents(resolveContext)
     }
 
-    @Test public void testCanScanForFiles() {
+    @Test
+    void testCanScanForFiles() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
         [included1, included2].each {File file ->
@@ -125,7 +139,8 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         assertThat(fileSet.files, equalTo([included1, included2] as Set))
     }
 
-    @Test public void testCanVisitFiles() {
+    @Test
+    void testCanVisitFiles() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
         [included1, included2].each {File file ->
@@ -136,7 +151,8 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         assertVisits(fileSet, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
     }
 
-    @Test public void testCanStopVisitingFiles() {
+    @Test
+    void testCanStopVisitingFiles() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir/otherDir/included2')
         [included1, included2].each {File file ->
@@ -147,7 +163,8 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         assertCanStopVisiting(fileSet)
     }
 
-    @Test public void testContainsFiles() {
+    @Test
+    void testContainsFiles() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
         [included1, included2].each {File file ->
@@ -165,7 +182,8 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         assertFalse(fileSet.contains(new File('something')))
     }
 
-    @Test public void testCanAddToAntTask() {
+    @Test
+    void testCanAddToAntTask() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
         [included1, included2].each {File file ->
@@ -176,7 +194,8 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         assertSetContainsForAllTypes(fileSet, 'subDir/included1', 'subDir2/included2')
     }
 
-    @Test public void testIsEmptyWhenBaseDirDoesNotExist() {
+    @Test
+    void testIsEmptyWhenBaseDirDoesNotExist() {
         fileSet.dir = new File(testDir, 'does not exist')
 
         assertThat(fileSet.files, isEmpty())
@@ -184,7 +203,8 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         assertVisits(fileSet, [], [])
     }
 
-    @Test public void testCanSelectFilesUsingPatterns() {
+    @Test
+    void testCanSelectFilesUsingPatterns() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
         File excluded1 = new File(testDir, 'subDir/notincluded')
@@ -205,7 +225,8 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         assertFalse(fileSet.contains(ignored1))
     }
 
-    @Test public void testCanFilterMatchingFilesUsingConfigureClosure() {
+    @Test
+    void testCanFilterMatchingFilesUsingConfigureClosure() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
         File excluded1 = new File(testDir, 'subDir/notincluded')
@@ -228,7 +249,8 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         assertFalse(filtered.contains(ignored1))
     }
 
-    @Test public void testCanFilterMatchingFilesUsingPatternSet() {
+    @Test
+    void testCanFilterMatchingFilesUsingPatternSet() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
         File excluded1 = new File(testDir, 'subDir/notincluded')
@@ -249,7 +271,8 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         assertFalse(filtered.contains(ignored1))
     }
 
-    @Test public void testCanFilterAndSelectFiles() {
+    @Test
+    void testCanFilterAndSelectFiles() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
         File excluded1 = new File(testDir, 'subDir/notincluded')
@@ -275,31 +298,13 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         assertFalse(filtered.contains(ignored1))
     }
 
-    @Test public void testDisplayName() {
+    @Test
+    void testDisplayName() {
         assertThat(fileSet.displayName, equalTo("directory '$testDir'".toString()))
     }
 
-    @Test public void testStopExecutionIfEmptyWhenNoMatchingFilesFound() {
-        fileSet.include('**/*included')
-        new File(testDir, 'excluded').text = 'some text'
-
-        try {
-            fileSet.stopExecutionIfEmpty()
-            fail()
-        } catch (StopExecutionException e) {
-            assertThat(e.message, equalTo("Directory '$testDir' does not contain any files." as String))
-        }
-    }
-
-    @Test public void testStopExecutionIfEmptyWhenMatchingFilesFound() {
-        fileSet.include('**/*included')
-        new File(testDir, 'included').text = 'some text'
-
-        fileSet.stopExecutionIfEmpty()
-    }
-
     @Test
-    public void canGetAndSetTaskDependencies() {
+    void canGetAndSetTaskDependencies() {
         FileResolver fileResolverStub = context.mock(FileResolver.class);
         context.checking {
             addGetPatternSetFactory(delegate, fileResolverStub)

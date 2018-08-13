@@ -22,7 +22,6 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitorUtil
 import org.gradle.api.internal.tasks.TaskDependencies
 import org.gradle.api.specs.Spec
-import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -282,28 +281,6 @@ class AbstractFileCollectionTest extends Specification {
         expect:
         assertTrue(new TestFileCollection().isEmpty());
         assertFalse(new TestFileCollection(new File("f1")).isEmpty());
-    }
-
-    void throwsStopExceptionWhenEmpty() {
-        TestFileCollection collection = new TestFileCollection();
-
-        expect:
-        try {
-            collection.stopExecutionIfEmpty();
-            fail();
-        } catch (StopExecutionException e) {
-            assertThat(e.getMessage(), equalTo("Collection-display-name does not contain any files."));
-        }
-    }
-
-    void doesNotThrowStopExceptionWhenNotEmpty() {
-        TestFileCollection collection = new TestFileCollection(new File("f1"));
-
-        when:
-        collection.stopExecutionIfEmpty();
-
-        then:
-        noExceptionThrown()
     }
 
     void canConvertToCollectionTypes() {

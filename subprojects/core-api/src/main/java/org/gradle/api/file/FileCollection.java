@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Buildable;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.AntBuilderAware;
-import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;
@@ -143,18 +142,6 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
      * @return true if this collection is empty, false otherwise.
      */
     boolean isEmpty();
-
-    /**
-     * Throws a {@link StopExecutionException} if this collection is empty.
-     *
-     * @return this
-     * @throws StopExecutionException When this collection is empty.
-     *
-     * @deprecated You can use {@literal @}{@link org.gradle.api.tasks.SkipWhenEmpty} on a {@code FileCollection} property,
-     * or throw a {@code StopExecutionException} in your code manually instead.
-     */
-    @Deprecated
-    FileCollection stopExecutionIfEmpty() throws StopExecutionException;
 
     /**
      * Converts this collection to a {@link FileTree}. Generally, for each file in this collection, the resulting file

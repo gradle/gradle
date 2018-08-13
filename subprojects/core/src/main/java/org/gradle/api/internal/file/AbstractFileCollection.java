@@ -30,7 +30,6 @@ import org.gradle.api.internal.tasks.TaskDependencies;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeprecationLogger;
@@ -168,15 +167,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     @Override
     public boolean isEmpty() {
         return getFiles().isEmpty();
-    }
-
-    @Override
-    public FileCollection stopExecutionIfEmpty() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("FileCollection.stopExecutionIfEmpty()");
-        if (isEmpty()) {
-            throw new StopExecutionException(String.format("%s does not contain any files.", getCapDisplayName()));
-        }
-        return this;
     }
 
     @Deprecated
