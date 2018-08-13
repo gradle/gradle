@@ -2,14 +2,12 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
 
-    val pluginsExperiments = "gradle.plugin.org.gradle.kotlin:gradle-kotlin-dsl-plugins-experiments:0.1.14"
+    val pluginsExperiments by extra(
+        "gradle.plugin.org.gradle.kotlin:gradle-kotlin-dsl-plugins-experiments:0.1.14"
+    )
 
     dependencies {
         classpath(pluginsExperiments)
-    }
-
-    project.dependencies {
-        "compile"(pluginsExperiments)
     }
 
     configure(listOf(repositories, project.repositories)) {
@@ -39,7 +37,11 @@ tasks.withType<KotlinCompile>().configureEach {
     }
 }
 
+val pluginsExperiments: String by extra
+
 dependencies {
+    compile(pluginsExperiments)
+
     compileOnly(gradleKotlinDsl())
 
     compile(kotlin("gradle-plugin"))
