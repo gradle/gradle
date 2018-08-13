@@ -48,7 +48,6 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.TaskMutator;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.internal.tasks.execution.TaskValidator;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -608,16 +607,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 return getTemporaryDir();
             }
         };
-    }
-
-    @Override
-    public void addValidator(TaskValidator validator) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<TaskValidator> getValidators() {
-        throw new UnsupportedOperationException();
     }
 
     private ContextAwareTaskAction convertClosureToAction(Closure actionClosure, String actionName) {

@@ -21,7 +21,6 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.internal.tasks.execution.TaskValidator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
@@ -58,13 +57,6 @@ public interface TaskInternal extends Task, Configurable<Task> {
 
     @Override
     TaskOutputsInternal getOutputs();
-
-    @Deprecated
-    @Internal
-    List<TaskValidator> getValidators();
-
-    @Deprecated
-    void addValidator(TaskValidator validator);
 
     @Override
     TaskStateInternal getState();
