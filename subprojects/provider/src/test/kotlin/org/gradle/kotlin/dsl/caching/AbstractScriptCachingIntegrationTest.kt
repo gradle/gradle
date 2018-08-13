@@ -45,7 +45,15 @@ abstract class AbstractScriptCachingIntegrationTest : AbstractIntegrationTest() 
 
     protected
     fun buildWithUniqueGradleHome(vararg arguments: String): BuildResult =
-        buildForCacheInspection("-g", uniqueGradleHome(), *arguments)
+        buildWithGradleHome(uniqueGradleHome(), *arguments)
+
+    protected
+    fun buildWithGradleHome(gradleHomePath: String, vararg arguments: String) =
+        buildForCacheInspection("-g", gradleHomePath, *arguments)
+
+    protected
+    fun <T> withUniqueGradleHome(f: (String) -> T): T =
+        f(uniqueGradleHome())
 
     private
     fun uniqueGradleHome() =

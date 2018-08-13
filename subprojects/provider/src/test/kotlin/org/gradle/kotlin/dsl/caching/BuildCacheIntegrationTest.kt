@@ -59,7 +59,7 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
     @LeaksFileHandles("on the separate Gradle homes")
     @Test
-    fun `build cache integration is enabled via project property`() {
+    fun `build cache integration is enabled via system property`() {
 
         val buildCacheDir =
             existing("build-cache")
@@ -91,15 +91,22 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
             assertThat(output, containsString(expectedOutput))
         }
 
-        // Cache hit from build cache
-        buildWithUniqueGradleHome("--build-cache", withBuildCacheIntegration).apply {
+        // Cache hit from build cache (enabled via gradle.properties file)
+        withUniqueGradleHome { gradleHome ->
 
-            compilationCache {
-                misses(cachedSettingsFile)
-                hits(cachedBuildFile)
+            File(gradleHome, "gradle.properties").writeText(
+                "systemProp.$kotlinDslBuildCacheEnabled"
+            )
+
+            buildWithGradleHome(gradleHome, "--build-cache").apply {
+
+                compilationCache {
+                    misses(cachedSettingsFile)
+                    hits(cachedBuildFile)
+                }
+
+                assertThat(output, containsString(expectedOutput))
             }
-
-            assertThat(output, containsString(expectedOutput))
         }
 
         // Cache miss without build cache integration
@@ -115,7 +122,10 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
     }
 
     private
-    val withBuildCacheIntegration = "-Porg.gradle.kotlin.dsl.caching.buildcache=true"
+    val kotlinDslBuildCacheEnabled = "org.gradle.kotlin.dsl.caching.buildcache=true"
+
+    private
+    val withBuildCacheIntegration = "-D$kotlinDslBuildCacheEnabled"
 
     private
     fun withLocalBuildCacheSettings(buildCacheDir: File): File =
