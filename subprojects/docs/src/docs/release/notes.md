@@ -45,6 +45,8 @@ The following are the newly deprecated items in this Gradle release. If you have
 
  - The `org.gradle.plugins.signing.Signature` methods `getToSignArtifact()` and `setFile(File)` are removed. 
  - Removed `DirectoryBuildCache.targetSizeInMB`.
+ - Removed the methods `dependsOnTaskDidWork` and `deleteAllActions` from `Task`.
+ - Removed the methods `execute`, `getExecuter`, `setExecuter`, `getValidators` and `addValidator` from `TaskInternal`.
 
 ## External contributions
 
