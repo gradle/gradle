@@ -248,19 +248,4 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         then:
         task.getOnlyIf().isSatisfiedBy(task)
     }
-
-    def testDependentTaskDidWork() {
-        Task task1 = Mock()
-        Task task2 = Mock()
-        TaskDependency dependencyMock = Mock()
-        getTask().dependsOn(dependencyMock)
-        dependencyMock.getDependencies(getTask()) >> [task1, task2]
-        task1.getDidWork() >> false
-        task2.getDidWork() >>> [false, true]
-
-        expect:
-        !getTask().dependsOnTaskDidWork()
-        getTask().dependsOnTaskDidWork()
-    }
-
 }

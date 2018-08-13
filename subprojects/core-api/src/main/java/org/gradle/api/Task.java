@@ -256,7 +256,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * <p>You may add multiple such predicates. The task is skipped if any of the predicates return false.</p>
      *
-     * <p>Typical usage:<code>myTask.onlyIf{ dependsOnTaskDidWork() } </code></p>
+     * <p>Typical usage:<code>myTask.onlyIf { isProductionEnvironment() }</code></p>
      *
      * @param onlyIfClosure code to execute to determine if task should be run
      */
@@ -271,7 +271,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * <p>Typical usage (from Java):</p>
      * <pre>myTask.onlyIf(new Spec&lt;Task&gt;() {
      *    boolean isSatisfiedBy(Task task) {
-     *       return task.dependsOnTaskDidWork();
+     *       return isProductionEnvironment();
      *    }
      * });
      * </pre>
@@ -313,7 +313,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     /**
      * Sets whether the task actually did any work.  Most built-in tasks will set this automatically, but
      * it may be useful to manually indicate this for custom user tasks.
-     * <p>This is useful when combined with onlyIf { dependsOnTaskDidWork() }.
      * @param didWork indicates if the task did any work
      */
     void setDidWork(boolean didWork);
@@ -556,17 +555,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @param group The task group for this task. Can be null.
      */
     void setGroup(@Nullable String group);
-
-    /**
-     * <p>Checks if any of the tasks that this task depends on {@link Task#getDidWork() didWork}.</p>
-     *
-     * @return true if any task this task depends on did work.
-     *
-     * @deprecated Build logic should not depend on this information about a task. Instead, declare
-     * task inputs and outputs to allow Gradle to optimize task execution.
-     */
-    @Deprecated
-    boolean dependsOnTaskDidWork();
 
     /**
      * <p>Returns the inputs of this task.</p>
