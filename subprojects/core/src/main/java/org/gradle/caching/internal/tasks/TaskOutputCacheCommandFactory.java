@@ -38,10 +38,10 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemMirror;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
-import org.gradle.internal.snapshot.PhysicalSnapshot;
 
 import java.io.File;
 import java.io.IOException;
@@ -134,7 +134,7 @@ public class TaskOutputCacheCommandFactory {
             };
         }
 
-        private void updateSnapshots(Map<String, ? extends PhysicalSnapshot> propertiesSnapshots, OriginTaskExecutionMetadata originMetadata) {
+        private void updateSnapshots(Map<String, ? extends FileSystemLocationSnapshot> propertySnapshots, OriginTaskExecutionMetadata originMetadata) {
             ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> propertyFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
             AbsolutePathFingerprintingStrategy fingerprintingStrategy = AbsolutePathFingerprintingStrategy.IGNORE_MISSING;
             for (ResolvedTaskOutputFilePropertySpec property : outputProperties) {
@@ -144,7 +144,7 @@ public class TaskOutputCacheCommandFactory {
                     propertyFingerprintsBuilder.put(propertyName, fingerprintingStrategy.getIdentifier().getEmptyFingerprint());
                     continue;
                 }
-                PhysicalSnapshot snapshot = propertiesSnapshots.get(propertyName);
+                FileSystemLocationSnapshot snapshot = propertySnapshots.get(propertyName);
                 String absolutePath = internedAbsolutePath(outputFile);
                 List<FileSystemSnapshot> roots = new ArrayList<FileSystemSnapshot>();
 

@@ -18,17 +18,17 @@ package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.PhysicalSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
-public class DefaultFileFingerprint extends AbstractFileFingerprint {
+public class DefaultFileSystemLocationFingerprint extends AbstractFileSystemLocationFingerprint {
     private final String normalizedPath;
 
-    public DefaultFileFingerprint(String normalizedPath, FileType type, HashCode contentHash) {
+    public DefaultFileSystemLocationFingerprint(String normalizedPath, FileType type, HashCode contentHash) {
         super(type, hashForType(type, contentHash));
         this.normalizedPath = normalizedPath;
     }
 
-    public DefaultFileFingerprint(String normalizedPath, PhysicalSnapshot snapshot) {
+    public DefaultFileSystemLocationFingerprint(String normalizedPath, FileSystemLocationSnapshot snapshot) {
         this(normalizedPath, snapshot.getType(), snapshot.getHash());
     }
 

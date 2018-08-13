@@ -20,7 +20,7 @@ import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileFingerprint;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -34,17 +34,17 @@ import java.util.Map;
 public class ClasspathCompareStrategy implements FingerprintCompareStrategy.Impl {
 
     @Override
-    public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileFingerprint> currentSnapshots, Map<String, FileFingerprint> previousSnapshots, String propertyTitle, boolean includeAdded) {
-        Iterator<Map.Entry<String, FileFingerprint>> currentEntries = currentSnapshots.entrySet().iterator();
-        Iterator<Map.Entry<String, FileFingerprint>> previousEntries = previousSnapshots.entrySet().iterator();
+    public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> currentSnapshots, Map<String, FileSystemLocationFingerprint> previousSnapshots, String propertyTitle, boolean includeAdded) {
+        Iterator<Map.Entry<String, FileSystemLocationFingerprint>> currentEntries = currentSnapshots.entrySet().iterator();
+        Iterator<Map.Entry<String, FileSystemLocationFingerprint>> previousEntries = previousSnapshots.entrySet().iterator();
         while (true) {
             if (currentEntries.hasNext()) {
-                Map.Entry<String, FileFingerprint> current = currentEntries.next();
+                Map.Entry<String, FileSystemLocationFingerprint> current = currentEntries.next();
                 String currentAbsolutePath = current.getKey();
                 if (previousEntries.hasNext()) {
-                    Map.Entry<String, FileFingerprint> previous = previousEntries.next();
-                    FileFingerprint currentFingerprint = current.getValue();
-                    FileFingerprint previousFingerprint = previous.getValue();
+                    Map.Entry<String, FileSystemLocationFingerprint> previous = previousEntries.next();
+                    FileSystemLocationFingerprint currentFingerprint = current.getValue();
+                    FileSystemLocationFingerprint previousFingerprint = previous.getValue();
                     String currentNormalizedPath = currentFingerprint.getNormalizedPath();
                     String previousNormalizedPath = previousFingerprint.getNormalizedPath();
                     if (currentNormalizedPath.equals(previousNormalizedPath)) {
@@ -77,7 +77,7 @@ public class ClasspathCompareStrategy implements FingerprintCompareStrategy.Impl
                 }
             } else {
                 if (previousEntries.hasNext()) {
-                    Map.Entry<String, FileFingerprint> previousEntry = previousEntries.next();
+                    Map.Entry<String, FileSystemLocationFingerprint> previousEntry = previousEntries.next();
                     if (!visitor.visitChange(FileChange.removed(previousEntry.getKey(), propertyTitle, previousEntry.getValue().getType()))) {
                         return false;
                     }
@@ -89,9 +89,9 @@ public class ClasspathCompareStrategy implements FingerprintCompareStrategy.Impl
     }
 
     @Override
-    public void appendToHasher(BuildCacheHasher hasher, Collection<FileFingerprint> fingerprints) {
-        for (FileFingerprint fileFingerprint : fingerprints) {
-            fileFingerprint.appendToHasher(hasher);
+    public void appendToHasher(BuildCacheHasher hasher, Collection<FileSystemLocationFingerprint> fingerprints) {
+        for (FileSystemLocationFingerprint fingerprint : fingerprints) {
+            fingerprint.appendToHasher(hasher);
         }
     }
 }

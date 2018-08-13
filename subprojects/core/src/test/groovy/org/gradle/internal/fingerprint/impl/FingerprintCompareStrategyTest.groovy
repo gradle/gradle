@@ -19,7 +19,7 @@ package org.gradle.internal.fingerprint.impl
 import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVisitor
 import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.internal.file.FileType
-import org.gradle.internal.fingerprint.FileFingerprint
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -296,20 +296,20 @@ class FingerprintCompareStrategyTest extends Specification {
         ["one": fingerprint("one"), "two": fingerprint("two")] | ["one": fingerprint("one")]
     }
 
-    def changes(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, FileFingerprint> current, Map<String, FileFingerprint> previous) {
+    def changes(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
         def visitor = new CollectingTaskStateChangeVisitor()
         strategy.visitChangesSince(visitor, current, previous, "test", includeAdded)
         visitor.getChanges().toList()
     }
 
-    def changesUsingAbsolutePaths(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, FileFingerprint> current, Map<String, FileFingerprint> previous) {
+    def changesUsingAbsolutePaths(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
         def visitor = new CollectingTaskStateChangeVisitor()
         strategy.visitChangesSince(visitor, current, previous, "test", includeAdded)
         visitor.getChanges().toList()
     }
 
     def fingerprint(String normalizedPath, def hashCode = 0x1234abcd) {
-        return new DefaultFileFingerprint(normalizedPath, FileType.RegularFile, HashCode.fromInt((int) hashCode))
+        return new DefaultFileSystemLocationFingerprint(normalizedPath, FileType.RegularFile, HashCode.fromInt((int) hashCode))
     }
 
     def added(String path) {

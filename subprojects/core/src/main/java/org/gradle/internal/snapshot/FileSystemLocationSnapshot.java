@@ -22,15 +22,16 @@ import org.gradle.internal.hash.HashCode;
 import java.util.Comparator;
 
 /**
- * A snapshot of a concrete file/directory tree.
+ * A snapshot of a single location on the file system.
  *
- * The file is not required to exist (see {@link MissingFileSnapshot}.
+ * The snapshot can be a snapshot of a regular file or of a whole directory tree.
+ * The file at the location is not required to exist (see {@link MissingFileSnapshot}.
  */
-public interface PhysicalSnapshot extends FileSystemSnapshot {
+public interface FileSystemLocationSnapshot extends FileSystemSnapshot {
 
-    Comparator<PhysicalSnapshot> BY_NAME = new Comparator<PhysicalSnapshot>() {
+    Comparator<FileSystemLocationSnapshot> BY_NAME = new Comparator<FileSystemLocationSnapshot>() {
         @Override
-        public int compare(PhysicalSnapshot o1, PhysicalSnapshot o2) {
+        public int compare(FileSystemLocationSnapshot o1, FileSystemLocationSnapshot o2) {
             return o1.getName().compareTo(o2.getName());
         }
     };
@@ -68,5 +69,5 @@ public interface PhysicalSnapshot extends FileSystemSnapshot {
     /**
      * Whether the content and the metadata (modification date) of the current snapshot is the same as for the given one.
      */
-    boolean isContentAndMetadataUpToDate(PhysicalSnapshot other);
+    boolean isContentAndMetadataUpToDate(FileSystemLocationSnapshot other);
 }

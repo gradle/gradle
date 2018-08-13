@@ -28,13 +28,13 @@ import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.FileFingerprint;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.PhysicalSnapshot;
-import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathSegmentsTracker;
 import org.gradle.internal.snapshot.RelativePathStringTracker;
@@ -91,8 +91,8 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
     }
 
     @Override
-    public Map<String, FileFingerprint> collectFingerprints(Iterable<FileSystemSnapshot> roots) {
-        ImmutableMap.Builder<String, FileFingerprint> builder = ImmutableMap.builder();
+    public Map<String, FileSystemLocationFingerprint> collectFingerprints(Iterable<FileSystemSnapshot> roots) {
+        ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         HashSet<String> processedEntries = new HashSet<String>();
         for (FileSystemSnapshot root : roots) {
             ClasspathFingerprintVisitor fingerprintVisitor = new ClasspathFingerprintVisitor(processedEntries, builder);
@@ -120,7 +120,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         public abstract HashCode determineNonJarFingerprint(HashCode original);
     }
 
-    private class ClasspathContentFingerprintingVisitor implements PhysicalSnapshotVisitor {
+    private class ClasspathContentFingerprintingVisitor implements FileSystemSnapshotVisitor {
         private final ClasspathFingerprintVisitor delegate;
         private final RelativePathSegmentsTracker relativePathSegmentsTracker = new RelativePathSegmentsTracker();
         private final Factory<String[]> relativePathFactory = new Factory<String[]>() {
@@ -141,7 +141,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         }
 
         @Override
-        public void visit(PhysicalSnapshot fileSnapshot) {
+        public void visit(FileSystemLocationSnapshot fileSnapshot) {
             if (fileSnapshot.getType() == FileType.RegularFile) {
                 HashCode normalizedContent = fingerprintFile((RegularFileSnapshot) fileSnapshot);
                 if (normalizedContent != null) {
@@ -200,34 +200,34 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
     private class ClasspathFingerprintVisitor {
         private final RelativePathStringTracker relativePathStringTracker;
         private final HashSet<String> processedEntries;
-        private final ImmutableMap.Builder<String, FileFingerprint> builder;
+        private final ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder;
 
-        public ClasspathFingerprintVisitor(HashSet<String> processedEntries, ImmutableMap.Builder<String, FileFingerprint> builder) {
+        public ClasspathFingerprintVisitor(HashSet<String> processedEntries, ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder) {
             this.processedEntries = processedEntries;
             this.builder = builder;
             this.relativePathStringTracker = new RelativePathStringTracker();
         }
 
-        public boolean preVisitDirectory(PhysicalSnapshot directorySnapshot) {
+        public boolean preVisitDirectory(FileSystemLocationSnapshot directorySnapshot) {
             relativePathStringTracker.enter(directorySnapshot);
             return true;
         }
 
-        public void visit(PhysicalSnapshot fileSnapshot, HashCode normalizedContentHash) {
+        public void visit(FileSystemLocationSnapshot fileSnapshot, HashCode normalizedContentHash) {
             String absolutePath = fileSnapshot.getAbsolutePath();
             if (processedEntries.add(absolutePath)) {
-                FileFingerprint fileFingerprint = relativePathStringTracker.isRoot() ? IgnoredPathFingerprint.create(fileSnapshot.getType(), normalizedContentHash) : createFileFingerprint(fileSnapshot, normalizedContentHash);
+                FileSystemLocationFingerprint fingerprint = relativePathStringTracker.isRoot() ? IgnoredPathFileSystemLocationFingerprint.create(fileSnapshot.getType(), normalizedContentHash) : createFileFingerprint(fileSnapshot, normalizedContentHash);
                 builder.put(
                     absolutePath,
-                    fileFingerprint);
+                    fingerprint);
             }
         }
 
-        private FileFingerprint createFileFingerprint(PhysicalSnapshot snapshot, HashCode content) {
+        private FileSystemLocationFingerprint createFileFingerprint(FileSystemLocationSnapshot snapshot, HashCode content) {
             relativePathStringTracker.enter(snapshot);
-            FileFingerprint fileFingerprint = new DefaultFileFingerprint(stringInterner.intern(relativePathStringTracker.getRelativePathString()), FileType.RegularFile, content);
+            FileSystemLocationFingerprint fingerprint = new DefaultFileSystemLocationFingerprint(stringInterner.intern(relativePathStringTracker.getRelativePathString()), FileType.RegularFile, content);
             relativePathStringTracker.leave();
-            return fileFingerprint;
+            return fingerprint;
         }
 
         public void postVisitDirectory() {

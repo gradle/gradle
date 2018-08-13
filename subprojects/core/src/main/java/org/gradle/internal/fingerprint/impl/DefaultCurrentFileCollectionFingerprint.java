@@ -23,20 +23,20 @@ import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileFingerprint;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.PhysicalSnapshot;
-import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
 import java.util.Map;
 
 public class DefaultCurrentFileCollectionFingerprint implements CurrentFileCollectionFingerprint {
 
-    private final Map<String, FileFingerprint> fingerprints;
+    private final Map<String, FileSystemLocationFingerprint> fingerprints;
     private final FingerprintCompareStrategy compareStrategy;
     private final FingerprintingStrategy.Identifier identifier;
     private final Iterable<FileSystemSnapshot> roots;
@@ -47,21 +47,21 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
         if (Iterables.isEmpty(roots)) {
             return strategy.getIdentifier().getEmptyFingerprint();
         }
-        Map<String, FileFingerprint> snapshots = strategy.collectFingerprints(roots);
+        Map<String, FileSystemLocationFingerprint> snapshots = strategy.collectFingerprints(roots);
         if (snapshots.isEmpty()) {
             return strategy.getIdentifier().getEmptyFingerprint();
         }
         return new DefaultCurrentFileCollectionFingerprint(snapshots, strategy.getCompareStrategy(), strategy.getIdentifier(), roots);
     }
 
-    private DefaultCurrentFileCollectionFingerprint(Map<String, FileFingerprint> fingerprints, FingerprintCompareStrategy compareStrategy, FingerprintingStrategy.Identifier identifier, Iterable<FileSystemSnapshot> roots) {
+    private DefaultCurrentFileCollectionFingerprint(Map<String, FileSystemLocationFingerprint> fingerprints, FingerprintCompareStrategy compareStrategy, FingerprintingStrategy.Identifier identifier, Iterable<FileSystemSnapshot> roots) {
         this.fingerprints = fingerprints;
         this.compareStrategy = compareStrategy;
         this.identifier = identifier;
         this.roots = roots;
 
         final ImmutableMultimap.Builder<String, HashCode> builder = ImmutableMultimap.builder();
-        accept(new PhysicalSnapshotVisitor() {
+        accept(new FileSystemSnapshotVisitor() {
             @Override
             public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                 builder.put(directorySnapshot.getAbsolutePath(), directorySnapshot.getHash());
@@ -69,7 +69,7 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
             }
 
             @Override
-            public void visit(PhysicalSnapshot fileSnapshot) {
+            public void visit(FileSystemLocationSnapshot fileSnapshot) {
                 builder.put(fileSnapshot.getAbsolutePath(), fileSnapshot.getHash());
             }
 
@@ -103,7 +103,7 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     }
 
     @Override
-    public Map<String, FileFingerprint> getFingerprints() {
+    public Map<String, FileSystemLocationFingerprint> getFingerprints() {
         return fingerprints;
     }
 
@@ -118,7 +118,7 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     }
 
     @Override
-    public void accept(PhysicalSnapshotVisitor visitor) {
+    public void accept(FileSystemSnapshotVisitor visitor) {
         if (roots == null) {
             throw new UnsupportedOperationException("Roots not available.");
         }

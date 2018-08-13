@@ -17,12 +17,12 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.internal.fingerprint.FileFingerprint;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.PhysicalSnapshot;
-import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -40,11 +40,11 @@ public class IgnoredPathFingerprintingStrategy implements FingerprintingStrategy
     }
 
     @Override
-    public Map<String, FileFingerprint> collectFingerprints(Iterable<FileSystemSnapshot> roots) {
-        final ImmutableMap.Builder<String, FileFingerprint> builder = ImmutableMap.builder();
+    public Map<String, FileSystemLocationFingerprint> collectFingerprints(Iterable<FileSystemSnapshot> roots) {
+        final ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         final HashSet<String> processedEntries = new HashSet<String>();
         for (FileSystemSnapshot root : roots) {
-            root.accept(new PhysicalSnapshotVisitor() {
+            root.accept(new FileSystemSnapshotVisitor() {
 
                 @Override
                 public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
@@ -52,10 +52,10 @@ public class IgnoredPathFingerprintingStrategy implements FingerprintingStrategy
                 }
 
                 @Override
-                public void visit(PhysicalSnapshot fileSnapshot) {
+                public void visit(FileSystemLocationSnapshot fileSnapshot) {
                     String absolutePath = fileSnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        builder.put(absolutePath, IgnoredPathFingerprint.create(fileSnapshot.getType(), fileSnapshot.getHash()));
+                        builder.put(absolutePath, IgnoredPathFileSystemLocationFingerprint.create(fileSnapshot.getType(), fileSnapshot.getHash()));
                     }
                 }
 

@@ -29,9 +29,9 @@ import javax.annotation.Nullable;
 @ThreadSafe
 public interface FileSystemMirror {
     @Nullable
-    PhysicalSnapshot getSnapshot(String absolutePath);
+    FileSystemLocationSnapshot getSnapshot(String absolutePath);
 
-    void putSnapshot(PhysicalSnapshot file);
+    void putSnapshot(FileSystemLocationSnapshot file);
 
     @Nullable
     FileMetadataSnapshot getMetadata(String absolutePath);

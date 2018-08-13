@@ -22,7 +22,7 @@ import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocatio
 import org.gradle.internal.classpath.CachedJarFileStore
 import org.gradle.internal.file.FileMetadataSnapshot
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.PhysicalSnapshot
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -46,7 +46,7 @@ class DefaultFileSystemMirrorTest extends Specification {
     def "keeps state about a file until task outputs are generated"() {
         def file = tmpDir.file("a")
         def fileSnapshot = Stub(RegularFileSnapshot)
-        def fileTreeSnapshot = Stub(PhysicalSnapshot)
+        def fileTreeSnapshot = Stub(FileSystemLocationSnapshot)
         def metadata = Stub(FileMetadataSnapshot)
 
         given:
@@ -74,7 +74,6 @@ class DefaultFileSystemMirrorTest extends Specification {
     def "keeps state about a file until end of build"() {
         def file = tmpDir.file("a")
         def fileSnapshot = Stub(RegularFileSnapshot)
-        def fileTreeSnapshot = Stub(PhysicalSnapshot)
         def metadata = Stub(FileMetadataSnapshot)
         def buildResult = Stub(BuildResult)
         def gradle = Stub(GradleInternal)
@@ -82,7 +81,6 @@ class DefaultFileSystemMirrorTest extends Specification {
         given:
         _ * fileSnapshot.absolutePath >> file.path
         _ * fileSnapshot.hash >> HashCode.fromInt(37)
-        _ * fileTreeSnapshot.absolutePath >> file.path
         _ * buildResult.gradle >> gradle
         _ * gradle.parent >> null
 
@@ -105,14 +103,12 @@ class DefaultFileSystemMirrorTest extends Specification {
     def "does not discard state about a file that lives in the caches when task outputs are generated"() {
         def file = cacheDir.file("some/dir/a")
         def fileSnapshot = Stub(RegularFileSnapshot)
-        def fileTreeSnapshot = Stub(PhysicalSnapshot)
         def metadata = Stub(FileMetadataSnapshot)
         def buildResult = Stub(BuildResult)
         def gradle = Stub(GradleInternal)
 
         given:
         _ * fileSnapshot.absolutePath >> file.path
-        _ * fileTreeSnapshot.absolutePath >> file.path
         _ * buildResult.gradle >> gradle
         _ * gradle.parent >> null
 

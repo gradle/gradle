@@ -46,8 +46,8 @@ import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.ListSerializer;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
-import org.gradle.internal.snapshot.PhysicalSnapshot;
 import org.gradle.internal.util.BiFunction;
 
 import java.io.File;
@@ -178,7 +178,7 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
     }
 
     private CacheKey getCacheKey(File inputFile, HashCode inputsHash) {
-        PhysicalSnapshot snapshot = fileSystemSnapshotter.snapshot(inputFile);
+        FileSystemLocationSnapshot snapshot = fileSystemSnapshotter.snapshot(inputFile);
         return new CacheKey(inputsHash, snapshot.getAbsolutePath(), snapshot.getHash());
     }
 

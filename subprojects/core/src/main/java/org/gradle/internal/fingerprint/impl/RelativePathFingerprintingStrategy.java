@@ -18,12 +18,12 @@ package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.internal.fingerprint.FileFingerprint;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.PhysicalSnapshot;
-import org.gradle.internal.snapshot.PhysicalSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.RelativePathStringTracker;
 
 import java.util.HashSet;
@@ -42,11 +42,11 @@ public class RelativePathFingerprintingStrategy implements FingerprintingStrateg
     }
 
     @Override
-    public Map<String, FileFingerprint> collectFingerprints(Iterable<FileSystemSnapshot> roots) {
-        final ImmutableMap.Builder<String, FileFingerprint> builder = ImmutableMap.builder();
+    public Map<String, FileSystemLocationFingerprint> collectFingerprints(Iterable<FileSystemSnapshot> roots) {
+        final ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         final HashSet<String> processedEntries = new HashSet<String>();
         for (FileSystemSnapshot root : roots) {
-            root.accept(new PhysicalSnapshotVisitor() {
+            root.accept(new FileSystemSnapshotVisitor() {
                 private final RelativePathStringTracker relativePathStringTracker = new RelativePathStringTracker();
 
                 @Override
@@ -55,26 +55,26 @@ public class RelativePathFingerprintingStrategy implements FingerprintingStrateg
                     relativePathStringTracker.enter(directorySnapshot);
                     String absolutePath = directorySnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        FileFingerprint fingerprint = isRoot ? IgnoredPathFingerprint.DIRECTORY : new DefaultFileFingerprint(stringInterner.intern(relativePathStringTracker.getRelativePathString()), directorySnapshot);
+                        FileSystemLocationFingerprint fingerprint = isRoot ? IgnoredPathFileSystemLocationFingerprint.DIRECTORY : new DefaultFileSystemLocationFingerprint(stringInterner.intern(relativePathStringTracker.getRelativePathString()), directorySnapshot);
                         builder.put(absolutePath, fingerprint);
                     }
                     return true;
                 }
 
                 @Override
-                public void visit(PhysicalSnapshot fileSnapshot) {
+                public void visit(FileSystemLocationSnapshot fileSnapshot) {
                     String absolutePath = fileSnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        FileFingerprint fingerprint = relativePathStringTracker.isRoot() ? new DefaultFileFingerprint(fileSnapshot.getName(), fileSnapshot) : createNormalizedFileSnapshot(fileSnapshot);
+                        FileSystemLocationFingerprint fingerprint = relativePathStringTracker.isRoot() ? new DefaultFileSystemLocationFingerprint(fileSnapshot.getName(), fileSnapshot) : createFingerprint(fileSnapshot);
                         builder.put(absolutePath, fingerprint);
                     }
                 }
 
-                private FileFingerprint createNormalizedFileSnapshot(PhysicalSnapshot fileSnapshot) {
-                    relativePathStringTracker.enter(fileSnapshot);
-                    FileFingerprint fileFingerprint = new DefaultFileFingerprint(stringInterner.intern(relativePathStringTracker.getRelativePathString()), fileSnapshot);
+                private FileSystemLocationFingerprint createFingerprint(FileSystemLocationSnapshot snapshot) {
+                    relativePathStringTracker.enter(snapshot);
+                    FileSystemLocationFingerprint fingerprint = new DefaultFileSystemLocationFingerprint(stringInterner.intern(relativePathStringTracker.getRelativePathString()), snapshot);
                     relativePathStringTracker.leave();
-                    return fileFingerprint;
+                    return fingerprint;
                 }
 
                 @Override

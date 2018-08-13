@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableMultimap;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileFingerprint;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Decoder;
@@ -35,11 +35,11 @@ import java.util.Map;
 
 public class DefaultHistoricalFileCollectionFingerprint implements HistoricalFileCollectionFingerprint {
 
-    private final Map<String, FileFingerprint> fingerprints;
+    private final Map<String, FileSystemLocationFingerprint> fingerprints;
     private final FingerprintCompareStrategy compareStrategy;
     private final ImmutableMultimap<String, HashCode> rootHashes;
 
-    public DefaultHistoricalFileCollectionFingerprint(Map<String, FileFingerprint> fingerprints, FingerprintCompareStrategy compareStrategy, ImmutableMultimap<String, HashCode> rootHashes) {
+    public DefaultHistoricalFileCollectionFingerprint(Map<String, FileSystemLocationFingerprint> fingerprints, FingerprintCompareStrategy compareStrategy, ImmutableMultimap<String, HashCode> rootHashes) {
         this.fingerprints = fingerprints;
         this.compareStrategy = compareStrategy;
         this.rootHashes = rootHashes;
@@ -56,7 +56,7 @@ public class DefaultHistoricalFileCollectionFingerprint implements HistoricalFil
     }
 
     @Override
-    public Map<String, FileFingerprint> getFingerprints() {
+    public Map<String, FileSystemLocationFingerprint> getFingerprints() {
         return fingerprints;
     }
 
@@ -86,7 +86,7 @@ public class DefaultHistoricalFileCollectionFingerprint implements HistoricalFil
         public DefaultHistoricalFileCollectionFingerprint read(Decoder decoder) throws IOException {
             int type = decoder.readSmallInt();
             FingerprintCompareStrategy compareStrategy = FingerprintCompareStrategy.values()[type];
-            Map<String, FileFingerprint> fingerprints = fingerprintMapSerializer.read(decoder);
+            Map<String, FileSystemLocationFingerprint> fingerprints = fingerprintMapSerializer.read(decoder);
             ImmutableMultimap<String, HashCode> rootHashes = readRootHashes(decoder);
             return new DefaultHistoricalFileCollectionFingerprint(fingerprints, compareStrategy, rootHashes);
         }

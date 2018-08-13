@@ -20,9 +20,9 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.DirectorySnapshot
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.PhysicalSnapshot
-import org.gradle.internal.snapshot.PhysicalSnapshotVisitor
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.RelativePathSegmentsTracker
 import spock.lang.Specification
@@ -46,7 +46,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
         Set<String> files = [] as Set
         Set<String> relativePaths = [] as Set
         def result = builder.build()
-        result.accept(new PhysicalSnapshotVisitor() {
+        result.accept(new FileSystemSnapshotVisitor() {
             private final relativePathTracker = new RelativePathSegmentsTracker()
 
             @Override
@@ -61,7 +61,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
             }
 
             @Override
-            void visit(PhysicalSnapshot fileSnapshot) {
+            void visit(FileSystemLocationSnapshot fileSnapshot) {
                 files.add(fileSnapshot.absolutePath)
                 relativePathTracker.enter(fileSnapshot)
                 relativePaths.add(relativePathTracker.relativePath.join("/"))

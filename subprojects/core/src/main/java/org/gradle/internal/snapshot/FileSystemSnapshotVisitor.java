@@ -16,22 +16,25 @@
 
 package org.gradle.internal.snapshot;
 
-public abstract class AbstractPhysicalSnapshot implements PhysicalSnapshot {
-    private final String absolutePath;
-    private final String name;
+/**
+ * Visitor for {@link FileSystemSnapshot}.
+ */
+public interface FileSystemSnapshotVisitor {
 
-    public AbstractPhysicalSnapshot(String absolutePath, String name) {
-        this.absolutePath = absolutePath;
-        this.name = name;
-    }
+    /**
+     * Called before visiting the contents of a directory.
+     *
+     * @return Whether the subtree should be visited.
+     */
+    boolean preVisitDirectory(DirectorySnapshot directorySnapshot);
 
-    @Override
-    public String getAbsolutePath() {
-        return absolutePath;
-    }
+    /**
+     * Called for each regular/missing file.
+     */
+    void visit(FileSystemLocationSnapshot fileSnapshot);
 
-    @Override
-    public String getName() {
-        return name;
-    }
+    /**
+     * Called when leaving a directory.
+     */
+    void postVisitDirectory(DirectorySnapshot directorySnapshot);
 }

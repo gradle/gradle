@@ -23,7 +23,7 @@ import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileFingerprint;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Collection;
@@ -53,17 +53,17 @@ public class IgnoredPathCompareStrategy implements FingerprintCompareStrategy.Im
      * </ul>
      */
     @Override
-    public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileFingerprint> current, Map<String, FileFingerprint> previous, String propertyTitle, boolean includeAdded) {
+    public boolean visitChangesSince(TaskStateChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous, String propertyTitle, boolean includeAdded) {
         ListMultimap<HashCode, FilePathWithType> unaccountedForPreviousFiles = MultimapBuilder.hashKeys(previous.size()).linkedListValues().build();
-        for (Map.Entry<String, FileFingerprint> entry : previous.entrySet()) {
+        for (Map.Entry<String, FileSystemLocationFingerprint> entry : previous.entrySet()) {
             String absolutePath = entry.getKey();
-            FileFingerprint previousFingerprint = entry.getValue();
+            FileSystemLocationFingerprint previousFingerprint = entry.getValue();
             unaccountedForPreviousFiles.put(previousFingerprint.getNormalizedContentHash(), new FilePathWithType(absolutePath, previousFingerprint.getType()));
         }
 
-        for (Map.Entry<String, FileFingerprint> entry : current.entrySet()) {
+        for (Map.Entry<String, FileSystemLocationFingerprint> entry : current.entrySet()) {
             String currentAbsolutePath = entry.getKey();
-            FileFingerprint currentFingerprint = entry.getValue();
+            FileSystemLocationFingerprint currentFingerprint = entry.getValue();
             HashCode normalizedContentHash = currentFingerprint.getNormalizedContentHash();
             List<FilePathWithType> previousFilesForContent = unaccountedForPreviousFiles.get(normalizedContentHash);
             if (previousFilesForContent.isEmpty()) {
@@ -89,7 +89,7 @@ public class IgnoredPathCompareStrategy implements FingerprintCompareStrategy.Im
     }
 
     @Override
-    public void appendToHasher(BuildCacheHasher hasher, Collection<FileFingerprint> fingerprints) {
+    public void appendToHasher(BuildCacheHasher hasher, Collection<FileSystemLocationFingerprint> fingerprints) {
         NormalizedPathFingerprintCompareStrategy.appendSortedToHasher(hasher, fingerprints);
     }
 }

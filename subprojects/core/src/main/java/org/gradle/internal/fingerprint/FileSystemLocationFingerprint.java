@@ -29,7 +29,7 @@ import org.gradle.internal.hash.Hashing;
  *
  * File fingerprints are cached between builds, so their memory footprint should be kept to a minimum.
  */
-public interface FileFingerprint extends Comparable<FileFingerprint>, Hashable {
+public interface FileSystemLocationFingerprint extends Comparable<FileSystemLocationFingerprint>, Hashable {
     HashCode DIR_SIGNATURE = Hashing.md5().hashString("DIR");
     HashCode MISSING_FILE_SIGNATURE = Hashing.md5().hashString("MISSING");
 
