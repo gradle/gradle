@@ -107,19 +107,6 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
     FileCollection filter(Spec<? super File> filterSpec);
 
     /**
-     * <p>Adds another collection to this collection. This is an optional operation.</p>
-     *
-     * @param collection The collection to add.
-     * @return This
-     * @throws UnsupportedOperationException When this collection does not allow modification.
-     *
-     * @deprecated Use {@link ConfigurableFileCollection#from(Object...)} instead. You can create configurable file collections
-     * via {@link org.gradle.api.Project#files(Object...)}.
-     */
-    @Deprecated
-    FileCollection add(FileCollection collection) throws UnsupportedOperationException;
-
-    /**
      * Returns true if this collection is empty. Generally, calling this method is more efficient than calling {@code
      * getFiles().isEmpty()}.
      *

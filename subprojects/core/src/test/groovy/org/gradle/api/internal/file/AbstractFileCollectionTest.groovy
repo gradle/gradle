@@ -238,16 +238,6 @@ class AbstractFileCollectionTest extends Specification {
         difference.files == toLinkedSet(file1)
     }
 
-    void cannotAddCollectionToThisCollection() {
-        expect:
-        try {
-            new TestFileCollection().add(new TestFileCollection())
-            fail()
-        } catch (UnsupportedOperationException e) {
-            assertThat(e.getMessage(), equalTo("Collection-display-name does not allow modification."))
-        }
-    }
-
     void canAddToAntBuilderAsResourceCollection() {
         File file1 = new File("f1")
         File file2 = new File("f2")

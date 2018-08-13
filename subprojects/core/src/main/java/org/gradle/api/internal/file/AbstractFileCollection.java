@@ -115,11 +115,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     @Override
-    public FileCollection add(FileCollection collection) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException(String.format("%s does not allow modification.", getCapDisplayName()));
-    }
-
-    @Override
     public void addToAntBuilder(Object builder, String nodeName, AntType type) {
         if (type == AntType.ResourceCollection) {
             addAsResourceCollection(builder, nodeName);

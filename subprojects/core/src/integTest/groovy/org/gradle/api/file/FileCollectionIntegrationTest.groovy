@@ -35,30 +35,4 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec {
         where:
         type << ["Object", "Object[]", "Set", "LinkedHashSet", "List", "LinkedList", "Collection", "FileCollection"]
     }
-
-    def "using 'FileCollection.add()' produces deprecation warning"() {
-        file("input.txt").createFile()
-        buildFile << """
-            files().plus(files()).add(files())
-        """
-
-        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
-
-        expect:
-        succeeds "help"
-        output.contains "The FileCollection.add() method has been deprecated. This is scheduled to be removed in Gradle 5.0. Please use the ConfigurableFileCollection.from() method instead."
-    }
-
-    def "using 'FileTree.add()' produces deprecation warning"() {
-        file("input.txt").createFile()
-        buildFile << """
-            files().asFileTree.plus(files().asFileTree).add(files().asFileTree)
-        """
-
-        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
-
-        expect:
-        succeeds "help"
-        output.contains "The FileCollection.add() method has been deprecated. This is scheduled to be removed in Gradle 5.0. Please use the ConfigurableFileTree.from() method instead."
-    }
 }
