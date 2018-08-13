@@ -40,7 +40,7 @@ public class StaticValue implements ValidatingValue {
                 context.recordValidationMessage(WARNING, String.format("No value has been specified for property '%s'.", propertyName));
             }
         } else {
-            valueValidator.validate(propertyName, unpacked, context, WARNING);
+            valueValidator.validate(propertyName, optional, unpacked, context, WARNING);
         }
     }
 }
