@@ -732,24 +732,4 @@ task someTask(dependsOn: [someDep, someOtherDep])
         expect:
         succeeds "custom", "--rerun-tasks"
     }
-
-    def "#description `Task.executer` is deprecated"() {
-        buildFile << """
-            task myTask
-
-            myTask${scriptSnippet}            
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        succeeds "myTask"
-
-        then:
-        output.contains("The TaskInternal.executer property has been deprecated. This is scheduled to be removed in Gradle 5.0. There are better ways to re-use task logic, see ")
-
-        where:
-        description | scriptSnippet
-        "getting" | ".executer"
-        "setting" | ".executer = null"
-    }
 }

@@ -44,7 +44,6 @@ import org.gradle.api.internal.tasks.DefaultTaskOutputs;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.TaskMutator;
@@ -119,8 +118,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private String group;
 
     private AndSpec<Task> onlyIfSpec = createNewOnlyIfSpec();
-
-    private TaskExecuter executer;
 
     // Weird name to work around https://issues.apache.org/jira/browse/GROOVY-8732
     private final ServiceRegistry _services;
@@ -374,26 +371,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public Path getIdentityPath() {
         return identity.identityPath;
-    }
-
-    @Override
-    public TaskExecuter getExecuter() {
-        DeprecationLogger.nagUserOfDiscontinuedProperty("TaskInternal.executer", getReuseTaskLogicAdvice());
-        if (executer == null) {
-            executer = _services.get(TaskExecuter.class);
-        }
-        return executer;
-    }
-
-    @Override
-    public void setExecuter(TaskExecuter executer) {
-        DeprecationLogger.nagUserOfDiscontinuedProperty("TaskInternal.executer", getReuseTaskLogicAdvice());
-        this.executer = executer;
-    }
-
-    private String getReuseTaskLogicAdvice() {
-        String reuseTaskLogicUrl = _services.get(DocumentationRegistry.class).getDocumentationFor("custom_tasks", "sec:reusing_task_logic");
-        return "There are better ways to re-use task logic, see " + reuseTaskLogicUrl + ".";
     }
 
     @Override
