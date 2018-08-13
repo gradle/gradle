@@ -61,21 +61,4 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec {
         succeeds "help"
         output.contains "The FileCollection.add() method has been deprecated. This is scheduled to be removed in Gradle 5.0. Please use the ConfigurableFileTree.from() method instead."
     }
-
-    def "getting build dependencies from custom file collection produces deprecation warning"() {
-        buildFile << """
-            class CustomFileCollection extends org.gradle.api.internal.file.AbstractFileCollection {
-                String displayName = "custom"
-                Set<File> files = []
-            }
-
-            new CustomFileCollection().buildDependencies
-        """
-
-        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
-
-        expect:
-        succeeds "help"
-        output.contains "The AbstractFileCollection.getBuildDependencies() method has been deprecated. This is scheduled to be removed in Gradle 5.0. CustomFileCollection extends AbstractFileCollection. Do not extend AbstractFileCollection. Use Project.files() instead."
-    }
 }

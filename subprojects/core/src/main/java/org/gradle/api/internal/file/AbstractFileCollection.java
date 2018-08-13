@@ -25,13 +25,11 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
-import org.gradle.api.internal.tasks.TaskDependencies;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
@@ -166,12 +164,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     @Override
     public boolean isEmpty() {
         return getFiles().isEmpty();
-    }
-
-    @Override
-    public TaskDependency getBuildDependencies() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("AbstractFileCollection.getBuildDependencies()", "Do not extend AbstractFileCollection. Use Project.files() instead.", getClass().getName() + " extends AbstractFileCollection.");
-        return TaskDependencies.EMPTY;
     }
 
     @Override
