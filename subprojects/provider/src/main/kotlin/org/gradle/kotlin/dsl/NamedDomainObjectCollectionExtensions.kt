@@ -29,6 +29,20 @@ import kotlin.reflect.full.safeCast
 
 
 /**
+ * Returns a collection containing the objects in this collection of the given type. The
+ * returned collection is live, so that when matching objects are later added to this
+ * collection, they are also visible in the filtered collection.
+ *
+ * @param S The type of objects to find.
+ * @return The matching objects. Returns an empty collection if there are no such objects
+ * in this collection.
+ * @see [NamedDomainObjectCollection.withType]
+ */
+inline fun <reified S : Any> NamedDomainObjectCollection<in S>.withType(): NamedDomainObjectCollection<S> =
+    withType(S::class.java)
+
+
+/**
  * Idiomatic way of referring to the provider of a well-known element of a collection via a delegate property.
  *
  * `tasks { val jar by existing }`

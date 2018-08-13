@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,8 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.DomainObjectCollection
-
-
-/**
- * Returns a collection containing the objects in this collection of the given type. Equivalent to calling
- * {@code withType(type).all(configureAction)}
- *
- * @param S The type of objects to find.
- * @param configuration The action to execute for each object in the resulting collection.
- * @return The matching objects. Returns an empty collection if there are no such objects
- * in this collection.
- * @see [DomainObjectCollection.withType]
- */
-inline fun <reified S : Any> DomainObjectCollection<in S>.withType(noinline configuration: S.() -> Unit) =
-    withType(S::class.java, configuration)
+import org.gradle.api.Task
+import org.gradle.api.tasks.TaskCollection
 
 
 /**
@@ -41,7 +28,7 @@ inline fun <reified S : Any> DomainObjectCollection<in S>.withType(noinline conf
  * @param S The type of objects to find.
  * @return The matching objects. Returns an empty collection if there are no such objects
  * in this collection.
- * @see [DomainObjectCollection.withType]
+ * @see [TaskCollection.withType]
  */
-inline fun <reified S : Any> DomainObjectCollection<in S>.withType() =
+inline fun <reified S : Task> TaskCollection<in S>.withType(): TaskCollection<S> =
     withType(S::class.java)

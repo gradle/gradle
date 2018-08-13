@@ -16,6 +16,13 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.api.DomainObjectCollection
+import org.gradle.api.NamedDomainObjectCollection
+import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.Task
+import org.gradle.api.tasks.Delete
+import org.gradle.api.tasks.TaskCollection
+
 import org.gradle.util.GradleVersion
 
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
@@ -30,6 +37,51 @@ import java.util.jar.JarFile
 
 
 class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
+
+    @Test
+    fun `Kotlin chooses withType extension specialized to container type`() {
+
+        withBuildScript("""
+
+            open class A
+            open class B : A()
+
+            inline fun <reified T> inferredTypeOf(value: T) = typeOf<T>().toString()
+
+            task("test") {
+
+                doLast {
+
+                    val ca = container(A::class)
+                    val cb = ca.withType<B>()
+                    println(inferredTypeOf(ca))
+                    println(inferredTypeOf(cb))
+
+                    val oca: DomainObjectCollection<A> = ca
+                    val ocb = oca.withType<B>()
+                    println(inferredTypeOf(oca))
+                    println(inferredTypeOf(ocb))
+
+                    val tt = tasks.withType<Task>()
+                    val td = tt.withType<Delete>()
+                    println(inferredTypeOf(tt))
+                    println(inferredTypeOf(td))
+                }
+            }
+        """)
+
+        assertThat(
+            build("test", "-q").output,
+            containsMultiLineString("""
+                ${NamedDomainObjectContainer::class.qualifiedName}<Build_gradle.A>
+                ${NamedDomainObjectCollection::class.qualifiedName}<Build_gradle.B>
+                ${DomainObjectCollection::class.qualifiedName}<Build_gradle.A>
+                ${DomainObjectCollection::class.qualifiedName}<Build_gradle.B>
+                ${TaskCollection::class.qualifiedName}<${Task::class.qualifiedName}>
+                ${TaskCollection::class.qualifiedName}<${Delete::class.qualifiedName}>
+            """)
+        )
+    }
 
     @Test
     fun `can use Gradle API generated extensions in scripts`() {

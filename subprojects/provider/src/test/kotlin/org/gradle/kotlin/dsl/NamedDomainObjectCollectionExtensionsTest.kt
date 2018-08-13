@@ -35,6 +35,22 @@ class NamedDomainObjectCollectionExtensionsTest {
     data class DomainObject(var foo: String? = null, var bar: String? = null)
 
     @Test
+    fun `reified withType extension returns named collection`() {
+
+        val element = DomainObject()
+        val elementProvider = mockDomainObjectProviderFor(element)
+        val typedCollection = mock<NamedDomainObjectCollection<DomainObject>> {
+            on { named("domainObject") } doReturn elementProvider
+        }
+        val container = mock<NamedDomainObjectCollection<Any>> {
+            on { withType(DomainObject::class.java) } doReturn typedCollection
+        }
+        assertThat(
+            container.withType<DomainObject>().named("domainObject").get(),
+            sameInstance(element))
+    }
+
+    @Test
     fun `val domainObject by registering`() {
 
         val domainObjectProvider = mockDomainObjectProviderFor(DomainObject())
