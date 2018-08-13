@@ -27,7 +27,7 @@ import spock.lang.IgnoreIf
 
 class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
-    void setup() {
+    def setup() {
         writeBuildFile()
     }
 
