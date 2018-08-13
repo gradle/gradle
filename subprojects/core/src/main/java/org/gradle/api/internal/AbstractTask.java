@@ -378,19 +378,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public Task deleteAllActions() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("Task.deleteAllActions()");
-        taskMutator.mutate("Task.deleteAllActions()",
-            new Runnable() {
-                public void run() {
-                    getTaskActions().clear();
-                }
-            }
-        );
-        return this;
-    }
-
-    @Override
     public final void execute() {
         DeprecationLogger.nagUserOfDiscontinuedMethod("TaskInternal.execute()", getReuseTaskLogicAdvice());
         TaskExecuter executer = DeprecationLogger.whileDisabled(new Factory<TaskExecuter>() {

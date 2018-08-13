@@ -771,19 +771,4 @@ task someTask(dependsOn: [someDep, someOtherDep])
         "getting" | ".executer"
         "setting" | ".executer = null"
     }
-
-    def "calling `Task.deleteAllActions()` is deprecated"() {
-        buildFile << """
-            task myTask {
-                deleteAllActions()
-            }
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        succeeds "myTask"
-
-        then:
-        output.contains("The Task.deleteAllActions() method has been deprecated. This is scheduled to be removed in Gradle 5.0.")
-    }
 }

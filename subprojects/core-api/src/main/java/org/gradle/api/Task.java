@@ -408,16 +408,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     Task leftShift(Closure action);
 
     /**
-     * <p>Removes all the actions of this task.</p>
-     *
-     * @return the task object this method is applied to
-     *
-     * @deprecated Don't use this.
-     */
-    @Deprecated
-    Task deleteAllActions();
-
-    /**
      * <p>Returns if this task is enabled or not.</p>
      *
      * @see #setEnabled(boolean)

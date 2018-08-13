@@ -122,18 +122,6 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         "task '" + getTask().getPath() + "'" ==  getTask().toString()
     }
 
-    def testDeleteAllActions() {
-        when:
-        Action action1 = Actions.doNothing()
-        Action action2 = Actions.doNothing()
-        getTask().doLast(action1)
-        getTask().doLast(action2)
-
-        then:
-        getTask().is( getTask().deleteAllActions())
-        new ArrayList() ==  getTask().getActions()
-    }
-
     def testSetActions() {
         when:
         Action action1 = Actions.doNothing()
