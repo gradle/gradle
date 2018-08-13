@@ -16,53 +16,43 @@
 
 package org.gradle.api.tasks.util
 
-import org.junit.Before
-import org.junit.Test
+import org.gradle.testing.internal.util.Specification
 
-import static org.gradle.util.Matchers.isEmpty
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.sameInstance
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertThat
-
-abstract class AbstractTestForPatternSet {
+abstract class AbstractTestForPatternSet extends Specification {
     static final String TEST_PATTERN_1 = 'pattern1'
     static final String TEST_PATTERN_2 = 'pattern2'
     static final String TEST_PATTERN_3 = 'pattern3'
 
     abstract PatternFilterable getPatternSet()
 
-    def contextObject
-
-    @Before public void setUp()  {
-        contextObject = new Object()
+    def testDefaultValues() {
+        expect:
+        patternSet.includes.empty
+        patternSet.excludes.empty
     }
 
-    @Test public void testDefaultValues() {
-        assertThat(patternSet.includes, isEmpty())
-        assertThat(patternSet.excludes, isEmpty())
-    }
-
-    @Test public void testInclude() {
+    def testInclude() {
+        expect:
         checkIncludesExcludes(patternSet, 'include', 'includes')
     }
 
-    @Test public void testExclude() {
+    def testExclude() {
+        expect:
         checkIncludesExcludes(patternSet, 'exclude', 'excludes')
     }
 
     void checkIncludesExcludes(PatternFilterable patternSet, String methodName, String propertyName) {
-        assertThat(patternSet."$methodName"(TEST_PATTERN_1, TEST_PATTERN_2), sameInstance(patternSet))
-        assertThat(patternSet."$propertyName", equalTo([TEST_PATTERN_1, TEST_PATTERN_2] as Set))
+        assert patternSet."$methodName"(TEST_PATTERN_1, TEST_PATTERN_2).is(patternSet)
+        assert patternSet."$propertyName" == [TEST_PATTERN_1, TEST_PATTERN_2] as Set
 
-        assertThat(patternSet."$methodName"(TEST_PATTERN_3), sameInstance(patternSet))
-        assertThat(patternSet."$propertyName", equalTo([TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3] as Set))
+        assert patternSet."$methodName"(TEST_PATTERN_3).is(patternSet)
+        assert patternSet."$propertyName" == [TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3] as Set
 
         patternSet."$propertyName" = {[TEST_PATTERN_2].iterator()} as Iterable
-        assertThat(patternSet."$propertyName", equalTo([TEST_PATTERN_2] as Set))
+        assert patternSet."$propertyName" == [TEST_PATTERN_2] as Set
 
-        assertThat(patternSet."$methodName"([TEST_PATTERN_3]), sameInstance(patternSet))
-        assertThat(patternSet."$propertyName", equalTo([TEST_PATTERN_2, TEST_PATTERN_3] as Set))
+        assert patternSet."$methodName"([TEST_PATTERN_3]).is(patternSet)
+        assert patternSet."$propertyName" == [TEST_PATTERN_2, TEST_PATTERN_3] as Set
     }
 
     void preparePatternSetForAntBuilderTest(PatternFilterable patternSet) {
@@ -71,7 +61,7 @@ abstract class AbstractTestForPatternSet {
     }
 
     void checkPatternSetForAntBuilderTest(antPatternSet, PatternFilterable patternSet) {
-        assertEquals(patternSet.includes as String[], antPatternSet.getIncludePatterns())
-        assertEquals(patternSet.excludes as String[], antPatternSet.getExcludePatterns())
+        assert (patternSet.includes as String[]).is(antPatternSet.getIncludePatterns())
+        assert (patternSet.excludes as String[]).is(antPatternSet.getExcludePatterns())
     }
 }

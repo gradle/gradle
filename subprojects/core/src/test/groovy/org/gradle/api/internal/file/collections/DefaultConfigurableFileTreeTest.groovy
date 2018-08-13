@@ -21,7 +21,9 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.copy.FileCopier
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.util.AbstractTestForPatternSet
@@ -30,35 +32,20 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.util.WrapUtil
-import org.jmock.Expectations
-import org.jmock.integration.junit4.JUnit4Mockery
-import org.junit.Before
 import org.junit.Rule
-import org.junit.Test
 
 import static org.gradle.api.file.FileVisitorUtil.assertCanStopVisiting
 import static org.gradle.api.file.FileVisitorUtil.assertVisits
 import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory
-import static org.gradle.api.internal.file.TestFiles.getPatternSetFactory
 import static org.gradle.api.internal.file.TestFiles.resolver
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes
-import static org.gradle.util.Matchers.isEmpty
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.instanceOf
-import static org.hamcrest.Matchers.notNullValue
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertFalse
-import static org.junit.Assert.assertThat
-import static org.junit.Assert.assertTrue
 
 class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
-    JUnit4Mockery context = new JUnit4GroovyMockery()
-    TaskResolver taskResolverStub = context.mock(TaskResolver)
+    TaskResolver taskResolverStub = Mock(TaskResolver)
     DefaultConfigurableFileTree fileSet
     @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     File testDir = tmpDir.testDirectory
+    def fileLookup = Mock(FileLookup)
     FileResolver fileResolverStub = resolver(testDir)
     FileCopier fileCopier
 
@@ -66,69 +53,68 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         return fileSet
     }
 
-    @Before
-    void setUp() {
-        super.setUp()
+    void setup() {
         NativeServicesTestFixture.initialize()
         fileSet = new DefaultConfigurableFileTree(testDir, fileResolverStub, taskResolverStub, fileCopier, directoryFileTreeFactory())
-        fileCopier = new FileCopier(DirectInstantiator.INSTANCE, fileResolverStub, context.mock(FileLookup), directoryFileTreeFactory())
+        fileCopier = new FileCopier(DirectInstantiator.INSTANCE, fileResolverStub, fileLookup, directoryFileTreeFactory())
     }
 
-    @Test
-    void testFileSetConstructionWithBaseDir() {
-        assertEquals(testDir, fileSet.dir)
+    def testFileSetConstructionWithBaseDir() {
+        expect:
+        testDir == fileSet.dir
     }
 
-    @Test
-    void testFileSetConstructionFromMap() {
+    def testFileSetConstructionFromMap() {
         fileSet = new DefaultConfigurableFileTree(fileResolverStub, taskResolverStub, dir: testDir, includes: ['include'], builtBy: ['a'], fileCopier, directoryFileTreeFactory())
-        assertEquals(testDir, fileSet.dir)
-        assertEquals(['include'] as Set, fileSet.includes)
-        assertEquals(['a'] as Set, fileSet.builtBy)
+
+        expect:
+        testDir == fileSet.dir
+        ['include'] as Set == fileSet.includes
+        ['a'] as Set == fileSet.builtBy
     }
 
-    @Test(expected = InvalidUserDataException)
-    void testFileSetConstructionWithNoBaseDirSpecified() {
+    def testFileSetConstructionWithNoBaseDirSpecified() {
         DefaultConfigurableFileTree fileSet = new DefaultConfigurableFileTree([:], fileResolverStub, taskResolverStub, fileCopier, directoryFileTreeFactory())
+
+        when:
         fileSet.contains(new File('unknown'))
+        then:
+        thrown(InvalidUserDataException)
     }
 
-    @Test
-    void testFileSetConstructionWithBaseDirAsString() {
+    def testFileSetConstructionWithBaseDirAsString() {
         DefaultConfigurableFileTree fileSet = new DefaultConfigurableFileTree(fileResolverStub, taskResolverStub, dir: 'dirname', fileCopier, directoryFileTreeFactory())
-        assertEquals(tmpDir.file("dirname"), fileSet.dir);
+
+        expect:
+        tmpDir.file("dirname") == fileSet.dir
     }
 
-    @Test
-    void testResolveAddsADirectoryFileTree() {
-        FileCollectionResolveContext resolveContext = context.mock(FileCollectionResolveContext)
+    def testResolveAddsADirectoryFileTree() {
+        def resolveContext = Mock(FileCollectionResolveContext)
 
-        context.checking {
-            one(resolveContext).add(withParam(notNullValue()))
-            will { fileTree ->
-                assertThat(fileTree, instanceOf(DirectoryFileTree))
-                assertThat(fileTree.dir, equalTo(testDir))
-            }
-        }
-
+        when:
         fileSet.visitContents(resolveContext)
+        then:
+        1 * resolveContext.add({ it != null }) >> { args ->
+            def fileTree = args[0]
+            assert fileTree instanceof DirectoryFileTree
+            assert fileTree.dir == testDir
+        }
+        0 * _
     }
 
-    @Test
-    void testResolveAddsBuildDependenciesIfNotEmpty() {
-        FileCollectionResolveContext resolveContext = context.mock(FileCollectionResolveContext)
+    def testResolveAddsBuildDependenciesIfNotEmpty() {
+        def resolveContext = Mock(TaskDependencyResolveContext)
         fileSet.builtBy("classes")
 
-        context.checking {
-            one(resolveContext).add(withParam(instanceOf(DirectoryFileTree)))
-            one(resolveContext).add(withParam(instanceOf(TaskDependency)))
-        }
-
-        fileSet.visitContents(resolveContext)
+        when:
+        fileSet.visitDependencies(resolveContext)
+        then:
+        1 * resolveContext.add({ it instanceof TaskDependency})
+        0 * _
     }
 
-    @Test
-    void testCanScanForFiles() {
+    def testCanScanForFiles() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
         [included1, included2].each {File file ->
@@ -136,11 +122,11 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
             file.text = 'some text'
         }
 
-        assertThat(fileSet.files, equalTo([included1, included2] as Set))
+        expect:
+        fileSet.files == [included1, included2] as Set
     }
 
-    @Test
-    void testCanVisitFiles() {
+    def testCanVisitFiles() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
         [included1, included2].each {File file ->
@@ -148,11 +134,11 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
             file.text = 'some text'
         }
 
+        expect:
         assertVisits(fileSet, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
     }
 
-    @Test
-    void testCanStopVisitingFiles() {
+    def testCanStopVisitingFiles() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir/otherDir/included2')
         [included1, included2].each {File file ->
@@ -160,11 +146,11 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
             file.text = 'some text'
         }
 
+        expect:
         assertCanStopVisiting(fileSet)
     }
 
-    @Test
-    void testContainsFiles() {
+    def testContainsFiles() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
         [included1, included2].each {File file ->
@@ -172,18 +158,18 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
             file.text = 'some text'
         }
 
-        assertTrue(fileSet.contains(included1))
-        assertTrue(fileSet.contains(included2))
-        assertFalse(fileSet.contains(testDir))
-        assertFalse(fileSet.contains(included1.parentFile))
-        assertFalse(fileSet.contains(included2.parentFile))
-        assertFalse(fileSet.contains(new File(testDir, 'does not exist')))
-        assertFalse(fileSet.contains(testDir.parentFile))
-        assertFalse(fileSet.contains(new File('something')))
+        expect:
+        fileSet.contains(included1)
+        fileSet.contains(included2)
+        !fileSet.contains(testDir)
+        !fileSet.contains(included1.parentFile)
+        !fileSet.contains(included2.parentFile)
+        !fileSet.contains(new File(testDir, 'does not exist'))
+        !fileSet.contains(testDir.parentFile)
+        !fileSet.contains(new File('something'))
     }
 
-    @Test
-    void testCanAddToAntTask() {
+    def testCanAddToAntTask() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
         [included1, included2].each {File file ->
@@ -191,20 +177,20 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
             file.text = 'some text'
         }
 
+        expect:
         assertSetContainsForAllTypes(fileSet, 'subDir/included1', 'subDir2/included2')
     }
 
-    @Test
-    void testIsEmptyWhenBaseDirDoesNotExist() {
+    def testIsEmptyWhenBaseDirDoesNotExist() {
         fileSet.dir = new File(testDir, 'does not exist')
 
-        assertThat(fileSet.files, isEmpty())
+        expect:
+        fileSet.files.empty
         assertSetContainsForAllTypes(fileSet)
         assertVisits(fileSet, [], [])
     }
 
-    @Test
-    void testCanSelectFilesUsingPatterns() {
+    def testCanSelectFilesUsingPatterns() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
         File excluded1 = new File(testDir, 'subDir/notincluded')
@@ -217,16 +203,16 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         fileSet.include('*/*included*')
         fileSet.exclude('**/not*')
 
-        assertThat(fileSet.files, equalTo([included1, included2] as Set))
+        expect:
+        fileSet.files == [included1, included2] as Set
         assertSetContainsForAllTypes(fileSet, 'subDir/included1', 'subDir2/included2')
         assertVisits(fileSet, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
-        assertTrue(fileSet.contains(included1))
-        assertFalse(fileSet.contains(excluded1))
-        assertFalse(fileSet.contains(ignored1))
+        fileSet.contains(included1)
+        !fileSet.contains(excluded1)
+        !fileSet.contains(ignored1)
     }
 
-    @Test
-    void testCanFilterMatchingFilesUsingConfigureClosure() {
+    def testCanFilterMatchingFilesUsingConfigureClosure() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
         File excluded1 = new File(testDir, 'subDir/notincluded')
@@ -241,16 +227,16 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
             exclude('**/not*')
         }
 
-        assertThat(filtered.files, equalTo([included1, included2] as Set))
+        expect:
+        filtered.files == [included1, included2] as Set
         assertSetContainsForAllTypes(filtered, 'subDir/included1', 'subDir2/included2')
         assertVisits(filtered, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
-        assertTrue(filtered.contains(included1))
-        assertFalse(filtered.contains(excluded1))
-        assertFalse(filtered.contains(ignored1))
+        filtered.contains(included1)
+        !filtered.contains(excluded1)
+        !filtered.contains(ignored1)
     }
 
-    @Test
-    void testCanFilterMatchingFilesUsingPatternSet() {
+    def testCanFilterMatchingFilesUsingPatternSet() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
         File excluded1 = new File(testDir, 'subDir/notincluded')
@@ -263,16 +249,16 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         PatternSet patternSet = new PatternSet(includes: ['*/*included*'], excludes: ['**/not*'])
         FileTree filtered = fileSet.matching(patternSet)
 
-        assertThat(filtered.files, equalTo([included1, included2] as Set))
+        expect:
+        filtered.files == [included1, included2] as Set
         assertSetContainsForAllTypes(filtered, 'subDir/included1', 'subDir2/included2')
         assertVisits(filtered, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
-        assertTrue(filtered.contains(included1))
-        assertFalse(filtered.contains(excluded1))
-        assertFalse(filtered.contains(ignored1))
+        filtered.contains(included1)
+        !filtered.contains(excluded1)
+        !filtered.contains(ignored1)
     }
 
-    @Test
-    void testCanFilterAndSelectFiles() {
+    def testCanFilterAndSelectFiles() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
         File excluded1 = new File(testDir, 'subDir/notincluded')
@@ -290,51 +276,48 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
             exclude('**/not*')
         }
 
-        assertThat(filtered.files, equalTo([included1, included2] as Set))
+        expect:
+        filtered.files == [included1, included2] as Set
         assertSetContainsForAllTypes(filtered, 'subDir/included1', 'subDir2/included2')
         assertVisits(filtered, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
-        assertTrue(filtered.contains(included1))
-        assertFalse(filtered.contains(excluded1))
-        assertFalse(filtered.contains(ignored1))
+        filtered.contains(included1)
+        !filtered.contains(excluded1)
+        !filtered.contains(ignored1)
     }
 
-    @Test
-    void testDisplayName() {
-        assertThat(fileSet.displayName, equalTo("directory '$testDir'".toString()))
+    def testDisplayName() {
+        expect:
+        fileSet.displayName == "directory '$testDir'".toString()
     }
 
-    @Test
-    void canGetAndSetTaskDependencies() {
-        FileResolver fileResolverStub = context.mock(FileResolver.class);
-        context.checking {
-            addGetPatternSetFactory(delegate, fileResolverStub)
+    def canGetAndSetTaskDependencies() {
+        def fileResolverStub = Stub(FileResolver.class) {
+            getPatternSetFactory() >> TestFiles.getPatternSetFactory()
         }
         fileSet = new DefaultConfigurableFileTree(testDir, fileResolverStub, taskResolverStub, fileCopier, directoryFileTreeFactory())
+        def task = Stub(Task)
 
-        assertThat(fileSet.getBuiltBy(), isEmpty());
+        expect:
+        fileSet.getBuiltBy().empty
 
-        fileSet.builtBy("a");
-        fileSet.builtBy("b");
-        fileSet.from("f");
+        when:
+        fileSet.builtBy("a")
+        fileSet.builtBy("b")
+        fileSet.from("f")
+        then:
+        fileSet.getBuiltBy() == ["a", "b"] as Set
 
-        assertThat(fileSet.getBuiltBy(), equalTo(WrapUtil.toSet((Object) "a", "b")));
+        when:
+        fileSet.setBuiltBy(["c"])
+        then:
+        fileSet.getBuiltBy() == ["c"] as Set
 
-        fileSet.setBuiltBy(WrapUtil.toList("c"));
+        when:
+        def dependencies = fileSet.getBuildDependencies().getDependencies(null)
+        then:
+        1 * taskResolverStub.resolveTask('c') >> task
+        0 * _
 
-        assertThat(fileSet.getBuiltBy(), equalTo(WrapUtil.toSet((Object) "c")));
-        final Task task = context.mock(Task.class);
-        context.checking {
-            allowing(fileResolverStub).resolve("f");
-            will(returnValue(new File("f")));
-            allowing(taskResolverStub).resolveTask('c');
-            will(returnValue(task));
-        }
-
-        assertThat(fileSet.getBuildDependencies().getDependencies(null), equalTo((Set) WrapUtil.toSet(task)));
-    }
-
-    static void addGetPatternSetFactory(Expectations expectations, FileResolver resolverMock) {
-        expectations.allowing(resolverMock).getPatternSetFactory();
-        expectations.will(expectations.returnValue(getPatternSetFactory()));
+        dependencies == [task] as Set
     }
 }
