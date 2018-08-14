@@ -241,12 +241,14 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             configurations.getPlayRun().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play-docs"));
 
             PlayMajorVersion playMajorVersion = PlayMajorVersion.forPlatform(playPlatform);
-            if (playMajorVersion == PlayMajorVersion.PLAY_2_6_X) {
+            switch (playMajorVersion) {
                 // This has the downside of adding play-java-forms for all kind of play projects
                 // including Scala based projects. Still, users can exclude the dependency if they
                 // want/need. Maybe in the future we can enable users to have some flag to specify
                 // if the project is Java or Scala based.
-                configurations.getPlayPlatform().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play-java-forms"));
+                case PLAY_2_6_X:
+                case PLAY_2_7_X:
+                    configurations.getPlayPlatform().addDependency(((PlayPlatformInternal) playPlatform).getDependencyNotation("play-java-forms"));
             }
         }
 

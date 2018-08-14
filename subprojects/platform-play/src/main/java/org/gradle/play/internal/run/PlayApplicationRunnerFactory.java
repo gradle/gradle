@@ -34,6 +34,8 @@ public class PlayApplicationRunnerFactory {
                 return new PlayRunAdapterV25X();
             case PLAY_2_6_X:
                 return new PlayRunAdapterV26X();
+            case PLAY_2_7_X:
+                return new PlayRunAdapterV27X();
             case PLAY_2_3_X:
             default:
                 return new PlayRunAdapterV23X();

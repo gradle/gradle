@@ -29,7 +29,8 @@ public enum PlayMajorVersion {
     PLAY_2_3_X("2.3.x", "2.11", "2.10"),
     PLAY_2_4_X("2.4.x", "2.11", "2.10"),
     PLAY_2_5_X("2.5.x", "2.11"),
-    PLAY_2_6_X("2.6.x", "2.12", "2.11");
+    PLAY_2_6_X("2.6.x", "2.12", "2.11"),
+    PLAY_2_7_X("2.7.x", "2.12", "2.11");
 
     private final String name;
     private final List<String> compatibleScalaVersions;

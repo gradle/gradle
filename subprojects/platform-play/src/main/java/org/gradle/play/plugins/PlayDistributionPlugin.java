@@ -179,6 +179,7 @@ public class PlayDistributionPlugin extends RuleSource {
             case PLAY_2_4_X:
             case PLAY_2_5_X:
             case PLAY_2_6_X:
+            case PLAY_2_7_X:
                 return "play.core.server.ProdServerStart";
             default:
                 throw new RuntimeException("Could not determine main class for Play version:" + playVersion);
