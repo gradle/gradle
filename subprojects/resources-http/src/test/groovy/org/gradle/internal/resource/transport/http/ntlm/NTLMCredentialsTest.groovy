@@ -93,15 +93,4 @@ public class NTLMCredentialsTest extends Specification {
         then:
         ntlmCredentials.workstation == 'HOSTNAME'
     }
-
-    def "null username passed"() {
-        credentials.username >> null
-        credentials.password >> "password"
-
-        when:
-        def ntlmCredentials = new NTLMCredentials(credentials)
-
-        then:
-        thrown IllegalArgumentException
-    }
 }
