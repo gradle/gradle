@@ -69,6 +69,7 @@ The previously deprecated support for Play Framework 2.2 has been removed.
 - Removed the ability to cast (Groovy `as`) `FileCollection` to `File[]` and `File`.
 - Removed the class `SimpleFileCollection`.
 - Removed the method `getBuildDependencies` from `AbstractFileCollection`. 
+- Removed the class `SimpleWorkResult`.
 
 ## External contributions
 
