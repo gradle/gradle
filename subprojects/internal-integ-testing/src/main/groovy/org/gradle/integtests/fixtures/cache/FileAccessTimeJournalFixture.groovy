@@ -16,17 +16,24 @@
 
 package org.gradle.integtests.fixtures.cache
 
-import org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
 import org.gradle.test.fixtures.file.TestFile
 
 import static java.util.concurrent.TimeUnit.DAYS
+import static org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal.CACHE_KEY
+import static org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal.FILE_ACCESS_CACHE_NAME
+import static org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal.FILE_ACCESS_PROPERTIES_FILE_NAME
+import static org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal.INCEPTION_TIMESTAMP_KEY
 import static org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER
 import static org.gradle.internal.serialize.BaseSerializerFactory.LONG_SERIALIZER
 
 trait FileAccessTimeJournalFixture extends CachingIntegrationFixture {
     TestFile getJournal() {
-        getUserHomeCacheDir().file(DefaultFileAccessTimeJournal.CACHE_KEY, DefaultFileAccessTimeJournal.FILE_ACCESS_CACHE_NAME + ".bin")
+        userHomeCacheDir.file(CACHE_KEY, FILE_ACCESS_CACHE_NAME + ".bin")
+    }
+
+    TestFile getFileAccessPropertiesFile() {
+        userHomeCacheDir.file(CACHE_KEY, FILE_ACCESS_PROPERTIES_FILE_NAME)
     }
 
     void writeLastFileAccessTimeToJournal(File file, long millis) {
@@ -36,6 +43,10 @@ trait FileAccessTimeJournalFixture extends CachingIntegrationFixture {
         } finally {
             cache.close()
         }
+    }
+
+    void writeJournalInceptionTimestamp(long millis) {
+        fileAccessPropertiesFile.text = "${INCEPTION_TIMESTAMP_KEY} = $millis"
     }
 
     long daysAgo(long days) {
