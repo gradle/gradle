@@ -52,18 +52,4 @@ public class ScalaDocOptionsTest extends BaseScalaOptionTest<ScalaDocOptions> {
                 [fieldName: 'additionalParameters', antProperty: 'addparams', args: ['"arg with spaces"'], expected: '"arg with spaces"'],
         ]
     }
-
-    def "optionMap contains stylesheet when set"() {
-        String antProperty = 'styleSheet'
-        given:
-        assert testObject.styleSheet == null
-        assert doesNotContain(antProperty)
-        when:
-        File file = new File('abc')
-        testObject.styleSheet = file
-        then:
-        value(antProperty) == file
-    }
-
-
 }
