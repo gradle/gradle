@@ -17,13 +17,12 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
-import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
+import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -41,31 +40,31 @@ public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
     }
 
     @Override
-    public Map<String, NormalizedFileSnapshot> collectSnapshots(Iterable<FileSystemSnapshot> roots) {
-        final ImmutableMap.Builder<String, NormalizedFileSnapshot> builder = ImmutableMap.builder();
+    public Map<String, FileSystemLocationFingerprint> collectFingerprints(Iterable<FileSystemSnapshot> roots) {
+        final ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         final HashSet<String> processedEntries = new HashSet<String>();
         for (FileSystemSnapshot root : roots) {
-            root.accept(new PhysicalSnapshotVisitor() {
+            root.accept(new FileSystemSnapshotVisitor() {
                 private boolean root = true;
 
                 @Override
-                public boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+                public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                     String absolutePath = directorySnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        NormalizedFileSnapshot snapshot = isRoot() ? IgnoredPathFingerprint.DIRECTORY : new DefaultNormalizedFileSnapshot(directorySnapshot.getName(), directorySnapshot);
-                        builder.put(absolutePath, snapshot);
+                        FileSystemLocationFingerprint fingerprint = isRoot() ? IgnoredPathFileSystemLocationFingerprint.DIRECTORY : new DefaultFileSystemLocationFingerprint(directorySnapshot.getName(), directorySnapshot);
+                        builder.put(absolutePath, fingerprint);
                     }
                     root = false;
                     return true;
                 }
 
                 @Override
-                public void visit(PhysicalSnapshot fileSnapshot) {
+                public void visit(FileSystemLocationSnapshot fileSnapshot) {
                     String absolutePath = fileSnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
                         builder.put(
                             absolutePath,
-                            new DefaultNormalizedFileSnapshot(fileSnapshot.getName(), fileSnapshot));
+                            new DefaultFileSystemLocationFingerprint(fileSnapshot.getName(), fileSnapshot));
                     }
                 }
 
@@ -74,7 +73,7 @@ public class NameOnlyFingerprintingStrategy implements FingerprintingStrategy {
                 }
 
                 @Override
-                public void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+                public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
                 }
             });
         }

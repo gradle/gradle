@@ -18,7 +18,6 @@ package org.gradle.testfixtures
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
-import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
@@ -163,18 +162,6 @@ class ProjectBuilderTest extends Specification {
         then:
         noExceptionThrown()
         latch.get()
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/5396")
-    def "can run task by calling TaskInternal.execute()"() {
-        def project = buildProject()
-        TaskInternal task = project.task('custom', type: CustomTask)
-
-        when:
-        task.execute()
-
-        then:
-        noExceptionThrown()
     }
 }
 

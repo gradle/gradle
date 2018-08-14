@@ -234,6 +234,26 @@ public abstract class TypeOf<T> {
         return type.getDisplayName();
     }
 
+    /**
+     * <p>
+     * This returns the underlying, concrete Java {@link java.lang.Class}.
+     * </p>
+     * <p>
+     * For example, a simple {@code TypeOf<String>} will be the given generic type {@code String.class}.
+     * <br>
+     * Generic types like {@code TypeOf<List<String>>} would have the concrete type of {@code List.class}.
+     * <br>
+     * For array types like {@code TypeOf<String[]>}, the concrete type will be an array of the component type ({@code String[].class}).
+     * </p>
+     *
+     * @since 4.11
+     * 
+     * @return Underlying Java Class of this type.
+     */
+    public Class<T> getConcreteClass() {
+        return type.getConcreteClass();
+    }
+
     @Override
     public final String toString() {
         return type.toString();

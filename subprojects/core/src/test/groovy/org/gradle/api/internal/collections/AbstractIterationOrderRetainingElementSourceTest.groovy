@@ -16,163 +16,13 @@
 
 package org.gradle.api.internal.collections
 
-import org.gradle.api.internal.provider.AbstractProvider
-import org.gradle.api.internal.provider.CollectionProviderInternal
-import org.gradle.api.internal.provider.ProviderInternal
-import spock.lang.Specification
-
-abstract class AbstractIterationOrderRetainingElementSourceTest extends Specification {
-    abstract AbstractIterationOrderRetainingElementSource<CharSequence> getSource()
-
-    def "can add a realized element"() {
-        when:
-        source.add("foo")
-
-        then:
-        source.size() == 1
-        source.contains("foo")
+abstract class AbstractIterationOrderRetainingElementSourceTest extends AbstractElementSourceTest {
+    @Override
+    List<CharSequence> iterationOrder(CharSequence... values) {
+        return values as List
     }
 
-    def "can add a provider"() {
-        when:
-        source.addPending(provider("foo"))
-
-        then:
-        source.size() == 1
-        source.contains("foo")
-    }
-
-    def "can add a provider of iterable"() {
-        when:
-        source.addPendingCollection(setProvider("foo", "bar"))
-
-        then:
-        source.size() == 2
-        source.containsAll("foo", "bar")
-    }
-
-    def "iterates elements in the order they were added"() {
-        when:
-        source.addPending(provider("foo"))
-        source.add("bar")
-        source.add("baz")
-        source.addPending(provider("fizz"))
-        source.addPendingCollection(setProvider("fuzz", "bazz"))
-
-        then:
-        source.iteratorNoFlush().collect() == ["bar", "baz"]
-
-        and:
-        source.iterator().collect() == ["foo", "bar", "baz", "fizz", "fuzz", "bazz"]
-    }
-
-    def "once realized, provided values appear like realized values"() {
-        when:
-        source.addPending(provider("foo"))
-        source.add("bar")
-        source.add("baz")
-        source.addPending(provider("fizz"))
-        source.addPendingCollection(setProvider("fuzz", "bazz"))
-
-        then:
-        source.iteratorNoFlush().collect() == ["bar", "baz"]
-
-        when:
-        source.realizePending()
-
-        then:
-        source.iteratorNoFlush().collect() == ["foo", "bar", "baz", "fizz", "fuzz", "bazz"]
-    }
-
-    def "can add only providers"() {
-        when:
-        source.addPending(provider("foo"))
-        source.addPending(provider("bar"))
-        source.addPending(provider("baz"))
-        source.addPending(provider("fizz"))
-
-        then:
-        source.iteratorNoFlush().collect() == []
-
-        and:
-        source.iterator().collect() == ["foo", "bar", "baz", "fizz"]
-    }
-
-    def "can add only realized providers"() {
-        when:
-        source.add("foo")
-        source.add("bar")
-        source.add("baz")
-        source.add("fizz")
-
-        then:
-        source.iteratorNoFlush().collect() == ["foo", "bar", "baz", "fizz"]
-
-        and:
-        source.iterator().collect() == ["foo", "bar", "baz", "fizz"]
-    }
-
-    def "can add only providers of iterable"() {
-        when:
-        source.addPendingCollection(setProvider("foo", "bar"))
-        source.addPendingCollection(setProvider("baz", "fizz", "fuzz"))
-        source.addPendingCollection(setProvider("buzz"))
-
-        then:
-        source.iteratorNoFlush().collect() == []
-
-        and:
-        source.iterator().collect() == ["foo", "bar", "baz", "fizz", "fuzz", "buzz"]
-    }
-
-    def "can remove a realized element"() {
-        given:
-        source.add("foo")
-        source.addPending(provider("bar"))
-        source.add("baz")
-
-        expect:
-        source.remove("foo")
-
-        and:
-        source.size() == 2
-        source.iterator().collect() == ["bar", "baz"]
-
-        and:
-        !source.remove("foo")
-    }
-
-    def "can remove a provider"() {
-        given:
-        def bar = provider("bar")
-        source.add("foo")
-        source.addPending(bar)
-        source.add("baz")
-
-        expect:
-        source.removePending(bar)
-
-        and:
-        source.size() == 2
-        source.iterator().collect() == ["foo", "baz"]
-    }
-
-    def "can remove a provider of iterable"() {
-        given:
-        def barBazzFizz = setProvider("bar", "bazz", "fizz")
-        source.add("foo")
-        source.addPendingCollection(barBazzFizz)
-        source.add("baz")
-
-        expect:
-        source.removePendingCollection(barBazzFizz)
-
-        and:
-        source.size() == 2
-        source.iterator().collect() == ["foo", "baz"]
-    }
-
-    def "can realize a filtered set of providers and order is retained"() {
+    def "can realize a filtered set of providers and order is correct"() {
         when:
         source.addPending(provider("foo"))
         source.addPending(provider(new StringBuffer("bar")))
@@ -187,10 +37,10 @@ abstract class AbstractIterationOrderRetainingElementSourceTest extends Specific
         source.realizePending(StringBuffer.class)
 
         then:
-        source.iteratorNoFlush().collect { it.toString() } == ["bar", "baz", "fuzz", "bazz"]
+        source.iteratorNoFlush().collect { it.toString() } == iterationOrder("bar", "baz", "fuzz", "bazz")
 
         and:
-        source.iterator().collect { it.toString() } == ["foo", "bar", "baz", "fizz", "fuzz", "bazz"]
+        source.iterator().collect { it.toString() } == iterationOrder("foo", "bar", "baz", "fizz", "fuzz", "bazz")
     }
 
     def "can remove elements using iteratorNoFlush"() {
@@ -216,7 +66,7 @@ abstract class AbstractIterationOrderRetainingElementSourceTest extends Specific
         iterator.remove()
 
         then:
-        source.iteratorNoFlush().collect() == ["fizz"]
+        source.iteratorNoFlush().collect() == iterationOrder("fizz")
 
         when:
         source.addPending(provider("fuzz"))
@@ -260,7 +110,7 @@ abstract class AbstractIterationOrderRetainingElementSourceTest extends Specific
         source.iteratorNoFlush().collect() == []
 
         and:
-        source.iterator().collect() == ["bar", "baz", "fooz", "fuzz"]
+        source.iterator().collect() == iterationOrder("bar", "baz", "fooz", "fuzz")
     }
 
     def "can remove elements using iterator"() {
@@ -301,7 +151,7 @@ abstract class AbstractIterationOrderRetainingElementSourceTest extends Specific
 
         then:
         iterator.hasNext()
-        source.iterator().collect() == ["baz", "fooz", "fizz", "fuzz"]
+        source.iterator().collect() == iterationOrder("baz", "fooz", "fizz", "fuzz")
 
         when:
         source.add("buzz")
@@ -329,64 +179,18 @@ abstract class AbstractIterationOrderRetainingElementSourceTest extends Specific
         source.iterator().collect() == []
     }
 
-    ProviderInternal<? extends String> provider(String value) {
-        return new TypedProvider<String>(String, value)
-    }
+    def "comodification of pending elements causes exception"() {
+        given:
+        def provider = provider("bar")
+        source.add("foo")
+        source.addPending(provider)
 
-    ProviderInternal<? extends StringBuffer> provider(StringBuffer value) {
-        return new TypedProvider<StringBuffer>(StringBuffer, value)
-    }
+        when:
+        def iterator = source.iteratorNoFlush()
+        source.removePending(provider)
+        iterator.next()
 
-    private static class TypedProvider<T> extends AbstractProvider<T> {
-        final Class<T> type
-        final T value
-
-        TypedProvider(Class<T> type, T value) {
-            this.type = type
-            this.value = value
-        }
-
-        @Override
-        Class<T> getType() {
-            return type
-        }
-
-        @Override
-        T getOrNull() {
-            return value
-        }
-    }
-
-    CollectionProviderInternal<? extends String, Set<? extends String>> setProvider(String... values) {
-        return new TypedProviderOfSet<String>(String, values as LinkedHashSet)
-    }
-
-    CollectionProviderInternal<? extends StringBuffer, Set<? extends StringBuffer>> setProvider(StringBuffer... values) {
-        return new TypedProviderOfSet<StringBuffer>(StringBuffer, values as LinkedHashSet)
-    }
-
-    private static class TypedProviderOfSet<T> extends AbstractProvider<Set<T>> implements CollectionProviderInternal<T, Set<T>> {
-        final Class<T> type
-        final Set<T> value
-
-        TypedProviderOfSet(Class<T> type, Set<T> value) {
-            this.type = type
-            this.value = value
-        }
-
-        @Override
-        Class<? extends T> getElementType() {
-            return type
-        }
-
-        @Override
-        Set<T> getOrNull() {
-            return value
-        }
-
-        @Override
-        int size() {
-            return value.size()
-        }
+        then:
+        thrown(ConcurrentModificationException)
     }
 }

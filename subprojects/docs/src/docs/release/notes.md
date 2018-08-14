@@ -41,9 +41,12 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### Changes to previously deprecated APIs
+
+ - The `org.gradle.plugins.signing.Signature` methods `getToSignArtifact()` and `setFile(File)` are removed. 
+ - Removed `DirectoryBuildCache.targetSizeInMB`.
+ - Removed the methods `dependsOnTaskDidWork` and `deleteAllActions` from `Task`.
+ - Removed the methods `execute`, `getExecuter`, `setExecuter`, `getValidators` and `addValidator` from `TaskInternal`.
 
 ## External contributions
 
@@ -54,6 +57,9 @@ We would like to thank the following community members for making contributions 
 -->
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
+
+- [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Switch Jacoco plugin to use configuration avoidance APIs (gradle/gradle#6245)
+- [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Switch build-dashboard plugin to use configuration avoidance APIs (gradle/gradle#6247)
 
 ## Known issues
 

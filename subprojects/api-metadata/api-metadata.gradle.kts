@@ -19,3 +19,7 @@ apiMetadata {
     classpath.from(rootProject.configurations.runtime)
     classpath.from(rootProject.configurations["gradlePlugins"])
 }
+
+dependencies {
+    testImplementation(project(":distributionsDependencies"))
+}

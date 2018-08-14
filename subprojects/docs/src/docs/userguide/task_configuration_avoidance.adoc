@@ -452,6 +452,14 @@ It is highly recommended to have cross-version test coverage using <<test_kit.ad
 .2+| This returns `void`, so it cannot be chained.
 | Use: link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#configureEach-org.gradle.api.Action-[DomainObjectCollection.configureEach(org.gradle.api.Action)]
 
+| Instead of: link:link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#whenTaskAdded-org.gradle.api.Action-[TaskCollection.whenTaskAdded(org.gradle.api.Action)]
+.2+| This returns `void`, so it cannot be chained.
+| Use: link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#configureEach-org.gradle.api.Action-[DomainObjectCollection.configureEach(org.gradle.api.Action)]
+
+| Instead of: link:link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#whenObjectAdded-org.gradle.api.Action-[DomainObjectCollection.whenObjectAdded(org.gradle.api.Action)]
+.2+| This returns `void`, so it cannot be chained.
+| Use: link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#configureEach-org.gradle.api.Action-[DomainObjectCollection.configureEach(org.gradle.api.Action)]
+
 | Instead of: link:{javadocPath}/org/gradle/api/NamedDomainObjectSet.html#findAll-groovy.lang.Closure-[NamedDomainObjectSet.findAll(groovy.lang.Closure)]
 .2+| Avoid calling this method. `matching(Spec)` and `configureEach(Action)` are more appropriate in most cases.
 | Use: _OK_, with issues.

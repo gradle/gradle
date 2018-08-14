@@ -300,11 +300,18 @@ tasks.register<Install>("installAll") {
 fun distributionImage(named: String) =
     project(":distributions").property(named) as CopySpec
 
-afterEvaluate {
-    if (gradle.startParameter.isBuildCacheEnabled) {
-        rootProject
-            .availableJavaInstallations
-            .validateBuildCacheConfiguration(buildCacheConfiguration())
+val validateBuildCacheConfiguration = tasks.register("validateBuildCacheConfiguration") {
+    enabled = gradle.startParameter.isBuildCacheEnabled
+    doLast {
+        if (rootProject.buildCacheConfiguration().remote?.isEnabled == true) {
+            rootProject.availableJavaInstallations.validateForRemoteBuildCacheUsage()
+        }
+    }
+}
+
+subprojects {
+    tasks.withType<AbstractCompile>().configureEach {
+        dependsOn(validateBuildCacheConfiguration)
     }
 }
 
