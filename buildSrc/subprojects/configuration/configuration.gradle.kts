@@ -10,12 +10,12 @@ dependencies {
 }
 
 gradlePlugin {
-    (plugins) {
-        "availableJavaInstallations" {
+    plugins {
+        register("availableJavaInstallations") {
             id = "gradlebuild.available-java-installations"
             implementationClass = "org.gradle.gradlebuild.java.AvailableJavaInstallationsPlugin"
         }
-        "dependenciesMetadataRules" {
+        register("dependenciesMetadataRules") {
             id = "gradlebuild.dependencies-metadata-rules"
             implementationClass = "org.gradle.gradlebuild.dependencies.DependenciesMetadataRulesPlugin"
         }

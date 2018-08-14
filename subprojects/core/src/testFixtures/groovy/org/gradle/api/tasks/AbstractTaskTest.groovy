@@ -96,21 +96,9 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
         "task '" + getTask().getPath() + "'" == getTask().toString()
     }
 
-    def "test deleteAllActions"() {
-        given:
-        Action<? super Task> action1 = Actions.<Task>doNothing()
-        Action<? super Task> action2 = Actions.<Task>doNothing()
-        getTask().doLast(action1)
-        getTask().doLast(action2)
-
-        expect:
-        getTask().is(getTask().deleteAllActions())
-        getTask().getActions().isEmpty()
-    }
-
     def "test setActions"() {
         given:
-        getTask().deleteAllActions()
+        getTask().setActions([])
 
         when:
         getTask().getActions().add(Actions.doNothing())

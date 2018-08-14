@@ -28,6 +28,7 @@ class BuildScanConfigManagerTest extends Specification {
     boolean scanDisabled
 
     def attributes = Mock(BuildScanConfig.Attributes)
+    def projectProperties = [:]
 
     def "conveys configuration"() {
         when:
@@ -110,6 +111,32 @@ class BuildScanConfigManagerTest extends Specification {
         version << ["1.11", "1.12"]
     }
 
+    def "throws if kotlin script build caching used and version doesnt support"() {
+        given:
+        projectProperties[BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE] = "true"
+
+        when:
+        config("1.9")
+
+        then:
+        thrown UnsupportedBuildScanPluginVersionException
+    }
+
+    @Unroll
+    def "does not throw if kotlin script build caching used and version #version"() {
+        given:
+        projectProperties[BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE] = "true"
+
+        when:
+        config(version)
+
+        then:
+        notThrown UnsupportedBuildScanPluginVersionException
+
+        where:
+        version << ["1.15.2", "1.16"]
+    }
+
     @RestoreSystemProperties
     def "can convey unsupported"() {
         when:
@@ -138,9 +165,10 @@ class BuildScanConfigManagerTest extends Specification {
             isBuildScan() >> scanEnabled
             isNoBuildScan() >> scanDisabled
             getSystemPropertiesArgs() >> { [:] }
+            getProjectProperties() >> { projectProperties }
         }
 
-        new BuildScanConfigManager(startParameter, Mock(ListenerManager), new BuildScanPluginCompatibility(), { attributes })
+        new BuildScanConfigManager(startParameter, Mock(ListenerManager), new BuildScanPluginCompatibility(startParameter), { attributes })
     }
 
     BuildScanConfig config(String versionNumber = BuildScanPluginCompatibility.MIN_SUPPORTED_VERSION) {

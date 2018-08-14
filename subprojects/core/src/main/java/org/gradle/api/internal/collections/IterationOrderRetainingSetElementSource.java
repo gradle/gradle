@@ -18,34 +18,37 @@ package org.gradle.api.internal.collections;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Iterators;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
 
 import java.util.Iterator;
+import java.util.List;
 
 public class IterationOrderRetainingSetElementSource<T> extends AbstractIterationOrderRetainingElementSource<T> {
-    private final Spec<Element<T>> noDuplicates = new Spec<Element<T>>() {
+    private final Spec<ValuePointer<T>> noDuplicates = new Spec<ValuePointer<T>>() {
         @Override
-        public boolean isSatisfiedBy(Element<T> element) {
-            return !element.isDuplicate();
+        public boolean isSatisfiedBy(ValuePointer<T> pointer) {
+            return !pointer.getElement().isDuplicate(pointer.getIndex());
         }
     };
 
     @Override
     public Iterator<T> iterator() {
         realizePending();
-        return new RealizedElementCollectionIterator<T>(getInserted(), noDuplicates);
+        return new RealizedElementCollectionIterator(getInserted(), noDuplicates);
     }
 
     @Override
     public Iterator<T> iteratorNoFlush() {
-        return new RealizedElementCollectionIterator<T>(getInserted(), noDuplicates);
+        return new RealizedElementCollectionIterator(getInserted(), noDuplicates);
     }
 
     @Override
     public boolean add(T element) {
+        modCount++;
         if (!Iterators.contains(iteratorNoFlush(), element)) {
-            getInserted().add(new CachingElement<T>(element));
+            getInserted().add(new Element<T>(element));
             return true;
         } else {
             return false;
@@ -58,14 +61,30 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
         return true;
     }
 
+    @Override
+    protected void clearCachedElement(Element<T> element) {
+        boolean wasRealized = element.isRealized();
+        super.clearCachedElement(element);
+        if (wasRealized) {
+            for (T value : element.getValues()) {
+                markDuplicates(value);
+            }
+        }
+    }
+
     private void markDuplicates(T value) {
         boolean seen = false;
         for (Element<T> element : getInserted()) {
-            if (element.isRealized() && Objects.equal(element.getValue(), value)) {
-                if (seen) {
-                    element.setDuplicate(true);
-                } else {
-                    seen = true;
+            if (element.isRealized()) {
+                List<T> collected = element.getValues();
+                for (int index = 0; index < collected.size(); index++) {
+                    if (Objects.equal(collected.get(index), value)) {
+                        if (seen) {
+                            element.setDuplicate(index);
+                        } else {
+                            seen = true;
+                        }
+                    }
                 }
             }
         }
@@ -73,6 +92,7 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
 
     @Override
     public boolean addPending(ProviderInternal<? extends T> provider) {
+        modCount++;
         Element<T> element = cachingElement(provider);
         if (!getInserted().contains(element)) {
             getInserted().add(element);
@@ -82,4 +102,15 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
         }
     }
 
+    @Override
+    public boolean addPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+        modCount++;
+        Element<T> element = cachingElement(provider);
+        if (!getInserted().contains(element)) {
+            getInserted().add(element);
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

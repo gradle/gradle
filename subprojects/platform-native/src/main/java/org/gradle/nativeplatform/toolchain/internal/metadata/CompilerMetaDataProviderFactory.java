@@ -60,11 +60,11 @@ public class CompilerMetaDataProviderFactory {
         }
 
         @Override
-        public SearchResult<T> getCompilerMetaData(File binary, List<String> additionalArgs) {
-            Key key = new Key(binary, additionalArgs);
+        public SearchResult<T> getCompilerMetaData(File binary, List<String> additionalArgs, List<File> path) {
+            Key key = new Key(binary, additionalArgs, path);
             SearchResult<T> result = resultMap.get(key);
             if (result == null) {
-                result = delegate.getCompilerMetaData(binary, additionalArgs);
+                result = delegate.getCompilerMetaData(binary, additionalArgs, path);
                 resultMap.put(key, result);
             }
             return result;
@@ -79,21 +79,23 @@ public class CompilerMetaDataProviderFactory {
     private static class Key {
         final File gccBinary;
         final List<String> args;
+        final List<File> path;
 
-        private Key(File gccBinary, List<String> args) {
+        private Key(File gccBinary, List<String> args, List<File> path) {
             this.gccBinary = gccBinary;
             this.args = args;
+            this.path = path;
         }
 
         @Override
         public boolean equals(Object obj) {
             Key other = (Key) obj;
-            return other.gccBinary.equals(gccBinary) && other.args.equals(args);
+            return other.gccBinary.equals(gccBinary) && other.args.equals(args) && other.path.equals(path);
         }
 
         @Override
         public int hashCode() {
-            return gccBinary.hashCode() ^ args.hashCode();
+            return gccBinary.hashCode() ^ args.hashCode() ^ path.hashCode();
         }
     }
 }

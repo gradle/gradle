@@ -37,6 +37,10 @@ class SelectorStateResolverResults {
         ModuleVersionResolveException failure = null;
         List<T> resolved = null;
         for (Registration entry : results) {
+            if (entry.superceded) {
+                continue;
+            }
+
             ResolvableSelectorState selectorState = entry.selector;
             ComponentIdResolveResult idResolveResult = entry.result;
 
@@ -82,32 +86,31 @@ class SelectorStateResolverResults {
     /**
      * Check already resolved results for a compatible version, and use it for this dependency rather than re-resolving.
      */
-    boolean alreadyHaveResolution(ResolvableSelectorState dep) {
+    boolean alreadyHaveResolutionForSelector(ResolvableSelectorState selector) {
         for (Registration registration : results) {
             ComponentIdResolveResult discovered = registration.result;
-            if (included(dep, discovered)) {
-                results.add(new Registration(dep, discovered));
+            if (included(selector, discovered)) {
+                register(selector, discovered);
                 return true;
             }
         }
         return false;
     }
 
-    void registerResolution(ResolvableSelectorState dep, ComponentIdResolveResult resolveResult) {
-        if (resolveResult.getFailure() != null) {
-            results.add(new Registration(dep, resolveResult));
-            return;
-        }
-
+    boolean replaceExistingResolutionsWithBetterResult(ComponentIdResolveResult resolveResult) {
         // Check already-resolved dependencies and use this version if it's compatible
+        boolean replaces = false;
         for (Registration registration : results) {
-            ResolvableSelectorState other = registration.selector;
-            if (included(other, resolveResult)) {
+            if (included(registration.selector, resolveResult)) {
                 registration.result = resolveResult;
+                replaces = true;
             }
         }
+        return replaces;
+    }
 
-        results.add(new Registration(dep, resolveResult));
+    void register(ResolvableSelectorState selector, ComponentIdResolveResult resolveResult) {
+        results.add(new Registration(selector, resolveResult));
     }
 
     private boolean included(ResolvableSelectorState dep, ComponentIdResolveResult candidate) {
@@ -125,9 +128,15 @@ class SelectorStateResolverResults {
         return preferredSelector.accept(candidate.getModuleVersionId().getVersion());
     }
 
+    public boolean isEmpty() {
+        return results.isEmpty();
+    }
+
     private static class Registration {
         private final ResolvableSelectorState selector;
+        public boolean superceded = false;
         private ComponentIdResolveResult result;
+        public boolean preferred = false;
 
         private Registration(ResolvableSelectorState selector, ComponentIdResolveResult result) {
             this.selector = selector;

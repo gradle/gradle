@@ -18,9 +18,7 @@ package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot
 import org.gradle.cache.AsyncCacheAccess
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.CrossProcessCacheAccess
@@ -29,6 +27,8 @@ import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.local.FileAccessTimeJournal
+import org.gradle.internal.snapshot.FileSystemSnapshotter
+import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.util.BiFunction
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestFile
@@ -395,6 +395,6 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
     }
 
     def snapshot(HashCode hashCode) {
-        return new PhysicalFileSnapshot("/path/to/some.txt", "some.txt", hashCode, 0)
+        return new RegularFileSnapshot("/path/to/some.txt", "some.txt", hashCode, 0)
     }
 }

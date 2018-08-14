@@ -122,6 +122,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
     private
     fun Project.addConfigurationAndDependencies() {
+
         configurations {
 
             val testCompile by getting
@@ -142,8 +143,7 @@ class PerformanceTestPlugin : Plugin<Project> {
                 extendsFrom(performanceTestRuntimeClasspath)
             }
 
-            "junit" {
-            }
+            create("junit")
         }
 
         dependencies {

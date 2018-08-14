@@ -17,10 +17,9 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
-import groovy.lang.GString;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.provider.Collectors.*;
 import org.gradle.api.provider.Provider;
-import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -28,11 +27,12 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import static org.gradle.api.internal.provider.Collectors.IDENTITY_VALUE_COLLECTOR;
+import static org.gradle.api.internal.provider.Collectors.STRING_VALUE_COLLECTOR;
+
 public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractProvider<C> implements CollectionPropertyInternal<T, C> {
     private static final EmptyCollection EMPTY_COLLECTION = new EmptyCollection();
     private static final NoValueCollector NO_VALUE_COLLECTOR = new NoValueCollector();
-    private static final StringValueCollector STRING_VALUE_COLLECTOR = new StringValueCollector();
-    private static final IdentityValueCollector IDENTITY_VALUE_COLLECTOR = new IdentityValueCollector();
     private final Class<? extends Collection> collectionType;
     private final Class elementType;
     private final ValueCollector<T> valueCollector;
@@ -167,217 +167,5 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Override
     public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super C> transformer) {
         return new TransformBackedProvider<S, C>(transformer, this);
-    }
-
-    private interface ValueCollector<T> {
-        void add(T value, Collection<T> dest);
-
-        void addAll(Iterable<? extends T> values, Collection<T> dest);
-    }
-
-    /**
-     * This could move to the public API.
-     */
-    private interface Collector<T> {
-        boolean present();
-
-        void collectInto(ValueCollector<T> collector, Collection<T> dest);
-
-        boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest);
-    }
-
-    private static class IdentityValueCollector implements ValueCollector<Object> {
-        @Override
-        public void add(Object value, Collection<Object> dest) {
-            dest.add(value);
-        }
-
-        @Override
-        public void addAll(Iterable<?> values, Collection<Object> dest) {
-            CollectionUtils.addAll(dest, values);
-        }
-    }
-
-    private static class StringValueCollector implements ValueCollector<Object> {
-        @Override
-        public void add(Object value, Collection<Object> dest) {
-            if (value instanceof GString) {
-                dest.add(value.toString());
-            } else {
-                dest.add(value);
-            }
-        }
-
-        @Override
-        public void addAll(Iterable<?> values, Collection<Object> dest) {
-            for (Object value : values) {
-                add(value, dest);
-            }
-        }
-    }
-
-    private static class EmptyCollection implements Collector<Object> {
-        @Override
-        public boolean present() {
-            return true;
-        }
-
-        @Override
-        public void collectInto(ValueCollector<Object> collector, Collection<Object> dest) {
-        }
-
-        @Override
-        public boolean maybeCollectInto(ValueCollector<Object> collector, Collection<Object> dest) {
-            return true;
-        }
-    }
-
-    private static class SingleElement<T> implements Collector<T> {
-        private final T element;
-
-        SingleElement(T element) {
-            this.element = element;
-        }
-
-        @Override
-        public boolean present() {
-            return true;
-        }
-
-        @Override
-        public void collectInto(ValueCollector<T> collector, Collection<T> dest) {
-            collector.add(element, dest);
-        }
-
-        @Override
-        public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest) {
-            collectInto(collector, dest);
-            return true;
-        }
-    }
-
-    private static class ElementFromProvider<T> implements Collector<T> {
-        private final Provider<? extends T> providerOfElement;
-
-        ElementFromProvider(Provider<? extends T> providerOfElement) {
-            this.providerOfElement = providerOfElement;
-        }
-
-        @Override
-        public boolean present() {
-            return providerOfElement.isPresent();
-        }
-
-        @Override
-        public void collectInto(ValueCollector<T> collector, Collection<T> dest) {
-            T value = providerOfElement.get();
-            collector.add(value, dest);
-        }
-
-        @Override
-        public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest) {
-            T value = providerOfElement.getOrNull();
-            if (value == null) {
-                return false;
-            }
-            collector.add(value, dest);
-            return true;
-        }
-    }
-
-    private static class ElementsFromCollectionProvider<T> implements Collector<T> {
-        private final Provider<? extends Iterable<? extends T>> providerOfElements;
-
-        ElementsFromCollectionProvider(Provider<? extends Iterable<? extends T>> providerOfElements) {
-            this.providerOfElements = providerOfElements;
-        }
-
-        @Override
-        public boolean present() {
-            return providerOfElements.isPresent();
-        }
-
-        @Override
-        public void collectInto(ValueCollector<T> collector, Collection<T> dest) {
-            Iterable<? extends T> value = providerOfElements.get();
-            collector.addAll(value, dest);
-        }
-
-        @Override
-        public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest) {
-            Iterable<? extends T> value = providerOfElements.getOrNull();
-            if (value == null) {
-                return false;
-            }
-            collector.addAll(value, dest);
-            return true;
-        }
-    }
-
-    private static class ElementsFromArray<T> implements Collector<T> {
-        private final T[] value;
-
-        ElementsFromArray(T[] value) {
-            this.value = value;
-        }
-
-        @Override
-        public boolean present() {
-            return true;
-        }
-
-        @Override
-        public void collectInto(ValueCollector<T> collector, Collection<T> dest) {
-            for (T t : value) {
-                collector.add(t, dest);
-            }
-        }
-
-        @Override
-        public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest) {
-            collectInto(collector, dest);
-            return true;
-        }
-    }
-
-    private static class ElementsFromCollection<T> implements Collector<T> {
-        private final Iterable<? extends T> value;
-
-        ElementsFromCollection(Iterable<? extends T> value) {
-            this.value = value;
-        }
-
-        @Override
-        public boolean present() {
-            return true;
-        }
-
-        @Override
-        public void collectInto(ValueCollector<T> collector, Collection<T> dest) {
-            collector.addAll(value, dest);
-        }
-
-        @Override
-        public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest) {
-            collectInto(collector, dest);
-            return true;
-        }
-    }
-
-    private static class NoValueCollector implements Collector<Object> {
-        @Override
-        public boolean present() {
-            return false;
-        }
-
-        @Override
-        public void collectInto(ValueCollector<Object> collector, Collection<Object> dest) {
-            throw new IllegalStateException(Providers.NULL_VALUE);
-        }
-
-        @Override
-        public boolean maybeCollectInto(ValueCollector<Object> collector, Collection<Object> dest) {
-            return false;
-        }
     }
 }

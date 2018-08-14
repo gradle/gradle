@@ -15,7 +15,7 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental
 
-import org.gradle.api.internal.changedetection.state.TestFileSnapshotter
+import org.gradle.internal.snapshot.impl.TestFileSnapshotter
 import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser

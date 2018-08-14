@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.tasks.api.internal
 
+import org.gradle.internal.classanalysis.AsmConstants
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Label
@@ -286,7 +287,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         when:
         def cr = new ClassReader(api.extractApiClassFrom(api.classes.A))
         def stubVersion = 0
-        cr.accept(new ClassVisitor(Opcodes.ASM6) {
+        cr.accept(new ClassVisitor(AsmConstants.ASM_LEVEL) {
             @Override
             void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 stubVersion = version
@@ -455,7 +456,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         when:
         def apiClassBytes = api.extractApiClassFrom(api.classes['com.acme.A'])
         def cr = new ClassReader(apiClassBytes)
-        cr.accept(new ClassVisitor(Opcodes.ASM6) {
+        cr.accept(new ClassVisitor(AsmConstants.ASM_LEVEL) {
             @Override
             void visitSource(String source, String debug) {
                 super.visitSource(source, debug)
@@ -469,7 +470,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
             @Override
             MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-                new MethodVisitor(Opcodes.ASM6) {
+                new MethodVisitor(AsmConstants.ASM_LEVEL) {
                     @Override
                     void visitLineNumber(int line, Label start) {
                         throw new AssertionError("Should not produce any line number information but " +

@@ -310,10 +310,17 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
                 
             class FileSizer extends ArtifactTransform {
                 List<File> transform(File input) {
-                    ${server.callFromBuild('transform')}
+                    ${server.callFromBuild('size-transform')}
                     File output = new File(outputDirectory, input.name + ".txt")
                     output.text = String.valueOf(input.length())
                     return [output]
+                }
+            }
+            
+            class FileDoubler extends ArtifactTransform {
+                List<File> transform(File input) {
+                    ${server.callFromBuild('double-transform')}
+                    return [input, input]
                 }
             }
             
@@ -347,6 +354,11 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
                     compile project(':lib')
                     registerTransform {
                         from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "double")
+                        artifactTransform(FileDoubler)
+                    }
+                    registerTransform {
+                        from.attribute(artifactType, "double")
                         to.attribute(artifactType, "size")
                         artifactTransform(FileSizer)
                     }
@@ -363,10 +375,16 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
                     }
                 }
             }
+
+            gradle.buildFinished {
+                ${server.callFromBuild('build-finished')}
+            }
         """
         def jar = server.expectAndBlock('jar')
-        def transform = server.expectAndBlock('transform')
+        def doubleTransform = server.expectAndBlock('double-transform')
+        def sizeTransform = server.expectAndBlock('size-transform')
         def resolveTask = server.expectAndBlock('resolve-task')
+        def buildFinished = server.expectAndBlock('build-finished')
 
         when:
         gradle = executer.withTasks(":util:resolve").start()
@@ -377,14 +395,24 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         jar.releaseAll()
 
         and:
-        transform.waitForAllPendingCalls()
-        assertHasBuildPhase("33% EXECUTING")
-        transform.releaseAll()
+        doubleTransform.waitForAllPendingCalls()
+        assertHasBuildPhase("25% EXECUTING")
+        doubleTransform.releaseAll()
+
+        and:
+        sizeTransform.waitForAllPendingCalls()
+        assertHasBuildPhase("50% EXECUTING")
+        sizeTransform.releaseAll()
 
         and:
         resolveTask.waitForAllPendingCalls()
-        assertHasBuildPhase("66% EXECUTING")
+        assertHasBuildPhase("75% EXECUTING")
         resolveTask.releaseAll()
+
+        and:
+        buildFinished.waitForAllPendingCalls()
+        assertHasBuildPhase("100% EXECUTING")
+        buildFinished.releaseAll()
 
         and:
         gradle.waitForFinish()

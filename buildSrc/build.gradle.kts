@@ -18,7 +18,6 @@ import org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_DEF
 import org.gradle.plugins.ide.idea.model.IdeaModel
 
 import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin
-import org.gradle.kotlin.dsl.plugins.dsl.ProgressiveModeState
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -32,7 +31,7 @@ buildscript {
 
 plugins {
     `kotlin-dsl`
-    id("org.gradle.kotlin.ktlint-convention") version "0.1.10" apply false
+    id("org.gradle.kotlin.ktlint-convention") version "0.1.14" apply false
 }
 
 subprojects {
@@ -65,7 +64,7 @@ subprojects {
             val validateTaskProperties = tasks.register("validateTaskProperties", ValidateTaskProperties::class.java) {
                 outputFile.set(project.the<ReportingExtension>().baseDirectory.file("task-properties/report.txt"))
 
-                val mainSourceSet = project.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
+                val mainSourceSet = project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
                 classes = mainSourceSet.output.classesDirs
                 classpath = mainSourceSet.compileClasspath
                 dependsOn(mainSourceSet.output)
@@ -199,7 +198,7 @@ fun Project.applyKotlinProjectConventions() {
 
     plugins.withType<KotlinDslPlugin> {
         kotlinDslPluginOptions {
-            progressive.set(ProgressiveModeState.ENABLED)
+//            experimentalWarning.set(false)
         }
     }
 }

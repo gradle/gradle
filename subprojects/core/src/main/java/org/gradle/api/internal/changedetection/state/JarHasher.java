@@ -18,15 +18,16 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.io.IOUtils;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.FilePathUtil;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.impl.NormalizedPathFingerprintCompareStrategy;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +53,7 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
 
     @Nullable
     @Override
-    public HashCode hash(PhysicalFileSnapshot fileSnapshot) {
+    public HashCode hash(RegularFileSnapshot fileSnapshot) {
         return hashJarContents(fileSnapshot);
     }
 
@@ -63,14 +64,14 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
         classpathResourceFilter.appendConfigurationToHasher(hasher);
     }
 
-    private HashCode hashJarContents(PhysicalFileSnapshot jarFileSnapshot) {
+    private HashCode hashJarContents(RegularFileSnapshot jarFileSnapshot) {
         try {
-            List<NormalizedFileSnapshot> snapshots = snapshotZipEntries(jarFileSnapshot.getAbsolutePath());
-            if (snapshots.isEmpty()) {
+            List<FileSystemLocationFingerprint> fingerprints = fingerprintZipEntries(jarFileSnapshot.getAbsolutePath());
+            if (fingerprints.isEmpty()) {
                 return null;
             }
             DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
-            NormalizedPathFingerprintCompareStrategy.appendSortedToHasher(hasher, snapshots);
+            NormalizedPathFingerprintCompareStrategy.appendSortedToHasher(hasher, fingerprints);
             return hasher.hash();
         } catch (Exception e) {
             return hashMalformedZip(jarFileSnapshot, e);
@@ -78,8 +79,8 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
     }
 
     @SuppressWarnings("Since15")
-    private List<NormalizedFileSnapshot> snapshotZipEntries(String jarFile) throws IOException {
-        List<NormalizedFileSnapshot> snapshots = Lists.newArrayList();
+    private List<FileSystemLocationFingerprint> fingerprintZipEntries(String jarFile) throws IOException {
+        List<FileSystemLocationFingerprint> fingerprints = Lists.newArrayList();
         InputStream fileInputStream = null;
         try {
             fileInputStream = Files.newInputStream(Paths.get(jarFile));
@@ -94,11 +95,11 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
                 }
                 HashCode hash = classpathResourceHasher.hash(zipEntry, zipInput);
                 if (hash != null) {
-                    snapshots.add(new DefaultNormalizedFileSnapshot(zipEntry.getName(), FileType.RegularFile, hash));
+                    fingerprints.add(new DefaultFileSystemLocationFingerprint(zipEntry.getName(), FileType.RegularFile, hash));
                 }
             }
 
-            return snapshots;
+            return fingerprints;
         } finally {
             IOUtils.closeQuietly(fileInputStream);
         }
@@ -117,7 +118,7 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
         }
     }
 
-    private HashCode hashMalformedZip(PhysicalFileSnapshot jarFileSnapshot, Exception e) {
+    private HashCode hashMalformedZip(RegularFileSnapshot jarFileSnapshot, Exception e) {
         LOGGER.debug("Malformed jar '{}' found on classpath. Falling back to full content hash instead of classpath hashing.", jarFileSnapshot.getName(), e);
         return jarFileSnapshot.getHash();
     }
