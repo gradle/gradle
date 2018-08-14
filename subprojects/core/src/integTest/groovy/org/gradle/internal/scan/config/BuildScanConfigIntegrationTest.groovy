@@ -230,7 +230,7 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         scanPlugin.runtimeVersion = "1.15.1"
 
         when:
-        succeeds "t", "-P${BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE}=true"
+        succeeds "t", "-D${BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE}=true"
 
         then:
         scanPlugin.assertUnsupportedMessage(output, BuildScanPluginCompatibility.UNSUPPORTED_KOTLIN_SCRIPT_BUILD_CACHING_MESSAGE)
@@ -241,7 +241,7 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         scanPlugin.runtimeVersion = "1.15.2"
 
         when:
-        succeeds "t", "-P${BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE}=true"
+        succeeds "t", "-D${BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE}=true"
 
         then:
         scanPlugin.assertUnsupportedMessage(output, null)
