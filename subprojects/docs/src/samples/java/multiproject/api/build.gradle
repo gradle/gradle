@@ -15,10 +15,10 @@ configurations {
 // tag::dependencies[]
 // tag::project-dependencies[]
 dependencies {
-    compile project(':shared')
+    implementation project(':shared')
 // end::project-dependencies[]
 // end::dependencies[]
-    compile module("org.apache.commons:commons-lang3:3.7") {
+    implementation module("org.apache.commons:commons-lang3:3.7") {
         dependency("commons-io:commons-io:2.6")
     }
 // tag::dependencies[]
