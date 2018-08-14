@@ -15,6 +15,10 @@ Add-->
 Memory usage for up-to-date checking has been improved.
 For the gradle/gradle build, heap usage dropped by 60 MB to 450 MB, that is a 12% reduction.
 
+### Build Init plugin uses recommended configurations
+
+The [Build Init plugin](userguide/build_init_plugin.html) now generates build scripts that use the recommended `implementation`, `testImplementation`, and `testRuntimeOnly` configurations instead of `compile`, `testCompile`, and `testRuntime`, respectively, for all build setup types.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -56,9 +60,7 @@ The previously deprecated support for Play Framework 2.2 has been removed.
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-<!--
- - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
--->
+ - [Björn Kautler](https://github.com/Vampire) - No Deprecated Configurations in Build Init (gradle/gradle#6208)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
