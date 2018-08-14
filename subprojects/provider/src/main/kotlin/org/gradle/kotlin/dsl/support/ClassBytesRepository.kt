@@ -143,7 +143,7 @@ class ClassBytesRepository(classPath: ClassPath, classPathDependencies: ClassPat
  */
 private
 val File.isClassPathArchive
-    get() = extension.equals("jar", ignoreCase = true) || extension.equals("zip", ignoreCase = true)
+    get() = extension.run { equals("jar", ignoreCase = true) || equals("zip", ignoreCase = true) }
 
 
 private
