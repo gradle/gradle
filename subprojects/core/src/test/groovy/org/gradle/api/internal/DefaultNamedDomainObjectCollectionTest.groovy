@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal
 
-import groovy.transform.NotYetImplemented
 import org.gradle.api.Namer
 import org.gradle.api.Rule
 import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSource
@@ -42,7 +41,6 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
         container.clear()
     }
 
-    @NotYetImplemented
     def "named finds objects created by rules"() {
         def rule = Mock(Rule)
         def bean = new Bean("bean")
@@ -58,7 +56,9 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
         result.get() == bean
 
         and:
-        1 * rule.apply("bean") >> { container.add(bean) }
+        1 * rule.apply("bean") >> {
+            container.add(bean)
+        }
         0 * rule._
     }
 

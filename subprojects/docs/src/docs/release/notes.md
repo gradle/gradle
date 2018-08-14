@@ -15,6 +15,10 @@ Add-->
 Memory usage for up-to-date checking has been improved.
 For the gradle/gradle build, heap usage dropped by 60 MB to 450 MB, that is a 12% reduction.
 
+### Build Init plugin uses recommended configurations
+
+The [Build Init plugin](userguide/build_init_plugin.html) now generates build scripts that use the recommended `implementation`, `testImplementation`, and `testRuntimeOnly` configurations instead of `compile`, `testCompile`, and `testRuntime`, respectively, for all build setup types.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -41,23 +45,39 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+<!--
+### Example breaking change
+-->
+
 ### Java Library Distribution Plugin utilizes Java Library Plugin
 
 The [Java Library Distribution Plugin](userguide/java_library_distribution_plugin.html) is now based on the
 [Java Library Plugin](userguide/java_library_plugin.html) instead of the [Java Plugin](userguide/java_plugin.html).
 Additionally the created distribution will contain all artifacts of the `runtimeClasspath` configuration instead of the deprecated `runtime` configuration.
 
-<!--
-### Example breaking change
--->
+### Changes to previously deprecated APIs
+
+ - The `org.gradle.plugins.signing.Signature` methods `getToSignArtifact()` and `setFile(File)` are removed. 
+ - Removed `DirectoryBuildCache.targetSizeInMB`.
+ - Removed the methods `dependsOnTaskDidWork` and `deleteAllActions` from `Task`.
+ - Removed the methods `execute`, `getExecuter`, `setExecuter`, `getValidators` and `addValidator` from `TaskInternal`.
+
+### Removed support for Play Framework 2.2
+
+The previously deprecated support for Play Framework 2.2 has been removed.
 
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+ - [Björn Kautler](https://github.com/Vampire) - No Deprecated Configurations in Build Init (gradle/gradle#6208)
  - [Georg Friedrich](https://github.com/GFriedrich) - Base Java Library Distribution Plugin on Java Library Plugin (gradle/gradle#5695)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
+
+- [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Switch Jacoco plugin to use configuration avoidance APIs (gradle/gradle#6245)
+- [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Switch build-dashboard plugin to use configuration avoidance APIs (gradle/gradle#6247)
+- [Ben McCann](https://github.com/benmccann) - Remove Play 2.2 support (gradle/gradle#3353)
 
 ## Known issues
 

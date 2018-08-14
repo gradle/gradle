@@ -93,41 +93,4 @@ class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationS
         "outputs.dirs(['prop':'a'])"                                | "TaskOutputs.dirs(Object...)"
         "outputs.dir('a')"                                          | "TaskOutputs.dir(Object)"
     }
-
-    def "fails when task is configured using deleteAllActions() during execution time"() {
-        buildFile.text = """
-            def anAction = {} as Action
-
-            task broken {
-                doLast {
-                deleteAllActions()
-                }
-            }
-
-            task broken2 << {
-                deleteAllActions()
-            }
-
-            task broken3 << { }
-
-            task broken4 {
-                dependsOn broken3
-                doLast {
-                    broken3.configure {
-                        deleteAllActions()
-                    }
-                }
-            }
-        """
-
-        when:
-        executer.withArgument("--continue")
-        executer.expectDeprecationWarnings(2)
-        fails("broken", "broken2", "broken4")
-
-        then:
-        failure.assertHasCause("Cannot call Task.deleteAllActions() on task ':broken' after task has started execution.")
-        failure.assertHasCause("Cannot call Task.deleteAllActions() on task ':broken2' after task has started execution. Check the configuration of task ':broken2' as you may have misused '<<' at task declaration.")
-        failure.assertHasCause("Cannot call Task.deleteAllActions() on task ':broken3' after task has started execution.")
-    }
 }

@@ -16,20 +16,14 @@
 
 package org.gradle.api.internal.project;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 
 public interface CrossProjectConfigurator {
-    Project project(Project project, Closure<? super Project> configureClosure);
 
     Project project(Project project, Action<? super Project> configureAction);
 
-    void subprojects(Iterable<Project> projects, Closure<? super Project> configureClosure);
-
     void subprojects(Iterable<Project> projects, Action<? super Project> configureAction);
-
-    void allprojects(Iterable<Project> projects, Closure<? super Project> configureClosure);
 
     void allprojects(Iterable<Project> projects, Action<? super Project> configureAction);
 
@@ -48,4 +42,5 @@ public interface CrossProjectConfigurator {
      * @return action that disallows cross-project configuration.
      */
     <T> Action<T> withCrossProjectConfigurationDisabled(Action<? super T> action);
+
 }

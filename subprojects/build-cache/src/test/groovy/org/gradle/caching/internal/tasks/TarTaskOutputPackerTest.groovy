@@ -17,8 +17,6 @@
 package org.gradle.caching.internal.tasks
 
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
-import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.WellKnownFileLocations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.OutputType
@@ -33,6 +31,8 @@ import org.gradle.internal.hash.DefaultStreamHasher
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
+import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
+import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires

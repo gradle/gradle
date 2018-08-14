@@ -58,6 +58,22 @@ The `kotlin-dsl` plugin enables experimental Kotlin compiler features.
 See the <<sec:kotlin_compiler_arguments>> section below for more information.
 ====
 
+By default, the `kotlin-dsl` plugin warns about using experimental features of the Kotlin compiler.
+You can silence the warning by setting the `experimentalWarning` property of the `kotlinDslPluginOptions` extension to `false` as follows:
+
+[source,kotlin]
+.buildSrc/build.gradle.kts
+----
+plugins {
+    `kotlin-dsl`
+}
+
+kotlinDslPluginOptions {
+    experimentalWarning.set(false)
+}
+----
+
+
 [[sec:kotlin_compiler_arguments]]
 == Kotlin compiler arguments
 

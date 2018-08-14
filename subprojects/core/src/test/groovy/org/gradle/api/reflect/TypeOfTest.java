@@ -21,7 +21,10 @@ import org.junit.Test;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class TypeOfTest {
 
@@ -29,6 +32,7 @@ public class TypeOfTest {
     public void canRepresentGenericArrayType() {
         TypeOf<List<String[]>[]> type = new TypeOf<List<String[]>[]>() {};
 
+        assertEquals(type.getConcreteClass(), List[].class);
         assertTrue(type.isArray());
         assertFalse(type.isSimple());
         assertFalse(type.isParameterized());
@@ -42,6 +46,7 @@ public class TypeOfTest {
     public void canRepresentPrimitiveArrayType() {
         TypeOf<String[]> type = new TypeOf<String[]>() {};
 
+        assertEquals(type.getConcreteClass(), String[].class);
         assertTrue(type.isArray());
         assertFalse(type.isSimple());
         assertFalse(type.isParameterized());
@@ -58,6 +63,7 @@ public class TypeOfTest {
         assertTrue(type.isParameterized());
         assertFalse(type.isArray());
         assertFalse(type.isSimple());
+        assertEquals(type.getConcreteClass(), List.class);
 
         assertEquals(
             new TypeOf<List>() {},
@@ -74,6 +80,7 @@ public class TypeOfTest {
         assertTrue(type.isSimple());
         assertFalse(type.isArray());
         assertFalse(type.isParameterized());
+        assertEquals(type.getConcreteClass(), String.class);
     }
 
     @Test
@@ -88,6 +95,7 @@ public class TypeOfTest {
         assertFalse(type.isSimple());
         assertFalse(type.isArray());
         assertFalse(type.isParameterized());
+        assertEquals(type.getConcreteClass(), Cloneable.class);
     }
 
     @Test
@@ -100,5 +108,6 @@ public class TypeOfTest {
         assertFalse(type.isSimple());
         assertFalse(type.isArray());
         assertFalse(type.isParameterized());
+        assertEquals(type.getConcreteClass(), Object.class);
     }
 }

@@ -420,6 +420,55 @@ class ListElementSourceTest extends AbstractIterationOrderRetainingElementSource
         source.iterator().collect() == ["fuzz", "bazz", "foo", "bar", "baz", "buzz", "fizz", "buzz"]
     }
 
+    def "comodification with listIterator causes an exception"() {
+        given:
+        def provider = provider("bar")
+        source.add("foo")
+        source.addPending(provider)
+
+        when:
+        def iterator = source.listIterator()
+        source.add(0, "bar")
+        iterator.next()
+
+        then:
+        thrown(ConcurrentModificationException)
+
+        when:
+        iterator = source.listIterator()
+        source.remove(0)
+        iterator.next()
+
+        then:
+        thrown(ConcurrentModificationException)
+
+        when:
+        iterator = source.listIterator()
+        iterator.next()
+        source.add("fizz")
+        iterator.previous()
+
+        then:
+        thrown(ConcurrentModificationException)
+
+        when:
+        iterator = source.listIterator()
+        source.remove("fizz")
+        iterator.add("fuzz")
+
+        then:
+        thrown(ConcurrentModificationException)
+
+        when:
+        iterator = source.listIterator()
+        iterator.next()
+        source.add("foo")
+        iterator.set("bar")
+
+        then:
+        thrown(ConcurrentModificationException)
+    }
+
     CollectionProviderInternal<? extends String, List<? extends String>> listProvider(String... values) {
         return new TypedProviderOfList<String>(String, values as List)
     }

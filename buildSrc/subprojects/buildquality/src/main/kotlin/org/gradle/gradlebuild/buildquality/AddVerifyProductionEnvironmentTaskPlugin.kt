@@ -11,7 +11,7 @@ open class AddVerifyProductionEnvironmentTaskPlugin : Plugin<Project> {
         tasks.register("verifyIsProductionBuildEnvironment") {
             doLast {
                 rootProject.availableJavaInstallations {
-                    validateProductionEnvironment()
+                    validateForProductionEnvironment()
                 }
                 val systemCharset = Charset.defaultCharset().name()
                 assert(systemCharset == "UTF-8") {

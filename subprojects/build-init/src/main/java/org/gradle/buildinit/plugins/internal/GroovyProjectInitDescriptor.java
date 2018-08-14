@@ -42,9 +42,9 @@ public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProject
             .fileComment("For more details take a look at the Groovy Quickstart chapter in the Gradle")
             .fileComment("user guide available at " + documentationRegistry.getDocumentationFor("tutorial_groovy_projects"))
             .plugin("Apply the groovy plugin to add support for Groovy", "groovy")
-            .compileDependency("Use the latest Groovy version for building this library",
+            .implementationDependency("Use the latest Groovy version for building this library",
                 "org.codehaus.groovy:groovy-all:" + libraryVersionProvider.getVersion("groovy"))
-            .testCompileDependency("Use the awesome Spock testing and specification framework",
+            .testImplementationDependency("Use the awesome Spock testing and specification framework",
                 "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"));
         configureBuildScript(buildScriptBuilder);
         buildScriptBuilder.create().generate();
