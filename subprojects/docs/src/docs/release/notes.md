@@ -45,6 +45,16 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+<!--
+### Example breaking change
+-->
+
+### Java Library Distribution Plugin utilizes Java Library Plugin
+
+The [Java Library Distribution Plugin](userguide/java_library_distribution_plugin.html) is now based on the
+[Java Library Plugin](userguide/java_library_plugin.html) instead of the [Java Plugin](userguide/java_plugin.html).
+Additionally the created distribution will contain all artifacts of the `runtimeClasspath` configuration instead of the deprecated `runtime` configuration.
+
 ### Changes to previously deprecated APIs
 
  - The `org.gradle.plugins.signing.Signature` methods `getToSignArtifact()` and `setFile(File)` are removed. 
@@ -61,6 +71,7 @@ The previously deprecated support for Play Framework 2.2 has been removed.
 We would like to thank the following community members for making contributions to this release of Gradle.
 
  - [Björn Kautler](https://github.com/Vampire) - No Deprecated Configurations in Build Init (gradle/gradle#6208)
+ - [Georg Friedrich](https://github.com/GFriedrich) - Base Java Library Distribution Plugin on Java Library Plugin (gradle/gradle#5695)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
