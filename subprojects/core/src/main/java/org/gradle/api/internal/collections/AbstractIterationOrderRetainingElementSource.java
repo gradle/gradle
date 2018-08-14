@@ -171,7 +171,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         Iterator<Element<T>> iterator = inserted.iterator();
         while (iterator.hasNext()) {
             Element<T> next = iterator.next();
-            if (next.isProvidedBy(provider)) {
+            if (!next.isRealized() && next.isProvidedBy(provider)) {
                 modCount++;
                 iterator.remove();
                 return true;

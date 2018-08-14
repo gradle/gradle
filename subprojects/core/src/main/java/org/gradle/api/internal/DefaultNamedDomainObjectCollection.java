@@ -792,7 +792,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected NamedDomainObjectProvider<? extends T> createExistingProvider(String name, T object) {
-        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingNamedDomainObjectProvider.class, this, name, getType()));
+        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingNamedDomainObjectProvider.class, this, name));
     }
 
     protected abstract class AbstractNamedDomainObjectProvider<I extends T> extends AbstractProvider<I> implements Named, NamedDomainObjectProvider<I> {
@@ -817,7 +817,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Override
         public boolean isPresent() {
-            return findDomainObject(name) != null;
+            return findDomainObject(getName()) != null;
         }
 
         @Override
@@ -827,8 +827,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected class ExistingNamedDomainObjectProvider<I extends T> extends AbstractNamedDomainObjectProvider<I> {
-        protected ExistingNamedDomainObjectProvider(String name, Class<I> type) {
-            super(name, type);
+        protected ExistingNamedDomainObjectProvider(String name) {
+            super(name, (Class<I>) DefaultNamedDomainObjectCollection.this.getType());
         }
 
         public void configure(Action<? super I> action) {

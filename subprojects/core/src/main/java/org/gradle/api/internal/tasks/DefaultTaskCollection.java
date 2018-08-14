@@ -20,10 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskCollection;
@@ -90,15 +88,13 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
 
     @Override
     protected TaskProvider<? extends T> createExistingProvider(String name, T object) {
-        TaskInternal taskInternal = (TaskInternal) object;
-        TaskIdentity<?> taskIdentity = taskInternal.getTaskIdentity();
-        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, taskIdentity));
+        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, object.getName()));
     }
 
     // Cannot be private due to reflective instantiation
     public class ExistingTaskProvider<I extends T> extends ExistingNamedDomainObjectProvider<I> implements TaskProvider<I> {
-        public ExistingTaskProvider(TaskIdentity<I> identity) {
-            super(identity.name, identity.type);
+        public ExistingTaskProvider(String name) {
+            super(name);
         }
     }
 }

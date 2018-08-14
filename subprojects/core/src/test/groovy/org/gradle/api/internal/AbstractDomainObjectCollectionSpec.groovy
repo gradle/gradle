@@ -90,6 +90,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "elements added using provider of iterable are not realized when added"() {
+        containerAllowsExternalProviders()
         def provider = Mock(CollectionProviderInternal)
         _ * provider.size() >> 2
 
@@ -157,6 +158,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider for iterable of elements is queried when membership checked"() {
+        containerAllowsExternalProviders()
         def provider = Mock(CollectionProviderInternal)
 
         given:
@@ -222,6 +224,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider for iterable of elements is queried when elements iterated and insertion order is retained"() {
+        containerAllowsExternalProviders()
         def provider1 = Mock(CollectionProviderInternal)
 
         given:
@@ -291,6 +294,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "queries provider for iterable of elements when registering action for all elements in a collection"() {
+        containerAllowsExternalProviders()
         def action = Mock(Action)
         def provider1 = Mock(CollectionProviderInternal)
         def provider2 = Mock(CollectionProviderInternal)
@@ -360,6 +364,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider for iterable of elements is queried when filtered collection with matching type created"() {
+        containerAllowsExternalProviders()
         def provider = Mock(CollectionProviderInternal)
         _ * provider.elementType >> type
 
@@ -422,6 +427,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider for iterable of elements is not queried when filtered collection with non matching type created"() {
+        containerAllowsExternalProviders()
         def provider = Mock(CollectionProviderInternal)
         _ * provider.elementType >> type
 
@@ -540,6 +546,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider for iterable of elements is queried and action executed for filtered collection with matching type"() {
+        containerAllowsExternalProviders()
         def action = Mock(Action)
         def provider1 = Mock(CollectionProviderInternal)
         def provider2 = Mock(CollectionProviderInternal)
@@ -594,6 +601,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider for iterable of elements is not queried and action executed for filtered collection with non matching type"() {
+        containerAllowsExternalProviders()
         def action = Mock(Action)
         def provider1 = Mock(CollectionProviderInternal)
         def provider2 = Mock(CollectionProviderInternal)
@@ -748,6 +756,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "can execute action to configure elements of given type when iterable of elements is realized"() {
+        containerAllowsExternalProviders()
         def action = Mock(Action)
         def provider1 = Mock(CollectionProviderInternal)
         def provider2 = Mock(CollectionProviderInternal)
@@ -820,6 +829,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider of iterable is not queried or elements configured until collection is realized when lazy action is registered on type-filtered collection"() {
+        containerAllowsExternalProviders()
         def action = Mock(Action)
         def provider1 = Mock(CollectionProviderInternal)
         def provider2 = Mock(CollectionProviderInternal)
@@ -890,6 +900,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "only realized elements of iterable with given type are configured when lazy action is registered on type-filtered collection"() {
+        containerAllowsExternalProviders()
         def action = Mock(Action)
         def provider1 = Mock(CollectionProviderInternal)
         def provider2 = Mock(CollectionProviderInternal)
@@ -1298,6 +1309,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider of iterable is queried but elements not configured when lazy action is registered on non-matching filter"() {
+        containerAllowsExternalProviders()
         def action = Mock(Action)
         def provider1 = Mock(CollectionProviderInternal)
         def provider2 = Mock(CollectionProviderInternal)
