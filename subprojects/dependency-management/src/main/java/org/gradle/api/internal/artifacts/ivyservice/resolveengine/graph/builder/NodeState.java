@@ -231,7 +231,7 @@ class NodeState implements DependencyGraphNode {
                 if (isExcluded(resolutionFilter, dependencyState)) {
                     continue;
                 }
-                dependencyState = maybeSubstitute(dependencyState);
+                dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
                 if (!pendingDepsVisitor.maybeAddAsPendingDependency(this, dependencyState)) {
                     EdgeState dependencyEdge = new EdgeState(this, dependencyState, resolutionFilter, resolveState);
                     outgoingEdges.add(dependencyEdge);
@@ -298,8 +298,8 @@ class NodeState implements DependencyGraphNode {
      *
      * This may be better done as a decorator on ConfigurationMetadata.getDependencies()
      */
-    private DependencyState maybeSubstitute(DependencyState dependencyState) {
-        DependencySubstitutionApplicator.SubstitutionResult substitutionResult = resolveState.getDependencySubstitutionApplicator().apply(dependencyState.getDependency());
+    static DependencyState maybeSubstitute(DependencyState dependencyState, DependencySubstitutionApplicator dependencySubstitutionApplicator) {
+        DependencySubstitutionApplicator.SubstitutionResult substitutionResult = dependencySubstitutionApplicator.apply(dependencyState.getDependency());
         if (substitutionResult.hasFailure()) {
             dependencyState.failure = new ModuleVersionResolveException(dependencyState.getRequested(), substitutionResult.getFailure());
             return dependencyState;

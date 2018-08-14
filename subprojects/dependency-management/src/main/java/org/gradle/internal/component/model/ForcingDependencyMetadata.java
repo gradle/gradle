@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.internal.component.model;
 
-import org.gradle.api.artifacts.component.ComponentSelector;
-
-/**
- * A dependency that is defined locally in a build script, not resolved from a repository.
- * This has a simplified model of a dependency, that maps from a single module configuration to a single target configuration.
- */
-public interface LocalOriginDependencyMetadata extends ForcingDependencyMetadata {
-    String getModuleConfiguration();
-
-    String getDependencyConfiguration();
-
-    @Override
-    LocalOriginDependencyMetadata withTarget(ComponentSelector target);
+public interface ForcingDependencyMetadata extends DependencyMetadata {
+    /**
+     * Was the dependency created with the 'force' attribute.
+     */
+    boolean isForce();
 }

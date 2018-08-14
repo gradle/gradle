@@ -44,7 +44,12 @@ class PotentialEdge {
     }
 
     static PotentialEdge of(ResolveState resolveState, NodeState from, ModuleComponentIdentifier toComponent, ModuleComponentSelector toSelector, ComponentIdentifier owner) {
-        DependencyState dependencyState = new DependencyState(new LenientPlatformDependencyMetadata(resolveState, from, toSelector, toComponent, owner), resolveState.getComponentSelectorConverter());
+        return of(resolveState, from, toComponent, toSelector, owner, false);
+    }
+
+    static PotentialEdge of(ResolveState resolveState, NodeState from, ModuleComponentIdentifier toComponent, ModuleComponentSelector toSelector, ComponentIdentifier owner, boolean force) {
+        DependencyState dependencyState = new DependencyState(new LenientPlatformDependencyMetadata(resolveState, from, toSelector, toComponent, owner, force || isForce(from)), resolveState.getComponentSelectorConverter());
+        dependencyState = NodeState.maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
         EdgeState edge = new EdgeState(from, dependencyState, from.previousTraversalExclusions, resolveState);
         ModuleVersionIdentifier toModuleVersionId = DefaultModuleVersionIdentifier.newId(toSelector.getModuleIdentifier(), toSelector.getVersion());
         ComponentState version = resolveState.getModule(toSelector.getModuleIdentifier()).getVersion(toModuleVersionId, toComponent);
@@ -54,5 +59,14 @@ class PotentialEdge {
         // If it's there, it means we can align, otherwise, we must NOT add the edge, or resolution would fail
         ComponentResolveMetadata metadata = version.getMetadataWithoutRetryMissing();
         return new PotentialEdge(edge, toModuleVersionId, metadata, version);
+    }
+
+    private static boolean isForce(NodeState node) {
+        for (EdgeState edgeState : node.getIncomingEdges()) {
+            if (edgeState.getSelector().isForce()) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -61,6 +61,9 @@ public class VirtualPlatformState {
         for (ModuleResolveState module : participatingModules) {
             ComponentState selected = module.getSelected();
             if (selected != null) {
+                if (selected.getSelectionReason().isForced()) {
+                    return Collections.singletonList(selected.getVersion());
+                }
                 sorted.add(selected.getVersion());
             }
         }
@@ -78,5 +81,15 @@ public class VirtualPlatformState {
             return selected.getComponentId();
         }
         return null;
+    }
+
+    boolean isForced() {
+        for (ModuleResolveState participatingModule : participatingModules) {
+            ComponentState selected = participatingModule.getSelected();
+            if (selected != null && selected.getSelectionReason().isForced()) {
+                return true;
+            }
+        }
+        return false;
     }
 }
