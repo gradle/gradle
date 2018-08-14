@@ -32,6 +32,11 @@ public class NTLMCredentials {
     public NTLMCredentials(PasswordCredentials credentials) {
         String domain;
         String username = credentials.getUsername();
+
+        if (username == null) {
+            throw new IllegalArgumentException("Username must not be null!");
+        }
+        
         int slashPos = username.indexOf('\\');
         slashPos = slashPos >= 0 ? slashPos : username.indexOf('/');
         if (slashPos >= 0) {
