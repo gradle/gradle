@@ -122,7 +122,7 @@ fun ProjectFeatures.buildReportTab(title: String, startPage: String) {
 fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: OS = OS.linux, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
     applyDefaultSettings(buildType, os, timeout)
 
-    var gradleParameterString = gradleParameters(os, daemon).joinToString(separator = " ")
+    val gradleParameterString = gradleParameters(os, daemon).joinToString(separator = " ")
 
     val buildScanTags = model.buildScanTags + listOfNotNull(buildType.stage?.id)
 
@@ -202,19 +202,19 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, notQuick
         }
     }
 
-    if (buildType !is SanityCheck) {
+    if (buildType !is CompileAll) {
         buildType.dependencies {
-            val sanityCheckId = SanityCheck.buildTypeId(model)
-            // Sanity Check has to succeed before anything else is started
-            dependency(AbsoluteId(sanityCheckId)) {
+            val compileAllId = CompileAll.buildTypeId(model)
+            // Compile All has to succeed before anything else is started
+            dependency(AbsoluteId(compileAllId)) {
                 snapshot {
                     onDependencyFailure = FailureAction.CANCEL
                     onDependencyCancel = FailureAction.CANCEL
                 }
             }
             // Get the build receipt from sanity check to reuse the timestamp
-            artifacts(AbsoluteId(sanityCheckId)) {
-                id = "ARTIFACT_DEPENDENCY_$sanityCheckId"
+            artifacts(AbsoluteId(compileAllId)) {
+                id = "ARTIFACT_DEPENDENCY_$compileAllId"
                 cleanDestination = true
                 artifactRules = "build-receipt.properties => incoming-distributions"
             }

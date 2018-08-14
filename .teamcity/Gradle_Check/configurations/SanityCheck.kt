@@ -24,13 +24,9 @@ class SanityCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model
     applyDefaults(
             model,
             this,
-            "compileAll sanityCheck",
+            "sanityCheck",
             extraParameters = "-DenableCodeQuality=true ${buildScanTag("SanityCheck")}"
     )
-
-    artifactRules = """$artifactRules
-        build/build-receipt.properties
-    """.trimIndent()
 }) {
     companion object {
         fun buildTypeId(model: CIBuildModel) = "${model.projectPrefix}SanityCheck"

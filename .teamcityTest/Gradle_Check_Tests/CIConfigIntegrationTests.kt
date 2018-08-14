@@ -1,11 +1,18 @@
 
 import configurations.shouldBeSkipped
 import jetbrains.buildServer.configs.kotlin.v2018_1.Project
-import model.*
+import model.CIBuildModel
+import model.GradleSubproject
+import model.JvmVersion
+import model.NoBuildCache
+import model.OS
+import model.SpecificBuild
+import model.Stage
+import model.TestCoverage
+import model.TestType
 import org.junit.Test
 import projects.RootProject
 import java.io.File
-import java.util.regex.Pattern
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -75,10 +82,10 @@ class CIConfigIntegrationTests {
                 }
 
                 // hacky way to consider deferred tests
-                var deferredTestCount = if (stage.name.contains("Master Accept")) 10 else 0
+                val deferredTestCount = if (stage.name.contains("Master Accept")) 10 else 0
                 assertEquals(
                stage.specificBuilds.size + functionalTestCount + stage.performanceTests.size + (if (prevStage != null) 1 else 0) + deferredTestCount,
-                       it.dependencies.items.size, "${stage.name}")
+                       it.dependencies.items.size, stage.name)
             } else {
                 assertEquals(2, it.dependencies.items.size) //Individual Performance Worker
             }
@@ -94,6 +101,7 @@ class CIConfigIntegrationTests {
                 stages = listOf(
                         Stage("Quick Feedback", "Runs all checks and functional tests with an embedded test executer",
                             specificBuilds = listOf(
+                                    SpecificBuild.CompileAll,
                                     SpecificBuild.SanityCheck,
                                     SpecificBuild.BuildDistributions),
                             functionalTests = listOf(
@@ -109,7 +117,6 @@ class CIConfigIntegrationTests {
 
     @Test
     fun canDeferSlowTestsToLaterStage() {
-        val ft = listOf(TestCoverage(TestType.quick, OS.linux, JvmVersion.java8), TestCoverage(TestType.quick, OS.windows, JvmVersion.java7))
         val m = CIBuildModel(
             projectPrefix = "",
             parentBuildCache = NoBuildCache,
