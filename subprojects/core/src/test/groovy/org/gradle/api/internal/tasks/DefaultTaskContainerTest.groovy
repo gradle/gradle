@@ -499,9 +499,12 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         0 * rule._
     }
 
-    void "can query task name and type from task provider after registration"() {
+    void "can query task name and type from task provider after registration without realizing it"() {
+        def action = Mock(Action)
+
         given:
         def provider = null
+        container.configureEach(action)
 
         when:
         provider = container.register("a")
@@ -509,6 +512,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         then:
         provider.type == DefaultTask
         provider.name == "a"
+        0 * action.execute(_)
 
         when:
         provider = container.register("b", Mock(Action))
@@ -516,6 +520,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         then:
         provider.type == DefaultTask
         provider.name == "b"
+        0 * action.execute(_)
 
         when:
         provider = container.register("c", CustomTask)
@@ -523,6 +528,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         then:
         provider.type == CustomTask
         provider.name == "c"
+        0 * action.execute(_)
 
         when:
         provider = container.register("d", CustomTask, Mock(Action))
@@ -530,6 +536,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         then:
         provider.type == CustomTask
         provider.name == "d"
+        0 * action.execute(_)
 
         when:
         provider = container.register("e", CustomTask, "some", "constructor", "args")
@@ -537,6 +544,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         then:
         provider.type == CustomTask
         provider.name == "e"
+        0 * action.execute(_)
     }
 
     void "can define task to create and configure later given name and type"() {

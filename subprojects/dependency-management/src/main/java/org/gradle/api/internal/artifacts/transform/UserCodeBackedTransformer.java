@@ -110,4 +110,32 @@ class UserCodeBackedTransformer implements VariantTransformRegistry.Registration
     public String toString() {
         return String.format("%s[%s => %s]@%s", transformer.getDisplayName(), from, to, inputsHash);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        UserCodeBackedTransformer that = (UserCodeBackedTransformer) o;
+
+        if (!from.equals(that.from)) {
+            return false;
+        }
+        if (!to.equals(that.to)) {
+            return false;
+        }
+        return inputsHash.equals(that.inputsHash);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = from.hashCode();
+        result = 31 * result + to.hashCode();
+        result = 31 * result + inputsHash.hashCode();
+        return result;
+    }
 }

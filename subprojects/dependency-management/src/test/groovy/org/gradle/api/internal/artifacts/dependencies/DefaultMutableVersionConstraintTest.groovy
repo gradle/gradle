@@ -46,6 +46,21 @@ class DefaultMutableVersionConstraintTest extends Specification {
         version.rejectedVersions == []
     }
 
+    def "can override preferred version with required version"() {
+        given:
+        def version = new DefaultMutableVersionConstraint('1.0')
+        version.prefer('1.0')
+
+        when:
+        version.require('2.0')
+
+        then:
+        version.requiredVersion == '2.0'
+        version.preferredVersion == '2.0'
+        version.strictVersion == ''
+        version.rejectedVersions == []
+    }
+
     def "can override version with preferred version"() {
         given:
         def version = new DefaultMutableVersionConstraint('1.0')
@@ -74,7 +89,7 @@ class DefaultMutableVersionConstraintTest extends Specification {
         version.rejectedVersions == []
     }
 
-    def "can override preferred version with strict version"() {
+    def "can override required version with strict version"() {
         given:
         def version = new DefaultMutableVersionConstraint('1.0')
 
@@ -85,6 +100,19 @@ class DefaultMutableVersionConstraintTest extends Specification {
         version.requiredVersion == '2.0'
         version.preferredVersion == '2.0'
         version.strictVersion == '2.0'
+    }
+
+    def "can override strict version with required version"() {
+        given:
+        def version = DefaultMutableVersionConstraint.withStrictVersion('1.0')
+
+        when:
+        version.require('2.0')
+
+        then:
+        version.requiredVersion == '2.0'
+        version.preferredVersion == '2.0'
+        version.strictVersion == ''
     }
 
     def "can declare rejected versions"() {

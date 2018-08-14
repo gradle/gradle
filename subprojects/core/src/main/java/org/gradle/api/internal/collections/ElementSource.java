@@ -17,7 +17,6 @@
 package org.gradle.api.internal.collections;
 
 import org.gradle.api.internal.WithEstimatedSize;
-import org.gradle.api.internal.provider.ProviderInternal;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -33,12 +32,6 @@ public interface ElementSource<T> extends Iterable<T>, WithEstimatedSize, Pendin
      * Iterates over only the realized elements (without flushing any pending elements)
      */
     Iterator<T> iteratorNoFlush();
-
-    /**
-     * Iterates over only the unrealized elements (without flushing any pending elements)
-     */
-    @Override
-    Iterator<ProviderInternal<? extends T>> iteratorPending();
 
     /**
      * Returns false if this source is not empty or it is not fast to determine this.

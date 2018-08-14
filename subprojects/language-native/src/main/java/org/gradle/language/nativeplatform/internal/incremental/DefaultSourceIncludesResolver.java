@@ -16,10 +16,9 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.base.Objects;
-import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
@@ -351,8 +350,8 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             }
 
             File candidate = new File(searchDir, includePath);
-            PhysicalSnapshot fileSnapshot = fileSystemSnapshotter.snapshotSelf(candidate);
-            includeFile = fileSnapshot.getType() == FileType.RegularFile ? new SystemIncludeFile(candidate, includePath, fileSnapshot.getContentHash()) : MISSING_INCLUDE_FILE;
+            HashCode contentHash = fileSystemSnapshotter.getRegularFileContentHash(candidate);
+            includeFile = contentHash != null ? new SystemIncludeFile(candidate, includePath, contentHash) : MISSING_INCLUDE_FILE;
             contents.put(includePath, includeFile);
             return includeFile;
         }

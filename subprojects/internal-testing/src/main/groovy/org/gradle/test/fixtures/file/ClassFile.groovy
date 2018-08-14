@@ -17,11 +17,11 @@
 package org.gradle.test.fixtures.file
 
 import org.gradle.api.JavaVersion
+import org.gradle.internal.classanalysis.AsmConstants
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes
 
 class ClassFile {
     boolean hasSourceFile
@@ -34,7 +34,7 @@ class ClassFile {
     }
 
     ClassFile(InputStream inputStream) {
-        def methodVisitor = new MethodVisitor(Opcodes.ASM6) {
+        def methodVisitor = new MethodVisitor(AsmConstants.ASM_LEVEL) {
             @Override
             void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
                 hasLocalVars = true
@@ -45,7 +45,7 @@ class ClassFile {
                 hasLineNumbers = true
             }
         }
-        def visitor = new ClassVisitor(Opcodes.ASM6) {
+        def visitor = new ClassVisitor(AsmConstants.ASM_LEVEL) {
             @Override
             void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 classFileVersion = version

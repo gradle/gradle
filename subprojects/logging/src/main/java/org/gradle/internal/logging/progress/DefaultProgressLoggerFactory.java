@@ -71,7 +71,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         logger.totalProgress = buildOperationDescriptor.getTotalProgress();
 
         // Make some assumptions about the console output
-        if (buildOperationDescriptor.getOperationType() == BuildOperationCategory.TASK) {
+        if (buildOperationDescriptor.getOperationType().isTopLevelWorkItem()) {
             logger.setLoggingHeader(buildOperationDescriptor.getProgressDisplayName());
         }
 

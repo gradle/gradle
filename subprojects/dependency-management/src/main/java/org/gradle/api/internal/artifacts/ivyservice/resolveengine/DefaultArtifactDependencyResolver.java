@@ -32,7 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LockingAwareSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
@@ -141,8 +141,8 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         if (dependencyLockingEnabled) {
             return new VersionSelectorScheme() {
                 private VersionSelector unlockLatestSelector(VersionSelector selector) {
-                    if (selector instanceof LatestVersionSelector) {
-                        return ((LatestVersionSelector) selector).forLocking();
+                    if (selector instanceof LockingAwareSelector) {
+                        return ((LockingAwareSelector) selector).forLocking();
                     }
                     return selector;
                 }

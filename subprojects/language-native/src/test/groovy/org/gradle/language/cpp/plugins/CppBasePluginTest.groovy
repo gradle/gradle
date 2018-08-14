@@ -35,7 +35,7 @@ import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.nativeplatform.toolchain.internal.AbstractPlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.SystemLibraries
 import org.gradle.nativeplatform.toolchain.internal.ToolType
-import org.gradle.platform.base.internal.toolchain.ToolSearchResult
+import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult
 import org.gradle.swiftpm.internal.SwiftPmTarget
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
@@ -163,7 +163,7 @@ class CppBasePluginTest extends Specification {
         }
 
         @Override
-        ToolSearchResult isToolAvailable(ToolType toolType) {
+        CommandLineToolSearchResult locateTool(ToolType compilerType) {
             throw new UnsupportedOperationException()
         }
     }

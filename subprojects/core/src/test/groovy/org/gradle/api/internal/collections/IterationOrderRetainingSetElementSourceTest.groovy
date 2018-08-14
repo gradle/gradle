@@ -16,9 +16,20 @@
 
 package org.gradle.api.internal.collections
 
+import org.gradle.api.Action
+
 
 class IterationOrderRetainingSetElementSourceTest extends AbstractIterationOrderRetainingElementSourceTest {
     IterationOrderRetainingSetElementSource<CharSequence> source = new IterationOrderRetainingSetElementSource<>()
+
+    def setup() {
+        source.onRealize(new Action<CharSequence>() {
+            @Override
+            void execute(CharSequence t) {
+                source.addRealized(t)
+            }
+        })
+    }
 
     def "can add the same provider twice"() {
         def provider = provider("foo")
@@ -51,5 +62,22 @@ class IterationOrderRetainingSetElementSourceTest extends AbstractIterationOrder
 
         and:
         source.iterator().collect() == ["foo", "bar"]
+    }
+
+    def "duplicates are handled when values change"() {
+        def provider1 = setProvider("foo", "bar", "baz")
+
+        when:
+        source.add("foo")
+        source.addPendingCollection(provider1)
+
+        then:
+        source.iterator().collect() == ["foo", "bar", "baz"]
+
+        when:
+        provider1.value = ["buzz", "fizz", "foo"]
+
+        then:
+        source.iterator().collect() == ["foo", "buzz", "fizz"]
     }
 }

@@ -35,7 +35,7 @@ class UnavailablePlatformToolProviderTest extends Specification {
         def provider = new UnavailablePlatformToolProvider(Stub(OperatingSystemInternal), "don't know how to build this thing")
 
         expect:
-        def toolResult = provider.isToolAvailable(ToolType.C_COMPILER)
+        def toolResult = provider.locateTool(ToolType.C_COMPILER)
         !toolResult.available
         def formatter = new TreeFormatter()
         toolResult.explain(formatter)

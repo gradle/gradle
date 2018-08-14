@@ -34,7 +34,7 @@ public class IncludedBuildsMixin implements Serializable {
         return ImmutableDomainObjectSet.of(Collections.<GradleBuild>emptyList());
     }
 
-    public DomainObjectSet<? extends GradleBuild> getAllBuilds() {
+    public DomainObjectSet<? extends GradleBuild> getEditableBuilds() {
         return gradleBuild.getIncludedBuilds();
     }
 }

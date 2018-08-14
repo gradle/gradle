@@ -38,11 +38,22 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      *
      * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
      *
-     * @param provider A {@link Provider} that can provider the element when required.
+     * @param provider A {@link Provider} that can provide the element when required.
      * @since 4.8
      */
     @Incubating
     void addLater(Provider<? extends T> provider);
+
+    /**
+     * Adds elements to this collection, given a {@link Provider} of {@link Iterable} that will provide the elements when required.
+     *
+     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
+     *
+     * @param provider A {@link Provider} of {@link Iterable} that can provide the elements when required.
+     * @since 4.11
+     */
+    @Incubating
+    void addAllLater(Provider<? extends Iterable<T>> provider);
 
     /**
      * Returns a collection containing the objects in this collection of the given type.  The returned collection is
@@ -98,7 +109,9 @@ public interface DomainObjectCollection<T> extends Collection<T> {
 
     /**
      * Adds an {@code Action} to be executed when an object is added to this collection.
-     *
+     * <p>
+     * Like {@link #all(Action)}, this method will cause all objects in this container to be realized.
+     * </p>
      * @param action The action to be executed
      * @return the supplied action
      */
@@ -109,6 +122,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * closure as the parameter.
      *
      * @param action The closure to be called
+     * @see #whenObjectAdded(Action)
      */
     void whenObjectAdded(Closure action);
 

@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+import java.net.URI;
 import java.util.List;
 
 abstract class UrlRepositoryDescriptor extends RepositoryDescriptor {
@@ -32,14 +33,14 @@ abstract class UrlRepositoryDescriptor extends RepositoryDescriptor {
         AUTHENTICATION_SCHEMES,
     }
 
-    public final String url;
+    public final URI url;
     public final ImmutableList<String> metadataSources;
     public final boolean authenticated;
     public final ImmutableList<String> authenticationSchemes;
 
     protected UrlRepositoryDescriptor(
         String name,
-        String url,
+        URI url,
         ImmutableList<String> metadataSources,
         boolean authenticated,
         ImmutableList<String> authenticationSchemes
@@ -62,13 +63,13 @@ abstract class UrlRepositoryDescriptor extends RepositoryDescriptor {
     static abstract class Builder<T extends Builder<T>> {
 
         final String name;
-        final String url;
+        final URI url;
 
         ImmutableList<String> metadataSources;
         Boolean authenticated;
         ImmutableList<String> authenticationSchemes;
 
-        Builder(String name, String url) {
+        Builder(String name, URI url) {
             this.name = name;
             this.url = url;
         }

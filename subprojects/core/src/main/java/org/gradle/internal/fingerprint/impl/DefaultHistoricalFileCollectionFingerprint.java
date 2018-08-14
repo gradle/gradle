@@ -18,13 +18,16 @@ package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableMultimap;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
@@ -32,17 +35,19 @@ import java.util.Map;
 
 public class DefaultHistoricalFileCollectionFingerprint implements HistoricalFileCollectionFingerprint {
 
-    private final Map<String, NormalizedFileSnapshot> fingerprints;
+    private final Map<String, FileSystemLocationFingerprint> fingerprints;
     private final FingerprintCompareStrategy compareStrategy;
+    private final ImmutableMultimap<String, HashCode> rootHashes;
 
-    public DefaultHistoricalFileCollectionFingerprint(Map<String, NormalizedFileSnapshot> fingerprints, FingerprintCompareStrategy compareStrategy) {
+    public DefaultHistoricalFileCollectionFingerprint(Map<String, FileSystemLocationFingerprint> fingerprints, FingerprintCompareStrategy compareStrategy, ImmutableMultimap<String, HashCode> rootHashes) {
         this.fingerprints = fingerprints;
         this.compareStrategy = compareStrategy;
+        this.rootHashes = rootHashes;
     }
 
     @Override
     public boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
-        return compareStrategy.visitChangesSince(visitor, getSnapshots(), oldFingerprint.getSnapshots(), title, includeAdded);
+        return compareStrategy.visitChangesSince(visitor, getFingerprints(), oldFingerprint.getFingerprints(), title, includeAdded);
     }
 
     @VisibleForTesting
@@ -51,8 +56,13 @@ public class DefaultHistoricalFileCollectionFingerprint implements HistoricalFil
     }
 
     @Override
-    public Map<String, NormalizedFileSnapshot> getSnapshots() {
+    public Map<String, FileSystemLocationFingerprint> getFingerprints() {
         return fingerprints;
+    }
+
+    @Override
+    public ImmutableMultimap<String, HashCode> getRootHashes() {
+        return rootHashes;
     }
 
     @Override
@@ -62,24 +72,52 @@ public class DefaultHistoricalFileCollectionFingerprint implements HistoricalFil
 
     public static class SerializerImpl implements Serializer<DefaultHistoricalFileCollectionFingerprint> {
 
-        private final SnapshotMapSerializer snapshotMapSerializer;
+        private final FingerprintMapSerializer fingerprintMapSerializer;
+        private final StringInterner stringInterner;
+        private final HashCodeSerializer hashCodeSerializer;
 
         public SerializerImpl(StringInterner stringInterner) {
-            this.snapshotMapSerializer = new SnapshotMapSerializer(stringInterner);
+            this.fingerprintMapSerializer = new FingerprintMapSerializer(stringInterner);
+            this.stringInterner = stringInterner;
+            this.hashCodeSerializer = new HashCodeSerializer();
         }
 
         @Override
         public DefaultHistoricalFileCollectionFingerprint read(Decoder decoder) throws IOException {
             int type = decoder.readSmallInt();
             FingerprintCompareStrategy compareStrategy = FingerprintCompareStrategy.values()[type];
-            Map<String, NormalizedFileSnapshot> snapshots = snapshotMapSerializer.read(decoder);
-            return new DefaultHistoricalFileCollectionFingerprint(snapshots, compareStrategy);
+            Map<String, FileSystemLocationFingerprint> fingerprints = fingerprintMapSerializer.read(decoder);
+            ImmutableMultimap<String, HashCode> rootHashes = readRootHashes(decoder);
+            return new DefaultHistoricalFileCollectionFingerprint(fingerprints, compareStrategy, rootHashes);
+        }
+
+        private ImmutableMultimap<String, HashCode> readRootHashes(Decoder decoder) throws IOException {
+            int numberOfRoots = decoder.readSmallInt();
+            if (numberOfRoots == 0) {
+                return ImmutableMultimap.of();
+            }
+            ImmutableMultimap.Builder<String, HashCode> builder = ImmutableMultimap.builder();
+            for (int i = 0; i < numberOfRoots; i++) {
+                String absolutePath = stringInterner.intern(decoder.readString());
+                HashCode rootHash = hashCodeSerializer.read(decoder);
+                builder.put(absolutePath, rootHash);
+            }
+            return builder.build();
         }
 
         @Override
         public void write(Encoder encoder, DefaultHistoricalFileCollectionFingerprint value) throws Exception {
             encoder.writeSmallInt(value.compareStrategy.ordinal());
-            snapshotMapSerializer.write(encoder, value.getSnapshots());
+            fingerprintMapSerializer.write(encoder, value.getFingerprints());
+            writeRootHashes(encoder, value.getRootHashes());
+        }
+
+        private void writeRootHashes(Encoder encoder, ImmutableMultimap<String, HashCode> rootHashes) throws IOException {
+            encoder.writeSmallInt(rootHashes.size());
+            for (Map.Entry<String, HashCode> entry : rootHashes.entries()) {
+                encoder.writeString(entry.getKey());
+                hashCodeSerializer.write(encoder, entry.getValue());
+            }
         }
 
         @Override
@@ -89,12 +127,13 @@ public class DefaultHistoricalFileCollectionFingerprint implements HistoricalFil
             }
 
             DefaultHistoricalFileCollectionFingerprint.SerializerImpl rhs = (DefaultHistoricalFileCollectionFingerprint.SerializerImpl) obj;
-            return Objects.equal(snapshotMapSerializer, rhs.snapshotMapSerializer);
+            return Objects.equal(fingerprintMapSerializer, rhs.fingerprintMapSerializer)
+                && Objects.equal(hashCodeSerializer, rhs.hashCodeSerializer);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(super.hashCode(), snapshotMapSerializer);
+            return Objects.hashCode(super.hashCode(), fingerprintMapSerializer, hashCodeSerializer);
         }
     }
 }

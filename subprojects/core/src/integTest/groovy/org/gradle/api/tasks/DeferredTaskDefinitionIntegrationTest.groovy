@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -896,19 +897,11 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         ["Project#afterEvaluate(Action)"   , "afterEvaluate new Action<Project>() { void execute(Project p) {} }"],
         ["Project#beforeEvaluate(Closure)" , "beforeEvaluate {}"],
         ["Project#beforeEvaluate(Action)"  , "beforeEvaluate new Action<Project>() { void execute(Project p) {} }"],
-        ["Project#subprojects(Closure)"    , "subprojects {}"],
-        ["Project#subprojects(Action)"     , "subprojects new Action<Project>() { void execute(Project p) {} }"],
-        ["Project#allprojects(Closure)"    , "allprojects {}"],
-        ["Project#allprojects(Action)"     , "allprojects new Action<Project>() { void execute(Project p) {} }"],
-        ["Project#project(String, Closure)", "project(':nested') {}"],
-        ["Project#project(String, Action)" , "project(':nested', new Action<Project>() { void execute(Project p) {} })"],
-        ["Project#allprojects(Action)"     , "gradle.allprojects new Action<Project>() { void execute(Project p) {} }"],
     ]
 
     @Unroll
     def "cannot execute #description during lazy task creation action execution"() {
         settingsFile << "include 'nested'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             tasks.register("foo") {
                 ${code}
@@ -927,7 +920,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "can execute #description during task creation action execution"() {
         settingsFile << "include 'nested'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             tasks.create("foo") {
                 ${code}
@@ -944,7 +936,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "cannot execute #description during lazy task configuration action execution"() {
         settingsFile << "include 'nested'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             tasks.register("foo").configure {
                 ${code}
@@ -963,7 +954,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "can execute #description during task configuration action execution"() {
         settingsFile << "include 'nested'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             tasks.create("foo")
             tasks.getByName("foo") {
@@ -981,7 +971,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "cannot execute #description on another project during lazy task creation action execution"() {
         settingsFile << "include 'nested', 'other'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             project(":other") {
                 tasks.register("foo") {
@@ -1002,7 +991,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "can execute #description on another project during task creation action execution"() {
         settingsFile << "include 'nested', 'other'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             project(":other") {
                 tasks.create("foo") {
@@ -1021,7 +1009,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "cannot execute #description on another project during lazy task configuration action execution"() {
         settingsFile << "include 'nested', 'other'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             project(":other") {
                 tasks.register("foo").configure {
@@ -1042,7 +1029,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "can execute #description on another project during task configuration action execution"() {
         settingsFile << "include 'nested', 'other'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             project(":other") {
                 tasks.create("foo")
@@ -1057,5 +1043,99 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+    }
+
+    @Unroll
+    def "can execute #description during eager configuration action with registered task"() {
+        buildFile << """
+            tasks.withType(SomeTask) {
+                ${code}
+            }
+            tasks.register("foo", SomeTask)
+        """
+
+        expect:
+        succeeds "foo"
+
+        where:
+        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+    }
+
+    def "can realize a task provider inside a configureEach action"() {
+        buildFile << """
+            def foo = tasks.create("foo", SomeTask)
+            def bar = tasks.register("bar") { println "Create :bar" }
+            def baz = tasks.create("baz", SomeTask)
+            def fizz = tasks.create("fizz", SomeTask)
+            def fuzz = tasks.create("fuzz", SomeTask)
+           
+            tasks.withType(SomeTask).configureEach { task ->
+                println "Configuring " + task.name
+                bar.get()
+            }
+            
+            task some { dependsOn tasks.withType(SomeTask) }
+        """
+
+        expect:
+        succeeds("some")
+
+        and:
+        executed ":foo", ":baz", ":fizz", ":fuzz", ":some"
+    }
+
+    def "can lookup task created by rules"() {
+        buildFile << """
+            tasks.addRule("create some tasks") { taskName ->
+                if (taskName == "bar") {
+                    tasks.register("bar")
+                } else if (taskName == "baz") {
+                    tasks.create("baz")
+                } else if (taskName == "notByRule") {
+                    tasks.register("notByRule") {
+                        throw new Exception("This should not be called")
+                    }
+                }
+            }
+            tasks.register("notByRule")
+            
+            task foo {
+                dependsOn tasks.named("bar")
+                dependsOn tasks.named("baz")
+                dependsOn "notByRule"
+            }
+            
+        """
+        expect:
+        succeeds("foo")
+        result.assertTasksExecuted(":notByRule", ":bar", ":baz", ":foo")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/6319")
+    def "can use getTasksByName from a lazy configuration action"() {
+        settingsFile << """
+            include "sub"
+        """
+        buildFile << """
+            plugins {
+                id 'base'
+            }
+            tasks.whenTaskAdded {
+                // force realization of all tasks
+            }
+            tasks.register("foo") {
+                dependsOn(project.getTasksByName("clean", true))
+            }
+        """
+        file("sub/build.gradle") << """
+            plugins {
+                id 'base'
+            }
+            afterEvaluate {
+                tasks.register("foo")
+            }
+        """
+        expect:
+        succeeds("help")
     }
 }

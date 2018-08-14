@@ -29,6 +29,8 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.gradlebuild.packaging.Attributes.artifactType
+import org.gradle.gradlebuild.packaging.Attributes.minified
 import org.gradle.kotlin.dsl.*
 
 

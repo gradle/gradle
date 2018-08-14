@@ -46,8 +46,8 @@ class DefaultCppTestSuiteTest extends Specification {
 
     def "can add executable"() {
         expect:
-        def exe = testSuite.addExecutable("exe", identity, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
-        exe.name == 'testExe'
+        def exe = testSuite.addExecutable(identity, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
+        exe.name == 'testExecutable'
     }
 
     private NativeVariantIdentity getIdentity() {

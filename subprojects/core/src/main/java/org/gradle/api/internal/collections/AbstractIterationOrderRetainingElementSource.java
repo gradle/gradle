@@ -18,12 +18,18 @@ package org.gradle.api.internal.collections;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.api.internal.provider.ChangingValue;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
+import org.gradle.api.internal.provider.Collector;
+import org.gradle.api.internal.provider.Collectors.*;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.specs.Spec;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -34,6 +40,8 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     private final List<Element<T>> inserted = new ArrayList<Element<T>>();
 
     private Action<T> realizeAction;
+
+    protected int modCount;
 
     List<Element<T>> getInserted() {
         return inserted;
@@ -51,12 +59,16 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
     @Override
     public int size() {
-        return inserted.size();
+        int count = 0;
+        for (Element<T> element : inserted) {
+            count += element.size();
+        }
+        return count;
     }
 
     @Override
     public int estimatedSize() {
-        return inserted.size();
+        return size();
     }
 
     @Override
@@ -75,17 +87,13 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     @Override
-    public boolean addRealized(T element) {
-        return true;
-    }
-
-    @Override
     public boolean remove(Object o) {
-        Iterator<Element<T>> iterator = inserted.iterator();
+        Iterator<T> iterator = iteratorNoFlush();
         while (iterator.hasNext()) {
-            Element<? extends T> provider = iterator.next();
-            if (provider.isRealized() && provider.getValue().equals(o)) {
+            T value = iterator.next();
+            if (value.equals(o)) {
                 iterator.remove();
+                modCount++;
                 return true;
             }
         }
@@ -94,6 +102,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
     @Override
     public void clear() {
+        modCount++;
         inserted.clear();
     }
 
@@ -104,32 +113,66 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
     @Override
     public void realizePending() {
-        for (Element<T> provider : inserted) {
-            if (!provider.isRealized()) {
-                provider.realize();
+        for (Element<T> element : inserted) {
+            if (!element.isRealized()) {
+                modCount++;
+                element.realize();
             }
         }
     }
 
     @Override
     public void realizePending(Class<?> type) {
-        for (Element<T> provider : inserted) {
-            if (!provider.isRealized() && (provider.getType() == null || type.isAssignableFrom(provider.getType()))) {
-                provider.realize();
+        for (Element<T> element : inserted) {
+            if (!element.isRealized() && (element.getType() == null || type.isAssignableFrom(element.getType()))) {
+                modCount++;
+                element.realize();
             }
         }
     }
 
+    protected void clearCachedElement(Element<T> element) {
+        modCount++;
+        element.clearCache();
+    }
+
     Element<T> cachingElement(ProviderInternal<? extends T> provider) {
-        return new CachingElement<T>(provider, realizeAction);
+        final Element<T> element = new Element<T>(provider.getType(), new ElementFromProvider<T>(provider), realizeAction);
+        if (provider instanceof ChangingValue) {
+            ((ChangingValue<T>) provider).onValueChange(new Action<T>() {
+                @Override
+                public void execute(T previousValue) {
+                    clearCachedElement(element);
+                }
+            });
+        }
+        return element;
+    }
+
+    Element<T> cachingElement(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+        final Element<T> element = new Element<T>(provider.getElementType(), new ElementsFromCollectionProvider<T>(provider), realizeAction);
+        if (provider instanceof ChangingValue) {
+            ((ChangingValue<Iterable<T>>)provider).onValueChange(new Action<Iterable<T>>() {
+                @Override
+                public void execute(Iterable<T> previousValues) {
+                    clearCachedElement(element);
+                }
+            });
+        }
+        return element;
     }
 
     @Override
     public boolean removePending(ProviderInternal<? extends T> provider) {
+        return removeByProvider(provider);
+    }
+
+    private boolean removeByProvider(ProviderInternal<?> provider) {
         Iterator<Element<T>> iterator = inserted.iterator();
         while (iterator.hasNext()) {
             Element<T> next = iterator.next();
-            if (next.caches(provider)) {
+            if (next.isProvidedBy(provider)) {
+                modCount++;
                 iterator.remove();
                 return true;
             }
@@ -138,30 +181,28 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     @Override
+    public boolean removePendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+        return removeByProvider(provider);
+    }
+
+    @Override
     public void onRealize(final Action<T> action) {
         this.realizeAction = action;
     }
 
-    protected interface Element<T> {
-        boolean isRealized();
-        boolean caches(ProviderInternal<? extends T> provider);
-        void realize();
-        Class<? extends T> getType();
-        T getValue();
-        ProviderInternal<? extends T> getDelegate();
-    }
-
-    // TODO Check for comodification with the ElementSource
-    protected static abstract class AbstractElementCollectionIterator<T, I> implements Iterator<I> {
+    protected class RealizedElementCollectionIterator implements Iterator<T> {
         final List<Element<T>> backingList;
-        private final Collection<I> values;
+        final Spec<ValuePointer<T>> acceptanceSpec;
         int nextIndex = -1;
+        int nextSubIndex = -1;
         int previousIndex = -1;
-        Element<T> next;
+        int previousSubIndex = -1;
+        T next;
+        int expectedModCount = modCount;
 
-        AbstractElementCollectionIterator(List<Element<T>> backingList, Collection<I> values) {
+        RealizedElementCollectionIterator(List<Element<T>> backingList, Spec<ValuePointer<T>> acceptanceSpec) {
             this.backingList = backingList;
-            this.values = values;
+            this.acceptanceSpec = acceptanceSpec;
             updateNext();
         }
 
@@ -170,21 +211,28 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             return next != null;
         }
 
-        protected abstract I valueOf(Element<T> element);
-
-        protected abstract boolean isValidCandidate(Element<T> element);
-
         private void updateNext() {
-            int i = nextIndex + 1;
+            if (nextIndex == -1) {
+                nextIndex = 0;
+            }
+
+            int i = nextIndex;
             while (i < backingList.size()) {
                 Element<T> candidate = backingList.get(i);
-                if (isValidCandidate(candidate)) {
-                    I value = valueOf(candidate);
-                    if (values.add(value)) {
-                        nextIndex = i;
-                        next = candidate;
-                        return;
+                if (candidate.isRealized()) {
+                    List<T> collected = candidate.getValues();
+                    int j = nextSubIndex + 1;
+                    while (j < collected.size()) {
+                        T value = collected.get(j);
+                        if (acceptanceSpec.isSatisfiedBy(new ValuePointer<T>(candidate, j))) {
+                            nextIndex = i;
+                            nextSubIndex = j;
+                            next = value;
+                            return;
+                        }
+                        j++;
                     }
+                    nextSubIndex = -1;
                 }
                 i++;
             }
@@ -193,12 +241,14 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         }
 
         @Override
-        public I next() {
+        public T next() {
+            checkForComodification();
             if (next == null) {
                 throw new NoSuchElementException();
             }
-            I thisNext = valueOf(next);
+            T thisNext = next;
             previousIndex = nextIndex;
+            previousSubIndex = nextSubIndex;
             updateNext();
             return thisNext;
         }
@@ -206,109 +256,111 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         @Override
         public void remove() {
             if (previousIndex > -1) {
-                I value = valueOf(backingList.get(previousIndex));
-                backingList.remove(previousIndex);
-                values.remove(value);
+                checkForComodification();
+                Element<T> element = backingList.get(previousIndex);
+                List<T> collected = element.getValues();
+                if (collected.size() > 1) {
+                    element.remove(collected.get(previousSubIndex));
+                    nextSubIndex--;
+                } else {
+                    backingList.remove(previousIndex);
+                    nextIndex--;
+                }
                 previousIndex = -1;
-                nextIndex--;
+                previousSubIndex = -1;
             } else {
                 throw new IllegalStateException();
             }
         }
-    }
 
-    protected static class RealizedElementCollectionIterator<T> extends AbstractElementCollectionIterator<T, T> {
-        RealizedElementCollectionIterator(List<Element<T>> backingList, Collection<T> values) {
-            super(backingList, values);
-        }
-
-        @Override
-        protected T valueOf(Element<T> element) {
-            return element.getValue();
-        }
-
-        @Override
-        protected boolean isValidCandidate(Element<T> element) {
-            return element.isRealized();
+        final void checkForComodification() {
+            if (modCount != expectedModCount) {
+                throw new ConcurrentModificationException();
+            }
         }
     }
 
-    protected static class PendingElementCollectionIterator<T> extends AbstractElementCollectionIterator<T, ProviderInternal<? extends T>> {
-        PendingElementCollectionIterator(List<Element<T>> backingList, Collection<ProviderInternal<? extends T>> values) {
-            super(backingList, values);
-        }
-
-        @Override
-        protected ProviderInternal<? extends T> valueOf(Element<T> element) {
-            return element.getDelegate();
-        }
-
-        @Override
-        protected boolean isValidCandidate(Element<T> element) {
-            return !element.isRealized();
-        }
-    }
-
-    protected static class CachingElement<T> implements Element<T> {
-        private final ProviderInternal<? extends T> delegate;
-        private T value;
+    protected static class Element<T> extends TypedCollector<T> {
+        private List<T> cache;
+        private final List<T> removedValues = Lists.newArrayList();
+        private final List<T> realizedValues = Lists.newArrayList();
+        private final List<Integer> duplicates = Lists.newArrayList();
         private boolean realized;
         private final Action<T> realizeAction;
 
-        CachingElement(final ProviderInternal<? extends T> delegate, Action<T> realizeAction) {
-            this.delegate = delegate;
+        Element(Class<? extends T> type, Collector<T> delegate, Action<T> realizeAction) {
+            super(type, delegate);
             this.realizeAction = realizeAction;
         }
 
-        CachingElement(T value) {
-            this.value = value;
-            this.realized = true;
+        Element(T value) {
+            super(null, new SingleElement<T>(value));
             this.realizeAction = null;
-            this.delegate = null;
+            realize();
         }
 
-        @Override
-        public ProviderInternal<? extends T> getDelegate() {
-            return delegate;
-        }
-
-        @Override
-        public Class<? extends T> getType() {
-            if (delegate != null) {
-                return delegate.getType();
-            } else {
-                return null;
-            }
-        }
-
-        @Override
         public boolean isRealized() {
             return realized;
         }
 
-        @Override
         public void realize() {
-            if (value == null && delegate != null) {
-                value = delegate.get();
+            if (cache == null) {
+                cache = new ArrayList<T>(delegate.size());
+                super.collectInto(cache);
+                cache.removeAll(removedValues);
                 realized = true;
                 if (realizeAction != null) {
-                    realizeAction.execute(value);
+                    for (T value : cache) {
+                        if (!realizedValues.contains(value)) {
+                            realizeAction.execute(value);
+                            realizedValues.add(value);
+                        }
+                    }
                 }
             }
         }
 
-        @Nullable
         @Override
-        public T getValue() {
+        public void collectInto(Collection<T> collection) {
             if (!realized) {
                 realize();
             }
-            return value;
+            collection.addAll(cache);
         }
 
         @Override
-        public boolean caches(ProviderInternal<? extends T> provider) {
-            return Objects.equal(delegate, provider);
+        public boolean maybeCollectInto(Collection<T> collection) {
+            collectInto(collection);
+            return true;
+        }
+
+        List<T> getValues() {
+            if (!realized) {
+                realize();
+            }
+            return cache;
+        }
+
+        public boolean remove(T value) {
+            removedValues.add(value);
+            if (cache != null) {
+                return cache.remove(value);
+            }
+            return true;
+        }
+
+        boolean isDuplicate(int index) {
+            return duplicates.contains(index);
+        }
+
+        void setDuplicate(int index) {
+            duplicates.add(index);
+        }
+
+        void clearCache() {
+            cache = null;
+            realized = false;
+            duplicates.clear();
         }
 
         @Override
@@ -319,14 +371,32 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            IterationOrderRetainingSetElementSource.CachingElement that = (IterationOrderRetainingSetElementSource.CachingElement) o;
+            Element that = (Element) o;
             return Objects.equal(delegate, that.delegate) &&
-                Objects.equal(value, that.value);
+                Objects.equal(cache, that.cache);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(delegate, value);
+            return Objects.hashCode(delegate, cache);
+        }
+    }
+
+    protected static class ValuePointer<T> {
+        private final Element<T> element;
+        private final Integer index;
+
+        public ValuePointer(Element<T> element, Integer index) {
+            this.element = element;
+            this.index = index;
+        }
+
+        public Element<T> getElement() {
+            return element;
+        }
+
+        public Integer getIndex() {
+            return index;
         }
     }
 }

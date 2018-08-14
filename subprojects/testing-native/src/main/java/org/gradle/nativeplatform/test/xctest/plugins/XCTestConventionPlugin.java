@@ -156,10 +156,10 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                         // Create test suite executable
                         DefaultSwiftXCTestBinary binary;
                         if (result.getTargetPlatform().getOperatingSystemFamily().isMacOs()) {
-                            binary = (DefaultSwiftXCTestBinary) testComponent.addBundle("executable", variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                            binary = (DefaultSwiftXCTestBinary) testComponent.addBundle(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
 
                         } else {
-                            binary = (DefaultSwiftXCTestBinary) testComponent.addExecutable("executable", variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                            binary = (DefaultSwiftXCTestBinary) testComponent.addExecutable(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                         }
                         testComponent.getTestBinary().set(binary);
 

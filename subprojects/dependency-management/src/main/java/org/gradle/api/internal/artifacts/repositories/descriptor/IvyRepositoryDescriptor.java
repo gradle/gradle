@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+import java.net.URI;
 import java.util.Collection;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -41,7 +42,7 @@ public final class IvyRepositoryDescriptor extends UrlRepositoryDescriptor {
 
     private IvyRepositoryDescriptor(
         String name,
-        String url,
+        URI url,
         ImmutableList<String> metadataSources,
         boolean authenticated,
         ImmutableList<String> authenticationSchemes,
@@ -78,7 +79,7 @@ public final class IvyRepositoryDescriptor extends UrlRepositoryDescriptor {
         private String layoutType;
         private Boolean m2Compatible;
 
-        public Builder(String name, String url) {
+        public Builder(String name, URI url) {
             super(name, url);
         }
 

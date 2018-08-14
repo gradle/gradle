@@ -36,6 +36,7 @@ import javax.annotation.Nullable;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class PersistentVcsMetadataCache implements Stoppable {
+    private static final VersionRefSerializer VALUE_SERIALIZER = new VersionRefSerializer();
     private final PersistentCache cache;
     private final PersistentIndexedCache<String, VersionRef> workingDirCache;
 
@@ -45,7 +46,7 @@ public class PersistentVcsMetadataCache implements Stoppable {
             .withDisplayName("VCS metadata")
             .withLockOptions(mode(FileLockManager.LockMode.None)) // Don't need to lock anything until we use the caches
             .open();
-        workingDirCache = cache.createCache("workingDirs", String.class, new VersionRefSerializer());
+        workingDirCache = cache.createCache("workingDirs", String.class, VALUE_SERIALIZER);
     }
 
     @Override

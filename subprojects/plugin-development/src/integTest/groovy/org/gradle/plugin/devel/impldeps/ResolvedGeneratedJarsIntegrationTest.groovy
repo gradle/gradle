@@ -40,7 +40,6 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsIntegration
 
         then:
         file("user-home/caches/${distribution.version.version}/generated-gradle-jars/gradle-api-${distribution.version.version}.jar").assertExists()
-        assertSingleGenerationOutput(output, API_JAR_GENERATION_OUTPUT_REGEX)
 
     }
 
@@ -59,7 +58,6 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsIntegration
 
         then:
         file("user-home/caches/${distribution.version.version}/generated-gradle-jars/gradle-test-kit-${distribution.version.version}.jar").assertExists()
-        assertSingleGenerationOutput(output, TESTKIT_GENERATION_OUTPUT_REGEX)
     }
 
     private TestFile productionCode() {

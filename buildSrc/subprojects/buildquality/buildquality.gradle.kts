@@ -18,28 +18,28 @@ dependencies {
 }
 
 gradlePlugin {
-    (plugins) {
-        "addVerifyProductionEnvironmentTask" {
+    plugins {
+        register("addVerifyProductionEnvironmentTask") {
             id = "gradlebuild.add-verify-production-environment-task"
             implementationClass = "org.gradle.gradlebuild.buildquality.AddVerifyProductionEnvironmentTaskPlugin"
         }
-        "ciReporting" {
+        register("ciReporting") {
             id = "gradlebuild.ci-reporting"
             implementationClass = "org.gradle.gradlebuild.buildquality.CiReportingPlugin"
         }
-        "classycle" {
+        register("classycle") {
             id = "gradlebuild.classycle"
             implementationClass = "org.gradle.gradlebuild.buildquality.classycle.ClassyclePlugin"
         }
-        "dependencyVulnerabilities" {
+        register("dependencyVulnerabilities") {
             id = "gradlebuild.dependency-vulnerabilities"
             implementationClass = "org.gradle.gradlebuild.buildquality.DependencyVulnerabilitiesPlugin"
         }
-        "noResolutionAtConfigurationTime" {
+        register("noResolutionAtConfigurationTime") {
             id = "gradlebuild.no-resolution-at-configuration"
             implementationClass = "org.gradle.gradlebuild.buildquality.NoResolutionAtConfigurationTimePlugin"
         }
-        "taskPropertyValidation" {
+        register("taskPropertyValidation") {
             id = "gradlebuild.task-properties-validation"
             implementationClass = "org.gradle.gradlebuild.buildquality.TaskPropertyValidationPlugin"
         }

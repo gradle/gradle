@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.compile
 
 import com.google.common.collect.ImmutableSet
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.compile.CompileOptions
@@ -30,7 +31,7 @@ class NormalizingJavaCompilerTest extends Specification {
     def setup() {
         spec.sourceFiles = files("Source1.java", "Source2.java", "Source3.java")
         spec.compileClasspath = [new File("Dep1.jar"), new File("Dep2.jar"), new File("Dep3.jar")]
-        def compileOptions = new CompileOptions(TestUtil.objectFactory())
+        def compileOptions = new CompileOptions(Stub(ProjectLayout), TestUtil.objectFactory())
         compileOptions.annotationProcessorPath = ImmutableFileCollection.of(new File("processor.jar"))
         spec.compileOptions = compileOptions
     }

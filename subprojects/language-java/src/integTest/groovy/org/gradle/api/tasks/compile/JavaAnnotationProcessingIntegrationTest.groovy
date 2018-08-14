@@ -293,5 +293,4 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         then:
         succeeds "compileJava"
     }
-
 }

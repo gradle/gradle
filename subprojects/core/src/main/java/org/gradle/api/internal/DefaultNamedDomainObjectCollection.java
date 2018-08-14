@@ -15,13 +15,16 @@
  */
 package org.gradle.api.internal;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.DomainObjectProvider;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectCollection;
+import org.gradle.api.NamedDomainObjectCollectionSchema;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Namer;
 import org.gradle.api.Rule;
 import org.gradle.api.UnknownDomainObjectException;
@@ -33,6 +36,7 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Cast;
@@ -346,8 +350,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Override
-    public DomainObjectProvider<T> named(String name) throws UnknownTaskException {
-        DomainObjectProvider<? extends T> provider = findDomainObject(name);
+    public NamedDomainObjectProvider<T> named(String name) throws UnknownTaskException {
+        NamedDomainObjectProvider<? extends T> provider = findDomainObject(name);
         if (provider == null) {
             throw createNotFoundException(name);
         }
@@ -366,6 +370,55 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     protected DynamicObject getElementsAsDynamicObject() {
         return elementsDynamicObject;
+    }
+
+    @Override
+    public NamedDomainObjectCollectionSchema getCollectionSchema() {
+        return new NamedDomainObjectCollectionSchema() {
+            @Override
+            public Iterable<? extends NamedDomainObjectSchema> getElements() {
+                return Iterables.concat(
+                    Iterables.transform(index.asMap().entrySet(), new Function<Map.Entry<String, T>, NamedDomainObjectSchema>() {
+                        @Override
+                        public NamedDomainObjectSchema apply(final Map.Entry<String, T> e) {
+                            return new NamedDomainObjectSchema() {
+                                @Override
+                                public String getName() {
+                                    return e.getKey();
+                                }
+
+                                @Override
+                                public TypeOf<?> getPublicType() {
+                                    // TODO: This returns the wrong public type for domain objects
+                                    // created with the eager APIs or added directly to the container.
+                                    // This can leak internal types.
+                                    // We do not currently keep track of the type used when creating
+                                    // a domain object (via create) or the type of the container when
+                                    // a domain object is added directly (via add).
+                                    return new DslObject(e.getValue()).getPublicType();
+                                }
+                            };
+                        }
+                    }),
+                    Iterables.transform(index.getPendingAsMap().entrySet(), new Function<Map.Entry<String, ProviderInternal<? extends T>>, NamedDomainObjectSchema>() {
+                        @Override
+                        public NamedDomainObjectSchema apply(final Map.Entry<String, ProviderInternal<? extends T>> e) {
+                            return new NamedDomainObjectSchema() {
+                                @Override
+                                public String getName() {
+                                    return e.getKey();
+                                }
+
+                                @Override
+                                public TypeOf<?> getPublicType() {
+                                    return TypeOf.typeOf(e.getValue().getType());
+                                }
+                            };
+                        }
+                    })
+                );
+            }
+        };
     }
 
     /**
@@ -708,21 +761,45 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Nullable
-    protected DomainObjectProvider<? extends T> findDomainObject(String name) {
-        T object = findByNameWithoutRules(name);
-        if (object == null) {
-            // TODO: Need to check for proper type/cast
-            return Cast.uncheckedCast(findByNameLaterWithoutRules(name));
+    protected NamedDomainObjectProvider<? extends T> findDomainObject(String name) {
+        NamedDomainObjectProvider<? extends T> provider = searchForDomainObject(name);
+        // Run the rules and try to find something again.
+        if (provider == null) {
+            if (applyRules(name)) {
+                return searchForDomainObject(name);
+            }
         }
 
-        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingDomainObjectProvider.class, this, name));
+        return provider;
     }
 
-    protected abstract class AbstractDomainObjectProvider<I extends T> extends AbstractProvider<I> implements Named, DomainObjectProvider<I> {
+    @Nullable
+    private NamedDomainObjectProvider<? extends T> searchForDomainObject(String name) {
+        // Look for a realized object
+        T object = findByNameWithoutRules(name);
+        if (object != null) {
+            return createExistingProvider(name, object);
+        }
+
+        // Look for a provider with that name
+        ProviderInternal<? extends T> provider = findByNameLaterWithoutRules(name);
+        if (provider != null) {
+            // TODO: Need to check for proper type/cast
+            return Cast.uncheckedCast(provider);
+        }
+
+        return null;
+    }
+
+    protected NamedDomainObjectProvider<? extends T> createExistingProvider(String name, T object) {
+        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingNamedDomainObjectProvider.class, this, name, getType()));
+    }
+
+    protected abstract class AbstractNamedDomainObjectProvider<I extends T> extends AbstractProvider<I> implements Named, NamedDomainObjectProvider<I> {
         private final String name;
         private final Class<I> type;
 
-        protected AbstractDomainObjectProvider(String name, Class<I> type) {
+        protected AbstractNamedDomainObjectProvider(String name, Class<I> type) {
             this.name = name;
             this.type = type;
         }
@@ -749,9 +826,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
     }
 
-    protected class ExistingDomainObjectProvider<I extends T> extends AbstractDomainObjectProvider<I> {
-        public ExistingDomainObjectProvider(String name) {
-            super(name, (Class<I>) DefaultNamedDomainObjectCollection.this.getType());
+    protected class ExistingNamedDomainObjectProvider<I extends T> extends AbstractNamedDomainObjectProvider<I> {
+        protected ExistingNamedDomainObjectProvider(String name, Class<I> type) {
+            super(name, type);
         }
 
         public void configure(Action<? super I> action) {
@@ -768,7 +845,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
     }
 
-    public abstract class AbstractDomainObjectCreatingProvider<I extends T> extends AbstractDomainObjectProvider<I> {
+    public abstract class AbstractDomainObjectCreatingProvider<I extends T> extends AbstractNamedDomainObjectProvider<I> {
         private I object;
         private RuntimeException failure;
         private ImmutableActionSet<I> onCreate;

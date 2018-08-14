@@ -16,49 +16,69 @@
 
 package org.gradle.internal.fingerprint.impl
 
+import com.google.common.collect.ImmutableMultimap
 import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVisitor
 import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.api.internal.changedetection.rules.TaskStateChange
-import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
+import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
+import spock.lang.Unroll
 
+@Unroll
 class EmptyFileCollectionFingerprintTest extends Specification {
+
+    private static final List<FileCollectionFingerprint> EMPTY_FINGERPRINTS = [
+        EmptyHistoricalFileCollectionFingerprint.INSTANCE,
+        *FingerprintingStrategy.Identifier.values()*.emptyFingerprint
+    ]
+
     def "comparing empty snapshot to regular snapshot shows entries added"() {
         def fingerprint = new DefaultHistoricalFileCollectionFingerprint([
-            "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
-            "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", FileType.RegularFile, HashCode.fromInt(234)),
-        ], FingerprintCompareStrategy.ABSOLUTE)
+            "file1.txt": new DefaultFileSystemLocationFingerprint("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
+            "file2.txt": new DefaultFileSystemLocationFingerprint("file2.txt", FileType.RegularFile, HashCode.fromInt(234)),
+        ], FingerprintCompareStrategy.ABSOLUTE, ImmutableMultimap.of('/dir', HashCode.fromInt(456)))
         expect:
-        getChanges(fingerprint, EmptyFileCollectionFingerprint.INSTANCE, false).empty
-        getChanges(fingerprint, EmptyFileCollectionFingerprint.INSTANCE, true) == [
+        getChanges(fingerprint, empty, false).empty
+        getChanges(fingerprint, empty, true) == [
             FileChange.added("file1.txt", "test", FileType.RegularFile),
             FileChange.added("file2.txt", "test", FileType.RegularFile)
         ]
+
+        where:
+        empty << EMPTY_FINGERPRINTS
     }
 
     def "comparing regular snapshot to empty snapshot shows entries removed"() {
         def fingerprint = new DefaultHistoricalFileCollectionFingerprint([
-            "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
-            "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", FileType.RegularFile, HashCode.fromInt(234)),
-        ], FingerprintCompareStrategy.ABSOLUTE)
+            "file1.txt": new DefaultFileSystemLocationFingerprint("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
+            "file2.txt": new DefaultFileSystemLocationFingerprint("file2.txt", FileType.RegularFile, HashCode.fromInt(234)),
+        ], FingerprintCompareStrategy.ABSOLUTE, ImmutableMultimap.of('/dir', HashCode.fromInt(456)))
         expect:
-        getChanges(EmptyFileCollectionFingerprint.INSTANCE, fingerprint, false).toList() == [
+        getChanges(empty, fingerprint, false).toList() == [
             FileChange.removed("file1.txt", "test", FileType.RegularFile),
             FileChange.removed("file2.txt", "test", FileType.RegularFile)
         ]
-        getChanges(EmptyFileCollectionFingerprint.INSTANCE, fingerprint, true).toList() == [
+        getChanges(empty, fingerprint, true).toList() == [
             FileChange.removed("file1.txt", "test", FileType.RegularFile),
             FileChange.removed("file2.txt", "test", FileType.RegularFile)
         ]
+
+        where:
+        empty << EMPTY_FINGERPRINTS
     }
 
-    def "comparing to itself works"() {
+    def "comparing empty fingerprints always produces empty - #firstEmpty / #secondEmpty"() {
         expect:
-        getChanges(EmptyFileCollectionFingerprint.INSTANCE, EmptyFileCollectionFingerprint.INSTANCE, false).toList() == []
-        getChanges(EmptyFileCollectionFingerprint.INSTANCE, EmptyFileCollectionFingerprint.INSTANCE, true).toList() == []
+        getChanges(firstEmpty, secondEmpty, false).toList() == []
+        getChanges(firstEmpty, secondEmpty, true).toList() == []
+
+        where:
+        combination << [EMPTY_FINGERPRINTS, EMPTY_FINGERPRINTS].combinations()
+        firstEmpty = combination[0]
+        secondEmpty = combination[1]
     }
 
     private static Collection<TaskStateChange> getChanges(FileCollectionFingerprint current, FileCollectionFingerprint previous, boolean includeAdded) {

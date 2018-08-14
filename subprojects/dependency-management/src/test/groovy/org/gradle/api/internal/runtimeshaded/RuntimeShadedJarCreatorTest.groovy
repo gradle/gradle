@@ -24,7 +24,6 @@ import org.gradle.api.Action
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.internal.IoActions
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector
-import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
@@ -41,8 +40,6 @@ import spock.lang.Specification
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 
-import static org.gradle.api.internal.runtimeshaded.RuntimeShadedJarCreator.ADDITIONAL_PROGRESS_STEPS
-
 @UsesNativeServices
 @CleanupTestDirectory(fieldName = "tmpDir")
 class RuntimeShadedJarCreatorTest extends Specification {
@@ -50,8 +47,7 @@ class RuntimeShadedJarCreatorTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    def progressLoggerFactory = Mock(ProgressLoggerFactory)
-    def progressLogger = Mock(ProgressLogger)
+    def progressLoggerFactory = Stub(ProgressLoggerFactory)
     def relocatedJarCreator
     def outputJar = tmpDir.testDirectory.file('gradle-api.jar')
 
@@ -68,12 +64,6 @@ class RuntimeShadedJarCreatorTest extends Specification {
         relocatedJarCreator.create(outputJar, [inputFilesDir])
 
         then:
-        1 * progressLoggerFactory.newOperation(RuntimeShadedJarCreator) >> progressLogger
-        1 * progressLogger.setDescription('Gradle JARs generation')
-        1 * progressLogger.setLoggingHeader("Generating JAR file '$outputJar.name'")
-        1 * progressLogger.started()
-        (1 + ADDITIONAL_PROGRESS_STEPS) * progressLogger.progress(_)
-        1 * progressLogger.completed()
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
         contents.length == 1
         contents[0] == outputJar
@@ -92,12 +82,6 @@ class RuntimeShadedJarCreatorTest extends Specification {
         relocatedJarCreator.create(outputJar, [jarFile1, jarFile2])
 
         then:
-        1 * progressLoggerFactory.newOperation(RuntimeShadedJarCreator) >> progressLogger
-        1 * progressLogger.setDescription('Gradle JARs generation')
-        1 * progressLogger.setLoggingHeader("Generating JAR file '$outputJar.name'")
-        1 * progressLogger.started()
-        (2 + ADDITIONAL_PROGRESS_STEPS) * progressLogger.progress(_)
-        1 * progressLogger.completed()
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
         contents.length == 1
         contents[0] == outputJar
@@ -137,7 +121,6 @@ org.gradle.api.internal.tasks.CompileServices
         relocatedJarCreator.create(outputJar, [jarFile1, jarFile2, jarFile3, jarFile4, jarFile5, jarFile6, inputDirectory])
 
         then:
-        1 * progressLoggerFactory.newOperation(RuntimeShadedJarCreator) >> progressLogger
 
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
         contents.length == 1
@@ -178,7 +161,6 @@ org.gradle.api.internal.tasks.CompileServices
         relocatedJarCreator.create(outputJar, [jarFile1, jarFile2, inputDirectory])
 
         then:
-        1 * progressLoggerFactory.newOperation(RuntimeShadedJarCreator) >> progressLogger
 
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
         contents.length == 1
@@ -216,12 +198,6 @@ org.gradle.api.internal.tasks.CompileServices
         relocatedJarCreator.create(outputJar, [jarFile1, jarFile2, jarFile3])
 
         then:
-        1 * progressLoggerFactory.newOperation(RuntimeShadedJarCreator) >> progressLogger
-        1 * progressLogger.setDescription('Gradle JARs generation')
-        1 * progressLogger.setLoggingHeader("Generating JAR file '$outputJar.name'")
-        1 * progressLogger.started()
-        (3 + ADDITIONAL_PROGRESS_STEPS) * progressLogger.progress(_)
-        1 * progressLogger.completed()
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
         contents.length == 1
         def relocatedJar = contents[0]
@@ -266,12 +242,6 @@ org.gradle.api.internal.tasks.CompileServices"""
         relocatedJarCreator.create(outputJar, [jarFile])
 
         then:
-        1 * progressLoggerFactory.newOperation(RuntimeShadedJarCreator) >> progressLogger
-        1 * progressLogger.setDescription('Gradle JARs generation')
-        1 * progressLogger.setLoggingHeader("Generating JAR file '$outputJar.name'")
-        1 * progressLogger.started()
-        (1 + ADDITIONAL_PROGRESS_STEPS) * progressLogger.progress(_)
-        1 * progressLogger.completed()
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
         contents.length == 1
         def relocatedJar = contents[0]
@@ -358,7 +328,6 @@ org.gradle.api.internal.tasks.CompileServices"""
         def inputFilesDir = tmpDir.createDir('inputFiles')
         def jarFile = inputFilesDir.file('lib.jar')
         createJarFileWithClassFiles(jarFile, ["org.slf4j.impl.StaticLoggerBinder"])
-        progressLoggerFactory.newOperation(RuntimeShadedJarCreator) >> progressLogger
 
         when:
         relocatedJarCreator.create(outputJar, [jarFile])
@@ -386,8 +355,6 @@ org.gradle.api.internal.tasks.CompileServices"""
         relocatedJarCreator.create(outputJar, [jarFile])
 
         then:
-        1 * progressLoggerFactory.newOperation(RuntimeShadedJarCreator) >> progressLogger
-        1 * progressLogger.completed()
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
         contents.length == 1
         def relocatedJar = contents[0]

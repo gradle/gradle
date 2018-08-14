@@ -42,6 +42,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.ClosureBackedAction;
@@ -76,6 +77,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
+import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -136,7 +138,10 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
 import static org.gradle.util.GUtil.addMaps;
 
 @NoConventionMapping
-public class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
+public class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware,
+    // These two are here to work around https://github.com/gradle/gradle/issues/6027
+    FileOperations, ProcessOperations {
+
     private static final ModelType<ServiceRegistry> SERVICE_REGISTRY_MODEL_TYPE = ModelType.of(ServiceRegistry.class);
     private static final ModelType<File> FILE_MODEL_TYPE = ModelType.of(File.class);
     private static final ModelType<ProjectIdentifier> PROJECT_IDENTIFIER_MODEL_TYPE = ModelType.of(ProjectIdentifier.class);
@@ -640,13 +645,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void subprojects(Action<? super Project> action) {
-        assertMethodExecutionAllowed("Project#subprojects(Action)");
         getProjectConfigurator().subprojects(getSubprojects(), action);
     }
 
     @Override
     public void allprojects(Action<? super Project> action) {
-        assertMethodExecutionAllowed("Project#allprojects(Action)");
         getProjectConfigurator().allprojects(getAllprojects(), action);
     }
 
@@ -978,26 +981,26 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void beforeEvaluate(Action<? super Project> action) {
-        assertMethodExecutionAllowed("Project#beforeEvaluate(Action)");
-        evaluationListener.add("beforeEvaluate", action);
+        assertMutatingMethodAllowed("Project#beforeEvaluate(Action)");
+        evaluationListener.add("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Project.beforeEvaluate", action));
     }
 
     @Override
     public void afterEvaluate(Action<? super Project> action) {
-        assertMethodExecutionAllowed("Project#afterEvaluate(Action)");
-        evaluationListener.add("afterEvaluate", action);
+        assertMutatingMethodAllowed("Project#afterEvaluate(Action)");
+        evaluationListener.add("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", action));
     }
 
     @Override
     public void beforeEvaluate(Closure closure) {
-        assertMethodExecutionAllowed("Project#beforeEvaluate(Closure)");
-        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", closure));
+        assertMutatingMethodAllowed("Project#beforeEvaluate(Closure)");
+        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Project.beforeEvaluate", closure)));
     }
 
     @Override
     public void afterEvaluate(Closure closure) {
-        assertMethodExecutionAllowed("Project#afterEvaluate(Closure)");
-        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", closure));
+        assertMutatingMethodAllowed("Project#afterEvaluate(Closure)");
+        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", closure)));
     }
 
     @Override
@@ -1138,25 +1141,21 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void subprojects(Closure configureClosure) {
-        assertMethodExecutionAllowed("Project#subprojects(Closure)");
-        getProjectConfigurator().subprojects(getSubprojects(), configureClosure);
+        getProjectConfigurator().subprojects(getSubprojects(), ConfigureUtil.<Project>configureUsing(configureClosure));
     }
 
     @Override
     public void allprojects(Closure configureClosure) {
-        assertMethodExecutionAllowed("Project#allprojects(Closure)");
-        getProjectConfigurator().allprojects(getAllprojects(), configureClosure);
+        getProjectConfigurator().allprojects(getAllprojects(), ConfigureUtil.<Project>configureUsing(configureClosure));
     }
 
     @Override
     public Project project(String path, Closure configureClosure) {
-        assertMethodExecutionAllowed("Project#project(String, Closure)");
-        return getProjectConfigurator().project(project(path), configureClosure);
+        return getProjectConfigurator().project(project(path), ConfigureUtil.<Project>configureUsing(configureClosure));
     }
 
     @Override
     public Project project(String path, Action<? super Project> configureAction) {
-        assertMethodExecutionAllowed("Project#project(String, Action)");
         return getProjectConfigurator().project(project(path), configureAction);
     }
 
@@ -1210,6 +1209,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     public Task task(Object task) {
         return taskContainer.create(task.toString());
+    }
+
+    @Override
+    public Task task(String task, Action<? super Task> configureAction) {
+        return taskContainer.create(task, configureAction);
     }
 
     @Override
@@ -1350,6 +1354,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected ListenerBuildOperationDecorator getListenerBuildOperationDecorator() {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     public void addDeferredConfiguration(Runnable configuration) {
         getDeferredProjectConfiguration().add(configuration);
@@ -1415,7 +1424,27 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
             : nextBatch.getSource();
     }
 
-    private void assertMethodExecutionAllowed(String methodName) {
+    private void assertMutatingMethodAllowed(String methodName) {
         getProjectConfigurator().assertCrossProjectConfigurationAllowed(methodName, this);
+    }
+
+    // These are here just so that ProjectInternal can implement FileOperations to work around https://github.com/gradle/gradle/issues/6027
+
+    @Override
+    @Deprecated
+    public ConfigurableFileCollection configurableFiles() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    @Deprecated
+    public ConfigurableFileCollection configurableFiles(Object... paths) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    @Deprecated
+    public FileCollection immutableFiles(Object... paths) {
+        throw new UnsupportedOperationException();
     }
 }

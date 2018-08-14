@@ -16,23 +16,28 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.internal.file.FileType;
+import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 
+@NonNullApi
 public class DefaultTaskOutputFilesRepository implements TaskOutputFilesRepository, Closeable {
 
     private final PersistentCache cacheAccess;
-    private final FileSystemSnapshotter fileSystemSnapshotter;
     private final PersistentIndexedCache<String, Boolean> outputFiles; // The value is true if it is an output file, false if it is a parent of an output file
 
-    public DefaultTaskOutputFilesRepository(PersistentCache cacheAccess, FileSystemSnapshotter fileSystemSnapshotter, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    public DefaultTaskOutputFilesRepository(PersistentCache cacheAccess, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         this.cacheAccess = cacheAccess;
-        this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.outputFiles = cacheAccess.createCache(cacheParameters(inMemoryCacheDecoratorFactory));
     }
 
@@ -58,22 +63,41 @@ public class DefaultTaskOutputFilesRepository implements TaskOutputFilesReposito
     }
 
     @Override
-    public void recordOutputs(Iterable<String> outputFilePaths) {
-        for (String outputFilePath : outputFilePaths) {
-            File outputFile = new File(outputFilePath);
-            boolean exists = fileSystemSnapshotter.exists(outputFile);
-            if (exists) {
-                outputFiles.put(outputFilePath, Boolean.TRUE);
-                File outputFileParent = outputFile.getParentFile();
-                while (outputFileParent != null) {
-                    String parentPath = outputFileParent.getPath();
-                    if (outputFiles.get(parentPath) != null) {
-                        break;
-                    }
-                    outputFiles.put(parentPath, Boolean.FALSE);
-                    outputFileParent = outputFileParent.getParentFile();
+    public void recordOutputs(Iterable<? extends FileSystemSnapshot> outputFileFingerprints) {
+        for (FileSystemSnapshot outputFileFingerprint : outputFileFingerprints) {
+            outputFileFingerprint.accept(new FileSystemSnapshotVisitor() {
+                @Override
+                public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+                    recordOutputSnapshot(directorySnapshot);
+                    return false;
                 }
-            }
+
+                @Override
+                public void visit(FileSystemLocationSnapshot fileSnapshot) {
+                    if (fileSnapshot.getType() == FileType.RegularFile) {
+                        recordOutputSnapshot(fileSnapshot);
+                    }
+                }
+
+                private void recordOutputSnapshot(FileSystemLocationSnapshot directorySnapshot) {
+                    String outputFilePath = directorySnapshot.getAbsolutePath();
+                    File outputFile = new File(outputFilePath);
+                    outputFiles.put(outputFilePath, Boolean.TRUE);
+                    File outputFileParent = outputFile.getParentFile();
+                    while (outputFileParent != null) {
+                        String parentPath = outputFileParent.getPath();
+                        if (outputFiles.get(parentPath) != null) {
+                            break;
+                        }
+                        outputFiles.put(parentPath, Boolean.FALSE);
+                        outputFileParent = outputFileParent.getParentFile();
+                    }
+                }
+
+                @Override
+                public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+                }
+            });
         }
     }
 

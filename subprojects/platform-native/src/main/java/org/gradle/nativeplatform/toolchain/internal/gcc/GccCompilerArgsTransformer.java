@@ -56,6 +56,10 @@ abstract class GccCompilerArgsTransformer<T extends NativeCompileSpec> implement
     }
 
     protected void addIncludeArgs(T spec, List<String> args) {
+        if (isNoStandardIncludes()) {
+            args.add("-nostdinc");
+        }
+
         for (File file : spec.getIncludeRoots()) {
             args.add("-I");
             args.add(file.getAbsolutePath());
@@ -75,6 +79,10 @@ abstract class GccCompilerArgsTransformer<T extends NativeCompileSpec> implement
 
     protected void addUserArgs(T spec, List<String> args) {
         args.addAll(spec.getAllArgs());
+    }
+
+    protected boolean isNoStandardIncludes() {
+        return true;
     }
 
     protected abstract String getLanguage();

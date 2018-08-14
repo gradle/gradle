@@ -28,7 +28,9 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
+import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.ObjectInstantiationException;
+import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.util.TestUtil;
@@ -804,10 +806,17 @@ public class AsmBackedClassGeneratorTest {
     public void generatesDslObjectCompatibleObject() throws Exception {
         DslObject dslObject = new DslObject(generator.generate(Bean.class).newInstance());
         assertEquals(Bean.class, dslObject.getDeclaredType());
+        assertEquals(TypeOf.typeOf(Bean.class), dslObject.getPublicType());
         assertNotNull(dslObject.getConventionMapping());
         assertNotNull(dslObject.getConvention());
         assertNotNull(dslObject.getExtensions());
         assertNotNull(dslObject.getAsDynamicObject());
+    }
+
+    @Test
+    public void honorsPublicType() throws Exception {
+        DslObject dslObject = new DslObject(generator.generate(BeanWithPublicType.class).newInstance());
+        assertEquals(TypeOf.typeOf(Bean.class), dslObject.getPublicType());
     }
 
     @Test
@@ -916,6 +925,13 @@ public class AsmBackedClassGeneratorTest {
 
         public void doStuff(Action<String> action) {
             action.execute(getProp());
+        }
+    }
+
+    public static class BeanWithPublicType extends Bean implements HasPublicType {
+        @Override
+        public TypeOf<?> getPublicType() {
+            return TypeOf.typeOf(Bean.class);
         }
     }
 

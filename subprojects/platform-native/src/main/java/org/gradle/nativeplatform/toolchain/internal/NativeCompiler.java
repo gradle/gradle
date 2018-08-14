@@ -20,8 +20,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.FileUtils;
@@ -38,7 +36,6 @@ import java.util.List;
 public abstract class NativeCompiler<T extends NativeCompileSpec> extends AbstractCompiler<T> {
     private final Transformer<T, T> specTransformer;
     private final String objectFileExtension;
-    private final Logger logger = Logging.getLogger(NativeCompiler.class);
 
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;
 

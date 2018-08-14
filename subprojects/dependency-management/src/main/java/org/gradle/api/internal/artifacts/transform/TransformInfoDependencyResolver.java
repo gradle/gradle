@@ -35,8 +35,8 @@ public class TransformInfoDependencyResolver implements WorkInfoDependencyResolv
 
     @Override
     public boolean resolve(Task task, Object node, Action<? super WorkInfo> resolveAction) {
-        if (node instanceof ArtifactTransformDependency) {
-            ArtifactTransformDependency transformation = (ArtifactTransformDependency) node;
+        if (node instanceof DefaultArtifactTransformDependency) {
+            DefaultArtifactTransformDependency transformation = (DefaultArtifactTransformDependency) node;
             Collection<TransformInfo> transforms = transformInfoFactory.getOrCreate(transformation.getArtifacts(), transformation.getTransform());
             for (TransformInfo transformInfo : transforms) {
                 resolveAction.execute(transformInfo);

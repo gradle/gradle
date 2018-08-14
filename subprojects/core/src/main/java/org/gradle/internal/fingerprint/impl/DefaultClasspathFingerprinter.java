@@ -18,26 +18,23 @@ package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
-
-import static org.gradle.internal.fingerprint.impl.ClasspathFingerprintingStrategy.NonJarFingerprintingStrategy.USE_FILE_HASH;
 
 public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerprinter implements ClasspathFingerprinter {
     private final ResourceSnapshotterCacheService cacheService;
     private final StringInterner stringInterner;
     private final RuntimeClasspathResourceHasher runtimeClasspathResourceHasher;
 
-    public DefaultClasspathFingerprinter(ResourceSnapshotterCacheService cacheService, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
-        super(stringInterner, directoryFileTreeFactory, fileSystemSnapshotter);
+    public DefaultClasspathFingerprinter(ResourceSnapshotterCacheService cacheService, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
+        super(stringInterner, fileSystemSnapshotter);
         this.cacheService = cacheService;
         this.stringInterner = stringInterner;
         this.runtimeClasspathResourceHasher = new RuntimeClasspathResourceHasher();
@@ -51,6 +48,7 @@ public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerp
     @Override
     public CurrentFileCollectionFingerprint fingerprint(FileCollection files, InputNormalizationStrategy inputNormalizationStrategy) {
         ResourceFilter classpathResourceFilter = inputNormalizationStrategy.getRuntimeClasspathNormalizationStrategy().getRuntimeClasspathResourceFilter();
-        return super.fingerprint(files, new ClasspathFingerprintingStrategy(USE_FILE_HASH, runtimeClasspathResourceHasher, classpathResourceFilter, cacheService, stringInterner));
+        return super.fingerprint(files, ClasspathFingerprintingStrategy.runtimeClasspath(classpathResourceFilter, runtimeClasspathResourceHasher, cacheService, stringInterner));
     }
+
 }

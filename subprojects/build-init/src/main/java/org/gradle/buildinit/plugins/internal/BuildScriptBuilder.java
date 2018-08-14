@@ -93,33 +93,33 @@ public class BuildScriptBuilder {
     }
 
     /**
-     * Adds one or more compile dependencies.
+     * Adds one or more implementation dependencies.
      *
      * @param comment A description of why the dependencies are required
      * @param dependencies The dependencies
      */
-    public BuildScriptBuilder compileDependency(String comment, String... dependencies) {
-        return dependency("compile", comment, dependencies);
+    public BuildScriptBuilder implementationDependency(String comment, String... dependencies) {
+        return dependency("implementation", comment, dependencies);
     }
 
     /**
-     * Adds one or more test compile dependencies.
+     * Adds one or more test implementation dependencies.
      *
      * @param comment A description of why the dependencies are required
      * @param dependencies The dependencies
      */
-    public BuildScriptBuilder testCompileDependency(String comment, String... dependencies) {
-        return dependency("testCompile", comment, dependencies);
+    public BuildScriptBuilder testImplementationDependency(String comment, String... dependencies) {
+        return dependency("testImplementation", comment, dependencies);
     }
 
     /**
-     * Adds one or more test runtime dependencies.
+     * Adds one or more test runtime only dependencies.
      *
      * @param comment A description of why the dependencies are required
      * @param dependencies The dependencies
      */
-    public BuildScriptBuilder testRuntimeDependency(String comment, String... dependencies) {
-        return dependency("testRuntime", comment, dependencies);
+    public BuildScriptBuilder testRuntimeOnlyDependency(String comment, String... dependencies) {
+        return dependency("testRuntimeOnly", comment, dependencies);
     }
 
     public BuildScriptBuilder propertyAssignment(String comment, String propertyName, Object propertyValue) {

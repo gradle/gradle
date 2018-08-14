@@ -16,63 +16,109 @@
 
 package org.gradle.internal.fingerprint.impl;
 
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Multimap;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 public class DefaultCurrentFileCollectionFingerprint implements CurrentFileCollectionFingerprint {
 
-    private final Map<String, NormalizedFileSnapshot> snapshots;
+    private final Map<String, FileSystemLocationFingerprint> fingerprints;
     private final FingerprintCompareStrategy compareStrategy;
+    private final FingerprintingStrategy.Identifier identifier;
     private final Iterable<FileSystemSnapshot> roots;
+    private final ImmutableMultimap<String, HashCode> rootHashes;
     private HashCode hash;
 
     public static CurrentFileCollectionFingerprint from(Iterable<FileSystemSnapshot> roots, FingerprintingStrategy strategy) {
-        Map<String, NormalizedFileSnapshot> snapshots = strategy.collectSnapshots(roots);
-        if (snapshots.isEmpty()) {
-            return EmptyFileCollectionFingerprint.INSTANCE;
+        if (Iterables.isEmpty(roots)) {
+            return strategy.getIdentifier().getEmptyFingerprint();
         }
-        return new DefaultCurrentFileCollectionFingerprint(snapshots, strategy.getCompareStrategy(), roots);
+        Map<String, FileSystemLocationFingerprint> snapshots = strategy.collectFingerprints(roots);
+        if (snapshots.isEmpty()) {
+            return strategy.getIdentifier().getEmptyFingerprint();
+        }
+        return new DefaultCurrentFileCollectionFingerprint(snapshots, strategy.getCompareStrategy(), strategy.getIdentifier(), roots);
     }
 
-    private DefaultCurrentFileCollectionFingerprint(Map<String, NormalizedFileSnapshot> snapshots, FingerprintCompareStrategy compareStrategy, @Nullable Iterable<FileSystemSnapshot> roots) {
-        this.snapshots = snapshots;
+    private DefaultCurrentFileCollectionFingerprint(Map<String, FileSystemLocationFingerprint> fingerprints, FingerprintCompareStrategy compareStrategy, FingerprintingStrategy.Identifier identifier, Iterable<FileSystemSnapshot> roots) {
+        this.fingerprints = fingerprints;
         this.compareStrategy = compareStrategy;
+        this.identifier = identifier;
         this.roots = roots;
+
+        final ImmutableMultimap.Builder<String, HashCode> builder = ImmutableMultimap.builder();
+        accept(new FileSystemSnapshotVisitor() {
+            @Override
+            public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+                builder.put(directorySnapshot.getAbsolutePath(), directorySnapshot.getHash());
+                return false;
+            }
+
+            @Override
+            public void visit(FileSystemLocationSnapshot fileSnapshot) {
+                builder.put(fileSnapshot.getAbsolutePath(), fileSnapshot.getHash());
+            }
+
+            @Override
+            public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+            }
+        });
+        this.rootHashes = builder.build();
     }
 
     @Override
     public boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
-        return compareStrategy.visitChangesSince(visitor, getSnapshots(), oldFingerprint.getSnapshots(), title, includeAdded);
+        if (hasSameRootHashes(oldFingerprint)) {
+            return true;
+        }
+        return compareStrategy.visitChangesSince(visitor, getFingerprints(), oldFingerprint.getFingerprints(), title, includeAdded);
+    }
+
+    private boolean hasSameRootHashes(FileCollectionFingerprint oldFingerprint) {
+        return Iterables.elementsEqual(rootHashes.entries(), oldFingerprint.getRootHashes().entries());
     }
 
     @Override
     public HashCode getHash() {
         if (hash == null) {
             DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
-            compareStrategy.appendToHasher(hasher, snapshots);
+            compareStrategy.appendToHasher(hasher, fingerprints);
             hash = hasher.hash();
         }
         return hash;
     }
 
     @Override
-    public Map<String, NormalizedFileSnapshot> getSnapshots() {
-        return snapshots;
+    public Map<String, FileSystemLocationFingerprint> getFingerprints() {
+        return fingerprints;
     }
 
     @Override
-    public void visitRoots(PhysicalSnapshotVisitor visitor) {
+    public Multimap<String, HashCode> getRootHashes() {
+        return rootHashes;
+    }
+
+    @Override
+    public FingerprintingStrategy.Identifier getStrategyIdentifier() {
+        return identifier;
+    }
+
+    @Override
+    public void accept(FileSystemSnapshotVisitor visitor) {
         if (roots == null) {
             throw new UnsupportedOperationException("Roots not available.");
         }
@@ -83,6 +129,6 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
 
     @Override
     public HistoricalFileCollectionFingerprint archive() {
-        return new DefaultHistoricalFileCollectionFingerprint(snapshots, compareStrategy);
+        return new DefaultHistoricalFileCollectionFingerprint(fingerprints, compareStrategy, rootHashes);
     }
 }

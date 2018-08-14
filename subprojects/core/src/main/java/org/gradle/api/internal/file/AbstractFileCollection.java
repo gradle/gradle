@@ -19,21 +19,17 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterators;
 import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
-import org.gradle.api.internal.tasks.TaskDependencies;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
@@ -119,11 +115,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     @Override
-    public FileCollection add(FileCollection collection) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException(String.format("%s does not allow modification.", getCapDisplayName()));
-    }
-
-    @Override
     public void addToAntBuilder(Object builder, String nodeName, AntType type) {
         if (type == AntType.ResourceCollection) {
             addAsResourceCollection(builder, nodeName);
@@ -168,46 +159,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     @Override
     public boolean isEmpty() {
         return getFiles().isEmpty();
-    }
-
-    @Override
-    public FileCollection stopExecutionIfEmpty() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("FileCollection.stopExecutionIfEmpty()");
-        if (isEmpty()) {
-            throw new StopExecutionException(String.format("%s does not contain any files.", getCapDisplayName()));
-        }
-        return this;
-    }
-
-    @Deprecated
-    @Override
-    public Object asType(Class<?> type) throws UnsupportedOperationException {
-        if (type.isAssignableFrom(Object[].class)) {
-            return getFiles().toArray();
-        }
-        if (type.isAssignableFrom(File[].class)) {
-            DeprecationLogger.nagUserOfDeprecatedThing("Do not cast FileCollection to File[].");
-            Set<File> files = getFiles();
-            return files.toArray(new File[0]);
-        }
-        if (type.isAssignableFrom(File.class)) {
-            DeprecationLogger.nagUserOfDeprecatedThing("Do not cast FileCollection to File.", "Call getSingleFile() instead.");
-            return getSingleFile();
-        }
-        if (type.isAssignableFrom(FileCollection.class)) {
-            return this;
-        }
-        if (type.isAssignableFrom(FileTree.class)) {
-            DeprecationLogger.nagUserOfDeprecatedThing("Do not cast FileCollection to FileTree.", "Call getAsFileTree() instead.");
-            return getAsFileTree();
-        }
-        return DefaultGroovyMethods.asType(this, type);
-    }
-
-    @Override
-    public TaskDependency getBuildDependencies() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("AbstractFileCollection.getBuildDependencies()", "Do not extend AbstractFileCollection. Use Project.files() instead.", getClass().getName() + " extends AbstractFileCollection.");
-        return TaskDependencies.EMPTY;
     }
 
     @Override

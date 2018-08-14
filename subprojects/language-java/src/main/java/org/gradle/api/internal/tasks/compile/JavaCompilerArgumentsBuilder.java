@@ -164,6 +164,10 @@ public class JavaCompilerArgumentsBuilder {
             args.add("-s");
             args.add(compileOptions.getAnnotationProcessorGeneratedSourcesDirectory().getPath());
         }
+        if (compileOptions.getHeaderOutputDirectory() != null) {
+            args.add("-h");
+            args.add(compileOptions.getHeaderOutputDirectory().getPath());
+        }
 
         if (compileOptions.isDebug()) {
             if (compileOptions.getDebugOptions().getDebugLevel() != null) {

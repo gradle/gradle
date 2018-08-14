@@ -1,22 +1,18 @@
 package org.gradle.gradlebuild.test.integrationtests
 
-import accessors.eclipse
-import accessors.groovy
-import accessors.idea
-import accessors.java
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskProvider
+
+import org.gradle.kotlin.dsl.*
+
+import accessors.eclipse
+import accessors.groovy
+import accessors.idea
+import accessors.java
+
 import org.gradle.gradlebuild.java.AvailableJavaInstallations
-import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.get
-import org.gradle.kotlin.dsl.getting
-import org.gradle.kotlin.dsl.invoke
-import org.gradle.kotlin.dsl.project
-import org.gradle.kotlin.dsl.the
-import org.gradle.kotlin.dsl.withType
-import org.gradle.kotlin.dsl.getValue
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
 

@@ -16,7 +16,6 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.BuildAdapter;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.initialization.Settings;
@@ -28,6 +27,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.RunNestedBuildBuildOperationType;
+import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -100,7 +100,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements StandAl
             return executor.call(new CallableBuildOperation<T>() {
                 @Override
                 public T call(BuildOperationContext context) {
-                    gradle.addBuildListener(new BuildAdapter() {
+                    gradle.addBuildListener(new InternalBuildAdapter() {
                         @Override
                         public void settingsEvaluated(Settings settings) {
                             buildName = settings.getRootProject().getName();

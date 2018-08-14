@@ -17,16 +17,24 @@
 package org.gradle.api.internal.collections;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.specs.Spec;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
 public class ListElementSource<T> extends AbstractIterationOrderRetainingElementSource<T> implements IndexedElementSource<T> {
+
+    private final Spec<ValuePointer<T>> alwaysAccept = new Spec<ValuePointer<T>>() {
+        @Override
+        public boolean isSatisfiedBy(ValuePointer<T> pointer) {
+            return true;
+        }
+    };
+
     @Override
     public Iterator<T> iterator() {
         realizePending();
@@ -39,13 +47,8 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
     }
 
     @Override
-    public Iterator<ProviderInternal<? extends T>> iteratorPending() {
-        return new PendingElementListIterator(getInserted(), new ArrayList<ProviderInternal<? extends T>>());
-    }
-
-    @Override
     public ListIterator<T> listIterator() {
-        return new RealizedElementListIterator<T>(getInserted(), new ArrayList<T>());
+        return new RealizedElementListIterator(getInserted(), alwaysAccept);
     }
 
     @Override
@@ -79,11 +82,24 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
 
     @Override
     public boolean add(T element) {
-        return getInserted().add(new CachingElement<T>(element));
+        modCount++;
+        return getInserted().add(new Element<T>(element));
+    }
+
+    @Override
+    public boolean addRealized(T value) {
+        return true;
     }
 
     @Override
     public boolean addPending(ProviderInternal<? extends T> provider) {
+        modCount++;
+        return getInserted().add(cachingElement(provider));
+    }
+
+    @Override
+    public boolean addPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+        modCount++;
         return getInserted().add(cachingElement(provider));
     }
 
@@ -97,6 +113,7 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
 
     @Override
     public void add(int index, T element) {
+        modCount++;
         ListIterator<T> iterator = iteratorAt(index - 1);
         if (iterator.nextIndex() == index) {
             iterator.add(element);
@@ -107,6 +124,7 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
 
     @Override
     public T set(int index, T element) {
+        modCount++;
         ListIterator<T> iterator = iteratorAt(index - 1);
         if (!iterator.hasNext()) {
             throw new IndexOutOfBoundsException();
@@ -118,6 +136,7 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
 
     @Override
     public T remove(int index) {
+        modCount++;
         ListIterator<T> iterator = iteratorAt(index - 1);
         if (!iterator.hasNext()) {
             throw new IndexOutOfBoundsException();
@@ -127,14 +146,13 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
         return previous;
     }
 
-    // TODO Check for comodification with the ElementSource
-    private static abstract class AbstractElementListIterator<T, I> extends AbstractElementCollectionIterator<T, I> implements ListIterator<I> {
-        Element<T> previous;
+    private class RealizedElementListIterator extends RealizedElementCollectionIterator implements ListIterator<T> {
+        T previous;
         int listNextIndex = 0;
         int listPreviousIndex = -1;
 
-        AbstractElementListIterator(List<Element<T>> backingList, Collection<I> values) {
-            super(backingList, values);
+        RealizedElementListIterator(List<Element<T>> backingList, Spec<ValuePointer<T>> acceptanceSpec) {
+            super(backingList, acceptanceSpec);
         }
 
         @Override
@@ -143,13 +161,26 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
         }
 
         private void updatePrevious() {
-            int i = previousIndex - 1;
+            int i = previousIndex;
             while (i >= 0) {
                 Element<T> candidate = backingList.get(i);
                 if (candidate.isRealized()) {
-                    previousIndex = i;
-                    previous = candidate;
-                    return;
+                    List<T> collected = candidate.getValues();
+                    if (previousSubIndex == -1) {
+                        previousSubIndex = collected.size();
+                    }
+                    int j = previousSubIndex - 1;
+                    while (j >= 0) {
+                        T value = collected.get(j);
+                        if (acceptanceSpec.isSatisfiedBy(new ValuePointer<T>(candidate, j))) {
+                            previousIndex = i;
+                            previousSubIndex = j;
+                            previous = value;
+                            return;
+                        }
+                        j--;
+                    }
+                    previousSubIndex = -1;
                 }
                 i--;
             }
@@ -158,25 +189,27 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
         }
 
         @Override
-        public I next() {
-            I value = super.next();
-            previous = backingList.get(previousIndex);
+        public T next() {
+            T value = super.next();
+            previous = backingList.get(previousIndex).getValues().get(previousSubIndex);
             listNextIndex++;
             listPreviousIndex++;
             return value;
         }
 
         @Override
-        public I previous() {
+        public T previous() {
+            checkForComodification();
             if (previous == null) {
                 throw new NoSuchElementException();
             }
             nextIndex = previousIndex;
+            nextSubIndex = previousSubIndex;
             next = previous;
             updatePrevious();
             listNextIndex--;
             listPreviousIndex--;
-            return valueOf(next);
+            return next;
         }
 
         @Override
@@ -190,70 +223,29 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
         }
 
         @Override
-        public void set(I t) {
+        public void set(T t) {
             if (previousIndex < 0) {
                 throw new IllegalStateException();
             }
-            backingList.set(previousIndex, newCachingElement(t));
+            checkForComodification();
+            backingList.set(previousIndex, new Element<T>(t));
         }
 
         @Override
-        public void add(I t) {
-            CachingElement<T> element = newCachingElement(t);
+        public void add(T t) {
+            checkForComodification();
+            Element<T> element = new Element<T>(t);
             backingList.add(nextIndex, element);
             nextIndex++;
-            previous = element;
+            previous = element.getValues().get(0);
             previousIndex = nextIndex;
+            previousSubIndex = 0;
         }
-
-        protected abstract CachingElement<T> newCachingElement(I t);
 
         @Override
         public void remove() {
             super.remove();
             previous = null;
-        }
-    }
-
-    private static class RealizedElementListIterator<T> extends AbstractElementListIterator<T, T> {
-        RealizedElementListIterator(List<Element<T>> backingList, Collection<T> values) {
-            super(backingList, values);
-        }
-
-        @Override
-        protected T valueOf(Element<T> element) {
-            return element.getValue();
-        }
-
-        @Override
-        protected boolean isValidCandidate(Element<T> element) {
-            return element.isRealized();
-        }
-
-        @Override
-        protected CachingElement<T> newCachingElement(T t) {
-            return new CachingElement<T>(t);
-        }
-    }
-
-    private static class PendingElementListIterator<T> extends AbstractElementListIterator<T, ProviderInternal<? extends T>> {
-        PendingElementListIterator(List<Element<T>> backingList, Collection<ProviderInternal<? extends T>> values) {
-            super(backingList, values);
-        }
-
-        @Override
-        protected ProviderInternal<? extends T> valueOf(Element<T> element) {
-            return element.getDelegate();
-        }
-
-        @Override
-        protected boolean isValidCandidate(Element<T> element) {
-            return !element.isRealized();
-        }
-
-        @Override
-        protected CachingElement<T> newCachingElement(ProviderInternal<? extends T> t) {
-            return new CachingElement<T>(t, null);
         }
     }
 }

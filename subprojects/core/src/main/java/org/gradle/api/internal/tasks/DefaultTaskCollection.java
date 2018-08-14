@@ -20,17 +20,16 @@ import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
-
-import javax.annotation.Nullable;
 
 public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObjectSet<T> implements TaskCollection<T> {
     private static final Task.Namer NAMER = new Task.Namer();
@@ -86,26 +85,20 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
 
     @Override
     public TaskProvider<T> named(String name) throws UnknownTaskException {
-        TaskProvider<T> taskProvider = (TaskProvider<T>) findTask(name);
-        if (taskProvider == null) {
-            throw createNotFoundException(name);
-        }
-        return taskProvider;
+        return (TaskProvider<T>) super.named(name);
     }
 
-    @Nullable
-    ProviderInternal<? extends Task> findTask(String name) {
-        Task task = findByNameWithoutRules(name);
-        if (task == null) {
-            return findByNameLaterWithoutRules(name);
-        }
-
-        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, task.getName()));
+    @Override
+    protected TaskProvider<? extends T> createExistingProvider(String name, T object) {
+        TaskInternal taskInternal = (TaskInternal) object;
+        TaskIdentity<?> taskIdentity = taskInternal.getTaskIdentity();
+        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, taskIdentity));
     }
 
-    protected class ExistingTaskProvider<I extends T> extends ExistingDomainObjectProvider<I> implements TaskProvider<I> {
-        public ExistingTaskProvider(String name) {
-            super(name);
+    // Cannot be private due to reflective instantiation
+    public class ExistingTaskProvider<I extends T> extends ExistingNamedDomainObjectProvider<I> implements TaskProvider<I> {
+        public ExistingTaskProvider(TaskIdentity<I> identity) {
+            super(identity.name, identity.type);
         }
     }
 }

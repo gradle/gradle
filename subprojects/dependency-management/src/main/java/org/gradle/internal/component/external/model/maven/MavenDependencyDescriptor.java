@@ -70,7 +70,7 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
 
     @Override
     public boolean isTransitive() {
-        return true;
+        return !isOptional();
     }
 
     /**

@@ -28,6 +28,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.CircularReferenceException;
+import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -292,7 +293,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                             restoreExecutionPlan(planBeforeVisiting, toBeRemoved);
                             break;
                         } else {
-                            onOrderingCycle();
+                            onOrderingCycle(successor, workInfo);
                         }
                     }
                     nodeQueue.add(0, new WorkInfoInVisitingSegment(successor, currentSegment));
@@ -455,7 +456,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return precedingTasks;
     }
 
-    private void onOrderingCycle() {
+    private void onOrderingCycle(WorkInfo successor, WorkInfo workInfo) {
         CachingDirectedGraphWalker<WorkInfo, Void> graphWalker = new CachingDirectedGraphWalker<WorkInfo, Void>(new DirectedGraph<WorkInfo, Void>() {
             @Override
             public void getNodeValues(WorkInfo node, Collection<? super Void> values, Collection<? super WorkInfo> connectedNodes) {
@@ -468,7 +469,14 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             }
         });
         graphWalker.add(entryTasks);
-        final List<WorkInfo> firstCycle = Lists.newArrayList(graphWalker.findCycles().get(0));
+
+        List<Set<WorkInfo>> cycles = graphWalker.findCycles();
+        if (cycles.isEmpty()) {
+            // TODO: This isn't correct. This means that we've detected a cycle while determining the execution plan, but the graph walker did not find one.
+            // https://github.com/gradle/gradle/issues/2293
+            throw new GradleException("Misdetected cycle between " + workInfo + " and " + successor + ". Help us by reporting this to https://github.com/gradle/gradle/issues/2293");
+        }
+        final List<WorkInfo> firstCycle = new ArrayList<WorkInfo>(cycles.get(0));
         Collections.sort(firstCycle);
 
         DirectedGraphRenderer<WorkInfo> graphRenderer = new DirectedGraphRenderer<WorkInfo>(new GraphNodeRenderer<WorkInfo>() {

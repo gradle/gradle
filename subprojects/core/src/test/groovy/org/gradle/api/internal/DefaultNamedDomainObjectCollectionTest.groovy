@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal
 
-import groovy.transform.NotYetImplemented
 import org.gradle.api.Namer
 import org.gradle.api.Rule
 import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSource
@@ -43,7 +42,6 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
         container.clear()
     }
 
-    @NotYetImplemented
     def "named finds objects created by rules"() {
         def rule = Mock(Rule)
         def bean = new Bean("bean")
@@ -59,7 +57,9 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
         result.get() == bean
 
         and:
-        1 * rule.apply("bean") >> { container.add(bean) }
+        1 * rule.apply("bean") >> {
+            container.add(bean)
+        }
         0 * rule._
     }
 
@@ -182,6 +182,42 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
         then:
         def ex = thrown(IllegalStateException)
         ex.message == "No value has been specified for this provider."
+    }
+
+    def "can extract schema from collection with domain objects"() {
+        container.add(a)
+        expect:
+        assertSchemaIs(
+            a: "DefaultNamedDomainObjectCollectionTest.BeanSub1"
+        )
+        // schema isn't cached
+        container.add(b)
+        container.add(d)
+        assertSchemaIs(
+            a: "DefaultNamedDomainObjectCollectionTest.BeanSub1",
+            b: "DefaultNamedDomainObjectCollectionTest.BeanSub1",
+            d: "DefaultNamedDomainObjectCollectionTest.BeanSub2"
+        )
+    }
+
+    def "can extract schema from empty collection"() {
+        expect:
+        assertSchemaIs([:])
+    }
+
+    protected void assertSchemaIs(Map<String, String> expectedSchema) {
+        def actualSchema = container.collectionSchema
+        Map<String, String> actualSchemaMap = actualSchema.elements.collectEntries { schema ->
+            [ schema.name, schema.publicType.simpleName ]
+        }
+        // Same size
+        assert expectedSchema.size() == actualSchemaMap.size()
+        // Same keys
+        assert expectedSchema.keySet().containsAll(actualSchemaMap.keySet())
+        // Keys have the same values
+        expectedSchema.each { entry ->
+            assert entry.value == actualSchemaMap[entry.key]
+        }
     }
 
     static class Bean {

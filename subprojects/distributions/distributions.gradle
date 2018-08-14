@@ -17,7 +17,6 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 // This is a groovy project because we have int tests.
 // Remove any pre-configured archives
 configurations.all {
@@ -49,8 +48,9 @@ gradlebuildJava {
     moduleType = ModuleType.INTERNAL
 }
 
-
 evaluationDependsOn ":docs"
+
+evaluationDependsOn ":apiMetadata"
 
 ext {
     zipRootFolder = "gradle-$version"
@@ -64,6 +64,7 @@ ext {
         }
         into('lib') {
             from rootProject.configurations.runtime
+            from project(":apiMetadata").jar
             into('plugins') {
                 from rootProject.configurations.gradlePlugins - rootProject.configurations.runtime
             }

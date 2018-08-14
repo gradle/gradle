@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal;
 
-import com.google.common.base.Objects;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
@@ -27,6 +25,7 @@ import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.collections.FilteredCollection;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -166,10 +165,22 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     @Override
     public void configureEach(Action<? super T> action) {
         eventRegister.registerLazyAddAction(action);
+
+        // copy in case any actions mutate the store
+        Collection<T> copied = null;
         Iterator<T> iterator = iteratorNoFlush();
         while (iterator.hasNext()) {
-            T next = iterator.next();
-            action.execute(next);
+            // only create an intermediate collection if there's something to copy
+            if (copied == null) {
+                copied = Lists.newArrayListWithExpectedSize(estimatedSize());
+            }
+            copied.add(iterator.next());
+        }
+
+        if (copied != null) {
+            for (T next : copied) {
+                action.execute(next);
+            }
         }
     }
 
@@ -260,6 +271,19 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         store.addPending(providerInternal);
     }
 
+    @Override
+    public void addAllLater(Provider<? extends Iterable<T>> provider) {
+        assertMutable();
+        CollectionProviderInternal<T, ? extends Iterable<T>> providerInternal = Cast.uncheckedCast(provider);
+        if (eventRegister.isSubscribed(providerInternal.getElementType())) {
+            for (T value : provider.get()) {
+                doAdd(value, eventRegister.getAddActions());
+            }
+            return;
+        }
+        store.addPendingCollection(providerInternal);
+    }
+
     protected void didAdd(T toAdd) {
     }
 
@@ -306,7 +330,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     private boolean doRemove(Object o) {
         if (o instanceof ProviderInternal) {
             ProviderInternal<? extends T> providerInternal = Cast.uncheckedCast(o);
-            if (removeFirst(getStore().iteratorPending(), providerInternal)) {
+            if (getStore().removePending(providerInternal)) {
                 // NOTE: When removing provider, we don't need to fireObjectRemoved as they were never added in the first place.
                 didRemove(providerInternal);
                 return true;
@@ -325,16 +349,6 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         } else {
             return false;
         }
-    }
-
-    private static <T> boolean removeFirst(Iterator<ProviderInternal<? extends T>> iterator, ProviderInternal<? extends T> target) {
-        while (iterator.hasNext()) {
-            if (Objects.equal(iterator.next(), target)) {
-                iterator.remove();
-                return true;
-            }
-        }
-        return false;
     }
 
     protected void didRemove(T t) {
@@ -359,34 +373,11 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     public boolean retainAll(Collection<?> target) {
         assertMutable();
-        List<ProviderInternal<? extends T>> existingProviders = Lists.newArrayList(getStore().iteratorPending());
-        List<? extends T> existingItems = Lists.newArrayList(getStore().iteratorNoFlush());
+        Object[] existingItems = toArray();
         boolean changed = false;
-        for (final Object existingItem : existingItems) {
-            Iterator<Object> iterator = Cast.uncheckedCast(target.iterator());
-            Predicate<? super Object> spec = new Predicate<Object>() {
-                @Override
-                public boolean apply(Object element) {
-                    if (element.equals(existingItem)) {
-                        return true;
-                    } else if (element instanceof ProviderInternal) {
-                        ProviderInternal<Object> provider = Cast.uncheckedCast(element);
-                        if (provider.getType().isInstance(existingItem) && provider.get().equals(existingItem)) {
-                            return true;
-                        }
-                        return false;
-                    }
-                    return false;
-                }
-            };
-            if (!Iterators.any(iterator, spec)) {
+        for (Object existingItem : existingItems) {
+            if (!target.contains(existingItem)) {
                 doRemove(existingItem);
-                changed = true;
-            }
-        }
-        for (ProviderInternal<? extends T> existingProvider : existingProviders) {
-            if (!target.contains(existingProvider)) {
-                doRemove(existingProvider);
                 changed = true;
             }
         }

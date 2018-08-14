@@ -18,7 +18,6 @@ package org.gradle.invocation;
 
 import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
-import org.gradle.BuildAdapter;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
@@ -40,10 +39,14 @@ import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.configuration.ScriptPluginFactory;
+import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.execution.TaskExecutionGraphInternal;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
+import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.MutablePublicBuildPath;
+import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -84,7 +87,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         buildListenerBroadcast = getListenerManager().createAnonymousBroadcaster(BuildListener.class);
         projectEvaluationListenerBroadcast = getListenerManager().createAnonymousBroadcaster(ProjectEvaluationListener.class);
 
-        buildListenerBroadcast.add(new BuildAdapter() {
+        buildListenerBroadcast.add(new InternalBuildAdapter() {
             @Override
             public void projectsLoaded(Gradle gradle) {
                 if (!rootProjectActions.isEmpty()) {
@@ -93,6 +96,8 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
                 projectsLoaded = true;
             }
         });
+
+        services.get(MutablePublicBuildPath.class).set(this);
 
         if (parent == null) {
             services.get(BuildScanConfigInit.class).init();
@@ -223,17 +228,22 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public void rootProject(Action<? super Project> action) {
+        rootProject("Gradle.rootProject", action);
+    }
+
+    private void rootProject(String registrationPoint, Action<? super Project> action) {
         if (projectsLoaded) {
             assert rootProject != null;
             action.execute(rootProject);
         } else {
-            rootProjectActions.add(action);
+            // only need to decorate when this callback is delayed
+            rootProjectActions.add(getListenerBuildOperationDecorator().decorate(registrationPoint, action));
         }
     }
 
     @Override
     public void allprojects(final Action<? super Project> action) {
-        rootProject(new Action<Project>() {
+        rootProject("Gradle.allprojects", new Action<Project>() {
             public void execute(Project project) {
                 project.allprojects(action);
             }
@@ -258,7 +268,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public ProjectEvaluationListener addProjectEvaluationListener(ProjectEvaluationListener listener) {
-        addListener(listener);
+        addListener("Gradle.addProjectEvaluationListener", listener);
         return listener;
     }
 
@@ -269,22 +279,22 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public void beforeProject(Closure closure) {
-        projectEvaluationListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", closure));
+        projectEvaluationListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Gradle.beforeProject", closure)));
     }
 
     @Override
     public void beforeProject(Action<? super Project> action) {
-        projectEvaluationListenerBroadcast.add("beforeEvaluate", action);
+        projectEvaluationListenerBroadcast.add("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Gradle.beforeProject", action));
     }
 
     @Override
     public void afterProject(Closure closure) {
-        projectEvaluationListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", closure));
+        projectEvaluationListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", getListenerBuildOperationDecorator().decorate("Gradle.afterProject", closure)));
     }
 
     @Override
     public void afterProject(Action<? super Project> action) {
-        projectEvaluationListenerBroadcast.add("afterEvaluate", action);
+        projectEvaluationListenerBroadcast.add("afterEvaluate", getListenerBuildOperationDecorator().decorate("Gradle.afterProject", action));
     }
 
     @Override
@@ -309,22 +319,22 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public void projectsLoaded(Closure closure) {
-        buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("projectsLoaded", closure));
+        buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("projectsLoaded", getListenerBuildOperationDecorator().decorate("Gradle.projectsLoaded", closure)));
     }
 
     @Override
     public void projectsLoaded(Action<? super Gradle> action) {
-        buildListenerBroadcast.add("projectsLoaded", action);
+        buildListenerBroadcast.add("projectsLoaded", getListenerBuildOperationDecorator().decorate("Gradle.projectsLoaded", action));
     }
 
     @Override
     public void projectsEvaluated(Closure closure) {
-        buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("projectsEvaluated", closure));
+        buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("projectsEvaluated", getListenerBuildOperationDecorator().decorate("Gradle.projectsEvaluated", closure)));
     }
 
     @Override
     public void projectsEvaluated(Action<? super Gradle> action) {
-        buildListenerBroadcast.add("projectsEvaluated", action);
+        buildListenerBroadcast.add("projectsEvaluated", getListenerBuildOperationDecorator().decorate("Gradle.projectsEvaluated", action));
     }
 
     @Override
@@ -339,12 +349,17 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public void addListener(Object listener) {
-        getListenerManager().addListener(listener);
+        addListener("Gradle.addListener", listener);
+    }
+
+    private void addListener(String registrationPoint, Object listener) {
+        getListenerManager().addListener(getListenerBuildOperationDecorator().decorateUnknownListener(registrationPoint, listener));
     }
 
     @Override
     public void removeListener(Object listener) {
-        getListenerManager().removeListener(listener);
+        // do same decoration as in addListener to remove correctly
+        getListenerManager().removeListener(getListenerBuildOperationDecorator().decorateUnknownListener(null, listener));
     }
 
     @Override
@@ -359,7 +374,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public void addBuildListener(BuildListener buildListener) {
-        addListener(buildListener);
+        addListener("Gradle.addBuildListener", buildListener);
     }
 
     @Override
@@ -446,7 +461,18 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Inject
+    protected ListenerBuildOperationDecorator getListenerBuildOperationDecorator() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
     public PluginManagerInternal getPluginManager() {
         throw new UnsupportedOperationException();
     }
+
+    @Inject
+    public PublicBuildPath getPublicBuildPath() {
+        throw new UnsupportedOperationException();
+    }
+
 }
