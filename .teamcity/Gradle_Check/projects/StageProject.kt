@@ -49,7 +49,7 @@ class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boo
                     functionalTests.addDependencyForAllBuildTypes(specificBuildType)
                 }
             }
-            if (stage.dependsOnSanityCheck) {
+            if (!(stage.functionalTestsDependOnSpecificBuilds && stage.specificBuilds.contains(SpecificBuild.SanityCheck)) && stage.dependsOnSanityCheck) {
                 functionalTests.addDependencyForAllBuildTypes(AbsoluteId(SanityCheck.buildTypeId(model)))
             }
         } else {
