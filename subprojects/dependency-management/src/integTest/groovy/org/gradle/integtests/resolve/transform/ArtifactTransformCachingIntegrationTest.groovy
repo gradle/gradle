@@ -1072,7 +1072,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     def output = new File(outputDirectory, "\${input.name}.txt");
                     output.text = ""
                     println "Transformed \$input.name to \$output.name into \$outputDirectory"
-                    def barrier = new File('${transformBarrier.absolutePath}')
+                    def barrier = new File(URI.create('${transformBarrier.toURI()}'))
                     while (barrier.exists()) {
                         println "Waiting for \$barrier.name to be deleted"
                         Thread.sleep(1000)
@@ -1103,7 +1103,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 task waitForCleaningBarrier {
                     doLast {
                         println "Waiting for ${cleaningBarrier.name}"
-                        def barrier = new File('${cleaningBarrier.absolutePath}')
+                        def barrier = new File(URI.create('${cleaningBarrier.toURI()}'))
                         while (barrier.exists()) {
                             println "Waiting for \$barrier.name to be deleted"
                             Thread.sleep(1000)
