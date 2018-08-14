@@ -45,6 +45,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 
  - The `org.gradle.plugins.signing.Signature` methods `getToSignArtifact()` and `setFile(File)` are removed. 
 
+### Changes to previously deprecated APIs
+
+- Removed `DirectoryBuildCache.targetSizeInMB`.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
