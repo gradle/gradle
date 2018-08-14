@@ -71,6 +71,7 @@ The previously deprecated support for Play Framework 2.2 has been removed.
 - Removed the method `getBuildDependencies` from `AbstractFileCollection`. 
 - Removed the class `SimpleWorkResult`.
 - Removed the methods `file` and `files` from `TaskDestroyables`.
+- Removed the property `styleSheet` from `ScalaDocOptions`.
 
 ## External contributions
 
