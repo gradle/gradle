@@ -2,14 +2,17 @@ package projects
 
 import configurations.FunctionalTest
 import configurations.PerformanceTest
+import configurations.SanityCheck
 import configurations.buildReportTab
 import jetbrains.buildServer.configs.kotlin.v2018_1.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2018_1.FailureAction
+import jetbrains.buildServer.configs.kotlin.v2018_1.IdOwner
 import jetbrains.buildServer.configs.kotlin.v2018_1.Project
 import model.CIBuildModel
+import model.GradleSubproject
 import model.SpecificBuild
 import model.Stage
-import model.*
+import model.TestType
 
 class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boolean, rootProjectUuid: String) : Project({
     this.uuid = "${model.projectPrefix}Stage_${stage.id}"
@@ -42,19 +45,12 @@ class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boo
             val functionalTests = FunctionalTestProject(model, testCoverage, stage)
             subProject(functionalTests)
             if (stage.functionalTestsDependOnSpecificBuilds) {
-                functionalTests.buildTypes.forEach { functionalTestBuildType ->
-                    functionalTestBuildType.dependencies {
-                        specificBuildTypes.forEach { specificBuildType ->
-                            dependency(specificBuildType) {
-                                snapshot {
-                                    onDependencyFailure = FailureAction.CANCEL
-                                    onDependencyCancel = FailureAction.CANCEL
-                                }
-                            }
-                        }
-                    }
-
+                specificBuildTypes.forEach { specificBuildType ->
+                    functionalTests.addDependencyForAllBuildTypes(specificBuildType)
                 }
+            }
+            if (stage.dependsOnSanityCheck) {
+                functionalTests.addDependencyForAllBuildTypes(AbsoluteId(SanityCheck.buildTypeId(model)))
             }
         } else {
             buildType(FunctionalTest(model, testCoverage, stage = stage))
@@ -81,3 +77,16 @@ class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boo
         subProject(deferredTestsProject)
     }
 })
+
+private fun Project.addDependencyForAllBuildTypes(dependency: IdOwner) {
+    buildTypes.forEach { functionalTestBuildType ->
+        functionalTestBuildType.dependencies {
+            dependency(dependency) {
+                snapshot {
+                    onDependencyFailure = FailureAction.CANCEL
+                    onDependencyCancel = FailureAction.CANCEL
+                }
+            }
+        }
+    }
+}

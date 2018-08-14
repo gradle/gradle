@@ -27,7 +27,8 @@ data class CIBuildModel (
                     functionalTests = listOf(
                             TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)),
                     functionalTestsDependOnSpecificBuilds = true,
-                    omitsSlowProjects = true),
+                    omitsSlowProjects = true,
+                    dependsOnSanityCheck = true),
             Stage("Branch Build Accept", "Run performance and functional tests (against distribution)",
                     specificBuilds = listOf(
                             SpecificBuild.BuildDistributions,
@@ -188,7 +189,7 @@ object NoBuildCache : BuildCache {
     }
 }
 
-data class Stage(val name: String, val description: String, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never, val functionalTestsDependOnSpecificBuilds: Boolean = false, val runsIndependent: Boolean = false, val omitsSlowProjects : Boolean = false) {
+data class Stage(val name: String, val description: String, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never, val functionalTestsDependOnSpecificBuilds: Boolean = false, val runsIndependent: Boolean = false, val omitsSlowProjects : Boolean = false, val dependsOnSanityCheck: Boolean = false) {
     val id = name.replace(" ", "").replace("-", "")
 }
 
