@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -31,28 +30,6 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
 
     public DefaultTaskDestroyables(TaskMutator taskMutator) {
         this.taskMutator = taskMutator;
-    }
-
-    @Override
-    public void files(final Object... paths) {
-        DeprecationLogger.nagUserOfReplacedMethod("TaskDestroys.files", "TaskDestroys.register");
-        taskMutator.mutate("TaskDestroys.files(Object...)", new Runnable() {
-            @Override
-            public void run() {
-                Collections.addAll(DefaultTaskDestroyables.this.registeredPaths, paths);
-            }
-        });
-    }
-
-    @Override
-    public void file(final Object path) {
-        DeprecationLogger.nagUserOfReplacedMethod("TaskDestroys.file", "TaskDestroys.register");
-        taskMutator.mutate("TaskDestroys.file(Object...)", new Runnable() {
-            @Override
-            public void run() {
-                registeredPaths.add(path);
-            }
-        });
     }
 
     @Override

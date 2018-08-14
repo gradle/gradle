@@ -33,24 +33,4 @@ public interface TaskDestroyables {
      * @since 4.3
      */
     void register(Object... paths);
-
-    /**
-     * Registers some files that this task destroys.
-     *
-     * @param paths The files that will be destroyed. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
-     *
-     * @deprecated Use {@link #register(Object...)} instead.
-     */
-    @Deprecated
-    void files(Object... paths);
-
-    /**
-     * Registers a file or directory that this task destroys.
-     *
-     * @param path A file that will be destroyed. The given path is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
-     *
-     * @deprecated Use {@link #register(Object...)} instead.
-     */
-    @Deprecated
-    void file(Object path);
 }
