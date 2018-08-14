@@ -23,9 +23,9 @@ We hope you will build happiness with Gradle 4.10, and we look forward to your f
 
 ## Upgrade Instructions
 
-Switch your build to use Gradle 4.10 RC1 quickly by updating your wrapper properties:
+Switch your build to use Gradle 4.10 RC2 quickly by updating your wrapper properties:
 
-    ./gradlew wrapper --gradle-version=4.10-rc-1
+    ./gradlew wrapper --gradle-version=4.10-rc-2
 
 Standalone downloads are available at https://gradle.org/release-candidate/.
 
