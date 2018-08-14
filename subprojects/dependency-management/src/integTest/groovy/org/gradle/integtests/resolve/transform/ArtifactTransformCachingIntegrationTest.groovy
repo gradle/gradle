@@ -21,6 +21,8 @@ import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.junit.Rule
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
@@ -31,6 +33,8 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture {
     private final static long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
+
+    @Rule BlockingHttpServer blockingHttpServer = new BlockingHttpServer();
 
     def setup() {
         settingsFile << """
@@ -1062,21 +1066,16 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     def "cache cleanup does not delete entries that are currently being created"() {
         given:
         requireOwnGradleUserHomeDir() // needs its own journal
+        blockingHttpServer.start()
 
         and:
-        def transformBarrier = file("transform-barrier").touch()
-        def cleaningBarrier = file("cleaning-barrier").touch()
         buildFile << declareAttributes() << """
             class BlockingTransform extends ArtifactTransform {
                 List<File> transform(File input) {
                     def output = new File(outputDirectory, "\${input.name}.txt");
                     output.text = ""
                     println "Transformed \$input.name to \$output.name into \$outputDirectory"
-                    def barrier = new File(URI.create('${transformBarrier.toURI()}'))
-                    while (barrier.exists()) {
-                        println "Waiting for \$barrier.name to be deleted"
-                        Thread.sleep(1000)
-                    }
+                    ${blockingHttpServer.callFromBuild("transform")}
                     return [output]
                 }
             }
@@ -1102,12 +1101,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 
                 task waitForCleaningBarrier {
                     doLast {
-                        println "Waiting for ${cleaningBarrier.name}"
-                        def barrier = new File(URI.create('${cleaningBarrier.toURI()}'))
-                        while (barrier.exists()) {
-                            println "Waiting for \$barrier.name to be deleted"
-                            Thread.sleep(1000)
-                        }
+                        ${blockingHttpServer.callFromBuild("cleaning")}
                     }
                 }
                 
@@ -1127,19 +1121,20 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         writeJournalInceptionTimestamp(daysAgo(8))
 
         when: 'cleaning build is started'
+        def cleaningBarrier = blockingHttpServer.expectAndBlock("cleaning")
         def cleaningBuild = executer.withTasks("waitForCleaningBarrier").withArgument("--no-daemon").start()
 
         then: 'cleaning build starts and waits on its barrier'
-        poll {
-            assert cleaningBuild.standardOutput.contains("Waiting for ${cleaningBarrier.name}")
-        }
+        cleaningBarrier.waitForAllPendingCalls()
 
         when: 'transforming build is started'
+        def transformBarrier = blockingHttpServer.expectAndBlock("transform")
         def transformingBuild = executer.withTasks("waitForTransformBarrier").start()
 
         then: 'transforming build starts artifact transform'
+        transformBarrier.waitForAllPendingCalls()
         def cachedTransform
-        poll {
+        poll { // there's a delay in receiving the output
             cachedTransform = outputDir("util1.jar", "util1.jar.txt") {
                 transformingBuild.standardOutput
             }
@@ -1147,7 +1142,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         when: 'cleanup is triggered'
         def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
-        cleaningBarrier.delete()
+        cleaningBarrier.releaseAll()
         cleaningBuild.waitForFinish()
 
         then: 'cleanup runs and preserves the cached transform'
@@ -1155,7 +1150,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         cachedTransform.assertExists()
 
         when: 'transforming build is allowed to finish'
-        transformBarrier.delete()
+        transformBarrier.releaseAll()
 
         then: 'transforming build finishes successfully'
         transformingBuild.waitForFinish()
@@ -1317,7 +1312,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         if (dirs.size() == 1) {
             return dirs.first()
         }
-        throw new AssertionError("Could not find exactly one output directory for $from -> $to in output: $output")
+        throw new AssertionError("Could not find exactly one output directory for $from -> $to: $dirs")
     }
 
     Set<TestFile> outputDirs(String from, String to, Closure<String> stream = { output }) {
