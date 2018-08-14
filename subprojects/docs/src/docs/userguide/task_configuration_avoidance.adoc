@@ -228,7 +228,8 @@ Follow these steps:
   Execute the Gradle command using the `--scan` flag.
 
   b. Navigate to the configuration performance tab.
-+.Navigate to configuration performance tab in build scan
++
+.Navigate to configuration performance tab in build scan
 image::taskConfigurationAvoidance-navigate-to-performance.png[]
 +
     1. Navigate to the performance card from the left side menu.
