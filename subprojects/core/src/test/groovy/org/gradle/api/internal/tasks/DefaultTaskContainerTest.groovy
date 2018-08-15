@@ -1672,8 +1672,9 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         0 * taskFactory.create(_ as TaskIdentity)
     }
 
-    def "will execute remove action when not retaining register providers only for realized elements"() {
+    def "will execute remove action when not retaining register providers for all elements"() {
         1 * taskFactory.create(_ as TaskIdentity) >> a
+        1 * taskFactory.create(_ as TaskIdentity) >> d
         def action = Mock(Action)
 
         given:
@@ -1693,10 +1694,10 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
 
         and:
         1 * action.execute(a)
-        0 * action.execute(_)
+        1 * action.execute(d)
     }
 
-    def "will not query register providers when not retaining them and are not realized"() {
+    def "will query register providers when not retaining them"() {
         given:
         def provider1 = container.register("a", type)
         def provider2 = container.register("b", type)
@@ -1709,10 +1710,11 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         container.names.toList() == ['b']
 
         and:
-        0 * taskFactory.create(_ as TaskIdentity)
+        1 * taskFactory.create(_ as TaskIdentity) >> a
+        1 * taskFactory.create(_ as TaskIdentity) >> b
     }
 
-    def "will query retaining provider when retaining realized register providers"() {
+    def "will query retaining provider when retaining registered providers"() {
         1 * taskFactory.create(_ as TaskIdentity) >> a
 
         given:
@@ -1730,7 +1732,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         container.names.toList() == ['a']
 
         and:
-        0 * taskFactory.create(_ as TaskIdentity)
+        1 * taskFactory.create(_ as TaskIdentity) >> d
     }
 
     def "will realize all register provider when querying the iterator"() {

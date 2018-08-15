@@ -376,7 +376,22 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         Object[] existingItems = toArray();
         boolean changed = false;
         for (Object existingItem : existingItems) {
-            if (!target.contains(existingItem)) {
+            boolean found = false;
+            for (Object t : target) {
+                if (t.equals(existingItem)) {
+                    found = true;
+                } else if (t instanceof ProviderInternal) {
+                    ProviderInternal p = (ProviderInternal) t;
+                    if (p.getType().isInstance(existingItem) && p.get().equals(existingItem)) {
+                        found = true;
+                    }
+                }
+
+                if (found) {
+                    break;
+                }
+            }
+            if (!found) {
                 doRemove(existingItem);
                 changed = true;
             }

@@ -1196,7 +1196,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         result == iterationOrder()
     }
 
-    def "will execute remove action when not retaining external providers only for realized elements"() {
+    def "will execute remove action when not retaining external providers for all elements"() {
         containerAllowsExternalProviders()
         def provider1 = Mock(ProviderInternal)
         def provider2 = Mock(ProviderInternal)
@@ -1222,6 +1222,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         and:
         1 * action.execute(a)
+        1 * action.execute(d)
         0 * action.execute(_)
 
         when:
@@ -1231,7 +1232,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         result == iterationOrder()
     }
 
-    def "will not query external providers when not retaining them and are not realized"() {
+    def "will query external providers when not retaining them"() {
         containerAllowsExternalProviders()
         def provider1 = Mock(ProviderInternal)
         def provider2 = Mock(ProviderInternal)
@@ -1249,15 +1250,15 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         didRetained
 
         and:
-        0 * provider1.get()
-        0 * provider2.get()
+        1 * provider1.get() >> a
+        3 * provider2.get() >> b
 
         when:
         def result = toList(container)
 
         then:
         0 * provider1.get()
-        1 * provider2.get() >> b
+        0 * provider2.get()
         result == iterationOrder(b)
     }
 
@@ -1270,6 +1271,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         _ * provider1.type >> type
         _ * provider1.get() >> a
         _ * provider2.type >> otherType
+        _ * provider2.get() >> d
         container.addLater(provider1)
         container.addLater(provider2)
 
@@ -1284,7 +1286,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         and:
         1 * provider1.get() >> a
-        0 * provider2.get()
+        1 * provider2.get() >> d
 
         when:
         def result = toList(container)

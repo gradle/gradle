@@ -827,7 +827,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected class ExistingNamedDomainObjectProvider<I extends T> extends AbstractNamedDomainObjectProvider<I> {
-        protected ExistingNamedDomainObjectProvider(String name) {
+        public ExistingNamedDomainObjectProvider(String name) {
             super(name, (Class<I>) DefaultNamedDomainObjectCollection.this.getType());
         }
 
