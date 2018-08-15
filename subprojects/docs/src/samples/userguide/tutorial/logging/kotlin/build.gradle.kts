@@ -2,7 +2,7 @@
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-Logger slf4jLogger = LoggerFactory.getLogger("some-logger")
+val slf4jLogger = LoggerFactory.getLogger("some-logger")
 slf4jLogger.info("An info log message logged using SLF4j")
 // end::use-slf4j[]
 
@@ -30,7 +30,7 @@ println("A message which is logged at INFO level")
 // end::capture-stdout[]
 
 // tag::task-capture-stdout[]
-tasks.create("logInfo") {
+task("logInfo") {
     logging.captureStandardOutput(LogLevel.INFO)
     doFirst {
         println("A task message which is logged at INFO level")
