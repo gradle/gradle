@@ -306,7 +306,11 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
             public void execute(Jar jar) {
                 jar.setDescription("Assembles a jar archive containing the main classes.");
                 jar.setGroup(BasePlugin.BUILD_GROUP);
-                jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput());
+                // We need to handle the case where the main source set has been removed before the task is realized
+                SourceSet mainSourceSet = pluginConvention.getSourceSets().findByName(SourceSet.MAIN_SOURCE_SET_NAME);
+                if (mainSourceSet != null) {
+                    jar.from(mainSourceSet.getOutput());
+                }
             }
         });
         // TODO: Allow this to be added lazily
