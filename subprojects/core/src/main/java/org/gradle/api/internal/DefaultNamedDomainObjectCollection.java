@@ -866,13 +866,14 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         public void configure(final Action<? super I> action) {
+            Action<? super I> wrappedAction = wrap(action);
             if (object != null) {
                 // Already realized, just run the action now
-                wrap(action).execute(object);
+                wrappedAction.execute(object);
                 return;
             }
             // Collect any container level add actions then add the object specific action
-            onCreate = onCreate.mergeFrom(getEventRegister().getAddActions()).add(action);
+            onCreate = onCreate.mergeFrom(getEventRegister().getAddActions()).add(wrappedAction);
         }
 
         protected Action<? super I> wrap(Action<? super I> action) {
@@ -906,7 +907,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
                 object = createDomainObject();
 
                 // Register the domain object
-                add(object, wrap(onCreate));
+                add(object, onCreate);
                 realized(AbstractDomainObjectCreatingProvider.this);
                 onLazyDomainObjectRealized();
             } catch (Throwable ex) {
