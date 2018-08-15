@@ -181,7 +181,6 @@ class NodeState implements DependencyGraphNode {
         }
 
         // Check if this node is still included in the graph, by looking at incoming edges.
-        boolean hasIncomingEdges = !incomingEdges.isEmpty();
         List<EdgeState> transitiveIncoming = getTransitiveIncomingEdges();
 
         // Check if there are any transitive incoming edges at all. Don't traverse if not.
@@ -190,6 +189,7 @@ class NodeState implements DependencyGraphNode {
             if (previousTraversalExclusions != null) {
                 removeOutgoingEdges();
             }
+            boolean hasIncomingEdges = !incomingEdges.isEmpty();
             if (hasIncomingEdges) {
                 LOGGER.debug("{} has no transitive incoming edges. ignoring outgoing edges.", this);
             } else {
@@ -199,7 +199,7 @@ class NodeState implements DependencyGraphNode {
         }
 
         // Determine the net exclusion for this node, by inspecting all transitive incoming edges
-        ModuleExclusion resolutionFilter = getModuleResolutionFilter(transitiveIncoming);
+        ModuleExclusion resolutionFilter = getModuleResolutionFilter(incomingEdges);
 
         // Check if the was previously traversed with the same net exclusion
         if (previousTraversalExclusions != null && previousTraversalExclusions.excludesSameModulesAs(resolutionFilter)) {
@@ -367,12 +367,40 @@ class NodeState implements DependencyGraphNode {
         if (incomingEdges.isEmpty()) {
             return nodeExclusions;
         }
-        ModuleExclusion edgeExclusions = incomingEdges.get(0).getExclusions();
-        for (int i = 1; i < incomingEdges.size(); i++) {
-            EdgeState dependencyEdge = incomingEdges.get(i);
-            edgeExclusions = moduleExclusions.union(edgeExclusions, dependencyEdge.getExclusions());
+
+        ModuleExclusion edgeExclusions = null;
+
+        for (EdgeState dependencyEdge : incomingEdges) {
+            if (dependencyEdge.isTransitive()) {
+                // Transitive dependency
+                edgeExclusions = excludedByBoth(edgeExclusions, dependencyEdge.getExclusions());
+            } else if (dependencyEdge.getDependencyMetadata().isPending()) {
+                // Constraint: only consider explicit exclusions declared for this constraint
+                ModuleExclusion constraintExclusions = dependencyEdge.getEdgeExclusions();
+                nodeExclusions = excludedByEither(nodeExclusions, constraintExclusions);
+            }
         }
-        return moduleExclusions.intersect(edgeExclusions, nodeExclusions);
+        return excludedByEither(edgeExclusions, nodeExclusions);
+    }
+
+    private ModuleExclusion excludedByBoth(ModuleExclusion one, ModuleExclusion two) {
+        if (one == null) {
+            return two;
+        }
+        if (two == null) {
+            return one;
+        }
+        return resolveState.getModuleExclusions().union(one, two);
+    }
+
+    private ModuleExclusion excludedByEither(ModuleExclusion one, ModuleExclusion two) {
+        if (one == null) {
+            return two;
+        }
+        if (two == null) {
+            return one;
+        }
+        return resolveState.getModuleExclusions().intersect(one, two);
     }
 
     private void removeOutgoingEdges() {

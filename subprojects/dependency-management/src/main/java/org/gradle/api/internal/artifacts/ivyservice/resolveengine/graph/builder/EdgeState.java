@@ -185,6 +185,14 @@ class EdgeState implements DependencyGraphEdge {
         return resolveState.getModuleExclusions().intersect(edgeExclusions, transitiveExclusions);
     }
 
+    public ModuleExclusion getEdgeExclusions() {
+        List<ExcludeMetadata> excludes = dependencyMetadata.getExcludes();
+        if (excludes.isEmpty()) {
+            return null;
+        }
+        return resolveState.getModuleExclusions().excludeAny(ImmutableList.copyOf(excludes));
+    }
+
     @Override
     public boolean contributesArtifacts() {
         return !dependencyMetadata.isPending();
