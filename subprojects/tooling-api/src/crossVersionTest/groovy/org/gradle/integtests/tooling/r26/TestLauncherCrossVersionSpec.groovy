@@ -443,7 +443,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
             sourceSets {
                 moreTests {
                     java.srcDir "src/test"
-                    output.classesDir = file("build/classes/moreTests")
+                    java.outputDir = file("build/classes/moreTests")
                     compileClasspath = compileClasspath + sourceSets.test.compileClasspath
                     runtimeClasspath = runtimeClasspath + sourceSets.test.runtimeClasspath
                 }

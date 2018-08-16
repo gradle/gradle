@@ -9,5 +9,5 @@ dependencies {
 }
 
 buildDir = 'target'
-sourceSets.main.output.classesDir = new File(buildDir, 'main-classes')
-sourceSets.test.output.classesDir = new File(buildDir, 'test-classes')
+sourceSets.main.java.outputDir = new File(buildDir, 'main-classes')
+sourceSets.test.java.outputDir = new File(buildDir, 'test-classes')

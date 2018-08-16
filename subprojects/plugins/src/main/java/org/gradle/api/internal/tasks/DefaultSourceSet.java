@@ -29,6 +29,8 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
+
 import static org.gradle.util.ConfigureUtil.configure;
 
 public class DefaultSourceSet implements SourceSet {
@@ -107,7 +109,7 @@ public class DefaultSourceSet implements SourceSet {
         return getTaskName(null, "jar");
     }
 
-    public String getTaskName(String verb, String target) {
+    public String getTaskName(@Nullable String verb, @Nullable String target) {
         return namingScheme.getTaskName(verb, target);
     }
 
@@ -214,7 +216,7 @@ public class DefaultSourceSet implements SourceSet {
         return javaSource;
     }
 
-    public SourceSet java(Closure configureClosure) {
+    public SourceSet java(@Nullable Closure configureClosure) {
         configure(configureClosure, getJava());
         return this;
     }
@@ -233,7 +235,7 @@ public class DefaultSourceSet implements SourceSet {
         return resources;
     }
 
-    public SourceSet resources(Closure configureClosure) {
+    public SourceSet resources(@Nullable Closure configureClosure) {
         configure(configureClosure, getResources());
         return this;
     }

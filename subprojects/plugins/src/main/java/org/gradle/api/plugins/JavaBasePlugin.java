@@ -53,7 +53,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -211,7 +210,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
     private void definePathsForSourceSet(final SourceSet sourceSet, ConventionMapping outputConventionMapping, final Project project) {
         outputConventionMapping.map("resourcesDir", new Callable<Object>() {
-            public Object call() throws Exception {
+            public Object call() {
                 String classesDirName = "resources/" + sourceSet.getName();
                 return new File(project.getBuildDir(), classesDirName);
             }
@@ -284,38 +283,17 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         sourceSet.setAnnotationProcessorPath(annotationProcessorConfiguration);
     }
 
-    @Deprecated
-    public void configureForSourceSet(final SourceSet sourceSet, final AbstractCompile compile) {
-        SingleMessageLogger.nagUserOfDiscontinuedMethod("configureForSourceSet(SourceSet, AbstractCompile)");
-        ConventionMapping conventionMapping;
-        compile.setDescription("Compiles the " + sourceSet.getJava() + ".");
-        conventionMapping = compile.getConventionMapping();
-        compile.setSource(sourceSet.getJava());
-        conventionMapping.map("classpath", new Callable<Object>() {
-            public Object call() throws Exception {
-                return sourceSet.getCompileClasspath().plus(compile.getProject().files(sourceSet.getJava().getOutputDir()));
-            }
-        });
-        // TODO: This doesn't really work any more, but configureForSourceSet is a public API.
-        // This should allow builds to continue to work, but it will kill build caching for JavaCompile
-        conventionMapping.map("destinationDir", new Callable<Object>() {
-            public Object call() throws Exception {
-                return sourceSet.getOutput().getClassesDir();
-            }
-        });
-    }
-
     private void configureCompileDefaults(final Project project, final JavaPluginConvention javaConvention) {
         project.getTasks().withType(AbstractCompile.class).configureEach(new Action<AbstractCompile>() {
             public void execute(final AbstractCompile compile) {
                 ConventionMapping conventionMapping = compile.getConventionMapping();
                 conventionMapping.map("sourceCompatibility", new Callable<Object>() {
-                    public Object call() throws Exception {
+                    public Object call() {
                         return javaConvention.getSourceCompatibility().toString();
                     }
                 });
                 conventionMapping.map("targetCompatibility", new Callable<Object>() {
-                    public Object call() throws Exception {
+                    public Object call() {
                         return javaConvention.getTargetCompatibility().toString();
                     }
                 });
@@ -327,12 +305,12 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         project.getTasks().withType(Javadoc.class).configureEach(new Action<Javadoc>() {
             public void execute(Javadoc javadoc) {
                 javadoc.getConventionMapping().map("destinationDir", new Callable<Object>() {
-                    public Object call() throws Exception {
+                    public Object call() {
                         return new File(convention.getDocsDir(), "javadoc");
                     }
                 });
                 javadoc.getConventionMapping().map("title", new Callable<Object>() {
-                    public Object call() throws Exception {
+                    public Object call() {
                         return project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle();
                     }
                 });
@@ -383,17 +361,17 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         DslObject xmlReport = new DslObject(test.getReports().getJunitXml());
 
         xmlReport.getConventionMapping().map("destination", new Callable<Object>() {
-            public Object call() throws Exception {
+            public Object call() {
                 return new File(convention.getTestResultsDir(), test.getName());
             }
         });
         htmlReport.getConventionMapping().map("destination", new Callable<Object>() {
-            public Object call() throws Exception {
+            public Object call() {
                 return new File(convention.getTestReportDir(), test.getName());
             }
         });
         test.getConventionMapping().map("binResultsDir", new Callable<Object>() {
-            public Object call() throws Exception {
+            public Object call() {
                 return new File(convention.getTestResultsDir(), test.getName() + "/binary");
             }
         });

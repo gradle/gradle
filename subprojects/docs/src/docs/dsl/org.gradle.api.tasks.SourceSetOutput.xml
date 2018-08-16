@@ -26,10 +26,6 @@
                 </tr>
             </thead>
             <tr>
-                <td>classesDir</td>
-                <td>First directory from <literal>classesDirs</literal></td>
-            </tr>
-            <tr>
                 <td>classesDirs</td>
                 <td>a file collection of each <literal><replaceable>${project.buildDir}</replaceable>/classes/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
             </tr>

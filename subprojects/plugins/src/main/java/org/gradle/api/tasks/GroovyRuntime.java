@@ -29,6 +29,7 @@ import org.gradle.api.internal.plugins.GroovyJarFile;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Cast;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -117,7 +118,8 @@ public class GroovyRuntime {
         };
     }
 
-    private GroovyJarFile findGroovyJarFile(Iterable<File> classpath) {
+    @Nullable
+    private GroovyJarFile findGroovyJarFile(@Nullable Iterable<File> classpath) {
         if (classpath == null) {
             return null;
         }

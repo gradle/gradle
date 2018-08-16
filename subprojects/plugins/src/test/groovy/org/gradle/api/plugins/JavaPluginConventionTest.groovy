@@ -45,39 +45,45 @@ class JavaPluginConventionTest {
     private Instantiator instantiator = project.services.get(Instantiator)
     private JavaPluginConvention convention
 
-    @Before public void setUp() {
+    @Before
+    void setUp() {
         project.pluginManager.apply(ReportingBasePlugin)
         convention = new JavaPluginConvention(project, instantiator)
     }
 
-    @Test public void defaultValues() {
+    @Test
+    void defaultValues() {
         assertThat(convention.sourceSets, instanceOf(DefaultSourceSetContainer))
         assertEquals('docs', convention.docsDirName)
         assertEquals('test-results', convention.testResultsDirName)
         assertEquals('tests', convention.testReportDirName)
     }
 
-    @Test public void sourceCompatibilityDefaultsToCurentJvmVersion() {
-        JavaVersion currentJvmVersion = JavaVersion.toVersion(System.properties["java.version"]);
+    @Test
+    void sourceCompatibilityDefaultsToCurentJvmVersion() {
+        JavaVersion currentJvmVersion = JavaVersion.toVersion(System.properties["java.version"])
         assertEquals(currentJvmVersion, convention.sourceCompatibility)
         assertEquals(currentJvmVersion, convention.targetCompatibility)
     }
 
-    @Test public void canConfigureSourceSets() {
+    @Test
+    void canConfigureSourceSets() {
         File dir = new File('classes-dir')
         convention.sourceSets {
             main {
-                output.classesDir = dir
+                output.classesDirs.from = [dir]
             }
         }
-        assertThat(convention.sourceSets.main.output.classesDir, equalTo(project.file(dir)))
+        assertThat(convention.sourceSets.main.output.classesDirs.files, equalTo([project.file(dir)] as Set))
     }
 
-    @Test public void testDefaultDirs() {
+    @Test
+    void testDefaultDirs() {
         checkDirs()
     }
 
-    @Test public void testDynamicDirs() {
+    @Test
+    void testDynamicDirs() {
         project.buildDir = project.file('mybuild')
         checkDirs()
     }
@@ -88,7 +94,8 @@ class JavaPluginConventionTest {
         assertEquals(new File(convention.reportsDir, convention.testReportDirName), convention.testReportDir)
     }
 
-    @Test public void testTestReportDirIsCalculatedRelativeToReportsDir() {
+    @Test
+    void testTestReportDirIsCalculatedRelativeToReportsDir() {
         assertEquals(new File(project.buildDir, 'reports/tests'), convention.testReportDir)
 
         project.reporting.baseDir = 'other-reports-dir'
@@ -97,7 +104,8 @@ class JavaPluginConventionTest {
         assertEquals(new File(project.projectDir, 'other-reports-dir/other-test-dir'), convention.testReportDir)
     }
 
-    @Test public void testTargetCompatibilityDefaultsToSourceCompatibilityWhenNotSet() {
+    @Test
+    void testTargetCompatibilityDefaultsToSourceCompatibilityWhenNotSet() {
         convention.sourceCompatibility = '1.4'
         assertEquals(JavaVersion.VERSION_1_4, convention.sourceCompatibility)
         assertEquals(JavaVersion.VERSION_1_4, convention.targetCompatibility)
@@ -120,7 +128,7 @@ class JavaPluginConventionTest {
     }
 
     @Test
-    public void createsManifestWithFileResolvingAndValues() {
+    void createsManifestWithFileResolvingAndValues() {
         FileResolver fileResolver = context.mock(FileResolver)
         project.setFileResolver fileResolver
         TestFile manifestFile = expectPathResolved(fileResolver, 'file')
@@ -144,7 +152,7 @@ class JavaPluginConventionTest {
     }
 
     @Test
-    public void createsEmptyManifest() {
+    void createsEmptyManifest() {
         assertThat(convention.manifest(), instanceOf(DefaultManifest.class))
     }
 
