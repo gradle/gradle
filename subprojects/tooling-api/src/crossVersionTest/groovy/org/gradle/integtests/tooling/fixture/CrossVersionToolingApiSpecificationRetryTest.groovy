@@ -17,14 +17,15 @@
 package org.gradle.integtests.tooling.fixture
 
 import org.gradle.api.GradleException
-import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.Requires
 
+import static org.gradle.integtests.fixtures.RetryConditions.runsOnWindowsAndJava7or8
+
 @LeaksFileHandles //With older 2.x Gradle versions -> Unable to delete file: native-platform.dll
-class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecification {
+class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecification {
 
     def setup() {
         //these meta tests mess with the daemon log: do not interfere with other tests when running in parallel
@@ -83,7 +84,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         ioe.cause?.message == "Timeout waiting to connect to the Gradle daemon.\n more infos"
     }
 
-    @Requires(adhoc = {RetryRuleUtil.runsOnWindowsAndJava7or8()})
+    @Requires(adhoc = { runsOnWindowsAndJava7or8() })
     def "retries if expected exception occurs"() {
         given:
         iteration++
@@ -98,7 +99,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         true
     }
 
-    @Requires(adhoc = {!RetryRuleUtil.runsOnWindowsAndJava7or8()})
+    @Requires(adhoc = { !runsOnWindowsAndJava7or8() })
     def "does not retry on non-windows and non-java7 environments"() {
         given:
         iteration++
@@ -112,7 +113,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         ioe.cause?.message == "An existing connection was forcibly closed by the remote host"
     }
 
-    @Requires(adhoc = {RetryRuleUtil.runsOnWindowsAndJava7or8()})
+    @Requires(adhoc = { runsOnWindowsAndJava7or8() })
     def "should fail for unexpected cause on client side"() {
         given:
         iteration++
@@ -126,7 +127,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         ioe.cause?.message == "A different cause"
     }
 
-    @Requires(adhoc = {RetryRuleUtil.runsOnWindowsAndJava7or8()})
+    @Requires(adhoc = { runsOnWindowsAndJava7or8() })
     def "should fail for unexpected cause on daemon side"() {
         given:
         iteration++

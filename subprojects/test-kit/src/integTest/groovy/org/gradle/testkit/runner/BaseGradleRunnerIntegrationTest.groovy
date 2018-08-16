@@ -20,7 +20,6 @@ import groovy.transform.Sortable
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner
-import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
@@ -34,7 +33,6 @@ import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testing.internal.util.RetryRule
 import org.gradle.testkit.runner.fixtures.CustomDaemonDirectory
 import org.gradle.testkit.runner.fixtures.Debug
 import org.gradle.testkit.runner.fixtures.InjectsPluginClasspath
@@ -50,12 +48,16 @@ import org.gradle.util.SetSystemProperties
 import org.gradle.wrapper.GradleUserHomeLookup
 import org.junit.Rule
 import org.junit.runner.RunWith
+import spock.lang.Retry
 
 import java.lang.annotation.Annotation
 
+import static org.gradle.integtests.fixtures.RetryConditions.onIssueWithReleasedGradleVersion
 import static org.gradle.testkit.runner.internal.ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME
+import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 
 @RunWith(Runner)
+@Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
     public static final GradleVersion MIN_TESTED_VERSION = TestKitFeature.RUN_BUILDS.since
@@ -172,9 +174,6 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         }
         return desiredGradleVersion
     }
-
-    @Rule
-    RetryRule retryRule = RetryRuleUtil.retryCrossVersionTestOnIssueWithReleasedGradleVersion(this)
 
     static class Runner extends AbstractMultiTestRunner {
 

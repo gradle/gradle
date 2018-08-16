@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,10 @@
 
 package org.gradle.performance.fixture
 
-import groovy.transform.CompileStatic
-import org.gradle.testing.internal.util.RetryRule
+import org.gradle.performance.results.ResultsStoreHelper
 
-@CompileStatic
-class PerformanceTestRetryRule extends RetryRule {
-    PerformanceTestRetryRule() {
-        super(null, { Throwable failure ->
-            PerformanceTestConditions.whenSlowerButNotAdhoc(failure)
-        })
+class PerformanceTestConditions {
+    static boolean whenSlowerButNotAdhoc(Throwable failure) {
+        failure.message?.contains("slower") && !ResultsStoreHelper.isAdhocPerformanceTest()
     }
-
 }

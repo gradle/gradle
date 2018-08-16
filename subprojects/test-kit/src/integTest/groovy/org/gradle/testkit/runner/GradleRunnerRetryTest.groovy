@@ -16,12 +16,14 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.integtests.fixtures.RetryRuleUtil
+
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 
-class GradleRunnerRetryRuleTest extends BaseGradleRunnerIntegrationTest {
+import static org.gradle.integtests.fixtures.RetryConditions.runsOnWindowsAndJava7or8
+
+class GradleRunnerRetryTest extends BaseGradleRunnerIntegrationTest {
 
     def setup() {
         //these meta tests mess with the daemon log: do not interfere with other tests when running in parallel
@@ -43,7 +45,7 @@ class GradleRunnerRetryRuleTest extends BaseGradleRunnerIntegrationTest {
         true
     }
 
-    @Requires(adhoc = {RetryRuleUtil.runsOnWindowsAndJava7or8()})
+    @Requires(adhoc = { runsOnWindowsAndJava7or8() })
     def "retries if expected socket exception occurs"() {
         given:
         iteration++
@@ -58,7 +60,7 @@ class GradleRunnerRetryRuleTest extends BaseGradleRunnerIntegrationTest {
         true
     }
 
-    @Requires(adhoc = {!RetryRuleUtil.runsOnWindowsAndJava7or8()})
+    @Requires(adhoc = { !runsOnWindowsAndJava7or8() })
     def "does not retry on non-windows and non-java environments"() {
         given:
         iteration++
@@ -72,7 +74,7 @@ class GradleRunnerRetryRuleTest extends BaseGradleRunnerIntegrationTest {
         ioe.cause?.message == "An existing connection was forcibly closed by the remote host"
     }
 
-    @Requires(adhoc = {RetryRuleUtil.runsOnWindowsAndJava7or8()})
+    @Requires(adhoc = { runsOnWindowsAndJava7or8() })
     def "should fail for unexpected cause on client side"() {
         given:
         iteration++
@@ -86,7 +88,7 @@ class GradleRunnerRetryRuleTest extends BaseGradleRunnerIntegrationTest {
         ioe.cause?.message == "A different cause"
     }
 
-    @Requires(adhoc = {RetryRuleUtil.runsOnWindowsAndJava7or8()})
+    @Requires(adhoc = { runsOnWindowsAndJava7or8() })
     def "should fail for unexpected cause on daemon side"() {
         given:
         iteration++
