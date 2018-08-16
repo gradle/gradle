@@ -293,7 +293,7 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "No value has been specified for this provider."
+        ex.message == "The domain object 'obj' (TestObject) for this provider is no longer present in its container."
     }
 
     def "can remove unrealized registered element using named provider"() {
@@ -318,7 +318,7 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "No value has been specified for this provider."
+        ex.message == "The domain object 'obj' (TestObject) for this provider is no longer present in its container."
     }
 
     def "can remove realized registered element using register provider"() {
@@ -345,7 +345,7 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "No value has been specified for this provider."
+        ex.message == "The domain object 'obj' (TestObject) for this provider is no longer present in its container."
     }
 
     def "can remove realized registered element using named provider"() {
@@ -372,7 +372,7 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "No value has been specified for this provider."
+        ex.message == "The domain object 'obj' (TestObject) for this provider is no longer present in its container."
     }
 }
 
