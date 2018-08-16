@@ -49,19 +49,18 @@ class DefaultSourceSetTest extends Specification {
     void hasUsefulDisplayName() {
         SourceSet sourceSet = sourceSet('int-test')
         expect:
-        assertThat(sourceSet.toString(), equalTo("source set 'int test'"));
+        assertThat(sourceSet.toString(), equalTo("source set 'int test'"))
     }
 
     void defaultValues() {
         SourceSet sourceSet = sourceSet('set-name')
         expect:
-        assertThat(sourceSet.output.classesDir, nullValue())
+        assertThat(sourceSet.output.classesDirs, isEmpty())
         assertThat(sourceSet.output.files, isEmpty())
         assertThat(sourceSet.output.displayName, equalTo('set name classes'))
         assertThat(sourceSet.output.toString(), equalTo('set name classes'))
         assertThat(sourceSet.output.buildDependencies.getDependencies(null), isEmpty())
 
-        assertThat(sourceSet.output.classesDir, nullValue())
         assertThat(sourceSet.output.resourcesDir, nullValue())
 
         assertThat(sourceSet.compileClasspath, nullValue())
@@ -175,20 +174,20 @@ class DefaultSourceSetTest extends Specification {
 
         when:
         def dir1 = tmpDir.file('classes')
-        sourceSet.output.classesDir = dir1
+        sourceSet.output.classesDirs.from = [dir1]
         then:
         assertThat(sourceSet.output.files, equalTo([dir1] as Set))
 
         when:
         def dir2 = tmpDir.file('other-classes')
-        sourceSet.output.classesDir = dir2
+        sourceSet.output.classesDirs.from = [dir2]
         then:
         assertThat(sourceSet.output.files, equalTo([dir2] as Set))
     }
 
     void dependenciesTrackChangesToCompileTasks() {
         SourceSet sourceSet = sourceSet('set-name')
-        sourceSet.output.classesDir = new File('classes')
+        sourceSet.output.classesDirs.from = [new File('classes')]
 
         expect:
         def dependencies = sourceSet.output.buildDependencies
@@ -203,7 +202,7 @@ class DefaultSourceSetTest extends Specification {
 
     void dependenciesTrackChangesToOutputDirs() {
         SourceSet sourceSet = sourceSet('set-name')
-        sourceSet.output.classesDir = new File('classes')
+        sourceSet.output.classesDirs.from = [new File('classes')]
 
         expect:
         def dependencies = sourceSet.output.buildDependencies
