@@ -184,7 +184,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
 
             task secondTest(type:Test) {
                 classpath = sourceSets.moreTests.runtimeClasspath
-                testClassesDir = sourceSets.moreTests.output.classesDir
+                testClassesDirs = sourceSets.moreTests.output.classesDirs
             }
 
             build.dependsOn secondTest

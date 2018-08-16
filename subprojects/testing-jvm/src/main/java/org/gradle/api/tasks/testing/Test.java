@@ -68,7 +68,6 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.SingleMessageLogger;
 
@@ -721,35 +720,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     public Test setTestNameIncludePatterns(List<String> testNamePattern) {
         super.setTestNameIncludePatterns(testNamePattern);
         return this;
-    }
-
-    /**
-     * Returns the root folder for the compiled test sources.
-     *
-     * @return All test class directories to be used.
-     * @deprecated Use {@link #getTestClassesDirs()}.
-     */
-    @Deprecated
-    @Internal
-    @Nullable
-    public File getTestClassesDir() {
-        SingleMessageLogger.nagUserOfReplacedMethod("getTestClassesDir()", "getTestClassesDirs()");
-        if (testClassesDirs==null || testClassesDirs.isEmpty()) {
-            return null;
-        }
-        return getProject().file(CollectionUtils.first(testClassesDirs));
-    }
-
-    /**
-     * Sets the root folder for the compiled test sources.
-     *
-     * @param testClassesDir The root folder
-     * @deprecated Use {@link #setTestClassesDirs(FileCollection)}.
-     */
-    @Deprecated
-    public void setTestClassesDir(File testClassesDir) {
-        SingleMessageLogger.nagUserOfReplacedMethod("setTestClassesDir(File)", "setTestClassesDirs(FileCollection)");
-        setTestClassesDirs(getProject().files(testClassesDir));
     }
 
     /**

@@ -477,7 +477,7 @@ Creating and configuring a source set automatically sets up the compilation stag
 include::{samplesPath}/userguide/java/basic/build.gradle[tag=integ-test-task]
 ----
 
-Again, we're accessing a source set to get the relevant information, i.e. where the compiled test classes are — the `testClassesDir` property — and what needs to be on the classpath when running them — `classpath`.
+Again, we're accessing a source set to get the relevant information, i.e. where the compiled test classes are — the `testClassesDirs` property — and what needs to be on the classpath when running them — `classpath`.
 
 Users commonly want to run integration tests after the unit tests, because they are often slower to run and you want the build to fail early on the unit tests rather than later on the integration tests. That's why the above example adds a `shouldRunAfter()` declaration. This is preferred over `mustRunAfter()` so that Gradle has more flexibility in executing the build in parallel.
 
