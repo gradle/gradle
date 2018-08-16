@@ -33,14 +33,23 @@ public class DefaultPropertySpecFactory implements PropertySpecFactory {
     }
 
     @Override
-    public DeclaredTaskInputFileProperty createInputFileSpec(ValidatingValue paths, ValidationAction validationAction) {
-        return new DefaultTaskInputFilePropertySpec(task.getName(), resolver, paths, validationAction);
+    public DeclaredTaskInputFileProperty createInputFileSpec(ValidatingValue paths) {
+        return createInputFilesSpec(paths, ValidationActions.INPUT_FILE_VALIDATOR);
     }
 
     @Override
-    public DeclaredTaskInputFileProperty createInputDirSpec(ValidatingValue dirPath, ValidationAction validator) {
+    public DeclaredTaskInputFileProperty createInputFilesSpec(ValidatingValue paths) {
+        return createInputFilesSpec(paths, ValidationActions.NO_OP);
+    }
+
+    @Override
+    public DeclaredTaskInputFileProperty createInputDirSpec(ValidatingValue dirPath) {
         FileTreeInternal fileTree = resolver.resolveFilesAsTree(dirPath);
-        return createInputFileSpec(new FileTreeValue(dirPath, fileTree), validator);
+        return createInputFilesSpec(new FileTreeValue(dirPath, fileTree), ValidationActions.INPUT_DIRECTORY_VALIDATOR);
+    }
+
+    private DeclaredTaskInputFileProperty createInputFilesSpec(ValidatingValue paths, ValidationAction validationAction) {
+        return new DefaultTaskInputFilePropertySpec(task.getName(), resolver, paths, validationAction);
     }
 
     @Override
