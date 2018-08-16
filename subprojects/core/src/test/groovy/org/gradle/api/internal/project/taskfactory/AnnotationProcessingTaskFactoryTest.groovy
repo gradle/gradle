@@ -800,7 +800,8 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         // We cannot just stub here as we want to return a different task each time.
         def id = new TaskIdentity(type, name, null, null, null, 12)
         1 * delegate.create(id) >> task
-        assert factory.create(id).is(task)
+        def createdTask = factory.create(id)
+        assert createdTask.is(task)
         return task
     }
 
