@@ -1244,14 +1244,14 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         container.addLater(provider2)
 
         when:
-        def didRetained = container.retainAll([provider2])
+        def didRetained = container.retainAll([b])
 
         then:
         didRetained
 
         and:
         1 * provider1.get() >> a
-        3 * provider2.get() >> b
+        1 * provider2.get() >> b
 
         when:
         def result = toList(container)
@@ -1279,13 +1279,13 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         toList(container.withType(type))
 
         when:
-        def didRetained = container.retainAll([provider1])
+        def didRetained = container.retainAll([a])
 
         then:
         didRetained
 
         and:
-        1 * provider1.get() >> a
+        0 * provider1.get()
         1 * provider2.get() >> d
 
         when:

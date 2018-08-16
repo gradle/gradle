@@ -1701,15 +1701,15 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         def provider2 = container.register("b", type)
 
         when:
-        def didRetained = container.retainAll([provider2])
+        def didRetained = container.retainAll([provider2.get()])
 
         then:
         didRetained
         container.names.toList() == ['b']
 
         and:
-        1 * taskFactory.create(_ as TaskIdentity) >> a
         1 * taskFactory.create(_ as TaskIdentity) >> b
+        1 * taskFactory.create(_ as TaskIdentity) >> a
     }
 
     def "will query retaining provider when retaining registered providers"() {
@@ -1723,7 +1723,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         toList(container.withType(type))
 
         when:
-        def didRetained = container.retainAll([provider1])
+        def didRetained = container.retainAll([provider1.get()])
 
         then:
         didRetained
