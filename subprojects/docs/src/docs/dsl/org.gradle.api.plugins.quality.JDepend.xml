@@ -13,10 +13,6 @@
                 <td><literal>project.configurations.jdepend</literal></td>
             </tr>
             <tr>
-                <td>classesDir</td>
-                <td></td>
-            </tr>
-            <tr>
                 <td>classesDirs</td>
                 <td><literal><replaceable>sourceSet</replaceable>.output.classesDirs</literal></td>
             </tr>

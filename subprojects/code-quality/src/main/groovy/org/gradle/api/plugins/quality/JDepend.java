@@ -29,17 +29,13 @@ import org.gradle.api.reporting.Reporting;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.util.CollectionUtils;
-import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
-import java.io.File;
 
 /**
  * Analyzes code with <a href="https://github.com/clarkware/jdepend">JDepend</a>.
@@ -166,28 +162,5 @@ public class JDepend extends DefaultTask implements Reporting<JDependReports> {
     @Nested
     public final JDependReports getReports() {
         return reports;
-    }
-
-    /**
-     * The directory containing the classes to be analyzed.
-     *
-     * @deprecated Replaced by {@link #getClassesDirs()}.
-     */
-    @Deprecated
-    @Internal
-    public File getClassesDir() {
-        SingleMessageLogger.nagUserOfReplacedMethod("getClassesDir()", "getClassesDirs()");
-        return CollectionUtils.single(getClassesDirs());
-    }
-
-    /**
-     * The directory containing the classes to be analyzed.
-     *
-     * @deprecated Replaced by {@link #getClassesDirs()}.
-     */
-    @Deprecated
-    public void setClassesDir(File classesDir) {
-        SingleMessageLogger.nagUserOfReplacedMethod("setClassesDir(File)", "setClassesDirs(Set<File>)");
-        setClassesDirs(getProject().files(classesDir));
     }
 }
