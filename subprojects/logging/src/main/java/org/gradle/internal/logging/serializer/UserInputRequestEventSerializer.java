@@ -25,12 +25,10 @@ public class UserInputRequestEventSerializer implements Serializer<UserInputRequ
 
     @Override
     public void write(Encoder encoder, UserInputRequestEvent event) throws Exception {
-        encoder.writeString(event.getPrompt());
     }
 
     @Override
     public UserInputRequestEvent read(Decoder decoder) throws Exception {
-        String prompt = decoder.readString();
-        return new UserInputRequestEvent(prompt);
+        return new UserInputRequestEvent();
     }
 }

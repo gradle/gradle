@@ -26,8 +26,8 @@ abstract class AbstractUserInputHandlerIntegrationTest extends AbstractIntegrati
     }
 
     protected void withDaemon(boolean enabled) {
-        if (enabled) {
-            executer.requireDaemon().requireIsolatedDaemons()
+        if (!enabled) {
+            executer.withArguments("--no-daemon")
         }
     }
 

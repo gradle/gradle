@@ -21,8 +21,10 @@ import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Transformer;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.events.PromptOutputEvent;
 import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
+import org.gradle.internal.time.Clock;
 import org.gradle.util.TextUtil;
 
 import java.util.ArrayList;
@@ -32,10 +34,12 @@ import java.util.List;
 public class DefaultUserInputHandler implements UserInputHandler {
     private static final List<String> YES_NO_CHOICES = Lists.newArrayList("yes", "no");
     private final OutputEventListener outputEventBroadcaster;
+    private final Clock clock;
     private final UserInputReader userInputReader;
 
-    public DefaultUserInputHandler(OutputEventListener outputEventBroadcaster, UserInputReader userInputReader) {
+    public DefaultUserInputHandler(OutputEventListener outputEventBroadcaster, Clock clock, UserInputReader userInputReader) {
         this.outputEventBroadcaster = outputEventBroadcaster;
+        this.clock = clock;
         this.userInputReader = userInputReader;
     }
 
@@ -53,13 +57,14 @@ public class DefaultUserInputHandler implements UserInputHandler {
                 if (YES_NO_CHOICES.contains(value)) {
                     return BooleanUtils.toBoolean(value);
                 }
+                sendPrompt("Please enter 'yes' or 'no': ");
                 return null;
             }
         });
     }
 
     @Override
-    public <T> T selectOption(String question, Collection<T> options, final T defaultOption) {
+    public <T> T selectOption(String question, final Collection<T> options, final T defaultOption) {
         final List<T> values = new ArrayList<T>(options);
         StringBuilder builder = new StringBuilder();
         builder.append(TextUtil.getPlatformLineSeparator());
@@ -90,6 +95,7 @@ public class DefaultUserInputHandler implements UserInputHandler {
                         return values.get(value - 1);
                     }
                 }
+                sendPrompt("Please enter a value between 1 and " + options.size() + ": ");
                 return null;
             }
         });
@@ -123,8 +129,9 @@ public class DefaultUserInputHandler implements UserInputHandler {
     }
 
     private <T> T prompt(String prompt, Transformer<T, String> parser) {
-        outputEventBroadcaster.onOutput(new UserInputRequestEvent(prompt));
+        outputEventBroadcaster.onOutput(new UserInputRequestEvent());
         try {
+            sendPrompt(prompt);
             while (true) {
                 String input = userInputReader.readInput();
                 if (input == null) {
@@ -140,6 +147,10 @@ public class DefaultUserInputHandler implements UserInputHandler {
         } finally {
             outputEventBroadcaster.onOutput(new UserInputResumeEvent());
         }
+    }
+
+    private void sendPrompt(String prompt) {
+        outputEventBroadcaster.onOutput(new PromptOutputEvent(clock.getCurrentTime(), prompt));
     }
 
     private String sanitizeInput(String input) {

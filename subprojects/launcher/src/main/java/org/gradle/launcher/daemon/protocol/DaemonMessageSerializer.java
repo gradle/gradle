@@ -27,6 +27,7 @@ import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.logging.events.PromptOutputEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
@@ -35,6 +36,7 @@ import org.gradle.internal.logging.serializer.LogLevelChangeEventSerializer;
 import org.gradle.internal.logging.serializer.ProgressCompleteEventSerializer;
 import org.gradle.internal.logging.serializer.ProgressEventSerializer;
 import org.gradle.internal.logging.serializer.ProgressStartEventSerializer;
+import org.gradle.internal.logging.serializer.PromptOutputEventSerializer;
 import org.gradle.internal.logging.serializer.SpanSerializer;
 import org.gradle.internal.logging.serializer.StyledTextOutputEventSerializer;
 import org.gradle.internal.logging.serializer.UserInputRequestEventSerializer;
@@ -85,6 +87,7 @@ public class DaemonMessageSerializer {
         // Output events
         registry.register(LogEvent.class, new LogEventSerializer(logLevelSerializer, throwableSerializer));
         registry.register(UserInputRequestEvent.class, new UserInputRequestEventSerializer());
+        registry.register(PromptOutputEvent.class, new PromptOutputEventSerializer());
         registry.register(UserInputResumeEvent.class, new UserInputResumeEventSerializer());
         registry.register(StyledTextOutputEvent.class, new StyledTextOutputEventSerializer(logLevelSerializer, new ListSerializer<StyledTextOutputEvent.Span>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
         registry.register(ProgressStartEvent.class, new ProgressStartEventSerializer());

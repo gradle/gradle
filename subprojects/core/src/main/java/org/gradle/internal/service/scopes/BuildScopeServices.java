@@ -469,12 +469,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return registry;
     }
 
-    protected UserInputHandler createUserInputHandler(StartParameter startParameter, OutputEventListenerManager outputEventListenerManager) {
+    protected UserInputHandler createUserInputHandler(StartParameter startParameter, OutputEventListenerManager outputEventListenerManager, Clock clock) {
         if (!startParameter.isInteractive()) {
             return new NonInteractiveUserInputHandler();
         }
 
-        return new DefaultUserInputHandler(outputEventListenerManager.getBroadcaster(), new DefaultUserInputReader());
+        return new DefaultUserInputHandler(outputEventListenerManager.getBroadcaster(), clock, new DefaultUserInputReader());
     }
 
     protected BuildScanUserInputHandler createBuildScanUserInputHandler(UserInputHandler userInputHandler) {
