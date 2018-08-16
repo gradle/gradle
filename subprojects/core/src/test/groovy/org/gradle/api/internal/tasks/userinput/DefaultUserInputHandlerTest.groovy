@@ -17,8 +17,11 @@
 package org.gradle.api.internal.tasks.userinput
 
 import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.logging.events.PromptOutputEvent
 import org.gradle.internal.logging.events.UserInputRequestEvent
 import org.gradle.internal.logging.events.UserInputResumeEvent
+import org.gradle.internal.time.Clock
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -27,7 +30,8 @@ class DefaultUserInputHandlerTest extends Specification {
     private static final String TEXT = 'Accept license?'
     def outputEventBroadcaster = Mock(OutputEventListener)
     def userInputReader = Mock(UserInputReader)
-    @Subject def userInputHandler = new DefaultUserInputHandler(outputEventBroadcaster, userInputReader)
+    def clock = Mock(Clock)
+    @Subject def userInputHandler = new DefaultUserInputHandler(outputEventBroadcaster, clock, userInputReader)
 
     def "can read sanitized input to yes/no question"() {
         when:
@@ -35,6 +39,7 @@ class DefaultUserInputHandlerTest extends Specification {
 
         then:
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == 'Accept license? [yes, no]' }
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
         0 * outputEventBroadcaster._
         1 * userInputReader.readInput() >> enteredUserInput
@@ -68,8 +73,11 @@ class DefaultUserInputHandlerTest extends Specification {
 
         then:
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == 'Accept license? [yes, no]' }
         1 * userInputReader.readInput() >> 'bla'
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "Please enter 'yes' or 'no':" }
         1 * userInputReader.readInput() >> ''
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "Please enter 'yes' or 'no':" }
         1 * userInputReader.readInput() >> 'no'
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
         0 * outputEventBroadcaster._
@@ -80,10 +88,18 @@ class DefaultUserInputHandlerTest extends Specification {
 
     def "can ask select question"() {
         when:
-        def input = userInputHandler.selectOption(TEXT, [11, 12, 13], 12)
+        def input = userInputHandler.selectOption("select option", [11, 12, 13], 12)
 
         then:
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event ->
+            assert event.prompt == TextUtil.toPlatformLineSeparators("""
+select option:
+1. 11
+2. 12
+3. 13
+Enter selection (default: 12) [1..3] """)
+        }
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
         0 * outputEventBroadcaster._
         1 * userInputReader.readInput() >> "3"
@@ -109,10 +125,15 @@ class DefaultUserInputHandlerTest extends Specification {
 
         then:
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
+        1 * outputEventBroadcaster.onOutput(_ as PromptOutputEvent)
         1 * userInputReader.readInput() >> 'bla'
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "Please enter a value between 1 and 3:" }
         1 * userInputReader.readInput() >> '4'
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "Please enter a value between 1 and 3:" }
         1 * userInputReader.readInput() >> '0'
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "Please enter a value between 1 and 3:" }
         1 * userInputReader.readInput() >> '-2'
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "Please enter a value between 1 and 3:" }
         1 * userInputReader.readInput() >> '1'
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
         0 * outputEventBroadcaster._
@@ -134,10 +155,11 @@ class DefaultUserInputHandlerTest extends Specification {
 
     def "can ask text question"() {
         when:
-        def input = userInputHandler.askQuestion(TEXT, "default")
+        def input = userInputHandler.askQuestion("enter value", "value")
 
         then:
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "enter value (default: value):" }
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
         0 * outputEventBroadcaster._
         1 * userInputReader.readInput() >> "thing"

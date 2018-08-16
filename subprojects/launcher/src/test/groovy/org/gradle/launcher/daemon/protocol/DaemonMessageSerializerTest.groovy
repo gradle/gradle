@@ -22,6 +22,7 @@ import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.logging.events.LogLevelChangeEvent
 import org.gradle.internal.logging.events.OutputEvent
+import org.gradle.internal.logging.events.PromptOutputEvent
 import org.gradle.internal.logging.events.UserInputRequestEvent
 import org.gradle.internal.logging.events.UserInputResumeEvent
 import org.gradle.internal.serialize.PlaceholderException
@@ -105,11 +106,18 @@ class DaemonMessageSerializerTest extends SerializerSpec {
 
     def "can serialize user input request event"() {
         expect:
-        def event = new UserInputRequestEvent('prompt')
+        def event = new UserInputRequestEvent()
         def result = serialize(event, serializer)
         result instanceof UserInputRequestEvent
+    }
+
+    def "can serialize user prompt event"() {
+        expect:
+        def event = new PromptOutputEvent(123, 'prompt')
+        def result = serialize(event, serializer)
+        result instanceof PromptOutputEvent
         result.prompt == 'prompt'
-        result.logLevel == LogLevel.QUIET
+        result.timestamp == 123
     }
 
     def "can serialize user input resume event"() {
@@ -117,7 +125,6 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         def event = new UserInputResumeEvent()
         def result = serialize(event, serializer)
         result instanceof UserInputResumeEvent
-        result.logLevel == LogLevel.QUIET
     }
 
     def "can serialize Build message"() {

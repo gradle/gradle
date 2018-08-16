@@ -34,6 +34,9 @@ public class DefaultTextArea extends AbstractLineChoppingStyledTextOutput implem
         this.ansiExecutor = ansiExecutor;
     }
 
+    /**
+     * Returns the bottom right position of this text area.
+     */
     public Cursor getWritePosition() {
         return writePos;
     }
@@ -68,7 +71,7 @@ public class DefaultTextArea extends AbstractLineChoppingStyledTextOutput implem
                                 ansi.a(textStr.substring(pos, next));
                                 pos = next;
                             } else {
-                                ansi.a(textStr.substring(pos, textStr.length()));
+                                ansi.a(textStr.substring(pos));
                                 pos = textStr.length();
                             }
                         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.console;
+package org.gradle.internal.logging.serializer;
 
-import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.PromptOutputEvent;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 
-public class UserInputStandardOutputRenderer extends AbstractUserInputRenderer {
-    public UserInputStandardOutputRenderer(OutputEventListener delegate) {
-        super(delegate);
+public class PromptOutputEventSerializer implements Serializer<PromptOutputEvent> {
+    @Override
+    public void write(Encoder encoder, PromptOutputEvent value) throws Exception {
+        encoder.writeLong(value.getTimestamp());
+        encoder.writeString(value.getPrompt());
     }
 
     @Override
-    void startInput() {
-    }
-
-    @Override
-    void handlePrompt(PromptOutputEvent event) {
-        delegate.onOutput(event);
-    }
-
-    @Override
-    void finishInput() {
+    public PromptOutputEvent read(Decoder decoder) throws Exception {
+        return new PromptOutputEvent(decoder.readLong(), decoder.readString());
     }
 }
