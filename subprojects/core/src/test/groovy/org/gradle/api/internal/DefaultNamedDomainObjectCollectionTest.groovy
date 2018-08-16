@@ -181,7 +181,7 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "No value has been specified for this provider."
+        ex.message == "The domain object 'bean' (Bean) for this provider is no longer present in its container."
     }
 
     def "can extract schema from collection with domain objects"() {

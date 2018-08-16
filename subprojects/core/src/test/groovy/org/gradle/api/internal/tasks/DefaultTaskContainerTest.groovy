@@ -1432,7 +1432,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "No value has been specified for this provider."
+        ex.message == "The domain object 'task' (Task) for this provider is no longer present in its container."
     }
 
     void "lazy task that is realized and then removed is not recreated on iteration"() {
@@ -1576,8 +1576,6 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         and:
         0 * taskFactory.create(_ as TaskIdentity)
     }
-
-    // Remove provider twice won't throw/create or anything. It should just be like what ever return false
 
     def "can remove realized register elements via instance"() {
         1 * taskFactory.create(_ as TaskIdentity) >> a
@@ -1816,7 +1814,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "No value has been specified for this provider."
+        ex.message == "The domain object 'obj' (DefaultTask) for this provider is no longer present in its container."
     }
 
     def "can remove unrealized registered element using named provider"() {
@@ -1841,7 +1839,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "No value has been specified for this provider."
+        ex.message == "The domain object 'obj' (DefaultTask) for this provider is no longer present in its container."
     }
 
     def "can remove realized registered element using register provider"() {
@@ -1870,7 +1868,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "No value has been specified for this provider."
+        ex.message == "The domain object 'obj' (DefaultTask) for this provider is no longer present in its container."
     }
 
     def "can remove realized registered element using named provider"() {
@@ -1899,7 +1897,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "No value has been specified for this provider."
+        ex.message == "The domain object 'obj' (DefaultTask) for this provider is no longer present in its container."
     }
 
     private ProjectInternal expectTaskLookupInOtherProject(final String projectPath, final String taskName, def task) {

@@ -840,6 +840,15 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             return getOrNull() != null;
         }
 
+        @Override
+        public I get() {
+            if (!isPresent()) {
+                throw domainObjectRemovedException(getName(), getType());
+            }
+            return super.get();
+        }
+
+        @Override
         public I getOrNull() {
             return Cast.uncheckedCast(findByNameWithoutRules(getName()));
         }
@@ -879,6 +888,14 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         protected Action<? super I> wrap(Action<? super I> action) {
             // Do nothing.
             return action;
+        }
+
+        @Override
+        public I get() {
+            if (wasElementRemoved()) {
+                throw domainObjectRemovedException(getName(), getType());
+            }
+            return super.get();
         }
 
         @Override
@@ -940,5 +957,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         protected RuntimeException domainObjectCreationException(Throwable cause) {
             return new IllegalStateException(String.format("Could not create domain object '%s' (%s)", getName(), getType().getSimpleName()), cause);
         }
+    }
+
+    private static RuntimeException domainObjectRemovedException(String name, Class<?> type) {
+        return new IllegalStateException(String.format("The domain object '%s' (%s) for this provider is no longer present in its container.", name, type.getSimpleName()));
     }
 }
