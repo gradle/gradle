@@ -265,7 +265,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         ProviderInternal<? extends T> providerInternal = Cast.uncheckedCast(provider);
         store.addPending(providerInternal);
         if (eventRegister.isSubscribed(providerInternal.getType())) {
-            doAdd(provider.get(), eventRegister.getAddActions());
+            doAddRealized(provider.get(), eventRegister.getAddActions());
         }
     }
 
@@ -276,7 +276,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         store.addPendingCollection(providerInternal);
         if (eventRegister.isSubscribed(providerInternal.getElementType())) {
             for (T value : provider.get()) {
-                doAdd(value, eventRegister.getAddActions());
+                doAddRealized(value, eventRegister.getAddActions());
             }
         }
     }
