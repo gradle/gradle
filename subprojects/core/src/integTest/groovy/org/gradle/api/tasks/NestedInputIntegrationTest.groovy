@@ -771,6 +771,11 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(':myTask')
 
         when:
+        run 'myTask'
+        then:
+        skipped(':myTask')
+
+        when:
         buildFile.text = """
             task myTask(type: TaskWithNestedAction) {
                 action = ${changedImplementation}
@@ -838,6 +843,11 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         run 'myTask'
         then:
         executedAndNotSkipped(':myTask')
+
+        when:
+        run 'myTask'
+        then:
+        skipped(':myTask')
 
         when:
         buildFile.text = """
