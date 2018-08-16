@@ -86,6 +86,9 @@ The previously deprecated support for Play Framework 2.2 has been removed.
 - Removed the methods `file` and `files` from `TaskDestroyables`.
 - Removed the property `styleSheet` from `ScalaDocOptions`.
 - Forbid passing `null` as configuration action to the methods `from` and `to` on `CopySpec`.
+- Removed the property `classesDir` from `JDepend`.
+- Removed the property `testClassesDir` from `Test`.
+- Removed the property `classesDir` from `SourceSetOutput`.
 
 ## External contributions
 
