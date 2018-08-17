@@ -129,7 +129,7 @@ The task API gives a build author a lot of flexibility to declare tasks in a bui
 For optimal readability and maintainability follow these rules:
 
 * The task type should be the only key-value pair that belongs within the parentheses after the task name.
-* Any other configuration logic for a task should be defined as part of link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:task(java.lang.String,%20groovy.lang.Closure)[Project.task(java.lang.String, groovy.lang.Closure)] if possible.
+* Any other configuration logic for a task should be defined as part of link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:task(java.lang.String,%20org.gradle.api.Action)[Project.task(java.lang.String, org.gradle.api.Action)] if possible.
 * <<tutorial_using_tasks.adoc#sec:hello_world,Task actions>> should only be declared with the methods link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doFirst(org.gradle.api.Action)[Task.doFirst{}] or link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast{}].
 * link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast{}] should be used if the task only defines a single action.
 * A task should <<#sec:improving_task_discoverability,define a group and description>>.
