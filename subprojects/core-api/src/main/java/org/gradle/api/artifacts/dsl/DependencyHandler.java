@@ -451,15 +451,53 @@ public interface DependencyHandler {
     @Incubating
     void registerTransform(Action<? super VariantTransform> registrationAction);
 
+    /**
+     * Declares a dependency on a platform. If the target coordinates represent multiple
+     * potential components, the platform component will be selected, instead of the library.
+     *
+     * @param notation the coordinates of the platform
+     *
+     * @since 5.0
+     */
     @Incubating
     Dependency platform(Object notation);
 
+    /**
+     * Declares a dependency on a platform. If the target coordinates represent multiple
+     * potential components, the platform component will be selected, instead of the library.
+     *
+     * @param notation the coordinates of the platform
+     * @param configureAction the dependency configuration block
+     *
+     * @since 5.0
+     */
     @Incubating
     Dependency platform(Object notation, Action<? super Dependency> configureAction);
 
+    /**
+     * Declares a dependency on an enforced platform. If the target coordinates represent multiple
+     * potential components, the platform component will be selected, instead of the library.
+     * An enforced platform is a platform for which the direct dependencies are forced, meaning
+     * that they would override any other version found in the graph.
+     *
+     * @param notation the coordinates of the platform
+     *
+     * @since 5.0
+     */
     @Incubating
     Dependency enforcedPlatform(Object notation);
 
+    /**
+     * Declares a dependency on an enforced platform. If the target coordinates represent multiple
+     * potential components, the platform component will be selected, instead of the library.
+     * An enforced platform is a platform for which the direct dependencies are forced, meaning
+     * that they would override any other version found in the graph.
+     *
+     * @param notation the coordinates of the platform
+     * @param configureAction the dependency configuration block
+     *
+     * @since 5.0
+     */
     @Incubating
     Dependency enforcedPlatform(Object notation, Action<? super Dependency> configureAction);
 }
