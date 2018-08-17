@@ -58,7 +58,7 @@ With the deprecation of every method removing a task, registering a callback whe
 ### Replacing realized tasks inside TaskContainer
 
 Replacing realized tasks (eagerly created or lazily created) has been deprecated.
-Only unrealized registered tasks is safe to replace.
+Only unrealized registered tasks are safe to replace.
 
 ## Potential breaking changes
 
