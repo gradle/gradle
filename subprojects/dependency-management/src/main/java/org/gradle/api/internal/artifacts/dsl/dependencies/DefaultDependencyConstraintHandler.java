@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
+import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.ConfigureUtil;
@@ -58,6 +59,32 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     @Override
     public DependencyConstraint create(Object dependencyNotation, Action<? super DependencyConstraint> configureAction) {
         return doCreate(dependencyNotation, configureAction);
+    }
+
+    @Override
+    public DependencyConstraint platform(Object notation) {
+        return create(notation);
+    }
+
+    @Override
+    public DependencyConstraint platform(Object notation, Action<? super DependencyConstraint> configureAction) {
+        DependencyConstraint dep = platform(notation);
+        configureAction.execute(dep);
+        return dep;
+    }
+
+    @Override
+    public DependencyConstraint enforcedPlatform(Object notation) {
+        DependencyConstraintInternal platformDependency = (DependencyConstraintInternal) create(notation);
+        platformDependency.setForce(true);
+        return platformDependency;
+    }
+
+    @Override
+    public DependencyConstraint enforcedPlatform(Object notation, Action<? super DependencyConstraint> configureAction) {
+        DependencyConstraint dep = enforcedPlatform(notation);
+        configureAction.execute(dep);
+        return dep;
     }
 
     private DependencyConstraint doCreate(Object dependencyNotation, @Nullable Action<? super DependencyConstraint> configureAction) {

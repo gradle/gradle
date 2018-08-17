@@ -58,4 +58,17 @@ public interface DependencyConstraintHandler {
      * @param configureAction The closure to use to configure the dependency.
      */
     DependencyConstraint create(Object dependencyConstraintNotation, Action<? super DependencyConstraint> configureAction);
+
+
+    @Incubating
+    DependencyConstraint platform(Object notation);
+
+    @Incubating
+    DependencyConstraint platform(Object notation, Action<? super DependencyConstraint> configureAction);
+
+    @Incubating
+    DependencyConstraint enforcedPlatform(Object notation);
+
+    @Incubating
+    DependencyConstraint enforcedPlatform(Object notation, Action<? super DependencyConstraint> configureAction);
 }

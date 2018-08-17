@@ -450,4 +450,16 @@ public interface DependencyHandler {
      */
     @Incubating
     void registerTransform(Action<? super VariantTransform> registrationAction);
+
+    @Incubating
+    Dependency platform(Object notation);
+
+    @Incubating
+    Dependency platform(Object notation, Action<? super Dependency> configureAction);
+
+    @Incubating
+    Dependency enforcedPlatform(Object notation);
+
+    @Incubating
+    Dependency enforcedPlatform(Object notation, Action<? super Dependency> configureAction);
 }
