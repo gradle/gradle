@@ -102,12 +102,20 @@ class SelectorStateResolverResults {
         // Check already-resolved dependencies and use this version if it's compatible
         for (Registration registration : results) {
             ResolvableSelectorState other = registration.selector;
-            if (included(other, resolveResult)) {
+            if (included(other, resolveResult) || sameVersion(resolveResult, registration)) {
                 registration.result = resolveResult;
             }
         }
 
         results.add(new Registration(dep, resolveResult));
+    }
+
+    private boolean sameVersion(ComponentIdResolveResult resolveResult, Registration registration) {
+        ComponentIdResolveResult current = registration.result;
+        if (current.getFailure()==null && resolveResult.getFailure() == null) {
+            return current.getModuleVersionId().equals(resolveResult.getModuleVersionId());
+        }
+        return false;
     }
 
     private boolean included(ResolvableSelectorState dep, ComponentIdResolveResult candidate) {
