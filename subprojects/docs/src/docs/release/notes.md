@@ -55,11 +55,23 @@ Removing tasks from the `TaskContainer` using the following methods has been dep
 
 With the deprecation of every method for removing a task, registering a callback when an object is removed is also deprecated (`whenObjectRemoved(Closure/Action)`).
 
-### Replacing tasks that may still be used by other tasks 
-
-Gradle now emits a deprecation warning when you attempt to replace a task that may have already been used by something else. In the future, this will be an error. 
+### Replacing tasks 
 
 It is only safe to replace an unrealized tasks registered with the new Task API because this task has not been used by anything else.
+
+In the future, these behaviors will be treated as errors.
+
+#### Replacing tasks that may still be used by other tasks 
+
+Gradle now emits a deprecation warning when you attempt to replace a task that may have already been used by something else.  
+
+#### Replacing tasks with a task of an incompatible type
+
+Gradle now emits a deprecation warning when you attempt to replace a task with a type that's incompatible from the task being replaced. 
+
+#### Replacing a task that does not exist
+
+Gradle now emits a deprecation warning when you attempt to replace a task that does not already exist.
 
 ### Removing dependencies from a task
 
