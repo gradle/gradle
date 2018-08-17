@@ -62,26 +62,6 @@ What's going on here? This build script defines a single task, called `hello`, a
 
 If you think this looks similar to Ant's targets, you would be right. Gradle tasks are the equivalent to Ant targets, but as you will see, they are much more powerful. We have used a different terminology than Ant as we think the word _task_ is more expressive than the word _target_. Unfortunately this introduces a terminology clash with Ant, as Ant calls its commands, such as `javac` or `copy`, tasks. So when we talk about tasks, we _always_ mean Gradle tasks, which are the equivalent to Ant's targets. If we talk about Ant tasks (Ant commands), we explicitly say _Ant task_.
 
-[[sec:a_shortcut_task_definition]]
-== A shortcut task definition
-
-
-[NOTE]
-====
-
-This functionality is deprecated and will be removed in Gradle 5.0 without replacement. Use the methods link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doFirst(org.gradle.api.Action)[Task.doFirst(org.gradle.api.Action)] and link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast(org.gradle.api.Action)] to define an action instead, as demonstrated by the rest of the examples in this chapter.
-
-====
-
-There is a shorthand way to define a task like our `hello` task above, which is more concise.
-
-.A task definition shortcut
-====
-include::sample[dir="userguide/tutorial/helloShortcut/groovy", files="build.gradle[]"]
-====
-
-Again, this defines a task called `hello` with a single closure to execute. The `&lt;&lt;` operator is simply an alias for `doLast`.
-
 [[sec:build_scripts_are_code]]
 == Build scripts are code
 
