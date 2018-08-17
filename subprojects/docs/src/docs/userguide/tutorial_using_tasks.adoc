@@ -59,16 +59,16 @@ include::{samplesPath}/userguide/tutorial/hello/hello.out[]
 ----
 ====
 
-What's going on here? This build script defines a single task, called `hello`, and adds an action to it. When you run `gradle hello`, Gradle executes the `hello` task, which in turn executes the action you've provided. The action is simply a closure containing some Groovy code to execute.
+What's going on here? This build script defines a single task, called `hello`, and adds an action to it. When you run `gradle hello`, Gradle executes the `hello` task, which in turn executes the action you've provided. The action is simply a block containing some code to execute.
 
 If you think this looks similar to Ant's targets, you would be right. Gradle tasks are the equivalent to Ant targets, but as you will see, they are much more powerful. We have used a different terminology than Ant as we think the word _task_ is more expressive than the word _target_. Unfortunately this introduces a terminology clash with Ant, as Ant calls its commands, such as `javac` or `copy`, tasks. So when we talk about tasks, we _always_ mean Gradle tasks, which are the equivalent to Ant's targets. If we talk about Ant tasks (Ant commands), we explicitly say _Ant task_.
 
 [[sec:build_scripts_are_code]]
 == Build scripts are code
 
-Gradle's build scripts give you the full power of Groovy. As an appetizer, have a look at this:
+Gradle's build scripts give you the full power of Groovy and Kotlin. As an appetizer, have a look at this:
 
-.Using Groovy in Gradle's tasks
+.Using Groovy or Kotlin in Gradle's tasks
 ====
 include::sample[dir="userguide/tutorial/upper/groovy", files="build.gradle[]"]
 include::sample[dir="userguide/tutorial/upper/kotlin", files="build.gradle.kts[]"]
@@ -82,7 +82,7 @@ include::{samplesPath}/userguide/tutorial/upper/upper.out[]
 
 or
 
-.Using Groovy in Gradle's tasks
+.Using Groovy or Kotlin in Gradle's tasks
 ====
 include::sample[dir="userguide/tutorial/count/groovy", files="build.gradle[]"]
 include::sample[dir="userguide/tutorial/count/kotlin", files="build.gradle.kts[]"]
@@ -133,7 +133,7 @@ Please notice that you can't use <<#sec:shortcut_notations, shortcut notation>> 
 [[sec:dynamic_tasks]]
 == Dynamic tasks
 
-The power of Groovy can be used for more than defining what a task does. For example, you can also use it to dynamically create tasks.
+The power of Groovy or Kotlin can be used for more than defining what a task does. For example, you can also use it to dynamically create tasks.
 
 .Dynamic creation of a task
 ====
@@ -181,9 +181,8 @@ include::{samplesPath}/userguide/tutorial/helloEnhanced/helloEnhanced.out[]
 
 The calls `doFirst` and `doLast` can be executed multiple times. They add an action to the beginning or the end of the task's actions list. When the task executes, the actions in the action list are executed in order.
 
-// TODO QUID? This is Groovy specific
 [[sec:shortcut_notations]]
-== Shortcut notations
+== Groovy DSL shortcut notations
 
 There is a convenient notation for accessing an _existing_ task. Each task is available as a property of the build script:
 
@@ -222,7 +221,7 @@ Extra properties aren't limited to tasks. You can read more about them in <<writ
 [[sec:using_ant_tasks_tutorial]]
 == Using Ant Tasks
 
-Ant tasks are first-class citizens in Gradle. Gradle provides excellent integration for Ant tasks by simply relying on Groovy. Groovy is shipped with the fantastic `AntBuilder`. Using Ant tasks from Gradle is as convenient and more powerful than using Ant tasks from a `build.xml` file. From the example below, you can learn how to execute Ant tasks and how to access Ant properties:
+Ant tasks are first-class citizens in Gradle. Gradle provides excellent integration for Ant tasks by simply relying on Groovy. Groovy is shipped with the fantastic `AntBuilder`. Using Ant tasks from Gradle is as convenient and more powerful than using Ant tasks from a `build.xml` file. And it is usable from Kotlin too. From the example below, you can learn how to execute Ant tasks and how to access Ant properties:
 
 .Using AntBuilder to execute ant.loadfile target
 ====
@@ -306,7 +305,7 @@ The important thing is that `whenReady` affects the release task _before_ the re
 [[sec:build_script_external_dependencies]]
 == External dependencies for the build script
 
-If your build script needs to use external libraries, you can add them to the script's classpath in the build script itself. You do this using the `buildscript()` method, passing in a closure which declares the build script classpath.
+If your build script needs to use external libraries, you can add them to the script's classpath in the build script itself. You do this using the `buildscript()` method, passing in a block which declares the build script classpath.
 
 .Declaring external dependencies for the build script
 ====
@@ -314,7 +313,7 @@ include::sample[dir="userguide/tutorial/externalDependency/groovy", files="build
 include::sample[dir="userguide/tutorial/externalDependency/kotlin", files="build.gradle.kts[tags=declare-classpath]"]
 ====
 
-The closure passed to the `buildscript()` method configures a link:{javadocPath}/org/gradle/api/initialization/dsl/ScriptHandler.html[ScriptHandler] instance. You declare the build script classpath by adding dependencies to the `classpath` configuration. This is the same way you declare, for example, the Java compilation classpath. You can use any of the <<dependency_types.adoc#dependency_types,dependency types>> except project dependencies.
+The block passed to the `buildscript()` method configures a link:{javadocPath}/org/gradle/api/initialization/dsl/ScriptHandler.html[ScriptHandler] instance. You declare the build script classpath by adding dependencies to the `classpath` configuration. This is the same way you declare, for example, the Java compilation classpath. You can use any of the <<dependency_types.adoc#dependency_types,dependency types>> except project dependencies.
 
 Having declared the build script classpath, you can use the classes in your build script as you would any other classes on the classpath. The following example adds to the previous example, and uses classes from the build script classpath.
 
