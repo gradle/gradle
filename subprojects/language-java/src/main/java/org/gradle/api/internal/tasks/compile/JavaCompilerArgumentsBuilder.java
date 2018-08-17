@@ -22,11 +22,9 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.compile.ForkOptions;
-import org.gradle.internal.Factory;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -144,14 +142,7 @@ public class JavaCompilerArgumentsBuilder {
             args.add("-encoding");
             args.add(compileOptions.getEncoding());
         }
-        String bootClasspath = DeprecationLogger.whileDisabled(new Factory<String>() {
-            @Nullable
-            @Override
-            @SuppressWarnings("deprecation")
-            public String create() {
-                return compileOptions.getBootClasspath();
-            }
-        });
+        String bootClasspath = compileOptions.getBootClasspath();
         if (bootClasspath != null) { //TODO: move bootclasspath to platform
             args.add("-bootclasspath");
             args.add(bootClasspath);
