@@ -55,6 +55,10 @@ Removing tasks from the `TaskContainer` using the following methods has been dep
 
 With the deprecation of every method removing a task, registering a callback when an object is removed is also deprecated (`whenObjectRemoved(Closure/Action)`)
 
+### Replacing realized tasks inside TaskContainer
+
+Replacing realized tasks (eagerly created or lazily created) has been deprecated.
+Only unrealized registered tasks is safe to replace.
 
 ## Potential breaking changes
 
