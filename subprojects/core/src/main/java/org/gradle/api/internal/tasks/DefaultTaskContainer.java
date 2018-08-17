@@ -35,7 +35,6 @@ import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
-import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
@@ -231,11 +230,21 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (replaceExisting) {
             Task existing = findByNameWithoutRules(name);
             if (existing != null) {
+                DeprecationLogger.nagUserWith("Gradle does not allow replacing a realized task.", "This behaviour has been deprecated and is scheduled to become an error in Gradle 6.0.", "", "");
                 removeInternal(existing);
             } else {
-                ProviderInternal<? extends Task> taskProvider = findByNameLaterWithoutRules(name);
+                TaskCreatingProvider<? extends Task> taskProvider = Cast.uncheckedCast(findByNameLaterWithoutRules(name));
                 if (taskProvider != null) {
+                    if (!taskProvider.getType().isAssignableFrom(task.getClass())) {
+                        throw replaceTaskWithIncompatibleType(task.getName(), taskProvider.getType(), ((TaskInternal) task).getTaskIdentity().type);
+                    }
                     removeInternal(taskProvider);
+
+                    Action<? super T> onCreate = Cast.uncheckedCast(taskProvider.getOnCreateActions().mergeFrom(getEventRegister().getAddActions()));
+                    add(task, onCreate);
+                    return; // Exit early as we are reusing the create actions from the provider
+                } else {
+                    DeprecationLogger.nagUserWith("Gradle does not allow replacing a non existing task.", "This behaviour has been deprecated and is scheduled to become an error in Gradle 6.0.", "", "");
                 }
             }
         } else if (hasWithName(name)) {
@@ -243,6 +252,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
 
         addInternal(task);
+    }
+
+    private RuntimeException replaceTaskWithIncompatibleType(String name, Class<?> originalType, Class<?> newType) {
+        return new IncompatibleTaskTypeException(String.format("Could not replace task '%s' of type '%s' with type '%s'.", project.identityPath(name), originalType.getSimpleName(), newType.getSimpleName()));
     }
 
     private <T extends Task> T duplicateTask(String task) {
@@ -781,6 +794,13 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     private static class DuplicateTaskException extends InvalidUserDataException {
         public DuplicateTaskException(String message) {
+            super(message);
+        }
+    }
+
+    @Contextual
+    private static class IncompatibleTaskTypeException extends InvalidUserDataException {
+        public IncompatibleTaskTypeException(String message) {
             super(message);
         }
     }
