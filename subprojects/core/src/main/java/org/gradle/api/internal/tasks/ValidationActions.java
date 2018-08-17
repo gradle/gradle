@@ -18,19 +18,20 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
+import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
 import java.io.File;
 import java.util.Map;
 
 public enum ValidationActions implements ValidationAction {
-    NO_OP {
+    NO_OP("file collection") {
         @Override
-        public void validate(String propertyName, Object value, TaskValidationContext context) {
+        public void doValidate(String propertyName, Object value, TaskValidationContext context) {
         }
     },
-    INPUT_FILE_VALIDATOR {
+    INPUT_FILE_VALIDATOR("file") {
         @Override
-        public void validate(String propertyName, Object value, TaskValidationContext context) {
+        public void doValidate(String propertyName, Object value, TaskValidationContext context) {
             File file = toFile(context, value);
             if (!file.exists()) {
                 context.recordValidationMessage(String.format("File '%s' specified for property '%s' does not exist.", file, propertyName));
@@ -39,9 +40,9 @@ public enum ValidationActions implements ValidationAction {
             }
         }
     },
-    INPUT_DIRECTORY_VALIDATOR {
+    INPUT_DIRECTORY_VALIDATOR("directory") {
         @Override
-        public void validate(String propertyName, Object value, TaskValidationContext context) {
+        public void doValidate(String propertyName, Object value, TaskValidationContext context) {
             File directory = toDirectory(context, value);
             if (!directory.exists()) {
                 context.recordValidationMessage(String.format("Directory '%s' specified for property '%s' does not exist.", directory, propertyName));
@@ -50,9 +51,9 @@ public enum ValidationActions implements ValidationAction {
             }
         }
     },
-    OUTPUT_DIRECTORY_VALIDATOR {
+    OUTPUT_DIRECTORY_VALIDATOR("file") {
         @Override
-        public void validate(String propertyName, Object value, TaskValidationContext context) {
+        public void doValidate(String propertyName, Object value, TaskValidationContext context) {
             File directory = toFile(context, value);
             if (directory.exists()) {
                 if (!directory.isDirectory()) {
@@ -68,17 +69,17 @@ public enum ValidationActions implements ValidationAction {
             }
         }
     },
-    OUTPUT_DIRECTORIES_VALIDATOR {
+    OUTPUT_DIRECTORIES_VALIDATOR("file collection") {
         @Override
-        public void validate(String propertyName, Object values, TaskValidationContext context) {
+        public void doValidate(String propertyName, Object values, TaskValidationContext context) {
             for (File directory : toFiles(context, values)) {
                 OUTPUT_DIRECTORY_VALIDATOR.validate(propertyName, directory, context);
             }
         }
     },
-    OUTPUT_FILE_VALIDATOR {
+    OUTPUT_FILE_VALIDATOR("file") {
         @Override
-        public void validate(String propertyName, Object value, TaskValidationContext context) {
+        public void doValidate(String propertyName, Object value, TaskValidationContext context) {
             File file = toFile(context, value);
             if (file.exists()) {
                 if (file.isDirectory()) {
@@ -95,14 +96,31 @@ public enum ValidationActions implements ValidationAction {
             }
         }
     },
-    OUTPUT_FILES_VALIDATOR {
+    OUTPUT_FILES_VALIDATOR("file collection") {
         @Override
-        public void validate(String propertyName, Object values, TaskValidationContext context) {
+        public void doValidate(String propertyName, Object values, TaskValidationContext context) {
             for (File file : toFiles(context, values)) {
                 OUTPUT_FILE_VALIDATOR.validate(propertyName, file, context);
             }
         }
     };
+
+    private final String targetType;
+
+    ValidationActions(String targetType) {
+        this.targetType = targetType;
+    }
+
+    protected abstract void doValidate(String propertyName, Object value, TaskValidationContext context);
+
+    @Override
+    public void validate(String propertyName, Object value, TaskValidationContext context) {
+        try {
+            doValidate(propertyName, value, context);
+        } catch (UnsupportedNotationException ignored) {
+            context.recordValidationMessage(String.format("Value '%s' specified for property '%s' cannot be converted to a %s.", value, propertyName, targetType));
+        }
+    }
 
     private static File toDirectory(TaskValidationContext context, Object value) {
         if (value instanceof ConfigurableFileTree) {
