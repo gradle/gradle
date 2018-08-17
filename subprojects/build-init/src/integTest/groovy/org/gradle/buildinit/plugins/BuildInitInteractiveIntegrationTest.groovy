@@ -29,8 +29,8 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         def handle = executer.start()
 
         // Select 'basic'
-        ConcurrentTestUtil.poll {
-            assert handle.standardOutput.contains("Select build setup type:")
+        ConcurrentTestUtil.poll(20) {
+            assert handle.standardOutput.contains("Select type of build to create:")
         }
         handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
 
