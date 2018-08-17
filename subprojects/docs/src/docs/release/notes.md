@@ -53,12 +53,13 @@ Removing tasks from the `TaskContainer` using the following methods has been dep
 - `clear()`
 - `Iterator#remove()` via `TaskContainer#iterator()`
 
-With the deprecation of every method removing a task, registering a callback when an object is removed is also deprecated (`whenObjectRemoved(Closure/Action)`)
+With the deprecation of every method for removing a task, registering a callback when an object is removed is also deprecated (`whenObjectRemoved(Closure/Action)`).
 
-### Replacing realized tasks inside TaskContainer
+### Replacing tasks that may still be used by other tasks 
 
-Replacing realized tasks (eagerly created or lazily created) has been deprecated.
-Only unrealized registered tasks are safe to replace.
+Gradle now emits a deprecation warning when you attempt to replace a task that may have already been used by something else. In the future, this will be an error. 
+
+It is only safe to replace an unrealized tasks registered with the new Task API because this task has not been used by anything else.
 
 ### Removing dependencies from a task
 
