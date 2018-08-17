@@ -833,6 +833,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
+        executer.expectDeprecationWarning()
         fails "foo"
 
         and:

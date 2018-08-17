@@ -270,6 +270,110 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
         then:
         container.names.toList() == ["thing"]
     }
+
+    def "can remove unrealized registered element using register provider"() {
+        when:
+        def provider = container.register('obj')
+
+        then:
+        provider.present
+
+        when:
+        container.remove(provider)
+
+        then:
+        container.names.toList() == []
+
+        and:
+        !provider.present
+        provider.orNull == null
+
+        when:
+        provider.get()
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "The domain object 'obj' (TestObject) for this provider is no longer present in its container."
+    }
+
+    def "can remove unrealized registered element using named provider"() {
+        when:
+        def provider = container.register('obj')
+
+        then:
+        provider.present
+
+        when:
+        container.remove(container.named('obj'))
+
+        then:
+        container.names.toList() == []
+
+        and:
+        !provider.present
+        provider.orNull == null
+
+        when:
+        provider.get()
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "The domain object 'obj' (TestObject) for this provider is no longer present in its container."
+    }
+
+    def "can remove realized registered element using register provider"() {
+        when:
+        def provider = container.register('obj')
+        def obj = provider.get()
+
+        then:
+        provider.present
+        obj == container.getByName('obj')
+
+        when:
+        container.remove(provider)
+
+        then:
+        container.names.toList() == []
+
+        and:
+        !provider.present
+        provider.orNull == null
+
+        when:
+        provider.get()
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "The domain object 'obj' (TestObject) for this provider is no longer present in its container."
+    }
+
+    def "can remove realized registered element using named provider"() {
+        when:
+        def provider = container.register('obj')
+        def obj = provider.get()
+
+        then:
+        provider.present
+        obj == container.getByName('obj')
+
+        when:
+        container.remove(container.named('obj'))
+
+        then:
+        container.names.toList() == []
+
+        and:
+        !provider.present
+        provider.orNull == null
+
+        when:
+        provider.get()
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "The domain object 'obj' (TestObject) for this provider is no longer present in its container."
+    }
 }
 
 class DynamicOwner {

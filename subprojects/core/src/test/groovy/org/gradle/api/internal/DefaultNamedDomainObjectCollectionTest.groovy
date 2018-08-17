@@ -36,6 +36,7 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
     final Bean b = new BeanSub1("b")
     final Bean c = new BeanSub1("c")
     final Bean d = new BeanSub2("d")
+    final boolean externalProviderAllowed = true
 
     def setup() {
         container.clear()
@@ -150,6 +151,37 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
         }
         then:
         result.get().value == "changed"
+    }
+
+    def "can remove element using named provider"() {
+        def bean = new Bean("bean")
+
+        given:
+        container.add(bean)
+
+        when:
+        def provider = container.named('bean')
+
+        then:
+        provider.present
+        provider.orNull == bean
+
+        when:
+        container.remove(provider)
+
+        then:
+        container.names.toList() == []
+
+        and:
+        !provider.present
+        provider.orNull == null
+
+        when:
+        provider.get()
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "The domain object 'bean' (Bean) for this provider is no longer present in its container."
     }
 
     def "can extract schema from collection with domain objects"() {
