@@ -15,15 +15,28 @@ Add-->
 Memory usage for up-to-date checking has been improved.
 For the gradle/gradle build, heap usage dropped by 60 MB to 450 MB, that is a 12% reduction.
 
-### Build Init plugin uses recommended configurations
-
-The [Build Init plugin](userguide/build_init_plugin.html) now generates build scripts that use the recommended `implementation`, `testImplementation`, and `testRuntimeOnly` configurations instead of `compile`, `testCompile`, and `testRuntime`, respectively, for all build setup types.
-
 ### Build init plugin improvements
+
+#### Kotlin library and applications
 
 The `init` task can now generate a Kotlin library or application, using the `--kotlin-library` or `--kotlin-application` setup type.
 
+#### Interactive mode
+
+If you run the `init` task from an interactive console without any options, it will prompt you for details of what you'd like to generate.
+
+#### Generated builds use recommended configurations
+
+The [Build Init plugin](userguide/build_init_plugin.html) now generates build scripts that use the recommended `implementation`, `testImplementation`, and `testRuntimeOnly` configurations instead of `compile`, `testCompile`, and `testRuntime`, respectively, for all build setup types.
+
+#### Specify project and source package names
+
 The `init` task also provides a `--project-name` option to allow you to adjust the name of the generated project, and a `--package` option to allow you to adjust the package for the generated source.
+The task will also allow you to specify these if you run the task interactively.
+
+#### Create resource directories
+
+The `init` task now creates empty resource directories in their conventional locations.
 
 ## Promoted features
 
@@ -44,6 +57,10 @@ Features that have become superseded or irrelevant due to the natural evolution 
 in the next major Gradle version (Gradle 5.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
+
+### StartParameter.interactive flag 
+
+The `interactive` flag is deprecated and will be removed in Gradle 6.0.
 
 <!--
 ### Example deprecation
