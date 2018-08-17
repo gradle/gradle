@@ -1,1 +1,3 @@
-apply plugin: 'com.enterprise.release'
+plugins {
+    id 'com.enterprise.release'
+}
