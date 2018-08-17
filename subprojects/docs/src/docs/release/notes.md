@@ -85,6 +85,7 @@ The previously deprecated support for Play Framework 2.2 has been removed.
 - Removed the class `SimpleWorkResult`.
 - Removed the methods `file` and `files` from `TaskDestroyables`.
 - Removed the property `styleSheet` from `ScalaDocOptions`.
+- Forbid passing `null` as configuration action to the methods `from` and `to` on `CopySpec`.
 
 ## External contributions
 
