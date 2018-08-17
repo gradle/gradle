@@ -404,6 +404,7 @@ org:leaf2:2.5
       org.gradle.status = release (not requested)
    ]
    Selection reasons:
+      - Was requested
       - By conflict resolution : between versions 1.5, 2.5 and 1.0
 
 org:leaf2:2.5
