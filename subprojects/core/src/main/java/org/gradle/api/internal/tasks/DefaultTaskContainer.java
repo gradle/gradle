@@ -41,6 +41,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
+import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.metaobject.DynamicObject;
@@ -236,7 +237,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                 TaskCreatingProvider<? extends Task> taskProvider = Cast.uncheckedCast(findByNameLaterWithoutRules(name));
                 if (taskProvider != null) {
                     if (!taskProvider.getType().isAssignableFrom(task.getClass())) {
-                        throw replaceTaskWithIncompatibleType(task.getName(), taskProvider.getType(), ((TaskInternal) task).getTaskIdentity().type);
+                        failOnReplacingTaskWithIncompatibleType(task.getName(), taskProvider.getType(), ((TaskInternal) task).getTaskIdentity().type);
                     }
                     removeInternal(taskProvider);
 
@@ -248,17 +249,17 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                 }
             }
         } else if (hasWithName(name)) {
-            duplicateTask(name);
+            failOnDuplicateTask(name);
         }
 
         addInternal(task);
     }
 
-    private RuntimeException replaceTaskWithIncompatibleType(String name, Class<?> originalType, Class<?> newType) {
-        return new IncompatibleTaskTypeException(String.format("Could not replace task '%s' of type '%s' with type '%s'.", project.identityPath(name), originalType.getSimpleName(), newType.getSimpleName()));
+    private void failOnReplacingTaskWithIncompatibleType(String name, Class<?> originalType, Class<?> newType) {
+        throw new IncompatibleTaskTypeException(String.format("Could not replace task '%s' of type '%s' with type '%s'.", project.identityPath(name), originalType.getSimpleName(), newType.getSimpleName()));
     }
 
-    private <T extends Task> T duplicateTask(String task) {
+    private void failOnDuplicateTask(String task) {
         throw new DuplicateTaskException(String.format("Cannot add task '%s' as a task with that name already exists.", task));
     }
 
@@ -374,7 +375,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     private <T extends Task> TaskProvider<T> registerTask(final String name, final Class<T> type, @Nullable final Action<? super T> configurationAction, final Object... constructorArgs) {
         if (hasWithName(name)) {
-            duplicateTask(name);
+            failOnDuplicateTask(name);
         }
         final TaskIdentity<T> identity = TaskIdentity.create(name, type, project);
         TaskProvider<T> provider = buildOperationExecutor.call(new CallableBuildOperation<TaskProvider<T>>() {
@@ -681,6 +682,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             this.identity = identity;
             this.constructorArgs = constructorArgs;
             statistics.lazyTask();
+        }
+
+        public ImmutableActionSet<I> getOnCreateActions() {
+            return onCreate;
         }
 
         @Override

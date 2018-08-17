@@ -885,10 +885,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             onCreate = onCreate.mergeFrom(getEventRegister().getAddActions()).add(wrappedAction);
         }
 
-        public ImmutableActionSet<I> getOnCreateActions() {
-            return onCreate;
-        }
-
         protected Action<? super I> wrap(Action<? super I> action) {
             // Do nothing.
             return action;
@@ -947,7 +943,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         protected boolean wasElementRemoved() {
-            // Check for presence as the task may have been replaced
+            // Check for presence as the domain object may have been replaced
             return (wasElementRemovedBeforeRealized() || wasElementRemovedAfterRealized()) && !isPresent();
         }
 
