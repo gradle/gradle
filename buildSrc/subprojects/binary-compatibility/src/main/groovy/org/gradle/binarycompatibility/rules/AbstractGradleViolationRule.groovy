@@ -116,6 +116,10 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
                 return null
             }
         }
+        def sourceFile = sourceFileFor(method.jApiClass.fullyQualifiedName)
+        if (sourceFile == null) {
+            return false
+        }
         return JavaParser.parse(sourceFileFor(method.jApiClass.fullyQualifiedName)).accept(visitor, null) != null
     }
 
@@ -128,7 +132,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
                 return sourceFile
             }
         }
-        throw new RuntimeException("No source file found for: $className")
+        return null
     }
 
     Violation acceptOrReject(JApiCompatibility member, Violation rejection) {
