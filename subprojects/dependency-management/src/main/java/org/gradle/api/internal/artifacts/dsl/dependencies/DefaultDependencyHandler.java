@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
@@ -207,6 +208,34 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
     @Override
     public void registerTransform(Action<? super VariantTransform> registrationAction) {
         transforms.registerTransform(registrationAction);
+    }
+
+    @Override
+    public Dependency platform(Object notation) {
+        return create(notation);
+    }
+
+    @Override
+    public Dependency platform(Object notation, Action<? super Dependency> configureAction) {
+        Dependency dep = platform(notation);
+        configureAction.execute(dep);
+        return dep;
+    }
+
+    @Override
+    public Dependency enforcedPlatform(Object notation) {
+        Dependency platformDependency = create(notation);
+        if (platformDependency instanceof ExternalModuleDependency) {
+            ((ExternalModuleDependency) platformDependency).setForce(true);
+        }
+        return platformDependency;
+    }
+
+    @Override
+    public Dependency enforcedPlatform(Object notation, Action<? super Dependency> configureAction) {
+        Dependency dep = enforcedPlatform(notation);
+        configureAction.execute(dep);
+        return dep;
     }
 
     private class DirectDependencyAdder implements DynamicAddDependencyMethods.DependencyAdder<Dependency> {

@@ -25,14 +25,21 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.external.model.ComponentVariant;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.RealisedConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -41,11 +48,15 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
     private final ModuleComponentIdentifier moduleComponentIdentifier;
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final VirtualPlatformState platformState;
+    private final NodeState platformNode;
+    private final ResolveState resolveState;
 
-    LenientPlatformResolveMetadata(ModuleComponentIdentifier moduleComponentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, VirtualPlatformState platformState) {
+    LenientPlatformResolveMetadata(ModuleComponentIdentifier moduleComponentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, VirtualPlatformState platformState, NodeState platformNode, ResolveState resolveState) {
         this.moduleComponentIdentifier = moduleComponentIdentifier;
         this.moduleVersionIdentifier = moduleVersionIdentifier;
         this.platformState = platformState;
+        this.platformNode = platformNode;
+        this.resolveState = resolveState;
     }
 
     @Override
@@ -75,13 +86,31 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
 
     @Override
     public Set<String> getConfigurationNames() {
-        return null;
+        return Collections.singleton("default");
     }
 
     @Nullable
     @Override
     public ConfigurationMetadata getConfiguration(String name) {
-        return null;
+        if ("default".equals(name)) {
+            ImmutableList.Builder<ModuleDependencyMetadata> dependencies = new ImmutableList.Builder<ModuleDependencyMetadata>();
+            Set<ModuleResolveState> participatingModules = platformState.getParticipatingModules();
+            for (ModuleResolveState module : participatingModules) {
+                dependencies.add(new LenientPlatformDependencyMetadata(
+                    resolveState,
+                    platformNode,
+                    DefaultModuleComponentSelector.newSelector(module.getId(), moduleVersionIdentifier.getVersion()),
+                    DefaultModuleComponentIdentifier.newId(module.getId(), moduleVersionIdentifier.getVersion()),
+                    platformState.getSelectedPlatformId(),
+                    platformState.isForced()
+                ));
+            }
+            return new RealisedConfigurationMetadata(
+                moduleComponentIdentifier, name, false, false,
+                ImmutableList.of(name), ImmutableList.<ModuleComponentArtifactMetadata>of(), ImmutableList.<ExcludeMetadata>of(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, dependencies.build()
+            );
+        }
+        throw new IllegalArgumentException("Undefined configuration '" + name + "'");
     }
 
     @Override
