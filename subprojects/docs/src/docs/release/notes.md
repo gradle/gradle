@@ -43,6 +43,19 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
+### Removing tasks from TaskContainer
+
+Removing tasks from the `TaskContainer` using the following methods has been deprecated:
+
+- `remove(Object)`
+- `removeAll(Collection)`
+- `retainAll(Collection)`
+- `clear()`
+- `Iterator#remove()` via `TaskContainer#iterator()`
+
+With the deprecation of every method removing a task, registering a callback when an object is removed is also deprecated (`whenObjectRemoved(Closure/Action)`)
+
+
 ## Potential breaking changes
 
 <!--
