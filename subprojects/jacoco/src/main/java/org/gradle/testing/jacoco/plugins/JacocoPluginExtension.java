@@ -111,12 +111,21 @@ public class JacocoPluginExtension {
         final JacocoTaskExtension extension = task.getExtensions().create(TASK_EXTENSION_NAME, JacocoTaskExtension.class, project, agent, task);
         extension.setDestinationFile(project.provider(new Callable<File>() {
             @Override
-            public File call() throws Exception {
+            public File call() {
                 return project.file(String.valueOf(project.getBuildDir()) + "/jacoco/" + taskName + ".exec");
             }
         }));
 
         task.getJvmArgumentProviders().add(new JacocoAgent(extension));
+        task.doFirst(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                if (extension.isEnabled() && extension.getOutput() == JacocoTaskExtension.Output.FILE) {
+                    File coverageFile = extension.getDestinationFile();
+                    project.delete(coverageFile);
+                }
+            }
+        });
 
         // Do not cache the task if we are not writing execution data to a file
         task.getOutputs().doNotCacheIf("JaCoCo configured to not produce its output as a file", new Spec<Task>() {
@@ -124,14 +133,6 @@ public class JacocoPluginExtension {
             public boolean isSatisfiedBy(Task element) {
                 // Do not cache Test task if Jacoco doesn't produce its output as files
                 return extension.isEnabled() && extension.getOutput() != JacocoTaskExtension.Output.FILE;
-            }
-        });
-
-        // Do not cache the Test task if we are appending to the Jacoco output
-        task.getOutputs().doNotCacheIf("JaCoCo agent configured with `append = true`", new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return extension.isEnabled() && extension.isAppend();
             }
         });
     }

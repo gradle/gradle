@@ -19,9 +19,7 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
-import spock.lang.IgnoreIf
 
 class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -90,7 +88,6 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         then: output.contains "org.jacoco:org.jacoco.ant:0.6.0.201210061924"
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     void jacocoReportIsIncremental() {
         def reportResourceDir = file("${REPORTING_BASE}/jacoco/test/html/jacoco-resources")
 
