@@ -21,7 +21,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.api.tasks.TaskInputs;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer;
 import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
@@ -111,11 +110,6 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
     @Override
     public void validate(TaskValidationContext context) {
         value.validate(getPropertyName(), optional, validationAction, context);
-    }
-
-    @Override
-    protected TaskInputs getTaskInputs(String method) {
-        throw new UnsupportedOperationException(String.format("Chaining of the TaskInputs.%s method is not supported since Gradle 4.0.", method));
     }
 
     @Override
