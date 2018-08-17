@@ -90,8 +90,6 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
 
             'maven-publish',
             'ivy-publish',
-            'ear',
-            'war',
             'java-library-distribution',
             'distribution',
             'play-application',
