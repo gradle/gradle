@@ -132,18 +132,18 @@ You can replace much of Gradle's logging UI with your own. You might do this, fo
 
 .Customizing what Gradle logs
 ====
-include::sample[dir="userguide/initScripts/customLogger/groovy",files="init.gradle[]"]
+include::sample[dir="userguide/initScripts/customLogger/groovy",files="customLogger.init.gradle[]"]
 include::sample[dir="userguide/initScripts/customLogger/kotlin",files="customLogger.init.gradle.kts[]"]
 ====
 
 [.multi-language-text.lang-groovy]
 ----
-$ gradle -I init.gradle build
+$ gradle -I customLogger.init.gradle build
 include::{samplesPath}/userguide/initScripts/customLogger/customLogger.out[]
 ----
 [.multi-language-text.lang-kotlin]
 ----
-$ gradle -I customLoggerKts.init.gradle.kts build
+$ gradle -I customLogger.init.gradle.kts build
 include::{samplesPath}/userguide/initScripts/customLogger/customLogger.out[]
 ----
 

@@ -1,5 +1,4 @@
 // tag::use-slf4j[]
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 val slf4jLogger = LoggerFactory.getLogger("some-logger")

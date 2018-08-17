@@ -1,20 +1,20 @@
-tasks.create("compile") {
+task("compile") {
     doLast {
         println("compiling source")
     }
 }
-tasks.create("testCompile") {
+task("testCompile") {
     dependsOn("compile")
     doLast {
         println("compiling test source")
     }
 }
-tasks.create("test") {
+task("test") {
     dependsOn("compile", "testCompile")
     doLast {
         println("running unit tests")
     }
 }
-tasks.create("build") {
+task("build") {
     dependsOn("test")
 }

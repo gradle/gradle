@@ -110,7 +110,7 @@ include::{samplesPath}/userguide/initScripts/customLogger/customLogger.out[]
 ----
 [.multi-language-text.lang-kotlin]
 ----
-$ gradle -I customLoggerKts.init.gradle.kts build
+$ gradle -I customLogger.init.gradle.kts build
 include::{samplesPath}/userguide/initScripts/customLogger/customLogger.out[]
 ----
 ```
