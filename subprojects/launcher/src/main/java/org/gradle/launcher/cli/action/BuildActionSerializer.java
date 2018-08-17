@@ -118,7 +118,6 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isContinuous());
             encoder.writeBoolean(startParameter.isBuildScan());
             encoder.writeBoolean(startParameter.isNoBuildScan());
-            encoder.writeBoolean(startParameter.isInteractive());
             encoder.writeBoolean(startParameter.isWriteDependencyLocks());
 
             // Deprecations (these should just be rendered on the client instead of being sent to the daemon to send them back again)
@@ -190,7 +189,6 @@ public class BuildActionSerializer {
             startParameter.setContinuous(decoder.readBoolean());
             startParameter.setBuildScan(decoder.readBoolean());
             startParameter.setNoBuildScan(decoder.readBoolean());
-            startParameter.setInteractive(decoder.readBoolean());
             startParameter.setWriteDependencyLocks(decoder.readBoolean());
 
             for (String warning : stringSetSerializer.read(decoder)) {
