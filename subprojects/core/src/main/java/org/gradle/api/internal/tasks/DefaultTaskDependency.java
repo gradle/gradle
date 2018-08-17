@@ -235,6 +235,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
 
         @Override
         public boolean remove(Object o) {
+            DeprecationLogger.nagUserWith("Do not remove a task dependency from a Task instance.", "This behaviour has been deprecated and is scheduled to become an error in Gradle 6.0.", "", "");
             if (delegate.remove(o)) {
                 return true;
             }
@@ -242,7 +243,6 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
             for (Iterator<Object> it = delegate.iterator(); it.hasNext();) {
                 Object obj = it.next();
                 if (isTaskProvider(obj) && o instanceof Task && isTaskProviderOfTask((TaskProvider) obj, (Task) o)) {
-                    DeprecationLogger.nagUserOfDeprecatedBehaviour("Do not remove a Task instance from a task dependency set when it contains a Provider to the Task instance.");
                     it.remove();
                     return true;
                 }
