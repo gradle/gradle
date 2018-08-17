@@ -279,7 +279,7 @@ class NodeState implements DependencyGraphNode {
         }
         if (metadata == null) {
             // the platform doesn't exist, so we're building a lenient one
-            metadata = new LenientPlatformResolveMetadata(platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState);
+            metadata = new LenientPlatformResolveMetadata(platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState, this, resolveState);
             potentialEdge.component.setMetadata(metadata);
         }
         if (virtualEdges == null) {
@@ -455,7 +455,7 @@ class NodeState implements DependencyGraphNode {
             previousTraversalExclusions = null;
             outgoingEdges.clear();
             virtualEdges = null;
-            resolveState.onMoreSelected(this);
+            resolveState.onFewerSelected(this);
         }
     }
 
