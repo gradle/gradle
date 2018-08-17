@@ -198,7 +198,7 @@ You can add your own properties to a task. To add a property named `myProperty`,
 
 .Adding extra properties to a task
 ====
-include::sample[dir="userguide/tutorial/extraProperties/groovy", files="build.gradle[tag=taskProperties]"]
+include::sample[dir="userguide/tutorial/extraProperties/groovy", files="build.gradle[tags=taskProperties]"]
 
 .Output of **`gradle -q printTaskProperties`**
 ----
@@ -296,7 +296,7 @@ If your build script needs to use external libraries, you can add them to the sc
 
 .Declaring external dependencies for the build script
 ====
-include::sample[dir="userguide/tutorial/externalDependency/groovy", files="build.gradle[tag=declare-classpath]"]
+include::sample[dir="userguide/tutorial/externalDependency/groovy", files="build.gradle[tags=declare-classpath]"]
 ====
 
 The closure passed to the `buildscript()` method configures a link:{javadocPath}/org/gradle/api/initialization/dsl/ScriptHandler.html[ScriptHandler] instance. You declare the build script classpath by adding dependencies to the `classpath` configuration. This is the same way you declare, for example, the Java compilation classpath. You can use any of the <<dependency_types.adoc#dependency_types,dependency types>> except project dependencies.
@@ -305,7 +305,7 @@ Having declared the build script classpath, you can use the classes in your buil
 
 .A build script with external dependencies
 ====
-include::sample[dir="userguide/tutorial/externalDependency/groovy", files="build.gradle[tag=all]"]
+include::sample[dir="userguide/tutorial/externalDependency/groovy", files="build.gradle[tags=all]"]
 
 .Output of **`gradle -q encode`**
 ----
