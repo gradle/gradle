@@ -27,7 +27,6 @@ import java.util.Map;
 
 @NonNullApi
 public class TaskInputsDeprecationSupport implements TaskInputs {
-    // --- See CompatibilityAdapterForTaskInputs for an explanation for why these methods are here
 
     private UnsupportedOperationException failWithUnsupportedMethod(String method) {
         throw new UnsupportedOperationException(String.format("Chaining of the TaskInputs.%s method is not supported since Gradle 5.0.", method));

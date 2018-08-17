@@ -22,7 +22,7 @@ import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import javax.annotation.Nullable;
 
 @NonNullApi
-public class DefaultTaskInputPropertySpec extends TaskInputsDeprecationSupport implements DeclaredTaskInputProperty {
+public class DefaultTaskInputPropertySpec implements DeclaredTaskInputProperty {
 
     private final String propertyName;
     private final ValidatingValue value;

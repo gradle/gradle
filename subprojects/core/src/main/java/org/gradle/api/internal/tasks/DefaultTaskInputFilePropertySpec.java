@@ -27,7 +27,7 @@ import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
 import org.gradle.internal.fingerprint.RelativePathInputNormalizer;
 
 @NonNullApi
-public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSupport implements DeclaredTaskInputFileProperty {
+public class DefaultTaskInputFilePropertySpec implements DeclaredTaskInputFileProperty {
 
     private final ValidatingValue value;
     private final ValidationAction validationAction;
