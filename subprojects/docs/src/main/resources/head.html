@@ -43,24 +43,7 @@
         }, false);
     });
 
-    // Polyfill Element.matches()
-    if (!Element.prototype.matches) {
-        Element.prototype.matches = Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
-    }
-    // Polyfill Element.closest()
-    if (!Element.prototype.closest) {
-        Element.prototype.closest = function(s) {
-            var el = this;
-            if (!document.documentElement.contains(el)) return null;
-            do {
-                if (typeof el.matches === "function" && el.matches(s)) return el;
-                el = el.parentElement || el.parentNode;
-            } while (el !== null);
-            return null;
-        };
-    }
-
-    function registerNavigationActions() {
+    function postProcessNavigation() {
         var navigationButton = document.querySelector(".site-header__navigation-button");
         var navigationCollapsible = document.querySelector(".site-header__navigation-collapsible");
 
@@ -101,79 +84,6 @@
                 }
             });
         });
-    }
-
-    // Add "active" class to TOC link corresponding to subsection at top of page
-    function setActiveSubsection(activeHref) {
-        var tocLinkToActivate = document.querySelector(".toc a[href$='"+activeHref+"']");
-        var currentActiveTOCLink = document.querySelector(".toc a.active");
-        if (tocLinkToActivate != null) {
-            if (currentActiveTOCLink != null && currentActiveTOCLink !== tocLinkToActivate) {
-                currentActiveTOCLink.classList.remove("active");
-            }
-            tocLinkToActivate.classList.add("active");
-        }
-    }
-
-    function calculateActiveSubsectionFromLink(event) {
-        var closestLink = event.target.closest("a[href]");
-        if (closestLink) {
-            setActiveSubsection(closestLink.getAttribute("href"));
-        }
-    }
-
-    function calculateActiveSubsectionFromScrollPosition() {
-        var subsections = document.querySelectorAll("h2.title > a[name],h3.title > a[name]");
-
-        // Assign active section: take advantage of fact that querySelectorAll returns elements in source order
-        var activeSection = subsections[0];
-        Array.prototype.forEach.call(subsections, function(section) {
-            if (Math.floor(section.offsetTop) <= (window.scrollY + 50)) {
-                activeSection = section;
-            }
-        });
-
-        if (activeSection != null && activeSection.hasAttribute("href")) {
-            setActiveSubsection(activeSection.getAttribute("href"));
-        }
-    }
-
-    function postProcessUserguideNavigation() {
-        [].forEach.call(document.querySelectorAll(".docs-navigation a[href$='"+ window.location.pathname +"']"), function(link) {
-            // Add "active" to all links same as current URL
-            link.classList.add("active");
-
-            // Expand all parent navigation
-            var parentListEl = link.closest("li");
-            while (parentListEl !== null) {
-                var dropDownEl = parentListEl.querySelector(".nav-dropdown");
-                if (dropDownEl !== null) {
-                    dropDownEl.classList.add("expanded");
-                }
-                parentListEl = parentListEl.parentNode.closest("li");
-            }
-        });
-
-        function throttle(fn, periodMs) {
-            var time = Date.now();
-            var context = this;
-            var args = Array.prototype.slice.call(arguments);
-            return function() {
-                if ((time + periodMs - Date.now()) < 0) {
-                    fn.apply(context, args);
-                    time = Date.now();
-                }
-            }
-        }
-
-        window.addEventListener("click", calculateActiveSubsectionFromLink);
-        window.addEventListener("scroll", throttle(calculateActiveSubsectionFromScrollPosition, 50));
-        calculateActiveSubsectionFromScrollPosition();
-    }
-
-    function postProcessNavigation() {
-        registerNavigationActions();
-        postProcessUserguideNavigation();
     }
 
     function postProcessFooter() {
