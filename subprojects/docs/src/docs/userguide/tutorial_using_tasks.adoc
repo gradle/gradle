@@ -36,7 +36,7 @@ To try this out, create the following build script named `build.gradle`.
 
 .Your first build script
 ====
-include::sample[dir="userguide/tutorial/hello", files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/hello/groovy", files="build.gradle[]"]
 ====
 
 In a command-line shell, move to the containing directory and execute the build script with `gradle -q hello`:
@@ -77,7 +77,7 @@ There is a shorthand way to define a task like our `hello` task above, which is 
 
 .A task definition shortcut
 ====
-include::sample[dir="userguide/tutorial/helloShortcut", files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/helloShortcut/groovy", files="build.gradle[]"]
 ====
 
 Again, this defines a task called `hello` with a single closure to execute. The `&lt;&lt;` operator is simply an alias for `doLast`.
@@ -89,7 +89,7 @@ Gradle's build scripts give you the full power of Groovy. As an appetizer, have 
 
 .Using Groovy in Gradle's tasks
 ====
-include::sample[dir="userguide/tutorial/upper", files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/upper/groovy", files="build.gradle[]"]
 
 .Output of **`gradle -q upper`**
 ----
@@ -102,7 +102,7 @@ or
 
 .Using Groovy in Gradle's tasks
 ====
-include::sample[dir="userguide/tutorial/count", files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/count/groovy", files="build.gradle[]"]
 
 .Output of **`gradle -q count`**
 ----
@@ -119,7 +119,7 @@ As you probably have guessed, you can declare tasks that depend on other tasks.
 
 .Declaration of task that depends on other task
 ====
-include::sample[dir="userguide/tutorial/intro", files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/intro/groovy", files="build.gradle[]"]
 
 .Output of **`gradle -q intro`**
 ----
@@ -132,7 +132,7 @@ To add a dependency, the corresponding task does not need to exist.
 
 .Lazy dependsOn - the other task does not exist (yet)
 ====
-include::sample[dir="userguide/tutorial/lazyDependsOn", files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/lazyDependsOn/groovy", files="build.gradle[]"]
 
 .Output of **`gradle -q taskX`**
 ----
@@ -152,7 +152,7 @@ The power of Groovy can be used for more than defining what a task does. For exa
 
 .Dynamic creation of a task
 ====
-include::sample[dir="userguide/tutorial/dynamic", files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/dynamic/groovy", files="build.gradle[]"]
 
 .Output of **`gradle -q task1`**
 ----
@@ -169,7 +169,7 @@ Once tasks are created they can be accessed via an _API_. For instance, you coul
 
 .Accessing a task via API - adding a dependency
 ====
-include::sample[dir="userguide/tutorial/dynamicDepends", files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/dynamicDepends/groovy", files="build.gradle[]"]
 
 .Output of **`gradle -q task0`**
 ----
@@ -182,7 +182,7 @@ Or you can add behavior to an existing task.
 
 .Accessing a task via API - adding behaviour
 ====
-include::sample[dir="userguide/tutorial/helloEnhanced", files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/helloEnhanced/groovy", files="build.gradle[]"]
 
 .Output of **`gradle -q hello`**
 ----
@@ -200,7 +200,7 @@ There is a convenient notation for accessing an _existing_ task. Each task is av
 
 .Accessing task as a property of the build script
 ====
-include::sample[dir="userguide/tutorial/helloWithShortCut", files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/helloWithShortCut/groovy", files="build.gradle[]"]
 
 .Output of **`gradle -q hello`**
 ----
@@ -218,7 +218,7 @@ You can add your own properties to a task. To add a property named `myProperty`,
 
 .Adding extra properties to a task
 ====
-include::sample[dir="userguide/tutorial/extraProperties", files="build.gradle[tag=taskProperties]"]
+include::sample[dir="userguide/tutorial/extraProperties/groovy", files="build.gradle[tag=taskProperties]"]
 
 .Output of **`gradle -q printTaskProperties`**
 ----
@@ -236,7 +236,7 @@ Ant tasks are first-class citizens in Gradle. Gradle provides excellent integrat
 
 .Using AntBuilder to execute ant.loadfile target
 ====
-include::sample[dir="userguide/tutorial/antLoadfile", files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/antLoadfile/groovy", files="build.gradle[]"]
 
 .Output of **`gradle -q loadfile`**
 ----
@@ -254,7 +254,7 @@ Gradle scales in how you can organize your build logic. The first level of organ
 
 .Using methods to organize your build logic
 ====
-include::sample[dir="userguide/tutorial/antLoadfileWithMethod", files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/antLoadfileWithMethod/groovy", files="build.gradle[]"]
 
 .Output of **`gradle -q loadfile`**
 ----
@@ -272,7 +272,7 @@ Gradle allows you to define one or more default tasks that are executed if no ot
 
 .Defining a default task
 ====
-include::sample[dir="userguide/tutorial/defaultTasks", files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/defaultTasks/groovy", files="build.gradle[]"]
 
 .Output of **`gradle -q`**
 ----
@@ -292,7 +292,7 @@ In the following example, execution of the `distribution` and `release` tasks re
 
 .Different outcomes of build depending on chosen tasks
 ====
-include::sample[dir="userguide/tutorial/configByDag", files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/configByDag/groovy", files="build.gradle[]"]
 
 .Output of `gradle -q distribution`
 ----
@@ -316,7 +316,7 @@ If your build script needs to use external libraries, you can add them to the sc
 
 .Declaring external dependencies for the build script
 ====
-include::sample[dir="userguide/tutorial/externalDependency", files="build.gradle[tag=declare-classpath]"]
+include::sample[dir="userguide/tutorial/externalDependency/groovy", files="build.gradle[tag=declare-classpath]"]
 ====
 
 The closure passed to the `buildscript()` method configures a link:{javadocPath}/org/gradle/api/initialization/dsl/ScriptHandler.html[ScriptHandler] instance. You declare the build script classpath by adding dependencies to the `classpath` configuration. This is the same way you declare, for example, the Java compilation classpath. You can use any of the <<dependency_types.adoc#dependency_types,dependency types>> except project dependencies.
@@ -325,7 +325,7 @@ Having declared the build script classpath, you can use the classes in your buil
 
 .A build script with external dependencies
 ====
-include::sample[dir="userguide/tutorial/externalDependency", files="build.gradle[tag=all]"]
+include::sample[dir="userguide/tutorial/externalDependency/groovy", files="build.gradle[tag=all]"]
 
 .Output of **`gradle -q encode`**
 ----
