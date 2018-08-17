@@ -51,6 +51,7 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
+import org.gradle.internal.time.Time;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.Parameters;
 import org.gradle.launcher.cli.ParametersConverter;
@@ -341,14 +342,13 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             startParameter.getLogLevel(),
             false,
             startParameter.isContinuous(),
-            interactive,
             ClassPath.EMPTY
         );
     }
 
     private BuildRequestContext createBuildRequestContext() {
         return new DefaultBuildRequestContext(
-            new DefaultBuildRequestMetaData(new GradleLauncherMetaData()),
+            new DefaultBuildRequestMetaData(new GradleLauncherMetaData(), Time.currentTimeMillis(), interactive),
             new DefaultBuildCancellationToken(),
             new NoOpBuildEventConsumer());
     }
