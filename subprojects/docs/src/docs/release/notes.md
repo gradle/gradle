@@ -56,12 +56,12 @@ Removing tasks from the `TaskContainer` using the following methods has been dep
 With the deprecation of every method removing a task, registering a callback when an object is removed is also deprecated (`whenObjectRemoved(Closure/Action)`)
 
 
-### Removing task dependencies from a Task instance
+### Removing dependencies from a task
 
-Code such as `foo.dependsOn.remove(bar)` is prone to errors and rely on the internal implementation details of how tasks were wired together.
-Removing task dependencies from a Task instance will become an error.
-At the moment, we aren't providing an alternative as this is considered as bad practice and sensitive to configuration ordering issues.
-Please open an issue to express use cases for the Gradle team to consider for a replacement.
+In the next major release (6.0), removing dependencies from a task will become an error.
+
+Gradle will emit a deprecation warning for code such as `foo.dependsOn.remove(bar)`.  Removing dependencies in this way is error-prone and relies on the internal implementation details of how different tasks are wired together.
+At the moment, we are not planning to provide an alternative. In most cases, task dependencies should be expressed via [task inputs](userguide/more_about_tasks.html#sec:task_inputs_outputs) instead of explicit `dependsOn` relationships.
 
 ## Potential breaking changes
 
