@@ -106,6 +106,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     @Override
     public boolean add(final T o) {
+        assertMutable("add(T)");
         return add(o, getEventRegister().getAddActions());
     }
 
@@ -144,6 +145,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     @Override
     public void addLater(final Provider<? extends T> provider) {
+        assertMutable("addLater(Provider)");
         super.addLater(provider);
         if (provider instanceof Named) {
             final Named named = (Named) provider;
@@ -831,7 +833,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         public void configure(Action<? super I> action) {
-            action.execute(get());
+            getMutationGuard().withMutationDisabled(action).execute(get());
         }
 
         @Override
@@ -875,7 +877,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Override
         public void configure(final Action<? super I> action) {
-            Action<? super I> wrappedAction = wrap(action);
+            Action<? super I> wrappedAction = withMutationDisabled(action);
             if (object != null) {
                 // Already realized, just run the action now
                 wrappedAction.execute(object);
@@ -885,9 +887,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             onCreate = onCreate.mergeFrom(getEventRegister().getAddActions()).add(wrappedAction);
         }
 
-        protected Action<? super I> wrap(Action<? super I> action) {
-            // Do nothing.
-            return action;
+        protected Action<? super I> withMutationDisabled(Action<? super I> action) {
+            return getMutationGuard().withMutationDisabled(action);
         }
 
         @Override

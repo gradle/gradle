@@ -401,10 +401,17 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
             @Override
             public TaskProvider<T> call(BuildOperationContext context) {
-                TaskProvider<T> provider = Cast.uncheckedCast(getInstantiator()
+                final TaskProvider<T> provider = Cast.uncheckedCast(getInstantiator()
                     .newInstance(TaskCreatingProvider.class, DefaultTaskContainer.this, identity, configurationAction, constructorArgs)
                 );
-                addLaterInternal(provider);
+
+                // We have disallowed register, yet.
+                getMutationGuard().whileMutationEnabled(new Runnable() {
+                    @Override
+                    public void run() {
+                        addLaterInternal(provider);
+                    }
+                });
                 context.setResult(REGISTER_RESULT);
                 return provider;
             }
@@ -704,8 +711,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
 
         @Override
-        protected Action<? super I> wrap(Action action) {
-            return MutationGuards.of(crossProjectConfigurator).withMutationDisabled(action);
+        protected Action<? super I> withMutationDisabled(Action action) {
+            return MutationGuards.of(crossProjectConfigurator).withMutationDisabled(super.withMutationDisabled(action));
         }
 
         @Override
