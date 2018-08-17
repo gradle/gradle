@@ -128,4 +128,68 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         }
     }
 
+    def "can force a virtual platform version by forcing the platform itself via a constraint"() {
+        repository {
+            ['2.7.9', '2.9.4', '2.9.4.1'].each {
+                path "databind:$it -> core:$it"
+                path "databind:$it -> annotations:$it"
+                path "kotlin:$it -> core:$it"
+                path "kotlin:$it -> annotations:$it"
+            }
+        }
+
+        given:
+        buildFile << """
+            dependencies {
+                conf("org:core:2.9.4")
+                conf("org:databind:2.7.9")
+                conf("org:kotlin:2.9.4.1")                
+
+                constraints {
+                    conf enforcedPlatform("org:platform:2.7.9")
+                }
+            }
+        """
+
+        and:
+        "a rule which infers module set from group and version"()
+
+        when:
+        expectAlignment {
+            module('core') tries('2.9.4', '2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
+            module('databind') alignsTo('2.7.9') byVirtualPlatform()
+            module('kotlin') tries('2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
+            module('annotations') tries('2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:core:2.9.4", "org:core:2.7.9") {
+                    forced()
+                }
+                module("org:databind:2.7.9") {
+                    module('org:annotations:2.7.9')
+                    module('org:core:2.7.9')
+                }
+                edge("org:kotlin:2.9.4.1", "org:kotlin:2.7.9") {
+                    forced()
+                    module('org:core:2.7.9')
+                    module('org:annotations:2.7.9')
+                }
+                edgeFromConstraint('org:platform:2.7.9', 'org:platform:2.7.9') {
+                    noArtifacts()
+                    byConstraint("belongs to platform org:platform:2.7.9")
+                    forced()
+                    module('org:core:2.7.9')
+                    module('org:databind:2.7.9')
+                    module('org:annotations:2.7.9')
+                    module('org:kotlin:2.7.9')
+                }
+            }
+            virtualConfiguration('org:platform:2.7.9')
+        }
+    }
+
 }
