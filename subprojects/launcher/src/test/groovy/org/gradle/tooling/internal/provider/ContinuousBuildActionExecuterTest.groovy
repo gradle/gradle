@@ -199,7 +199,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     }
 
     private void interactiveBuild() {
-        actionParameters.interactive >> true
+        requestMetadata.interactive >> true
     }
 
     private void continuousBuild() {
