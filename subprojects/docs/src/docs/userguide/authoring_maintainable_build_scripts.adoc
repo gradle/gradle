@@ -43,6 +43,7 @@ By moving the code into a class link:{guidesUrl}/testing-gradle-plugins/[testabi
 .A build script using conditional logic to create a task
 ====
 include::sample[dir="userguide/bestPractices/conditionalLogic/dont/groovy", files="build.gradle[]"]
+include::sample[dir="userguide/bestPractices/conditionalLogic/dont/kotlin", files="build.gradle.kts[]"]
 ====
 
 Let's compare the build script with the same logic implemented as a binary plugin.
@@ -60,6 +61,7 @@ The build script has been shrunk from 8 lines of code to a one liner.
 .A build script applying a plugin that encapsulates imperative logic
 ====
 include::sample[dir="userguide/bestPractices/conditionalLogic/do/groovy", files="build.gradle[]"]
+include::sample[dir="userguide/bestPractices/conditionalLogic/do/kotlin", files="build.gradle.kts[]"]
 ====
 
 [[sec:avoiding_gradle_internal_apis]]
@@ -135,6 +137,7 @@ For optimal readability and maintainability follow these rules:
 .Definition of tasks following best practices
 ====
 include::sample[dir="userguide/bestPractices/taskDefinition/groovy", files="build.gradle[]"]
+include::sample[dir="userguide/bestPractices/taskDefinition/kotlin", files="build.gradle.kts[]"]
 ====
 
 [[sec:improving_task_discoverability]]
@@ -152,6 +155,7 @@ The description should express its intent.
 .A task declaring the group and description
 ====
 include::sample[dir="userguide/bestPractices/taskGroupDescription/groovy", files="build.gradle[]"]
+include::sample[dir="userguide/bestPractices/taskGroupDescription/kotlin", files="build.gradle.kts[]"]
 ====
 
 The output of the tasks report reflects the assigned values.
@@ -181,6 +185,7 @@ In the build script you can see that the dependencies assigned to the configurat
 .Executing logic during configuration should be avoided
 ====
 include::sample[dir="userguide/bestPractices/logicDuringConfiguration/dont/groovy", files="build.gradle[tags=config-logic]"]
+include::sample[dir="userguide/bestPractices/logicDuringConfiguration/dont/kotlin", files="build.gradle.kts[tags=config-logic]"]
 ====
 
 The code for resolving the dependencies should be moved into the task action to avoid the performance impact of resolving the dependencies before they are actually needed.
@@ -188,6 +193,7 @@ The code for resolving the dependencies should be moved into the task action to 
 .Executing logic during execution phase is preferred
 ====
 include::sample[dir="userguide/bestPractices/logicDuringConfiguration/do/groovy", files="build.gradle[tags=config-logic]"]
+include::sample[dir="userguide/bestPractices/logicDuringConfiguration/do/kotlin", files="build.gradle.kts[tags=config-logic]"]
 ====
 
 [[sec:avoiding_use_of_gradlebuild]]
