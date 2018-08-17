@@ -1,4 +1,5 @@
-task taskX(dependsOn: 'taskY') {
+task taskX {
+    dependsOn 'taskY'
     doLast {
         println 'taskX'
     }
