@@ -46,7 +46,7 @@ Gradle will even emit a warning when persisting lock state and changing dependen
 
 Locking of a configuration happens through the link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy]:
 
-=== Example: Locking a specific configuration
+==== Example: Locking a specific configuration
 
 [source.multi-language-sample,groovy]
 .build.gradle
@@ -56,7 +56,7 @@ include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingS
 
 Or the following, as a way to lock all configurations:
 
-=== Example: Locking all configurations
+==== Example: Locking all configurations
 
 [source.multi-language-sample,groovy]
 .build.gradle
@@ -104,7 +104,7 @@ Each file is named by the configuration it locks and has the `lockfile` extensio
 The content of the file is a module notation per line, with a header giving some context.
 Module notations are ordered alphabetically, to ease diffs.
 
-=== Example: Lockfile content
+==== Example: Lockfile content
 
 [source.multi-language-sample,groovy]
 .gradle/dependency-locks/compileClasspath.lockfile
@@ -114,7 +114,7 @@ include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingS
 
 which matches the following dependency declaration:
 
-=== Example: Dynamic dependency declaration
+==== Example: Dynamic dependency declaration
 
 [source.multi-language-sample,groovy]
 .build.gradle

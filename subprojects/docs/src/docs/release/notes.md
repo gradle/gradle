@@ -56,6 +56,13 @@ Removing tasks from the `TaskContainer` using the following methods has been dep
 With the deprecation of every method removing a task, registering a callback when an object is removed is also deprecated (`whenObjectRemoved(Closure/Action)`)
 
 
+### Removing dependencies from a task
+
+In the next major release (6.0), removing dependencies from a task will become an error.
+
+Gradle will emit a deprecation warning for code such as `foo.dependsOn.remove(bar)`.  Removing dependencies in this way is error-prone and relies on the internal implementation details of how different tasks are wired together.
+At the moment, we are not planning to provide an alternative. In most cases, task dependencies should be expressed via [task inputs](userguide/more_about_tasks.html#sec:task_inputs_outputs) instead of explicit `dependsOn` relationships.
+
 ## Potential breaking changes
 
 <!--
@@ -86,6 +93,7 @@ The previously deprecated support for Play Framework 2.2 has been removed.
 - Removed the methods `file` and `files` from `TaskDestroyables`.
 - Removed the property `styleSheet` from `ScalaDocOptions`.
 - Forbid passing `null` as configuration action to the methods `from` and `to` on `CopySpec`.
+- Removed the property `bootClasspath` from `CompileOptions`.
 
 ## External contributions
 

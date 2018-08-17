@@ -31,9 +31,8 @@ task logInfo {
 // end::task-capture-stdout[]
 
 // tag::use-slf4j[]
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-Logger slf4jLogger = LoggerFactory.getLogger('some-logger')
+def slf4jLogger = LoggerFactory.getLogger('some-logger')
 slf4jLogger.info('An info log message logged using SLF4j')
 // end::use-slf4j[]

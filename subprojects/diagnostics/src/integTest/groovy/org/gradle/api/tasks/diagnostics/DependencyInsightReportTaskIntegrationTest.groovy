@@ -349,6 +349,79 @@ org:leaf2:1.5 -> 2.5
 """
     }
 
+    def "displays information about conflicting modules when failOnVersionConflict is used and afterResolve is used"() {
+        given:
+        mavenRepo.module("org", "leaf1").publish()
+        mavenRepo.module("org", "leaf2").publish()
+        mavenRepo.module("org", "leaf2", "1.5").publish()
+        mavenRepo.module("org", "leaf2", "2.5").publish()
+        mavenRepo.module("org", "leaf3").publish()
+        mavenRepo.module("org", "leaf4").publish()
+
+        mavenRepo.module("org", "middle1").dependsOnModules('leaf1', 'leaf2').publish()
+        mavenRepo.module("org", "middle2").dependsOnModules('leaf3', 'leaf4').publish()
+        mavenRepo.module("org", "middle3").dependsOnModules('leaf2').publish()
+
+        mavenRepo.module("org", "toplevel").dependsOnModules("middle1", "middle2").publish()
+
+        mavenRepo.module("org", "toplevel2").dependsOn("org", "leaf2", "1.5").publish()
+        mavenRepo.module("org", "toplevel3").dependsOn("org", "leaf2", "2.5").publish()
+
+        mavenRepo.module("org", "toplevel4").dependsOnModules("middle3").publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+
+            configurations {
+                conf {
+                    resolutionStrategy.failOnVersionConflict()
+                    incoming.afterResolve {
+                        // If executed, the below will cause the resolution failure on version conflict to be thrown, breaking dependency insight
+                        it.artifacts.artifacts 
+                    }
+                }
+            }
+            dependencies {
+                conf 'org:toplevel:1.0', 'org:toplevel2:1.0', 'org:toplevel3:1.0', 'org:toplevel4:1.0'
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "leaf2", "--configuration", "conf"
+
+        then:
+        outputContains """Dependency resolution failed because of conflicts between the following modules:
+   - org:leaf2:1.5
+   - org:leaf2:2.5
+   - org:leaf2:1.0
+
+org:leaf2:2.5
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
+   Selection reasons:
+      - By conflict resolution : between versions 1.5, 2.5 and 1.0
+
+org:leaf2:2.5
+\\--- org:toplevel3:1.0
+     \\--- conf
+
+org:leaf2:1.0 -> 2.5
++--- org:middle1:1.0
+|    \\--- org:toplevel:1.0
+|         \\--- conf
+\\--- org:middle3:1.0
+     \\--- org:toplevel4:1.0
+          \\--- conf
+
+org:leaf2:1.5 -> 2.5
+\\--- org:toplevel2:1.0
+     \\--- conf
+"""
+    }
+
     def "displays a dependency insight report even if locks are out of date"() {
         def lockfileFixture = new LockfileFixture(testDirectory: testDirectory)
         mavenRepo.module('org', 'foo', '1.0').publish()

@@ -346,12 +346,12 @@ tasks.register("bigSwiftApp", BuildBuilderGenerator) {
 // === Android ===
 tasks.register("k9AndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-k-9.git'
-    branch = 'android-30'
+    branch = 'android-31'
 }
 
 tasks.register("largeAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large.git'
-    branch = 'android-30'
+    branch = 'android-31'
 }
 
 tasks.register("excludeRuleMergingBuild", RemoteProject) {
