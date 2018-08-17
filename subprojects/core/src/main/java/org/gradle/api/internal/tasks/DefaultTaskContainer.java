@@ -231,21 +231,36 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (replaceExisting) {
             Task existing = findByNameWithoutRules(name);
             if (existing != null) {
-                DeprecationLogger.nagUserWith("Gradle does not allow replacing a realized task.", "This behaviour has been deprecated and is scheduled to become an error in Gradle 6.0.", "", "");
+                DeprecationLogger.nagUserWith("Replacing a task that may have been used by other plugins can cause problems.",
+                    "This behavior has been deprecated and is scheduled to become an error in Gradle 6.0.",
+                    "",
+                    "Use a different name for this task ('" + name + "') or avoid creating the original task you are trying to replace.");
                 removeInternal(existing);
             } else {
                 TaskCreatingProvider<? extends Task> taskProvider = Cast.uncheckedCast(findByNameLaterWithoutRules(name));
                 if (taskProvider != null) {
-                    if (!taskProvider.getType().isAssignableFrom(task.getClass())) {
-                        failOnReplacingTaskWithIncompatibleType(task.getName(), taskProvider.getType(), ((TaskInternal) task).getTaskIdentity().type);
-                    }
                     removeInternal(taskProvider);
 
-                    Action<? super T> onCreate = Cast.uncheckedCast(taskProvider.getOnCreateActions().mergeFrom(getEventRegister().getAddActions()));
+                    final Action<? super T> onCreate;
+                    if (!taskProvider.getType().isAssignableFrom(task.getClass())) {
+                        DeprecationLogger.nagUserWith(
+                            "Replacing an existing task with an incompatible type.",
+                            "This behavior has been deprecated and is scheduled to become an error in Gradle 6.0.",
+                            "",
+                            "Use a different name for this task ('" + name + "'), use a compatible type (" + ((TaskInternal)task).getTaskIdentity().type.getName() + ") or avoid creating the original task you are trying to replace.");
+                        onCreate = getEventRegister().getAddActions();
+                    } else {
+                        onCreate = Cast.uncheckedCast(taskProvider.getOnCreateActions().mergeFrom(getEventRegister().getAddActions()));
+                    }
+
                     add(task, onCreate);
                     return; // Exit early as we are reusing the create actions from the provider
                 } else {
-                    DeprecationLogger.nagUserWith("Gradle does not allow replacing a non existing task.", "This behaviour has been deprecated and is scheduled to become an error in Gradle 6.0.", "", "");
+                    DeprecationLogger.nagUserWith(
+                        "Unnecessarily replacing a task that does not exist.",
+                        "This behavior has been deprecated and is scheduled to become an error in Gradle 6.0.",
+                        "Try using create() or register() directly instead.",
+                        "You attempted to replace a task named '" + name + "', but no task exists with that name already.");
                 }
             }
         } else if (hasWithName(name)) {
@@ -253,10 +268,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
 
         addInternal(task);
-    }
-
-    private void failOnReplacingTaskWithIncompatibleType(String name, Class<?> originalType, Class<?> newType) {
-        throw new IncompatibleTaskTypeException(String.format("Could not replace task '%s' of type '%s' with type '%s'.", project.identityPath(name), originalType.getSimpleName(), newType.getSimpleName()));
     }
 
     private void failOnDuplicateTask(String task) {

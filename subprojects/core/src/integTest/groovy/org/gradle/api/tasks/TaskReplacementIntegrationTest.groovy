@@ -16,115 +16,149 @@
 
 package org.gradle.api.tasks
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
 
-    def "can replace an unrealized task"() {
-        buildFile << '''
-            tasks.register("foo")
-            tasks.replace("foo") // ok
-        '''
+    def setup() {
+        buildFile << """
+            class First extends DefaultTask {
+                First() {
+                    logger.lifecycle(getPath() + " is a " + taskIdentity.type.simpleName)
+                }
+            }
+            class Second extends First { }
+            class Third extends Second { }
+        """
+    }
+
+    @Unroll
+    def "can replace an unrealized task when #description"() {
+        buildFile << """
+            tasks.register("foo", First)
+            tasks.${api} // ok
+        """
 
         expect:
         succeeds 'help'
+        result.assertNotOutput(":foo is a First")
+        result.assertOutputContains(":foo is a Second")
+
+        where:
+        description               | api
+        "using replace()"         | 'replace("foo", Second)'
+        "using create(overwrite)" | 'create(name: "foo", type: Second, overwrite: true)'
     }
 
-    def "shows deprecation warning when replace a unrealized task a second time"() {
-        buildFile << '''
-            tasks.register("foo")
-            tasks.replace("foo")  // will eagerly create the task
-            tasks.replace("foo")  // will print deprecation warning
-        '''
+    @Unroll
+    def "shows deprecation warning when replace a unrealized task a second time when #description"() {
+        buildFile << """
+            tasks.register("foo", First)
+            tasks.replace("foo", Second)  // will eagerly create the task
+            tasks.${api}  // will print deprecation warning
+        """
 
         expect:
         executer.expectDeprecationWarning()
         succeeds 'help'
-        outputContains("Gradle does not allow replacing a realized task. This behaviour has been deprecated and is scheduled to become an error in Gradle 6.0.")
+        outputContains("Replacing a task that may have been used by other plugins can cause problems. This behavior has been deprecated and is scheduled to become an error in Gradle 6.0. Use a different name for this task ('foo') or avoid creating the original task you are trying to replace.")
+        result.assertNotOutput(":foo is a First")
+        result.assertOutputContains(":foo is a Second")
+        result.assertOutputContains(":foo is a Third")
+
+        where:
+        description               | api
+        "using replace()"         | 'replace("foo", Third)'
+        "using create(overwrite)" | 'create(name: "foo", type: Third, overwrite: true)'
     }
 
-    def "shows deprecation warning when replace an eagerly created task"() {
-        buildFile << '''
-            tasks.create("foo")
-            tasks.replace("foo")
-        '''
+    @Unroll
+    def "shows deprecation warning when replace an eagerly created task when #description"() {
+        buildFile << """
+            tasks.create("foo", First)
+            tasks.${api}
+        """
 
         expect:
         executer.expectDeprecationWarning()
         succeeds 'help'
-        outputContains("Gradle does not allow replacing a realized task. This behaviour has been deprecated and is scheduled to become an error in Gradle 6.0.")
+        result.assertOutputContains(":foo is a First")
+        result.assertOutputContains(":foo is a Second")
+        outputContains("Replacing a task that may have been used by other plugins can cause problems. This behavior has been deprecated and is scheduled to become an error in Gradle 6.0. Use a different name for this task ('foo') or avoid creating the original task you are trying to replace.")
+
+        where:
+        description               | api
+        "using replace()"         | 'replace("foo", Second)'
+        "using create(overwrite)" | 'create(name: "foo", type: Second, overwrite: true)'
     }
 
     def "shows deprecation warning when replace realized task"() {
         buildFile << '''
-            tasks.register("foo").get()
-            tasks.replace("foo")
+            tasks.register("foo", First).get()
+            tasks.replace("foo", Second)
         '''
 
         expect:
         executer.expectDeprecationWarning()
         succeeds 'help'
-        outputContains("Gradle does not allow replacing a realized task. This behaviour has been deprecated and is scheduled to become an error in Gradle 6.0.")
+        outputContains("Replacing a task that may have been used by other plugins can cause problems. This behavior has been deprecated and is scheduled to become an error in Gradle 6.0. Use a different name for this task ('foo') or avoid creating the original task you are trying to replace.")
     }
 
     def "shows deprecation warning when replace realized task by configuration rule"() {
         buildFile << '''
-            tasks.register("foo")
+            tasks.register("foo", First)
             tasks.all { }
-            tasks.replace("foo")
+            tasks.replace("foo", Second)
         '''
 
         expect:
         executer.expectDeprecationWarning()
         succeeds 'help'
-        outputContains("Gradle does not allow replacing a realized task. This behaviour has been deprecated and is scheduled to become an error in Gradle 6.0.")
+        outputContains("Replacing a task that may have been used by other plugins can cause problems. This behavior has been deprecated and is scheduled to become an error in Gradle 6.0. Use a different name for this task ('foo') or avoid creating the original task you are trying to replace.")
     }
 
-    def "can replace with compatible type"() {
-        buildFile << '''
-            class CustomTask extends DefaultTask {}
-            class MyCustomTask extends CustomTask {}
-
-            tasks.register("foo", CustomTask)
-            tasks.replace("foo", MyCustomTask) // ok
-        '''
-
-        expect:
-        succeeds 'help'
-    }
-
-    def "fails replace with unrelated type"() {
-        buildFile << '''
+    @Unroll
+    def "shows deprecation warning with unrelated type when #description"() {
+        buildFile << """
             class CustomTask extends DefaultTask {}
             class UnrelatedCustomTask extends DefaultTask {}
 
             tasks.register("foo", CustomTask)
-            tasks.replace("foo", UnrelatedCustomTask) // fails
-        '''
+            tasks.${api} // fails
+        """
 
-        when:
-        fails 'help'
+        expect:
+        executer.expectDeprecationWarning()
+        succeeds 'help'
+        outputContains("Replacing an existing task with an incompatible type. This behavior has been deprecated and is scheduled to become an error in Gradle 6.0. Use a different name for this task ('foo'), use a compatible type (UnrelatedCustomTask) or avoid creating the original task you are trying to replace.")
 
-        then:
-        failure.assertHasCause("Could not create task ':foo'.")
-        failure.assertHasCause("Could not replace task ':foo' of type 'CustomTask' with type 'UnrelatedCustomTask'.")
+        where:
+        description               | api
+        "using replace()"         | 'replace("foo", UnrelatedCustomTask)'
+        "using create(overwrite)" | 'create(name: "foo", type: UnrelatedCustomTask, overwrite: true)'
     }
 
-    def "fails replace with more restrictive type"() {
-        buildFile << '''
+    @Unroll
+    def "shows deprecation warning replace with more restrictive type when #description"() {
+        buildFile << """
             class CustomTask extends DefaultTask {}
             class MyCustomTask extends CustomTask {}
 
             tasks.register("foo", MyCustomTask)
-            tasks.replace("foo", CustomTask)
-        '''
+            tasks.${api}
+        """
 
-        when:
-        fails 'help'
+        expect:
+        executer.expectDeprecationWarning()
+        succeeds 'help'
+        outputContains("Replacing an existing task with an incompatible type. This behavior has been deprecated and is scheduled to become an error in Gradle 6.0. Use a different name for this task ('foo'), use a compatible type (CustomTask) or avoid creating the original task you are trying to replace.")
 
-        then:
-        failure.assertHasCause("Could not create task ':foo'.")
-        failure.assertHasCause("Could not replace task ':foo' of type 'MyCustomTask' with type 'CustomTask'.")
+        where:
+        description               | api
+        "using replace()"         | 'replace("foo", CustomTask)'
+        "using create(overwrite)" | 'create(name: "foo", type: CustomTask, overwrite: true)'
     }
 
     def "applies configuration actions of unrealized registered task to the replaced task instance"() {
@@ -133,13 +167,25 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
                 String prop
             }
 
-            def taskProvider = tasks.register("foo", CustomTask) { it.prop = "value" }
-            tasks.withType(CustomTask).configureEach { assert it.prop == "value"; it.prop = "value 2" }
-            taskProvider.configure { assert it.prop == "value 2"; it.prop = "value 3" }
+            def taskProvider = tasks.register("foo", CustomTask) { 
+                it.prop = "value" 
+            }
+            tasks.withType(CustomTask).configureEach { 
+                assert it.prop == "value"
+                it.prop = "value 2" 
+            }
+            taskProvider.configure { 
+                assert it.prop == "value 2" 
+                it.prop = "value 3" 
+            }
             tasks.replace("foo", CustomTask)
-            tasks.withType(CustomTask).all { assert it.prop == "value 3"; it.prop = "value 4" }
+            tasks.withType(CustomTask).all { 
+                assert it.prop == "value 3" 
+                it.prop = "value 4" 
+            }
 
             assert foo.prop == "value 4"
+            assert taskProvider.get().prop == "value 4"
         '''
 
         expect:
@@ -152,11 +198,19 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
                 String prop
             }
 
-            tasks.create("foo", CustomTask) { it.prop = "value" }
-            tasks.withType(CustomTask).configureEach { it.prop = (it.prop == null ? "value 1" : "value 2") }
+            tasks.create("foo", CustomTask) { 
+                it.prop = "value" 
+            }
+            tasks.withType(CustomTask).configureEach { 
+                it.prop = (it.prop == null ? "value 1" : "value 2") 
+            }
             assert foo.prop == "value 2"
+            
             tasks.replace("foo", CustomTask)
-            tasks.withType(CustomTask).all { assert it.prop == "value 1"; it.prop = "value 3" }
+            tasks.withType(CustomTask).all { 
+                assert it.prop == "value 1"; 
+                it.prop = "value 3" 
+            }
 
             assert foo.prop == "value 3"
         '''
@@ -166,14 +220,34 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
     }
 
-    def "shows deprecation warning when replacing non existing task"() {
-        buildFile << '''
-            tasks.replace("foo")
-        '''
+    @Unroll
+    def "shows deprecation warning when replacing non-existent task when #description"() {
+        buildFile << """
+            tasks.${api}
+        """
 
         expect:
         executer.expectDeprecationWarning()
         succeeds 'help'
-        outputContains("Gradle does not allow replacing a non existing task. This behaviour has been deprecated and is scheduled to become an error in Gradle 6.0.")
+        outputContains("Unnecessarily replacing a task that does not exist. This behavior has been deprecated and is scheduled to become an error in Gradle 6.0. You attempted to replace a task named 'foo', but no task exists with that name already. Try using create() or register() directly instead.")
+
+        where:
+        description               | api
+        "using replace()"         | 'replace("foo")'
+        "using create(overwrite)" | 'create(name: "foo", overwrite: true)'
+    }
+
+    def "every provider returns the same instance"() {
+        buildFile << """
+            def p1 = tasks.register("foo")
+            def p2 = tasks.named("foo")
+            def p3 = tasks.replace("foo")
+            
+            assert p1.get() == p2.get()
+            assert p1.get() == tasks.getByName("foo")
+            assert p1.get() == p3
+        """
+        expect:
+        succeeds("help")
     }
 }

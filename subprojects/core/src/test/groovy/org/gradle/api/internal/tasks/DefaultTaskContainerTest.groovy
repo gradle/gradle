@@ -396,38 +396,6 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         3 * action.execute(newTask)
     }
 
-    void "fails to replace registered task with incompatible type"() {
-        given:
-        container.register("task", CustomTask)
-
-        when:
-        container.replace("task", AnotherCustomTask)
-
-        then:
-        def ex = thrown(GradleException)
-        ex.message == "Could not create task ':project:task'."
-        ex.cause.message == "Could not replace task ':project:task' of type '${CustomTask.simpleName}' with type '${AnotherCustomTask.simpleName}'."
-
-        and:
-        1 * taskFactory.create(_ as TaskIdentity) >> task("task", AnotherCustomTask)
-    }
-
-    void "fails to overwrite registered task with incompatible type"() {
-        given:
-        container.register("task", CustomTask)
-
-        when:
-        container.create([name: "task", type: AnotherCustomTask, overwrite: true])
-
-        then:
-        def ex = thrown(GradleException)
-        ex.message == "Could not create task ':project:task'."
-        ex.cause.message == "Could not replace task ':project:task' of type '${CustomTask.simpleName}' with type '${AnotherCustomTask.simpleName}'."
-
-        and:
-        1 * taskFactory.create(_ as TaskIdentity) >> task("task", AnotherCustomTask)
-    }
-
     void "replaces registered task with compatible type"() {
         given:
         container.register("task", CustomTask)
@@ -442,38 +410,6 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
 
         and:
         1 * taskFactory.create(_ as TaskIdentity) >> newTask
-    }
-
-    void "fails to replace registered task with more restrictive type"() {
-        given:
-        container.register("task", MyCustomTask)
-
-        when:
-        container.replace("task", CustomTask)
-
-        then:
-        def ex = thrown(GradleException)
-        ex.message == "Could not create task ':project:task'."
-        ex.cause.message == "Could not replace task ':project:task' of type '${MyCustomTask.simpleName}' with type '${CustomTask.simpleName}'."
-
-        and:
-        1 * taskFactory.create(_ as TaskIdentity) >> task("task", CustomTask)
-    }
-
-    void "fails to overwrite registered task with more restrictive type"() {
-        given:
-        container.register("task", MyCustomTask)
-
-        when:
-        container.create([name: "task", type: CustomTask, overwrite: true])
-
-        then:
-        def ex = thrown(GradleException)
-        ex.message == "Could not create task ':project:task'."
-        ex.cause.message == "Could not replace task ':project:task' of type '${MyCustomTask.simpleName}' with type '${CustomTask.simpleName}'."
-
-        and:
-        1 * taskFactory.create(_ as TaskIdentity) >> task("task", CustomTask)
     }
 
     void "returns the same Task instance from TaskProvider after replace"() {
