@@ -28,11 +28,6 @@ class UsingLockingOnNonProjectConfigurationsIntegrationTest extends AbstractDepe
     @Rule
     MavenHttpPluginRepository pluginRepo = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
-    def setup() {
-        pluginBuilder.addPlugin("System.out.println(\"Hello World\");", 'bar.plugin')
-        pluginBuilder.publishAs('org.bar', 'bar-plugin', '1.0', pluginRepo, executer).allowAll()
-    }
-
     def 'locks build script classpath configuration'() {
         given:
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
@@ -57,7 +52,7 @@ buildscript {
 }
 """
         def lockFile = new LockfileFixture(testDirectory: testDirectory)
-        lockFile.createLockfile('classpath', ['org.foo:foo-plugin:1.0'])
+        lockFile.createLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.0'])
 
         when:
         succeeds 'buildEnvironment'
@@ -69,6 +64,7 @@ buildscript {
 
     def 'locks build script classpath combined with plugins'() {
         given:
+        addPlugin()
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
         mavenRepo.module('org.foo', 'foo-plugin', '1.1').publish()
 
@@ -102,7 +98,7 @@ plugins {
 }
 """
         def lockFile = new LockfileFixture(testDirectory: testDirectory)
-        lockFile.createLockfile('classpath', ['org.foo:foo-plugin:1.0', 'org.bar:bar-plugin:1.0', 'bar.plugin:bar.plugin.gradle.plugin:1.0'])
+        lockFile.createLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.0', 'org.bar:bar-plugin:1.0', 'bar.plugin:bar.plugin.gradle.plugin:1.0'])
 
         when:
         succeeds 'buildEnvironment'
@@ -114,6 +110,7 @@ plugins {
 
     def 'creates lock file for build script classpath'() {
         given:
+        addPlugin()
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
         mavenRepo.module('org.foo', 'foo-plugin', '1.1').publish()
 
@@ -152,7 +149,83 @@ plugins {
 
         then:
         def lockFile = new LockfileFixture(testDirectory: testDirectory)
-        lockFile.verifyLockfile('classpath', ['org.foo:foo-plugin:1.1', 'org.bar:bar-plugin:1.0', 'bar.plugin:bar.plugin.gradle.plugin:1.0'])
+        lockFile.verifyLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.1', 'org.bar:bar-plugin:1.0', 'bar.plugin:bar.plugin.gradle.plugin:1.0'])
+    }
+
+    def 'fails to resolve if lock state present but no dependencies remain'() {
+        given:
+
+        settingsFile << """
+rootProject.name = 'foo'
+"""
+
+        buildFile << """
+buildscript {
+    configurations.classpath {
+        resolutionStrategy.activateDependencyLocking()
+    }
+}
+"""
+        def lockFile = new LockfileFixture(testDirectory: testDirectory)
+        lockFile.createLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.0'])
+
+        when:
+        fails 'buildEnvironment'
+
+        then:
+        failureCauseContains('Dependency lock state for configuration \'classpath\' is out of date')
+    }
+
+    def 'same name buildscript and project configurations result in different lock files'() {
+        given:
+        def lockFile = new LockfileFixture(testDirectory: testDirectory)
+        mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
+        mavenRepo.module('org.foo', 'foo-plugin', '1.1').publish()
+        mavenRepo.module('org.foo', 'foo', '1.0').publish()
+        mavenRepo.module('org.foo', 'foo', '1.1').publish()
+
+        settingsFile << """
+rootProject.name = 'foo'
+"""
+        buildFile << """
+buildscript {
+    repositories {
+        maven {
+            url = '$mavenRepo.uri'
+        }
+    }
+    configurations.classpath {
+        resolutionStrategy.activateDependencyLocking()
+    }
+    dependencies {
+        classpath 'org.foo:foo-plugin:[1.0,2.0)'
+    }
+}
+repositories {
+    maven {
+        url = '$mavenRepo.uri'
+    }
+}
+configurations {
+    classpath {
+        resolutionStrategy.activateDependencyLocking()
+    }
+}
+dependencies {
+    classpath 'org.foo:foo:[1.0,2.0)'
+}
+"""
+        when:
+        succeeds 'buildEnvironment', 'dependencies', '--write-locks'
+
+        then:
+        lockFile.verifyLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.1'])
+        lockFile.verifyLockfile('classpath', ['org.foo:foo:1.1'])
+    }
+
+    def addPlugin() {
+        pluginBuilder.addPlugin("System.out.println(\"Hello World\");", 'bar.plugin')
+        pluginBuilder.publishAs('org.bar', 'bar-plugin', '1.0', pluginRepo, executer).allowAll()
     }
 
 }

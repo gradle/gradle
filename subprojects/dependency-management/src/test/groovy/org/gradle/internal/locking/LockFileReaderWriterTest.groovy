@@ -31,12 +31,12 @@ class LockFileReaderWriterTest extends Specification {
 
     @Subject
     LockFileReaderWriter lockFileReaderWriter
+    FileResolver resolver = Mock()
 
     def setup() {
-        FileResolver resolver = Mock()
         resolver.canResolveRelativePath() >> true
         resolver.resolve(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER) >> lockDir
-        lockFileReaderWriter = new LockFileReaderWriter(resolver)
+        lockFileReaderWriter = new LockFileReaderWriter(resolver, true)
     }
 
     def 'writes a lock file on persist'() {
@@ -63,10 +63,36 @@ line2"""
         result == ['line1', 'line2']
     }
 
+    def 'writes a lock file with prefix on persist'() {
+        when:
+        lockFileReaderWriter = new LockFileReaderWriter(resolver, false)
+        lockFileReaderWriter.writeLockFile('conf', ['line1', 'line2'])
+
+        then:
+        lockDir.file('buildscript-conf.lockfile').text == """${LockFileReaderWriter.LOCKFILE_HEADER}line1
+line2
+"""
+    }
+
+    def 'reads a lock file with prefix'() {
+        given:
+        lockFileReaderWriter = new LockFileReaderWriter(resolver, false)
+        lockDir.file('buildscript-conf.lockfile') << """#Ignored
+line1
+
+line2"""
+
+        when:
+        def result = lockFileReaderWriter.readLockFile('conf')
+
+        then:
+        result == ['line1', 'line2']
+    }
+
     def 'fails to read a lockfile if root could not be determined'() {
         FileResolver resolver = Mock()
         resolver.canResolveRelativePath() >> false
-        lockFileReaderWriter = new LockFileReaderWriter(resolver)
+        lockFileReaderWriter = new LockFileReaderWriter(resolver, true)
 
         when:
         lockFileReaderWriter.readLockFile('foo')
@@ -80,7 +106,7 @@ line2"""
     def 'fails to write a lockfile if root could not be determined'() {
         FileResolver resolver = Mock()
         resolver.canResolveRelativePath() >> false
-        lockFileReaderWriter = new LockFileReaderWriter(resolver)
+        lockFileReaderWriter = new LockFileReaderWriter(resolver, true)
 
         when:
         lockFileReaderWriter.writeLockFile('foo', [])
