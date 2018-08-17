@@ -267,36 +267,6 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':compileGosu').outcome == SUCCESS
     }
 
-    @Issue('https://plugins.gradle.org/plugin/org.xtext.xtend')
-    def 'xtend plugin'() {
-        given:
-        buildFile << """
-            plugins {
-                id "org.xtext.xtend" version "${TestedVersions.xtend}"
-            }
-
-            ${mavenCentralRepository()}
-
-            dependencies {
-                compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.11.0'
-            }
-            """.stripIndent()
-
-        file('src/main/java/HelloWorld.xtend') << """
-            class HelloWorld {
-                def static void main(String[] args) {
-                    println("Hello World")
-                }
-            }
-            """
-
-        when:
-        def result = runner('build').build()
-
-        then:
-        result.task(':generateXtext').outcome == SUCCESS
-    }
-
     @Issue('https://plugins.gradle.org/plugin/org.ajoberstar.grgit')
     def 'org.ajoberstar.grgit plugin'() {
         given:
