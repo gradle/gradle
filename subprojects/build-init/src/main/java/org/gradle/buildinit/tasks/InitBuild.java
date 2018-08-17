@@ -130,7 +130,7 @@ public class InitBuild extends DefaultTask {
 
         String type;
         if (isNullOrEmpty(this.type)) {
-            type = inputHandler.selectOption("Select build setup type", getAvailableBuildTypes(), detectType());
+            type = inputHandler.selectOption("Select type of build to create", getAvailableBuildTypes(), detectType());
         } else {
             type = this.type;
         }
