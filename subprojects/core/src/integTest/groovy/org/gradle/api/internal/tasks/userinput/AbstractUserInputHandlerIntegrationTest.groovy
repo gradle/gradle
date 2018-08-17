@@ -25,12 +25,6 @@ abstract class AbstractUserInputHandlerIntegrationTest extends AbstractIntegrati
         executer.withStdinPipe().withForceInteractive(true)
     }
 
-    protected void withDaemon(boolean enabled) {
-        if (!enabled) {
-            executer.withArguments("--no-daemon")
-        }
-    }
-
     protected void withRichConsole(boolean enabled) {
         if (enabled) {
             executer.withConsole(ConsoleOutput.Rich)

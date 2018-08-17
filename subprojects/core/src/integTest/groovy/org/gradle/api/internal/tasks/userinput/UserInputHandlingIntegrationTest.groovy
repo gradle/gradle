@@ -57,10 +57,9 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
     }
 
     @Unroll
-    def "can ask yes/no question in interactive build [daemon enabled: #daemon, rich console: #richConsole]"() {
+    def "can ask yes/no question in interactive build [rich console: #richConsole]"() {
         given:
         interactiveExecution()
-        withDaemon(daemon)
         withRichConsole(richConsole)
 
         when:
@@ -73,14 +72,13 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         gradleHandle.standardOutput.contains("result = true")
 
         where:
-        [daemon, richConsole] << [VALID_BOOLEAN_CHOICES, VALID_BOOLEAN_CHOICES].combinations()
+        richConsole << VALID_BOOLEAN_CHOICES
     }
 
     @Unroll
-    def "use of ctrl-d when asking yes/no question returns null [daemon enabled: #daemon, rich console: #richConsole]"() {
+    def "use of ctrl-d when asking yes/no question returns null [rich console: #richConsole]"() {
         given:
         interactiveExecution()
-        withDaemon(daemon)
         withRichConsole(richConsole)
 
         when:
@@ -93,7 +91,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         gradleHandle.standardOutput.contains("result = null")
 
         where:
-        [daemon, richConsole] << [VALID_BOOLEAN_CHOICES, VALID_BOOLEAN_CHOICES].combinations()
+        richConsole << VALID_BOOLEAN_CHOICES
     }
 
     @Unroll
@@ -125,7 +123,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         def gradleHandle = executer.withTasks("askYesNo").start()
 
         then:
-        poll {
+        poll(20) {
             assert gradleHandle.standardOutput.contains(YES_NO_PROMPT)
         }
         gradleHandle.stdinPipe.write(input.bytes)
@@ -180,10 +178,9 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
     }
 
     @Unroll
-    def "can select option in interactive build [daemon enabled: #daemon, rich console: #richConsole]"() {
+    def "can select option in interactive build [rich console: #richConsole]"() {
         given:
         interactiveExecution()
-        withDaemon(daemon)
         withRichConsole(richConsole)
 
         when:
@@ -200,14 +197,13 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         gradleHandle.standardOutput.contains("result = a")
 
         where:
-        [daemon, richConsole] << [VALID_BOOLEAN_CHOICES, VALID_BOOLEAN_CHOICES].combinations()
+        richConsole << VALID_BOOLEAN_CHOICES
     }
 
     @Unroll
-    def "use of ctrl-d when selection option returns default option [daemon enabled: #daemon, rich console: #richConsole]"() {
+    def "use of ctrl-d when selection option returns default option [rich console: #richConsole]"() {
         given:
         interactiveExecution()
-        withDaemon(daemon)
         withRichConsole(richConsole)
 
         when:
@@ -219,7 +215,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         gradleHandle.standardOutput.contains("result = b")
 
         where:
-        [daemon, richConsole] << [VALID_BOOLEAN_CHOICES, VALID_BOOLEAN_CHOICES].combinations()
+        richConsole << VALID_BOOLEAN_CHOICES
     }
 
     @Unroll
@@ -251,7 +247,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         def gradleHandle = executer.withTasks("selectOption").start()
 
         then:
-        poll {
+        poll(20) {
             assert gradleHandle.standardOutput.contains(SELECT_PROMPT)
         }
         gradleHandle.stdinPipe.write(input.bytes)
@@ -283,10 +279,9 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
     }
 
     @Unroll
-    def "can answer text question in interactive build [daemon enabled: #daemon, rich console: #richConsole]"() {
+    def "can answer text question in interactive build [rich console: #richConsole]"() {
         given:
         interactiveExecution()
-        withDaemon(daemon)
         withRichConsole(richConsole)
 
         when:
@@ -299,14 +294,13 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         gradleHandle.standardOutput.contains("result = answer")
 
         where:
-        [daemon, richConsole] << [VALID_BOOLEAN_CHOICES, VALID_BOOLEAN_CHOICES].combinations()
+        richConsole << VALID_BOOLEAN_CHOICES
     }
 
     @Unroll
-    def "use of ctrl-d when asking text question returns default value [daemon enabled: #daemon, rich console: #richConsole]"() {
+    def "use of ctrl-d when asking text question returns default value [rich console: #richConsole]"() {
         given:
         interactiveExecution()
-        withDaemon(daemon)
         withRichConsole(richConsole)
 
         when:
@@ -318,7 +312,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         gradleHandle.standardOutput.contains("result = thing")
 
         where:
-        [daemon, richConsole] << [VALID_BOOLEAN_CHOICES, VALID_BOOLEAN_CHOICES].combinations()
+        richConsole << VALID_BOOLEAN_CHOICES
     }
 
     @Unroll
