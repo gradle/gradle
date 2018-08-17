@@ -94,6 +94,7 @@ The previously deprecated support for Play Framework 2.2 has been removed.
 - Removed the property `styleSheet` from `ScalaDocOptions`.
 - Forbid passing `null` as configuration action to the methods `from` and `to` on `CopySpec`.
 - Removed the property `bootClasspath` from `CompileOptions`.
+- Registering invalid inputs or outputs via the runtime API is now an error.
 
 ## External contributions
 
