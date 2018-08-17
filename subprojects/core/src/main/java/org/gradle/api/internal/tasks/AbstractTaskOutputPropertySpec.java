@@ -22,7 +22,7 @@ import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 import org.gradle.internal.fingerprint.OutputNormalizer;
 
 @NonNullApi
-abstract class AbstractTaskOutputPropertySpec extends TaskOutputsDeprecationSupport implements TaskPropertySpec, TaskOutputFilePropertyBuilder {
+abstract class AbstractTaskOutputPropertySpec implements TaskPropertySpec, TaskOutputFilePropertyBuilder {
 
     private String propertyName;
     private boolean optional;

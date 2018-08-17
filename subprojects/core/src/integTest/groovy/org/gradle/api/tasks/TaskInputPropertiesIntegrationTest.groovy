@@ -209,61 +209,16 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "test"
     }
 
-    @Unroll
-    def "fails when input file calls are chained (#method)"() {
+    def "fails when input file calls are chained (properties(Map))"() {
         buildFile << """
             task test {
-                inputs.${call}.${call}
+                inputs.properties(input: 1).properties(input2: 2)
             }
         """
 
         expect:
         fails "test"
-        failureCauseContains "Chaining of the TaskInputs.$method method is not supported since Gradle 4.0."
-
-        where:
-        method             | call
-        "file(Object)"     | 'file("a")'
-        "dir(Object)"      | 'dir("a")'
-        "files(Object...)" | 'files("a", "b")'
-    }
-
-    @Unroll
-    def "shows deprecation warning when input property calls are chained (#method)"() {
-        buildFile << """
-            task test {
-                inputs.${call}.${call}
-            }
-        """
-
-        expect:
-        executer.expectDeprecationWarning()
-        succeeds "test"
-        output.contains "The chaining of the $method method has been deprecated. This is scheduled to be removed in Gradle 5.0. Use '$method' on TaskInputs directly instead."
-
-        where:
-        method                     | call
-        "property(String, Object)" | "property('input', 1)"
-        "properties(Map)"          | "properties(input: 1)"
-    }
-
-    @Unroll
-    def "fails when outputs calls are chained (#method)"() {
-        buildFile << """
-            task test {
-                outputs.${call}.${call}
-            }
-        """
-
-        expect:
-        fails "test"
-        failureCauseContains "Chaining of the TaskOutputs.$method method is not supported since Gradle 4.0."
-
-        where:
-        method             | call
-        "file(Object)"     | 'file("a")'
-        "dir(Object)"      | 'dir("a")'
-        "files(Object...)" | 'files("a", "b")'
+        failureCauseContains "Chaining of the TaskInputs.properties(Map) method is not supported since Gradle 5.0."
     }
 
     def "task depends on other task whose outputs are its inputs"() {
