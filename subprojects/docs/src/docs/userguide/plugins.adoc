@@ -95,7 +95,7 @@ The plugins DSL is currently <<feature_lifecycle.adoc#feature_lifecycle,incubati
 
 ====
 
-The new plugins DSL provides a succinct and convenient way to declare plugin dependencies. It works with the http://plugins.gradle.org[Gradle plugin portal] to provide easy access to both core and community plugins. The plugins DSL block configures an instance of link:{javadocPath}/org/gradle/plugin/use/PluginDependenciesSpec.html[PluginDependenciesSpec].
+The plugins DSL provides a succinct and convenient way to declare plugin dependencies. It works with the http://plugins.gradle.org[Gradle plugin portal] to provide easy access to both core and community plugins. The plugins DSL block configures an instance of link:{javadocPath}/org/gradle/plugin/use/PluginDependenciesSpec.html[PluginDependenciesSpec].
 
 To apply a core plugin, the short name can be used:
 
@@ -127,13 +127,13 @@ This way of adding plugins to a project is much more than a more convenient synt
 
 This requires that plugins be specified in a way that Gradle can easily and quickly extract, before executing the rest of the build script. It also requires that the definition of plugins to use be somewhat static.
 
-There are some key differences between the new plugin mechanism and the “traditional” `apply()` method mechanism. There are also some constraints, some of which are temporary limitations while the mechanism is still being developed and some are inherent to the new approach.
+There are some key differences between the `plugin {}` block mechanism and the “traditional” `apply()` method mechanism. There are also some constraints, some of which are temporary limitations while the mechanism is still being developed and some are inherent to the new approach.
 
 
 [[sec:constrained_syntax]]
 ===== Constrained Syntax
 
-The new `plugins {}` block does not support arbitrary code. It is constrained, in order to be idempotent (produce the same result every time) and side effect free (safe for Gradle to execute at any time).
+The `plugins {}` block does not support arbitrary code. It is constrained, in order to be idempotent (produce the same result every time) and side effect free (safe for Gradle to execute at any time).
 
 The form is:
 
@@ -186,7 +186,7 @@ The `plugins {}` block can currently only be used in a project's build script. I
 
 _Future versions of Gradle will remove this restriction._
 
-If the restrictions of the new syntax are prohibitive, the recommended approach is to apply plugins using the <<#sec:applying_plugins_buildscript,buildscript {} block>>.
+If the restrictions of the `plugins {}` block are prohibitive, the recommended approach is to apply plugins using the <<#sec:applying_plugins_buildscript,buildscript {} block>>.
 
 [[sec:subprojects_plugins_dsl]]
 ==== Applying plugins to subprojects
