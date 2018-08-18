@@ -30,12 +30,14 @@ import org.gradle.util.TextUtil;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultUserInputHandler implements UserInputHandler {
     private static final List<String> YES_NO_CHOICES = Lists.newArrayList("yes", "no");
     private final OutputEventListener outputEventBroadcaster;
     private final Clock clock;
     private final UserInputReader userInputReader;
+    private final AtomicBoolean hasAsked = new AtomicBoolean();
 
     public DefaultUserInputHandler(OutputEventListener outputEventBroadcaster, Clock clock, UserInputReader userInputReader) {
         this.outputEventBroadcaster = outputEventBroadcaster;
@@ -46,7 +48,6 @@ public class DefaultUserInputHandler implements UserInputHandler {
     @Override
     public Boolean askYesNoQuestion(String question) {
         StringBuilder builder = new StringBuilder();
-        builder.append(TextUtil.getPlatformLineSeparator());
         builder.append(question);
         builder.append(" [");
         builder.append(StringUtils.join(YES_NO_CHOICES, ", "));
@@ -67,7 +68,6 @@ public class DefaultUserInputHandler implements UserInputHandler {
     public <T> T selectOption(String question, final Collection<T> options, final T defaultOption) {
         final List<T> values = new ArrayList<T>(options);
         StringBuilder builder = new StringBuilder();
-        builder.append(TextUtil.getPlatformLineSeparator());
         builder.append(question);
         builder.append(":");
         builder.append(TextUtil.getPlatformLineSeparator());
@@ -108,7 +108,6 @@ public class DefaultUserInputHandler implements UserInputHandler {
     @Override
     public String askQuestion(String question, final String defaultValue) {
         StringBuilder builder = new StringBuilder();
-        builder.append(TextUtil.getPlatformLineSeparator());
         builder.append(question);
         builder.append(" (default: ");
         builder.append(defaultValue);
@@ -131,6 +130,12 @@ public class DefaultUserInputHandler implements UserInputHandler {
     private <T> T prompt(String prompt, Transformer<T, String> parser) {
         outputEventBroadcaster.onOutput(new UserInputRequestEvent());
         try {
+            // Add a line before the first question that has been asked of the user
+            // This makes the assumption that all questions happen together, which is ok for now
+            // It would be better to allow this handler to ask the output renderers to show a blank line before the prompt, if not already present
+            if (hasAsked.compareAndSet(false, true)) {
+                sendPrompt(TextUtil.getPlatformLineSeparator());
+            }
             sendPrompt(prompt);
             while (true) {
                 String input = userInputReader.readInput();
@@ -145,6 +150,9 @@ public class DefaultUserInputHandler implements UserInputHandler {
                 }
             }
         } finally {
+            // Send a end-of-line. This is a workaround to convince the console that the cursor is at the start of the line to avoid indenting the next line of text that is displayed
+            // It would be better for the console to listen for stuff read from stdin that would also be echoed to the output and update its state based on this
+            sendPrompt(TextUtil.getPlatformLineSeparator());
             outputEventBroadcaster.onOutput(new UserInputResumeEvent());
         }
     }
