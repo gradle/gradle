@@ -133,7 +133,7 @@ There are some key differences between the new plugin mechanism and the “tradi
 [[sec:constrained_syntax]]
 ===== Constrained Syntax
 
-The new `plugins {}` block does not support arbitrary Groovy code. It is constrained, in order to be idempotent (produce the same result every time) and side effect free (safe for Gradle to execute at any time).
+The new `plugins {}` block does not support arbitrary code. It is constrained, in order to be idempotent (produce the same result every time) and side effect free (safe for Gradle to execute at any time).
 
 The form is:
 
@@ -144,9 +144,12 @@ The form is:
 [source,groovy]
 ----
 plugins {
-    id «plugin id» version «plugin version» [apply «false»]
+    id «plugin id»                                            // <1>
+    id «plugin id» version «plugin version» [apply «false»]   // <2>
 }
 ----
+<1> for core Gradle plugins or plugins already available to the build script
+<2> for binary Gradle plugins that need to be resolved
 =====
 
 [.multi-language-sample]
@@ -155,14 +158,24 @@ plugins {
 [source,kotlin]
 ----
 plugins {
-    id(«plugin id») version «plugin version» [apply «false»]
+    `«plugin id»`                                             // <1>
+    id(«plugin id»)                                           // <2>
+    id(«plugin id») version «plugin version» [apply «false»]  // <3>
 }
 ----
+<1> for core Gradle plugins
+<2> for core Gradle plugins or plugins already available to the build script
+<3> for binary Gradle plugins that need to be resolved
 =====
 ====
 
+[.multi-language-text.lang-groovy]
+Where `«plugin id»` and `«plugin version»` must be constant, literal, strings and the `apply` statement with a `boolean` can be used to disable the default behavior of applying the plugin immediately (e.g. you want to apply it only in `subprojects`). No other statements are allowed; their presence will cause a compilation error.
 
-Where `«plugin version»` and `«plugin id»` must be constant, literal, strings and the `apply` statement with a `boolean` can be used to disable the default behavior of applying the plugin immediately (e.g. you want to apply it only in `subprojects`). No other statements are allowed; their presence will cause a compilation error.
+[.multi-language-text.lang-kotlin]
+Where `«plugin id»`, in case `#1` is a static Kotlin extension property, named after the core plugin ID ; and in cases `#2` and `#3` is a string.
+`«plugin version»` is also a string.
+The `apply` statement with a `boolean` can be used to disable the default behavior of applying the plugin immediately (e.g. you want to apply it only in `subprojects`).
 
 The `plugins {}` block must also be a top level statement in the buildscript. It cannot be nested inside another construct (e.g. an if-statement or for-loop).
 
@@ -319,7 +332,13 @@ include::sample[dir="userguide/tutorial/pluginIntro/groovy", files="build.gradle
 include::sample[dir="userguide/tutorial/pluginIntro/kotlin", files="build.gradle.kts[tags=apply-by-type]"]
 ====
 
-The `JavaPlugin` symbol in the above sample refers to the link:{javadocPath}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin]. This class does not strictly need to be imported as the `org.gradle.api.plugins` package is automatically imported in all build scripts (see <<writing_build_scripts.adoc#script-default-imports,Default imports>>). Furthermore, it is not necessary to append `.class` to identify a class literal in Groovy as it is in Java.
+The `JavaPlugin` symbol in the above sample refers to the link:{javadocPath}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin]. This class does not strictly need to be imported as the `org.gradle.api.plugins` package is automatically imported in all build scripts (see <<writing_build_scripts.adoc#script-default-imports,Default imports>>).
+
+[.multi-language-text.lang-groovy]
+Furthermore, it is not necessary to append `.class` to identify a class literal in Groovy as it is in Java.
+
+[.multi-language-text.lang-kotlin]
+Furthermore, one need to append the `::class` suffix to identify a class literal in Kotlin instead of `.class` in Java.
 
 [[sec:applying_plugins_buildscript]]
 ==== Applying plugins with the buildscript block
