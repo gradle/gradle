@@ -16,6 +16,7 @@
 
 package org.gradle.internal;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
@@ -23,12 +24,21 @@ import org.gradle.api.UncheckedIOException;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Iterator;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 
 public class FileUtils {
     public static final int WINDOWS_PATH_LIMIT = 260;
+
+    private static Comparator<File> FILE_NAME_COMPARATOR = new Comparator<File>() {
+        @Override
+        public int compare(File left, File right) {
+            return left.getPath().compareTo(right.getPath());
+        }
+    };
 
     /**
      * Converts a string into a string that is safe to use as a file name. The result will only include ascii characters and numbers, and the "-","_", #, $ and "." characters.
@@ -72,27 +82,36 @@ public class FileUtils {
      * @return the encompassing roots
      */
     public static Collection<? extends File> calculateRoots(Iterable<? extends File> files) {
+        List<File> fileList = Lists.newArrayList(files);
+        Collections.sort(fileList, FILE_NAME_COMPARATOR);
+
+        Stack<File> stack = new Stack<File>();
         List<File> roots = new LinkedList<File>();
 
-        files:
-        for (File file : files) {
-            File absoluteFile = file.getAbsoluteFile();
-            String path = file.getPath();
-            Iterator<File> rootsIterator = roots.iterator();
-
-            while (rootsIterator.hasNext()) {
-                File root = rootsIterator.next();
-                String rootPath = root.getPath();
-                if (doesPathStartWith(path, rootPath)) { // is lower than root
-                    continue files;
-                }
-
-                if (doesPathStartWith(rootPath, path)) { // is higher than root
-                    rootsIterator.remove();
+        for (File file : fileList) {
+            boolean shouldAdd = true;
+            while (!stack.isEmpty()) {
+                File lastFile = stack.peek();
+                if (file.getPath().startsWith(lastFile.getPath())) {
+                    if (file.getPath().length() == lastFile.getPath().length()) {
+                        shouldAdd = false;
+                        break;
+                    } else if (file.getPath().charAt(lastFile.getPath().length()) == File.separatorChar) {
+                        shouldAdd = false;
+                        break;
+                    } else {
+                        break;
+                    }
+                } else {
+                    roots.add(stack.pop().getAbsoluteFile());
                 }
             }
-
-            roots.add(absoluteFile);
+            if (shouldAdd) {
+                stack.push(file);
+            }
+        }
+        while (!stack.isEmpty()) {
+            roots.add(stack.pop().getAbsoluteFile());
         }
 
         return roots;
