@@ -30,7 +30,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         // Select 'basic'
         ConcurrentTestUtil.poll(20) {
-            assert handle.standardOutput.contains("Select type of build to create:")
+            assert handle.standardOutput.contains("Select type of project to generate:")
         }
         handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
 
