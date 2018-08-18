@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests.resolve.alignment
 
+import spock.lang.Unroll
+
 class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
 
     def "can force a virtual platform version by forcing one of its leaves"() {
@@ -69,6 +71,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         }
     }
 
+    @Unroll
     def "can force a virtual platform version by forcing the platform itself via a dependency"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -82,11 +85,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         given:
         buildFile << """
             dependencies {
-                conf("org:core:2.9.4")
-                conf("org:databind:2.7.9")
-                conf("org:kotlin:2.9.4.1")                
-
-                conf enforcedPlatform("org:platform:2.7.9")
+                $dependencies
             }
         """
 
@@ -94,11 +93,21 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         "a rule which infers module set from group and version"()
 
         when:
-        expectAlignment {
-            module('core') tries('2.9.4', '2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
-            module('databind') alignsTo('2.7.9') byVirtualPlatform()
-            module('kotlin') tries('2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
-            module('annotations') tries('2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
+        repositoryInteractions {
+            group('org') {
+                ['core', 'databind', 'annotations', 'kotlin', 'platform'].each { mod ->
+                    module(mod) {
+                        ['2.7.9', '2.9.4', '2.9.4.1'].each { v ->
+                           version(v) {
+                               // Not interested in the actual interactions, especially with
+                               // the complexity introduced by permutation testing
+                               allowAll()
+                           }
+                        }
+                    }
+                }
+
+            }
         }
         run ':checkDeps'
 
@@ -126,8 +135,17 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                 }
             }
         }
+
+        where: "order of dependencies doesn't matter"
+        dependencies << [
+            'conf("org:core:2.9.4")',
+            'conf("org:databind:2.7.9")',
+            'conf("org:kotlin:2.9.4.1")',
+            'conf enforcedPlatform("org:platform:2.7.9")'
+        ].permutations()*.join("\n")
     }
 
+    @Unroll
     def "can force a virtual platform version by forcing the platform itself via a constraint"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -141,13 +159,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         given:
         buildFile << """
             dependencies {
-                conf("org:core:2.9.4")
-                conf("org:databind:2.7.9")
-                conf("org:kotlin:2.9.4.1")                
-
-                constraints {
-                    conf enforcedPlatform("org:platform:2.7.9")
-                }
+                $dependencies
             }
         """
 
@@ -155,11 +167,21 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         "a rule which infers module set from group and version"()
 
         when:
-        expectAlignment {
-            module('core') tries('2.9.4', '2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
-            module('databind') alignsTo('2.7.9') byVirtualPlatform()
-            module('kotlin') tries('2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
-            module('annotations') tries('2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
+        repositoryInteractions {
+            group('org') {
+                ['core', 'databind', 'annotations', 'kotlin', 'platform'].each { mod ->
+                    module(mod) {
+                        ['2.7.9', '2.9.4', '2.9.4.1'].each { v ->
+                            version(v) {
+                                // Not interested in the actual interactions, especially with
+                                // the complexity introduced by permutation testing
+                                allowAll()
+                            }
+                        }
+                    }
+                }
+
+            }
         }
         run ':checkDeps'
 
@@ -190,6 +212,14 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
             }
             virtualConfiguration('org:platform:2.7.9')
         }
+
+        where: "order of dependencies doesn't matter"
+        dependencies << [
+            'conf("org:core:2.9.4")',
+            'conf("org:databind:2.7.9")',
+            'conf("org:kotlin:2.9.4.1")',
+            'constraints { conf enforcedPlatform("org:platform:2.7.9") }'
+        ].permutations()*.join("\n")
     }
 
 }
