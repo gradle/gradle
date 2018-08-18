@@ -267,12 +267,12 @@ include("child")
      --test-framework     Set the test framework to be used.
                           Available values are:
                                junit
-                               kotlin
+                               kotlintest
                                scalatest
                                spock
                                testng
 
-     --type     Set the type of build to create.
+     --type     Set the type of project to generate.
                 Available values are:
                      basic
                      groovy-application

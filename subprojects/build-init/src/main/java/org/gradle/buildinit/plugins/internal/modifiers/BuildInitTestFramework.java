@@ -25,7 +25,7 @@ public enum BuildInitTestFramework {
     JUNIT,
     TESTNG,
     SPOCK,
-    KOTLIN,
+    KOTLINTEST,
     SCALATEST;
 
     public static List<String> listSupported() {

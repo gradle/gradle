@@ -55,7 +55,7 @@ public class InitBuild extends DefaultTask {
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
 
     /**
-     * The desired type of build to create, defaults to 'pom' if a 'pom.xml' is found in the project root and if no 'pom.xml' is found, it defaults to 'basic'.
+     * The desired type of project to generate, defaults to 'pom' if a 'pom.xml' is found in the project root and if no 'pom.xml' is found, it defaults to 'basic'.
      *
      * This property can be set via command-line option '--type'.
      */
@@ -130,7 +130,7 @@ public class InitBuild extends DefaultTask {
 
         String type;
         if (isNullOrEmpty(this.type)) {
-            type = inputHandler.selectOption("Select type of build to create", getAvailableBuildTypes(), detectType());
+            type = inputHandler.selectOption("Select type of project to generate", getAvailableBuildTypes(), detectType());
         } else {
             type = this.type;
         }
@@ -192,7 +192,7 @@ public class InitBuild extends DefaultTask {
         initDescriptor.generate(new InitSettings(projectName, dsl, packageName, testFramework));
     }
 
-    @Option(option = "type", description = "Set the type of build to create.")
+    @Option(option = "type", description = "Set the type of project to generate.")
     public void setType(String type) {
         this.type = type;
     }
@@ -248,6 +248,7 @@ public class InitBuild extends DefaultTask {
      *
      * @since 4.11
      */
+    @Incubating
     @Option(option = "project-name", description = "Set the project name.")
     public void setProjectName(String projectName) {
         this.projectName = projectName;
@@ -258,6 +259,7 @@ public class InitBuild extends DefaultTask {
      *
      * @since 4.11
      */
+    @Incubating
     @Option(option = "package", description = "Set the package for source files.")
     public void setPackageName(String packageName) {
         this.packageName = packageName;
