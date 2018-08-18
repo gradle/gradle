@@ -561,6 +561,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
+        executer.expectDeprecationWarning()
         succeeds "help"
 
         result.output.count("Create :myTask") == 1
@@ -587,6 +588,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
+        executer.expectDeprecationWarning()
         succeeds "help"
 
         result.output.count("Create :myTask") == 1
@@ -612,6 +614,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
+        executer.expectDeprecationWarning()
         succeeds "help"
 
         result.output.count("Create :myTask") == 2
@@ -637,6 +640,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
+        executer.expectDeprecationWarning()
         succeeds "help"
 
         result.output.count("Create :myTask") == 2
