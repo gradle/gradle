@@ -24,8 +24,5 @@ subprojects {
     if (name.startsWith("hello")) {
         apply(plugin = "org.gradle.sample.hello")
     }
-    if (name.startsWith("goodbye")) {
-        apply(plugin = "org.gradle.sample.goodbye")
-    }
 }
 // end::plugins-on-subprojects[]
