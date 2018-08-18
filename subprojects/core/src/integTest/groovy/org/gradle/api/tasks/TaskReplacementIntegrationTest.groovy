@@ -43,8 +43,8 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds 'help'
-        result.assertNotOutput(":foo is a First")
-        result.assertOutputContains(":foo is a Second")
+        outputDoesNotContain(":foo is a First")
+        outputContains(":foo is a Second")
 
         where:
         description               | api
@@ -64,9 +64,9 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         executer.expectDeprecationWarning()
         succeeds 'help'
         outputContains("Replacing a task that may have been used by other plugins can cause problems. This behavior has been deprecated and is scheduled to become an error in Gradle 6.0. Use a different name for this task ('foo') or avoid creating the original task you are trying to replace.")
-        result.assertNotOutput(":foo is a First")
-        result.assertOutputContains(":foo is a Second")
-        result.assertOutputContains(":foo is a Third")
+        outputDoesNotContain(":foo is a First")
+        outputContains(":foo is a Second")
+        outputContains(":foo is a Third")
 
         where:
         description               | api
@@ -84,8 +84,8 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         expect:
         executer.expectDeprecationWarning()
         succeeds 'help'
-        result.assertOutputContains(":foo is a First")
-        result.assertOutputContains(":foo is a Second")
+        outputContains(":foo is a First")
+        outputContains(":foo is a Second")
         outputContains("Replacing a task that may have been used by other plugins can cause problems. This behavior has been deprecated and is scheduled to become an error in Gradle 6.0. Use a different name for this task ('foo') or avoid creating the original task you are trying to replace.")
 
         where:
