@@ -47,10 +47,6 @@ class ProbedLocalJavaInstallation(private val javaHome: File) : LocalJavaInstall
 
 
 private
-const val java7HomePropertyName = "java7Home"
-
-
-private
 const val java9HomePropertyName = "java9Home"
 
 
@@ -80,10 +76,9 @@ open class AvailableJavaInstallations(project: Project, private val javaInstalla
     val javaInstallationForTest: JavaInstallation
 
     init {
-        val resolvedJava7Home = resolveJavaHomePath(java7HomePropertyName, project)
         val resolvedJava9Home = resolveJavaHomePath(java9HomePropertyName, project)
-        require(resolvedJava9Home != null || JavaVersion.current().isJava9Compatible) { "Building gradle on Java 7/8 requires $java9HomePropertyName system property or project property" }
-        val javaHomesForCompilation = listOfNotNull(resolvedJava7Home, resolvedJava9Home)
+        require(resolvedJava9Home != null || JavaVersion.current().isJava9Compatible) { "Building gradle on Java 8 requires $java9HomePropertyName system property or project property" }
+        val javaHomesForCompilation = listOfNotNull(resolvedJava9Home)
         val javaHomeForTest = resolveJavaHomePath(testJavaHomePropertyName, project)
         javaInstallations = findJavaInstallations(javaHomesForCompilation)
         currentJavaInstallation = JavaInstallation(true, Jvm.current(), JavaVersion.current(), javaInstallationProbe)
@@ -125,8 +120,6 @@ open class AvailableJavaInstallations(project: Project, private val javaInstalla
     fun validateCompilationJdks(): Collection<String> {
         val jdkForCompilation = javaInstallations.values.firstOrNull()
         return mapOf(
-            "Must set project or system property '$java7HomePropertyName' to the path of an $oracleJdk7, is currently unset." to (jdkForCompilation == null),
-            validationMessage(java7HomePropertyName, jdkForCompilation, oracleJdk7) to (jdkForCompilation != null && jdkForCompilation.vendorAndMajorVersion != oracleJdk7),
             "Must use Oracle JDK 8/9 to perform this build. Is currently ${currentJavaInstallation.vendorAndMajorVersion} at ${currentJavaInstallation.javaHome}." to
                 (currentJavaInstallation.vendorAndMajorVersion != oracleJdk8 && currentJavaInstallation.vendorAndMajorVersion != oracleJdk9)
         ).filterValues { it }.keys
