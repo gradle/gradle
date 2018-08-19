@@ -20,6 +20,10 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.internal.Factory;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.TreeSet;
+
 public abstract class LanguageLibraryProjectInitDescriptor implements ProjectInitDescriptor {
 
     protected final String language;
@@ -37,7 +41,17 @@ public abstract class LanguageLibraryProjectInitDescriptor implements ProjectIni
     }
 
     @Override
-    public boolean supports(BuildInitDsl dsl) {
+    public Set<BuildInitDsl> getDsls() {
+        return new TreeSet<BuildInitDsl>(Arrays.asList(BuildInitDsl.values()));
+    }
+
+    @Override
+    public boolean canApplyToCurrentDirectory() {
+        return true;
+    }
+
+    @Override
+    public boolean supportsProjectName() {
         return true;
     }
 
@@ -71,7 +85,7 @@ public abstract class LanguageLibraryProjectInitDescriptor implements ProjectIni
     }
 
     protected TemplateOperation fromClazzTemplate(String clazzTemplate, String sourceSetName, String language) {
-        return fromClazzTemplate(clazzTemplate, (InitSettings) null, sourceSetName, language);
+        return fromClazzTemplate(clazzTemplate, null, sourceSetName, language);
     }
 
     protected TemplateOperation fromClazzTemplate(String clazzTemplate, InitSettings settings, String sourceSetName, String language) {
@@ -85,13 +99,6 @@ public abstract class LanguageLibraryProjectInitDescriptor implements ProjectIni
             .withTemplate(clazzTemplate)
             .withTarget("src/" + sourceSetName + "/" + language + "/" + targetFileName)
             .withBinding("packageDecl", packageDecl)
-            .create();
-    }
-
-    protected TemplateOperation fromClazzTemplate(String clazzTemplate, String sourceSetName, String language, String targetFileName) {
-        return templateOperationFactory.newTemplateOperation()
-            .withTemplate(clazzTemplate)
-            .withTarget("src/" + sourceSetName + "/" + language + "/" + targetFileName)
             .create();
     }
 }

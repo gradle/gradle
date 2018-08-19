@@ -36,7 +36,6 @@ import org.gradle.internal.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -127,26 +126,28 @@ public class InitBuild extends DefaultTask {
     @TaskAction
     public void setupProjectLayout() {
         UserInputHandler inputHandler = getServices().get(UserInputHandler.class);
+        ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
 
         String type;
         if (isNullOrEmpty(this.type)) {
-            type = inputHandler.selectOption("Select type of project to generate", getAvailableBuildTypes(), detectType());
+            type = inputHandler.selectOption("Select type of project to generate", projectLayoutRegistry.getTypesApplicableToCurrentDirectory(), detectType());
         } else {
             type = this.type;
         }
 
-        ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
         ProjectInitDescriptor initDescriptor = projectLayoutRegistry.get(type);
 
         BuildInitDsl dsl;
         if (isNullOrEmpty(this.dsl)) {
-            dsl = inputHandler.selectOption("Select build script DSL", Arrays.asList(BuildInitDsl.values()), BuildInitDsl.GROOVY);
+            dsl = initDescriptor.getDsls().iterator().next();
+            if (initDescriptor.getDsls().size() > 1) {
+                dsl = inputHandler.selectOption("Select build script DSL", initDescriptor.getDsls(), dsl);
+            }
         } else {
             dsl = BuildInitDsl.fromName(getDsl());
-        }
-
-        if (!initDescriptor.supports(dsl)) {
-            throw new GradleException("The requested DSL '" + dsl + "' is not supported for '" + type + "' setup type");
+            if (!initDescriptor.getDsls().contains(dsl)) {
+                throw new GradleException("The requested DSL '" + dsl + "' is not supported for '" + type + "' setup type");
+            }
         }
 
         BuildInitTestFramework testFramework = null;
@@ -176,8 +177,12 @@ public class InitBuild extends DefaultTask {
         }
 
         String projectName = this.projectName;
-        if (isNullOrEmpty(projectName)) {
-            projectName = inputHandler.askQuestion("Project name", getProjectName());
+        if (initDescriptor.supportsProjectName()) {
+            if (isNullOrEmpty(projectName)) {
+                projectName = inputHandler.askQuestion("Project name", getProjectName());
+            }
+        } else if (!isNullOrEmpty(projectName)) {
+            throw new GradleException("Project name is not supported for '" + type + "' setup type.");
         }
 
         String packageName = this.packageName;
@@ -200,7 +205,7 @@ public class InitBuild extends DefaultTask {
     @OptionValues("type")
     @SuppressWarnings("unused")
     public List<String> getAvailableBuildTypes() {
-        return getProjectLayoutRegistry().getSupportedTypes();
+        return getProjectLayoutRegistry().getAllTypes();
     }
 
     /**

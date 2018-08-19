@@ -36,6 +36,11 @@ public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor 
     }
 
     @Override
+    public String getId() {
+        return BuildInitTypeIds.JAVA_LIBRARY;
+    }
+
+    @Override
     protected TemplateOperation sourceTemplateOperation(InitSettings settings) {
         return fromClazzTemplate("javalibrary/Library.java.template",  settings, "main");
     }

@@ -24,9 +24,9 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT;
 import static org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME;
 import static org.gradle.api.plugins.JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME;
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.TESTNG;
 

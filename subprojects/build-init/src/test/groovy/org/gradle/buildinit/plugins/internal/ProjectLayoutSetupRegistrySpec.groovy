@@ -24,52 +24,58 @@ import spock.lang.Specification
 class ProjectLayoutSetupRegistrySpec extends Specification {
     ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry()
 
-    def "can add multiple projectlayoutdescriptors"() {
+    def "can add multiple descriptors"() {
         when:
-        registry.add("desc1", Mock(ProjectInitDescriptor))
-        registry.add("desc2", Mock(ProjectInitDescriptor))
-        registry.add("desc3", Mock(ProjectInitDescriptor))
+        registry.add(descriptor("desc1"))
+        registry.add(descriptor("desc2"))
+        registry.add(descriptor("desc3"))
+
         then:
-        registry.supports("desc1")
         registry.get("desc1") != null
-
-        registry.supports("desc2")
         registry.get("desc2") != null
-
-        registry.supports("desc3")
         registry.get("desc3") != null
     }
 
     def "cannot add multiple descriptors with same id"() {
         when:
-        registry.add("desc1", Mock(ProjectInitDescriptor))
-        registry.add("desc1", Mock(ProjectInitDescriptor))
+        registry.add(descriptor("desc1"))
+        registry.add(descriptor("desc1"))
+
         then:
         def e = thrown(GradleException)
         e.message == "ProjectDescriptor with ID 'desc1' already registered."
     }
 
-    def "getSupportedTypes lists all registered types"() {
+    def "getAllTypes lists all registered types"() {
         setup:
-        registry.add("desc1", Mock(ProjectInitDescriptor))
-        registry.add("desc2", Mock(ProjectInitDescriptor))
-        registry.add("desc3", Mock(ProjectInitDescriptor))
+        registry.add(descriptor("desc1"))
+        registry.add(descriptor("desc2"))
+        registry.add(descriptor("desc3"))
+
         expect:
-        registry.getSupportedTypes() == ["desc1", "desc2", "desc3"]
+        registry.getAllTypes() == ["desc1", "desc2", "desc3"]
     }
 
     def "lookup fails for unknown type"() {
         setup:
-        registry.add("desc1", Mock(ProjectInitDescriptor))
-        registry.add("desc2", Mock(ProjectInitDescriptor))
-        registry.add("desc3", Mock(ProjectInitDescriptor))
+        registry.add(descriptor("desc1"))
+        registry.add(descriptor("desc2"))
+        registry.add(descriptor("desc3"))
+
         when:
         registry.get("unknown")
+
         then:
         def e = thrown(GradleException)
         e.message == TextUtil.toPlatformLineSeparators("""The requested build setup type 'unknown' is not supported. Supported types:
   - 'desc1'
   - 'desc2'
   - 'desc3'""")
+    }
+
+    def descriptor(String id) {
+        def descriptor = Mock(ProjectInitDescriptor)
+        descriptor.id >> id
+        return descriptor
     }
 }

@@ -18,7 +18,6 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matcher
 import spock.lang.Unroll
 
@@ -241,6 +240,14 @@ include("child")
         failure.assertHasCause("The requested test framework 'spock' is not supported for 'basic' setup type. Supported frameworks: 'none'")
     }
 
+    def "gives decent error message when project name option is not supported by specific type"() {
+        when:
+        fails('init', '--type', 'pom', '--project-name', 'thing')
+
+        then:
+        failure.assertHasCause("Project name is not supported for 'pom' setup type.")
+    }
+
     def "gives decent error message when package name option is not supported by specific type"() {
         when:
         fails('init', '--type', 'basic', '--package', 'thing')
@@ -300,18 +307,6 @@ include("child")
 
     private ExecutionResult runInitWith(BuildInitDsl dsl) {
         run 'init', '--dsl', dsl.id
-    }
-
-    private TestFile pom() {
-        file("pom.xml") << """
-      <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-        <modelVersion>4.0.0</modelVersion>
-        <groupId>util</groupId>
-        <artifactId>util</artifactId>
-        <version>2.5</version>
-        <packaging>jar</packaging>
-      </project>"""
     }
 
     private static pomValuesUsed(ScriptDslFixture dslFixture) {

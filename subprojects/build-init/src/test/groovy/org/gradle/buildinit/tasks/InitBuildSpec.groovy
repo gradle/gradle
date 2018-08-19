@@ -20,7 +20,6 @@ import org.gradle.api.GradleException
 import org.gradle.buildinit.plugins.internal.BuildInitTypeIds
 import org.gradle.buildinit.plugins.internal.ProjectInitDescriptor
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.gradle.util.TextUtil
@@ -52,10 +51,12 @@ class InitBuildSpec extends Specification {
         init.projectLayoutRegistry = projectLayoutRegistry
     }
 
-    def "delegates task action to referenced setupDescriptor"() {
+    def "creates project with all defaults"() {
         given:
-        supportedType(BuildInitTypeIds.BASIC, projectSetupDescriptor)
-        projectSetupDescriptor.testFrameworks >> []
+        projectLayoutRegistry.get(BuildInitTypeIds.BASIC) >> projectSetupDescriptor
+        projectSetupDescriptor.dsls >> [GROOVY]
+        projectSetupDescriptor.testFrameworks >> [NONE]
+        projectSetupDescriptor.defaultTestFramework >> NONE
 
         when:
         init.setupProjectLayout()
@@ -64,11 +65,11 @@ class InitBuildSpec extends Specification {
         1 * projectSetupDescriptor.generate({it.dsl == GROOVY && it.testFramework == NONE})
     }
 
-    def "should delegate to setup descriptor with specified type and dsl and test framework"() {
+    def "creates project with specified type and dsl and test framework"() {
         given:
-        supportedType(BuildInitTypeIds.JAVA_LIBRARY, projectSetupDescriptor)
+        projectLayoutRegistry.get("java-library") >> projectSetupDescriptor
         projectSetupDescriptor.testFrameworks >> [SPOCK]
-        projectSetupDescriptor.supports(KOTLIN) >> true
+        projectSetupDescriptor.dsls >> [GROOVY, KOTLIN]
         init.type = "java-library"
         init.dsl = "kotlin"
         init.testFramework = "spock"
@@ -80,27 +81,12 @@ class InitBuildSpec extends Specification {
         1 * projectSetupDescriptor.generate({it.dsl == KOTLIN && it.testFramework == SPOCK})
     }
 
-    def "should throw exception if requested test framework is not supported"() {
-        given:
-        supportedType(BuildInitTypeIds.BASIC, projectSetupDescriptor)
-        init.testFramework = "unknown"
-        projectSetupDescriptor.testFrameworks >> [NONE, JUNIT]
-
-        when:
-        init.setupProjectLayout()
-
-        then:
-        GradleException e = thrown()
-        e.message == TextUtil.toPlatformLineSeparators("""The requested test framework 'unknown' is not supported for 'basic' setup type. Supported frameworks:
-  - 'none'
-  - 'junit'""")
-    }
-
     def "should throw exception if requested test framework is not supported for the specified type"() {
         given:
-        supportedType(BuildInitTypeIds.BASIC, projectSetupDescriptor)
-        init.testFramework = "spock"
+        projectLayoutRegistry.get(BuildInitTypeIds.BASIC) >> projectSetupDescriptor
+        projectSetupDescriptor.dsls >> [GROOVY]
         projectSetupDescriptor.testFrameworks >> [NONE, JUNIT]
+        init.testFramework = "spock"
 
         when:
         init.setupProjectLayout()
@@ -114,9 +100,8 @@ class InitBuildSpec extends Specification {
 
     def "should throw exception if requested DSL is not supported for the specified type"() {
         given:
-        supportedType(BuildInitTypeIds.POM, projectSetupDescriptor)
-        projectSetupDescriptor.supports(KOTLIN) >> false
-        init.type = BuildInitTypeIds.POM
+        projectLayoutRegistry.get(BuildInitTypeIds.BASIC) >> projectSetupDescriptor
+        projectSetupDescriptor.dsls >> [GROOVY]
         init.dsl = "kotlin"
 
         when:
@@ -124,12 +109,39 @@ class InitBuildSpec extends Specification {
 
         then:
         GradleException e = thrown()
-        e.message == "The requested DSL 'kotlin' is not supported for 'pom' setup type"
+        e.message == "The requested DSL 'kotlin' is not supported for 'basic' setup type"
     }
 
-    private void supportedType(String type, BuildInitDsl dsl = GROOVY, ProjectInitDescriptor projectSetupDescriptor) {
-        projectSetupDescriptor.supports(dsl) >> true
-        projectLayoutRegistry.get(type) >> projectSetupDescriptor
-        projectSetupDescriptor.defaultTestFramework >> NONE
+    def "should throw exception if project name is not supported for the specified type"() {
+        given:
+        projectLayoutRegistry.get(BuildInitTypeIds.BASIC) >> projectSetupDescriptor
+        projectSetupDescriptor.dsls >> [GROOVY]
+        projectSetupDescriptor.testFrameworks >> [NONE]
+        projectSetupDescriptor.supportsProjectName()
+        init.projectName = "other"
+
+        when:
+        init.setupProjectLayout()
+
+        then:
+        GradleException e = thrown()
+        e.message == "Project name is not supported for 'basic' setup type."
     }
+
+    def "should throw exception if package name is not supported for the specified type"() {
+        given:
+        projectLayoutRegistry.get(BuildInitTypeIds.BASIC) >> projectSetupDescriptor
+        projectSetupDescriptor.dsls >> [GROOVY]
+        projectSetupDescriptor.testFrameworks >> [NONE]
+        projectSetupDescriptor.supportsPackage()
+        init.packageName = "other"
+
+        when:
+        init.setupProjectLayout()
+
+        then:
+        GradleException e = thrown()
+        e.message == "Package name is not supported for 'basic' setup type."
+    }
+
 }

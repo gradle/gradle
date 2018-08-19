@@ -40,6 +40,11 @@ public class PomProjectInitDescriptor implements ProjectInitDescriptor {
     }
 
     @Override
+    public String getId() {
+        return BuildInitTypeIds.POM;
+    }
+
+    @Override
     public void generate(InitSettings initSettings) {
         SingleMessageLogger.incubatingFeatureUsed("Maven to Gradle conversion");
         File pom = fileResolver.resolve("pom.xml");
@@ -53,8 +58,18 @@ public class PomProjectInitDescriptor implements ProjectInitDescriptor {
     }
 
     @Override
-    public boolean supports(BuildInitDsl dsl) {
-        return BuildInitDsl.GROOVY == dsl;
+    public boolean supportsProjectName() {
+        return false;
+    }
+
+    @Override
+    public boolean canApplyToCurrentDirectory() {
+        return fileResolver.resolve("pom.xml").isFile();
+    }
+
+    @Override
+    public Set<BuildInitDsl> getDsls() {
+        return Collections.singleton(BuildInitDsl.GROOVY);
     }
 
     @Override

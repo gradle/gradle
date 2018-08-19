@@ -19,14 +19,21 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
+import java.util.TreeSet;
 
 public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescriptor {
     private final BuildScriptBuilderFactory scriptBuilderFactory;
 
     public BasicTemplateBasedProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory) {
         this.scriptBuilderFactory = scriptBuilderFactory;
+    }
+
+    @Override
+    public String getId() {
+        return BuildInitTypeIds.BASIC;
     }
 
     @Override
@@ -39,7 +46,17 @@ public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescr
     }
 
     @Override
-    public boolean supports(BuildInitDsl dsl) {
+    public boolean canApplyToCurrentDirectory() {
+        return true;
+    }
+
+    @Override
+    public Set<BuildInitDsl> getDsls() {
+        return new TreeSet<BuildInitDsl>(Arrays.asList(BuildInitDsl.values()));
+    }
+
+    @Override
+    public boolean supportsProjectName() {
         return true;
     }
 
