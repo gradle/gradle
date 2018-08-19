@@ -156,7 +156,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
             selector = Selector.open();
             socket.register(selector, SelectionKey.OP_READ);
             buffer = ByteBuffer.allocateDirect(4096);
-            buffer.limit(0);
+            ((Buffer)buffer).limit(0);
         }
 
         @Override
@@ -190,8 +190,8 @@ public class SocketConnection<T> implements RemoteConnection<T> {
                     nread = socket.read(buffer);
                 } catch (IOException e) {
                     if (isEndOfStream(e)) {
-                        buffer.position(0);
-                        buffer.limit(0);
+                        ((Buffer)buffer).position(0);
+                        ((Buffer)buffer).limit(0);
                         return -1;
                     }
                     throw e;
