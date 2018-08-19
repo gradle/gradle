@@ -17,8 +17,11 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
+@Requires(TestPrecondition.JDK8_OR_LATER)
 class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_APP_CLASS = "src/main/kotlin/App.kt"
