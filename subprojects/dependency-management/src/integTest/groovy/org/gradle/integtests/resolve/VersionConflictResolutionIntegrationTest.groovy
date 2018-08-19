@@ -1647,10 +1647,8 @@ task checkDeps(dependsOn: configurations.compile) {
     def "shouldn't fail when forcing a dynamic version in resolution strategy"() {
 
         given:
-        def m1 = mavenRepo.module("org.codehaus.groovy", "groovy", "2.4.15").publish()
-        def m2 = mavenRepo.module("org.codehaus.groovy", "groovy-json", "2.4.15")
-            .dependsOn(m1)
-            .publish()
+        mavenRepo.module("org", "moduleA", "1.1").publish()
+
         buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
@@ -1658,15 +1656,15 @@ task checkDeps(dependsOn: configurations.compile) {
             configurations {
                 conf { 
                    resolutionStrategy {
-                      force "org.codehaus.groovy:groovy:2.4.+"
+                      force "org:moduleA:1.+"
                       failOnVersionConflict() 
                    }
                 }
             }
             
             dependencies {
-               conf("org.codehaus.groovy:groovy:2.4.+")
-               conf("org.codehaus.groovy:groovy-json:2.4.15")
+               conf("org:moduleA:1.+")
+               conf("org:moduleA:1.1")
             }
         """
 
