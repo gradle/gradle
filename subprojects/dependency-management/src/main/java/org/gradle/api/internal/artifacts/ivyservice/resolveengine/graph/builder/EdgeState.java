@@ -195,7 +195,7 @@ class EdgeState implements DependencyGraphEdge {
 
     @Override
     public boolean contributesArtifacts() {
-        return !dependencyMetadata.isPending();
+        return !dependencyMetadata.isConstraint();
     }
 
     @Override

@@ -374,7 +374,7 @@ class NodeState implements DependencyGraphNode {
             if (dependencyEdge.isTransitive()) {
                 // Transitive dependency
                 edgeExclusions = excludedByBoth(edgeExclusions, dependencyEdge.getExclusions());
-            } else if (dependencyEdge.getDependencyMetadata().isPending()) {
+            } else if (dependencyEdge.getDependencyMetadata().isConstraint()) {
                 // Constraint: only consider explicit exclusions declared for this constraint
                 ModuleExclusion constraintExclusions = dependencyEdge.getEdgeExclusions();
                 nodeExclusions = excludedByEither(nodeExclusions, constraintExclusions);

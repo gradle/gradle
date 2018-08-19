@@ -177,8 +177,8 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         then:
         if (supportedInMetadata(metadataType)) {
             assert dependencies.size() == 2
-            assert dependencies[0].pending == addAllDependenciesAsConstraints()
-            assert dependencies[1].pending == addAllDependenciesAsConstraints()
+            assert dependencies[0].constraint == addAllDependenciesAsConstraints()
+            assert dependencies[1].constraint == addAllDependenciesAsConstraints()
         } else {
             assert dependencies.empty
         }
@@ -214,7 +214,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
             assert dependencies[0].selector.version == "2.0"
             assert dependencies[0].selector.versionConstraint.strictVersion == "2.0"
             assert dependencies[0].selector.versionConstraint.rejectedVersions[0] == "[3.0,)"
-            assert dependencies[0].pending == addAllDependenciesAsConstraints()
+            assert dependencies[0].constraint == addAllDependenciesAsConstraints()
         } else {
             assert dependencies.empty
         }

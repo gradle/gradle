@@ -114,7 +114,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
     private void addDependencyMetadata(DependencyMetadata dependencyMetadata) {
         String reason = dependencyMetadata.getReason();
-        ComponentSelectionDescriptorInternal dependencyDescriptor = dependencyMetadata.isPending() ? CONSTRAINT : REQUESTED;
+        ComponentSelectionDescriptorInternal dependencyDescriptor = dependencyMetadata.isConstraint() ? CONSTRAINT : REQUESTED;
         if (reason != null) {
             dependencyDescriptor = dependencyDescriptor.withReason(Describables.of(reason));
         }
