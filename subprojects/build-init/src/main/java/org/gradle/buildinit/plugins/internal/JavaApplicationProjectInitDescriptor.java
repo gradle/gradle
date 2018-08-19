@@ -25,6 +25,11 @@ public class JavaApplicationProjectInitDescriptor extends JavaProjectInitDescrip
     }
 
     @Override
+    public String getId() {
+        return BuildInitTypeIds.JAVA_APPLICATION;
+    }
+
+    @Override
     protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         super.configureBuildScript(settings, buildScriptBuilder);
         buildScriptBuilder

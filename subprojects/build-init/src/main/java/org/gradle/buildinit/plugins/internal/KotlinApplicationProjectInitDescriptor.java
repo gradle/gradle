@@ -28,6 +28,11 @@ public class KotlinApplicationProjectInitDescriptor extends LanguageLibraryProje
     }
 
     @Override
+    public String getId() {
+        return BuildInitTypeIds.KOTLIN_APPLICATION;
+    }
+
+    @Override
     public BuildInitTestFramework getDefaultTestFramework() {
         return BuildInitTestFramework.KOTLINTEST;
     }

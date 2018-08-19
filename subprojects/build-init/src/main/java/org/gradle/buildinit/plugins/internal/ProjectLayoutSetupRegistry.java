@@ -16,35 +16,32 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.util.CollectionUtils;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class ProjectLayoutSetupRegistry {
-    private final static Logger LOGGER = Logging.getLogger(ProjectLayoutSetupRegistry.class);
-    private final Map<String, ProjectInitDescriptor> registeredProjectDescriptors = new HashMap<String, ProjectInitDescriptor>();
+    private final Map<String, ProjectInitDescriptor> registeredProjectDescriptors = new TreeMap<String, ProjectInitDescriptor>();
 
-    public void add(final String descriptorID, ProjectInitDescriptor descriptor) {
-        if (registeredProjectDescriptors.containsKey(descriptorID)) {
-            throw new GradleException(String.format("ProjectDescriptor with ID '%s' already registered.", descriptorID));
+    public void add(ProjectInitDescriptor descriptor) {
+        if (registeredProjectDescriptors.containsKey(descriptor.getId())) {
+            throw new GradleException(String.format("ProjectDescriptor with ID '%s' already registered.", descriptor.getId()));
         }
 
-        registeredProjectDescriptors.put(descriptorID, descriptor);
-        LOGGER.debug("registered setupDescriptor {}", descriptorID);
+        registeredProjectDescriptors.put(descriptor.getId(), descriptor);
     }
 
     public ProjectInitDescriptor get(String type) {
-        if (!supports(type)) {
+        if (!registeredProjectDescriptors.containsKey(type)) {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node("The requested build setup type '" + type + "' is not supported. Supported types");
             formatter.startChildren();
-            for (String supportedType : getSupportedTypes()) {
-                formatter.node("'" + supportedType + "'");
+            for (String candidate : getAllTypes()) {
+                formatter.node("'" + candidate + "'");
             }
             formatter.endChildren();
             throw new GradleException(formatter.toString());
@@ -56,12 +53,21 @@ public class ProjectLayoutSetupRegistry {
         return CollectionUtils.toList(registeredProjectDescriptors.values());
     }
 
-    public List<String> getSupportedTypes() {
-        return CollectionUtils.sort(registeredProjectDescriptors.keySet());
+    public List<String> getTypesApplicableToCurrentDirectory() {
+        List<String> result = new ArrayList<String>(registeredProjectDescriptors.size());
+        for (ProjectInitDescriptor initDescriptor : registeredProjectDescriptors.values()) {
+            if (initDescriptor.canApplyToCurrentDirectory()) {
+                result.add(initDescriptor.getId());
+            }
+        }
+        return result;
     }
 
-    public boolean supports(String type) {
-        return registeredProjectDescriptors.containsKey(type);
+    public List<String> getAllTypes() {
+        List<String> result = new ArrayList<String>(registeredProjectDescriptors.size());
+        for (ProjectInitDescriptor initDescriptor : registeredProjectDescriptors.values()) {
+            result.add(initDescriptor.getId());
+        }
+        return result;
     }
-
 }

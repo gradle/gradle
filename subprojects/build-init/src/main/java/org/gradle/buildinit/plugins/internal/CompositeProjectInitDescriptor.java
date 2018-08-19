@@ -32,13 +32,28 @@ public class CompositeProjectInitDescriptor implements ProjectInitDescriptor {
     }
 
     @Override
-    public boolean supports(BuildInitDsl dsl) {
-        return descriptor.supports(dsl);
+    public String getId() {
+        return descriptor.getId();
+    }
+
+    @Override
+    public boolean canApplyToCurrentDirectory() {
+        return descriptor.canApplyToCurrentDirectory();
+    }
+
+    @Override
+    public boolean supportsProjectName() {
+        return descriptor.supportsProjectName();
     }
 
     @Override
     public boolean supportsPackage() {
         return descriptor.supportsPackage();
+    }
+
+    @Override
+    public Set<BuildInitDsl> getDsls() {
+        return descriptor.getDsls();
     }
 
     @Override

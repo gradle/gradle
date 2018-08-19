@@ -21,6 +21,13 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.TextUtil
 
 class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
+
+    String projectTypePrompt = "Select type of project to generate:"
+    String dslPrompt = "Select build script DSL:"
+    String basicType = "1. basic"
+    String pomType = "8. pom"
+    String projectNamePrompt = "Project name (default: $testDirectory.name)"
+
     def "prompts user when run from an interactive session"() {
         when:
         executer.withForceInteractive(true)
@@ -30,19 +37,21 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         // Select 'basic'
         ConcurrentTestUtil.poll(20) {
-            assert handle.standardOutput.contains("Select type of project to generate:")
+            assert handle.standardOutput.contains(projectTypePrompt)
+            assert handle.standardOutput.contains(basicType)
+            assert !handle.standardOutput.contains(pomType)
         }
         handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'kotlin'
         ConcurrentTestUtil.poll {
-            assert handle.standardOutput.contains("Select build script DSL:")
+            assert handle.standardOutput.contains(dslPrompt)
         }
         handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
 
         // Select default project name
         ConcurrentTestUtil.poll {
-            assert handle.standardOutput.contains("Project name (default: $testDirectory.name)")
+            assert handle.standardOutput.contains(projectNamePrompt)
         }
         handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
         handle.stdinPipe.close()
@@ -50,5 +59,31 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         dslFixtureFor(BuildInitDsl.KOTLIN).assertGradleFilesGenerated()
+    }
+
+    def "prompts user when run from an interactive session and pom.xml present"() {
+        when:
+        pom()
+
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks("init")
+        def handle = executer.start()
+
+        // Select 'pom'
+        ConcurrentTestUtil.poll(20) {
+            assert handle.standardOutput.contains(projectTypePrompt)
+            assert handle.standardOutput.contains(basicType)
+            assert handle.standardOutput.contains(pomType)
+        }
+        handle.stdinPipe.write(("8" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        !handle.standardOutput.contains(dslPrompt)
+        !handle.standardOutput.contains(projectNamePrompt)
+
+        then:
+        dslFixtureFor(BuildInitDsl.GROOVY).assertGradleFilesGenerated()
     }
 }

@@ -25,6 +25,11 @@ public class GroovyApplicationProjectInitDescriptor extends GroovyProjectInitDes
     }
 
     @Override
+    public String getId() {
+        return BuildInitTypeIds.GROOVY_APPLICATION;
+    }
+
+    @Override
     protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder
             .plugin(

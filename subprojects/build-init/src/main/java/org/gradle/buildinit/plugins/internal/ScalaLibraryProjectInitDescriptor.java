@@ -34,6 +34,11 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     @Override
+    public String getId() {
+        return BuildInitTypeIds.SCALA_LIBRARY;
+    }
+
+    @Override
     public void generate(InitSettings settings) {
         String scalaVersion = libraryVersionProvider.getVersion("scala");
         String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");

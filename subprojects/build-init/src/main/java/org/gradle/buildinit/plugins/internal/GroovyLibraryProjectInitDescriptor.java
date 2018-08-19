@@ -26,6 +26,11 @@ public class GroovyLibraryProjectInitDescriptor extends GroovyProjectInitDescrip
     }
 
     @Override
+    public String getId() {
+        return BuildInitTypeIds.GROOVY_LIBRARY;
+    }
+
+    @Override
     protected TemplateOperation sourceTemplateOperation(InitSettings settings) {
         return fromClazzTemplate("groovylibrary/Library.groovy.template", settings, "main");
     }

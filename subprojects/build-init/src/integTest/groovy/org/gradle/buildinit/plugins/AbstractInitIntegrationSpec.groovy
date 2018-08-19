@@ -20,6 +20,7 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.test.fixtures.file.TestFile
 
 class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -42,5 +43,17 @@ class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
 
     protected ScriptDslFixture dslFixtureFor(BuildInitDsl dsl) {
         ScriptDslFixture.of(dsl, testDirectory)
+    }
+
+    protected TestFile pom() {
+        file("pom.xml") << """
+      <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>util</groupId>
+        <artifactId>util</artifactId>
+        <version>2.5</version>
+        <packaging>jar</packaging>
+      </project>"""
     }
 }

@@ -42,15 +42,15 @@ public class ProjectLayoutSetupRegistryFactory {
         BuildContentGenerator resourcesGenerator = new ResourceDirsGenerator(fileResolver);
         List<BuildContentGenerator> jvmProjectGenerators = ImmutableList.of(settingsDescriptor, resourcesGenerator);
         List<BuildContentGenerator> commonGenerators = ImmutableList.of(settingsDescriptor);
-        registry.add(BuildInitTypeIds.JAVA_LIBRARY, of(new JavaLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
-        registry.add(BuildInitTypeIds.JAVA_APPLICATION, of(new JavaApplicationProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider,  documentationRegistry), jvmProjectGenerators));
-        registry.add(BuildInitTypeIds.GROOVY_APPLICATION, of(new GroovyApplicationProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
-        registry.add(BuildInitTypeIds.GROOVY_LIBRARY, of(new GroovyLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
-        registry.add(BuildInitTypeIds.SCALA_LIBRARY, of(new ScalaLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
-        registry.add(BuildInitTypeIds.KOTLIN_APPLICATION, of(new KotlinApplicationProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider), jvmProjectGenerators));
-        registry.add(BuildInitTypeIds.KOTLIN_LIBRARY, of(new KotlinLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider), jvmProjectGenerators));
-        registry.add(BuildInitTypeIds.BASIC, of(new BasicTemplateBasedProjectInitDescriptor(scriptBuilderFactory), commonGenerators));
-        registry.add(BuildInitTypeIds.POM, new PomProjectInitDescriptor(fileResolver, mavenSettingsProvider));
+        registry.add(of(new JavaLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
+        registry.add(of(new JavaApplicationProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider,  documentationRegistry), jvmProjectGenerators));
+        registry.add(of(new GroovyApplicationProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
+        registry.add(of(new GroovyLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
+        registry.add(of(new ScalaLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
+        registry.add(of(new KotlinApplicationProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider), jvmProjectGenerators));
+        registry.add(of(new KotlinLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider), jvmProjectGenerators));
+        registry.add(of(new BasicTemplateBasedProjectInitDescriptor(scriptBuilderFactory), commonGenerators));
+        registry.add(new PomProjectInitDescriptor(fileResolver, mavenSettingsProvider));
         return registry;
     }
 

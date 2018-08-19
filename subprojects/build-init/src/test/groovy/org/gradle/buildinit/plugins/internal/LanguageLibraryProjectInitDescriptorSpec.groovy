@@ -104,6 +104,11 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
         }
 
         @Override
+        String getId() {
+            return "test"
+        }
+
+        @Override
         void generate(InitSettings settings) {
         }
 
