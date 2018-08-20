@@ -26,6 +26,15 @@ import java.util.TreeMap;
 
 public class ProjectLayoutSetupRegistry {
     private final Map<String, ProjectInitDescriptor> registeredProjectDescriptors = new TreeMap<String, ProjectInitDescriptor>();
+    private final ProjectInitDescriptor defaultType;
+    private final BuildConverter converter;
+
+    public ProjectLayoutSetupRegistry(ProjectInitDescriptor defaultType, BuildConverter converter) {
+        this.defaultType = defaultType;
+        this.converter = converter;
+        add(defaultType);
+        add(converter);
+    }
 
     public void add(ProjectInitDescriptor descriptor) {
         if (registeredProjectDescriptors.containsKey(descriptor.getId())) {
@@ -33,6 +42,15 @@ public class ProjectLayoutSetupRegistry {
         }
 
         registeredProjectDescriptors.put(descriptor.getId(), descriptor);
+    }
+
+    // This should turn into a set of converters at some point
+    public BuildConverter getBuildConverter() {
+        return converter;
+    }
+
+    public ProjectInitDescriptor getDefault() {
+        return defaultType;
     }
 
     public ProjectInitDescriptor get(String type) {
@@ -53,10 +71,10 @@ public class ProjectLayoutSetupRegistry {
         return CollectionUtils.toList(registeredProjectDescriptors.values());
     }
 
-    public List<String> getTypesApplicableToCurrentDirectory() {
+    public List<String> getBuildGenerators() {
         List<String> result = new ArrayList<String>(registeredProjectDescriptors.size());
         for (ProjectInitDescriptor initDescriptor : registeredProjectDescriptors.values()) {
-            if (initDescriptor.canApplyToCurrentDirectory()) {
+            if (initDescriptor != converter) {
                 result.add(initDescriptor.getId());
             }
         }

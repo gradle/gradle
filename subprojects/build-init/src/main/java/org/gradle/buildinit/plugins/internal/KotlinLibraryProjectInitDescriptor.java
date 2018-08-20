@@ -30,7 +30,7 @@ public class KotlinLibraryProjectInitDescriptor extends LanguageLibraryProjectIn
 
     @Override
     public String getId() {
-        return BuildInitTypeIds.KOTLIN_LIBRARY;
+        return "kotlin-library";
     }
 
     @Override

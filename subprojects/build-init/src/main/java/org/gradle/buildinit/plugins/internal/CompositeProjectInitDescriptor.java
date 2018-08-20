@@ -37,11 +37,6 @@ public class CompositeProjectInitDescriptor implements ProjectInitDescriptor {
     }
 
     @Override
-    public boolean canApplyToCurrentDirectory() {
-        return descriptor.canApplyToCurrentDirectory();
-    }
-
-    @Override
     public boolean supportsProjectName() {
         return descriptor.supportsProjectName();
     }

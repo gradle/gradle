@@ -36,11 +36,6 @@ public class LanguageSpecificProjectInitDescriptor implements ProjectInitDescrip
     }
 
     @Override
-    public boolean canApplyToCurrentDirectory() {
-        return true;
-    }
-
-    @Override
     public BuildInitDsl getDefaultDsl() {
         return generator.getDefaultDsl();
     }

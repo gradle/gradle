@@ -35,13 +35,15 @@ public class ProjectLayoutSetupRegistryFactory {
 
     public ProjectLayoutSetupRegistry createProjectLayoutSetupRegistry() {
         DefaultTemplateLibraryVersionProvider libraryVersionProvider = new DefaultTemplateLibraryVersionProvider();
-        ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry();
         TemplateOperationFactory templateOperationBuilder = new TemplateOperationFactory("/org/gradle/buildinit/tasks/templates", fileResolver, documentationRegistry);
         BuildScriptBuilderFactory scriptBuilderFactory = new BuildScriptBuilderFactory(fileResolver);
         BuildContentGenerator settingsDescriptor = new SimpleGlobalFilesBuildSettingsDescriptor(scriptBuilderFactory, documentationRegistry);
         BuildContentGenerator resourcesGenerator = new ResourceDirsGenerator(fileResolver);
         List<BuildContentGenerator> jvmProjectGenerators = ImmutableList.of(settingsDescriptor, resourcesGenerator);
         List<BuildContentGenerator> commonGenerators = ImmutableList.of(settingsDescriptor);
+        ProjectInitDescriptor basicType = of(new BasicTemplateBasedProjectInitDescriptor(scriptBuilderFactory), commonGenerators);
+        PomProjectInitDescriptor mavenBuildConverter = new PomProjectInitDescriptor(fileResolver, mavenSettingsProvider);
+        ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry(basicType, mavenBuildConverter);
         registry.add(of(new JavaLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
         registry.add(of(new JavaApplicationProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider,  documentationRegistry), jvmProjectGenerators));
         registry.add(of(new GroovyApplicationProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
@@ -49,8 +51,6 @@ public class ProjectLayoutSetupRegistryFactory {
         registry.add(of(new ScalaLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
         registry.add(of(new KotlinApplicationProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider), jvmProjectGenerators));
         registry.add(of(new KotlinLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider), jvmProjectGenerators));
-        registry.add(of(new BasicTemplateBasedProjectInitDescriptor(scriptBuilderFactory), commonGenerators));
-        registry.add(new PomProjectInitDescriptor(fileResolver, mavenSettingsProvider));
         return registry;
     }
 

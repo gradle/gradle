@@ -35,7 +35,7 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
 
     @Override
     public String getId() {
-        return BuildInitTypeIds.SCALA_LIBRARY;
+        return "scala-library";
     }
 
     @Override

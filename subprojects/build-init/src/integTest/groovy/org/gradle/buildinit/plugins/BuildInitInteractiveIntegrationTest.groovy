@@ -25,8 +25,8 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
     String projectTypePrompt = "Select type of project to generate:"
     String dslPrompt = "Select build script DSL:"
     String basicType = "1. basic"
-    String pomType = "8. pom"
     String projectNamePrompt = "Project name (default: $testDirectory.name)"
+    String convertMavenBuildPrompt = "Found a Maven build. Generate a Gradle build from this?"
 
     def "prompts user when run from an interactive session"() {
         when:
@@ -39,7 +39,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ConcurrentTestUtil.poll(20) {
             assert handle.standardOutput.contains(projectTypePrompt)
             assert handle.standardOutput.contains(basicType)
-            assert !handle.standardOutput.contains(pomType)
+            assert !handle.standardOutput.contains("pom")
         }
         handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
 
@@ -70,20 +70,60 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         executer.withTasks("init")
         def handle = executer.start()
 
-        // Select 'pom'
+        // Select 'yes'
         ConcurrentTestUtil.poll(20) {
-            assert handle.standardOutput.contains(projectTypePrompt)
-            assert handle.standardOutput.contains(basicType)
-            assert handle.standardOutput.contains(pomType)
+            assert handle.standardOutput.contains(convertMavenBuildPrompt)
         }
-        handle.stdinPipe.write(("8" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
         handle.stdinPipe.close()
         handle.waitForFinish()
 
+        !handle.standardOutput.contains(projectTypePrompt)
         !handle.standardOutput.contains(dslPrompt)
         !handle.standardOutput.contains(projectNamePrompt)
 
         then:
         dslFixtureFor(BuildInitDsl.GROOVY).assertGradleFilesGenerated()
+    }
+
+    def "user can skip Maven conversion when pom.xml present"() {
+        when:
+        pom()
+
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks("init")
+        def handle = executer.start()
+
+        // Select 'no'
+        ConcurrentTestUtil.poll(20) {
+            assert handle.standardOutput.contains(convertMavenBuildPrompt)
+        }
+        handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'basic'
+        ConcurrentTestUtil.poll(20) {
+            assert handle.standardOutput.contains(projectTypePrompt)
+            assert handle.standardOutput.contains(basicType)
+            assert !handle.standardOutput.contains("pom")
+        }
+        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'kotlin'
+        ConcurrentTestUtil.poll {
+            assert handle.standardOutput.contains(dslPrompt)
+        }
+        handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
+
+        // Select default project name
+        ConcurrentTestUtil.poll {
+            assert handle.standardOutput.contains(projectNamePrompt)
+        }
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        then:
+        dslFixtureFor(BuildInitDsl.KOTLIN).assertGradleFilesGenerated()
     }
 }
