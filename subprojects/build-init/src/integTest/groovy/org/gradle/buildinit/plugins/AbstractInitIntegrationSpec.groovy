@@ -23,30 +23,34 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 
 class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
+    final def targetDir = testDirectory.createDir("some-thing")
 
     def setup() {
         useRepositoryMirrors()
+        executer.beforeExecute {
+            executer.inDirectory(targetDir)
+        }
     }
 
     void assertTestPassed(String className, String name) {
-        def result = new DefaultTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(targetDir)
         result.assertTestClassesExecuted(className)
         result.testClass(className).assertTestPassed(name)
     }
 
     protected void commonFilesGenerated(BuildInitDsl scriptDsl) {
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
-        file("src/main/resources").assertIsDir()
-        file("src/test/resources").assertIsDir()
-        file(".gitignore").assertIsFile()
+        targetDir.file("src/main/resources").assertIsDir()
+        targetDir.file("src/test/resources").assertIsDir()
+        targetDir.file(".gitignore").assertIsFile()
     }
 
     protected ScriptDslFixture dslFixtureFor(BuildInitDsl dsl) {
-        ScriptDslFixture.of(dsl, testDirectory)
+        ScriptDslFixture.of(dsl, targetDir)
     }
 
     protected TestFile pom() {
-        file("pom.xml") << """
+        targetDir.file("pom.xml") << """
       <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <modelVersion>4.0.0</modelVersion>

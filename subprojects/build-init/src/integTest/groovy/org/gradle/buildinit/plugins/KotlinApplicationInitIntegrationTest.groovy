@@ -26,8 +26,8 @@ import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLI
 @Requires(TestPrecondition.JDK8_OR_LATER)
 class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
-    public static final String SAMPLE_APP_CLASS = "src/main/kotlin/App.kt"
-    public static final String SAMPLE_APP_TEST_CLASS = "src/test/kotlin/AppTest.kt"
+    public static final String SAMPLE_APP_CLASS = "some/thing/App.kt"
+    public static final String SAMPLE_APP_TEST_CLASS = "some/thing/AppTest.kt"
 
     def "defaults to kotlin build scripts"() {
         when:
@@ -43,15 +43,17 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'kotlin-application', '--dsl', scriptDsl.id)
 
         then:
-        file(SAMPLE_APP_CLASS).exists()
-        file(SAMPLE_APP_TEST_CLASS).exists()
+        targetDir.file("src/main/kotlin").assertHasDescendants(SAMPLE_APP_CLASS)
+        targetDir.file("src/test/kotlin").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
+
+        and:
         commonFilesGenerated(scriptDsl)
 
         when:
         run("build")
 
         then:
-        assertTestPassed("AppTest", "testAppHasAGreeting")
+        assertTestPassed("some.thing.AppTest", "testAppHasAGreeting")
 
         when:
         run("run")
@@ -69,8 +71,10 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'kotlin-application', '--package', 'my.app', '--dsl', scriptDsl.id)
 
         then:
-        file("src/main/kotlin/my/app/App.kt").exists()
-        file("src/test/kotlin/my/app/AppTest.kt").exists()
+        targetDir.file("src/main/kotlin").assertHasDescendants("my/app/App.kt")
+        targetDir.file("src/test/kotlin").assertHasDescendants("my/app/AppTest.kt")
+
+        and:
         commonFilesGenerated(scriptDsl)
 
         when:
@@ -92,13 +96,13 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "setupProjectLayout is skipped when kotlin sources detected with #scriptDsl build scripts"() {
         setup:
-        file("src/main/kotlin/org/acme/SampleMain.kt") << """
+        targetDir.file("src/main/kotlin/org/acme/SampleMain.kt") << """
         package org.acme
 
         class SampleMain {
         }
 """
-        file("src/test/kotlin/org/acme/SampleMainTest.kt") << """
+        targetDir.file("src/test/kotlin/org/acme/SampleMainTest.kt") << """
                 package org.acme
 
                 class SampleMainTest {
@@ -108,8 +112,8 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'kotlin-application', '--dsl', scriptDsl.id)
 
         then:
-        !file(SAMPLE_APP_CLASS).exists()
-        !file(SAMPLE_APP_TEST_CLASS).exists()
+        targetDir.file("src/main/kotlin").assertHasDescendants("org/acme/SampleMain.kt")
+        targetDir.file("src/test/kotlin").assertHasDescendants("org/acme/SampleMainTest.kt")
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:

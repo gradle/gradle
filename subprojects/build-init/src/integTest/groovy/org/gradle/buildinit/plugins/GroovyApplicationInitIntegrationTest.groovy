@@ -21,8 +21,8 @@ import spock.lang.Unroll
 
 class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
-    public static final String SAMPLE_APP_CLASS = "src/main/groovy/App.groovy"
-    public static final String SAMPLE_APP_SPOCK_TEST_CLASS = "src/test/groovy/AppTest.groovy"
+    public static final String SAMPLE_APP_CLASS = "some/thing/App.groovy"
+    public static final String SAMPLE_APP_TEST_CLASS = "some/thing/AppTest.groovy"
 
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
@@ -30,15 +30,17 @@ class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'groovy-application', '--dsl', scriptDsl.id)
 
         then:
-        file(SAMPLE_APP_CLASS).exists()
-        file(SAMPLE_APP_SPOCK_TEST_CLASS).exists()
+        targetDir.file("src/main/groovy").assertHasDescendants(SAMPLE_APP_CLASS)
+        targetDir.file("src/test/groovy").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
+
+        and:
         commonFilesGenerated(scriptDsl)
 
         when:
         run("build")
 
         then:
-        assertTestPassed("AppTest", "application has a greeting")
+        assertTestPassed("some.thing.AppTest", "application has a greeting")
 
         when:
         run("run")
@@ -56,15 +58,17 @@ class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'groovy-application', '--test-framework', 'spock', '--dsl', scriptDsl.id)
 
         then:
-        file(SAMPLE_APP_CLASS).exists()
-        file(SAMPLE_APP_SPOCK_TEST_CLASS).exists()
+        targetDir.file("src/main/groovy").assertHasDescendants(SAMPLE_APP_CLASS)
+        targetDir.file("src/test/groovy").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
+
+        and:
         commonFilesGenerated(scriptDsl)
 
         when:
         run("build")
 
         then:
-        assertTestPassed("AppTest", "application has a greeting")
+        assertTestPassed("some.thing.AppTest", "application has a greeting")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -88,8 +92,10 @@ class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'groovy-application', '--package', 'my.app', '--dsl', scriptDsl.id)
 
         then:
-        file("src/main/groovy/my/app/App.groovy").exists()
-        file("src/test/groovy/my/app/AppTest.groovy").exists()
+        targetDir.file("src/main/groovy").assertHasDescendants("my/app/App.groovy")
+        targetDir.file("src/test/groovy").assertHasDescendants("my/app/AppTest.groovy")
+
+        and:
         commonFilesGenerated(scriptDsl)
 
         when:
@@ -111,24 +117,24 @@ class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "source generation is skipped when groovy sources detected with #scriptDsl build scripts"() {
         setup:
-        file("src/main/groovy/org/acme/SampleMain.groovy") << """
+        targetDir.file("src/main/groovy/org/acme/SampleMain.groovy") << """
         package org.acme;
 
-        public class SampleMain{
+        public class SampleMain {
         }
 """
-        file("src/test/groovy/org/acme/SampleMainTest.groovy") << """
+        targetDir.file("src/test/groovy/org/acme/SampleMainTest.groovy") << """
                 package org.acme;
 
-                class SampleMain{
+                class SampleMainTest {
                 }
         """
         when:
         run('init', '--type', 'groovy-application', '--dsl', scriptDsl.id)
 
         then:
-        !file(SAMPLE_APP_CLASS).exists()
-        !file(SAMPLE_APP_SPOCK_TEST_CLASS).exists()
+        targetDir.file("src/main/groovy").assertHasDescendants("org/acme/SampleMain.groovy")
+        targetDir.file("src/test/groovy").assertHasDescendants("org/acme/SampleMainTest.groovy")
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:

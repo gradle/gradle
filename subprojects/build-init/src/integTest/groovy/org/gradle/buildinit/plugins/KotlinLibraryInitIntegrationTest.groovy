@@ -27,8 +27,8 @@ import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLI
 @Requires(TestPrecondition.JDK8_OR_LATER)
 class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
-    public static final String SAMPLE_LIBRARY_CLASS = "src/main/kotlin/Library.kt"
-    public static final String SAMPLE_LIBRARY_TEST_CLASS = "src/test/kotlin/LibraryTest.kt"
+    public static final String SAMPLE_LIBRARY_CLASS = "some/thing/Library.kt"
+    public static final String SAMPLE_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.kt"
 
     def "defaults to kotlin build scripts"() {
         when:
@@ -45,15 +45,17 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'kotlin-library', '--dsl', scriptDsl.id)
 
         then:
-        file(SAMPLE_LIBRARY_CLASS).exists()
-        file(SAMPLE_LIBRARY_TEST_CLASS).exists()
+        targetDir.file("src/main/kotlin").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
+        targetDir.file("src/test/kotlin").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
+
+        and:
         commonFilesGenerated(scriptDsl)
 
         when:
         run("build")
 
         then:
-        assertTestPassed("LibraryTest", "testSomeLibraryMethod")
+        assertTestPassed("some.thing.LibraryTest", "testSomeLibraryMethod")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -65,8 +67,10 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'kotlin-library', '--package', 'my.lib', '--dsl', scriptDsl.id)
 
         then:
-        file("src/main/kotlin/my/lib/Library.kt").exists()
-        file("src/test/kotlin/my/lib/LibraryTest.kt").exists()
+        targetDir.file("src/main/kotlin").assertHasDescendants("my/lib/Library.kt")
+        targetDir.file("src/test/kotlin").assertHasDescendants("my/lib/LibraryTest.kt")
+
+        and:
         commonFilesGenerated(scriptDsl)
 
         when:
@@ -82,24 +86,24 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "source generation is skipped when kotlin sources detected with #scriptDsl build scripts"() {
         setup:
-        file("src/main/kotlin/org/acme/SampleMain.kt") << """
+        targetDir.file("src/main/kotlin/org/acme/SampleMain.kt") << """
             package org.acme
 
-            class SampleMain{
+            class SampleMain {
             }
     """
-        file("src/test/kotlin/org/acme/SampleMainTest.kt") << """
+        targetDir.file("src/test/kotlin/org/acme/SampleMainTest.kt") << """
                     package org.acme
 
-                    class SampleMain{
+                    class SampleMainTest {
                     }
             """
         when:
         run('init', '--type', 'kotlin-library', '--dsl', scriptDsl.id)
 
         then:
-        !file(SAMPLE_LIBRARY_CLASS).exists()
-        !file(SAMPLE_LIBRARY_TEST_CLASS).exists()
+        targetDir.file("src/main/kotlin").assertHasDescendants("org/acme/SampleMain.kt")
+        targetDir.file("src/test/kotlin").assertHasDescendants("org/acme/SampleMainTest.kt")
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:

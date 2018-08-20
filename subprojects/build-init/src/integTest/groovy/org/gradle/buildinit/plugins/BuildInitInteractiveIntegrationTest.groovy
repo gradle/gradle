@@ -25,7 +25,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
     String projectTypePrompt = "Select type of project to generate:"
     String dslPrompt = "Select build script DSL:"
     String basicType = "1. basic"
-    String projectNamePrompt = "Project name (default: $testDirectory.name)"
+    String projectNamePrompt = "Project name (default: some-thing)"
     String convertMavenBuildPrompt = "Found a Maven build. Generate a Gradle build from this?"
 
     def "prompts user when run from an interactive session"() {
