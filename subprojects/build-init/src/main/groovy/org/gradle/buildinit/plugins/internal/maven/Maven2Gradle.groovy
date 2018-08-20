@@ -35,7 +35,7 @@ import org.gradle.util.RelativePathUtil
  * It currently supports both single-module and multi-module POMs, inheritance, dependency management, properties - everything.
  */
 class Maven2Gradle {
-    final BuildScriptBuilderFactory scriptBuilderFactory
+    private final BuildScriptBuilderFactory scriptBuilderFactory
 
     def dependentWars = []
     def workingDir
@@ -60,6 +60,8 @@ class Maven2Gradle {
         //use the Groovy XmlSlurper library to parse the text string
         this.effectivePom = new XmlSlurper().parseText(effectivePom)
 
+        def scriptBuilder = scriptBuilderFactory.script(BuildInitDsl.GROOVY, "build")
+
         String build
         def multimodule = this.effectivePom.name() == "projects"
 
@@ -71,13 +73,12 @@ class Maven2Gradle {
                 dependencies[project.artifactId.text()] = getDependencies(project, allProjects)
             }
 
+            def allprojectsBuilder = scriptBuilder.allprojects()
+            allprojectsBuilder.plugin(null, "maven")
+            getArtifactData(allProjects[0], allprojectsBuilder)
+
             def commonDeps = dependencies.get(allProjects[0].artifactId.text())
-            build = """allprojects  {
-  apply plugin: 'maven'
-
-  ${getArtifactData(allProjects[0])}
-}
-
+            build = """
 subprojects {
   apply plugin: 'java'
   ${compilerSettings(allProjects[0], "  ")}
@@ -136,11 +137,10 @@ subprojects {
             }
             //TODO deployment
         } else {//simple
-            build = """apply plugin: 'java'
-apply plugin: 'maven'
-
-${getArtifactData(this.effectivePom)}
-
+            scriptBuilder.plugin(null, 'java')
+            scriptBuilder.plugin(null, 'maven')
+            getArtifactData(this.effectivePom, scriptBuilder)
+            build = """
 description = \"""${this.effectivePom.name}\"""
 
 ${compilerSettings(this.effectivePom, "")}
@@ -167,12 +167,12 @@ ${globalExclusions(this.effectivePom)}
             }
             generateSettings(this.effectivePom.artifactId, null);
         }
+
+        scriptBuilder.create().generate()
+
         def buildFile = new File(workingDir, "build.gradle")
-        if (buildFile.exists()) {
-            buildFile.renameTo(new File(workingDir, "build.gradle.bak"))
-        }
-        logger.debug("writing build.gradle file at ${buildFile.absolutePath}");
-        buildFile.text = build
+        buildFile << build
+        build
     }
 
     def globalExclusions = { project ->
@@ -243,9 +243,9 @@ ${globalExclusions(this.effectivePom)}
     """
     }
 
-    private String getArtifactData(project) {
-        return """group = '$project.groupId'
-version = '$project.version'""";
+    private void getArtifactData(project, builder) {
+        builder.propertyAssignment(null, "group", project.groupId as String)
+        builder.propertyAssignment(null, "version", project.version as String)
     }
 
     private String getRepositoriesForProjects(projects) {
