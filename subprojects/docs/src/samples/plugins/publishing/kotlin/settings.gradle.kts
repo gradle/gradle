@@ -1,2 +1,2 @@
-rootProject.name = 'sample-plugins'
+rootProject.name = "sample-plugins"
 enableFeaturePreview("STABLE_PUBLISHING")

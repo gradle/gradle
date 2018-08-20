@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-// tag::plugins-on-subprojects[]
+// tag::use-plugin[]
 plugins {
-  id "org.gradle.sample.hello" version "1.0.0" apply false
-  id "org.gradle.sample.goodbye" version "1.0.0" apply false
+    id("my-plugin")
 }
+// end::use-plugin[]
 
-subprojects { subproject ->
-    if (subproject.name.startsWith("hello")) {
-        apply plugin: 'org.gradle.sample.hello'
-    }
-    if (subproject.name.startsWith("goodbye")) {
-        apply plugin: 'org.gradle.sample.goodbye'
-    }
-}
-// end::plugins-on-subprojects[]
+

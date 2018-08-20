@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-pluginManagement {
-  repositories {
-      maven {
-        url 'maven-repo'
-      }
-  }
+// tag::plugins-on-subprojects[]
+plugins {
+    id 'org.gradle.sample.hello' version '1.0.0' apply false
+    id 'org.gradle.sample.goodbye' version '1.0.0' apply false
 }
 
-// tag::include-subprojects[]
-include 'helloA'
-include 'helloB'
-include 'goodbyeC'
-// end::include-subprojects[]
-
-rootProject.name = 'multiproject'
+subprojects {
+    if (name.startsWith('hello')) {
+        apply plugin: 'org.gradle.sample.hello'
+    }
+}
+// end::plugins-on-subprojects[]

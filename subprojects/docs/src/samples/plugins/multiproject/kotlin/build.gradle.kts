@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-// tag::buildscript_block[]
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:0.4.1"
-    }
+// tag::plugins-on-subprojects[]
+plugins {
+    id("org.gradle.sample.hello") version "1.0.0" apply false
+    id("org.gradle.sample.goodbye") version "1.0.0" apply false
 }
 
-apply plugin: "com.jfrog.bintray"
-// end::buildscript_block[]
-
-
+subprojects {
+    if (name.startsWith("hello")) {
+        apply(plugin = "org.gradle.sample.hello")
+    }
+}
+// end::plugins-on-subprojects[]
