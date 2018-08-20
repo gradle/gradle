@@ -33,6 +33,7 @@ import org.junit.Rule
 import org.junit.experimental.categories.Category
 import org.junit.rules.TestName
 import spock.lang.AutoCleanup
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -94,8 +95,8 @@ class GradleBuildPerformanceTest extends Specification {
         runner.testGroup = 'gradle build'
     }
 
+    @Ignore
     def "help on the gradle build comparing the build"() {
-
         given:
         runner.testId = testName.methodName
 
