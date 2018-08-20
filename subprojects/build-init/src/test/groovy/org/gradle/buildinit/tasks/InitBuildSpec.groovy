@@ -55,6 +55,7 @@ class InitBuildSpec extends Specification {
         given:
         projectLayoutRegistry.get(BuildInitTypeIds.BASIC) >> projectSetupDescriptor
         projectSetupDescriptor.dsls >> [GROOVY]
+        projectSetupDescriptor.defaultDsl >> GROOVY
         projectSetupDescriptor.testFrameworks >> [NONE]
         projectSetupDescriptor.defaultTestFramework >> NONE
 

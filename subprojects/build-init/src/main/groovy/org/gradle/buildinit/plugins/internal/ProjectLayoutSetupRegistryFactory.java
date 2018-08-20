@@ -57,4 +57,8 @@ public class ProjectLayoutSetupRegistryFactory {
     private ProjectInitDescriptor of(ProjectInitDescriptor descriptor, List<BuildContentGenerator> generators) {
         return new CompositeProjectInitDescriptor(descriptor, generators);
     }
+
+    private ProjectInitDescriptor of(LanguageSpecificProjectGenerator languageGenerator, List<BuildContentGenerator> generators) {
+        return new CompositeProjectInitDescriptor(new LanguageSpecificProjectInitDescriptor(languageGenerator), generators);
+    }
 }

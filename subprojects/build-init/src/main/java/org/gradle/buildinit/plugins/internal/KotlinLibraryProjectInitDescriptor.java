@@ -17,6 +17,7 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 import java.util.Collections;
@@ -30,6 +31,11 @@ public class KotlinLibraryProjectInitDescriptor extends LanguageLibraryProjectIn
     @Override
     public String getId() {
         return BuildInitTypeIds.KOTLIN_LIBRARY;
+    }
+
+    @Override
+    public BuildInitDsl getDefaultDsl() {
+        return BuildInitDsl.KOTLIN;
     }
 
     @Override

@@ -20,11 +20,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.internal.Factory;
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.TreeSet;
-
-public abstract class LanguageLibraryProjectInitDescriptor implements ProjectInitDescriptor {
+public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSpecificProjectGenerator {
 
     protected final String language;
     protected final FileResolver fileResolver;
@@ -41,23 +37,13 @@ public abstract class LanguageLibraryProjectInitDescriptor implements ProjectIni
     }
 
     @Override
-    public Set<BuildInitDsl> getDsls() {
-        return new TreeSet<BuildInitDsl>(Arrays.asList(BuildInitDsl.values()));
-    }
-
-    @Override
-    public boolean canApplyToCurrentDirectory() {
-        return true;
-    }
-
-    @Override
-    public boolean supportsProjectName() {
-        return true;
-    }
-
-    @Override
     public boolean supportsPackage() {
         return true;
+    }
+
+    @Override
+    public BuildInitDsl getDefaultDsl() {
+        return BuildInitDsl.GROOVY;
     }
 
     protected TemplateOperation whenNoSourcesAvailable(TemplateOperation... operations) {

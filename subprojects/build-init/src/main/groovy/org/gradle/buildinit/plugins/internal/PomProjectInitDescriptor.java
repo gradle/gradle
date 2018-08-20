@@ -73,6 +73,11 @@ public class PomProjectInitDescriptor implements ProjectInitDescriptor {
     }
 
     @Override
+    public BuildInitDsl getDefaultDsl() {
+        return BuildInitDsl.GROOVY;
+    }
+
+    @Override
     public boolean supportsPackage() {
         return false;
     }

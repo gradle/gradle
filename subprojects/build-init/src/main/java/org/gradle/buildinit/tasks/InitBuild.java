@@ -139,7 +139,7 @@ public class InitBuild extends DefaultTask {
 
         BuildInitDsl dsl;
         if (isNullOrEmpty(this.dsl)) {
-            dsl = initDescriptor.getDsls().iterator().next();
+            dsl = initDescriptor.getDefaultDsl();
             if (initDescriptor.getDsls().size() > 1) {
                 dsl = inputHandler.selectOption("Select build script DSL", initDescriptor.getDsls(), dsl);
             }
@@ -152,10 +152,9 @@ public class InitBuild extends DefaultTask {
 
         BuildInitTestFramework testFramework = null;
         if (isNullOrEmpty(this.testFramework)) {
-            if (initDescriptor.getTestFrameworks().size() == 1) {
-                testFramework = initDescriptor.getDefaultTestFramework();
-            } else {
-                testFramework = inputHandler.selectOption("Select test framework", initDescriptor.getTestFrameworks(), initDescriptor.getDefaultTestFramework());
+            testFramework = initDescriptor.getDefaultTestFramework();
+            if (initDescriptor.getTestFrameworks().size() > 1) {
+                testFramework = inputHandler.selectOption("Select test framework", initDescriptor.getTestFrameworks(), testFramework);
             }
         } else {
             for (BuildInitTestFramework candidate : initDescriptor.getTestFrameworks()) {

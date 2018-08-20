@@ -19,8 +19,18 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import spock.lang.Unroll
 
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
+
 
 class BasicTypeInitIntegrationTest extends AbstractInitIntegrationSpec {
+    def "defaults to groovy build scripts"() {
+        when:
+        run 'init'
+
+        then:
+        dslFixtureFor(GROOVY).assertGradleFilesGenerated()
+    }
+
     @Unroll
     def "can configure root project name with #scriptDsl build scripts"() {
         when:
