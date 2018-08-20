@@ -54,11 +54,14 @@ public class BuildScriptBuilder {
     private final ListMultimap<String, DepSpec> dependencies = MultimapBuilder.linkedHashKeys().arrayListValues().build();
     private final List<ConfigSpec> configSpecs = new ArrayList<ConfigSpec>();
     private final ScriptBlockImpl allprojects = new ScriptBlockImpl();
+    private final ScriptBlockImpl subprojects = new ScriptBlockImpl();
 
     public BuildScriptBuilder(BuildInitDsl dsl, PathToFileResolver fileResolver, String fileNameWithoutExtension) {
         this.dsl = dsl;
         this.fileResolver = fileResolver;
         this.fileNameWithoutExtension = fileNameWithoutExtension;
+        configuration(ALL_PROJECTS_SELECTOR, allprojects);
+        configuration(SUBPROJECTS_SELECTOR, subprojects);
     }
 
     /**
@@ -165,6 +168,13 @@ public class BuildScriptBuilder {
     }
 
     /**
+     * Allows statements to be added to the subprojects block.
+     */
+    ScriptBlockBuilder subprojects() {
+        return subprojects;
+    }
+
+    /**
      * Adds a top level method invocation statement.
      */
     public BuildScriptBuilder methodInvocation(String comment, String methodName, Object... methodArgs) {
@@ -197,6 +207,15 @@ public class BuildScriptBuilder {
     public BuildScriptBuilder taskPropertyAssignment(String comment, String taskName, String taskType, String propertyName, Object propertyValue) {
         return configuration(
             new TaskSelector(taskName, taskType),
+            new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
+    }
+
+    /**
+     * Adds a property assignment statement to the configuration of all tasks of a particular type.
+     */
+    public BuildScriptBuilder taskPropertyAssignment(String comment, String taskType, String propertyName, Object propertyValue) {
+        return configuration(
+            new TaskTypeSelector(taskType),
             new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
     }
 
@@ -350,19 +369,19 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        String codeFor(Syntax syntax) {
-            return syntax.pluginDependencySpec(id, version);
+        void writeCodeFor(PrettyPrinter printer) {
+            printer.println(printer.syntax.pluginDependencySpec(id, version));
         }
     }
 
     public static class NestedPluginSpec extends PluginSpec {
-        public NestedPluginSpec(String id, @Nullable String version, String comment) {
+        NestedPluginSpec(String id, @Nullable String version, String comment) {
             super(id, version, comment);
         }
 
         @Override
-        String codeFor(Syntax syntax) {
-            return syntax.nestedPluginDependencySpec(id, version);
+        void writeCodeFor(PrettyPrinter printer) {
+            printer.println(printer.syntax.nestedPluginDependencySpec(id, version));
         }
     }
 
@@ -408,7 +427,7 @@ public class BuildScriptBuilder {
     private static final ConfigSelector NULL_SELECTOR = new ConfigSelector() {
         @Override
         public int order() {
-            return 2;
+            return 3;
         }
 
         @Override
@@ -441,6 +460,18 @@ public class BuildScriptBuilder {
         }
     };
 
+    private static final ConfigSelector SUBPROJECTS_SELECTOR = new ConfigSelector() {
+        @Override
+        public int order() {
+            return 2;
+        }
+
+        @Override
+        public String codeBlockSelectorFor(Syntax syntax) {
+            return "subprojects";
+        }
+    };
+
     private static class TaskSelector implements ConfigSelector {
 
         final String taskName;
@@ -453,7 +484,7 @@ public class BuildScriptBuilder {
 
         @Override
         public int order() {
-            return 4;
+            return 6;
         }
 
         @Nullable
@@ -480,6 +511,43 @@ public class BuildScriptBuilder {
         }
     }
 
+    private static class TaskTypeSelector implements ConfigSelector {
+
+        final String taskType;
+
+        TaskTypeSelector(String taskType) {
+            this.taskType = taskType;
+        }
+
+        @Override
+        public int order() {
+            return 5;
+        }
+
+        @Nullable
+        @Override
+        public String codeBlockSelectorFor(Syntax syntax) {
+            return "tasks.withType(" + taskType + ")";
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            TaskTypeSelector that = (TaskTypeSelector) o;
+            return Objects.equal(taskType, that.taskType);
+        }
+
+        @Override
+        public int hashCode() {
+            return taskType.hashCode();
+        }
+    }
+
     private static class ConventionSelector implements ConfigSelector {
 
         final String conventionName;
@@ -490,7 +558,7 @@ public class BuildScriptBuilder {
 
         @Override
         public int order() {
-            return 3;
+            return 4;
         }
 
         @Override
@@ -524,7 +592,11 @@ public class BuildScriptBuilder {
             this.comment = comment;
         }
 
-        abstract String codeFor(Syntax syntax);
+        boolean isEmpty() {
+            return false;
+        }
+
+        abstract void writeCodeFor(PrettyPrinter printer);
     }
 
     private static class MethodInvocation extends ConfigExpression {
@@ -537,8 +609,8 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        String codeFor(Syntax syntax) {
-            return invocationExpression.with(syntax);
+        void writeCodeFor(PrettyPrinter printer) {
+            printer.println(invocationExpression.with(printer.syntax));
         }
     }
 
@@ -554,22 +626,47 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        String codeFor(Syntax syntax) {
-            return syntax.propertyAssignment(this);
+        void writeCodeFor(PrettyPrinter printer) {
+            printer.println(printer.syntax.propertyAssignment(this));
         }
     }
 
-    private class ScriptBlockImpl extends ScriptBlockBuilder {
+    private class ScriptBlockImpl extends ConfigExpression implements ScriptBlockBuilder {
+        final List<ConfigSpec> configSpecs = new ArrayList<ConfigSpec>();
+
+        ScriptBlockImpl() {
+            super(null);
+        }
+
+        ScriptBlockBuilder configuration(ConfigSelector selector, ConfigExpression expression) {
+            configSpecs.add(new ConfigSpec(selector, expression));
+            return this;
+        }
+
+        @Override
+        boolean isEmpty() {
+            return configSpecs.isEmpty();
+        }
+
+        @Override
+        void writeCodeFor(PrettyPrinter printer) {
+            printer.firstExpression = true;
+            printer.printConfigSpecs(configSpecs);
+        }
+
         @Override
         public ScriptBlockBuilder plugin(String comment, String pluginId) {
-            configuration(ALL_PROJECTS_SELECTOR, new NestedPluginSpec(pluginId, null, comment));
-            return this;
+            return configuration(NULL_SELECTOR, new NestedPluginSpec(pluginId, null, comment));
         }
 
         @Override
         public ScriptBlockBuilder propertyAssignment(String comment, String propertyName, Object propertyValue) {
-            configuration(ALL_PROJECTS_SELECTOR, new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
-            return this;
+            return configuration(NULL_SELECTOR, new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
+        }
+
+        @Override
+        public ScriptBlockBuilder taskPropertyAssignment(String comment, String taskType, String propertyName, Object propertyValue) {
+            return configuration(new TaskTypeSelector(taskType), new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
         }
     }
 
@@ -577,6 +674,8 @@ public class BuildScriptBuilder {
 
         private final Syntax syntax;
         private final PrintWriter writer;
+        private String indent = "";
+        private boolean firstExpression = false;
 
         PrettyPrinter(Syntax syntax, PrintWriter writer) {
             this.syntax = syntax;
@@ -608,10 +707,10 @@ public class BuildScriptBuilder {
         public void printDependencies(ListMultimap<String, DepSpec> dependencies) {
             println();
             println("dependencies {");
-            boolean firstDep = true;
+            firstExpression = true;
             for (String config : dependencies.keySet()) {
                 for (DepSpec depSpec : dependencies.get(config)) {
-                    firstDep = printNewLineExceptTheFirstTime(firstDep);
+                    printNewLineExceptTheFirstTime();
                     println("    // " + depSpec.comment);
                     for (String dep : depSpec.deps) {
                         println("    " + dependencySpec(config, dep));
@@ -619,6 +718,7 @@ public class BuildScriptBuilder {
                 }
             }
             println("}");
+            firstExpression = false;
         }
 
         public void printConfigSpecs(List<ConfigSpec> configSpecs) {
@@ -626,23 +726,30 @@ public class BuildScriptBuilder {
                 return;
             }
             for (ConfigGroup group : sortedConfigGroups(configSpecs)) {
-                println();
                 printConfigGroup(group);
             }
         }
 
         private void printConfigGroup(ConfigGroup configGroup) {
-            String blockSelector = configGroup.selector.codeBlockSelectorFor(syntax);
-            if (blockSelector != null) {
-                println(blockSelector + " {");
+            if (configGroup.isEmpty()) {
+                return;
             }
 
-            String indent = blockSelector != null ? "    " : "";
-            boolean firstExpression = true;
-            for (ConfigExpression expression : configGroup.expressions) {
-                firstExpression = printNewLineExceptTheFirstTime(firstExpression);
-                printExpression(indent, expression);
+            String indentBefore = indent;
+
+            String blockSelector = configGroup.selector.codeBlockSelectorFor(syntax);
+            if (blockSelector != null) {
+                printNewLineExceptTheFirstTime();
+                println(blockSelector + " {");
+                indent = indent + "    ";
+                firstExpression = true;
             }
+            for (ConfigExpression expression : configGroup.expressions) {
+                printNewLineExceptTheFirstTime();
+                printExpression(expression);
+            }
+            indent = indentBefore;
+            firstExpression = false;
 
             if (blockSelector != null) {
                 println("}");
@@ -668,6 +775,15 @@ public class BuildScriptBuilder {
                 this.expressions = expressions;
             }
 
+            boolean isEmpty() {
+                for (ConfigExpression expression : expressions) {
+                    if (!expression.isEmpty()) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
             @Override
             public int compareTo(ConfigGroup that) {
                 return compareSelectors(this.selector, that.selector);
@@ -687,7 +803,14 @@ public class BuildScriptBuilder {
                 if (s1 instanceof TaskSelector) {
                     return taskNameOf(s1).compareTo(taskNameOf(s2));
                 }
+                if (s1 instanceof TaskTypeSelector) {
+                    return taskTypeOf(s1).compareTo(taskTypeOf(s2));
+                }
                 throw new IllegalStateException();
+            }
+
+            private String taskTypeOf(ConfigSelector selector) {
+                return ((TaskTypeSelector) selector).taskType;
             }
 
             private String conventionNameOf(ConfigSelector selector) {
@@ -727,18 +850,18 @@ public class BuildScriptBuilder {
             });
         }
 
-        private boolean printNewLineExceptTheFirstTime(boolean firstTime) {
-            if (!firstTime) {
+        private void printNewLineExceptTheFirstTime() {
+            if (!firstExpression) {
                 println();
             }
-            return false;
+            firstExpression = false;
         }
 
-        private void printExpression(String indent, ConfigExpression expression) {
+        private void printExpression(ConfigExpression expression) {
             if (expression.comment != null) {
-                println(indent + "// " + expression.comment);
+                println("// " + expression.comment);
             }
-            println(indent + expression.codeFor(syntax));
+            expression.writeCodeFor(this);
         }
 
         private String dependencySpec(String config, String notation) {
@@ -746,6 +869,9 @@ public class BuildScriptBuilder {
         }
 
         private void println(String s) {
+            if (!indent.isEmpty()) {
+                writer.print(indent);
+            }
             writer.println(s);
         }
 
@@ -788,7 +914,10 @@ public class BuildScriptBuilder {
 
         @Override
         public String nestedPluginDependencySpec(String pluginId, @Nullable String version) {
-            throw new UnsupportedOperationException();
+            if (version != null) {
+                throw new UnsupportedOperationException();
+            }
+            return "plugins.apply(\"" + pluginId + "\")";
         }
 
         @Override

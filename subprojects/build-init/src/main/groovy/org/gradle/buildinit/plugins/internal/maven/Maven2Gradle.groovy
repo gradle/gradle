@@ -75,13 +75,15 @@ class Maven2Gradle {
 
             def allprojectsBuilder = scriptBuilder.allprojects()
             allprojectsBuilder.plugin(null, "maven")
-            getArtifactData(allProjects[0], allprojectsBuilder)
+            addArtifactId(allProjects[0], allprojectsBuilder)
+
+            def subprojectsBuilder = scriptBuilder.subprojects()
+            subprojectsBuilder.plugin(null, "java")
+            compilerSettings(allProjects[0], subprojectsBuilder)
 
             def commonDeps = dependencies.get(allProjects[0].artifactId.text())
             build = """
 subprojects {
-  apply plugin: 'java'
-  ${compilerSettings(allProjects[0], "  ")}
   ${packageSources(allProjects[0])}
   ${getRepositoriesForProjects(allProjects)}
   ${globalExclusions(allProjects[0])}
@@ -139,11 +141,10 @@ subprojects {
         } else {//simple
             scriptBuilder.plugin(null, 'java')
             scriptBuilder.plugin(null, 'maven')
-            getArtifactData(this.effectivePom, scriptBuilder)
+            addArtifactId(this.effectivePom, scriptBuilder)
+            addDescription(this.effectivePom, scriptBuilder)
+            compilerSettings(this.effectivePom, scriptBuilder)
             build = """
-description = \"""${this.effectivePom.name}\"""
-
-${compilerSettings(this.effectivePom, "")}
 ${globalExclusions(this.effectivePom)}
 
 """
@@ -243,9 +244,15 @@ ${globalExclusions(this.effectivePom)}
     """
     }
 
-    private void getArtifactData(project, builder) {
+    private void addArtifactId(project, builder) {
         builder.propertyAssignment(null, "group", project.groupId as String)
         builder.propertyAssignment(null, "version", project.version as String)
+    }
+
+    private void addDescription(project, builder) {
+        if (project.name.text()) {
+            builder.propertyAssignment(null, "description", project.name as String)
+        }
     }
 
     private String getRepositoriesForProjects(projects) {
@@ -356,16 +363,20 @@ ${globalExclusions(this.effectivePom)}
         return build.toString();
     }
 
-    def compilerSettings = { project, indent ->
+    def compilerSettings = { project, builder ->
         def configuration = plugin('maven-compiler-plugin', project).configuration
         def settings = new StringBuilder()
-        settings.append "sourceCompatibility = ${configuration.source.text() ?: '1.5'}\n"
-        settings.append "${indent}targetCompatibility = ${configuration.target.text() ?: '1.5'}\n"
+        def source = configuration.source.text() ?: '1.5'
+        builder.propertyAssignment(null, "sourceCompatibility", source)
+
+        def target = configuration.target.text() ?: '1.5'
+        if (target != source) {
+            builder.propertyAssignment(null, "targetCompatibility", target)
+        }
+
         def encoding = project.properties.'project.build.sourceEncoding'.text()
         if (encoding) {
-            settings.append "${indent}tasks.withType(JavaCompile) {\n"
-            settings.append "${indent}\toptions.encoding = '${encoding}'\n"
-            settings.append "${indent}}\n"
+            builder.taskPropertyAssignment(null, "JavaCompile", "options.encoding", encoding)
         }
         return settings
     }

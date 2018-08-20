@@ -16,16 +16,21 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-public abstract class ScriptBlockBuilder {
+public interface ScriptBlockBuilder {
     /**
      * Adds a plugin to be applied
      *
      * @param comment A description of why the plugin is required
      */
-    public abstract ScriptBlockBuilder plugin(String comment, String pluginId);
+    ScriptBlockBuilder plugin(String comment, String pluginId);
 
     /**
      * Adds a top level property assignment statement.
      */
-    public abstract ScriptBlockBuilder propertyAssignment(String comment, String propertyName, Object propertyValue);
+    ScriptBlockBuilder propertyAssignment(String comment, String propertyName, Object propertyValue);
+
+    /**
+     * Adds a property assignment statement to the configuration of all tasks with the given type.
+     */
+    ScriptBlockBuilder taskPropertyAssignment(String comment, String taskType, String propertyName, Object propertyValue);
 }
