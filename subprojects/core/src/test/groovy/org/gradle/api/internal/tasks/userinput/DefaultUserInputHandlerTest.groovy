@@ -160,9 +160,9 @@ class DefaultUserInputHandlerTest extends Specification {
         1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
         1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event ->
             assert event.prompt == TextUtil.toPlatformLineSeparators("""select option:
-1. 11
-2. 12
-3. 13
+  1: 11
+  2: 12
+  3: 13
 Enter selection (default: 12) [1..3] """)
         }
         1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }

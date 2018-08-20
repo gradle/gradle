@@ -256,9 +256,9 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         writeToStdInAndClose(gradleHandle, "1")
         gradleHandle.waitForFinish()
         gradleHandle.standardOutput.contains(SELECT_PROMPT)
-        gradleHandle.standardOutput.contains("1. a")
-        gradleHandle.standardOutput.contains("2. b")
-        gradleHandle.standardOutput.contains("3. c")
+        gradleHandle.standardOutput.contains("1: a")
+        gradleHandle.standardOutput.contains("2: b")
+        gradleHandle.standardOutput.contains("3: c")
         gradleHandle.standardOutput.contains("Enter selection (default: b) [1..3] ")
         gradleHandle.standardOutput.contains("result = a")
 
