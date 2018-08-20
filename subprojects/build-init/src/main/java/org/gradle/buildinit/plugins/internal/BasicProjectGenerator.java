@@ -19,15 +19,13 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
-import java.util.TreeSet;
 
-public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescriptor {
+public class BasicProjectGenerator implements ProjectGenerator {
     private final BuildScriptBuilderFactory scriptBuilderFactory;
 
-    public BasicTemplateBasedProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory) {
+    public BasicProjectGenerator(BuildScriptBuilderFactory scriptBuilderFactory) {
         this.scriptBuilderFactory = scriptBuilderFactory;
     }
 
@@ -46,18 +44,8 @@ public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescr
     }
 
     @Override
-    public Set<BuildInitDsl> getDsls() {
-        return new TreeSet<BuildInitDsl>(Arrays.asList(BuildInitDsl.values()));
-    }
-
-    @Override
     public BuildInitDsl getDefaultDsl() {
         return BuildInitDsl.GROOVY;
-    }
-
-    @Override
-    public boolean supportsProjectName() {
-        return true;
     }
 
     @Override

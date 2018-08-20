@@ -28,7 +28,7 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.buildinit.plugins.internal.BuildConverter;
 import org.gradle.buildinit.plugins.internal.InitSettings;
-import org.gradle.buildinit.plugins.internal.ProjectInitDescriptor;
+import org.gradle.buildinit.plugins.internal.BuildInitializer;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
@@ -143,7 +143,7 @@ public class InitBuild extends DefaultTask {
             type = this.type;
         }
 
-        ProjectInitDescriptor initDescriptor = projectLayoutRegistry.get(type);
+        BuildInitializer initDescriptor = projectLayoutRegistry.get(type);
 
         BuildInitDsl dsl;
         if (isNullOrEmpty(this.dsl)) {

@@ -19,7 +19,7 @@ package org.gradle.buildinit.plugins.internal;
 /**
  * Converts some existing build to a Gradle build.
  */
-public interface BuildConverter extends ProjectInitDescriptor {
+public interface BuildConverter extends BuildInitializer {
     /**
      * Can this converter be applied to the contents of the current directory?
      */

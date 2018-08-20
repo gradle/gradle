@@ -25,18 +25,18 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class ProjectLayoutSetupRegistry {
-    private final Map<String, ProjectInitDescriptor> registeredProjectDescriptors = new TreeMap<String, ProjectInitDescriptor>();
-    private final ProjectInitDescriptor defaultType;
+    private final Map<String, BuildInitializer> registeredProjectDescriptors = new TreeMap<String, BuildInitializer>();
+    private final BuildInitializer defaultType;
     private final BuildConverter converter;
 
-    public ProjectLayoutSetupRegistry(ProjectInitDescriptor defaultType, BuildConverter converter) {
+    public ProjectLayoutSetupRegistry(BuildInitializer defaultType, BuildConverter converter) {
         this.defaultType = defaultType;
         this.converter = converter;
         add(defaultType);
         add(converter);
     }
 
-    public void add(ProjectInitDescriptor descriptor) {
+    public void add(BuildInitializer descriptor) {
         if (registeredProjectDescriptors.containsKey(descriptor.getId())) {
             throw new GradleException(String.format("ProjectDescriptor with ID '%s' already registered.", descriptor.getId()));
         }
@@ -49,11 +49,11 @@ public class ProjectLayoutSetupRegistry {
         return converter;
     }
 
-    public ProjectInitDescriptor getDefault() {
+    public BuildInitializer getDefault() {
         return defaultType;
     }
 
-    public ProjectInitDescriptor get(String type) {
+    public BuildInitializer get(String type) {
         if (!registeredProjectDescriptors.containsKey(type)) {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node("The requested build setup type '" + type + "' is not supported. Supported types");
@@ -67,13 +67,13 @@ public class ProjectLayoutSetupRegistry {
         return registeredProjectDescriptors.get(type);
     }
 
-    public List<ProjectInitDescriptor> getAll() {
+    public List<BuildInitializer> getAll() {
         return CollectionUtils.toList(registeredProjectDescriptors.values());
     }
 
     public List<String> getBuildGenerators() {
         List<String> result = new ArrayList<String>(registeredProjectDescriptors.size());
-        for (ProjectInitDescriptor initDescriptor : registeredProjectDescriptors.values()) {
+        for (BuildInitializer initDescriptor : registeredProjectDescriptors.values()) {
             if (initDescriptor != converter) {
                 result.add(initDescriptor.getId());
             }
@@ -83,7 +83,7 @@ public class ProjectLayoutSetupRegistry {
 
     public List<String> getAllTypes() {
         List<String> result = new ArrayList<String>(registeredProjectDescriptors.size());
-        for (ProjectInitDescriptor initDescriptor : registeredProjectDescriptors.values()) {
+        for (BuildInitializer initDescriptor : registeredProjectDescriptors.values()) {
             result.add(initDescriptor.getId());
         }
         return result;
