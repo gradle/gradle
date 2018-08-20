@@ -23,7 +23,6 @@ import org.gradle.api.distribution.internal.DefaultDistributionContainer;
 import org.gradle.api.distribution.plugins.DistributionPlugin;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.tasks.bundling.Jar;
 
 /**
  * A {@link Plugin} which package a Java project as a distribution including the JAR and runtime dependencies.
@@ -41,10 +40,8 @@ public class JavaLibraryDistributionPlugin implements Plugin<ProjectInternal> {
         DefaultDistributionContainer defaultDistributionContainer =
             (DefaultDistributionContainer) project.getExtensions().findByName("distributions");
         CopySpec contentSpec = defaultDistributionContainer.getByName(DistributionPlugin.MAIN_DISTRIBUTION_NAME).getContents();
-        Jar jar = (Jar) project.getTasks().getByName(JavaPlugin.JAR_TASK_NAME);
-
         CopySpec childSpec = project.copySpec();
-        childSpec.from(jar);
+        childSpec.from(project.getTasks().named(JavaPlugin.JAR_TASK_NAME));
         childSpec.from(project.file("src/dist"));
 
         CopySpec libSpec = project.copySpec();

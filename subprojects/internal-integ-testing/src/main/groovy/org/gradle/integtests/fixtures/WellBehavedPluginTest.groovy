@@ -88,9 +88,6 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
             'visual-studio',
             'xcode',
 
-            'maven-publish',
-            'ivy-publish',
-            'java-library-distribution',
             'play-application',
         ])
 
