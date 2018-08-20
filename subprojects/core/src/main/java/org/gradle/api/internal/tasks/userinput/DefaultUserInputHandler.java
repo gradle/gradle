@@ -27,6 +27,7 @@ import org.gradle.internal.logging.events.UserInputResumeEvent;
 import org.gradle.internal.time.Clock;
 import org.gradle.util.TextUtil;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -52,16 +53,19 @@ public class DefaultUserInputHandler implements UserInputHandler {
         builder.append(" [");
         builder.append(StringUtils.join(YES_NO_CHOICES, ", "));
         builder.append("] ");
-        return prompt(builder.toString(), new Transformer<Boolean, String>() {
-            @Override
-            public Boolean transform(String value) {
-                if (YES_NO_CHOICES.contains(value)) {
-                    return BooleanUtils.toBoolean(value);
-                }
-                sendPrompt("Please enter 'yes' or 'no': ");
-                return null;
-            }
-        });
+        return prompt(builder.toString(), new BooleanParser());
+    }
+
+    @Override
+    public boolean askYesNoQuestion(String question, final boolean defaultValue) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(question);
+        builder.append(" (default: ");
+        builder.append(defaultValue ? "yes" : "no");
+        builder.append(") [");
+        builder.append(StringUtils.join(YES_NO_CHOICES, ", "));
+        builder.append("] ");
+        return prompt(builder.toString(), defaultValue, new BooleanParser());
     }
 
     @Override
@@ -83,12 +87,9 @@ public class DefaultUserInputHandler implements UserInputHandler {
         builder.append(") [1..");
         builder.append(options.size());
         builder.append("] ");
-        T result = prompt(builder.toString(), new Transformer<T, String>() {
+        return prompt(builder.toString(), defaultOption, new Transformer<T, String>() {
             @Override
             public T transform(String sanitizedInput) {
-                if (sanitizedInput.isEmpty()) {
-                    return defaultOption;
-                }
                 if (sanitizedInput.matches("\\d+")) {
                     int value = Integer.parseInt(sanitizedInput);
                     if (value > 0 && value <= values.size()) {
@@ -99,10 +100,6 @@ public class DefaultUserInputHandler implements UserInputHandler {
                 return null;
             }
         });
-        if (result == null) {
-            return defaultOption;
-        }
-        return result;
     }
 
     @Override
@@ -112,13 +109,22 @@ public class DefaultUserInputHandler implements UserInputHandler {
         builder.append(" (default: ");
         builder.append(defaultValue);
         builder.append("): ");
-        String result = prompt(builder.toString(), new Transformer<String, String>() {
+        return prompt(builder.toString(), defaultValue, new Transformer<String, String>() {
             @Override
             public String transform(String sanitizedValue) {
-                if (sanitizedValue.isEmpty()) {
+                return sanitizedValue;
+            }
+        });
+    }
+
+    private <T> T prompt(String prompt, final T defaultValue, final Transformer<T, String> parser) {
+        T result = prompt(prompt, new Transformer<T, String>() {
+            @Override
+            public T transform(String sanitizedInput) {
+                if (sanitizedInput.isEmpty()) {
                     return defaultValue;
                 }
-                return sanitizedValue;
+                return parser.transform(sanitizedInput);
             }
         });
         if (result == null) {
@@ -127,6 +133,7 @@ public class DefaultUserInputHandler implements UserInputHandler {
         return result;
     }
 
+    @Nullable
     private <T> T prompt(String prompt, Transformer<T, String> parser) {
         outputEventBroadcaster.onOutput(new UserInputRequestEvent());
         try {
@@ -163,5 +170,16 @@ public class DefaultUserInputHandler implements UserInputHandler {
 
     private String sanitizeInput(String input) {
         return CharMatcher.JAVA_ISO_CONTROL.removeFrom(StringUtils.trim(input));
+    }
+
+    private class BooleanParser implements Transformer<Boolean, String> {
+        @Override
+        public Boolean transform(String value) {
+            if (YES_NO_CHOICES.contains(value)) {
+                return BooleanUtils.toBoolean(value);
+            }
+            sendPrompt("Please enter 'yes' or 'no': ");
+            return null;
+        }
     }
 }

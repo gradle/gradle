@@ -25,6 +25,11 @@ public class NonInteractiveUserInputHandler implements UserInputHandler {
     }
 
     @Override
+    public boolean askYesNoQuestion(String question, boolean defaultValue) {
+        return defaultValue;
+    }
+
+    @Override
     public <T> T selectOption(String question, Collection<T> options, T defaultOption) {
         return defaultOption;
     }

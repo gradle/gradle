@@ -30,6 +30,14 @@ public interface UserInputHandler {
     Boolean askYesNoQuestion(String question);
 
     /**
+     * Prompts the user with a yes/no question and returns the answer.
+     *
+     * @param question The text of the question.
+     * @return the answer or the given default if not connected to a user console.
+     */
+    boolean askYesNoQuestion(String question, boolean defaultValue);
+
+    /**
      * Prompts the user to select an option from the given list and returns the answer.
      * Uses the {@link Object#toString()} representation of the options to format the prompt.
      *
