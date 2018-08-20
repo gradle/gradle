@@ -18,19 +18,33 @@ package org.gradle.buildinit.plugins.internal;
 
 public interface ScriptBlockBuilder {
     /**
-     * Adds a plugin to be applied
+     * Adds a plugin to be applied within this block.
      *
      * @param comment A description of why the plugin is required
      */
-    ScriptBlockBuilder plugin(String comment, String pluginId);
+    void plugin(String comment, String pluginId);
 
     /**
-     * Adds a top level property assignment statement.
+     * Adds a property assignment statement to this block
      */
-    ScriptBlockBuilder propertyAssignment(String comment, String propertyName, Object propertyValue);
+    void propertyAssignment(String comment, String propertyName, Object propertyValue);
+
+    /**
+     * Adds a method invocation statement to this block
+     */
+    void methodInvocation(String comment, String methodName, Object... methodArgs);
 
     /**
      * Adds a property assignment statement to the configuration of all tasks with the given type.
      */
-    ScriptBlockBuilder taskPropertyAssignment(String comment, String taskType, String propertyName, Object propertyValue);
+    void taskPropertyAssignment(String comment, String taskType, String propertyName, Object propertyValue);
+
+    /**
+     * Creates a task within this block.
+     *
+     * @return the configuration block for the task.
+     */
+    ScriptBlockBuilder taskRegistration(String comment, String taskName, String taskType);
+
+    BuildScriptBuilder.Expression propertyExpression(String value);
 }

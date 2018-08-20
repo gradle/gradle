@@ -427,7 +427,7 @@ public class BuildScriptBuilder {
     private static final ConfigSelector NULL_SELECTOR = new ConfigSelector() {
         @Override
         public int order() {
-            return 3;
+            return 4;
         }
 
         @Override
@@ -445,6 +445,18 @@ public class BuildScriptBuilder {
         @Override
         public String codeBlockSelectorFor(Syntax syntax) {
             return "plugins";
+        }
+    };
+
+    private static final ConfigSelector NESTED_PLUGINS_SELECTOR = new ConfigSelector() {
+        @Override
+        public int order() {
+            return 0;
+        }
+
+        @Override
+        public String codeBlockSelectorFor(Syntax syntax) {
+            return null;
         }
     };
 
@@ -484,7 +496,7 @@ public class BuildScriptBuilder {
 
         @Override
         public int order() {
-            return 6;
+            return 7;
         }
 
         @Nullable
@@ -511,6 +523,45 @@ public class BuildScriptBuilder {
         }
     }
 
+    private static class TaskRegistrationSelector implements ConfigSelector {
+
+        final String taskName;
+        final String taskType;
+
+        private TaskRegistrationSelector(String taskName, String taskType) {
+            this.taskName = taskName;
+            this.taskType = taskType;
+        }
+
+        @Override
+        public int order() {
+            return 3;
+        }
+
+        @Nullable
+        @Override
+        public String codeBlockSelectorFor(Syntax syntax) {
+            return syntax.taskRegistration(this);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            TaskRegistrationSelector that = (TaskRegistrationSelector) o;
+            return Objects.equal(taskName, that.taskName) && Objects.equal(taskType, that.taskType);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(taskName, taskType);
+        }
+    }
+
     private static class TaskTypeSelector implements ConfigSelector {
 
         final String taskType;
@@ -521,7 +572,7 @@ public class BuildScriptBuilder {
 
         @Override
         public int order() {
-            return 5;
+            return 6;
         }
 
         @Nullable
@@ -558,7 +609,7 @@ public class BuildScriptBuilder {
 
         @Override
         public int order() {
-            return 4;
+            return 5;
         }
 
         @Override
@@ -655,18 +706,35 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public ScriptBlockBuilder plugin(String comment, String pluginId) {
-            return configuration(NULL_SELECTOR, new NestedPluginSpec(pluginId, null, comment));
+        public void plugin(String comment, String pluginId) {
+            configuration(NESTED_PLUGINS_SELECTOR, new NestedPluginSpec(pluginId, null, comment));
         }
 
         @Override
-        public ScriptBlockBuilder propertyAssignment(String comment, String propertyName, Object propertyValue) {
-            return configuration(NULL_SELECTOR, new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
+        public void propertyAssignment(String comment, String propertyName, Object propertyValue) {
+            configuration(NULL_SELECTOR, new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
         }
 
         @Override
-        public ScriptBlockBuilder taskPropertyAssignment(String comment, String taskType, String propertyName, Object propertyValue) {
-            return configuration(new TaskTypeSelector(taskType), new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
+        public void methodInvocation(String comment, String methodName, Object... methodArgs) {
+            configuration(NULL_SELECTOR, new MethodInvocation(comment, new MethodInvocationValue(methodName, expressionValues(methodArgs))));
+        }
+
+        @Override
+        public void taskPropertyAssignment(String comment, String taskType, String propertyName, Object propertyValue) {
+            configuration(new TaskTypeSelector(taskType), new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
+        }
+
+        @Override
+        public ScriptBlockBuilder taskRegistration(String comment, String taskName, String taskType) {
+            ScriptBlockImpl block = new ScriptBlockImpl();
+            configuration(new TaskRegistrationSelector(taskName, taskType), block);
+            return block;
+        }
+
+        @Override
+        public Expression propertyExpression(String value) {
+            return new LiteralValue(value);
         }
     }
 
@@ -896,6 +964,8 @@ public class BuildScriptBuilder {
         String taskSelector(TaskSelector selector);
 
         String string(String string);
+
+        String taskRegistration(TaskRegistrationSelector selector);
     }
 
     private static final class KotlinSyntax implements Syntax {
@@ -958,6 +1028,11 @@ public class BuildScriptBuilder {
         public String taskSelector(TaskSelector selector) {
             return "val " + selector.taskName + " by tasks.getting(" + selector.taskType + "::class)";
         }
+
+        @Override
+        public String taskRegistration(TaskRegistrationSelector selector) {
+            return "val " + selector.taskName + " by tasks.creating(" + selector.taskType + "::class)";
+        }
     }
 
     private static final class GroovySyntax implements Syntax {
@@ -1002,6 +1077,11 @@ public class BuildScriptBuilder {
         @Override
         public String taskSelector(TaskSelector selector) {
             return selector.taskName;
+        }
+
+        @Override
+        public String taskRegistration(TaskRegistrationSelector selector) {
+            return "task " + selector.taskName + "(type: " + selector.taskType + ")";
         }
     }
 }

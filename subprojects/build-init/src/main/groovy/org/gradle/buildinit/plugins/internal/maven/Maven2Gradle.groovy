@@ -67,7 +67,9 @@ class Maven2Gradle {
 
         if (multimodule) {
             def allProjects = this.effectivePom.project
-            generateSettings(allProjects[0].artifactId, allProjects)
+            def rootProject = allProjects[0]
+            generateSettings(rootProject.artifactId, allProjects)
+
             def dependencies = [:];
             allProjects.each { project ->
                 dependencies[project.artifactId.text()] = getDependencies(project, allProjects)
@@ -75,18 +77,18 @@ class Maven2Gradle {
 
             def allprojectsBuilder = scriptBuilder.allprojects()
             allprojectsBuilder.plugin(null, "maven")
-            addArtifactId(allProjects[0], allprojectsBuilder)
+            addArtifactId(rootProject, allprojectsBuilder)
 
             def subprojectsBuilder = scriptBuilder.subprojects()
             subprojectsBuilder.plugin(null, "java")
-            compilerSettings(allProjects[0], subprojectsBuilder)
+            compilerSettings(rootProject, subprojectsBuilder)
+            packageSources(rootProject, subprojectsBuilder)
 
-            def commonDeps = dependencies.get(allProjects[0].artifactId.text())
+            def commonDeps = dependencies.get(rootProject.artifactId.text())
             build = """
 subprojects {
-  ${packageSources(allProjects[0])}
   ${getRepositoriesForProjects(allProjects)}
-  ${globalExclusions(allProjects[0])}
+  ${globalExclusions(rootProject)}
   ${commonDeps}
   ${testNg(commonDeps)}
 }
@@ -99,7 +101,7 @@ subprojects {
                 File submoduleBuildFile = new File(projectDir(module), 'build.gradle')
 
                 def group = ''
-                if (module.groupId != allProjects[0].groupId) {
+                if (module.groupId != rootProject.groupId) {
                     group = "group = '${module.groupId}'"
                 }
                 String moduleBuild = "${group}\n"
@@ -363,9 +365,8 @@ ${globalExclusions(this.effectivePom)}
         return build.toString();
     }
 
-    def compilerSettings = { project, builder ->
+    private void compilerSettings(project, builder) {
         def configuration = plugin('maven-compiler-plugin', project).configuration
-        def settings = new StringBuilder()
         def source = configuration.source.text() ?: '1.5'
         builder.propertyAssignment(null, "sourceCompatibility", source)
 
@@ -378,7 +379,6 @@ ${globalExclusions(this.effectivePom)}
         if (encoding) {
             builder.taskPropertyAssignment(null, "JavaCompile", "options.encoding", encoding)
         }
-        return settings
     }
 
     def plugin = { artifactId, project ->
@@ -395,24 +395,6 @@ ${globalExclusions(this.effectivePom)}
         }
     }
 
-    def packSources = { sourceSets ->
-        def sourceSetStr = ''
-        if (!sourceSets.empty) {
-            sourceSetStr = """task packageSources(type: Jar) {
-classifier = 'sources'
-"""
-            sourceSets.each { sourceSet ->
-                sourceSetStr += """from sourceSets.${sourceSet}.allSource
-"""
-            }
-            sourceSetStr += """
-}
-artifacts.archives packageSources"""
-        }
-        sourceSetStr
-    }
-
-
     def packageTests = { project ->
         def jarPlugin = plugin('maven-jar-plugin', project)
         pluginGoal('test-jar', jarPlugin) ? """
@@ -424,7 +406,7 @@ artifacts.archives packageTests
 """ : ''
     }
 
-    def packageSources = { project ->
+    void packageSources(project, builder) {
         def sourcePlugin = plugin('maven-source-plugin', project)
         def sourceSets = []
         if (sourcePlugin) {
@@ -434,7 +416,14 @@ artifacts.archives packageTests
                 sourceSets += 'test'
             }
         }
-        packSources(sourceSets)
+        if (!sourceSets.empty) {
+            def taskConfigBuilder = builder.taskRegistration(null, "packageSources", "Jar")
+            taskConfigBuilder.propertyAssignment(null, "classifier", "sources")
+            sourceSets.each { sourceSet ->
+                taskConfigBuilder.methodInvocation(null, "from", builder.propertyExpression("sourceSets.${sourceSet}.allSource"))
+            }
+            builder.methodInvocation(null, "artifacts.archives", builder.propertyExpression("tasks.packageSources"))
+        }
     }
 
     private boolean duplicateDependency(dependency, project, allProjects) {
