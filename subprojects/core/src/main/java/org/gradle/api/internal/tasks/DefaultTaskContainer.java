@@ -701,7 +701,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         @Override
         protected Action<? super I> wrap(Action action) {
-            return crossProjectConfigurator.withCrossProjectConfigurationDisabled(action);
+            return crossProjectConfigurator.withProjectMutationDisabled(action);
         }
 
         @Override

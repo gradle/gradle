@@ -36,7 +36,7 @@ class BuildOperationCrossProjectConfiguratorTest extends Specification {
 
     def "does not throw exception when calling a disallowed method when allowed"() {
         given:
-        def action = service.withCrossProjectConfigurationEnabled(actionCallingDisallowedMethod)
+        def action = service.withProjectMutationEnabled(actionCallingDisallowedMethod)
 
         when:
         action.execute(project)
@@ -48,7 +48,7 @@ class BuildOperationCrossProjectConfiguratorTest extends Specification {
 
     def "throws IllegalStateException when calling a disallowed method when disallowed"() {
         given:
-        def action = service.withCrossProjectConfigurationDisabled(actionCallingDisallowedMethod)
+        def action = service.withProjectMutationDisabled(actionCallingDisallowedMethod)
 
         when:
         action.execute(project)
@@ -67,10 +67,10 @@ class BuildOperationCrossProjectConfiguratorTest extends Specification {
     }
 
     def "call to withCrossProjectConfigurationDisabled does not disable disallow check"() {
-        def action = service.withCrossProjectConfigurationDisabled(new Action<Project>() {
+        def action = service.withProjectMutationDisabled(new Action<Project>() {
             @Override
             void execute(Project project) {
-                service.withCrossProjectConfigurationDisabled(Actions.doNothing()).execute(project)
+                service.withProjectMutationDisabled(Actions.doNothing()).execute(project)
                 disallowedMethod()
             }
         })
@@ -83,10 +83,10 @@ class BuildOperationCrossProjectConfiguratorTest extends Specification {
     }
 
     def "call to withCrossProjectConfigurationEnabled does not disable disallow check"() {
-        def action = service.withCrossProjectConfigurationDisabled(new Action<Project>() {
+        def action = service.withProjectMutationDisabled(new Action<Project>() {
             @Override
             void execute(Project project) {
-                service.withCrossProjectConfigurationEnabled(Actions.doNothing()).execute(project)
+                service.withProjectMutationEnabled(Actions.doNothing()).execute(project)
                 disallowedMethod()
             }
         })
@@ -99,10 +99,10 @@ class BuildOperationCrossProjectConfiguratorTest extends Specification {
     }
 
     def "call to withCrossProjectConfigurationDisabled does enable disallow check outside scope"() {
-        def action = service.withCrossProjectConfigurationEnabled(new Action<Project>() {
+        def action = service.withProjectMutationEnabled(new Action<Project>() {
             @Override
             void execute(Project project) {
-                service.withCrossProjectConfigurationDisabled(Actions.doNothing()).execute(project)
+                service.withProjectMutationDisabled(Actions.doNothing()).execute(project)
                 disallowedMethod()
             }
         })
@@ -115,7 +115,7 @@ class BuildOperationCrossProjectConfiguratorTest extends Specification {
 
     def "doesn't protect across thread boundaries"() {
         given:
-        def action = service.withCrossProjectConfigurationDisabled(new Action<Project>() {
+        def action = service.withProjectMutationDisabled(new Action<Project>() {
             @Override
             void execute(Project project) {
                 def thread = new Thread(new Runnable() {
@@ -138,6 +138,6 @@ class BuildOperationCrossProjectConfiguratorTest extends Specification {
     }
 
     private void disallowedMethod() {
-        service.assertCrossProjectConfigurationAllowed("someProtectedMethod()", Mock(Project))
+        service.assertProjectMutationAllowed("someProtectedMethod()", Mock(Project))
     }
 }
