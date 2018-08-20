@@ -52,6 +52,11 @@ public class CompositeProjectInitDescriptor implements ProjectInitDescriptor {
     }
 
     @Override
+    public BuildInitDsl getDefaultDsl() {
+        return descriptor.getDefaultDsl();
+    }
+
+    @Override
     public Set<BuildInitDsl> getDsls() {
         return descriptor.getDsls();
     }

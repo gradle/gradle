@@ -56,6 +56,11 @@ public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescr
     }
 
     @Override
+    public BuildInitDsl getDefaultDsl() {
+        return BuildInitDsl.GROOVY;
+    }
+
+    @Override
     public boolean supportsProjectName() {
         return true;
     }

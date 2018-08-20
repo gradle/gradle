@@ -36,14 +36,6 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         outputContains "init - Initializes a new Gradle build."
     }
 
-    def "defaults to groovy build scripts"() {
-        when:
-        run 'init'
-
-        then:
-        dslFixtureFor(GROOVY).assertGradleFilesGenerated()
-    }
-
     @Unroll
     def "creates a simple project with #scriptDsl build scripts when no pom file present and no type specified"() {
         given:

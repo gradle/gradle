@@ -21,11 +21,21 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
+
 @Requires(TestPrecondition.JDK8_OR_LATER)
 class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_APP_CLASS = "src/main/kotlin/App.kt"
     public static final String SAMPLE_APP_TEST_CLASS = "src/test/kotlin/AppTest.kt"
+
+    def "defaults to kotlin build scripts"() {
+        when:
+        run ('init', '--type', 'kotlin-application')
+
+        then:
+        dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
+    }
 
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
