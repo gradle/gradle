@@ -77,8 +77,9 @@ public class DefaultUserInputHandler implements UserInputHandler {
         builder.append(TextUtil.getPlatformLineSeparator());
         for (int i = 0; i < options.size(); i++) {
             T option = values.get(i);
+            builder.append("  ");
             builder.append(i + 1);
-            builder.append(". ");
+            builder.append(": ");
             builder.append(option);
             builder.append(TextUtil.getPlatformLineSeparator());
         }
