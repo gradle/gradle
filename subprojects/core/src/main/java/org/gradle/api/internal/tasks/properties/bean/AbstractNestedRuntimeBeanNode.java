@@ -43,8 +43,6 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Queue;
 
-import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.ERROR;
-
 public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Object> {
     protected AbstractNestedRuntimeBeanNode(@Nullable RuntimeBeanNode<?> parentNode, @Nullable String propertyName, Object bean, TypeMetadata typeMetadata) {
         super(parentNode, propertyName, bean, typeMetadata);
@@ -149,10 +147,10 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
             Object unpacked = DeferredUtil.unpack(getValue());
             if (unpacked == null) {
                 if (!optional) {
-                    context.recordValidationMessage(ERROR, String.format("No value has been specified for property '%s'.", propertyName));
+                    context.recordValidationMessage(String.format("No value has been specified for property '%s'.", propertyName));
                 }
             } else {
-                valueValidator.validate(propertyName, unpacked, context, ERROR);
+                valueValidator.validate(propertyName, unpacked, context);
             }
         }
     }
