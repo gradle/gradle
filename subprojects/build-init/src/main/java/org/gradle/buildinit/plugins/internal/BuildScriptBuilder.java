@@ -34,8 +34,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -54,8 +52,8 @@ public class BuildScriptBuilder {
 
     private final List<String> headerLines = new ArrayList<String>();
     private final ListMultimap<String, DepSpec> dependencies = MultimapBuilder.linkedHashKeys().arrayListValues().build();
-    private final Map<String, PluginSpec> plugins = new LinkedHashMap<String, PluginSpec>();
     private final List<ConfigSpec> configSpecs = new ArrayList<ConfigSpec>();
+    private final ScriptBlockImpl allprojects = new ScriptBlockImpl();
 
     public BuildScriptBuilder(BuildInitDsl dsl, PathToFileResolver fileResolver, String fileNameWithoutExtension) {
         this.dsl = dsl;
@@ -77,8 +75,7 @@ public class BuildScriptBuilder {
      * @param comment A description of why the plugin is required
      */
     public BuildScriptBuilder plugin(String comment, String pluginId) {
-        plugins.put(pluginId, new PluginSpec(pluginId, null, comment));
-        return this;
+        return configuration(PLUGINS_SELECTOR, new PluginSpec(pluginId, null, comment));
     }
 
     /**
@@ -87,8 +84,7 @@ public class BuildScriptBuilder {
      * @param comment A description of why the plugin is required
      */
     public BuildScriptBuilder plugin(String comment, String pluginId, String version) {
-        plugins.put(pluginId, new PluginSpec(pluginId, version, comment));
-        return this;
+        return configuration(PLUGINS_SELECTOR, new PluginSpec(pluginId, version, comment));
     }
 
     /**
@@ -133,6 +129,9 @@ public class BuildScriptBuilder {
         return dependency("testRuntimeOnly", comment, dependencies);
     }
 
+    /**
+     * Creates a method invocation expression, to use as a method argument or the RHS of a property assignment.
+     */
     public Expression methodInvocationExpression(String methodName, Object... methodArgs) {
         return new MethodInvocationValue(methodName, expressionValues(methodArgs));
     }
@@ -158,30 +157,52 @@ public class BuildScriptBuilder {
         throw new IllegalArgumentException("Don't know how to treat " + expression + " as an expression.");
     }
 
+    /**
+     * Allows statements to be added to the allprojects block.
+     */
+    ScriptBlockBuilder allprojects() {
+        return allprojects;
+    }
+
+    /**
+     * Adds a top level method invocation statement.
+     */
     public BuildScriptBuilder methodInvocation(String comment, String methodName, Object... methodArgs) {
         return configuration(
             NULL_SELECTOR,
             new MethodInvocation(comment, new MethodInvocationValue(methodName, expressionValues(methodArgs))));
     }
 
+    /**
+     * Adds a top level property assignment statement.
+     */
     public BuildScriptBuilder propertyAssignment(String comment, String propertyName, Object propertyValue) {
         return configuration(
             NULL_SELECTOR,
             new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
     }
 
+    /**
+     * Adds a method invocation statement to the configuration of a particular task.
+     */
     public BuildScriptBuilder taskMethodInvocation(String comment, String taskName, String taskType, String methodName) {
         return configuration(
             new TaskSelector(taskName, taskType),
             new MethodInvocation(comment, new MethodInvocationValue(methodName)));
     }
 
+    /**
+     * Adds a property assignment statement to the configuration of a particular task.
+     */
     public BuildScriptBuilder taskPropertyAssignment(String comment, String taskName, String taskType, String propertyName, Object propertyValue) {
         return configuration(
             new TaskSelector(taskName, taskType),
             new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
     }
 
+    /**
+     * Adds a property assignment statement to the configuration of a particular convention.
+     */
     public BuildScriptBuilder conventionPropertyAssignment(String comment, String conventionName, String propertyName, Object propertyValue) {
         return configuration(
             new ConventionSelector(conventionName),
@@ -203,7 +224,6 @@ public class BuildScriptBuilder {
                     try {
                         PrettyPrinter printer = prettyPrinterFor(dsl, writer);
                         printer.printFileHeader(headerLines);
-                        printer.printPlugins(plugins.values());
                         printer.printConfigSpecs(configSpecs);
                         if (!dependencies.isEmpty()) {
                             printer.printDependencies(dependencies);
@@ -318,16 +338,31 @@ public class BuildScriptBuilder {
         }
     }
 
-    private static class PluginSpec {
+    private static class PluginSpec extends ConfigExpression {
         final String id;
         @Nullable
         final String version;
-        final String comment;
 
-        public PluginSpec(String id, @Nullable String version, String comment) {
+        PluginSpec(String id, @Nullable String version, String comment) {
+            super(comment);
             this.id = id;
             this.version = version;
-            this.comment = comment;
+        }
+
+        @Override
+        String codeFor(Syntax syntax) {
+            return syntax.pluginDependencySpec(id, version);
+        }
+    }
+
+    public static class NestedPluginSpec extends PluginSpec {
+        public NestedPluginSpec(String id, @Nullable String version, String comment) {
+            super(id, version, comment);
+        }
+
+        @Override
+        String codeFor(Syntax syntax) {
+            return syntax.nestedPluginDependencySpec(id, version);
         }
     }
 
@@ -364,9 +399,46 @@ public class BuildScriptBuilder {
     }
 
     private interface ConfigSelector {
+        int order();
+
+        @Nullable
+        String codeBlockSelectorFor(Syntax syntax);
     }
 
     private static final ConfigSelector NULL_SELECTOR = new ConfigSelector() {
+        @Override
+        public int order() {
+            return 2;
+        }
+
+        @Override
+        public String codeBlockSelectorFor(Syntax syntax) {
+            return null;
+        }
+    };
+
+    private static final ConfigSelector PLUGINS_SELECTOR = new ConfigSelector() {
+        @Override
+        public int order() {
+            return 0;
+        }
+
+        @Override
+        public String codeBlockSelectorFor(Syntax syntax) {
+            return "plugins";
+        }
+    };
+
+    private static final ConfigSelector ALL_PROJECTS_SELECTOR = new ConfigSelector() {
+        @Override
+        public int order() {
+            return 1;
+        }
+
+        @Override
+        public String codeBlockSelectorFor(Syntax syntax) {
+            return "allprojects";
+        }
     };
 
     private static class TaskSelector implements ConfigSelector {
@@ -377,6 +449,17 @@ public class BuildScriptBuilder {
         private TaskSelector(String taskName, String taskType) {
             this.taskName = taskName;
             this.taskType = taskType;
+        }
+
+        @Override
+        public int order() {
+            return 4;
+        }
+
+        @Nullable
+        @Override
+        public String codeBlockSelectorFor(Syntax syntax) {
+            return syntax.taskSelector(this);
         }
 
         @Override
@@ -406,6 +489,16 @@ public class BuildScriptBuilder {
         }
 
         @Override
+        public int order() {
+            return 3;
+        }
+
+        @Override
+        public String codeBlockSelectorFor(Syntax syntax) {
+            return syntax.conventionSelector(this);
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
@@ -430,6 +523,8 @@ public class BuildScriptBuilder {
         ConfigExpression(@Nullable String comment) {
             this.comment = comment;
         }
+
+        abstract String codeFor(Syntax syntax);
     }
 
     private static class MethodInvocation extends ConfigExpression {
@@ -439,6 +534,11 @@ public class BuildScriptBuilder {
         private MethodInvocation(String comment, MethodInvocationValue invocationExpression) {
             super(comment);
             this.invocationExpression = invocationExpression;
+        }
+
+        @Override
+        String codeFor(Syntax syntax) {
+            return invocationExpression.with(syntax);
         }
     }
 
@@ -451,6 +551,25 @@ public class BuildScriptBuilder {
             super(comment);
             this.propertyName = propertyName;
             this.propertyValue = propertyValue;
+        }
+
+        @Override
+        String codeFor(Syntax syntax) {
+            return syntax.propertyAssignment(this);
+        }
+    }
+
+    private class ScriptBlockImpl extends ScriptBlockBuilder {
+        @Override
+        public ScriptBlockBuilder plugin(String comment, String pluginId) {
+            configuration(ALL_PROJECTS_SELECTOR, new NestedPluginSpec(pluginId, null, comment));
+            return this;
+        }
+
+        @Override
+        public ScriptBlockBuilder propertyAssignment(String comment, String propertyName, Object propertyValue) {
+            configuration(ALL_PROJECTS_SELECTOR, new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
+            return this;
         }
     }
 
@@ -474,25 +593,6 @@ public class BuildScriptBuilder {
                 }
             }
             println(" */");
-        }
-
-        public void printPlugins(Collection<PluginSpec> plugins) {
-            if (plugins.isEmpty()) {
-                return;
-            }
-
-            println();
-            println("plugins {");
-            for (Iterator<PluginSpec> it = plugins.iterator(); it.hasNext();) {
-                PluginSpec spec = it.next();
-                println("    // " + spec.comment);
-                println("    " + pluginDependencySpec(spec.id, spec.version));
-
-                if (it.hasNext()) {
-                    println();
-                }
-            }
-            println("}");
         }
 
         public void printRepositories() {
@@ -532,10 +632,9 @@ public class BuildScriptBuilder {
         }
 
         private void printConfigGroup(ConfigGroup configGroup) {
-            String blockSelector = codeBlockSelectorFor(configGroup.selector);
+            String blockSelector = configGroup.selector.codeBlockSelectorFor(syntax);
             if (blockSelector != null) {
                 println(blockSelector + " {");
-                println();
             }
 
             String indent = blockSelector != null ? "    " : "";
@@ -575,23 +674,18 @@ public class BuildScriptBuilder {
             }
 
             private int compareSelectors(ConfigSelector s1, ConfigSelector s2) {
-                if (NULL_SELECTOR == s1) {
-                    return -1; // root statements come first
+                int diff = s1.order() - s2.order();
+                if (diff < 0) {
+                    return -1;
                 }
-                if (NULL_SELECTOR == s2) {
-                    return 1; // root statements come first
+                if (diff > 0) {
+                    return 1;
                 }
                 if (s1 instanceof ConventionSelector) {
-                    if (s2 instanceof ConventionSelector) {
-                        return conventionNameOf(s1).compareTo(conventionNameOf(s2));
-                    }
-                    return -1; // conventions come first
+                    return conventionNameOf(s1).compareTo(conventionNameOf(s2));
                 }
                 if (s1 instanceof TaskSelector) {
-                    if (s2 instanceof TaskSelector) {
-                        return taskNameOf(s1).compareTo(taskNameOf(s2));
-                    }
-                    return 1; // tasks come last
+                    return taskNameOf(s1).compareTo(taskNameOf(s2));
                 }
                 throw new IllegalStateException();
             }
@@ -644,56 +738,11 @@ public class BuildScriptBuilder {
             if (expression.comment != null) {
                 println(indent + "// " + expression.comment);
             }
-            println(indent + codeFor(expression));
-        }
-
-        @Nullable
-        private String codeBlockSelectorFor(ConfigSelector selector) {
-            if (NULL_SELECTOR == selector) {
-                return null;
-            }
-            if (selector instanceof TaskSelector) {
-                return taskSelector((TaskSelector) selector);
-            }
-            if (selector instanceof ConventionSelector) {
-                return conventionSelector((ConventionSelector) selector);
-            }
-            throw new IllegalStateException();
-        }
-
-        String codeFor(ConfigExpression expression) {
-            if (expression instanceof MethodInvocation) {
-                return methodInvocation((MethodInvocation) expression);
-            }
-            if (expression instanceof PropertyAssignment) {
-                return propertyAssignment((PropertyAssignment) expression);
-            }
-            throw new IllegalStateException();
-        }
-
-        private String methodInvocation(MethodInvocation expression) {
-            return expression.invocationExpression.with(syntax);
-        }
-
-        @Nullable
-        private String conventionSelector(ConventionSelector selector) {
-            return syntax.conventionSelector(selector);
-        }
-
-        private String taskSelector(TaskSelector selector) {
-            return syntax.taskSelector(selector);
-        }
-
-        private String propertyAssignment(PropertyAssignment expression) {
-            return syntax.propertyAssignment(expression);
+            println(indent + expression.codeFor(syntax));
         }
 
         private String dependencySpec(String config, String notation) {
             return syntax.dependencySpec(config, notation);
-        }
-
-        private String pluginDependencySpec(String pluginId, @Nullable String version) {
-            return syntax.pluginDependencySpec(pluginId, version);
         }
 
         private void println(String s) {
@@ -708,6 +757,8 @@ public class BuildScriptBuilder {
     private interface Syntax {
 
         String pluginDependencySpec(String pluginId, @Nullable String version);
+
+        String nestedPluginDependencySpec(String pluginId, @Nullable String version);
 
         String dependencySpec(String config, String notation);
 
@@ -733,6 +784,11 @@ public class BuildScriptBuilder {
                 return "id(\"" + pluginId + "\").version(\"" + version + "\")";
             }
             return pluginId.matches("[a-z]+") ? pluginId : "`" + pluginId + "`";
+        }
+
+        @Override
+        public String nestedPluginDependencySpec(String pluginId, @Nullable String version) {
+            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -787,6 +843,14 @@ public class BuildScriptBuilder {
                 return "id '" + pluginId + "' version '" + version + "'";
             }
             return "id '" + pluginId + "'";
+        }
+
+        @Override
+        public String nestedPluginDependencySpec(String pluginId, @Nullable String version) {
+            if (version != null) {
+                throw new UnsupportedOperationException();
+            }
+            return "apply plugin: '" + pluginId + "'";
         }
 
         @Override
