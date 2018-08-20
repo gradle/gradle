@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class LockingInteractionsIntegrationTest extends AbstractDependencyResolutionTest {
@@ -312,6 +313,93 @@ task copyFiles(type: Copy) {
         and:
         succeeds 'copyFiles'
 
+    }
+
+    def "version selector combinations are resolved equally for locked and unlocked configurations"() {
+        ['foo', 'foz', 'bar', 'baz'].each { artifact ->
+            mavenRepo.module('org', artifact, '1.0').publish()
+            mavenRepo.module('org', artifact, '1.1').publish()
+            mavenRepo.module('org', artifact, '1.2').publish()
+            mavenRepo.module('org', artifact, '2.0').publish()
+        }
+
+        buildFile << """
+repositories {
+    maven {
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    conf
+    lockEnabledConf {
+        extendsFrom conf
+         resolutionStrategy.activateDependencyLocking()
+    }
+}
+dependencies {
+    conf 'org:foo:[1.0,)'
+    conf 'org:foo:1.1'
+    
+    conf 'org:foz:latest.integration'
+    conf 'org:foz:1.1'
+    
+    conf 'org:bar:1.+'
+    conf 'org:bar:1.1' // With dependency locking enabled, '1.1' is selected. Without, we select '1.2'.
+    
+    conf 'org:baz:+'
+    conf 'org:baz:1.1' // With dependency locking enabled, '1.1' is selected. Without, we select '2.0'.
+}
+task check {
+    doLast {
+        assert configurations.conf*.name == configurations.lockEnabledConf*.name
+    }
+}
+"""
+
+        expect:
+        succeeds 'check'
+    }
+
+    @Ignore('This fails currently, illustrating that difference in resolution still exists')
+    @Unroll
+    def "version selector #fooVersion is resolved equally for unlocked configurations and when updating lock"() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'foo', '1.1').publish()
+        mavenRepo.module('org', 'foo', '1.2').publish()
+        mavenRepo.module('org', 'foo', '2.0').publish()
+        mavenRepo.module('org', 'bar', '2.0').publish()
+
+        buildFile << """
+repositories {
+    maven {
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    conf
+    lockEnabledConf {
+        extendsFrom conf
+         resolutionStrategy.activateDependencyLocking()
+    }
+}
+dependencies {
+    conf 'org:foo:$fooVersion'
+    conf 'org:foo:1.1'
+    conf 'org:bar:2.0'
+}
+task check {
+    doLast {
+        assert configurations.conf*.name == configurations.lockEnabledConf*.name
+    }
+}
+"""
+        lockfileFixture.createLockfile('lockEnabledConf', ['org:foo:1.1', 'org:bar:2.0'])
+
+        expect:
+        succeeds 'check', '--update-locks', 'org:foo'
+
+        where:
+        fooVersion << ['[1.0,)', 'latest.integration', '1.+', '+']
     }
 
 }
