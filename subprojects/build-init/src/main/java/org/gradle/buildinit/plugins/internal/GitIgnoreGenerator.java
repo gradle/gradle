@@ -24,7 +24,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-class GitIgnoreGenerator implements BuildContentGenerator {
+public class GitIgnoreGenerator implements BuildContentGenerator {
     private final FileResolver fileResolver;
 
     public GitIgnoreGenerator(FileResolver fileResolver) {
