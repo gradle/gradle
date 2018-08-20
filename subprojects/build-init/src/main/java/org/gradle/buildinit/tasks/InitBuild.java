@@ -27,18 +27,18 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.buildinit.plugins.internal.BuildConverter;
-import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.BuildInitializer;
+import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.internal.text.TreeFormatter;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.List;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackageName;
 
 /**
  * Generates a Gradle project structure.
@@ -195,7 +195,7 @@ public class InitBuild extends DefaultTask {
         String packageName = this.packageName;
         if (initDescriptor.supportsPackage()) {
             if (isNullOrEmpty(packageName)) {
-                packageName = inputHandler.askQuestion("Source package", getPackageName());
+                packageName = inputHandler.askQuestion("Source package", toPackageName(projectName));
             }
         } else if (!isNullOrEmpty(packageName)) {
             throw new GradleException("Package name is not supported for '" + type + "' setup type.");
@@ -288,9 +288,5 @@ public class InitBuild extends DefaultTask {
             return buildConverter.getId();
         }
         return projectLayoutRegistry.getDefault().getId();
-    }
-
-    private File file(String path) {
-        return getProject().file(path);
     }
 }

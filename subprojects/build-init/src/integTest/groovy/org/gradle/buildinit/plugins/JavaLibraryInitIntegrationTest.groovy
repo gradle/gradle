@@ -24,9 +24,9 @@ import static org.hamcrest.Matchers.allOf
 
 class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
-    public static final String SAMPLE_LIBRARY_CLASS = "src/main/java/Library.java"
-    public static final String SAMPLE_LIBRARY_TEST_CLASS = "src/test/java/LibraryTest.java"
-    public static final String SAMPLE_SPOCK_LIBRARY_TEST_CLASS = "src/test/groovy/LibraryTest.groovy"
+    public static final String SAMPLE_LIBRARY_CLASS = "some/thing/Library.java"
+    public static final String SAMPLE_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.java"
+    public static final String SAMPLE_SPOCK_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.groovy"
 
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
@@ -34,8 +34,8 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'java-library', '--dsl', scriptDsl.id)
 
         then:
-        file(SAMPLE_LIBRARY_CLASS).exists()
-        file(SAMPLE_LIBRARY_TEST_CLASS).exists()
+        targetDir.file("src/main/java").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
+        targetDir.file("src/test/java").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
 
         and:
         commonFilesGenerated(scriptDsl)
@@ -46,7 +46,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("build")
 
         then:
-        assertTestPassed("LibraryTest", "testSomeLibraryMethod")
+        assertTestPassed("some.thing.LibraryTest", "testSomeLibraryMethod")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -58,8 +58,9 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'java-library', '--test-framework', 'spock', '--dsl', scriptDsl.id)
 
         then:
-        file(SAMPLE_LIBRARY_CLASS).exists()
-        file(SAMPLE_SPOCK_LIBRARY_TEST_CLASS).exists()
+        targetDir.file("src/main/java").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
+        !targetDir.file("src/test/java").exists()
+        targetDir.file("src/test/groovy").assertHasDescendants(SAMPLE_SPOCK_LIBRARY_TEST_CLASS)
 
         and:
         commonFilesGenerated(scriptDsl)
@@ -70,7 +71,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("build")
 
         then:
-        assertTestPassed("LibraryTest", "someLibraryMethod returns true")
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethod returns true")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -82,8 +83,8 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'java-library', '--test-framework', 'testng', '--dsl', scriptDsl.id)
 
         then:
-        file(SAMPLE_LIBRARY_CLASS).exists()
-        file(SAMPLE_LIBRARY_TEST_CLASS).exists()
+        targetDir.file("src/main/java").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
+        targetDir.file("src/test/java").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
 
         and:
         commonFilesGenerated(scriptDsl)
@@ -94,7 +95,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("build")
 
         then:
-        assertTestPassed("LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -106,8 +107,8 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'java-library', '--test-framework', 'testng', '--package', 'my.lib', '--dsl', scriptDsl.id)
 
         then:
-        file("src/main/java/my/lib/Library.java").exists()
-        file("src/test/java/my/lib/LibraryTest.java").exists()
+        targetDir.file("src/main/java").assertHasDescendants("my/lib/Library.java")
+        targetDir.file("src/test/java").assertHasDescendants("my/lib/LibraryTest.java")
 
         and:
         commonFilesGenerated(scriptDsl)
@@ -128,8 +129,8 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'java-library', '--test-framework', 'spock', '--package', 'my.lib', '--dsl', scriptDsl.id)
 
         then:
-        file("src/main/java/my/lib/Library.java").exists()
-        file("src/test/groovy/my/lib/LibraryTest.groovy").exists()
+        targetDir.file("src/main/java").assertHasDescendants("my/lib/Library.java")
+        targetDir.file("src/test/groovy").assertHasDescendants("my/lib/LibraryTest.groovy")
 
         and:
         commonFilesGenerated(scriptDsl)
@@ -147,13 +148,13 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "source generation is skipped when java sources detected with #scriptDsl build scripts"() {
         setup:
-        file("src/main/java/org/acme/SampleMain.java") << """
+        targetDir.file("src/main/java/org/acme/SampleMain.java") << """
         package org.acme;
 
-        public class SampleMain{
+        public class SampleMain {
         }
 """
-        file("src/test/java/org/acme/SampleMainTest.java") << """
+        targetDir.file("src/test/java/org/acme/SampleMainTest.java") << """
                 package org.acme;
 
                 public class SampleMainTest {
@@ -163,8 +164,8 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'java-library', '--dsl', scriptDsl.id)
 
         then:
-        !file(SAMPLE_LIBRARY_CLASS).exists()
-        !file(SAMPLE_LIBRARY_TEST_CLASS).exists()
+        targetDir.file("src/main/java").assertHasDescendants("org/acme/SampleMain.java")
+        targetDir.file("src/test/java").assertHasDescendants("org/acme/SampleMainTest.java")
 
         and:
         def dslFixture = dslFixtureFor(scriptDsl)

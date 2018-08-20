@@ -21,8 +21,8 @@ import spock.lang.Unroll
 
 class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
-    public static final String SAMPLE_LIBRARY_CLASS = "src/main/groovy/Library.groovy"
-    public static final String SAMPLE_LIBRARY_TEST_CLASS = "src/test/groovy/LibraryTest.groovy"
+    public static final String SAMPLE_LIBRARY_CLASS = "some/thing/Library.groovy"
+    public static final String SAMPLE_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.groovy"
 
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
@@ -30,15 +30,17 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'groovy-library', '--dsl', scriptDsl.id)
 
         then:
-        file(SAMPLE_LIBRARY_CLASS).exists()
-        file(SAMPLE_LIBRARY_TEST_CLASS).exists()
+        targetDir.file("src/main/groovy").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
+        targetDir.file("src/test/groovy").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
+
+        and:
         commonFilesGenerated(scriptDsl)
 
         when:
         run("build")
 
         then:
-        assertTestPassed("LibraryTest", "someLibraryMethod returns true")
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethod returns true")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -50,15 +52,17 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'groovy-library', '--test-framework', 'spock', '--dsl', scriptDsl.id)
 
         then:
-        file(SAMPLE_LIBRARY_CLASS).exists()
-        file(SAMPLE_LIBRARY_TEST_CLASS).exists()
+        targetDir.file("src/main/groovy").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
+        targetDir.file("src/test/groovy").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
+
+        and:
         commonFilesGenerated(scriptDsl)
 
         when:
         run("build")
 
         then:
-        assertTestPassed("LibraryTest", "someLibraryMethod returns true")
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethod returns true")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -70,8 +74,10 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'groovy-library', '--package', 'my.lib', '--dsl', scriptDsl.id)
 
         then:
-        file("src/main/groovy/my/lib/Library.groovy").exists()
-        file("src/test/groovy/my/lib/LibraryTest.groovy").exists()
+        targetDir.file("src/main/groovy").assertHasDescendants("my/lib/Library.groovy")
+        targetDir.file("src/test/groovy").assertHasDescendants("my/lib/LibraryTest.groovy")
+
+        and:
         commonFilesGenerated(scriptDsl)
 
         when:
@@ -87,24 +93,24 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "source generation is skipped when groovy sources detected with #scriptDsl build scripts"() {
         setup:
-        file("src/main/groovy/org/acme/SampleMain.groovy") << """
+        targetDir.file("src/main/groovy/org/acme/SampleMain.groovy") << """
             package org.acme;
 
-            class SampleMain{
+            class SampleMain {
             }
     """
-        file("src/test/groovy/org/acme/SampleMainTest.groovy") << """
+        targetDir.file("src/test/groovy/org/acme/SampleMainTest.groovy") << """
                     package org.acme;
 
-                    class SampleMain{
+                    class SampleMainTest {
                     }
             """
         when:
         run('init', '--type', 'groovy-library', '--dsl', scriptDsl.id)
 
         then:
-        !file(SAMPLE_LIBRARY_CLASS).exists()
-        !file(SAMPLE_LIBRARY_TEST_CLASS).exists()
+        targetDir.file("src/main/groovy").assertHasDescendants("org/acme/SampleMain.groovy")
+        targetDir.file("src/test/groovy").assertHasDescendants("org/acme/SampleMainTest.groovy")
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:
