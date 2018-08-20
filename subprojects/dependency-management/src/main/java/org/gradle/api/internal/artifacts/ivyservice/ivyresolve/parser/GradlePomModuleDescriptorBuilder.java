@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
@@ -128,7 +129,10 @@ public class GradlePomModuleDescriptorBuilder {
 
         String version = determineVersion(dep);
         String mappedVersion = convertVersionFromMavenSyntax(version);
-        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dep.getGroupId(), dep.getArtifactId()), new DefaultImmutableVersionConstraint(mappedVersion));
+        VersionConstraint versionConstraint = optional
+            ? DefaultImmutableVersionConstraint.prefer(mappedVersion)
+            : DefaultImmutableVersionConstraint.of(mappedVersion);
+        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dep.getGroupId(), dep.getArtifactId()), versionConstraint);
 
         // Some POMs depend on themselves, don't add this dependency: Ivy doesn't allow this!
         // Example: http://repo2.maven.org/maven2/net/jini/jsk-platform/2.1/jsk-platform-2.1.pom

@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 
 public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint implements ImmutableVersionConstraint {
@@ -126,6 +127,10 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
             return of();
         }
         return new DefaultImmutableVersionConstraint(version);
+    }
+
+    public static ImmutableVersionConstraint prefer(String version) {
+        return new DefaultImmutableVersionConstraint(version, "", "", Collections.<String>emptyList());
     }
 
     public static ImmutableVersionConstraint of(String preferredVersion, String requiredVersion, String strictVersion, List<String> rejects) {
