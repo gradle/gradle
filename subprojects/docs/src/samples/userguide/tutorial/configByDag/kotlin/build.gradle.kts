@@ -13,6 +13,6 @@ task("release") {
 
 gradle.taskGraph.whenReady {
     version =
-        if (hasTask("release")) "1.0"
+        if (hasTask(":release")) "1.0"
         else "1.0-SNAPSHOT"
 }

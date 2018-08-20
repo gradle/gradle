@@ -1,5 +1,5 @@
 task("count") {
     doLast {
-        repeat(4) { println("$it ") }
+        repeat(4) { print("$it ") }
     }
 }
