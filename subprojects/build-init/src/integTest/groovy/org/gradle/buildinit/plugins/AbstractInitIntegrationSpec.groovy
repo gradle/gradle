@@ -35,9 +35,10 @@ class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     protected void commonFilesGenerated(BuildInitDsl scriptDsl) {
+        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
         file("src/main/resources").assertIsDir()
         file("src/test/resources").assertIsDir()
-        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
+        file(".gitignore").assertIsFile()
     }
 
     protected ScriptDslFixture dslFixtureFor(BuildInitDsl dsl) {

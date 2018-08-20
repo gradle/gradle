@@ -39,8 +39,9 @@ public class ProjectLayoutSetupRegistryFactory {
         BuildScriptBuilderFactory scriptBuilderFactory = new BuildScriptBuilderFactory(fileResolver);
         BuildContentGenerator settingsDescriptor = new SimpleGlobalFilesBuildSettingsDescriptor(scriptBuilderFactory, documentationRegistry);
         BuildContentGenerator resourcesGenerator = new ResourceDirsGenerator(fileResolver);
-        List<BuildContentGenerator> jvmProjectGenerators = ImmutableList.of(settingsDescriptor, resourcesGenerator);
-        List<BuildContentGenerator> commonGenerators = ImmutableList.of(settingsDescriptor);
+        BuildContentGenerator gitIgnoreGenerator = new GitIgnoreGenerator(fileResolver);
+        List<BuildContentGenerator> jvmProjectGenerators = ImmutableList.of(settingsDescriptor, gitIgnoreGenerator, resourcesGenerator);
+        List<BuildContentGenerator> commonGenerators = ImmutableList.of(settingsDescriptor, gitIgnoreGenerator);
         BuildInitializer basicType = of(new BasicProjectGenerator(scriptBuilderFactory), commonGenerators);
         PomProjectInitDescriptor mavenBuildConverter = new PomProjectInitDescriptor(fileResolver, mavenSettingsProvider);
         ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry(basicType, mavenBuildConverter);
@@ -57,4 +58,5 @@ public class ProjectLayoutSetupRegistryFactory {
     private BuildInitializer of(ProjectGenerator projectGenerator, List<BuildContentGenerator> generators) {
         return new CompositeProjectInitDescriptor(projectGenerator, generators);
     }
+
 }
