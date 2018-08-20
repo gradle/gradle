@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskExecutionGraphInternal;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -129,4 +130,6 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     void setIdentityPath(Path path);
 
     String contextualize(String description);
+
+    PublicBuildPath getPublicBuildPath();
 }

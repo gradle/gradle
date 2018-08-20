@@ -30,6 +30,7 @@ dependencies {
     implementation(library("commons_lang"))
     implementation(library("commons_io"))
     implementation(library("jcip"))
+    implementation(library("asm"))
 
     jmh(library("bouncycastle_provider")) {
         version {
@@ -57,8 +58,4 @@ val buildReceiptResource = tasks.register<Copy>("buildReceiptResource") {
     destinationDir = file("${gradlebuildJava.generatedTestResourcesDir}/$buildReceiptPackage")
 }
 
-java.sourceSets {
-    "main" {
-        output.dir(mapOf("builtBy" to buildReceiptResource), gradlebuildJava.generatedTestResourcesDir)
-    }
-}
+sourceSets["main"].output.dir(mapOf("builtBy" to buildReceiptResource), gradlebuildJava.generatedTestResourcesDir)

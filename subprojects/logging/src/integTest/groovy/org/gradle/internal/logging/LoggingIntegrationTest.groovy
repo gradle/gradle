@@ -168,22 +168,22 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
         checkOutput(this.&run, logOutput.debug)
     }
 
-    @Test @UsesSample('userguide/tutorial/logging')
+    @Test @UsesSample('userguide/tutorial/logging/groovy')
     public void sampleQuietLogging() {
         checkOutput(this.&runSample, sample.quiet)
     }
 
-    @Test @UsesSample('userguide/tutorial/logging')
+    @Test @UsesSample('userguide/tutorial/logging/groovy')
     public void sampleLifecycleLogging() {
         checkOutput(this.&runSample, sample.lifecycle)
     }
 
-    @Test @UsesSample('userguide/tutorial/logging')
+    @Test @UsesSample('userguide/tutorial/logging/groovy')
     public void sampleInfoLogging() {
         checkOutput(this.&runSample, sample.info)
     }
 
-    @Test @UsesSample('userguide/tutorial/logging')
+    @Test @UsesSample('userguide/tutorial/logging/groovy')
     public void sampleDebugLogging() {
         checkOutput(this.&runSample, sample.debug)
     }

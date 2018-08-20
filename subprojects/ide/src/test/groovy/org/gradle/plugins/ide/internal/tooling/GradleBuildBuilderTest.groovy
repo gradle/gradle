@@ -56,7 +56,7 @@ class GradleBuildBuilderTest extends Specification {
         model.projects*.name == ["root", "child1", "child2"]
         model.projects*.path == [":", ":child1", ":child2"]
         model.includedBuilds.empty
-        model.allBuilds.empty
+        model.editableBuilds.empty
 
         where:
         startProject | _
@@ -120,12 +120,12 @@ class GradleBuildBuilderTest extends Specification {
         model2.rootDir == dir2
         model2.includedBuilds.empty
 
-        model.allBuilds.size() == 2
-        model.allBuilds[0] == model1
-        model.allBuilds[1] == model2
+        model.editableBuilds.size() == 2
+        model.editableBuilds[0] == model1
+        model.editableBuilds[1] == model2
 
-        model1.allBuilds.empty
-        model2.allBuilds.empty
+        model1.editableBuilds.empty
+        model2.editableBuilds.empty
     }
 
     interface TestIncludedBuild extends IncludedBuild, IncludedBuildState {

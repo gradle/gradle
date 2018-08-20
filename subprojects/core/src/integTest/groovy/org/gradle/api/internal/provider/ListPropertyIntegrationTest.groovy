@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 class ListPropertyIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -30,7 +31,8 @@ class ListPropertyIntegrationTest extends AbstractIntegrationSpec {
                     def actual = prop.getOrNull()
                     println 'Actual: ' + actual
                     println 'Expected: ' + expected
-                    assert actual == expected
+                    assert expected == actual
+                    actual.each { assert it instanceof String }
                 }
             }
             
@@ -38,6 +40,7 @@ class ListPropertyIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    @Unroll
     def "can set value for list property from DSL"() {
         buildFile << """
             verify {
@@ -55,21 +58,80 @@ class ListPropertyIntegrationTest extends AbstractIntegrationSpec {
         "providers.provider { [ 'a', 'b', 'c' ] }" | _
     }
 
-    def "can add to default values"() {
+    @Unroll
+    def "can set value for string list property using GString values"() {
+        buildFile << """
+            def str = "aBc"
+            verify {
+                prop = ${value}
+                expected = [ 'a', 'b' ]
+            }
+        """
+        expect:
+        succeeds("verify")
+
+        where:
+        value                                                                                         | _
+        '[ "${str.substring(0, 1)}", "${str.toLowerCase().substring(1, 2)}" ]'                        | _
+        'providers.provider { [ "${str.substring(0, 1)}", "${str.toLowerCase().substring(1, 2)}" ] }' | _
+    }
+
+    def "can add elements to default value"() {
         buildFile << """
             verify {
                 prop = [ 'a' ]
                 prop.add('b')
                 prop.add(project.provider { 'c' })
-                prop.addAll(project.provider { [ 'd', 'e' ] })
-                expected = [ 'a', 'b', 'c', 'd', 'e' ]
+                prop.addAll('d', 'e')
+                prop.addAll(['f', 'g'])
+                prop.addAll(project.provider { [ 'h', 'i' ] })
+                expected = [ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i' ]
             }
         """
         expect:
         succeeds("verify")
     }
 
-    def "can add to empty list property"() {
+    @Unroll
+    def "can add element to string list property using GString value"() {
+        buildFile << """
+            def str = "aBc"
+            verify {
+                prop = [ 'a' ]
+                prop.add($value)
+                expected = [ 'a', 'b' ]
+            }
+        """
+        expect:
+        succeeds("verify")
+
+        where:
+        value                                                           | _
+        '"${str.toLowerCase().substring(1, 2)}"'                        | _
+        'providers.provider { "${str.toLowerCase().substring(1, 2)}" }' | _
+    }
+
+    @Unroll
+    def "can add elements to string list property using GString value"() {
+        buildFile << """
+            def str = "aBc"
+            verify {
+                prop = [ 'a' ]
+                prop.addAll($value)
+                expected = [ 'a', 'b', 'c' ]
+            }
+        """
+        expect:
+        succeeds("verify")
+
+        where:
+        value                                                                                         | _
+        '"${str.toLowerCase().substring(1, 2)}", "${str.substring(2, 3)}"'                            | _
+        '[ "${str.toLowerCase().substring(1, 2)}", "${str.substring(2, 3)}" ]'                        | _
+        'providers.provider { [ "${str.toLowerCase().substring(1, 2)}", "${str.substring(2, 3)}" ] }' | _
+    }
+
+    def "can add elements to empty list property"() {
         buildFile << """
             verify {
                 prop.add('a')
@@ -82,7 +144,7 @@ class ListPropertyIntegrationTest extends AbstractIntegrationSpec {
         succeeds("verify")
     }
 
-    def "adds to non-defined property do nothing"() {
+    def "adds to non-defined property does nothing"() {
         buildFile << """
             verify {
                 prop = null

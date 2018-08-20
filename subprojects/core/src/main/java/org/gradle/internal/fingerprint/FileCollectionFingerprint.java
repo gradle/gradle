@@ -16,8 +16,10 @@
 
 package org.gradle.internal.fingerprint;
 
+import com.google.common.collect.Multimap;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
+import org.gradle.internal.hash.HashCode;
 
 import java.util.Map;
 
@@ -34,9 +36,14 @@ public interface FileCollectionFingerprint {
     boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, String title, boolean includeAdded, TaskStateChangeVisitor visitor);
 
     /**
-     * The underlying snapshots.
+     * The underlying fingerprints.
      */
-    Map<String, NormalizedFileSnapshot> getSnapshots();
+    Map<String, FileSystemLocationFingerprint> getFingerprints();
+
+    /**
+     * The Merkle hashes of the roots which make up this file collection fingerprint.
+     */
+    Multimap<String, HashCode> getRootHashes();
 
     /**
      * Converts the {@link FileCollectionFingerprint} into a {@link HistoricalFileCollectionFingerprint} which can be serialized in the task history.

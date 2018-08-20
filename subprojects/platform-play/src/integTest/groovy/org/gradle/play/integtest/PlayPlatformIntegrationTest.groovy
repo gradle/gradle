@@ -106,8 +106,8 @@ model {
 model {
     components {
         play {
-            platform play: '2.2.4'
             platform play: '2.3.6'
+            platform play: '2.6.5'
         }
     }
 }

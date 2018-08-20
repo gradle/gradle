@@ -23,7 +23,6 @@ import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 
 import java.util.Collection;
@@ -80,5 +79,5 @@ public interface TaskArtifactState {
     /**
      * Returns the current output file fingerprints indexed by property name.
      */
-    Map<String, ? extends FileCollectionFingerprint> getOutputFingerprints();
+    Map<String, CurrentFileCollectionFingerprint> getOutputFingerprints();
 }

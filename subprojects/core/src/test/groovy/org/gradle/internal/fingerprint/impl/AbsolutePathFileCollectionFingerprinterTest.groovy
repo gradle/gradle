@@ -20,13 +20,13 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.rules.ChangeType
 import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVisitor
 import org.gradle.api.internal.changedetection.rules.FileChange
-import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
-import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.WellKnownFileLocations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.hash.TestFileHasher
+import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
+import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
 import org.gradle.normalization.internal.InputNormalizationStrategy
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -37,7 +37,7 @@ import spock.lang.Specification
 class AbsolutePathFileCollectionFingerprinterTest extends Specification {
     def stringInterner = new StringInterner()
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
-    def fingerprinter = new AbsolutePathFileCollectionFingerprinter(stringInterner, TestFiles.directoryFileTreeFactory(), new DefaultFileSystemSnapshotter(new TestFileHasher(), stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory(), fileSystemMirror))
+    def fingerprinter = new AbsolutePathFileCollectionFingerprinter(stringInterner, new DefaultFileSystemSnapshotter(new TestFileHasher(), stringInterner, TestFiles.fileSystem(), fileSystemMirror))
     def listener = Mock(ChangeListener)
     def normalizationStrategy = InputNormalizationStrategy.NO_NORMALIZATION
     @Rule
@@ -53,7 +53,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         def fingerprint = fingerprinter.fingerprint(files(file, file2, file3), normalizationStrategy)
 
         then:
-        fingerprint.snapshots.keySet().collect { new File(it) } == [file, file2, file3]
+        fingerprint.fingerprints.keySet().collect { new File(it) } == [file, file2, file3]
     }
 
     def getElementsIncludesRootDirectories() {
@@ -68,7 +68,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         def fingerprint = fingerprinter.fingerprint(files(file, dir, noExist), normalizationStrategy)
 
         then:
-        fingerprint.snapshots.keySet().collect { new File(it) } == [file, dir, dir2, file2, noExist]
+        fingerprint.fingerprints.keySet().collect { new File(it) } == [file, dir, dir2, file2, noExist]
     }
 
     def "retains order of elements in the snapshot"() {
@@ -82,7 +82,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         def fingerprint = fingerprinter.fingerprint(files(file, file2, file3, file4), normalizationStrategy)
 
         then:
-        fingerprint.snapshots.keySet().collect { new File(it) } == [file, file2, file3, file4]
+        fingerprint.fingerprints.keySet().collect { new File(it) } == [file, file2, file3, file4]
     }
 
     def generatesEventWhenFileAdded() {
@@ -271,13 +271,13 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         TestFile file = tmpDir.createFile('file')
 
         when:
-        FileCollectionFingerprint fingerprint = EmptyFileCollectionFingerprint.INSTANCE
+        FileCollectionFingerprint fingerprint = EmptyHistoricalFileCollectionFingerprint.INSTANCE
         FileCollectionFingerprint newFingerprint = fingerprinter.fingerprint(files(file), normalizationStrategy)
         fileSystemMirror.beforeTaskOutputChanged()
         changes(newFingerprint, fingerprint, listener)
 
         then:
-        fingerprint.snapshots.isEmpty()
+        fingerprint.fingerprints.isEmpty()
         1 * listener.added(file.path)
         0 * listener._
     }

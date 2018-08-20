@@ -90,6 +90,11 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
     }
 
     @Override
+    public void require(String version) {
+        updateVersions(version, version, null);
+    }
+
+    @Override
     public String getPreferredVersion() {
         return preferredVersion;
     }

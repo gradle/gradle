@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import spock.lang.Issue
 
 class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
@@ -1717,6 +1718,53 @@ Found the following transforms:
         output.count("Transforming") == 1
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/6156")
+    def "stops resolving dependencies of task when artifact transforms are encountered"() {
+        given:
+        buildFile << """
+            project(':lib') {
+                task jar(type: Jar) {
+                    destinationDir = buildDir
+                    archiveName = 'lib1.jar'
+                }
+
+                artifacts {
+                    compile jar
+                }
+            }
+
+            project(':app') {
+
+                dependencies {
+                    compile project(':lib')
+                }
+
+                ${configurationAndTransform()}
+
+                task dependent {
+                    dependsOn resolve
+                }
+            }
+
+            gradle.taskGraph.whenReady { taskGraph ->
+                taskGraph.allTasks.each { task ->
+                    task.taskDependencies.getDependencies(task).each { dependency ->
+                        println "> Dependency: \${task} -> \${dependency}"
+                    }
+                }
+            }
+        """
+
+        when:
+        run "dependent"
+
+        then:
+        output.count("> Dependency:") == 1
+        output.contains("> Dependency: task ':app:dependent' -> task ':app:resolve'")
+        output.contains("> Transform lib1.jar (project :lib) with FileSizer")
+        output.contains("> Task :app:resolve")
+    }
+
     def declareTransform(String transformImplementation) {
         """
             dependencies {
@@ -1729,7 +1777,7 @@ Found the following transforms:
         """
     }
 
-    def configurationAndTransform(String transformImplementation) {
+    def configurationAndTransform(String transformImplementation = "FileSizer") {
         """
             ${declareTransform(transformImplementation)}
 

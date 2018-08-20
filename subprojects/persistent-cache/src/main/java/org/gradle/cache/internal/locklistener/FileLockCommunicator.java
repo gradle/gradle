@@ -20,26 +20,26 @@ import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketAddress;
 import java.net.SocketException;
+import java.util.Set;
 
+import static org.gradle.cache.internal.locklistener.FileLockPacketType.LOCK_RELEASE_CONFIRMATION;
+import static org.gradle.cache.internal.locklistener.FileLockPacketType.UNLOCK_REQUEST;
+import static org.gradle.cache.internal.locklistener.FileLockPacketType.UNLOCK_REQUEST_CONFIRMATION;
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 public class FileLockCommunicator {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileLockCommunicator.class);
     private static final String SOCKET_OPERATION_NOT_PERMITTED_ERROR_MESSAGE = "Operation not permitted";
 
-    private static final byte PROTOCOL_VERSION = 1;
     private final DatagramSocket socket;
     private final InetAddressFactory addressFactory;
-    private boolean stopped;
+    private volatile boolean stopped;
 
     public FileLockCommunicator(InetAddressFactory addressFactory) {
         this.addressFactory = addressFactory;
@@ -52,7 +52,7 @@ public class FileLockCommunicator {
 
     public boolean pingOwner(int ownerPort, long lockId, String displayName) {
         try {
-            byte[] bytesToSend = encode(lockId);
+            byte[] bytesToSend = FileLockPacketPayload.encode(lockId, UNLOCK_REQUEST);
             // Ping the owner via all available local addresses
             for (InetAddress address : addressFactory.getCommunicationAddresses()) {
                 try {
@@ -74,7 +74,7 @@ public class FileLockCommunicator {
 
     public DatagramPacket receive() throws GracefullyStoppedException {
         try {
-            byte[] bytes = new byte[9];
+            byte[] bytes = new byte[FileLockPacketPayload.MAX_BYTES];
             DatagramPacket packet = new DatagramPacket(bytes, bytes.length);
             socket.receive(packet);
             return packet;
@@ -86,9 +86,9 @@ public class FileLockCommunicator {
         }
     }
 
-    public long decodeLockId(DatagramPacket receivedPacket) {
+    public FileLockPacketPayload decode(DatagramPacket receivedPacket) {
         try {
-            return decode(receivedPacket.getData());
+            return FileLockPacketPayload.decode(receivedPacket.getData(), receivedPacket.getLength());
         } catch (IOException e) {
             if (!stopped) {
                 throw new RuntimeException(e);
@@ -97,40 +97,39 @@ public class FileLockCommunicator {
         }
     }
 
-    public void confirmUnlockRequest(DatagramPacket receivedPacket) {
+    public void confirmUnlockRequest(SocketAddress address, long lockId) {
         try {
-            byte[] bytes = receivedPacket.getData();
-            DatagramPacket confirmPacket = new DatagramPacket(bytes, bytes.length, receivedPacket.getAddress(), receivedPacket.getPort());
-            socket.send(confirmPacket);
+            byte[] bytes = FileLockPacketPayload.encode(lockId, UNLOCK_REQUEST_CONFIRMATION);
+            DatagramPacket packet = new DatagramPacket(bytes, bytes.length);
+            packet.setSocketAddress(address);
+            socket.send(packet);
         } catch (IOException e) {
             if (!stopped) {
                 throw new RuntimeException(e);
             }
             throw new GracefullyStoppedException();
+        }
+    }
+
+    public void confirmLockRelease(Set<SocketAddress> addresses, long lockId) {
+        byte[] bytes = FileLockPacketPayload.encode(lockId, LOCK_RELEASE_CONFIRMATION);
+        for (SocketAddress address : addresses) {
+            DatagramPacket packet = new DatagramPacket(bytes, bytes.length);
+            packet.setSocketAddress(address);
+            LOGGER.debug("Confirming lock release to Gradle process at port {} for lock with id {}.", packet.getPort(), lockId);
+            try {
+                socket.send(packet);
+            } catch (IOException e) {
+                if (!stopped) {
+                    LOGGER.debug("Failed to confirm lock release to Gradle process at port {} for lock with id {}.", packet.getPort(), lockId);
+                }
+            }
         }
     }
 
     public void stop() {
         stopped = true;
         socket.close();
-    }
-
-    private static byte[] encode(long lockId) throws IOException {
-        ByteArrayOutputStream packet = new ByteArrayOutputStream();
-        DataOutputStream dataOutput = new DataOutputStream(packet);
-        dataOutput.writeByte(PROTOCOL_VERSION);
-        dataOutput.writeLong(lockId);
-        dataOutput.flush();
-        return packet.toByteArray();
-    }
-
-    private static long decode(byte[] bytes) throws IOException {
-        DataInputStream dataInput = new DataInputStream(new ByteArrayInputStream(bytes));
-        byte version = dataInput.readByte();
-        if (version != PROTOCOL_VERSION) {
-            throw new IllegalArgumentException(String.format("Unexpected protocol version %s received in lock contention notification message", version));
-        }
-        return dataInput.readLong();
     }
 
     public int getPort() {

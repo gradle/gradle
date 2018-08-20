@@ -17,6 +17,9 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
+import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
+import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
+import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -95,6 +98,14 @@ public class CrossBuildSessionScopeServices implements Closeable {
         return new DelegatingBuildOperationExecutor(services.get(BuildOperationExecutor.class));
     }
 
+    ListenerBuildOperationDecorator createListenerBuildOperationDecorator() {
+        return services.get(DefaultListenerBuildOperationDecorator.class);
+    }
+
+    UserCodeApplicationContext createUserCodeApplicationContext() {
+        return services.get(UserCodeApplicationContext.class);
+    }
+
     BuildOperationNotificationListenerRegistrar createBuildOperationNotificationListenerRegistrar() {
         return buildOperationNotificationBridge.getRegistrar();
     }
@@ -147,6 +158,14 @@ public class CrossBuildSessionScopeServices implements Closeable {
                 parallelismConfigurationManager,
                 buildOperationIdFactory
             );
+        }
+
+        UserCodeApplicationContext createUserCodeApplicationContext(DefaultListenerBuildOperationDecorator operationDecorator) {
+            return operationDecorator.getUserCodeApplicationContext();
+        }
+
+        DefaultListenerBuildOperationDecorator createListenerBuildOperationDecorator(BuildOperationExecutor buildOperationExecutor) {
+            return new DefaultListenerBuildOperationDecorator(buildOperationExecutor);
         }
     }
 }

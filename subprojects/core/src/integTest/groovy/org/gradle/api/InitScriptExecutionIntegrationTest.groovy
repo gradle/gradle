@@ -185,7 +185,7 @@ try {
         def a = output.indexOf('init #a#')
         def b = output.indexOf('init #b#')
         def c = output.indexOf('init #c#')
-        a > 0
+        a >= 0
         b > a
         c > b
     }

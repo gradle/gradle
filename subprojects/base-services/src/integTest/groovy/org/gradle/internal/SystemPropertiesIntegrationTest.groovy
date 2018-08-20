@@ -87,4 +87,29 @@ class SystemPropertiesIntegrationTest extends ConcurrentSpec {
         assert System.getProperty(presetPropertyName) == "original"
         assert System.getProperty(notsetPropertyName) == null
     }
+
+
+    def "withProperty and withProperties are never run concurrently"() {
+        final int threadCount = 100
+        def id = UUID.randomUUID().toString()
+
+        when:
+        async {
+            threadCount.times { i ->
+                start {
+                    SystemProperties.instance.withSystemProperty(id, "bar", {"baz"})
+                }
+                start {
+                    SystemProperties.instance.withSystemProperties {
+                        System.properties.each {
+                            assert it.key != id
+                        }
+                    }
+                }
+            }
+        }
+
+        then:
+        noExceptionThrown()
+    }
 }

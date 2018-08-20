@@ -87,17 +87,12 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
 
             'visual-studio',
             'xcode',
-            'java-gradle-plugin',
 
             'maven-publish',
             'ivy-publish',
-            'ear',
-            'war',
-            'jacoco',
             'java-library-distribution',
             'distribution',
             'play-application',
-            'build-dashboard',
         ])
 
         applyPlugin()
@@ -113,18 +108,7 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
             gradle.buildFinished {
                 def configuredTaskPaths = configuredTasks*.path
                 
-                if (configuredTaskPaths == [':help']) {
-                    // This plugin is well-behaved
-                    return
-                }
-                
-                assert configuredTasks.size() == 2
-
-                // This should be the only task configured
-                assert ":help" in configuredTaskPaths
-                
-                // This task needs to be able to register publications lazily
-                assert ":jar" in configuredTaskPaths
+                assert configuredTaskPaths == [':help']
             }
         """
         expect:

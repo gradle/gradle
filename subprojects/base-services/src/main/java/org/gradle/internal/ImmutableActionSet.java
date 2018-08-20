@@ -26,9 +26,11 @@ import org.gradle.api.Action;
  *
  * Actions are executed in order of insertion. Duplicates are ignored. Execution stops on the first failure.
  *
+ * Implements {@link InternalListener} as components themselves should be decorated if appropriate.
+ *
  * @param <T> the type of the subject of the action
  */
-public abstract class ImmutableActionSet<T> implements Action<T> {
+public abstract class ImmutableActionSet<T> implements Action<T>, InternalListener {
     private static final int FEW_VALUES = 5;
     private static final ImmutableActionSet<Object> EMPTY = new EmptySet<Object>();
 

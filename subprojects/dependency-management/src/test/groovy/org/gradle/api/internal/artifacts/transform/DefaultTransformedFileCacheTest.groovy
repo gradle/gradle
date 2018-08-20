@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.cache.AsyncCacheAccess
 import org.gradle.cache.CacheDecorator
@@ -28,6 +27,8 @@ import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.local.FileAccessTimeJournal
+import org.gradle.internal.snapshot.FileSystemSnapshotter
+import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.util.BiFunction
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestFile
@@ -78,7 +79,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         result*.name == ["a.1"]
 
         and:
-        1 * snapshotter.snapshotAll(inputFile) >> HashCode.fromInt(234)
+        1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(234))
         1 * transform.apply(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
         1 * fileAccessTimeJournal.setLastAccessTime(_, _)
         0 * snapshotter._
@@ -91,7 +92,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         result2 == result
 
         and:
-        1 * snapshotter.snapshotAll(inputFile) >> HashCode.fromInt(234)
+        1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(234))
         0 * fileAccessTimeJournal.setLastAccessTime(_, _)
         0 * snapshotter._
         0 * transform._
@@ -101,7 +102,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         given:
         def inputFile = tmpDir.file("a")
         def hash = HashCode.fromInt(123)
-        _ * snapshotter.snapshotAll(_) >> hash
+        _ * snapshotter.snapshot(_) >> snapshot(hash)
 
         expect:
         !cache.contains(inputFile, hash)
@@ -112,7 +113,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         def transform = Stub(BiFunction)
         def inputFile = tmpDir.file("a")
         def hash = HashCode.fromInt(123)
-        _ * snapshotter.snapshotAll(_) >> hash
+        _ * snapshotter.snapshot(_) >> snapshot(hash)
         _ * transform.apply(_, _) >>  { File file, File dir -> [new TestFile(dir, file.getName()).touch()] }
 
         when:
@@ -128,7 +129,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         def inputFile = tmpDir.file("a")
         def hash = HashCode.fromInt(123)
         def otherHash = HashCode.fromInt(456)
-        _ * snapshotter.snapshotAll(_) >> hash
+        _ * snapshotter.snapshot(_) >> snapshot(hash)
         _ * transform.apply(_, _) >>  { File file, File dir -> [file] }
 
         when:
@@ -149,7 +150,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         result == [inputFile]
 
         and:
-        1 * snapshotter.snapshotAll(inputFile) >> HashCode.fromInt(234)
+        1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(234))
         1 * transform.apply(inputFile, _) >>  { File file, File dir -> [file] }
         0 * snapshotter._
         0 * transform._
@@ -161,7 +162,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         result2 == result
 
         and:
-        1 * snapshotter.snapshotAll(inputFile) >> HashCode.fromInt(234)
+        1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(234))
         0 * transform._
         0 * snapshotter._
         0 * fileAccessTimeJournal._
@@ -198,7 +199,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         result4 == result1
 
         and:
-        4 * snapshotter.snapshotAll(inputFile) >> HashCode.fromInt(234)
+        4 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(234))
         1 * transform.apply(inputFile, _) >> { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
         1 * fileAccessTimeJournal.setLastAccessTime(_, _)
         0 * transform._
@@ -230,7 +231,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         instant.b_done > instant.a
 
         and:
-        2 * snapshotter.snapshotAll(_) >>> [HashCode.fromInt(234), HashCode.fromInt(456)]
+        2 * snapshotter.snapshot(_) >>> [snapshot(HashCode.fromInt(234)), snapshot(HashCode.fromInt(456))]
         2 * fileAccessTimeJournal.setLastAccessTime(_, _)
     }
 
@@ -241,7 +242,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
 
         given:
         _ * transform1.apply(inputFile, _) >> { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
-        _ * snapshotter.snapshotAll(inputFile) >> HashCode.fromInt(234)
+        _ * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(234))
 
         cache.getResult(inputFile, HashCode.fromInt(123), transform1)
 
@@ -278,7 +279,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
 
         given:
         _ * transform1.apply(inputFile, _) >> { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
-        _ * snapshotter.snapshotAll(inputFile) >> HashCode.fromInt(234)
+        _ * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(234))
 
         cache.getResult(inputFile, HashCode.fromInt(123), transform1)
 
@@ -289,7 +290,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         result*.name == ["a.2"]
 
         and:
-        1 * snapshotter.snapshotAll(inputFile) >> HashCode.fromInt(456)
+        1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(456))
         1 * transform2.apply(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.2"); r.text = "result"; [r] }
         0 * transform1._
         0 * transform2._
@@ -304,7 +305,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         result3 == result
 
         and:
-        2 * snapshotter.snapshotAll(inputFile) >>> [HashCode.fromInt(234), HashCode.fromInt(456)]
+        2 * snapshotter.snapshot(inputFile) >>> [snapshot(HashCode.fromInt(234)), snapshot(HashCode.fromInt(456))]
         0 * fileAccessTimeJournal.setLastAccessTime(_, _)
         0 * transform1._
         0 * transform2._
@@ -323,7 +324,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         e.is(failure)
 
         and:
-        1 * snapshotter.snapshotAll(inputFile) >> HashCode.fromInt(456)
+        1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(456))
         1 * transform.apply(inputFile, _) >>  { File file, File dir ->
             dir.mkdirs()
             new File(dir, "delete-me").text = "broken"
@@ -338,7 +339,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         result*.name == ["a.1"]
 
         and:
-        1 * snapshotter.snapshotAll(inputFile) >> HashCode.fromInt(456)
+        1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(456))
         1 * transform.apply(inputFile, _) >>  { File file, File dir ->
             assert dir.list().length == 0
             def r = new File(dir, "a.1")
@@ -354,7 +355,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         def inputFile = tmpDir.file("a")
 
         given:
-        1 * snapshotter.snapshotAll(inputFile) >> HashCode.fromInt(456)
+        1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(456))
         1 * transform.apply(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
 
         def result = cache.getResult(inputFile, HashCode.fromInt(123), transform)
@@ -368,7 +369,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         result2 == result
 
         and:
-        1 * snapshotter.snapshotAll(inputFile) >> HashCode.fromInt(456)
+        1 * snapshotter.snapshot(inputFile) >> snapshot(HashCode.fromInt(456))
         1 * transform.apply(inputFile, _) >>  { File file, File dir -> def r = new File(dir, "a.1"); r.text = "result"; [r] }
         1 * fileAccessTimeJournal.setLastAccessTime(_, _)
         0 * transform._
@@ -376,7 +377,7 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
 
     def "stopping the cache cleans up old entries and preserves new ones"() {
         given:
-        snapshotter.snapshotAll(_) >> HashCode.fromInt(42)
+        snapshotter.snapshot(_) >> snapshot(HashCode.fromInt(42))
         def filesDir = transformsStoreDirectory.file(CacheLayout.TRANSFORMS_STORE.getKey())
         def file1 = filesDir.file("some.jar", "bac62a0ac6ce00ff016f869e695d5522").createFile("1.txt")
         def file2 = filesDir.file("another.jar", "a89660597ff12d9e0a0397e055e80006").createFile("2.txt")
@@ -391,5 +392,9 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         and:
         !file1.exists()
         file2.exists()
+    }
+
+    def snapshot(HashCode hashCode) {
+        return new RegularFileSnapshot("/path/to/some.txt", "some.txt", hashCode, 0)
     }
 }

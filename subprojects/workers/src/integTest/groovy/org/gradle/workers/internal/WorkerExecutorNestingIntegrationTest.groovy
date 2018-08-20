@@ -144,19 +144,33 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
                 childSubmissions = ${maxWorkers * 10}
 
                 doLast {
+                    def timeout = System.currentTimeMillis() + (${DefaultConditionalExecutionQueue.KEEP_ALIVE_TIME_MS} * 3)
+                    
                     // Let the keep-alive time on the thread pool expire
-                    sleep(${DefaultConditionalExecutionQueue.KEEP_ALIVE_TIME_MS + 100})
+                    sleep(${DefaultConditionalExecutionQueue.KEEP_ALIVE_TIME_MS})
 
-                    def threadGroup = Thread.currentThread().threadGroup
+                    def executorThreads = getWorkerExecutorThreads()
+                    while(System.currentTimeMillis() < timeout) {
+                        if (executorThreads.size() <= ${maxWorkers}) {
+                            break
+                        }
+                        sleep 100
+                        executorThreads = getWorkerExecutorThreads()
+                    }
+                        
                     println "\\nWorker Executor threads:"
-                    def threads = new Thread[threadGroup.activeCount()]
-                    threadGroup.enumerate(threads)                     
-                    def executorThreads = threads.findAll { it.name.startsWith("${WorkerExecutionQueueFactory.QUEUE_DISPLAY_NAME}") } 
                     executorThreads.each { println it }
                     
                     // Ensure that we don't leave any threads lying around
                     assert executorThreads.size() <= ${maxWorkers}
                 }
+            }
+
+            def getWorkerExecutorThreads() {
+                def threadGroup = Thread.currentThread().threadGroup
+                def threads = new Thread[threadGroup.activeCount()]
+                threadGroup.enumerate(threads)                     
+                return threads.findAll { it?.name?.startsWith("${WorkerExecutionQueueFactory.QUEUE_DISPLAY_NAME}") } 
             }
         """.stripIndent()
 

@@ -24,7 +24,6 @@ import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
 import org.gradle.nativeplatform.toolchain.internal.SystemLibraries
 import org.gradle.nativeplatform.toolchain.internal.ToolType
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata
-import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.SystemLibraryDiscovery
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataProvider
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult
 import org.gradle.nativeplatform.toolchain.internal.tools.DefaultGccCommandLineToolConfiguration
@@ -46,9 +45,8 @@ class GccPlatformToolProviderTest extends Specification {
     def namingSchemeFactory = Mock(CompilerOutputFileNamingSchemeFactory)
     def workerLeaseService = Mock(WorkerLeaseService)
     def metaDataProvider = Mock(CompilerMetaDataProvider)
-    def systemLibraryDiscovery = Mock(SystemLibraryDiscovery)
     def targetPlatform = Mock(NativePlatformInternal)
-    def platformToolProvider = new GccPlatformToolProvider(targetPlatform, buildOperationExecuter, operatingSystem, toolSearchPath, toolRegistry, execActionFactory, namingSchemeFactory, true, workerLeaseService, metaDataProvider, systemLibraryDiscovery)
+    def platformToolProvider = new GccPlatformToolProvider(buildOperationExecuter, operatingSystem, toolSearchPath, toolRegistry, execActionFactory, namingSchemeFactory, true, workerLeaseService, metaDataProvider)
 
     @Unroll
     def "arguments #args are passed to metadata provider for #toolType.toolName"() {
@@ -60,7 +58,7 @@ class GccPlatformToolProviderTest extends Specification {
 
         then:
         result == libs
-        1 * metaDataProvider.getCompilerMetaData(_, _) >> {
+        1 * metaDataProvider.getCompilerMetaData(_, _, _) >> {
             assert arguments[1] == args
             new ComponentFound(metaData)
         }
@@ -83,7 +81,7 @@ class GccPlatformToolProviderTest extends Specification {
         platformToolProvider.getCompilerMetadata(toolType)
 
         then:
-        1 * metaDataProvider.getCompilerMetaData(_, _) >> {
+        1 * metaDataProvider.getCompilerMetaData(_, _, _) >> {
             assert arguments[1] == args
             Mock(SearchResult)
         }

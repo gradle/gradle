@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -47,7 +46,6 @@ import java.util.Comparator;
 import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Global resolution state.
@@ -61,7 +59,6 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     private final IdGenerator<Long> idGenerator;
     private final DependencyToComponentIdResolver idResolver;
     private final ComponentMetaDataResolver metaDataResolver;
-    private final Set<NodeState> queued = Sets.newHashSet();
     private final Deque<NodeState> queue = new ArrayDeque<NodeState>();
     private final AttributesSchemaInternal attributesSchema;
     private final ModuleExclusions moduleExclusions;
@@ -174,8 +171,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
 
     public NodeState pop() {
         NodeState next = queue.removeFirst();
-        queued.remove(next);
-        return next;
+        return next.dequeue();
     }
 
     /**
@@ -184,7 +180,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     public void onMoreSelected(NodeState node) {
         // Add to the end of the queue, so that we traverse the graph in breadth-wise order to pick up as many conflicts as
         // possible before attempting to resolve them
-        if (queued.add(node)) {
+        if (node.enqueue()) {
             queue.addLast(node);
         }
     }
@@ -194,7 +190,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
      */
     public void onFewerSelected(NodeState node) {
         // Add to the front of the queue, to flush out configurations that are no longer required.
-        if (queued.add(node)) {
+        if (node.enqueue()) {
             queue.addFirst(node);
         }
     }

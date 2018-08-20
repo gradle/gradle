@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
@@ -47,12 +46,7 @@ public class DefaultTransformInfoFactory implements TransformInfoFactory {
                         BuildableSingleResolvedArtifactSet.class.getSimpleName(), set.getClass().getName()));
                 }
                 BuildableSingleResolvedArtifactSet singleArtifactSet = (BuildableSingleResolvedArtifactSet) set;
-                ArtifactTransformKey key = new ArtifactTransformKey(singleArtifactSet.getArtifactId(), transformerChain);
-                TransformInfo transformInfo = transformations.get(key);
-                if (transformInfo == null) {
-                    transformInfo = TransformInfo.from(transformerChain, singleArtifactSet);
-                    transformations.put(key, transformInfo);
-                }
+                TransformInfo transformInfo = getOrCreate(singleArtifactSet, transformerChain);
                 builder.add(transformInfo);
                 return true;
             }
@@ -60,15 +54,30 @@ public class DefaultTransformInfoFactory implements TransformInfoFactory {
         return builder.build();
     }
 
+    private TransformInfo getOrCreate(BuildableSingleResolvedArtifactSet singleArtifactSet, List<UserCodeBackedTransformer> transformerChain) {
+        ArtifactTransformKey key = new ArtifactTransformKey(singleArtifactSet.getArtifactId(), transformerChain);
+        TransformInfo transformInfo = transformations.get(key);
+        if (transformInfo == null) {
+            if (transformerChain.size() == 1) {
+                transformInfo = TransformInfo.initial(transformerChain.iterator().next(), singleArtifactSet);
+            } else {
+                TransformInfo previous = getOrCreate(singleArtifactSet, transformerChain.subList(0, transformerChain.size() - 1));
+                transformInfo = TransformInfo.chained(transformerChain.get(transformerChain.size() - 1), previous, singleArtifactSet.getArtifactId());
+            }
+            transformations.put(key, transformInfo);
+        }
+        return transformInfo;
+    }
+
     private static List<UserCodeBackedTransformer> unpackTransformerChain(ArtifactTransformer transformer) {
-        final List<UserCodeBackedTransformer> transformerChain = Lists.newArrayList();
+        final ImmutableList.Builder<UserCodeBackedTransformer> builder = ImmutableList.builder();
         transformer.visitLeafTransformers(new Action<ArtifactTransformer>() {
             @Override
             public void execute(ArtifactTransformer transformer) {
-                transformerChain.add((UserCodeBackedTransformer) transformer);
+                builder.add((UserCodeBackedTransformer) transformer);
             }
         });
-        return transformerChain;
+        return builder.build();
     }
 
     private static class ArtifactTransformKey {

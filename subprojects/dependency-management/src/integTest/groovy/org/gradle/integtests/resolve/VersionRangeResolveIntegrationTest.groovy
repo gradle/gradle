@@ -153,25 +153,27 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
 
 
         where:
-        dep1         | dep2         | lenientResult | strictResult
-        "1.0"        | "1.1"        | "1.1"         | "FAIL"
-        "[1.0, 1.2]" | "1.1"        | "1.1"         | "1.1"
-        "[1.0, 1.2]" | "[1.0, 1.1]" | "1.1"         | "1.1"
-        "[1.0, 1.4]" | "1.1"        | "1.1"         | "1.1"
-        "[1.0, 1.4]" | "[1.0, 1.1]" | "1.1"         | "1.1"
-        "[1.0, 1.4]" | "[1.0, 1.6]" | "1.2"         | "1.2"
-        "[1.0, )"    | "1.1"        | "1.1"         | "1.1"
-        "[1.0, )"    | "[1.0, 1.1]" | "1.1"         | "1.1"
-        "[1.0, )"    | "[1.0, 1.4]" | "1.2"         | "1.2"
-        "[1.0, )"    | "[1.1, )"    | "1.2"         | "1.2"
-        "[1.0, 2)"   | "1.1"        | "1.1"         | "1.1"
-        "[1.0, 2)"   | "[1.0, 1.1]" | "1.1"         | "1.1"
-        "[1.0, 2)"   | "[1.0, 1.4]" | "1.2"         | "1.2"
-        "[1.0, 2)"   | "[1.1, )"    | "1.2"         | "1.2"
-        "1.+"        | "[1.0, 1.4]" | "1.2"         | "1.2"
-        "1.+"        | "[1.1, )"    | "1.2"         | "1.2"
-        "1.+"        | "1.1"        | "1.1"          | "1.1"
-        "1.+"        | "[1.0, 1.1]" | "1.1"          | "1.1"
+        dep1         | dep2         | lenientResult | strictResult | correctLenient | correctStrict
+        "1.0"        | "1.1"        | "1.1"         | "FAIL"       | ''             | ''
+        "[1.0, 1.2]" | "1.1"        | "1.1"         | "1.1"        | ''             | ''
+        "[1.0, 1.2]" | "[1.0, 1.1]" | "1.1"         | "1.1"        | ''             | ''
+        "[1.0, 1.4]" | "1.1"        | "1.1"         | "1.1"        | ''             | ''
+        "[1.0, 1.4]" | "[1.0, 1.1]" | "1.1"         | "1.1"        | ''             | ''
+        "[1.0, 1.4]" | "[1.0, 1.6]" | "1.2"         | "1.2"        | ''             | ''
+        "[1.0, )"    | "1.1"        | "1.1"         | "1.1"        | ''             | ''
+        "[1.0, )"    | "[1.0, 1.1]" | "1.1"         | "1.1"        | ''             | ''
+        "[1.0, )"    | "[1.0, 1.4]" | "1.2"         | "1.2"        | ''             | ''
+        "[1.0, )"    | "[1.1, )"    | "1.2"         | "1.2"        | ''             | ''
+        "[1.0, 2)"   | "1.1"        | "1.1"         | "1.1"        | ''             | ''
+        "[1.0, 2)"   | "[1.0, 1.1]" | "1.1"         | "1.1"        | ''             | ''
+        "[1.0, 2)"   | "[1.0, 1.4]" | "1.2"         | "1.2"        | ''             | ''
+        "[1.0, 2)"   | "[1.1, )"    | "1.2"         | "1.2"        | ''             | ''
+        "1.+"        | "[1.0, 1.4]" | "1.2"         | "1.2"        | ''             | ''
+        "1.+"        | "[1.1, )"    | "1.2"         | "1.2"        | ''             | ''
+
+        // Currently incorrect behaviour
+        "1.+"        | "1.1"        | "1.2"         | "FAIL"       | "1.1"          | "1.1"  // #4180
+        "1.+"        | "[1.0, 1.1]" | "1.2"         | "FAIL"       | "1.1"          | "1.1"  // #4180
     }
 
     private boolean strictable(String version) {
@@ -316,6 +318,19 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
 
         where:
         permutation << VersionRangeResolveTestScenarios.SCENARIOS_TWO_DEPENDENCIES
+    }
+
+    @Unroll
+    def "resolve prefer pair #permutation"() {
+        given:
+        def candidates = permutation.candidates
+        def expected = permutation.expected
+
+        expect:
+        checkScenarioResolution(expected, candidates)
+
+        where:
+        permutation << VersionRangeResolveTestScenarios.SCENARIOS_PREFER
     }
 
     @Unroll

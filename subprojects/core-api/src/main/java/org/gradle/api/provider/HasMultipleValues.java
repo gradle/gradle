@@ -31,18 +31,18 @@ import javax.annotation.Nullable;
 @Incubating
 public interface HasMultipleValues<T> {
     /**
-     * Sets the value of the property the given value.
+     * Sets the value of the property the elements of the given iterable. This property will track the value of the iterable and query its value each time the value of this property is queried.
      *
      * <p>This method can also be used to clear the value of the property, by passing {@code null} as the value.
      *
-     * @param value The value, can be null.
+     * @param elements The elements, can be null.
      */
-    void set(@Nullable Iterable<? extends T> value);
+    void set(@Nullable Iterable<? extends T> elements);
 
     /**
-     * Sets the property to have the same value of the given provider. This property will track the value of the provider and query its value each time the value of the property is queried. When the provider has no value, this property will also have no value.
+     * Sets the property to have the same value of the given provider. This property will track the value of the provider and query its value each time the value of this property is queried. When the provider has no value, this property will also have no value.
      *
-     * @param provider Provider
+     * @param provider Provider of the elements.
      */
     void set(Provider<? extends Iterable<? extends T>> provider);
 
@@ -50,27 +50,44 @@ public interface HasMultipleValues<T> {
      * Adds an element to the property value.
      *
      * @param element The element
-     * @throws NullPointerException if the specified element is null
      */
     void add(T element);
 
     /**
      * Adds an element to the property value.
      *
-     * <p>The given provider will be queried when the value of the property is queried.
-     * The property will have no value when the given provider has no value.
+     * <p>The given provider will be queried when the value of this property is queried.
+     * This property will have no value when the given provider has no value.
      *
-     * @param provider Provider
+     * @param provider The provider of an element
      */
     void add(Provider<? extends T> provider);
 
     /**
      * Adds zero or more elements to the property value.
      *
-     * <p>The given provider will be queried when the value of the property is queried.
-     * The property will have no value when the given provider has no value.
+     * @param elements The elements to add
+     * @since 4.10
+     */
+    void addAll(T... elements);
+
+    /**
+     * Adds zero or more elements to the property value.
+     *
+     * <p>The given iterable will be queried when the value of this property is queried.
+     *
+     * @param elements The elements to add.
+     * @since 4.10
+     */
+    void addAll(Iterable<? extends T> elements);
+
+    /**
+     * Adds zero or more elements to the property value.
+     *
+     * <p>The given provider will be queried when the value of this property is queried.
+     * This property will have no value when the given provider has no value.
      *
      * @param provider Provider of elements
      */
-    void addAll(Provider<? extends Iterable<T>> provider);
+    void addAll(Provider<? extends Iterable<? extends T>> provider);
 }

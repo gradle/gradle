@@ -82,17 +82,17 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         GradleBuild rootBuild = loadToolingModel(GradleBuild)
 
         then:
-        rootBuild.allBuilds.size() == 2
+        rootBuild.editableBuilds.size() == 2
 
-        def buildB = rootBuild.allBuilds[0]
+        def buildB = rootBuild.editableBuilds[0]
         buildB.buildIdentifier.rootDir == buildBDir
         buildB.rootProject.name == "buildB"
-        buildB.allBuilds.empty
+        buildB.editableBuilds.empty
 
-        def buildC = rootBuild.allBuilds[1]
+        def buildC = rootBuild.editableBuilds[1]
         buildC.buildIdentifier.rootDir == buildCDir
         buildC.rootProject.name == "buildC"
-        buildC.allBuilds.empty
+        buildC.editableBuilds.empty
     }
 
     @ToolingApiVersion(">=4.10")
@@ -116,16 +116,16 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         GradleBuild rootBuild = loadToolingModel(GradleBuild)
 
         then:
-        rootBuild.allBuilds.size() == 2
+        rootBuild.editableBuilds.size() == 2
 
-        def buildB = rootBuild.allBuilds[0]
+        def buildB = rootBuild.editableBuilds[0]
         buildB.buildIdentifier.rootDir == buildBDir
         buildB.rootProject.name == "buildB"
-        buildB.allBuilds.empty
+        buildB.editableBuilds.empty
 
-        def buildC = rootBuild.allBuilds[1]
+        def buildC = rootBuild.editableBuilds[1]
         buildC.buildIdentifier.rootDir == buildCDir
         buildC.rootProject.name == "buildC"
-        buildC.allBuilds.empty
+        buildC.editableBuilds.empty
     }
 }

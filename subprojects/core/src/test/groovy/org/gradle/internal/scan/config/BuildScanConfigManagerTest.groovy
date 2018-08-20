@@ -111,6 +111,34 @@ class BuildScanConfigManagerTest extends Specification {
     }
 
     @RestoreSystemProperties
+    def "throws if kotlin script build caching used and version doesnt support"() {
+        given:
+        System.setProperty(BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE, "true")
+
+        when:
+        config("1.9")
+
+        then:
+        thrown UnsupportedBuildScanPluginVersionException
+    }
+
+    @Unroll
+    @RestoreSystemProperties
+    def "does not throw if kotlin script build caching used and version #version"() {
+        given:
+        System.setProperty(BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE, "true")
+
+        when:
+        config(version)
+
+        then:
+        notThrown UnsupportedBuildScanPluginVersionException
+
+        where:
+        version << ["1.15.2", "1.16"]
+    }
+
+    @RestoreSystemProperties
     def "can convey unsupported"() {
         when:
         System.setProperty(BuildScanPluginCompatibility.UNSUPPORTED_TOGGLE, "true")

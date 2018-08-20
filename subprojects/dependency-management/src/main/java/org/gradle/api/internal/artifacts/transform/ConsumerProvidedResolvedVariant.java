@@ -34,23 +34,25 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
     private final ResolvedArtifactSet delegate;
     private final AttributeContainerInternal attributes;
     private final ArtifactTransformer transform;
+    private final ArtifactTransformListener transformListener;
 
-    public ConsumerProvidedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal target, ArtifactTransformer transform) {
+    public ConsumerProvidedResolvedVariant(ResolvedArtifactSet delegate, AttributeContainerInternal target, ArtifactTransformer transform, ArtifactTransformListener transformListener) {
         this.delegate = delegate;
         this.attributes = target;
         this.transform = transform;
+        this.transformListener = transformListener;
     }
 
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
         Map<ComponentArtifactIdentifier, TransformArtifactOperation> artifactResults = Maps.newConcurrentMap();
         Map<File, TransformFileOperation> fileResults = Maps.newConcurrentMap();
-        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transform, listener, actions, artifactResults, fileResults));
+        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transform, listener, actions, artifactResults, fileResults, transformListener));
         return new TransformCompletion(result, attributes, artifactResults, fileResults);
     }
 
     @Override
     public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
-        visitor.visitDependency(new ArtifactTransformDependency(transform, delegate));
+        visitor.visitDependency(new DefaultArtifactTransformDependency(transform, delegate));
     }
 }

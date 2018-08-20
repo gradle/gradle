@@ -17,6 +17,7 @@
 package org.gradle.caching.internal.tasks;
 
 import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Collection;
@@ -26,7 +27,9 @@ public interface TaskOutputCachingBuildCacheKeyBuilder {
 
     void appendTaskActionImplementations(Collection<ImplementationSnapshot> taskActionImplementations);
 
-    void appendInputPropertyHash(String propertyName, HashCode hashCode);
+    void appendInputValuePropertyHash(String propertyName, HashCode hashCode);
+
+    void appendInputFilesProperty(String propertyName, CurrentFileCollectionFingerprint fingerprint);
 
     void appendOutputPropertyName(String propertyName);
 

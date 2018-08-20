@@ -25,16 +25,16 @@ dependencies {
 }
 
 gradlePlugin {
-    (plugins) {
-        "buildTypes" {
+    plugins {
+        register("buildTypes") {
             id = "gradlebuild.build-types"
             implementationClass = "org.gradle.plugins.buildtypes.BuildTypesPlugin"
         }
-        "performanceTest" {
+        register("performanceTest") {
             id = "gradlebuild.performance-test"
             implementationClass = "org.gradle.plugins.performance.PerformanceTestPlugin"
         }
-        "unitTestAndCompile" {
+        register("unitTestAndCompile") {
             id = "gradlebuild.unittest-and-compile"
             implementationClass = "org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePlugin"
         }

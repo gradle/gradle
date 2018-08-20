@@ -18,6 +18,7 @@ apply(from = "gradle/shared-with-buildSrc/build-cache-configuration.settings.gra
 
 enableFeaturePreview("IMPROVED_POM_SUPPORT")
 
+include("apiMetadata")
 include("distributionsDependencies")
 include("distributions")
 include("baseServices")
@@ -75,6 +76,7 @@ include("languageJvm")
 include("languageJava")
 include("languageGroovy")
 include("languageNative")
+include("toolingNative")
 include("languageScala")
 include("pluginUse")
 include("pluginDevelopment")
@@ -173,6 +175,10 @@ for (project in rootProject.children) {
     val projectDirName = project.name.toKebabCase()
     project.projectDir = file("subprojects/$projectDirName")
     project.buildFileName = buildFileNameFor(projectDirName)
-    assert(project.projectDir.isDirectory)
-    assert(project.buildFile.isFile)
+    if (!project.projectDir.isDirectory) {
+        throw IllegalArgumentException("Project directory ${project.projectDir} for project ${project.name} does not exist.")
+    }
+    if (!project.buildFile.isFile) {
+        throw IllegalArgumentException("Build file ${project.buildFile} for project ${project.name} does not exist.")
+    }
 }

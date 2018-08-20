@@ -38,7 +38,7 @@ public abstract class AbstractMetadataProvider<T extends CompilerMetadata> imple
     }
 
     @Override
-    public SearchResult<T> getCompilerMetaData(File binary, List<String> additionalArgs) {
+    public SearchResult<T> getCompilerMetaData(File binary, List<String> additionalArgs, List<File> path) {
         List<String> allArgs = ImmutableList.<String>builder().addAll(additionalArgs).addAll(compilerArgs()).build();
         Pair<String, String> transform = runCompiler(binary, allArgs);
         if (transform == null) {
@@ -47,13 +47,17 @@ public abstract class AbstractMetadataProvider<T extends CompilerMetadata> imple
         String output = transform.getLeft();
         String error = transform.getRight();
         try {
-            return new ComponentFound<T>(parseCompilerOutput(output, error, binary));
+            return new ComponentFound<T>(parseCompilerOutput(output, error, binary, path));
         } catch (BrokenResultException e) {
             return new ComponentNotFound<T>(e.getMessage());
         }
     }
 
-    protected abstract T parseCompilerOutput(String output, String error, File binary) throws BrokenResultException;
+    protected ExecActionFactory getExecActionFactory() {
+        return execActionFactory;
+    }
+
+    protected abstract T parseCompilerOutput(String output, String error, File binary, List<File> path) throws BrokenResultException;
 
     private Pair<String, String> runCompiler(File gccBinary, List<String> args) {
         ExecAction exec = execActionFactory.newExecAction();

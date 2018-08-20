@@ -16,12 +16,13 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
+import static org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME;
+import static org.gradle.api.plugins.JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.TESTNG;
 
@@ -65,11 +66,11 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
     }
 
     protected String getImplementationConfigurationName() {
-        return "compile";
+        return IMPLEMENTATION_CONFIGURATION_NAME;
     }
 
     protected String getTestImplementationConfigurationName() {
-        return "test" + StringUtils.capitalize(getImplementationConfigurationName());
+        return TEST_IMPLEMENTATION_CONFIGURATION_NAME;
     }
 
     private void addTestFramework(BuildInitTestFramework testFramework, BuildScriptBuilder buildScriptBuilder) {

@@ -42,6 +42,8 @@ include::command_line_interface.adoc[leveloffset=+2]
 
 include::build_environment.adoc[leveloffset=+2]
 
+include::directory_layout.adoc[leveloffset=+2]
+
 include::gradle_daemon.adoc[leveloffset=+2]
 
 include::init_scripts.adoc[leveloffset=+2]

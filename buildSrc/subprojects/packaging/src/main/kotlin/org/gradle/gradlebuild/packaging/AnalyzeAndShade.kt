@@ -41,12 +41,13 @@ private
 val ignoredPackagePatterns = PackagePatterns(setOf("java"))
 
 
-internal
-val artifactType = Attribute.of("artifactType", String::class.java)
+object Attributes {
 
+    internal
+    val artifactType = Attribute.of("artifactType", String::class.java)
 
-internal
-val minified = Attribute.of("minified", Boolean::class.javaObjectType)
+    val minified = Attribute.of("minified", Boolean::class.javaObjectType)
+}
 
 
 internal

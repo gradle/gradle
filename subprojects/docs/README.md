@@ -64,58 +64,64 @@ You will find these references useful when authoring AsciiDoc:
  - [AsciiDoc Syntax Quick Reference](https://asciidoctor.org/docs/asciidoc-syntax-quick-reference/)
  - [Asciidoctor User Manual](https://asciidoctor.org/docs/user-manual/)
  - [Asciidoctor Gradle Plugin Reference](https://asciidoctor.org/docs/asciidoctor-gradle-plugin/)
- 
-### Linking to References
 
+### Using Asciidoctor
 
+To write a chapter in Asciidoctor format, simply place it in `src/docs/userguide` called `<chapter>.adoc`.
 
 ### Code Samples
 
 Samples and output belong under `src/samples` and are typically included in the user manual. This is a typical example:
 
-```asciidoc
-[source.multi-language-sample,groovy]             
-.init.gradle
-----
-include::{samples-path}/userguide/initScripts/customLogger/init.gradle[]
-----
-[source.multi-language-sample,kotlin]             
-.init.gradle.kts
-----
-include::{samples-path}/userguide/initScripts/customLoggerKts/init.gradle.kts[]
-----
+#### Example multi-language sample file listing
+This shows Groovy and Kotlin sample projects under "sample-dir" which is defined as "$projectDir/src/samples".
 
-.Output of **`gradle -I init.gradle build`**
+```
+subprojects/docs/src/samples/
+└── userguide/initScripts/customLogger/
+    ├── customLogger.out
+    ├── customLogger.sample.conf
+    ├── groovy
+    │   ├── build.gradle
+    │   ├── init.gradle
+    │   └── settings.gradle
+    └── kotlin
+        ├── build.gradle.kts
+        ├── customLogger.init.gradle.kts
+        └── settings.gradle.kts
+```
+
+Note here that there are 2 sample projects under `userguide/initScripts/customLogger/`: one for the Groovy DSL and one for Kotlin DSL. Also note that there is only 1 `customLogger.sample.conf` file that tells Exemplar how to execute both groovy and kotlin samples, with 1 `customLogger.out` file proving the output is identical between the two.
+
+#### Example Asciidoctor multi-language sample declaration
+
+```asciidoc
+.Customizing what Gradle logs
+====
+include::sample[dir="userguide/initScripts/customLogger/groovy",files="init.gradle[]"]
+
+include::sample[dir="userguide/initScripts/customLogger/kotlin",files="customLogger.init.gradle.kts[]"]
+====
+
+[.multi-language-text.lang-groovy]
 ----
-> gradle -I init.gradle build
-include::{samples-path}/userguide/initScripts/customLogger/custom_logging_ui.out[]
+$ gradle -I init.gradle build
+include::{samplesPath}/userguide/initScripts/customLogger/customLogger.out[]
+----
+[.multi-language-text.lang-kotlin]
+----
+$ gradle -I customLogger.init.gradle.kts build
+include::{samplesPath}/userguide/initScripts/customLogger/customLogger.out[]
 ----
 ```
 
-Notice that the Groovy and Kotlin samples are declared with `[source.multi-language-sample,<language>]`. 
-This notes to our front-end code to group these 2 samples and show them with selector tabs. 
-We intend to implement embedded samples so that the sample sources are in the user manual itself. 
+Let's break down this example to explain:
 
-### Using Asciidoctor
+* Enclosing `====` around the sample includes groups these samples and collapses them 
+* `include::sample`: invokes the `SampleIncludeProcessor` asciidoctor extension, with a `dir` relative to `src/samples/`, and a list of `files` separated by `;` (only 1 in this example), each with optional `tags=...` (like Asciidoctor's tags mechanism). We write this once for each DSL dialect. This notes to our front-end code to group these 2 samples and show them with selector tabs.
+* `[.multi-language-text.lang-groovy]`: Most times the gradle command is identical between Groovy and Kotlin samples, but in this case we need to use `[.multi-language-text.lang-*]` that our CSS will collapse and switch for the DSL of choice. This is case-sensitive. You can use this construct for any 2 sibling blocks!
 
-To write a chapter in Asciidoctor format, simply place it in `src/docs/userguide` called `<chapter>.adoc`.
-=======
-```asciidoc
-// tag::something[]
-interesting code
-// end::something[]
-
-some other code
-```
-
-They should be included using the `tag` or `tags` attribute this way:
-
-```asciidoc
-.build.gradle
-----
-include::{samples-path}/foo/build.gradle[tag=something]
-----
-```
+It is possible to embed sample sources, commands, and expected output directly in the Asciidoc (or a mixture of embedded and `include`d), but we don't use this for the user manual yet. See the [Exemplar documentation](https://github.com/gradle/exemplar/#configuring-embedded-samples) if you're interested in this.
 
 ## Groovy DSL Reference
 
