@@ -1642,4 +1642,38 @@ task checkDeps(dependsOn: configurations.compile) {
         then:
         noExceptionThrown()
     }
+
+    @Issue("gradle/gradle#6403")
+    def "shouldn't fail when forcing a dynamic version in resolution strategy"() {
+
+        given:
+        mavenRepo.module("org", "moduleA", "1.1").publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf { 
+                   resolutionStrategy {
+                      force "org:moduleA:1.+"
+                      failOnVersionConflict() 
+                   }
+                }
+            }
+            
+            dependencies {
+               conf("org:moduleA:1.+")
+               conf("org:moduleA:1.1")
+            }
+        """
+
+        when:
+        run 'dependencies', '--configuration', 'conf'
+
+        then:
+        noExceptionThrown()
+
+
+    }
 }
