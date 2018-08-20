@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.file.FileResolver;
@@ -42,9 +43,11 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private final boolean writeLocks;
     private final boolean partialUpdate;
     private final LockEntryFilter lockEntryFilter;
+    private final DomainObjectContext context;
 
-    public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, boolean isProjectScope) {
-        this.lockFileReaderWriter = new LockFileReaderWriter(fileResolver, isProjectScope);
+    public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, boolean isProjectScope) {
+        this.context = context;
+        this.lockFileReaderWriter = new LockFileReaderWriter(fileResolver, context, isProjectScope);
         this.writeLocks = startParameter.isWriteDependencyLocks();
         if (writeLocks) {
             LOGGER.debug("Write locks is enabled");
@@ -67,9 +70,9 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
                     }
                 }
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Loaded lock state for configuration '{}', state is: {}", configurationName, lockedModules);
+                    LOGGER.debug("Loaded lock state for configuration '{}', state is: {}", context.identityPath(configurationName), lockedModules);
                 } else {
-                    LOGGER.info("Loaded lock state for configuration '{}'", configurationName);
+                    LOGGER.info("Loaded lock state for configuration '{}'", context.identityPath(configurationName));
                 }
                 return new DefaultDependencyLockingState(partialUpdate, results);
             }
@@ -82,7 +85,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         try {
             lockedIdentifier = converter.convertFromLockNotation(module);
         } catch (IllegalArgumentException e) {
-            throw new InvalidLockFileException(configurationName, e);
+            throw new InvalidLockFileException(context.identityPath(configurationName).getPath(), e);
         }
         return lockedIdentifier;
     }
@@ -94,12 +97,12 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
             lockFileReaderWriter.writeLockFile(configurationName, modulesOrdered);
             if (!changingResolvedModules.isEmpty()) {
                 LOGGER.warn("Dependency lock state for configuration '{}' contains changing modules: {}. This means that dependencies content may still change over time. See {} for details.",
-                    configurationName, getModulesOrdered(changingResolvedModules), DOC_REG.getDocumentationFor("dependency_locking"));
+                    context.identityPath(configurationName), getModulesOrdered(changingResolvedModules), DOC_REG.getDocumentationFor("dependency_locking"));
             }
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Persisted dependency lock state for configuration '{}', state is: {}", configurationName, modulesOrdered);
+                LOGGER.debug("Persisted dependency lock state for configuration '{}', state is: {}", context.identityPath(configurationName), modulesOrdered);
             } else {
-                LOGGER.lifecycle("Persisted dependency lock state for configuration '{}'", configurationName);
+                LOGGER.lifecycle("Persisted dependency lock state for configuration '{}'", context.identityPath(configurationName));
             }
         }
     }

@@ -252,8 +252,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultDependencyLockingHandler.class, configurationContainer);
         }
 
-        DependencyLockingProvider createDependencyLockingProvider(Instantiator instantiator, FileResolver fileResolver, StartParameter startParameter) {
-            return instantiator.newInstance(DefaultDependencyLockingProvider.class, fileResolver, startParameter, isProjectScope);
+        DependencyLockingProvider createDependencyLockingProvider(Instantiator instantiator, FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context) {
+            return instantiator.newInstance(DefaultDependencyLockingProvider.class, fileResolver, startParameter, context, isProjectScope);
         }
 
         DependencyConstraintHandler createDependencyConstraintHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory) {

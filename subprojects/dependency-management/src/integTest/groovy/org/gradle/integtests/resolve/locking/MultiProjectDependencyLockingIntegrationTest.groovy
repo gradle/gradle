@@ -144,6 +144,7 @@ project(':second') {
         succeeds ':first:dependencies', '--configuration', 'compileClasspath', '--write-locks'
 
         then:
+        outputContains('Persisted dependency lock state for configuration \':first:compileClasspath\'')
         firstLockFileFixture.verifyLockfile('compileClasspath', ['org:foo:1.1'])
     }
 }
