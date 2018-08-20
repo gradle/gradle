@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.buildinit.plugins.internal;
+package org.gradle.buildinit.plugins.internal.maven;
 
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
-import org.gradle.buildinit.plugins.internal.maven.Maven2Gradle;
-import org.gradle.buildinit.plugins.internal.maven.MavenConversionException;
-import org.gradle.buildinit.plugins.internal.maven.MavenProjectsCreator;
+import org.gradle.buildinit.plugins.internal.BuildConverter;
+import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory;
+import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.internal.file.PathToFileResolver;

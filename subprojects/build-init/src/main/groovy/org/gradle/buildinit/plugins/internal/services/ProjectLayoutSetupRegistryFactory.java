@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.buildinit.plugins.internal;
+package org.gradle.buildinit.plugins.internal.services;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.buildinit.plugins.internal.BasicProjectGenerator;
+import org.gradle.buildinit.plugins.internal.BuildContentGenerator;
+import org.gradle.buildinit.plugins.internal.BuildInitializer;
+import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory;
+import org.gradle.buildinit.plugins.internal.CompositeProjectInitDescriptor;
+import org.gradle.buildinit.plugins.internal.DefaultTemplateLibraryVersionProvider;
+import org.gradle.buildinit.plugins.internal.GitIgnoreGenerator;
+import org.gradle.buildinit.plugins.internal.GroovyApplicationProjectInitDescriptor;
+import org.gradle.buildinit.plugins.internal.GroovyLibraryProjectInitDescriptor;
+import org.gradle.buildinit.plugins.internal.JavaApplicationProjectInitDescriptor;
+import org.gradle.buildinit.plugins.internal.JavaLibraryProjectInitDescriptor;
+import org.gradle.buildinit.plugins.internal.KotlinApplicationProjectInitDescriptor;
+import org.gradle.buildinit.plugins.internal.KotlinLibraryProjectInitDescriptor;
+import org.gradle.buildinit.plugins.internal.ProjectGenerator;
+import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
+import org.gradle.buildinit.plugins.internal.ResourceDirsGenerator;
+import org.gradle.buildinit.plugins.internal.ScalaLibraryProjectInitDescriptor;
+import org.gradle.buildinit.plugins.internal.SimpleGlobalFilesBuildSettingsDescriptor;
+import org.gradle.buildinit.plugins.internal.TemplateOperationFactory;
+import org.gradle.buildinit.plugins.internal.maven.PomProjectInitDescriptor;
 
 import java.util.List;
 
