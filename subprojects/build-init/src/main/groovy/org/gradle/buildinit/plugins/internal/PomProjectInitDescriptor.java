@@ -32,11 +32,13 @@ import java.util.Set;
 
 public class PomProjectInitDescriptor implements BuildConverter {
     private final MavenSettingsProvider settingsProvider;
+    private final BuildScriptBuilderFactory scriptBuilderFactory;
     private final PathToFileResolver fileResolver;
 
-    public PomProjectInitDescriptor(PathToFileResolver fileResolver, MavenSettingsProvider mavenSettingsProvider) {
+    public PomProjectInitDescriptor(PathToFileResolver fileResolver, MavenSettingsProvider mavenSettingsProvider, BuildScriptBuilderFactory scriptBuilderFactory) {
         this.fileResolver = fileResolver;
         this.settingsProvider = mavenSettingsProvider;
+        this.scriptBuilderFactory = scriptBuilderFactory;
     }
 
     @Override
@@ -56,7 +58,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
         try {
             Settings settings = settingsProvider.buildSettings();
             Set<MavenProject> mavenProjects = new MavenProjectsCreator().create(settings, pom);
-            new Maven2Gradle(mavenProjects, fileResolver.resolve(".")).convert();
+            new Maven2Gradle(mavenProjects, fileResolver.resolve("."), scriptBuilderFactory).convert();
         } catch (Exception exception) {
             throw new MavenConversionException(String.format("Could not convert Maven POM %s to a Gradle build.", pom), exception);
         }

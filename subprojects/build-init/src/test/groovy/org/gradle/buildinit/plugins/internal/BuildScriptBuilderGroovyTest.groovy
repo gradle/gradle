@@ -147,13 +147,15 @@ repositories {
         given:
         builder
             .taskPropertyAssignment(null, "test", "Test", "maxParallelForks", 23)
-            .propertyAssignment(null, "foo.bar", "bazar")
+            .propertyAssignment("Set a property", "foo.bar", "bazar")
+            .methodInvocation("Call a method", "foo.bar", "bazar", 12, builder.methodInvocationExpression("child", "a", 45))
             .conventionPropertyAssignment("Convention configuration A", "application", "mainClassName", "com.example.Main")
             .conventionPropertyAssignment("Convention configuration B", "application", "applicationName", "My Application")
             .conventionPropertyAssignment("C convention", "c", "cp", 42)
             .conventionPropertyAssignment("B convention", "b", "bp", 0)
             .taskMethodInvocation("Use TestNG", "test", "Test", "useTestNG")
             .propertyAssignment(null, "cathedral", 42)
+            .methodInvocation(null, "cathedral")
             .taskPropertyAssignment("Disable tests", "test", "Test", "enabled", false)
 
         when:
@@ -161,10 +163,16 @@ repositories {
 
         then:
         assertOutputFileContains("""
+            // Set a property
             foo.bar = 'bazar'
+            
+            // Call a method
+            foo.bar('bazar', 12, child('a', 45))
 
             cathedral = 42
-            
+
+            cathedral()
+
             // Convention configuration A
             mainClassName = 'com.example.Main'
 
