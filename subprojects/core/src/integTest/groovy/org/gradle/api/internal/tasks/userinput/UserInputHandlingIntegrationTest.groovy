@@ -29,6 +29,7 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrationTest {
     private static final List<Boolean> VALID_BOOLEAN_CHOICES = [false, true]
     private static final String YES_NO_PROMPT = "thing? [yes, no]"
+    private static final String YES_NO_PROMPT_WITH_DEFAULT = "thing? (default: yes) [yes, no]"
     private static final String SELECT_PROMPT = "select thing:"
 
     def setup() {
@@ -37,6 +38,13 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
                 doLast {
                     def handler = services.get(${UserInputHandler.name})
                     println "result = " + handler.askYesNoQuestion("thing?")
+                }
+            }
+
+            task askYesNoWithDefault {
+                doLast {
+                    def handler = services.get(${UserInputHandler.name})
+                    println "result = " + handler.askYesNoQuestion("thing?", true)
                 }
             }
             
@@ -175,6 +183,64 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         gradleHandle.waitForFinish()
         !gradleHandle.standardOutput.contains(YES_NO_PROMPT)
         gradleHandle.standardOutput.contains("result = null")
+    }
+
+    @Unroll
+    def "can ask yes/no with default and handle valid input '#stdin' in interactive build"() {
+        given:
+        interactiveExecution()
+
+        when:
+        def gradleHandle = executer.withTasks("askYesNoWithDefault").start()
+
+        then:
+        writeToStdInAndClose(gradleHandle, stdin)
+        gradleHandle.waitForFinish()
+        gradleHandle.standardOutput.contains(YES_NO_PROMPT_WITH_DEFAULT)
+        gradleHandle.standardOutput.contains("result = $accepted")
+
+        where:
+        stdin | accepted
+        "yes" | true
+        "no"  | false
+        ""    | true
+    }
+
+    @Unroll
+    def "can ask yes/no with default and handle invalid input in interactive build"() {
+        given:
+        interactiveExecution()
+
+        when:
+        def gradleHandle = executer.withTasks("askYesNoWithDefault").start()
+
+        then:
+        poll(20) {
+            assert gradleHandle.standardOutput.contains(YES_NO_PROMPT_WITH_DEFAULT)
+        }
+        gradleHandle.stdinPipe.write(input.bytes)
+        gradleHandle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+        poll {
+            assert gradleHandle.standardOutput.contains("Please enter 'yes' or 'no': ")
+        }
+        writeToStdInAndClose(gradleHandle, "yes")
+        gradleHandle.waitForFinish()
+        gradleHandle.standardOutput.contains("result = true")
+
+        where:
+        input    | _
+        "broken" | _
+        "false"  | _
+    }
+
+    def "does not request user input prompt for yes/no question with default in non-interactive build"() {
+        when:
+        def gradleHandle = executer.withTasks("askYesNoWithDefault").start()
+
+        then:
+        gradleHandle.waitForFinish()
+        !gradleHandle.standardOutput.contains(YES_NO_PROMPT_WITH_DEFAULT)
+        gradleHandle.standardOutput.contains("result = true")
     }
 
     @Unroll

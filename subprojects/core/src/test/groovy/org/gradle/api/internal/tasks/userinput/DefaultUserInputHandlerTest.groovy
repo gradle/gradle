@@ -31,9 +31,10 @@ class DefaultUserInputHandlerTest extends Specification {
     def outputEventBroadcaster = Mock(OutputEventListener)
     def userInputReader = Mock(UserInputReader)
     def clock = Mock(Clock)
-    @Subject def userInputHandler = new DefaultUserInputHandler(outputEventBroadcaster, clock, userInputReader)
+    @Subject
+    def userInputHandler = new DefaultUserInputHandler(outputEventBroadcaster, clock, userInputReader)
 
-    def "can read sanitized input to yes/no question"() {
+    def "ask required yes/no question"() {
         when:
         def input = userInputHandler.askYesNoQuestion(TEXT)
 
@@ -58,7 +59,7 @@ class DefaultUserInputHandlerTest extends Specification {
         'y\u0000es '     | true
     }
 
-    def "yes/no question returns null on end-of-input"() {
+    def "required yes/no question returns null on end-of-input"() {
         when:
         def input = userInputHandler.askYesNoQuestion(TEXT)
 
@@ -69,7 +70,7 @@ class DefaultUserInputHandlerTest extends Specification {
         input == null
     }
 
-    def "re-requests user input if invalid response to yes/no question"() {
+    def "re-requests user input if invalid response to required yes/no question"() {
         when:
         def input = userInputHandler.askYesNoQuestion(TEXT)
 
@@ -80,6 +81,66 @@ class DefaultUserInputHandlerTest extends Specification {
         1 * userInputReader.readInput() >> 'bla'
         1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "Please enter 'yes' or 'no':" }
         1 * userInputReader.readInput() >> ''
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "Please enter 'yes' or 'no':" }
+        1 * userInputReader.readInput() >> 'no'
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
+        0 * outputEventBroadcaster._
+
+        and:
+        input == false
+    }
+
+    def "can ask yes/no question"() {
+        when:
+        def input = userInputHandler.askYesNoQuestion(TEXT, true)
+
+        then:
+        1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == 'Accept license? (default: yes) [yes, no]' }
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
+        0 * outputEventBroadcaster._
+        1 * userInputReader.readInput() >> enteredUserInput
+
+        and:
+        input == sanitizedUserInput
+
+        where:
+        enteredUserInput | sanitizedUserInput
+        null             | true
+        'yes   '         | true
+        'yes'            | true
+        '   no   '       | false
+    }
+
+    def "yes/no question returns default when empty input line received"() {
+        when:
+        def input = userInputHandler.askYesNoQuestion(TEXT, true)
+
+        then:
+        1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == 'Accept license? (default: yes) [yes, no]' }
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
+        0 * outputEventBroadcaster._
+        1 * userInputReader.readInput() >> ""
+
+        and:
+        input == true
+    }
+
+    def "re-requests user input if invalid response to yes/no question"() {
+        when:
+        def input = userInputHandler.askYesNoQuestion(TEXT, true)
+
+        then:
+        1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
+        1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == 'Accept license? (default: yes) [yes, no]' }
+        1 * userInputReader.readInput() >> 'bla'
         1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "Please enter 'yes' or 'no':" }
         1 * userInputReader.readInput() >> 'no'
         1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
@@ -107,7 +168,7 @@ Enter selection (default: 12) [1..3] """)
         1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
         0 * outputEventBroadcaster._
-        1 * userInputReader.readInput() >> "3"
+        1 * userInputReader.readInput() >> " 3  "
 
         and:
         input == 13
