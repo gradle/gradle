@@ -26,7 +26,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
-import org.gradle.buildinit.plugins.internal.BuildInitTypeIds;
+import org.gradle.buildinit.plugins.internal.BuildConverter;
 import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.ProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
@@ -128,9 +128,17 @@ public class InitBuild extends DefaultTask {
         UserInputHandler inputHandler = getServices().get(UserInputHandler.class);
         ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
 
-        String type;
+        String type = null;
         if (isNullOrEmpty(this.type)) {
-            type = inputHandler.selectOption("Select type of project to generate", projectLayoutRegistry.getTypesApplicableToCurrentDirectory(), detectType());
+            BuildConverter converter = projectLayoutRegistry.getBuildConverter();
+            if (converter.canApplyToCurrentDirectory()) {
+                if (inputHandler.askYesNoQuestion("Found a " + converter.getSourceBuildDescription() + " build. Generate a Gradle build from this?", true)) {
+                    type = converter.getId();
+                }
+            }
+            if (type == null) {
+                type = inputHandler.selectOption("Select type of project to generate", projectLayoutRegistry.getBuildGenerators(), projectLayoutRegistry.getDefault().getId());
+            }
         } else {
             type = this.type;
         }
@@ -274,7 +282,12 @@ public class InitBuild extends DefaultTask {
     }
 
     private String detectType() {
-        return file("pom.xml").exists() ? BuildInitTypeIds.POM : BuildInitTypeIds.BASIC;
+        ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
+        BuildConverter buildConverter = projectLayoutRegistry.getBuildConverter();
+        if (buildConverter.canApplyToCurrentDirectory()) {
+            return buildConverter.getId();
+        }
+        return projectLayoutRegistry.getDefault().getId();
     }
 
     private File file(String path) {

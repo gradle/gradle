@@ -26,7 +26,7 @@ public class GroovyApplicationProjectInitDescriptor extends GroovyProjectInitDes
 
     @Override
     public String getId() {
-        return BuildInitTypeIds.GROOVY_APPLICATION;
+        return "groovy-application";
     }
 
     @Override

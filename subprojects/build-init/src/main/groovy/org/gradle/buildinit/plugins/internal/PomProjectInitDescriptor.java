@@ -30,7 +30,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-public class PomProjectInitDescriptor implements ProjectInitDescriptor {
+public class PomProjectInitDescriptor implements BuildConverter {
     private final MavenSettingsProvider settingsProvider;
     private final PathToFileResolver fileResolver;
 
@@ -41,7 +41,12 @@ public class PomProjectInitDescriptor implements ProjectInitDescriptor {
 
     @Override
     public String getId() {
-        return BuildInitTypeIds.POM;
+        return "pom";
+    }
+
+    @Override
+    public String getSourceBuildDescription() {
+        return "Maven";
     }
 
     @Override

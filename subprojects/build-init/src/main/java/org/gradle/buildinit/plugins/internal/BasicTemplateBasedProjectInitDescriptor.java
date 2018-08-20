@@ -33,7 +33,7 @@ public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescr
 
     @Override
     public String getId() {
-        return BuildInitTypeIds.BASIC;
+        return "basic";
     }
 
     @Override
@@ -43,11 +43,6 @@ public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescr
                 + "Learn how to create Gradle builds at https://guides.gradle.org/creating-new-gradle-builds/")
             .create()
             .generate();
-    }
-
-    @Override
-    public boolean canApplyToCurrentDirectory() {
-        return true;
     }
 
     @Override

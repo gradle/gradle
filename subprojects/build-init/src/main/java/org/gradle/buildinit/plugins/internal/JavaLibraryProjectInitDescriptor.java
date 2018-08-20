@@ -37,7 +37,7 @@ public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor 
 
     @Override
     public String getId() {
-        return BuildInitTypeIds.JAVA_LIBRARY;
+        return "java-library";
     }
 
     @Override

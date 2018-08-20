@@ -24,11 +24,6 @@ public interface ProjectInitDescriptor extends BuildContentGenerator {
     String getId();
 
     /**
-     * Can this type of generator be applied to the contents of the current directory?
-     */
-    boolean canApplyToCurrentDirectory();
-
-    /**
      * Returns the set of DSLs supported for this type of project.
      */
     Set<BuildInitDsl> getDsls();

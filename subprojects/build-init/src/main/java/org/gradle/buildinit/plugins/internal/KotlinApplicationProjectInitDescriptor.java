@@ -30,7 +30,7 @@ public class KotlinApplicationProjectInitDescriptor extends LanguageLibraryProje
 
     @Override
     public String getId() {
-        return BuildInitTypeIds.KOTLIN_APPLICATION;
+        return "kotlin-application";
     }
 
     @Override

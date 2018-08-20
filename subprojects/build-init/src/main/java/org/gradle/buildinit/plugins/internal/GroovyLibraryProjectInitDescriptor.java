@@ -27,7 +27,7 @@ public class GroovyLibraryProjectInitDescriptor extends GroovyProjectInitDescrip
 
     @Override
     public String getId() {
-        return BuildInitTypeIds.GROOVY_LIBRARY;
+        return "groovy-library";
     }
 
     @Override

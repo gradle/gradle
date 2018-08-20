@@ -22,7 +22,9 @@ import spock.lang.Specification
 
 
 class ProjectLayoutSetupRegistrySpec extends Specification {
-    ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry()
+    def defaultType = descriptor("default")
+    def converter = converter("maven")
+    def registry = new ProjectLayoutSetupRegistry(defaultType, converter)
 
     def "can add multiple descriptors"() {
         when:
@@ -53,7 +55,7 @@ class ProjectLayoutSetupRegistrySpec extends Specification {
         registry.add(descriptor("desc3"))
 
         expect:
-        registry.getAllTypes() == ["desc1", "desc2", "desc3"]
+        registry.getAllTypes() == ["default", "desc1", "desc2", "desc3", "maven"]
     }
 
     def "lookup fails for unknown type"() {
@@ -68,13 +70,21 @@ class ProjectLayoutSetupRegistrySpec extends Specification {
         then:
         def e = thrown(GradleException)
         e.message == TextUtil.toPlatformLineSeparators("""The requested build setup type 'unknown' is not supported. Supported types:
+  - 'default'
   - 'desc1'
   - 'desc2'
-  - 'desc3'""")
+  - 'desc3'
+  - 'maven'""")
     }
 
     def descriptor(String id) {
         def descriptor = Mock(ProjectInitDescriptor)
+        descriptor.id >> id
+        return descriptor
+    }
+
+    def converter(String id) {
+        def descriptor = Mock(BuildConverter)
         descriptor.id >> id
         return descriptor
     }
