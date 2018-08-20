@@ -18,6 +18,7 @@ package org.gradle.buildinit.plugins.internal.maven
 
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider
 import org.gradle.api.internal.artifacts.mvnsettings.MavenFileLocations
+import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -133,7 +134,7 @@ class MavenProjectsCreatorSpec extends Specification {
   </dependencies>
 </project>"""
         def mavenProjects = creator.create(settings.buildSettings(), pom)
-        def converter = new Maven2Gradle(mavenProjects, temp.testDirectory)
+        def converter = new Maven2Gradle(mavenProjects, temp.testDirectory, Stub(BuildScriptBuilderFactory))
 
         when:
         def gradleProject = converter.convert()
@@ -192,7 +193,7 @@ class MavenProjectsCreatorSpec extends Specification {
 </project>
 """
         def mavenProjects = creator.create(settings.buildSettings(), parentPom)
-        def converter = new Maven2Gradle(mavenProjects, temp.testDirectory)
+        def converter = new Maven2Gradle(mavenProjects, temp.testDirectory, Stub(BuildScriptBuilderFactory))
 
         expect:
         converter.convert()

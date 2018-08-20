@@ -24,28 +24,31 @@ import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.util.RelativePathUtil
 
 /**
  * This script obtains the effective POM of the current project, reads its dependencies
- * and generates build.gradle scripts. It also generates settings.gradle for multimodule builds. <br/>
+ * and generates build.gradle scripts. It also generates settings.gradle for multi-module builds. <br/>
  *
  * It currently supports both single-module and multi-module POMs, inheritance, dependency management, properties - everything.
  */
 class Maven2Gradle {
+    final BuildScriptBuilderFactory scriptBuilderFactory
 
     def dependentWars = []
-    def qualifiedNames
     def workingDir
     def effectivePom
 
     Logger logger = Logging.getLogger(getClass())
     private Set<MavenProject> mavenProjects
 
-    Maven2Gradle(Set<MavenProject> mavenProjects, File workingDir) {
+    Maven2Gradle(Set<MavenProject> mavenProjects, File workingDir, BuildScriptBuilderFactory scriptBuilderFactory) {
         assert !mavenProjects.empty: "No Maven projects provided."
         this.mavenProjects = mavenProjects
-        this.workingDir = workingDir.canonicalFile;
+        this.workingDir = workingDir.canonicalFile
+        this.scriptBuilderFactory = scriptBuilderFactory
     }
 
     def convert() {
@@ -62,7 +65,7 @@ class Maven2Gradle {
 
         if (multimodule) {
             def allProjects = this.effectivePom.project
-            qualifiedNames = generateSettings(workingDir.getName(), allProjects[0].artifactId, allProjects);
+            generateSettings(allProjects[0].artifactId, allProjects)
             def dependencies = [:];
             allProjects.each { project ->
                 dependencies[project.artifactId.text()] = getDependencies(project, allProjects)
@@ -162,7 +165,7 @@ ${globalExclusions(this.effectivePom)}
                 build += '//packaging tests'
                 build += packageTests;
             }
-            generateSettings(workingDir.getName(), this.effectivePom.artifactId, null);
+            generateSettings(this.effectivePom.artifactId, null);
         }
         def buildFile = new File(workingDir, "build.gradle")
         if (buildFile.exists()) {
@@ -450,13 +453,11 @@ artifacts.archives packageTests
         return new File(project.build.directory.text()).parentFile
     }
 
-    private def generateSettings(def dirName, def mvnProjectName, def projects) {
-        def qualifiedNames = [:]
-        def projectName = "";
-        if (dirName != mvnProjectName) {
-            projectName = """rootProject.name = '${mvnProjectName}'
-"""
-        }
+    private void generateSettings(def mvnProjectName, def projects) {
+        def scriptBuilder = scriptBuilderFactory.script(BuildInitDsl.GROOVY, "settings")
+
+        scriptBuilder.propertyAssignment(null, "rootProject.name", mvnProjectName as String)
+
         def modulePoms = modules(projects, true)
 
         List<String> moduleNames = new ArrayList<String>();
@@ -467,28 +468,25 @@ artifacts.archives packageTests
                 File projectDirectory = projectDir(project)
                 // don't add project if it's the rootproject
                 if (!workingDir.equals(projectDirectory)) {
-                    artifactIdToDir[fqn] = RelativePathUtil.relativePath(workingDir, projectDirectory)
                     moduleNames.add(fqn)
+
+                    // Calculate the path to the project, ignore if its the default value
+                    def relativePath = RelativePathUtil.relativePath(workingDir, projectDirectory)
+                    if (fqn != ":${relativePath}") {
+                        artifactIdToDir[fqn] = relativePath
+                    }
                 }
             }
         }
-        File settingsFile = new File(workingDir, "settings.gradle")
-        if (settingsFile.exists()) {
-            settingsFile.renameTo(new File(workingDir, "settings.gradle.bak"))
-        }
-        StringBuffer settingsText = new StringBuffer(projectName)
-        if (moduleNames.size() > 0) {
-            moduleNames.each {
-                settingsText.append("include '$it'\n")
-            }
-        }
 
-        artifactIdToDir.each { entry ->
-            settingsText.append("""
-project('$entry.key').projectDir = """ + '"$rootDir/' + "${entry.value}" + '" as File')
+        moduleNames.each {
+            scriptBuilder.methodInvocation(null, "include", it)
         }
-        settingsFile.text = settingsText.toString()
-        return qualifiedNames
+        artifactIdToDir.each { entry ->
+            def dirExpression = scriptBuilder.methodInvocationExpression("file", entry.value)
+            scriptBuilder.propertyAssignment(null, "project('$entry.key').projectDir", dirExpression)
+        }
+        scriptBuilder.create().generate()
     }
 
 /**

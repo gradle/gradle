@@ -33,6 +33,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -132,28 +133,59 @@ public class BuildScriptBuilder {
         return dependency("testRuntimeOnly", comment, dependencies);
     }
 
+    public Expression methodInvocationExpression(String methodName, Object... methodArgs) {
+        return new MethodInvocationValue(methodName, expressionValues(methodArgs));
+    }
+
+    private List<ExpressionValue> expressionValues(Object... expressions) {
+        List<ExpressionValue> result = new ArrayList<ExpressionValue>(expressions.length);
+        for (Object expression : expressions) {
+            result.add(expressionValue(expression));
+        }
+        return result;
+    }
+
+    private ExpressionValue expressionValue(Object expression) {
+        if (expression instanceof CharSequence) {
+            return new StringValue((CharSequence) expression);
+        }
+        if (expression instanceof ExpressionValue) {
+            return (ExpressionValue) expression;
+        }
+        if (expression instanceof Number || expression instanceof Boolean) {
+            return new LiteralValue(expression);
+        }
+        throw new IllegalArgumentException("Don't know how to treat " + expression + " as an expression.");
+    }
+
+    public BuildScriptBuilder methodInvocation(String comment, String methodName, Object... methodArgs) {
+        return configuration(
+            NULL_SELECTOR,
+            new MethodInvocation(comment, new MethodInvocationValue(methodName, expressionValues(methodArgs))));
+    }
+
     public BuildScriptBuilder propertyAssignment(String comment, String propertyName, Object propertyValue) {
         return configuration(
             NULL_SELECTOR,
-            new PropertyAssignment(comment, propertyName, propertyValue));
+            new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
     }
 
     public BuildScriptBuilder taskMethodInvocation(String comment, String taskName, String taskType, String methodName) {
         return configuration(
             new TaskSelector(taskName, taskType),
-            new MethodInvocation(comment, methodName));
+            new MethodInvocation(comment, new MethodInvocationValue(methodName)));
     }
 
     public BuildScriptBuilder taskPropertyAssignment(String comment, String taskName, String taskType, String propertyName, Object propertyValue) {
         return configuration(
             new TaskSelector(taskName, taskType),
-            new PropertyAssignment(comment, propertyName, propertyValue));
+            new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
     }
 
     public BuildScriptBuilder conventionPropertyAssignment(String comment, String conventionName, String propertyName, Object propertyValue) {
         return configuration(
             new ConventionSelector(conventionName),
-            new PropertyAssignment(comment, propertyName, propertyValue));
+            new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
     }
 
     private BuildScriptBuilder configuration(ConfigSelector selector, ConfigExpression expression) {
@@ -203,6 +235,86 @@ public class BuildScriptBuilder {
                 return new GroovySyntax();
             default:
                 throw new IllegalStateException();
+        }
+    }
+
+    public interface Expression {
+    }
+
+    private interface ExpressionValue extends Expression {
+        boolean isBooleanType();
+
+        String with(Syntax syntax);
+    }
+
+    private static class StringValue implements ExpressionValue {
+        final CharSequence value;
+
+        StringValue(CharSequence value) {
+            this.value = value;
+        }
+
+        @Override
+        public boolean isBooleanType() {
+            return false;
+        }
+
+        @Override
+        public String with(Syntax syntax) {
+            return syntax.string(value.toString());
+        }
+    }
+
+    private static class LiteralValue implements ExpressionValue {
+        final Object literal;
+
+        public LiteralValue(Object literal) {
+            this.literal = literal;
+        }
+
+        @Override
+        public boolean isBooleanType() {
+            return literal instanceof Boolean;
+        }
+
+        @Override
+        public String with(Syntax syntax) {
+            return literal.toString();
+        }
+    }
+
+    private static class MethodInvocationValue implements ExpressionValue {
+        final String methodName;
+        final List<ExpressionValue> arguments;
+
+        MethodInvocationValue(String methodName, List<ExpressionValue> arguments) {
+            this.methodName = methodName;
+            this.arguments = arguments;
+        }
+
+        MethodInvocationValue(String methodName) {
+            this(methodName, Collections.<ExpressionValue>emptyList());
+        }
+
+        @Override
+        public boolean isBooleanType() {
+            return false;
+        }
+
+        @Override
+        public String with(Syntax syntax) {
+            StringBuilder result = new StringBuilder();
+            result.append(methodName);
+            result.append("(");
+            for (int i = 0; i < arguments.size(); i++) {
+                if (i > 0) {
+                    result.append(", ");
+                }
+                ExpressionValue argument = arguments.get(i);
+                result.append(argument.with(syntax));
+            }
+            result.append(")");
+            return result.toString();
         }
     }
 
@@ -322,20 +434,20 @@ public class BuildScriptBuilder {
 
     private static class MethodInvocation extends ConfigExpression {
 
-        final String methodName;
+        final MethodInvocationValue invocationExpression;
 
-        private MethodInvocation(String comment, String methodName) {
+        private MethodInvocation(String comment, MethodInvocationValue invocationExpression) {
             super(comment);
-            this.methodName = methodName;
+            this.invocationExpression = invocationExpression;
         }
     }
 
     private static class PropertyAssignment extends ConfigExpression {
 
         final String propertyName;
-        final Object propertyValue;
+        final ExpressionValue propertyValue;
 
-        private PropertyAssignment(String comment, String propertyName, Object propertyValue) {
+        private PropertyAssignment(String comment, String propertyName, ExpressionValue propertyValue) {
             super(comment);
             this.propertyName = propertyName;
             this.propertyValue = propertyValue;
@@ -560,7 +672,7 @@ public class BuildScriptBuilder {
         }
 
         private String methodInvocation(MethodInvocation expression) {
-            return expression.methodName + "()";
+            return expression.invocationExpression.with(syntax);
         }
 
         @Nullable
@@ -605,9 +717,15 @@ public class BuildScriptBuilder {
         String conventionSelector(ConventionSelector selector);
 
         String taskSelector(TaskSelector selector);
+
+        String string(String string);
     }
 
     private static final class KotlinSyntax implements Syntax {
+        @Override
+        public String string(String string) {
+            return '"' + string + '"';
+        }
 
         @Override
         public String pluginDependencySpec(String pluginId, @Nullable String version) {
@@ -625,14 +743,11 @@ public class BuildScriptBuilder {
         @Override
         public String propertyAssignment(PropertyAssignment expression) {
             String propertyName = expression.propertyName;
-            Object propertyValue = expression.propertyValue;
-            if (propertyValue instanceof Boolean) {
-                return booleanPropertyNameFor(propertyName) + " = " + propertyValue;
+            ExpressionValue propertyValue = expression.propertyValue;
+            if (propertyValue.isBooleanType()) {
+                return booleanPropertyNameFor(propertyName) + " = " + propertyValue.with(this);
             }
-            if (propertyValue instanceof CharSequence) {
-                return propertyName + " = \"" + propertyValue + '\"';
-            }
-            return propertyName + " = " + propertyValue;
+            return propertyName + " = " + propertyValue.with(this);
         }
 
         // In Kotlin:
@@ -662,6 +777,11 @@ public class BuildScriptBuilder {
 
     private static final class GroovySyntax implements Syntax {
         @Override
+        public String string(String string) {
+            return "'" + string + "'";
+        }
+
+        @Override
         public String pluginDependencySpec(String pluginId, @Nullable String version) {
             if (version != null) {
                 return "id '" + pluginId + "' version '" + version + "'";
@@ -677,11 +797,8 @@ public class BuildScriptBuilder {
         @Override
         public String propertyAssignment(PropertyAssignment expression) {
             String propertyName = expression.propertyName;
-            Object propertyValue = expression.propertyValue;
-            if (propertyValue instanceof CharSequence) {
-                return propertyName + " = '" + propertyValue + "'";
-            }
-            return propertyName + " = " + propertyValue;
+            ExpressionValue propertyValue = expression.propertyValue;
+            return propertyName + " = " + propertyValue.with(this);
         }
 
         @Override
