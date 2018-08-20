@@ -17,6 +17,7 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
@@ -37,6 +38,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
     }
 
+    @LeaksFileHandles
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
