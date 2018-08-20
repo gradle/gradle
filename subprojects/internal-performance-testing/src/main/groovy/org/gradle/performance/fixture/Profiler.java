@@ -16,6 +16,7 @@
 
 package org.gradle.performance.fixture;
 
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.internal.jvm.Jvm;
 
 import java.io.File;
@@ -27,7 +28,7 @@ public abstract class Profiler {
     public static Profiler create() {
         String targetDir = System.getProperty(TARGET_DIR_KEY);
         if (targetDir != null && !Jvm.current().isIbmJvm()) {
-            return new JfrProfiler(new File(targetDir));
+            return new JfrProfiler(new File(IntegrationTestBuildContext.INSTANCE.getGradleRootProjectDir(), targetDir));
         } else {
             return new NoopProfiler();
         }

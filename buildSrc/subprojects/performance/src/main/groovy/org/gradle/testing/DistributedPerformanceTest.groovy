@@ -35,7 +35,9 @@ import org.gradle.internal.IoActions
 import javax.inject.Inject
 import java.util.concurrent.TimeUnit
 import java.util.zip.ZipInputStream
-import javax.annotation.Nullable
+import org.gradle.api.Action
+import org.gradle.process.JavaExecSpec
+import groovy.transform.CompileStatic
 
 /**
  * Runs each performance test scenario in a dedicated TeamCity job.
@@ -97,7 +99,6 @@ class DistributedPerformanceTest extends PerformanceTest {
         this.cancellationToken = cancellationToken
     }
 
-
     @Override
     void addTestListener(TestListener listener) {
         testEventsGenerator.addTestListener(listener)
@@ -123,6 +124,17 @@ class DistributedPerformanceTest extends PerformanceTest {
             generatePerformanceReport()
             cleanTempFiles()
         }
+    }
+
+    private void generatePerformanceReport() {
+        getProject().javaexec(new Action<JavaExecSpec>() {
+            void execute(JavaExecSpec spec) {
+                spec.setMain("org.gradle.performance.results.ReportGenerator")
+                spec.args(resultStoreClass, reportDir.getPath())
+                spec.systemProperties(DistributedPerformanceTest.this.getSystemProperties())
+                spec.setClasspath(DistributedPerformanceTest.this.getClasspath())
+            }
+        })
     }
 
     private void createWorkerTestResultsTempDir() {

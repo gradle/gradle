@@ -245,7 +245,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         create("performanceAdhocTest") {
             systemProperty(PropertyNames.dbUrl, Config.adhocTestDbUrl)
             channel = "adhoc"
-            outputs.upToDateWhen { false }
+            outputs.doNotCacheIf("Adhoc performance doesn't need cache", { true })
         }
     }
 

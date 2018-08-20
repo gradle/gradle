@@ -45,6 +45,10 @@ public class IntegrationTestBuildContext {
         return file("integTest.libsRepo", "build/repo");
     }
 
+    public TestFile getGradleRootProjectDir() {
+        return file("integTest.rootProjectDir", null);
+    }
+
     public TestFile getDaemonBaseDir() {
         return file("org.gradle.integtest.daemon.registry", "build/daemon");
     }

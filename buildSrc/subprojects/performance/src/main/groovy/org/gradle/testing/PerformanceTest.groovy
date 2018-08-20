@@ -16,45 +16,38 @@
 
 package org.gradle.testing
 
+import groovy.transform.CompileStatic
 import org.gradle.api.internal.tasks.options.Option
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.gradlebuild.test.integrationtests.DistributionTest
 
 import javax.annotation.Nullable
-import org.gradle.api.Action
-import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.CacheableTask
-import org.gradle.process.JavaExecSpec
-import groovy.transform.CompileStatic
 
 /**
  * A test that checks execution time and memory consumption.
  */
 @CacheableTask
 @CompileStatic
-public class PerformanceTest extends DistributionTest {
-    @Nullable @Optional @Input
+class PerformanceTest extends DistributionTest {
+    @Nullable
     String baselines
 
-    @Nullable @Optional @Input
+    @Nullable
     String warmups
 
-    @Nullable @Optional @Input
+    @Nullable
     String runs
 
-    @Nullable @Optional @Input
+    @Nullable
     String checks
 
-    @Nullable @Optional @Input
+    @Nullable
     String channel
 
     @Input
     String resultStoreClass = "org.gradle.performance.results.AllResultsStore"
-
-    @Input
-    boolean generatePerformanceReport = true
 
     @OutputDirectory
     File debugArtifactsDirectory = new File(getProject().getBuildDir(), getName())
@@ -62,10 +55,11 @@ public class PerformanceTest extends DistributionTest {
     @OutputDirectory
     File reportDir
 
-
-    @Option(option = "performance-report", description = "Indicates if performance report generation is required")
-    void setGeneratePerformanceReport(boolean generatePerformanceReport) {
-        this.generatePerformanceReport = generatePerformanceReport
+    PerformanceTest() {
+        outputs.doNotCacheIf("last and nightly version don't need cache at all", {
+            List baselineList = baselines == null ? [] : baselines.split(',').collect { String baseline -> baseline.trim() }
+            baselineList.contains('last') || baselineList.contains('nightly')
+        })
     }
 
     @Option(option = "scenarios", description = "A semicolon-separated list of performance test scenario ids to run.")
@@ -79,79 +73,45 @@ public class PerformanceTest extends DistributionTest {
         systemProperty("org.gradle.performance.baselines", baselines)
     }
 
-    @Nullable
-    @Optional
-    @Input
-    String getBaselineCacheKey() {
-        List baselineList = baselines == null ? [] : baselines.split(',').collect { String it -> it.trim() }
-        if (baselineList.contains('last') || baselineList.contains('nightly')) {
-            // turn off cache if the baseline contains 'nightly' or 'last'
-            return UUID.randomUUID().toString()
-        } else {
-            return baselines
-        }
-    }
-
     @Option(option = "warmups", description = "Number of warmups before measurements")
-    public void setWarmups(@Nullable String warmups) {
+    void setWarmups(@Nullable String warmups) {
         this.warmups = warmups
         systemProperty("org.gradle.performance.execution.warmups", warmups)
     }
 
     @Option(option = "runs", description = "Number of iterations of measurements")
-    public void setRuns(@Nullable String runs) {
+    void setRuns(@Nullable String runs) {
         this.runs = runs
         systemProperty("org.gradle.performance.execution.runs", runs)
     }
 
     @Option(option = "checks", description = "Tells which regressions to check. One of [none, speed, all]")
-    public void setChecks(@Nullable String checks) {
+    void setChecks(@Nullable String checks) {
         this.checks = checks
         systemProperty("org.gradle.performance.execution.checks", checks)
     }
 
     @Option(option = "channel", description = "Channel to use when running the performance test. By default, 'commits'.")
-    public void setChannel(@Nullable String channel) {
+    void setChannel(@Nullable String channel) {
         this.channel = channel
         systemProperty("org.gradle.performance.execution.channel", channel)
     }
 
-    public void setDebugArtifactsDirectory(File debugArtifactsDirectory) {
+    void setDebugArtifactsDirectory(File debugArtifactsDirectory) {
         this.debugArtifactsDirectory = debugArtifactsDirectory
     }
 
     @Option(option = "flamegraphs", description = "If set to 'true', activates flamegraphs and stores them into the 'flames' directory name under the debug artifacts directory.")
-    public void setFlamegraphs(String flamegraphs) {
+    void setFlamegraphs(String flamegraphs) {
         if ("true".equals(flamegraphs)) {
             File artifactsDirectory = new File(getDebugArtifactsDirectory(), "flames")
-            systemProperty("org.gradle.performance.flameGraphTargetDir", artifactsDirectory.getAbsolutePath())
+            systemProperty("org.gradle.performance.flameGraphTargetDir", project.rootDir.toPath().relativize(artifactsDirectory.toPath()))
         }
     }
 
     @Option(option = "sampling-interval", description = "How many ms to wait between two samples when profiling")
-    public void setSamplingInterval(String samplingInterval) {
+    void setSamplingInterval(String samplingInterval) {
         //no-op, remove once build configurations have been adjusted to no longer call this
     }
 
-    @TaskAction
-    public void executePerformanceTests() {
-        try {
-            super.executeTests()
-        } finally {
-            generatePerformanceReport()
-        }
-    }
-
-    protected void generatePerformanceReport() {
-        if (generatePerformanceReport) {
-            getProject().javaexec(new Action<JavaExecSpec>() {
-                public void execute(JavaExecSpec spec) {
-                    spec.setMain("org.gradle.performance.results.ReportGenerator")
-                    spec.args(resultStoreClass, reportDir.getPath())
-                    spec.systemProperties(PerformanceTest.this.getSystemProperties())
-                    spec.setClasspath(PerformanceTest.this.getClasspath())
-                }
-            })
-        }
-    }
 }

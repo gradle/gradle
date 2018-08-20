@@ -377,6 +377,7 @@ open class IdePlugin : Plugin<Project> {
             "-DintegTest.gradleHomeDir=\$MODULE_DIR\$/build/integ test",
             "-DintegTest.gradleUserHomeDir=${rootProject.file("intTestHomeDir").absolutePath}",
             "-DintegTest.libsRepo=${rootProject.file("build/repo").absolutePath}",
+            "-DintegTest.rootProjectDir=${rootProject.rootDir.absolutePath}",
             "-Dorg.gradle.integtest.daemon.registry=${rootProject.file("build/daemon").absolutePath}",
             "-DintegTest.distsDir=${rootProject.base.distsDir.absolutePath}",
             "-Dorg.gradle.public.api.includes=${PublicApi.includes.joinToString(":")}",

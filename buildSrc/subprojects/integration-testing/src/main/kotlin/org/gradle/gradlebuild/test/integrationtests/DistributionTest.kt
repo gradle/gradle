@@ -62,6 +62,7 @@ open class DistributionTest : Test() {
         jvmArgumentProviders.add(BinaryDistributionsEnvironmentProvider(binaryDistributions))
         jvmArgumentProviders.add(libsRepository)
         gradleInstallationForTest.samplesRequired.set(project.provider { binaryDistributions.distributionsRequired })
+        jvmArgumentProviders.add(CommandLineArgumentProvider { mapOf("integTest.rootProjectDir" to project.rootDir.absolutePath).asSystemPropertyJvmArguments() })
         systemProperty("java9Home", project.findProperty("java9Home") ?: System.getProperty("java9Home"))
     }
 }
