@@ -78,7 +78,7 @@ class ProjectLayoutSetupRegistrySpec extends Specification {
     }
 
     def descriptor(String id) {
-        def descriptor = Mock(ProjectInitDescriptor)
+        def descriptor = Mock(BuildInitializer)
         descriptor.id >> id
         return descriptor
     }

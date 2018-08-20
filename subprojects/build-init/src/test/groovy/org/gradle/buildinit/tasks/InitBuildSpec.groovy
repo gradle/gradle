@@ -18,7 +18,7 @@ package org.gradle.buildinit.tasks
 
 import org.gradle.api.GradleException
 import org.gradle.buildinit.plugins.internal.BuildConverter
-import org.gradle.buildinit.plugins.internal.ProjectInitDescriptor
+import org.gradle.buildinit.plugins.internal.BuildInitializer
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -42,13 +42,13 @@ class InitBuildSpec extends Specification {
 
     ProjectLayoutSetupRegistry projectLayoutRegistry
 
-    ProjectInitDescriptor projectSetupDescriptor
+    BuildInitializer projectSetupDescriptor
     BuildConverter buildConverter
 
     def setup() {
         init = TestUtil.create(testDir.testDirectory).task(InitBuild)
         projectLayoutRegistry = Mock(ProjectLayoutSetupRegistry.class)
-        projectSetupDescriptor = Mock(ProjectInitDescriptor.class)
+        projectSetupDescriptor = Mock(BuildInitializer.class)
         buildConverter = Mock(BuildConverter.class)
         init.projectLayoutRegistry = projectLayoutRegistry
     }

@@ -41,11 +41,11 @@ public class ProjectLayoutSetupRegistryFactory {
         BuildContentGenerator resourcesGenerator = new ResourceDirsGenerator(fileResolver);
         List<BuildContentGenerator> jvmProjectGenerators = ImmutableList.of(settingsDescriptor, resourcesGenerator);
         List<BuildContentGenerator> commonGenerators = ImmutableList.of(settingsDescriptor);
-        ProjectInitDescriptor basicType = of(new BasicTemplateBasedProjectInitDescriptor(scriptBuilderFactory), commonGenerators);
+        BuildInitializer basicType = of(new BasicProjectGenerator(scriptBuilderFactory), commonGenerators);
         PomProjectInitDescriptor mavenBuildConverter = new PomProjectInitDescriptor(fileResolver, mavenSettingsProvider);
         ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry(basicType, mavenBuildConverter);
         registry.add(of(new JavaLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
-        registry.add(of(new JavaApplicationProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider,  documentationRegistry), jvmProjectGenerators));
+        registry.add(of(new JavaApplicationProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
         registry.add(of(new GroovyApplicationProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
         registry.add(of(new GroovyLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
         registry.add(of(new ScalaLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
@@ -54,11 +54,7 @@ public class ProjectLayoutSetupRegistryFactory {
         return registry;
     }
 
-    private ProjectInitDescriptor of(ProjectInitDescriptor descriptor, List<BuildContentGenerator> generators) {
-        return new CompositeProjectInitDescriptor(descriptor, generators);
-    }
-
-    private ProjectInitDescriptor of(LanguageSpecificProjectGenerator languageGenerator, List<BuildContentGenerator> generators) {
-        return new CompositeProjectInitDescriptor(new LanguageSpecificProjectInitDescriptor(languageGenerator), generators);
+    private BuildInitializer of(ProjectGenerator projectGenerator, List<BuildContentGenerator> generators) {
+        return new CompositeProjectInitDescriptor(projectGenerator, generators);
     }
 }

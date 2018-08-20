@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
@@ -20,28 +21,18 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 import java.util.Set;
 
-public interface ProjectInitDescriptor extends BuildContentGenerator {
+/**
+ * Creates a new Gradle project
+ */
+public interface ProjectGenerator extends BuildContentGenerator {
     String getId();
-
-    /**
-     * Returns the set of DSLs supported for this type of project.
-     */
-    Set<BuildInitDsl> getDsls();
-
-    /**
-     * The preferred DSL to use for this type of project.
-     */
-    BuildInitDsl getDefaultDsl();
-
-    /**
-     * Does a project name make sense for this type of project?
-     */
-    boolean supportsProjectName();
 
     /**
      * Does a source package name make sense for this type of project?
      */
     boolean supportsPackage();
+
+    BuildInitDsl getDefaultDsl();
 
     /**
      * Returns the set of test frameworks supported for this type of project.

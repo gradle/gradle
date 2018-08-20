@@ -19,16 +19,18 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
-public class CompositeProjectInitDescriptor implements ProjectInitDescriptor {
-    private final ProjectInitDescriptor descriptor;
+public class CompositeProjectInitDescriptor implements BuildInitializer {
+    private final ProjectGenerator descriptor;
     private final List<? extends BuildContentGenerator> generators;
 
-    public CompositeProjectInitDescriptor(ProjectInitDescriptor descriptor, List<? extends BuildContentGenerator> generators) {
+    public CompositeProjectInitDescriptor(ProjectGenerator projectGenerator, List<? extends BuildContentGenerator> generators) {
         this.generators = generators;
-        this.descriptor = descriptor;
+        this.descriptor = projectGenerator;
     }
 
     @Override
@@ -38,7 +40,7 @@ public class CompositeProjectInitDescriptor implements ProjectInitDescriptor {
 
     @Override
     public boolean supportsProjectName() {
-        return descriptor.supportsProjectName();
+        return true;
     }
 
     @Override
@@ -53,7 +55,7 @@ public class CompositeProjectInitDescriptor implements ProjectInitDescriptor {
 
     @Override
     public Set<BuildInitDsl> getDsls() {
-        return descriptor.getDsls();
+        return new TreeSet<BuildInitDsl>(Arrays.asList(BuildInitDsl.values()));
     }
 
     @Override
