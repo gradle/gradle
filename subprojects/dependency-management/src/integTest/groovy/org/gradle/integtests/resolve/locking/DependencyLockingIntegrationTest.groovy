@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import org.gradle.util.ToBeImplemented
 import spock.lang.Unroll
 
 class DependencyLockingIntegrationTest extends AbstractDependencyResolutionTest {
@@ -454,7 +453,6 @@ dependencies {
         "+"         | "2.1"
     }
 
-    @ToBeImplemented // Currently `1.+` and `+` are resolved differently when dependency locking is enabled for a configuration
     def "version selector combinations are resolved equally for locked and unlocked configurations"() {
         ['foo', 'foz', 'bar', 'baz'].each { artifact ->
             mavenRepo.module('org', artifact, '1.0').publish()
@@ -473,8 +471,7 @@ configurations {
     conf
     lockEnabledConf {
         extendsFrom conf
-        // Enable locking for this configuration to demonstrate the failure
-        // resolutionStrategy.activateDependencyLocking()
+         resolutionStrategy.activateDependencyLocking()
     }
 }
 dependencies {

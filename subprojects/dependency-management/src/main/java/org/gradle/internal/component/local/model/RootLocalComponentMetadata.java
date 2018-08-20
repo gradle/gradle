@@ -78,7 +78,7 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
         @Override
         void maybeAddGeneratedDependencies(ImmutableList.Builder<LocalOriginDependencyMetadata> result) {
             if (configurationLocked) {
-                dependencyLockingState = dependencyLockingProvider.loadLockState(getName());
+                DependencyLockingState dependencyLockingState = getDependencyLockingState();
                 boolean strict = dependencyLockingState.mustValidateLockState();
                 for (ModuleComponentIdentifier lockedDependency : dependencyLockingState.getLockedDependencies()) {
                     String lockedVersion = lockedDependency.getVersion();
@@ -101,6 +101,9 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
 
         @Override
         public DependencyLockingState getDependencyLockingState() {
+            if (dependencyLockingState == null) {
+                dependencyLockingState = dependencyLockingProvider.loadLockState(getName());
+            }
             return dependencyLockingState;
         }
     }
