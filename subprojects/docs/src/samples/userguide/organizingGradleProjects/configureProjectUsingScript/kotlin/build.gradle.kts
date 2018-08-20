@@ -1,1 +1,1 @@
-apply(from = "other.gradle")
+apply(from = "other.gradle.kts")

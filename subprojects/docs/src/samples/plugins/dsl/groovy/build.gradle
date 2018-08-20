@@ -15,15 +15,14 @@
  */
 
 // tag::use-plugin[]
-plugins {
-    id 'java'
-}
-// end::use-plugin[]
-
 // tag::use-community-plugin[]
 plugins {
-    id 'com.jfrog.bintray' version '0.4.1'
-}
 // end::use-community-plugin[]
-
-
+    id 'java'
+// end::use-plugin[]
+// tag::use-community-plugin[]
+    id 'com.jfrog.bintray' version '0.4.1'
+// tag::use-plugin[]
+}
+// end::use-plugin[]
+// end::use-community-plugin[]
