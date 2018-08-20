@@ -74,6 +74,7 @@ class PlayPlatformResolverTest extends Specification {
         "2.4.8"     | "2.11.12"
         "2.5.4"     | "2.11.12"
         "2.6.5"     | "2.12.6"
+        "2.7.0-M2"  | "2.12.6"
     }
 
     private void assertPlayPlatform(Map versions, PlayPlatform platform) {
@@ -105,6 +106,7 @@ class PlayPlatformResolverTest extends Specification {
 
         where:
         playVersion | scalaVersion | message
+        '2.7.0-M2'  | '2.10'       | "Play versions 2.7.x are not compatible with Scala platform 2.10. Compatible Scala platforms are [2.12, 2.11]."
         '2.6.5'     | '2.10'       | "Play versions 2.6.x are not compatible with Scala platform 2.10. Compatible Scala platforms are [2.12, 2.11]."
         '2.5.4'     | '2.10'       | "Play versions 2.5.x are not compatible with Scala platform 2.10. Compatible Scala platforms are [2.11]."
         '2.6.5'     | '2.9'        | "Not a supported Scala platform identifier 2.9. Supported values are: [${LATEST_SCALA_VERSIONS.keySet().join(', ')}]."

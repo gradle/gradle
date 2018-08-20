@@ -16,11 +16,5 @@
 
 package org.gradle.play.internal.run;
 
-import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.scala.internal.reflect.ScalaMethod;
-import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
-
-import java.net.InetSocketAddress;
-
 public class PlayRunAdapterV27X extends PlayRunAdapterV26X {
 }

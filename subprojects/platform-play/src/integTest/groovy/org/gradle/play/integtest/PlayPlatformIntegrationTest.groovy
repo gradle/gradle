@@ -65,10 +65,11 @@ model {
         )
 
         where:
-        platform                        | playVersion | scalaPlatform
-        "play: '2.4.5', scala: '2.11'"  | '2.4.5'     | '2.11'
-        "play: '2.4.11', scala: '2.11'" | '2.4.11'    | '2.11'
-        "play: '2.5.18', scala: '2.11'" | '2.5.18'    | '2.11'
+        platform                          | playVersion | scalaPlatform
+        "play: '2.4.5', scala: '2.11'"    | '2.4.5'     | '2.11'
+        "play: '2.4.11', scala: '2.11'"   | '2.4.11'    | '2.11'
+        "play: '2.5.18', scala: '2.11'"   | '2.5.18'    | '2.11'
+        "play: '2.7.0-M2', scala: '2.12'" | '2.7.0-M2'  | '2.12'
     }
 
     @Unroll
