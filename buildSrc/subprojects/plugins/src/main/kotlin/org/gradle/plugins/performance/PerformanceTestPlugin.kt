@@ -245,7 +245,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         create("performanceAdhocTest") {
             systemProperty(PropertyNames.dbUrl, Config.adhocTestDbUrl)
             channel = "adhoc"
-            outputs.doNotCacheIf("Adhoc performance doesn't need cache", { true })
+            outputs.doNotCacheIf("We should alwyas run adhoc performance test") { true }
         }
     }
 
@@ -311,6 +311,7 @@ class PerformanceTestPlugin : Plugin<Project> {
     ): TaskProvider<DistributedPerformanceTest> {
 
         val result = tasks.register(name, DistributedPerformanceTest::class.java) {
+            configureReportProperties()
             configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask)
             scenarioList = buildDir / Config.performanceTestScenarioListFileName
             scenarioReport = buildDir / Config.performanceTestScenarioReportFileName
@@ -413,7 +414,6 @@ class PerformanceTestPlugin : Plugin<Project> {
 
             dependsOn(prepareSamplesTask)
 
-            configureReportProperties()
             registerTemplateInputsToPerformanceTest()
 
             mustRunAfter(tasks.withType<ProjectGeneratorTask>())
@@ -423,7 +423,7 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
-    fun PerformanceTest.configureReportProperties() {
+    fun DistributedPerformanceTest.configureReportProperties() {
         reportDir = project.buildDir / Config.performanceTestReportsDir
         channel?.let { channel ->
             systemProperty(PropertyNames.channel, channel)
@@ -432,15 +432,13 @@ class PerformanceTestPlugin : Plugin<Project> {
 
     private
     fun PerformanceTest.registerTemplateInputsToPerformanceTest() {
-        apply {
-            val registerInputs: (Task) -> Unit = { prepareSampleTask ->
-                val prepareSampleTaskInputs = prepareSampleTask.inputs.properties.mapKeys { entry -> "${prepareSampleTask.name}_${entry.key}" }
-                inputs.properties(prepareSampleTaskInputs)
-            }
-            project.tasks.withType<ProjectGeneratorTask>().forEach(registerInputs)
-            project.tasks.withType<RemoteProject>().forEach(registerInputs)
-            project.tasks.withType<JavaExecProjectGeneratorTask>().forEach(registerInputs)
+        val registerInputs: (Task) -> Unit = { prepareSampleTask ->
+            val prepareSampleTaskInputs = prepareSampleTask.inputs.properties.mapKeys { entry -> "${prepareSampleTask.name}_${entry.key}" }
+            inputs.properties(prepareSampleTaskInputs)
         }
+        project.tasks.withType<ProjectGeneratorTask>().forEach(registerInputs)
+        project.tasks.withType<RemoteProject>().forEach(registerInputs)
+        project.tasks.withType<JavaExecProjectGeneratorTask>().forEach(registerInputs)
     }
 
     private

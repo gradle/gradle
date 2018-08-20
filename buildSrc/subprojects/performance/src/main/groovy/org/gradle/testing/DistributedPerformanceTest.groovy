@@ -38,6 +38,7 @@ import java.util.zip.ZipInputStream
 import org.gradle.api.Action
 import org.gradle.process.JavaExecSpec
 import groovy.transform.CompileStatic
+import org.apache.commons.io.FileUtils
 
 /**
  * Runs each performance test scenario in a dedicated TeamCity job.
@@ -80,6 +81,10 @@ class DistributedPerformanceTest extends PerformanceTest {
     @PathSensitive(PathSensitivity.RELATIVE)
     File scenarioReport
 
+    @OutputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
+    File reportDir
+
     private RESTClient client
 
     private List<String> scheduledBuilds = Lists.newArrayList()
@@ -97,6 +102,9 @@ class DistributedPerformanceTest extends PerformanceTest {
     DistributedPerformanceTest(BuildCancellationToken cancellationToken) {
         this.testEventsGenerator = new JUnitXmlTestEventsGenerator(listenerManager.createAnonymousBroadcaster(TestListener.class), listenerManager.createAnonymousBroadcaster(TestOutputListener.class))
         this.cancellationToken = cancellationToken
+        doFirst {
+            FileUtils.cleanDirectory(reportDir)
+        }
     }
 
     @Override

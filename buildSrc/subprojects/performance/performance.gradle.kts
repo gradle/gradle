@@ -7,4 +7,5 @@ dependencies {
         // Xerces on the runtime classpath is breaking some of our doc tasks
         exclude(group = "xerces")
     }
+    implementation("commons-io:commons-io:2.6")
 }
