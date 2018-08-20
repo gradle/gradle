@@ -27,7 +27,7 @@ To use the Java plugin, include the following in your build script:
 [source.multi-language-sample,groovy]
 .build.gradle
 ----
-include::{samplesPath}/java/quickstart/build.gradle[tag=use-plugin]
+include::{samplesPath}/java/quickstart/groovy/build.gradle[tag=use-plugin]
 ----
 
 

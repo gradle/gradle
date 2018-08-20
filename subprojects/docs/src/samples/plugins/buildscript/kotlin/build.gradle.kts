@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-// tag::use-plugin[]
-plugins {
-    id 'java'
+// tag::buildscript_block[]
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath("com.jfrog.bintray.gradle:gradle-bintray-plugin:0.4.1")
+    }
 }
-// end::use-plugin[]
 
-// tag::use-community-plugin[]
-plugins {
-    id 'com.jfrog.bintray' version '0.4.1'
-}
-// end::use-community-plugin[]
+apply(plugin = "com.jfrog.bintray")
+// end::buildscript_block[]
 
 

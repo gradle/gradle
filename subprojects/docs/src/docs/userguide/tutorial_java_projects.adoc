@@ -37,7 +37,7 @@ Let's look at a simple example. To use the Java plugin, add the following to you
 [source.multi-language-sample,groovy]
 .build.gradle
 ----
-include::{samplesPath}/java/quickstart/build.gradle[tag=use-plugin]
+include::{samplesPath}/java/quickstart/groovy/build.gradle[tag=use-plugin]
 ----
 NOTE: The code for this example can be found at **`samples/java/quickstart`** in the ‘-all’ distribution of Gradle.
 
@@ -87,7 +87,7 @@ Usually, a Java project will have some dependencies on external JAR files. To re
 [source.multi-language-sample,groovy]
 .build.gradle
 ----
-include::{samplesPath}/java/quickstart/build.gradle[tag=repo]
+include::{samplesPath}/java/quickstart/groovy/build.gradle[tag=repo]
 ----
 
 Let's add some dependencies. Here, we will declare that our production classes have a compile-time dependency on commons collections, and that our test classes have a compile-time dependency on junit:
@@ -97,7 +97,7 @@ Let's add some dependencies. Here, we will declare that our production classes h
 [source.multi-language-sample,groovy]
 .build.gradle
 ----
-include::{samplesPath}/java/quickstart/build.gradle[tag=dependencies]
+include::{samplesPath}/java/quickstart/groovy/build.gradle[tag=dependencies]
 ----
 
 You can find out more in <<dependency_management_for_java_projects.adoc#dependency_management_for_java_projects,Dependency Management for Java Projects>>.
@@ -112,7 +112,7 @@ The Java plugin adds a number of properties to your project. These properties ha
 [source.multi-language-sample,groovy]
 .build.gradle
 ----
-include::{samplesPath}/java/quickstart/build.gradle[tag=customization]
+include::{samplesPath}/java/quickstart/groovy/build.gradle[tag=customization]
 ----
 
 [TIP]
@@ -129,7 +129,7 @@ The tasks which the Java plugin adds are regular tasks, exactly the same as if t
 [source.multi-language-sample,groovy]
 .build.gradle
 ----
-include::{samplesPath}/java/quickstart/build.gradle[tag=task-customization]
+include::{samplesPath}/java/quickstart/groovy/build.gradle[tag=task-customization]
 ----
 
 
@@ -143,7 +143,7 @@ Usually the JAR file needs to be published somewhere. To do this, you need to te
 [source.multi-language-sample,groovy]
 .build.gradle
 ----
-include::{samplesPath}/java/quickstart/build.gradle[tag=upload]
+include::{samplesPath}/java/quickstart/groovy/build.gradle[tag=upload]
 ----
 
 To publish the JAR file, run `gradle uploadArchives`.
@@ -158,7 +158,7 @@ To create the Eclipse-specific descriptor files, like `.project`, you need to ad
 [source.multi-language-sample,groovy]
 .build.gradle
 ----
-include::{samplesPath}/java/quickstart/build.gradle[tag=use-eclipse-plugin]
+include::{samplesPath}/java/quickstart/groovy/build.gradle[tag=use-eclipse-plugin]
 ----
 
 Now execute `gradle eclipse` command to generate Eclipse project files. More information about the `eclipse` task can be found in the <<eclipse_plugin.adoc#eclipse_plugin,Eclipse Plugin>> chapter.
@@ -173,7 +173,7 @@ Here's the complete build file for our sample:
 [source.multi-language-sample,groovy]
 .build.gradle
 ----
-include::{samplesPath}/java/quickstart/build.gradle[tags=use-plugin;use-eclipse-plugin;customization;repo;dependencies;task-customization;upload]
+include::{samplesPath}/java/quickstart/groovy/build.gradle[tags=use-plugin;use-eclipse-plugin;customization;repo;dependencies;task-customization;upload]
 ----
 
 
