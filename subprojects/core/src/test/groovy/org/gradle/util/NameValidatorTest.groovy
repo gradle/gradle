@@ -109,11 +109,11 @@ class NameValidatorTest extends Specification {
 
     void assertForbidden(name, message) {
         if (name == '') {
-            assert message.contains("is empty. This has been deprecated and is scheduled to be removed in Gradle 5.0.")
+            assert message.contains("is empty. This has been deprecated ")
         } else if (name.contains("" + forbiddenLeadingAndTrailingCharacter)) {
-            assert message.contains("' starts or ends with a '.'. This has been deprecated and is scheduled to be removed in Gradle 5.0.")
+            assert message.contains("' starts or ends with a '.'. This has been deprecated ")
         } else {
-            assert message.contains("""' contains at least one of the following characters: [ , /, \\, :, <, >, ", ?, *, |]. This has been deprecated and is scheduled to be removed in Gradle 5.0.""")
+            assert message.contains("""' contains at least one of the following characters: [ , /, \\, :, <, >, ", ?, *, |]. This has been deprecated""")
         }
     }
 }

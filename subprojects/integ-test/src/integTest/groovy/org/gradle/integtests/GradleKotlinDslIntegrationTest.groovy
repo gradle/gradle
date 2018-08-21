@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.Requires
+import org.junit.Ignore
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
@@ -134,6 +135,7 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
         executer.cleanup()
     }
 
+    @Ignore("TODO re-enable once a 5.0 nightly is out")
     def 'can query KotlinBuildScriptModel'() {
         given:
         // This test breaks encapsulation a bit in the interest of ensuring Gradle Kotlin DSL use
