@@ -4,14 +4,15 @@ task distribution {
     }
 }
 
-task release(dependsOn: 'distribution') {
+task release {
+    dependsOn 'distribution'
     doLast {
         println 'We release now'
     }
 }
 
-gradle.taskGraph.whenReady {taskGraph ->
-    if (taskGraph.hasTask(release)) {
+gradle.taskGraph.whenReady { taskGraph ->
+    if (taskGraph.hasTask(":release")) {
         version = '1.0'
     } else {
         version = '1.0-SNAPSHOT'

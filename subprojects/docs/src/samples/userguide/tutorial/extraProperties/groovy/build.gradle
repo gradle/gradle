@@ -1,3 +1,9 @@
+// tag::extraProperties[]
+plugins {
+    id 'java'
+}
+// end::extraProperties[]
+
 // tag::taskProperties[]
 task myTask {
     ext.myProperty = "myValue"
@@ -11,7 +17,6 @@ task printTaskProperties {
 // end::taskProperties[]
 
 // tag::extraProperties[]
-apply plugin: "java"
 
 ext {
     springVersion = "3.1.0.RELEASE"
