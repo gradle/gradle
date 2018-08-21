@@ -34,15 +34,11 @@ import org.gradle.kotlin.dsl.*
 
 private
 object PropertyNames {
-
     const val dbUrl = "org.gradle.performance.db.url"
     const val dbUsername = "org.gradle.performance.db.username"
     const val dbPassword = "org.gradle.performance.db.password"
 
-    const val flameGraphTargetDir = "org.gradle.performance.flameGraphTargetDir"
-
     const val workerTestTaskName = "org.gradle.performance.workerTestTaskName"
-    const val channel = "org.gradle.performance.execution.channel"
     const val coordinatorBuildId = "org.gradle.performance.coordinatorBuildId"
     const val performanceTestVerbose = "performanceTest.verbose"
     const val baselines = "org.gradle.performance.baselines"
@@ -425,9 +421,6 @@ class PerformanceTestPlugin : Plugin<Project> {
     private
     fun DistributedPerformanceTest.configureReportProperties() {
         reportDir = project.buildDir / Config.performanceTestReportsDir
-        channel?.let { channel ->
-            systemProperty(PropertyNames.channel, channel)
-        }
     }
 
     private

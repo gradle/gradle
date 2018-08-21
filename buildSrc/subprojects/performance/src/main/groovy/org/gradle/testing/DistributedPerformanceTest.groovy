@@ -138,7 +138,7 @@ class DistributedPerformanceTest extends PerformanceTest {
         getProject().javaexec(new Action<JavaExecSpec>() {
             void execute(JavaExecSpec spec) {
                 spec.setMain("org.gradle.performance.results.ReportGenerator")
-                spec.args(resultStoreClass, reportDir.getPath())
+                spec.args(argumentsProvider.resultStoreClass, reportDir.getPath())
                 spec.systemProperties(DistributedPerformanceTest.this.getSystemProperties())
                 spec.setClasspath(DistributedPerformanceTest.this.getClasspath())
             }
