@@ -121,6 +121,9 @@ public class JacocoPluginExtension {
             @Override
             public void execute(Task task) {
                 if (extension.isEnabled() && extension.getOutput() == JacocoTaskExtension.Output.FILE) {
+                    // Delete the coverage file before the task executes, so we don't append to a leftover file from the last execution.
+                    // This makes the task cacheable even if multiple JVMs write to same destination file, e.g. when executing tests in parallel.
+                    // The JaCoCo agent supports writing in parallel to the same file, see https://github.com/jacoco/jacoco/pull/52.
                     File coverageFile = extension.getDestinationFile();
                     project.delete(coverageFile);
                 }
