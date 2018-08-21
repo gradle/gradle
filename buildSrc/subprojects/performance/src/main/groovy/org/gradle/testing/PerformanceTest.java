@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public class PerformanceTest extends DistributionTest {
     public PerformanceTest() {
         getJvmArgumentProviders().add(argumentsProvider);
 
-        getOutputs().doNotCacheIf("last and nightly are not concrete version so can't be cached", new Spec<Task>() {
+        getOutputs().doNotCacheIf("baselines containing version 'last' or 'nightly' which don't need to be cached", new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task task) {
                 List<String> baseLineList = new ArrayList<>();
@@ -218,7 +218,7 @@ public class PerformanceTest extends DistributionTest {
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.channel", channel);
 
             File artifactsDirectory = new File(getDebugArtifactsDirectory(), "flames");
-            addSystemPropertyIfExist(result, "org.gradle.performance.flameGraphTargetDir", getProject().getRootDir().toPath().relativize(artifactsDirectory.toPath()));
+            addSystemPropertyIfExist(result, "org.gradle.performance.flameGraphTargetDir", artifactsDirectory.getAbsolutePath());
 
             return result;
         }

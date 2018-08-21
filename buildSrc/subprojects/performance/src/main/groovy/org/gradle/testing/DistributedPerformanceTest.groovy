@@ -102,9 +102,6 @@ class DistributedPerformanceTest extends PerformanceTest {
     DistributedPerformanceTest(BuildCancellationToken cancellationToken) {
         this.testEventsGenerator = new JUnitXmlTestEventsGenerator(listenerManager.createAnonymousBroadcaster(TestListener.class), listenerManager.createAnonymousBroadcaster(TestOutputListener.class))
         this.cancellationToken = cancellationToken
-        doFirst {
-            FileUtils.cleanDirectory(reportDir)
-        }
     }
 
     @Override
@@ -135,11 +132,13 @@ class DistributedPerformanceTest extends PerformanceTest {
     }
 
     private void generatePerformanceReport() {
+        FileUtils.cleanDirectory(reportDir)
         getProject().javaexec(new Action<JavaExecSpec>() {
             void execute(JavaExecSpec spec) {
                 spec.setMain("org.gradle.performance.results.ReportGenerator")
                 spec.args(argumentsProvider.resultStoreClass, reportDir.getPath())
                 spec.systemProperties(DistributedPerformanceTest.this.getSystemProperties())
+                spec.systemProperty("org.gradle.performance.execution.channel", channel)
                 spec.setClasspath(DistributedPerformanceTest.this.getClasspath())
             }
         })

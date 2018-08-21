@@ -241,7 +241,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         create("performanceAdhocTest") {
             systemProperty(PropertyNames.dbUrl, Config.adhocTestDbUrl)
             channel = "adhoc"
-            outputs.doNotCacheIf("We should alwyas run adhoc performance test") { true }
+            outputs.doNotCacheIf("Is adhoc performance test currently") { true }
         }
     }
 
