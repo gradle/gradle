@@ -40,12 +40,14 @@ bundledGradlePlugin(
 val ktlintVersion = "0.27.0"
 
 val basePackagePath = "org/gradle/kotlin/dsl/experiments/plugins"
-val processResources: ProcessResources by tasks
-val writeDefaultVersionsProperties by tasks.creating(WriteProperties::class) {
-    outputFile = processResources.destinationDir.resolve("$basePackagePath/default-versions.properties")
+val processResources by tasks.existing(ProcessResources::class)
+val writeDefaultVersionsProperties by tasks.registering(WriteProperties::class) {
+    outputFile = processResources.get().destinationDir.resolve("$basePackagePath/default-versions.properties")
     property("ktlint", ktlintVersion)
 }
-processResources.dependsOn(writeDefaultVersionsProperties)
+processResources {
+    dependsOn(writeDefaultVersionsProperties)
+}
 
 
 // ktlint custom ruleset ----------------------------------------------
@@ -57,22 +59,23 @@ val rulesetCompileOnly by configurations.getting {
 }
 
 val generatedResourcesRulesetJarDir = file("$buildDir/generated-resources/ruleset/resources")
-val rulesetJar by tasks.creating(ShadowJar::class) {
+val rulesetJar by tasks.registering(ShadowJar::class) {
     archiveName = "gradle-kotlin-dsl-ruleset.jar"
     destinationDir = generatedResourcesRulesetJarDir.resolve(basePackagePath)
     configurations = listOf(rulesetShaded)
     from(ruleset.output)
 }
-val rulesetChecksum by tasks.creating {
+val rulesetChecksum by tasks.registering {
     dependsOn(rulesetJar)
     val rulesetChecksumFile = generatedResourcesRulesetJarDir
         .resolve(basePackagePath)
         .resolve("gradle-kotlin-dsl-ruleset.md5")
-    inputs.file(rulesetJar.archivePath)
+    val archivePath = rulesetJar.get().archivePath
+    inputs.file(archivePath)
     outputs.file(rulesetChecksumFile)
     doLast {
         rulesetChecksumFile.parentFile.mkdirs()
-        rulesetChecksumFile.writeText(Hashing.md5().hashBytes(rulesetJar.archivePath.readBytes()).toString())
+        rulesetChecksumFile.writeText(Hashing.md5().hashBytes(archivePath.readBytes()).toString())
     }
 }
 sourceSets["main"].output.dir(

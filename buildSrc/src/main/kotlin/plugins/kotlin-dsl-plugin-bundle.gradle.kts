@@ -42,7 +42,7 @@ workAroundTestKitWithPluginClassPathIssues()
 // Also see AbstractPluginTest
 fun Project.workAroundTestKitWithPluginClassPathIssues() {
 
-    val publishPluginsToTestRepository = tasks.register("publishPluginsToTestRepository") {
+    val publishPluginsToTestRepository by tasks.registering {
         dependsOn("publishPluginMavenPublicationToTestRepository")
     }
 
@@ -68,7 +68,7 @@ fun Project.workAroundTestKitWithPluginClassPathIssues() {
 
                 val plugin = this
 
-                publishPluginsToTestRepository.configure {
+                publishPluginsToTestRepository {
                     dependsOn("publish${plugin.name.capitalize()}PluginMarkerMavenPublicationToTestRepository")
                 }
 

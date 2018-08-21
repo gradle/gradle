@@ -35,48 +35,48 @@ sourceSets["main"].kotlin {
 
 val publishedPluginsVersion: String by rootProject.extra
 
-val generateKotlinDependencyExtensions by task<GenerateKotlinDependencyExtensions> {
-    outputFile = File(apiExtensionsOutputDir, "org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt")
-    embeddedKotlinVersion = kotlinVersion
-    kotlinDslPluginsVersion = publishedPluginsVersion
-}
+tasks {
 
-val generateExtensions by tasks.creating {
-    dependsOn(generateKotlinDependencyExtensions)
-}
+    val generateKotlinDependencyExtensions by registering(GenerateKotlinDependencyExtensions::class) {
+        outputFile = File(apiExtensionsOutputDir, "org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt")
+        embeddedKotlinVersion = kotlinVersion
+        kotlinDslPluginsVersion = publishedPluginsVersion
+    }
 
-val compileKotlin by tasks
-compileKotlin.dependsOn(generateExtensions)
+    val generateExtensions by registering {
+        dependsOn(generateKotlinDependencyExtensions)
+    }
 
-val clean: Delete by tasks
-clean.delete(apiExtensionsOutputDir)
+    "compileKotlin" {
+        dependsOn(generateExtensions)
+    }
 
+    "clean"(Delete::class) {
+        delete(apiExtensionsOutputDir)
+    }
 
 // -- Version manifest properties --------------------------------------
-val versionsManifestOutputDir = file("$buildDir/versionsManifest")
-val writeVersionsManifest by tasks.creating(WriteProperties::class) {
-    outputFile = versionsManifestOutputDir.resolve("gradle-kotlin-dsl-versions.properties")
-    property("provider", version)
-    property("kotlin", kotlinVersion)
-}
-val processResources by tasks.getting(ProcessResources::class) {
-    from(writeVersionsManifest)
-}
+    val versionsManifestOutputDir = file("$buildDir/versionsManifest")
+    val writeVersionsManifest by registering(WriteProperties::class) {
+        outputFile = versionsManifestOutputDir.resolve("gradle-kotlin-dsl-versions.properties")
+        property("provider", version)
+        property("kotlin", kotlinVersion)
+    }
+
+    "processResources"(ProcessResources::class) {
+        from(writeVersionsManifest)
+    }
 
 // -- Testing ----------------------------------------------------------
 // Disable incremental compilation for Java fixture sources
 // Incremental compilation is causing OOMEs with our low build daemon heap settings
-tasks.withType(JavaCompile::class.java).named("compileTestJava").configure {
-    options.isIncremental = false
-}
+    withType(JavaCompile::class).named("compileTestJava").configure {
+        options.isIncremental = false
+    }
 
-val customInstallation by rootProject.tasks
-
-tasks.named("test").configure {
-    dependsOn(customInstallation)
+    "test" {
+        dependsOn(":customInstallation")
+    }
 }
 
 withParallelTests()
-
-// --- Utility functions -----------------------------------------------
-inline fun <reified T : Task> task(noinline configuration: T.() -> Unit) = tasks.creating(T::class, configuration)

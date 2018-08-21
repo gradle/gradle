@@ -33,7 +33,7 @@ kotlin {
 
 tasks {
 
-    withType<KotlinCompile> {
+    withType<KotlinCompile>().configureEach {
         kotlinOptions {
             freeCompilerArgs += listOf(
                 "-java-parameters",
@@ -64,11 +64,11 @@ tasks {
         // sets the memory limits for test workers
         jvmArgs("-Xms64m", "-Xmx128m")
     }
-}
 
-tasks.register("quickTest", Test::class.java) {
-    exclude(
-        "**/*IntegrationTest.class",
-        "**/*SampleTest.class"
-    )
+    register("quickTest", Test::class) {
+        exclude(
+            "**/*IntegrationTest.class",
+            "**/*SampleTest.class"
+        )
+    }
 }
