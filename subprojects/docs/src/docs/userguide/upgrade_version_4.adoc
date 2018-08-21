@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[upgrade_version_4]]
-= Upgrading Gradle Version 4.x to 5.0
+= Upgrade your build from Gradle 4.x to 5.0
 
 This chapter provides the information you need to migrate your older Gradle 4.x builds to Gradle 5.0. In most cases, you will need to apply the changes from all versions that come after the one you're upgrading from. For example, if you're upgrading from Gradle 4.3, you will also need to apply the changes from 4.4, 4.5, etc.
 
@@ -24,33 +24,47 @@ A few pointers about upgrading:
 
 Here are some significant new and improved features to try:
 
- * <<#rel4.7:switch_to_publishing_plugins,Maven Publish and Ivy Publish Plugins>> that now support digital signatures with the <<signing_plugin#signing_plugin,Signing Plugin>>.
- * <<#upgrade_4.5,New and improved POM support>> for your builds.
+ * <<#rel4.8:switch_to_publishing_plugins,Maven Publish and Ivy Publish Plugins>> that now support digital signatures with the <<signing_plugin#signing_plugin,Signing Plugin>>.
+ * <<#changes_4.6,New and improved POM support>> for your builds.
  * The <<custom_tasks.adoc#worker_api,Worker API>> for enabling units of work to run in parallel.
- * A new, <<feature_lifecycle#sec:incubating_state,incubating>> API for <<#rel4.8:lazy_task_creation,creating and configuring tasks lazily>> that can significantly improve your build's configuration time.
+ * A new, <<feature_lifecycle#sec:incubating_state,incubating>> API for <<#rel4.9:lazy_task_creation,creating and configuring tasks lazily>> that can significantly improve your build's configuration time.
 
 Significant other changes to watch out for as they may break your build include:
 
- * A change that means you should <<#rel4.7:configure_internal_tasks,configure existing `wrapper` and `init` tasks>> rather than defining your own.
- * The <<#rel4.7:pom_wildcard_exclusions,honoring of implicit wildcards in Maven POM exclusions>>, which may result in dependencies being excluded that weren't before.
- * A <<#rel4.5:annotation_processor_configuration,change to the way you add Java annotation processors to a project>>.
+ * A change that means you should <<#rel4.8:configure_internal_tasks,configure existing `wrapper` and `init` tasks>> rather than defining your own.
+ * The <<#rel4.8:pom_wildcard_exclusions,honoring of implicit wildcards in Maven POM exclusions>>, which may result in dependencies being excluded that weren't before.
+ * A <<#rel4.6:annotation_processor_configuration,change to the way you add Java annotation processors to a project>>.
 
 Read the sections relevant to your particular upgrade to get a comprehensive overview of the changes you might need to account for in your build.
 
-[[upgrade_4.10]]
-== From 4.10
+[[changes_5.0]]
+== Changes in 5.0
 
-TBD
+ * `<<` for task definitions no longer works, i.e. `task myTask << { ... }`
 
-[[upgrade_4.9]]
-== From 4.9
+[[changes_4.10]]
+== Changes in 4.10
 
-TBD
+=== Deprecated classes, methods and properties
 
-[[upgrade_4.8]]
-== From 4.8
+Follow the API links to learn how to deal with these deprecations (if no extra information is provided here):
 
- * <<#rel4.8:lazy_task_creation,Consider trying the lazy API for task creation and configuration>>
+ * `TaskContainer.add()` and `TaskContainer.addAll()` — use link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.lang.String-java.lang.Class-org.gradle.api.Action-[TaskContainer.create()] or link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-org.gradle.api.Action-[TaskContainer.register()] instead
+
+=== Potential breaking changes
+
+ * There have been several potentially breaking changes in Kotlin DSL — see the _Breaking changes_ section of https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC3[that project's release notes].
+ * You can no longer create your own instances of link:{javadocPath}/org/gradle/api/plugins/JavaPluginConvention.html[JavaPluginConvention], link:{javadocPath}/org/gradle/api/plugins/ApplicationPluginConvention.html[ApplicationPluginConvention], link:{javadocPath}/org/gradle/api/plugins/WarPluginConvention.html[WarPluginConvention], link:{javadocPath}/org/gradle/plugins/ear/EarPluginConvention.html[EarPluginConvention], link:{javadocPath}/org/gradle/api/plugins/BasePluginConvention.html[BasePluginConvention], and link:{javadocPath}/org/gradle/api/plugins/ProjectReportsPluginConvention.html[ProjectReportsPluginConvention].
+ * You can no longer use any of the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:beforeEvaluate(org.gradle.api.Action)[Project.beforeEvaluate()] or link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:afterEvaluate(org.gradle.api.Action)[Project.afterEvaluate()] methods with lazy task configuration, for example inside a link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-org.gradle.api.Action-[TaskContainer.register()] block.
+ * <<#rel4.10:aws_s3_permissions,Publishing to AWS S3 requires new permissions>>.
+ * Both link:{javadocPath}/org/gradle/plugin/devel/tasks/PluginUnderTestMetadata.html[PluginUnderTestMetadata] and link:{javadocPath}/org/gradle/plugin/devel/tasks/GeneratePluginDescriptors.html[GeneratePluginDescriptors] — classes used by the <<java_gradle_plugin#,Java Gradle Plugin Development Plugin>> — have been updated to use the Provider API.
++
+Use the link:{javadocPath}/org/gradle/api/provider/Property.html#set-T-[Property.set()] method to modify their values rather than using standard property assignment syntax, unless you are doing so in a Groovy build script. Standard property assignment still works in that one case.
+
+[[changes_4.9]]
+== Changes in 4.9
+
+ * <<#rel4.9:lazy_task_creation,Consider trying the lazy API for task creation and configuration>>
 
 === Potential breaking changes
 
@@ -58,14 +72,14 @@ TBD
 +
 Use http://docs.groovy-lang.org/latest/html/documentation/#_spread_operator[Groovy's spread operator] instead. For example, you would replace `tasks.withType(JavaCompile).name` with `tasks.withType(JavaCompile)*.name`.
 
-[[upgrade_4.7]]
-== From 4.7
+[[changes_4.8]]
+== Changes in 4.8
 
- * <<#rel4.7:switch_to_publishing_plugins,Switch to the Maven Publish and Ivy Publish plugins>>
- * <<#rel4.7:deferred_configuration,Use deferred configuration with the publishing plugins>>
- * <<#rel4.7:configure_internal_tasks,Configure existing `wrapper` and `init` tasks>> rather than defining your own
+ * <<#rel4.8:switch_to_publishing_plugins,Switch to the Maven Publish and Ivy Publish plugins>>
+ * <<#rel4.8:deferred_configuration,Use deferred configuration with the publishing plugins>>
+ * <<#rel4.8:configure_internal_tasks,Configure existing `wrapper` and `init` tasks>> rather than defining your own
  * Use <<java_testing.adoc#test_filtering,test filtering>> rather than the <<java_testing.adoc#sec:single_test_execution_via_system_properties,old system properties>> like `-Dtest.single`
- * Consider migrating to the built-in <<dependency_locking#dependency_locking,dependency locking mechanism>> if you are currently using a plugin or custom solution for this.
+ * Consider migrating to the built-in <<dependency_locking#dependency_locking,dependency locking mechanism>> if you are currently using a plugin or custom solution for this
  * Use the `--debug-jvm` command-line option rather than `-Dtest.debug`
 
 === Deprecated classes, methods and properties
@@ -82,14 +96,14 @@ Follow the API links to learn how to deal with these deprecations (if no extra i
  * Build will now fail if a specified init script is not found.
  * `TaskContainer.remove()` now actually removes the given task — some plugins may have accidentally relied on the old behavior.
  * link:{javadocPath}/org/gradle/plugins/signing/Signature.html#setFile-java.io.File-[Signature.setFile(File)] no longer does anything and is deprecated.
- * <<#rel4.7:pom_wildcard_exclusions,Gradle now honors implicit wildcards in Maven POM exclusions>>.
+ * <<#rel4.8:pom_wildcard_exclusions,Gradle now honors implicit wildcards in Maven POM exclusions>>.
  * The Kotlin DSL now respects JSR-305 package annotations.
 +
 This will lead to some types annotated according to JSR-305 being treated as nullable where they were treated as non-nullable before. This may lead to compilation errors in the build script. See https://github.com/gradle/kotlin-dsl/releases/tag/v0.17.4[the relevant Kotlin DSL release notes] for details.
  * Error messages will be directed to standard error rather than standard output now, unless a console is attached to both standard output and standard error. This may affect tools that scrape a build's plain console output. Ignore this change if you're upgrading from an earlier version of Gradle.
 
-[[upgrade_4.6]]
-== From 4.6
+[[changes_4.7]]
+== Changes in 4.7
 
 === Deprecated classes, methods and properties
 
@@ -106,7 +120,7 @@ For now, by-convention config files in subprojects will override any in the root
 
 === Potential breaking changes
 
- * The structure of Gradle's <<#rel4.6:plain_console_output,plain console output>> has changed, which may break tools that scrape that output.
+ * The structure of Gradle's <<#rel4.7:plain_console_output,plain console output>> has changed, which may break tools that scrape that output.
  * The APIs of many native tasks related to compilation, linking and installation <<rel:4.6:native_task_api_changes,have changed in breaking ways>>.
  * [Kotlin DSL] Delegated properties used to access Gradle's build properties — defined in _gradle.properties_ for example — must now be explicitly typed.
  * [Kotlin DSL] Declaring a `plugins {}` block inside a nested scope now throws an exception.
@@ -115,8 +129,8 @@ For now, by-convention config files in subprojects will override any in the root
  * `getEnabledDirectoryReportDestinations()`, `getEnabledFileReportDestinations()` and `getEnabledReportNames()` have all been removed from `org.gradle.api.reporting.ReportContainer`.
  * link:{javadocPath}/org/gradle/StartParameter.html#getProjectProperties--[StartParameter.projectProperties] and link:{javadocPath}/org/gradle/StartParameter.html#getSystemPropertiesArgs--[StartParameter.systemPropertiesArgs] now return immutable maps.
 
-[[upgrade_4.5]]
-== From 4.5
+[[changes_4.6]]
+== Changes in 4.6
 
 There is now improved POM support in Gradle that will be enabled by default in Gradle 5.0. Add the line
 
@@ -124,9 +138,9 @@ There is now improved POM support in Gradle that will be enabled by default in G
 
 to your _settings.gradle_ file to get the following:
 
- * <<#rel4.5:bom_import,BOM import>>
- * <<#rel4.5:pom_optional_dependencies,Support for optional dependencies when consuming POMs>>
- * <<#rel4.5:pom_compile_runtime_separation,Separation of compile and runtime dependencies when consuming POMs>>
+ * <<#rel4.6:bom_import,BOM import>>
+ * <<#rel4.6:pom_optional_dependencies,Support for optional dependencies when consuming POMs>>
+ * <<#rel4.6:pom_compile_runtime_separation,Separation of compile and runtime dependencies when consuming POMs>>
 
 Note that some of these features may break your build.
 
@@ -140,7 +154,7 @@ Follow the API links to learn how to deal with these deprecations (if no extra i
 
 === Other deprecations
 
-[[rel4.5:annotation_processor_configuration]]
+[[rel4.6:annotation_processor_configuration]]
  * You should not put annotation processors on the compile classpath or declare them with the `-processorpath` compiler argument.
 +
 They should be added to the `annotationProcessor` configuration instead. If you don't want any processing, but your compile classpath contains a processor unintentionally (e.g. as part of a library you depend on), use the `-proc:none` compiler argument to ignore it.
@@ -151,12 +165,12 @@ They should be added to the `annotationProcessor` configuration instead. If you 
 
  * The Java plugins now add a `__sourceSet__AnnotationProcessor` configuration for each source set, which might break if any of them match existing configurations you have. We recommend you remove your conflicting configuration declarations.
  * The `StartParameter.taskOutputCacheEnabled` property has been replaced by link:{javadocPath}/org/gradle/StartParameter.html#setBuildCacheEnabled-boolean-[StartParameter.setBuildCacheEnabled(boolean)].
- * The Visual Studio integration now only <<#rel4.5:visual_studio_single_solution,configures a single solution for all components in a build>>.
+ * The Visual Studio integration now only <<#rel4.6:visual_studio_single_solution,configures a single solution for all components in a build>>.
  * Gradle has replaced HttpClient 4.4.1 with version 4.5.5.
  * Gradle now bundles the `kotlin-stdlib-jdk8` artifact instead of `kotlin-stdlib-jre8`. This may affect your build. Please see the http://kotlinlang.org/docs/reference/whatsnew12.html#kotlin-standard-library-artifacts-and-split-packages[Kotlin documentation] for more details.
 
-[[upgrade_4.4]]
-== From 4.4
+[[changes_4.5]]
+== Changes in 4.5
 
  * Make sure you have a _settings.gradle_ file: it avoids a performance penalty and allows you to set the root project's name. Also, the `-u`/`--no-search-upward` command line option that allowed you to bypass the performance penalty is now deprecated.
  * Gradle now ignores the build cache configuration of included builds (<<composite_builds.adoc#composite_builds,composite builds>>) and instead uses the root build's configuration for all the builds.
@@ -165,13 +179,13 @@ They should be added to the `annotationProcessor` configuration instead. If you 
 
  * Two overloaded `ValidateTaskProperties.setOutputFile()` methods were removed. They are replaced with auto-generated setters when the task is accessed from a build script, but that won't be the case from plugins and other code outside of the build script.
  * The Maven Publish Plugin now produces more complete maven-metadata.xml files, including maintaining a list of `<snapshotVersion>` elements. Some older versions of Maven may not be able to consume this metadata.
- * <<#rel4.4:http_build_cache_no_follow_redirects,`HttpBuildCache` no longer follows redirects>>.
+ * <<#rel4.5:http_build_cache_no_follow_redirects,`HttpBuildCache` no longer follows redirects>>.
  * The `Depend` task type has been removed.
  * link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(Object)] no longer normalizes case for file paths on case-insensitive file systems. It now ignores case in such circumstances and does not touch the file system.
  * link:{javadocPath}/org/gradle/api/provider/ListProperty.html[ListProperty] no longer extends link:{javadocPath}/org/gradle/api/provider/Property.html[Property].
 
-[[upgrade_4.3]]
-== From 4.3
+[[changes_4.4]]
+== Changes in 4.4
 
  * Don't use the `-a`/`--no-rebuild` command-line option: it will be removed in Gradle 5.0.
 
@@ -187,10 +201,10 @@ You can bypass the toolchain discovery by specifying the installation directory 
  * `pluginManagement.repositories` is now of type link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] rather than `PluginRepositoriesSpec`, which has been removed.
  * 5xx HTTP errors during dependency resolution will now trigger exceptions in the build.
  * The embedded Apache Ant has been upgraded from 1.9.6 to 1.9.9.
- * <<#rel4.3:security_library_upgrades,Several third-party libraries used by Gradle have been upgraded>> to fix security issues.
+ * <<#rel4.4:security_library_upgrades,Several third-party libraries used by Gradle have been upgraded>> to fix security issues.
 
-[[upgrade_4.2]]
-== From 4.2
+[[changes_4.3]]
+== Changes in 4.3
 
  * The `plugins {}` block can now be <<plugins.adoc#sec:subprojects_plugins_dsl,used in subprojects>> and for <<plugins.adoc#sec:buildsrc_plugins_dsl,plugins in the _buildSrc_ directory>>.
 
@@ -238,8 +252,8 @@ For example, if a dependency on `some-module` is found with a version range of `
 Prefer using separate properties with `@OutputFile`/`@OutputDirectory` annotations or use `Map` properties with `@OutputFiles`/`@OutputDirectories` instead.
  * Gradle will no longer ignore dependency resolution errors from a repository when there is another repository it can check. Dependency resolution will fail instead. This results in more deterministic behavior with respect to resolution results.
 
-[[upgrade_4.1]]
-== From 4.1
+[[changes_4.2]]
+== Changes in 4.2
 
 === Deprecations
 
@@ -251,8 +265,8 @@ Prefer using separate properties with `@OutputFile`/`@OutputDirectory` annotatio
  * The bundled `bndlib` has been upgraded from 3.2.0 to 3.4.0.
  * The FindBugs Plugin no longer renders progress information from its analysis. If you rely on that output in any way, you can enable it with link:{groovyDslPath}/org.gradle.api.plugins.quality.FindBugs.html#org.gradle.api.plugins.quality.FindBugs:showProgress[FindBugs.showProgress].
 
-[[upgrade_4.0]]
-== From 4.0
+[[changes_4.1]]
+== Changes in 4.1
 
  * Consider using the new <<custom_tasks.adoc#worker_api,Worker API>> to enable units of work within your build to run in parallel.
 
@@ -275,22 +289,48 @@ To override this behavior, you can explicitly declare the configuration to use i
 
 == Changes in detail
 
-[[rel4.8:lazy_task_creation]]
-=== [4.8] Consider trying the lazy API for task creation and configuration
+[[rel4.10:aws_s3_permissions]]
+=== [4.10] Publishing to AWS S3 requires new permissions
+
+The S3 repository transport protocol allows Gradle to publish artifacts to AWS S3 buckets. Starting with this release, every artifact uploaded to an S3 bucket will be equipped with the `bucket-owner-full-control` canned ACL. Make sure that the AWS account used to publish artifacts has the `s3:PutObjectAcl` and `s3:PutObjectVersionAcl` permissions, otherwise the upload will fail.
+
+[source,json]
+----
+{
+    "Version":"2012-10-17",
+    "Statement":[
+        // ...
+        {
+            "Effect":"Allow",
+            "Action":[
+                "s3:PutObject", // necessary for uploading objects
+                "s3:PutObjectAcl", // required starting with this release
+                "s3:PutObjectVersionAcl" // if S3 bucket versioning is enabled
+            ],
+            "Resource":"arn:aws:s3:::myCompanyBucket/*"
+        }
+    ]
+}
+----
+
+See <<repository_types#sub:s3_cross_account,AWS S3 Cross Account Access>> for more information.
+
+[[rel4.9:lazy_task_creation]]
+=== [4.9] Consider trying the lazy API for task creation and configuration
 
 Gradle 4.9 introduced a new way to create and configure tasks that works lazily. When you use this approach for tasks that are expensive to configure, or when you have many, many tasks, your build configuration time can drop significantly when those tasks don't run.
 
 You can learn more about lazily creating tasks in the <<task_configuration_avoidance#task_configuration_avoidance,Task Configuration Avoidance>> chapter. You can also read about the background to this new feature in https://blog.gradle.org/preview-avoiding-task-configuration-time[this blog post].
 
-[[rel4.7:switch_to_publishing_plugins]]
-=== [4.7] Switch to the Maven Publish and Ivy Publish Plugins
+[[rel4.8:switch_to_publishing_plugins]]
+=== [4.8] Switch to the Maven Publish and Ivy Publish Plugins
 
 Now that the publishing plugins are stable, we recommend that you migrate from the <<artifact_management.adoc#artifact_management,legacy publishing>> mechanism for standard Java projects, i.e. those based on the <<java_plugin#java_plugin,Java Plugin>>. That includes projects that use any one of: <<java_library_plugin#java_library_plugin,Java Library Plugin>>, <<application_plugin#application_plugin,Application Plugin>> or <<war_plugin#war_plugin,War Plugin>>.
 
 To use the new approach, simply replace any `upload<Conf>` configuration with a `publishing {}` block. See the <<publishing_overview.adoc#publishing_overview,publishing overview chapter>> for more information.
 
-[[rel4.7:deferred_configuration]]
-=== [4.7] Use deferred configuration for publishing plugins
+[[rel4.8:deferred_configuration]]
+=== [4.8] Use deferred configuration for publishing plugins
 
 Prior to Gradle 4.8, the `publishing {}` block was implicitly treated as if all the logic inside it was executed after the project was evaluated.
 This was confusing, because it was the only block that behaved that way.
@@ -337,8 +377,8 @@ subprojects {
 }
 ----
 
-[[rel4.7:configure_internal_tasks]]
-=== [4.7] Configure existing `wrapper` and `init` tasks
+[[rel4.8:configure_internal_tasks]]
+=== [4.8] Configure existing `wrapper` and `init` tasks
 
 You should no longer define your own `wrapper` and `init` tasks. Configure the existing tasks instead, for example by converting this:
 
@@ -356,15 +396,15 @@ wrapper {
 }
 ----
 
-[[rel4.7:pom_wildcard_exclusions]]
-=== [4.7] Gradle now honors implicit wildcards in Maven POM exclusions
+[[rel4.8:pom_wildcard_exclusions]]
+=== [4.8] Gradle now honors implicit wildcards in Maven POM exclusions
 
 If an exclusion in a Maven POM was missing either a `groupId` or `artifactId`, Gradle used to ignore the exclusion. Now the missing elements are treated as implicit wildcards — e.g. `<groupId>*</groupId>` — which means that some of your dependencies may now be excluded where they weren't before.
 
 You will need to explicitly declare any missing dependencies that you need.
 
-[[rel4.6:plain_console_output]]
-=== [4.6] Changes to the structure of Gradle's plain console output
+[[rel4.7:plain_console_output]]
+=== [4.7] Changes to the structure of Gradle's plain console output
 
 The plain console mode now formats output consistently with the rich console, which means that the output format has changed. For example:
 
@@ -418,8 +458,8 @@ The following have also seen similar changes:
  * link:{javadocPath}/org/gradle/language/swift/tasks/SwiftCompile.html[SwiftCompile]
  * link:{javadocPath}/org/gradle/nativeplatform/tasks/LinkMachOBundle.html[LinkMachOBundle]
 
-[[rel4.5:bom_import]]
-=== [4.5] BOM import
+[[rel4.6:bom_import]]
+=== [4.6] BOM import
 
 Gradle now provides support for importing bill of materials (BOM) files, which are effectively POM files that use `<dependencyManagement>` sections to control the versions of direct and transitive dependencies. All you need to do is declare the POM as just another dependency.
 
@@ -437,8 +477,8 @@ dependencies {
 ----
 
 
-[[rel4.5:pom_optional_dependencies]]
-=== [4.5] Support for optional dependencies when consuming POMs
+[[rel4.6:pom_optional_dependencies]]
+=== [4.6] Support for optional dependencies when consuming POMs
 
 Gradle now creates a <<managing_transitive_dependencies.adoc#sec:dependency_constraints,dependency constraint>> for each dependency declaration in a POM file with an `<optional>true</optional>` element. This results in the expected behavior:
 
@@ -447,8 +487,8 @@ Gradle now creates a <<managing_transitive_dependencies.adoc#sec:dependency_cons
 
 In other words, if an optional dependency has a declared version higher than another, non-optional one, the optional dependency's version is used by default. However, Gradle does add solely optional dependencies to the dependency graph, which means you won't see them in the associated configuration's set of files.
 
-[[rel4.5:pom_compile_runtime_separation]]
-=== [4.5] Separation of compile and runtime dependencies when consuming POMs
+[[rel4.6:pom_compile_runtime_separation]]
+=== [4.6] Separation of compile and runtime dependencies when consuming POMs
 
 Since Gradle 1.0, runtime-scoped dependencies have been included in the Java compilation classpath, which has some drawbacks:
 
@@ -457,8 +497,8 @@ Since Gradle 1.0, runtime-scoped dependencies have been included in the Java com
 
 With this new behavior, the Java and Java Library plugins both honor the <<java_library_plugin.adoc#sec:java_library_separation,separation of compile and runtime scopes>>. This means that the compilation classpath only includes compile-scoped dependencies, while the runtime classpath adds the runtime-scoped dependencies as well. This is particularly useful if you develop and publish Java libraries with Gradle where the separation between `api` and `implementation` dependencies is reflected in the published scopes.
 
-[[rel4.5:visual_studio_single_solution]]
-=== [4.5] Visual Studio integration only supports a single solution file for all components of a build
+[[rel4.6:visual_studio_single_solution]]
+=== [4.6] Visual Studio integration only supports a single solution file for all components of a build
 
 link:{groovyDslPath}/org.gradle.ide.visualstudio.VisualStudioExtension.html[VisualStudioExtension] no longer has a `solutions` property. Instead, you configure a single solution via link:{groovyDslPath}/org.gradle.ide.visualstudio.VisualStudioRootExtension.html[VisualStudioRootExtension] in the root project, like so:
 
@@ -474,13 +514,13 @@ model {
 
 In addition, there are no longer individual tasks to generate the solution files for each component, but rather a single `visualStudio` task that generates a solution file that encompasses all components in the build.
 
-[[rel4.4:http_build_cache_no_follow_redirects]]
-=== [4.4] `HttpBuildCache` no longer follows redirects
+[[rel4.5:http_build_cache_no_follow_redirects]]
+=== [4.5] `HttpBuildCache` no longer follows redirects
 
 When connecting to an HTTP build cache backend via `HttpBuildCache`, Gradle does not follow redirects any more, treating them as errors instead. Getting a redirect from the build cache backend is mostly a configuration error — using an "http" URL instead of "https" for example — and has negative effects on performance.
 
-[[rel4.3:security_library_upgrades]]
-=== [4.3] Third-party dependency upgrades
+[[rel4.4:security_library_upgrades]]
+=== [4.4] Third-party dependency upgrades
 
 This version includes several upgrades of third-party dependencies:
 
