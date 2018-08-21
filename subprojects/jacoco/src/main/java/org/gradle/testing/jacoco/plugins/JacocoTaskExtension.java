@@ -29,8 +29,10 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.internal.Factory;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.RelativePathUtil;
 
 import javax.annotation.Nullable;
@@ -130,15 +132,27 @@ public class JacocoTaskExtension {
     }
 
     /**
-     * Whether or not data should be appended if the {@code destinationFile} already exists. Defaults to {@code true}.
+     * Whether or not data should be appended if the {@link #destinationFile} already exists. Defaults to {@code true}.
+     *
+     * @deprecated The Jacoco plugin now deletes the old coverage file before task execution, so the data will never be appended to an existing coverage file from another task.
+     * Use {@link org.gradle.testing.jacoco.tasks.JacocoMerge} to merge different execution files or use {@link org.gradle.testing.jacoco.tasks.JacocoReportBase#setExecutionData(FileCollection)} to generate a report from multiple execution files at once.
+     * Append is set to true for the agent since this allows multiple JVMs spawned by one task to write to the same {@link #destinationFile}.
      */
+    @Deprecated
     @Input
     public boolean isAppend() {
+        nagAboutDeprecatedAppendProperty();
         return append;
     }
 
+    @Deprecated
     public void setAppend(boolean append) {
+        nagAboutDeprecatedAppendProperty();
         this.append = append;
+    }
+
+    private void nagAboutDeprecatedAppendProperty() {
+        DeprecationLogger.nagUserWith("The append property has been deprecated.", "This is scheduled to be removed in Gradle 6.0.", "Append should always be true.", null);
     }
 
     /**
@@ -321,7 +335,12 @@ public class JacocoTaskExtension {
         builder.append(RelativePathUtil.relativePath(task.getWorkingDir(), agent.getJar()));
         builder.append('=');
         argument.append("destfile", getDestinationFile());
-        argument.append("append", isAppend());
+        argument.append("append", DeprecationLogger.whileDisabled(new Factory<Boolean>() {
+            @Override
+            public Boolean create() {
+                return isAppend();
+            }
+        }));
         argument.append("includes", getIncludes());
         argument.append("excludes", getExcludes());
         argument.append("exclclassloader", getExcludeClassLoaders());
