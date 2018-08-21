@@ -239,7 +239,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         create("fullPerformanceTest")
 
         create("performanceAdhocTest") {
-            systemProperty(PropertyNames.dbUrl, Config.adhocTestDbUrl)
+            addDatabaseParameters(mapOf(PropertyNames.dbUrl to Config.adhocTestDbUrl))
             channel = "adhoc"
             outputs.doNotCacheIf("Is adhoc performance test currently") { true }
         }
@@ -394,7 +394,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         task.apply {
             group = "verification"
-            systemProperties(propertiesForPerformanceDb())
+            addDatabaseParameters(propertiesForPerformanceDb())
             testClassesDirs = performanceSourceSet.output.classesDirs
             classpath = performanceSourceSet.runtimeClasspath
 
@@ -403,7 +403,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             maxParallelForks = 1
 
             project.findProperty(PropertyNames.baselines)?.let { baselines ->
-                systemProperty(PropertyNames.baselines, baselines)
+                task.baselines = baselines as String
             }
 
             jvmArgs("-Xmx3g", "-XX:+HeapDumpOnOutOfMemoryError")
