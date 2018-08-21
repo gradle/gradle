@@ -49,7 +49,7 @@ open class DistributionTest : Test() {
     val binaryDistributions = BinaryDistributions(project.layout)
 
     @Internal
-    val gradleInstallationForTest = GradleInstallationForTestEnvironmentProvider(project, binaryDistributions.distributionsRequired)
+    val gradleInstallationForTest = GradleInstallationForTestEnvironmentProvider(project)
 
     @Internal
     val libsRepository = LibsRepositoryEnvironmentProvider(project.layout)
@@ -61,6 +61,7 @@ open class DistributionTest : Test() {
         jvmArgumentProviders.add(gradleInstallationForTest)
         jvmArgumentProviders.add(BinaryDistributionsEnvironmentProvider(binaryDistributions))
         jvmArgumentProviders.add(libsRepository)
+        gradleInstallationForTest.samplesRequired.set(project.provider { binaryDistributions.distributionsRequired })
         systemProperty("java9Home", project.findProperty("java9Home") ?: System.getProperty("java9Home"))
     }
 }
@@ -83,7 +84,7 @@ class LibsRepositoryEnvironmentProvider(layout: ProjectLayout) : CommandLineArgu
 }
 
 
-class GradleInstallationForTestEnvironmentProvider(project: Project, distributionsRequired: Boolean) : CommandLineArgumentProvider, Named {
+class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLineArgumentProvider, Named {
 
     @Internal
     val gradleHomeDir = project.layout.directoryProperty()
@@ -94,6 +95,9 @@ class GradleInstallationForTestEnvironmentProvider(project: Project, distributio
     @Internal
     val toolingApiShadedJarDir = project.layout.directoryProperty()
 
+    @Internal
+    val samplesRequired = project.objects.property(Boolean::class.javaObjectType)
+
     /**
      * The user home dir is not wiped out by clean.
      * Move the daemon working space underneath the build dir so they don't pile up on CI.
@@ -101,8 +105,15 @@ class GradleInstallationForTestEnvironmentProvider(project: Project, distributio
     @Internal
     val daemonRegistry = project.layout.directoryProperty()
 
-    @Nested
-    val gradleDistribution: GradleDistribution = if (distributionsRequired) GradleDistributionWithSamples(project, gradleHomeDir) else GradleDistribution(project, gradleHomeDir)
+    private
+    val gradleDistributionWithSamples = GradleDistributionWithSamples(project, gradleHomeDir)
+
+    private
+    val gradleDistributionWithoutSamples = GradleDistribution(project, gradleHomeDir)
+
+    @get:Nested
+    val gradleDistribution: GradleDistribution
+        get() = if (samplesRequired.getOrElse(false)) gradleDistributionWithSamples else gradleDistributionWithoutSamples
 
     override fun asArguments() =
         mapOf(

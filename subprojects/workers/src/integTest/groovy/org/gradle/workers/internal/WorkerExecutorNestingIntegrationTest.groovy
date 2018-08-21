@@ -170,7 +170,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
                 def threadGroup = Thread.currentThread().threadGroup
                 def threads = new Thread[threadGroup.activeCount()]
                 threadGroup.enumerate(threads)                     
-                return threads.findAll { it?.name.startsWith("${WorkerExecutionQueueFactory.QUEUE_DISPLAY_NAME}") } 
+                return threads.findAll { it?.name?.startsWith("${WorkerExecutionQueueFactory.QUEUE_DISPLAY_NAME}") } 
             }
         """.stripIndent()
 

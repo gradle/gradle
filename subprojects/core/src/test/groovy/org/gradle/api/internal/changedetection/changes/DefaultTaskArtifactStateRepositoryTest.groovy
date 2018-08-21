@@ -816,7 +816,9 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
                 }
             }
             if (inputProperties != null) {
-                task.getInputs().properties(inputProperties)
+                inputProperties.each { key, value ->
+                    task.getInputs().property(key, value).optional(true)
+                }
             }
             if (outputFiles != null) {
                 outputFiles.each { String property, Collection<? extends File> files ->

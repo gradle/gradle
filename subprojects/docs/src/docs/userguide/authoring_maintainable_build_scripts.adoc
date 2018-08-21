@@ -40,36 +40,29 @@ The following sample build shows a negative example of using conditional logic d
 While this code snippet is small, it is easy to imagine a full-blown build script using numerous procedural statements and the impact it would have on readability and maintainability.
 By moving the code into a class link:{guidesUrl}/testing-gradle-plugins/[testability] also becomes a valid option.
 
-=== Example: A build script using conditional logic to create a task
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/bestPractices/conditionalLogic/dont/build.gradle[]
-----
+.A build script using conditional logic to create a task
+====
+include::sample[dir="userguide/bestPractices/conditionalLogic/dont/groovy", files="build.gradle[]"]
+include::sample[dir="userguide/bestPractices/conditionalLogic/dont/kotlin", files="build.gradle.kts[]"]
+====
 
 Let's compare the build script with the same logic implemented as a binary plugin.
 The code might look more involved at first but clearly looks more like typical application code.
 This particular plugin class lives in the <<organizing_gradle_projects.adoc#sec:build_sources,`buildSrc` directory>> which makes it available to the build script automatically.
 
-=== Example: A binary plugin implementing imperative logic
-
-[source,java]
-.ReleasePlugin.java
-----
-include::{samplesPath}/userguide/bestPractices/conditionalLogic/do/buildSrc/src/main/java/com/enterprise/ReleasePlugin.java[]
-----
+.A binary plugin implementing imperative logic
+====
+include::sample[dir="userguide/bestPractices/conditionalLogic/do/groovy/buildSrc/src/main/java/com/enterprise", files="ReleasePlugin.java[]"]
+====
 
 Now that the build logic has been translated into a plugin, you can apply it in the build script.
 The build script has been shrunk from 8 lines of code to a one liner.
 
-=== Example: A build script applying a plugin that encapsulates imperative logic
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/bestPractices/conditionalLogic/do/build.gradle[]
-----
+.A build script applying a plugin that encapsulates imperative logic
+====
+include::sample[dir="userguide/bestPractices/conditionalLogic/do/groovy", files="build.gradle[]"]
+include::sample[dir="userguide/bestPractices/conditionalLogic/do/kotlin", files="build.gradle.kts[]"]
+====
 
 [[sec:avoiding_gradle_internal_apis]]
 == Avoiding Gradle internal APIs
@@ -136,18 +129,16 @@ The task API gives a build author a lot of flexibility to declare tasks in a bui
 For optimal readability and maintainability follow these rules:
 
 * The task type should be the only key-value pair that belongs within the parentheses after the task name.
-* Any other configuration logic for a task should be defined as part of link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:task(java.lang.String,%20groovy.lang.Closure)[Project.task(java.lang.String, groovy.lang.Closure)] if possible.
+* Any other configuration logic for a task should be defined as part of link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:task(java.lang.String,%20org.gradle.api.Action)[Project.task(java.lang.String, org.gradle.api.Action)] if possible.
 * <<tutorial_using_tasks.adoc#sec:hello_world,Task actions>> should only be declared with the methods link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doFirst(org.gradle.api.Action)[Task.doFirst{}] or link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast{}].
 * link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast{}] should be used if the task only defines a single action.
 * A task should <<#sec:improving_task_discoverability,define a group and description>>.
 
-=== Example: Definition of tasks following best practices
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/bestPractices/taskDefinition/build.gradle[]
-----
+.Definition of tasks following best practices
+====
+include::sample[dir="userguide/bestPractices/taskDefinition/groovy", files="build.gradle[]"]
+include::sample[dir="userguide/bestPractices/taskDefinition/kotlin", files="build.gradle.kts[]"]
+====
 
 [[sec:improving_task_discoverability]]
 == Improving task discoverability
@@ -161,13 +152,11 @@ The example task `generateDocs` generates documentation for a project in the for
 The task should be organized underneath the bucket `Documentation`.
 The description should express its intent.
 
-=== Example: A task declaring the group and description
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/bestPractices/taskGroupDescription/build.gradle[]
-----
+.A task declaring the group and description
+====
+include::sample[dir="userguide/bestPractices/taskGroupDescription/groovy", files="build.gradle[]"]
+include::sample[dir="userguide/bestPractices/taskGroupDescription/kotlin", files="build.gradle.kts[]"]
+====
 
 The output of the tasks report reflects the assigned values.
 
@@ -193,23 +182,19 @@ It's an invaluable tool for diagnosing common performance issues.
 Let's consider the following incantation of the anti-pattern described above.
 In the build script you can see that the dependencies assigned to the configuration `printArtifactNames` are resolved outside of the task action.
 
-=== Example: Executing logic during configuration should be avoided
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/bestPractices/logicDuringConfiguration/dont/build.gradle[tag=config-logic]
-----
+.Executing logic during configuration should be avoided
+====
+include::sample[dir="userguide/bestPractices/logicDuringConfiguration/dont/groovy", files="build.gradle[tags=config-logic]"]
+include::sample[dir="userguide/bestPractices/logicDuringConfiguration/dont/kotlin", files="build.gradle.kts[tags=config-logic]"]
+====
 
 The code for resolving the dependencies should be moved into the task action to avoid the performance impact of resolving the dependencies before they are actually needed.
 
-=== Example: Executing logic during execution phase is preferred
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/bestPractices/logicDuringConfiguration/do/build.gradle[tag=config-logic]
-----
+.Executing logic during execution phase is preferred
+====
+include::sample[dir="userguide/bestPractices/logicDuringConfiguration/do/groovy", files="build.gradle[tags=config-logic]"]
+include::sample[dir="userguide/bestPractices/logicDuringConfiguration/do/kotlin", files="build.gradle.kts[tags=config-logic]"]
+====
 
 [[sec:avoiding_use_of_gradlebuild]]
 == Avoiding the use of `GradleBuild`

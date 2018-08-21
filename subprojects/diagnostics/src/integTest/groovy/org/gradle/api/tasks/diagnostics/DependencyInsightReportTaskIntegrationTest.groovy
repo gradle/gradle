@@ -938,8 +938,6 @@ org:leaf:1.6
    variant "default" [
       org.gradle.status = integration (not requested)
    ]
-   Selection reasons:
-      - By conflict resolution : between versions 1.6 and 1.6
 
 org:leaf:1.+ -> 1.6
 \\--- org:top:1.0

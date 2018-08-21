@@ -30,8 +30,6 @@ import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
-import org.gradle.internal.typeconversion.UnsupportedNotationException;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -89,7 +87,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             @Override
             public TaskInputFilePropertyBuilderInternal call() {
                 StaticValue value = new StaticValue(unpackVarargs(paths));
-                DeclaredTaskInputFileProperty fileSpec = specFactory.createInputFileSpec(value, ValidationActions.NO_OP);
+                DeclaredTaskInputFileProperty fileSpec = specFactory.createInputFilesSpec(value);
                 registeredFileProperties.add(fileSpec);
                 return fileSpec;
             }
@@ -109,7 +107,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             @Override
             public TaskInputFilePropertyBuilderInternal call() {
                 StaticValue value = new StaticValue(path);
-                DeclaredTaskInputFileProperty fileSpec = specFactory.createInputFileSpec(value, RUNTIME_INPUT_FILE_VALIDATOR);
+                DeclaredTaskInputFileProperty fileSpec = specFactory.createInputFileSpec(value);
                 registeredFileProperties.add(fileSpec);
                 return fileSpec;
             }
@@ -122,7 +120,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             @Override
             public TaskInputFilePropertyBuilderInternal call() {
                 StaticValue value = new StaticValue(dirPath);
-                DeclaredTaskInputFileProperty dirSpec = specFactory.createInputDirSpec(value, RUNTIME_INPUT_DIRECTORY_VALIDATOR);
+                DeclaredTaskInputFileProperty dirSpec = specFactory.createInputDirSpec(value);
                 registeredFileProperties.add(dirSpec);
                 return dirSpec;
             }
@@ -209,24 +207,6 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             });
         }
     }
-
-    private static final ValidationAction RUNTIME_INPUT_FILE_VALIDATOR = wrapRuntimeApiValidator("file", ValidationActions.INPUT_FILE_VALIDATOR);
-
-    private static final ValidationAction RUNTIME_INPUT_DIRECTORY_VALIDATOR = wrapRuntimeApiValidator("dir", ValidationActions.INPUT_DIRECTORY_VALIDATOR);
-
-    private static ValidationAction wrapRuntimeApiValidator(final String method, final ValidationAction validator) {
-        return new ValidationAction() {
-            @Override
-            public void validate(String propertyName, Object value, TaskValidationContext context, TaskValidationContext.Severity severity) {
-                try {
-                    validator.validate(propertyName, value, context, severity);
-                } catch (UnsupportedNotationException ex) {
-                    DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause("Using TaskInputs." + method + "() with something that doesn't resolve to a File object", "Use TaskInputs.files() instead.");
-                }
-            }
-        };
-    }
-
 
     private static class HasInputsVisitor extends PropertyVisitor.Adapter {
         private boolean hasInputs;

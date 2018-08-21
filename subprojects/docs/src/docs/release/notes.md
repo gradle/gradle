@@ -53,8 +53,25 @@ Removing tasks from the `TaskContainer` using the following methods has been dep
 - `clear()`
 - `Iterator#remove()` via `TaskContainer#iterator()`
 
-With the deprecation of every method removing a task, registering a callback when an object is removed is also deprecated (`whenObjectRemoved(Closure/Action)`)
+With the deprecation of every method for removing a task, registering a callback when an object is removed is also deprecated (`whenObjectRemoved(Closure/Action)`).
 
+### Replacing tasks 
+
+It is only safe to replace an unrealized tasks registered with the new Task API because this task has not been used by anything else.
+
+In the future, these behaviors will be treated as errors.
+
+#### Replacing tasks that may still be used by other tasks 
+
+Gradle now emits a deprecation warning when you attempt to replace a task that may have already been used by something else.  
+
+#### Replacing tasks with a task of an incompatible type
+
+Gradle now emits a deprecation warning when you attempt to replace a task with a type that's incompatible from the task being replaced. 
+
+#### Replacing a task that does not exist
+
+Gradle now emits a deprecation warning when you attempt to replace a task that does not already exist.
 
 ### Removing dependencies from a task
 
@@ -94,6 +111,7 @@ The previously deprecated support for Play Framework 2.2 has been removed.
 - Removed the property `styleSheet` from `ScalaDocOptions`.
 - Forbid passing `null` as configuration action to the methods `from` and `to` on `CopySpec`.
 - Removed the property `bootClasspath` from `CompileOptions`.
+- Registering invalid inputs or outputs via the runtime API is now an error.
 
 ## External contributions
 

@@ -10,7 +10,7 @@ apply<PrecompiledScriptPlugins>()
 dependencies {
     implementation("me.champeau.gradle:jmh-gradle-plugin:0.4.7")
     implementation("org.jsoup:jsoup:1.11.2")
-    implementation("com.gradle:build-scan-plugin:1.15.2")
+    implementation("com.gradle:build-scan-plugin:1.16-rc-1-20180817192640-enterprise_release")
     implementation(project(":configuration"))
     implementation(project(":kotlinDsl"))
 }

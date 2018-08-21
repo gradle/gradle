@@ -43,8 +43,8 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private final boolean partialUpdate;
     private final LockEntryFilter lockEntryFilter;
 
-    public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter) {
-        this.lockFileReaderWriter = new LockFileReaderWriter(fileResolver);
+    public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, boolean isProjectScope) {
+        this.lockFileReaderWriter = new LockFileReaderWriter(fileResolver, isProjectScope);
         this.writeLocks = startParameter.isWriteDependencyLocks();
         if (writeLocks) {
             LOGGER.debug("Write locks is enabled");

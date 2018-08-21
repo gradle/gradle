@@ -35,13 +35,13 @@ import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
-import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
+import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.metaobject.DynamicObject;
@@ -231,21 +231,46 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (replaceExisting) {
             Task existing = findByNameWithoutRules(name);
             if (existing != null) {
+                DeprecationLogger.nagUserWith("Replacing a task that may have been used by other plugins can cause problems.",
+                    "This behavior has been deprecated and is scheduled to become an error in Gradle 6.0.",
+                    "",
+                    "Use a different name for this task ('" + name + "') or avoid creating the original task you are trying to replace.");
                 removeInternal(existing);
             } else {
-                ProviderInternal<? extends Task> taskProvider = findByNameLaterWithoutRules(name);
+                TaskCreatingProvider<? extends Task> taskProvider = Cast.uncheckedCast(findByNameLaterWithoutRules(name));
                 if (taskProvider != null) {
                     removeInternal(taskProvider);
+
+                    final Action<? super T> onCreate;
+                    if (!taskProvider.getType().isAssignableFrom(task.getClass())) {
+                        DeprecationLogger.nagUserWith(
+                            "Replacing an existing task with an incompatible type.",
+                            "This behavior has been deprecated and is scheduled to become an error in Gradle 6.0.",
+                            "",
+                            "Use a different name for this task ('" + name + "'), use a compatible type (" + ((TaskInternal)task).getTaskIdentity().type.getName() + ") or avoid creating the original task you are trying to replace.");
+                        onCreate = getEventRegister().getAddActions();
+                    } else {
+                        onCreate = Cast.uncheckedCast(taskProvider.getOnCreateActions().mergeFrom(getEventRegister().getAddActions()));
+                    }
+
+                    add(task, onCreate);
+                    return; // Exit early as we are reusing the create actions from the provider
+                } else {
+                    DeprecationLogger.nagUserWith(
+                        "Unnecessarily replacing a task that does not exist.",
+                        "This behavior has been deprecated and is scheduled to become an error in Gradle 6.0.",
+                        "Try using create() or register() directly instead.",
+                        "You attempted to replace a task named '" + name + "', but no task exists with that name already.");
                 }
             }
         } else if (hasWithName(name)) {
-            duplicateTask(name);
+            failOnDuplicateTask(name);
         }
 
         addInternal(task);
     }
 
-    private <T extends Task> T duplicateTask(String task) {
+    private void failOnDuplicateTask(String task) {
         throw new DuplicateTaskException(String.format("Cannot add task '%s' as a task with that name already exists.", task));
     }
 
@@ -361,7 +386,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     private <T extends Task> TaskProvider<T> registerTask(final String name, final Class<T> type, @Nullable final Action<? super T> configurationAction, final Object... constructorArgs) {
         if (hasWithName(name)) {
-            duplicateTask(name);
+            failOnDuplicateTask(name);
         }
         final TaskIdentity<T> identity = TaskIdentity.create(name, type, project);
         TaskProvider<T> provider = buildOperationExecutor.call(new CallableBuildOperation<TaskProvider<T>>() {
@@ -670,6 +695,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             statistics.lazyTask();
         }
 
+        public ImmutableActionSet<I> getOnCreateActions() {
+            return onCreate;
+        }
+
         @Override
         protected Action<? super I> wrap(Action action) {
             return crossProjectConfigurator.withCrossProjectConfigurationDisabled(action);
@@ -781,6 +810,13 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     private static class DuplicateTaskException extends InvalidUserDataException {
         public DuplicateTaskException(String message) {
+            super(message);
+        }
+    }
+
+    @Contextual
+    private static class IncompatibleTaskTypeException extends InvalidUserDataException {
+        public IncompatibleTaskTypeException(String message) {
             super(message);
         }
     }

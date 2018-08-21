@@ -363,6 +363,71 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         container.getByName("task") == newTask
     }
 
+    void "replaces registered task without realizing it"() {
+        given:
+        container.register("task")
+        def newTask = task("task")
+
+        when:
+        def replaced = container.replace("task")
+
+        then:
+        noExceptionThrown()
+        replaced == newTask
+        container.getByName("task") == newTask
+
+        and:
+        1 * taskFactory.create(_ as TaskIdentity) >> newTask
+    }
+
+    void "replaces unrealized registered task will execute configuration action against new task"() {
+        given:
+        def action = Mock(Action)
+        def provider = container.register("task", action)
+        provider.configure(action)
+        container.configureEach(action)
+        def newTask = task("task")
+
+        when:
+        container.replace("task")
+
+        then:
+        1 * taskFactory.create(_ as TaskIdentity) >> newTask
+        3 * action.execute(newTask)
+    }
+
+    void "replaces registered task with compatible type"() {
+        given:
+        container.register("task", CustomTask)
+        def newTask = task("task", MyCustomTask)
+
+        when:
+        def replaced = container.replace("task", MyCustomTask)
+
+        then:
+        noExceptionThrown()
+        replaced == newTask
+
+        and:
+        1 * taskFactory.create(_ as TaskIdentity) >> newTask
+    }
+
+    void "returns the same Task instance from TaskProvider after replace"() {
+        given:
+        def newTask = task("task")
+        1 * taskFactory.create(_ as TaskIdentity) >> newTask
+
+        when:
+        def p1 = container.register("task")
+        def p2 = container.named("task")
+        def replaced = container.replace("task")
+
+        then:
+        p1.get() == p2.get()
+        p1.get() == replaced
+        p1.get() == container.getByName("task")
+    }
+
     void "fails if unknown task is requested"() {
         when:
         container.getByName("unknown")
@@ -1389,7 +1454,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         container.register("task", CustomTask)
 
         when:
-        container.withType(DefaultTask).named("task")
+        container.withType(MyCustomTask).named("task")
 
         then:
         def ex = thrown(UnknownTaskException)
@@ -1397,12 +1462,12 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         0 * taskFactory.create(_ as TaskIdentity)
 
         when:
-        container.create([name: "task", type: DefaultTask, overwrite: true])
-        container.withType(DefaultTask).named("task")
+        container.create([name: "task", type: MyCustomTask, overwrite: true])
+        container.withType(MyCustomTask).named("task")
 
         then:
         noExceptionThrown()
-        1 * taskFactory.create(_ as TaskIdentity) >> task("task")
+        1 * taskFactory.create(_ as TaskIdentity) >> task("task", MyCustomTask)
     }
 
     void "can remove eager created task and named provider update his state"() {
@@ -1920,6 +1985,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         Mock(type, name: "[task" + taskCount++ + "]") {
             getName() >> name
             getTaskDependency() >> Mock(TaskDependency)
+            getTaskIdentity() >> TaskIdentity.create(name, type, project)
         }
     }
 
@@ -1946,4 +2012,8 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
     }
 
     interface CustomTask extends TaskInternal {}
+
+    interface MyCustomTask extends CustomTask {}
+
+    interface AnotherCustomTask extends TaskInternal {}
 }

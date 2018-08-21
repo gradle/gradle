@@ -12,6 +12,8 @@ class CustomEventLogger() : BuildAdapter(), TaskExecutionListener {
 
     override fun buildFinished(result: BuildResult) {
         println("build completed")
-        result.failure?.printStackTrace()
+        if (result.failure != null) {
+            result.failure.printStackTrace()
+        }
     }
 }
