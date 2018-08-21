@@ -392,7 +392,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             class DeclarePlatform implements ComponentMetadataRule {
                 void execute(ComponentMetadataContext ctx) {
                     ctx.details.with {
-                        belongsTo("org:platform:\${id.version}")
+                        belongsTo("org:platform:\${id.version}", false)
                     }
                 }
             }
@@ -584,8 +584,6 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             'org:json:1.1' {
                 expectResolve()
             }
-            'org:platform:1.0'(VIRTUAL_PLATFORM)
-            'org:platform:1.1'(VIRTUAL_PLATFORM)
         }
         run ':checkDeps'
 
@@ -775,7 +773,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         """
 
         and:
-        'a rule which declares that Groovy belongs to the Groovy and the Spring platforms'()
+        'a rule which declares that Groovy belongs to the Groovy and the Spring platforms'(true)
 
         when:
         expectAlignment {
@@ -954,7 +952,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             class DeclarePlatform implements ComponentMetadataRule {
                 void execute(ComponentMetadataContext ctx) {
                     ctx.details.with {
-                        belongsTo("org:platform:\${id.version}")
+                        belongsTo("org:platform:\${id.version}", false)
                     }
                 }
             }

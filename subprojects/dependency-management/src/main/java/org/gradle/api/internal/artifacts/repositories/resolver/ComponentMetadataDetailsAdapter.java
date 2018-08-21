@@ -97,7 +97,16 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
 
     @Override
     public void belongsTo(Object notation) {
-        metadata.belongsTo(componentIdentifierParser.parseNotation(notation));
+        belongsTo(notation, true);
+    }
+
+    @Override
+    public void belongsTo(Object notation, boolean virtual) {
+        ComponentIdentifier id = componentIdentifierParser.parseNotation(notation);
+        if (virtual) {
+            id = VirtualComponentHelper.makeVirtual(id);
+        }
+        metadata.belongsTo(id);
     }
 
     @Override
@@ -117,7 +126,6 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     public String toString() {
         return metadata.getModuleVersionId().toString();
     }
-
 
     private static class VariantNameSpec implements Spec<VariantResolveMetadata> {
         private final String name;

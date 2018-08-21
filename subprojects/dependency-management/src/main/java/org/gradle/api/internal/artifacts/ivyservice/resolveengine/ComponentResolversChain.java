@@ -47,7 +47,8 @@ public class ComponentResolversChain {
 
     public ComponentResolversChain(List<ComponentResolvers> providers, ArtifactTypeRegistry artifactTypeRegistry) {
         List<DependencyToComponentIdResolver> depToComponentIdResolvers = new ArrayList<DependencyToComponentIdResolver>(providers.size());
-        List<ComponentMetaDataResolver> componentMetaDataResolvers = new ArrayList<ComponentMetaDataResolver>(providers.size());
+        List<ComponentMetaDataResolver> componentMetaDataResolvers = new ArrayList<ComponentMetaDataResolver>(1 + providers.size());
+        componentMetaDataResolvers.add(VirtualComponentMetadataResolver.INSTANCE);
         List<ArtifactResolver> artifactResolvers = new ArrayList<ArtifactResolver>(providers.size());
         List<OriginArtifactSelector> artifactSelectors = new ArrayList<OriginArtifactSelector>(providers.size());
         for (ComponentResolvers provider : providers) {
