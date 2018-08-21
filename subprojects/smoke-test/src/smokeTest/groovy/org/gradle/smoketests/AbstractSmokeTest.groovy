@@ -24,10 +24,12 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.*
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.*
+import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.createMirrorInitScript
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 
 abstract class AbstractSmokeTest extends Specification {
+
     static class TestedVersions {
         /**
          * May also need to update
@@ -69,10 +71,9 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://developer.android.com/studio/releases/platform-tools
         static androidTools = "27.0.3"
-        // https://mvnrepository.com/artifact/com.android.tools.build/gradle
-        static androidGradle2x = "2.3.3"
-        static androidGradle3x = "3.1.3"
-        static androidGradle = Versions.of(androidGradle2x, androidGradle3x)
+        // https://mvnrepository.com/artifact/com.android.tools.build/gradle?repo=google
+        static androidGradle3x = "3.1.4"
+        static androidGradle = Versions.of(androidGradle3x)
 
         // https://blog.jetbrains.com/kotlin/
         static kotlin = Versions.of('1.2.21', '1.2.31', '1.2.41', '1.2.51')
@@ -89,8 +90,7 @@ abstract class AbstractSmokeTest extends Specification {
         // https://plugins.gradle.org/plugin/org.gosu-lang.gosu
         static gosu = "0.3.10"
 
-        // https://plugins.gradle.org/plugin/org.xtext.xtend
-        static xtend = "1.0.21"
+        // https://plugins.gradle.org/plugin/org.ajoberstar.grgit
         static grgit = "3.0.0-beta.1"
     }
 
@@ -114,6 +114,8 @@ abstract class AbstractSmokeTest extends Specification {
             return versions.iterator()
         }
     }
+
+    private static final String INIT_SCRIPT_LOCATION = "org.gradle.smoketests.init.script"
 
     @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
     File buildFile
@@ -139,7 +141,12 @@ abstract class AbstractSmokeTest extends Specification {
             .withGradleInstallation(IntegrationTestBuildContext.INSTANCE.gradleHomeDir)
             .withTestKitDir(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
             .withProjectDir(testProjectDir.root)
-            .withArguments(tasks.toList() + ['-s', '-I', createMirrorInitScript().absolutePath, "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}".toString()])
+            .withArguments(tasks.toList() + ['-s'] + repoMirrorParameters())
+    }
+
+    private static List<String> repoMirrorParameters() {
+        String mirrorInitScriptPath = createMirrorInitScript().absolutePath
+        return ['-I', mirrorInitScriptPath, "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}".toString(), "-D${INIT_SCRIPT_LOCATION}=${mirrorInitScriptPath}".toString()]
     }
 
     protected void useSample(String sampleDirectory) {

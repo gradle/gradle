@@ -49,10 +49,6 @@
                 <td></td>
             </tr>
             <tr>
-                <td>bootClasspath</td>
-                <td><literal>null</literal></td>
-            </tr>
-            <tr>
                 <td>bootstrapClasspath</td>
                 <td><literal>null</literal></td>
             </tr>

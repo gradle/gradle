@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Maps;
@@ -42,7 +41,6 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
         }
     };
 
-    private final ImmutableSet<String> declaredOutputFilePaths;
     private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprints;
     private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFingerprints;
     private final OverlappingOutputs detectedOverlappingOutputs;
@@ -54,25 +52,14 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
         ImmutableList<ImplementationSnapshot> taskActionImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
         ImmutableSortedSet<String> outputPropertyNames,
-        ImmutableSet<String> declaredOutputFilePaths,
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFingerprints,
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFingerprintsBeforeExecution,
         @Nullable OverlappingOutputs detectedOverlappingOutputs
     ) {
         super(taskImplementation, taskActionImplementations, inputProperties, outputPropertyNames);
-        this.declaredOutputFilePaths = declaredOutputFilePaths;
         this.outputFingerprints = outputFingerprintsBeforeExecution;
         this.inputFingerprints = inputFingerprints;
         this.detectedOverlappingOutputs = detectedOverlappingOutputs;
-    }
-
-    /**
-     * Returns the absolute path of every declared output file and directory.
-     * The returned set includes potentially missing files as well, and does
-     * not include the resolved contents of directories.
-     */
-    public ImmutableSet<String> getDeclaredOutputFilePaths() {
-        return declaredOutputFilePaths;
     }
 
     @Override

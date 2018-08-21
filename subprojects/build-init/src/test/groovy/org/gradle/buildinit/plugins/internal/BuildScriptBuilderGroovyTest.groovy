@@ -87,8 +87,8 @@ plugins {
 
     def "can add compile dependencies to groovy build scripts"() {
         when:
-        builder.compileDependency("Use slf4j", "org.slf4j:slf4j-api:2.7", "org.slf4j:slf4j-simple:2.7")
-        builder.compileDependency("Use Scala to compile", "org.scala-lang:scala-library:2.10")
+        builder.implementationDependency("Use slf4j", "org.slf4j:slf4j-api:2.7", "org.slf4j:slf4j-simple:2.7")
+        builder.implementationDependency("Use Scala to compile", "org.scala-lang:scala-library:2.10")
         builder.create().generate()
 
         then:
@@ -98,11 +98,11 @@ plugins {
 
 dependencies {
     // Use slf4j
-    compile 'org.slf4j:slf4j-api:2.7'
-    compile 'org.slf4j:slf4j-simple:2.7'
+    implementation 'org.slf4j:slf4j-api:2.7'
+    implementation 'org.slf4j:slf4j-simple:2.7'
 
     // Use Scala to compile
-    compile 'org.scala-lang:scala-library:2.10'
+    implementation 'org.scala-lang:scala-library:2.10'
 }
 
 // In this section you declare where to find the dependencies of your project
@@ -116,8 +116,8 @@ repositories {
 
     def "can add test compile and runtime dependencies to groovy build scripts"() {
         when:
-        builder.testCompileDependency("use some test kit", "org:test:1.2", "org:test-utils:1.2")
-        builder.testRuntimeDependency("needs some libraries at runtime", "org:test-runtime:1.2")
+        builder.testImplementationDependency("use some test kit", "org:test:1.2", "org:test-utils:1.2")
+        builder.testRuntimeOnlyDependency("needs some libraries at runtime", "org:test-runtime:1.2")
         builder.create().generate()
 
         then:
@@ -127,11 +127,11 @@ repositories {
 
 dependencies {
     // use some test kit
-    testCompile 'org:test:1.2'
-    testCompile 'org:test-utils:1.2'
+    testImplementation 'org:test:1.2'
+    testImplementation 'org:test-utils:1.2'
 
     // needs some libraries at runtime
-    testRuntime 'org:test-runtime:1.2'
+    testRuntimeOnly 'org:test-runtime:1.2'
 }
 
 // In this section you declare where to find the dependencies of your project

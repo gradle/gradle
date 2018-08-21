@@ -35,5 +35,10 @@ class ObjectiveCCompiler extends GccCompatibleNativeCompiler<ObjectiveCCompileSp
         protected String getLanguage() {
             return "objective-c";
         }
+
+        @Override
+        protected boolean isNoStandardIncludes() {
+            return false;
+        }
     }
 }

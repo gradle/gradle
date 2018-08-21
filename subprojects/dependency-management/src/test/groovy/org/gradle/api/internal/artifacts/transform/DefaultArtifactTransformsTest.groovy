@@ -47,7 +47,8 @@ class DefaultArtifactTransformsTest extends Specification {
     def producerSchema = Mock(AttributesSchemaInternal)
     def consumerSchema = Mock(AttributesSchemaInternal)
     def attributeMatcher = Mock(AttributeMatcher)
-    def transforms = new DefaultArtifactTransforms(matchingCache, consumerSchema, TestUtil.attributesFactory())
+    def transformListener = Mock(ArtifactTransformListener)
+    def transforms = new DefaultArtifactTransforms(matchingCache, consumerSchema, TestUtil.attributesFactory(), transformListener)
 
     def "selects producer variant with requested attributes"() {
         def variant1 = resolvedVariant()
@@ -166,14 +167,22 @@ class DefaultArtifactTransformsTest extends Specification {
         }
         _ * transformer.hasCachedResult(_) >> false
         _ * transformer.getDisplayName() >> "transform"
+
+        1 * transformListener.beforeTransform(transformer, sourceArtifactId, sourceArtifactFile)
         1 * transformer.transform(sourceArtifactFile) >> [outFile1, outFile2]
+        1 * transformListener.afterTransform(transformer, sourceArtifactId, sourceArtifactFile, null)
+
+        1 * transformListener.beforeTransform(transformer, null, sourceFile)
         1 * transformer.transform(sourceFile) >> [outFile3, outFile4]
+        1 * transformListener.afterTransform(transformer, null, sourceFile, null)
+
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile1})
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile2})
         1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, outFile3.name), variant1DisplayName, targetAttributes, outFile3)
         1 * visitor.visitFile(new ComponentFileArtifactIdentifier(id, outFile4.name), variant1DisplayName, targetAttributes, outFile4)
         0 * visitor._
         0 * transformer._
+        0 * transformListener._
     }
 
     def "fails when multiple transforms match"() {

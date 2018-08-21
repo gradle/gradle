@@ -26,12 +26,10 @@ import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.tasks.ContextAwareTaskAction
 import org.gradle.api.logging.Logger
 import org.gradle.api.tasks.AbstractTaskTest
-import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.api.tasks.TaskInstantiationException
 import org.gradle.internal.Actions
 import org.gradle.internal.event.ListenerManager
-import org.gradle.util.WrapUtil
 import spock.lang.Issue
 
 import java.util.concurrent.Callable
@@ -447,29 +445,6 @@ class DefaultTaskTest extends AbstractTaskTest {
     def "can access services"() {
         expect:
         defaultTask.services.get(ListenerManager) != null
-    }
-
-    def "test dependsOnTaskDidWork()"() {
-        given:
-        final task1 = Mock(Task)
-        final task2 = Mock(Task)
-        final dependencyMock = Mock(TaskDependency)
-        dependencyMock.getDependencies(getTask()) >> WrapUtil.toList(task1, task2)
-
-        when:
-        getTask().dependsOn(dependencyMock)
-        assert !getTask().dependsOnTaskDidWork()
-
-        then:
-        1 * task1.getDidWork() >> false
-        1 * task2.getDidWork() >> false
-
-        when:
-        assert getTask().dependsOnTaskDidWork()
-
-        then:
-        1 * task1.getDidWork() >> false
-        1 * task2.getDidWork() >> true
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2022")

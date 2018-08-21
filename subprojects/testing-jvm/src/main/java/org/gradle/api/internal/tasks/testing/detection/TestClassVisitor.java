@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.detection;
 
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -30,7 +31,7 @@ public abstract class TestClassVisitor extends ClassVisitor {
     private boolean test;
 
     protected TestClassVisitor(TestFrameworkDetector detector) {
-        super(Opcodes.ASM6);
+        super(AsmConstants.ASM_LEVEL);
         if (detector == null) {
             throw new IllegalArgumentException("detector == null!");
         }

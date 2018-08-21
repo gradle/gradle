@@ -44,13 +44,10 @@ import org.gradle.api.internal.tasks.DefaultTaskOutputs;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.TaskMutator;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
-import org.gradle.api.internal.tasks.execution.TaskValidator;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -120,8 +117,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private String group;
 
     private AndSpec<Task> onlyIfSpec = createNewOnlyIfSpec();
-
-    private TaskExecuter executer;
 
     // Weird name to work around https://issues.apache.org/jira/browse/GROOVY-8732
     private final ServiceRegistry _services;
@@ -378,52 +373,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public Task deleteAllActions() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("Task.deleteAllActions()");
-        taskMutator.mutate("Task.deleteAllActions()",
-            new Runnable() {
-                public void run() {
-                    getTaskActions().clear();
-                }
-            }
-        );
-        return this;
-    }
-
-    @Override
-    public final void execute() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskInternal.execute()", getReuseTaskLogicAdvice());
-        TaskExecuter executer = DeprecationLogger.whileDisabled(new Factory<TaskExecuter>() {
-            @Override
-            public TaskExecuter create() {
-                return getExecuter();
-            }
-        });
-        executer.execute(this, _state, new DefaultTaskExecutionContext());
-        _state.rethrowFailure();
-    }
-
-    @Override
-    public TaskExecuter getExecuter() {
-        DeprecationLogger.nagUserOfDiscontinuedProperty("TaskInternal.executer", getReuseTaskLogicAdvice());
-        if (executer == null) {
-            executer = _services.get(TaskExecuter.class);
-        }
-        return executer;
-    }
-
-    @Override
-    public void setExecuter(TaskExecuter executer) {
-        DeprecationLogger.nagUserOfDiscontinuedProperty("TaskInternal.executer", getReuseTaskLogicAdvice());
-        this.executer = executer;
-    }
-
-    private String getReuseTaskLogicAdvice() {
-        String reuseTaskLogicUrl = _services.get(DocumentationRegistry.class).getDocumentationFor("custom_tasks", "sec:reusing_task_logic");
-        return "There are better ways to re-use task logic, see " + reuseTaskLogicUrl + ".";
-    }
-
-    @Override
     public Task dependsOn(final Object... paths) {
         taskMutator.mutate("Task.dependsOn(Object...)", new Runnable() {
             public void run() {
@@ -595,20 +544,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public boolean dependsOnTaskDidWork() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod(
-            "Task.dependsOnTaskDidWork()",
-            "Instead, check the value of \"didWork()\" for each task, or declare the task inputs and outputs and let Gradle decide what needs to be run.");
-        TaskDependency dependency = getTaskDependencies();
-        for (Task depTask : dependency.getDependencies(this)) {
-            if (depTask.getDidWork()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
     public Task doFirst(final Closure action) {
         hasCustomActions = true;
         if (action == null) {
@@ -672,16 +607,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 return getTemporaryDir();
             }
         };
-    }
-
-    @Override
-    public void addValidator(TaskValidator validator) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<TaskValidator> getValidators() {
-        throw new UnsupportedOperationException();
     }
 
     private ContextAwareTaskAction convertClosureToAction(Closure actionClosure, String actionName) {

@@ -134,6 +134,8 @@ buildTypes {
     }
 }
 
+var kotlinDevMirrorUrl = (project.rootProject.extensions.extraProperties.get("repositoryMirrors") as Map<String, String>).get("kotlindev")
+
 allprojects {
     group = "org.gradle"
 
@@ -142,6 +144,7 @@ allprojects {
         maven(url = "https://repo.gradle.org/gradle/libs")
         maven(url = "https://repo.gradle.org/gradle/libs-milestones")
         maven(url = "https://repo.gradle.org/gradle/libs-snapshots")
+        maven(url = kotlinDevMirrorUrl ?: "https://dl.bintray.com/kotlin/kotlin-dev")
     }
 
     // patchExternalModules lives in the root project - we need to activate normalization there, too.
@@ -297,11 +300,18 @@ tasks.register<Install>("installAll") {
 fun distributionImage(named: String) =
     project(":distributions").property(named) as CopySpec
 
-afterEvaluate {
-    if (gradle.startParameter.isBuildCacheEnabled) {
-        rootProject
-            .availableJavaInstallations
-            .validateBuildCacheConfiguration(buildCacheConfiguration())
+val validateBuildCacheConfiguration = tasks.register("validateBuildCacheConfiguration") {
+    enabled = gradle.startParameter.isBuildCacheEnabled
+    doLast {
+        if (rootProject.buildCacheConfiguration().remote?.isEnabled == true) {
+            rootProject.availableJavaInstallations.validateForRemoteBuildCacheUsage()
+        }
+    }
+}
+
+subprojects {
+    tasks.withType<AbstractCompile>().configureEach {
+        dependsOn(validateBuildCacheConfiguration)
     }
 }
 

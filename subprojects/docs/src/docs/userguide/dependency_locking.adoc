@@ -66,8 +66,26 @@ include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingA
 
 [NOTE]
 ====
-Only configurations that can be resolved will have lock state attached to them. Applying locking on non resolvable-configurations is simply a no-op.
+Only configurations that can be resolved will have lock state attached to them.
+Applying locking on non resolvable-configurations is simply a no-op.
 ====
+
+[NOTE]
+====
+The above will lock all _project_ configurations, but not the _buildscript_ ones.
+====
+
+==== Example: Locking buildscript classpath configuration
+
+If you apply plugins to your build, you may want to leverage dependency locking there as well.
+In order to lock the <<plugins.adoc#sec:applying_plugins_buildscript,`classpath` configuration>> used for script plugins, do the following:
+
+[source.multi-language-sample,groovy]
+.build.gradle
+----
+include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingClasspathConfiguration/build.gradle[tag=locking-classpath]
+----
+
 
 == Generating and updating dependency locks
 
@@ -100,6 +118,8 @@ That second option, with proper choosing of configurations, can be the only opti
 
 Lock state will be preserved in a file located in the folder `gradle/dependency-locks` inside the project or subproject directory.
 Each file is named by the configuration it locks and has the `lockfile` extension.
+The one exception to this rule is for configurations for the <<plugins.adoc#sec:applying_plugins_buildscript,buildscript itself>>.
+In that case the configuration name will be prefixed with `buildscript-`.
 
 The content of the file is a module notation per line, with a header giving some context.
 Module notations are ordered alphabetically, to ease diffs.
@@ -168,7 +188,6 @@ However, if that configuration happens to be resolved in the future at a time wh
 [[locking_limitations]]
 == Locking limitations
 
-* It is currently not possible to lock the <<plugins.adoc#sec:applying_plugins_buildscript,`classpath` configuration>> used for script plugins.
 * Locking can not yet be applied to source dependencies.
 
 == Nebula locking plugin

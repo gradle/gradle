@@ -23,7 +23,9 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.TaskDependency
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -65,24 +67,6 @@ class ImmutableFileCollectionTest extends Specification {
         1 * fileResolver.resolve('abc') >> file1
         1 * fileResolver.resolve('def') >> file2
         files == [ file1, file2 ] as LinkedHashSet
-    }
-
-    @Unroll
-    def 'fails to add paths to a #description collection'() {
-        FileCollection fileCollection = Mock()
-
-        when:
-        collection.add(fileCollection)
-
-        then:
-        def exception = thrown(UnsupportedOperationException)
-        exception.message == "File collection does not allow modification."
-
-        where:
-        description        | collection
-        'empty'            | ImmutableFileCollection.of()
-        'Files'            | ImmutableFileCollection.of(new File('abc'))
-        'using resolver'   | ImmutableFileCollection.usingResolver(Mock(FileResolver), 'abc')
     }
 
     def 'can use a Closure to specify a single file'() {
@@ -177,6 +161,11 @@ class ImmutableFileCollectionTest extends Specification {
             @Override
             Set<File> getFiles() {
                 return ImmutableSet.copyOf(files)
+            }
+
+            @Override
+            TaskDependency getBuildDependencies() {
+                return new DefaultTaskDependency()
             }
         }
     }

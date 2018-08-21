@@ -41,8 +41,10 @@ public class LockFileReaderWriter {
                                                  "# This file is expected to be part of source control.\n";
 
     private final Path lockFilesRoot;
+    private final boolean isProjectScope;
 
-    public LockFileReaderWriter(FileResolver fileResolver) {
+    public LockFileReaderWriter(FileResolver fileResolver, boolean isProjectScope) {
+        this.isProjectScope = isProjectScope;
         Path resolve = null;
         if (fileResolver.canResolveRelativePath()) {
             resolve = fileResolver.resolve(DEPENDENCY_LOCKING_FOLDER).toPath();
@@ -66,7 +68,7 @@ public class LockFileReaderWriter {
             builder.append(module).append("\n");
         }
         try {
-            Files.write(lockFilesRoot.resolve(configurationName + FILE_SUFFIX), builder.toString().getBytes(CHARSET));
+            Files.write(lockFilesRoot.resolve(decorate(configurationName) + FILE_SUFFIX), builder.toString().getBytes(CHARSET));
         } catch (IOException e) {
             throw new RuntimeException("Unable to write lock file", e);
         }
@@ -76,7 +78,7 @@ public class LockFileReaderWriter {
         checkValidRoot(configurationName);
 
         try {
-            Path lockFile = lockFilesRoot.resolve(configurationName + FILE_SUFFIX);
+            Path lockFile = lockFilesRoot.resolve(decorate(configurationName) + FILE_SUFFIX);
             if (Files.exists(lockFile)) {
                 List<String> lines = Files.readAllLines(lockFile, CHARSET);
                 filterNonModuleLines(lines);
@@ -88,6 +90,14 @@ public class LockFileReaderWriter {
             throw new RuntimeException("Unable to load lock file", e);
         }
 
+    }
+
+    private String decorate(String configurationName) {
+        if (isProjectScope) {
+            return configurationName;
+        } else {
+            return "buildscript-" + configurationName;
+        }
     }
 
     private void checkValidRoot(String configurationName) {

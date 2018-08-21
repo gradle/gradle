@@ -21,11 +21,11 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.test.fixtures.dsl.GradleDsl
 
-import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
-import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.GOOGLE_URL
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.MAVEN_CENTRAL_URL
 import static org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler.BINTRAY_JCENTER_URL
+import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
+import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 
 @CompileStatic
 class RepoScriptBlockUtil {
@@ -44,7 +44,9 @@ class RepoScriptBlockUtil {
         GRADLE_LIB_RELEASES('https://repo.gradle.org/gradle/libs-releases', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
         GRADLE_LIB_MILESTONES('https://repo.gradle.org/gradle/libs-milestones', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
         GRADLE_LIB_SNAPSHOTS('https://repo.gradle.org/gradle/libs-snapshots', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
-        GRADLE_JAVASCRIPT('https://repo.gradle.org/gradle/javascript-public', System.getProperty('org.gradle.integtest.mirrors.gradlejavascript'), 'maven')
+        GRADLE_JAVASCRIPT('https://repo.gradle.org/gradle/javascript-public', System.getProperty('org.gradle.integtest.mirrors.gradlejavascript'), 'maven'),
+        KOTLIN_EAP('https://dl.bintray.com/kotlin/kotlin-eap/', System.getProperty('org.gradle.integtest.mirrors.kotlineap'), 'maven'),
+        KOTLIN_DEV('https://dl.bintray.com/kotlin/kotlin-dev/', System.getProperty('org.gradle.integtest.mirrors.kotlindev'), 'maven')
 
         String originalUrl
         String mirrorUrl
@@ -85,6 +87,11 @@ class RepoScriptBlockUtil {
     }
 
     private RepoScriptBlockUtil() {
+    }
+
+    static Map<String, String> repoMirrorUrlsEnvironment() {
+        def mirrors = MirroredRepository.values().collect { MirroredRepository repo -> "${repo.name()}:${repo.mirrorUrl}".toString() }
+        ['REPO_MIRRORS_URL': mirrors.join(',')]
     }
 
     static String jcenterRepository(GradleDsl dsl = GROOVY) {

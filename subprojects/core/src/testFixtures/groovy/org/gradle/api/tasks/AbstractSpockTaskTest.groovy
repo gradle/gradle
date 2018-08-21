@@ -27,9 +27,6 @@ import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFacto
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskFactory
-import org.gradle.api.internal.tasks.TaskExecuter
-import org.gradle.api.internal.tasks.TaskExecutionContext
-import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Actions
 import org.gradle.internal.MutableBoolean
@@ -122,18 +119,6 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         "task '" + getTask().getPath() + "'" ==  getTask().toString()
     }
 
-    def testDeleteAllActions() {
-        when:
-        Action action1 = Actions.doNothing()
-        Action action2 = Actions.doNothing()
-        getTask().doLast(action1)
-        getTask().doLast(action2)
-
-        then:
-        getTask().is( getTask().deleteAllActions())
-        new ArrayList() ==  getTask().getActions()
-    }
-
     def testSetActions() {
         when:
         Action action1 = Actions.doNothing()
@@ -152,19 +137,6 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
 
         then:
         thrown(InvalidUserDataException)
-    }
-
-    def testExecuteDelegatesToTaskExecuter() {
-        final AbstractTask task = getTask()
-        TaskExecuter executer = Mock()
-        task.setExecuter(executer)
-
-        when:
-        task.execute()
-
-        then:
-        1 * executer.execute(task, _ as TaskStateInternal, _ as TaskExecutionContext)
-
     }
 
     def setGetDescription() {
@@ -276,19 +248,4 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         then:
         task.getOnlyIf().isSatisfiedBy(task)
     }
-
-    def testDependentTaskDidWork() {
-        Task task1 = Mock()
-        Task task2 = Mock()
-        TaskDependency dependencyMock = Mock()
-        getTask().dependsOn(dependencyMock)
-        dependencyMock.getDependencies(getTask()) >> [task1, task2]
-        task1.getDidWork() >> false
-        task2.getDidWork() >>> [false, true]
-
-        expect:
-        !getTask().dependsOnTaskDidWork()
-        getTask().dependsOnTaskDidWork()
-    }
-
 }

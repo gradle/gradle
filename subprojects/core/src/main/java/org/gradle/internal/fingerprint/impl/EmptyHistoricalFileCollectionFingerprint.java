@@ -21,8 +21,8 @@ import com.google.common.collect.Multimap;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.NormalizedFileSnapshot;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Collections;
@@ -36,7 +36,7 @@ public class EmptyHistoricalFileCollectionFingerprint implements HistoricalFileC
 
     @Override
     public boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, final String title, boolean includeAdded, TaskStateChangeVisitor visitor) {
-        for (Map.Entry<String, NormalizedFileSnapshot> entry : oldFingerprint.getSnapshots().entrySet()) {
+        for (Map.Entry<String, FileSystemLocationFingerprint> entry : oldFingerprint.getFingerprints().entrySet()) {
             if (!visitor.visitChange(FileChange.removed(entry.getKey(), title, entry.getValue().getType()))) {
                 return false;
             }
@@ -49,7 +49,7 @@ public class EmptyHistoricalFileCollectionFingerprint implements HistoricalFileC
     }
 
     @Override
-    public Map<String, NormalizedFileSnapshot> getSnapshots() {
+    public Map<String, FileSystemLocationFingerprint> getFingerprints() {
         return Collections.emptyMap();
     }
 

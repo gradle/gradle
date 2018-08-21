@@ -65,7 +65,7 @@ public abstract class TransformInfo extends WorkInfo {
         this.artifactTransformer = artifactTransformer;
     }
 
-    public abstract void execute(BuildOperationExecutor buildOperationExecutor);
+    public abstract void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener);
 
     @Override
     public String toString() {
@@ -128,8 +128,8 @@ public abstract class TransformInfo extends WorkInfo {
         }
 
         @Override
-        public void execute(BuildOperationExecutor buildOperationExecutor) {
-            InitialArtifactTransformationStepOperation transformationStep = new InitialArtifactTransformationStepOperation(buildOperationExecutor);
+        public void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
+            InitialArtifactTransformationStepOperation transformationStep = new InitialArtifactTransformationStepOperation(buildOperationExecutor, transformListener);
             buildOperationExecutor.run(transformationStep);
             this.result = transformationStep.getResult();
             this.failure = transformationStep.getFailure();
@@ -152,9 +152,11 @@ public abstract class TransformInfo extends WorkInfo {
             private List<File> result;
             private Throwable failure;
             private final BuildOperationExecutor buildOperationExecutor;
+            private final ArtifactTransformListener transformListener;
 
-            public InitialArtifactTransformationStepOperation(BuildOperationExecutor buildOperationExecutor) {
+            public InitialArtifactTransformationStepOperation(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
                 this.buildOperationExecutor = buildOperationExecutor;
+                this.transformListener = transformListener;
             }
 
             @Override
@@ -185,7 +187,7 @@ public abstract class TransformInfo extends WorkInfo {
                 }
                 ResolvedArtifactResult artifact = Iterables.getOnlyElement(visitor.getArtifacts());
 
-                TransformArtifactOperation operation = new TransformArtifactOperation(artifact.getId(), artifact.getFile(), artifactTransformer);
+                TransformArtifactOperation operation = new TransformArtifactOperation(artifact.getId(), artifact.getFile(), artifactTransformer, transformListener);
                 operation.run(context);
                 this.failure = operation.getFailure();
                 this.result = operation.getResult();
@@ -212,8 +214,8 @@ public abstract class TransformInfo extends WorkInfo {
         }
 
         @Override
-        public void execute(BuildOperationExecutor buildOperationExecutor) {
-            ChainedArtifactTransformStepOperation chainedArtifactTransformStep = new ChainedArtifactTransformStepOperation();
+        public void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
+            ChainedArtifactTransformStepOperation chainedArtifactTransformStep = new ChainedArtifactTransformStepOperation(transformListener);
             buildOperationExecutor.run(chainedArtifactTransformStep);
             this.result = chainedArtifactTransformStep.getResult();
             this.failure = chainedArtifactTransformStep.getFailure();
@@ -227,8 +229,13 @@ public abstract class TransformInfo extends WorkInfo {
 
         private class ChainedArtifactTransformStepOperation implements RunnableBuildOperation {
 
+            private final ArtifactTransformListener transformListener;
             private List<File> result;
             private Throwable failure;
+
+            public ChainedArtifactTransformStepOperation(ArtifactTransformListener transformListener) {
+                this.transformListener = transformListener;
+            }
 
             @Override
             public void run(BuildOperationContext context) {
@@ -240,7 +247,7 @@ public abstract class TransformInfo extends WorkInfo {
                 }
                 ImmutableList.Builder<File> builder = ImmutableList.builder();
                 for (File inputFile : previousTransform.getResult()) {
-                    TransformFileOperation operation = new TransformFileOperation(inputFile, artifactTransformer);
+                    TransformFileOperation operation = new TransformFileOperation(inputFile, artifactTransformer, transformListener);
                     operation.run(context);
                     if (operation.getFailure() != null) {
                         this.failure = operation.getFailure();

@@ -22,7 +22,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Namer;
 import org.gradle.internal.Cast;
-import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.ConfigureDelegate;
@@ -87,74 +86,14 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
     }
 
     // Cannot be private due to reflective instantiation
-    public class NamedDomainObjectCreatingProvider<I extends T> extends AbstractNamedDomainObjectProvider<I> {
-        private I object;
-        private Throwable cause;
-        private ImmutableActionSet<I> onCreate;
-        private final Class<I> type;
-
+    public class NamedDomainObjectCreatingProvider<I extends T> extends AbstractDomainObjectCreatingProvider<I> {
         public NamedDomainObjectCreatingProvider(String name, Class<I> type, @Nullable Action<? super I> configureAction) {
-            super(name);
-            this.type = type;
-            this.onCreate = ImmutableActionSet.<I>empty().mergeFrom(getEventRegister().getAddActions());
-
-            if (configureAction != null) {
-                configure(configureAction);
-            }
-        }
-
-        @Nullable
-        @Override
-        public Class<I> getType() {
-            return type;
+            super(name, type, configureAction);
         }
 
         @Override
-        public boolean isPresent() {
-            return findDomainObject(getName()) != null;
-        }
-
-        public void configure(final Action<? super I> action) {
-            if (object != null) {
-                // Already realized, just run the action now
-                action.execute(object);
-                return;
-            }
-            // Collect any container level add actions then add the object specific action
-            onCreate = onCreate.mergeFrom(getEventRegister().getAddActions()).add(action);
-        }
-
-        @Override
-        public I getOrNull() {
-            if (cause != null) {
-                throw createIllegalStateException();
-            }
-            if (object == null) {
-                object = getType().cast(findByNameWithoutRules(getName()));
-                if (object == null) {
-                    try {
-                        // Collect any container level add actions added since the last call to configure()
-                        onCreate = onCreate.mergeFrom(getEventRegister().getAddActions());
-
-                        // Create the domain object
-                        object = doCreate(getName(), type);
-
-                        // Register the domain object
-                        add(object, onCreate);
-                    } catch (RuntimeException ex) {
-                        cause = ex;
-                        throw createIllegalStateException();
-                    } finally {
-                        // Discard state that is no longer required
-                        onCreate = ImmutableActionSet.empty();
-                    }
-                }
-            }
-            return object;
-        }
-
-        private IllegalStateException createIllegalStateException() {
-            return new IllegalStateException(String.format("Could not create domain object '%s' (%s)", getName(), getType().getSimpleName()), cause);
+        protected I createDomainObject() {
+            return doCreate(getName(), getType());
         }
     }
 

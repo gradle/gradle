@@ -874,26 +874,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         succeeds "-Pjava8", "clean", "compileJava"
     }
 
-    @Requires([TestPrecondition.JDK8_OR_EARLIER, TestPrecondition.JDK_ORACLE])
-    def "CompileOptions.bootclasspath is deprecated"() {
-        def jre = AvailableJavaHomes.getBestJre()
-        def bootClasspath = TextUtil.escapeString(jre.absolutePath) + "/lib/rt.jar"
-        buildFile << """
-            apply plugin: 'java'
-            
-            compileJava {
-                options.bootClasspath = "$bootClasspath"
-            }
-        """
-        file('src/main/java/Main.java') << "public class Main {}"
-
-        expect:
-        executer.withFullDeprecationStackTraceDisabled()
-        executer.expectDeprecationWarning()
-        succeeds "compileJava"
-        output.contains "The CompileOptions.bootClasspath property has been deprecated. This is scheduled to be removed in Gradle 5.0. Please use the CompileOptions.bootstrapClasspath property instead."
-    }
-
     def "deletes empty packages dirs"() {
         given:
         buildFile << """

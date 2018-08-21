@@ -14,21 +14,26 @@
  * limitations under the License.
  */
 
-fun RepositoryHandler.kotlinDev() =
-    maven(url = "https://dl.bintray.com/kotlin/kotlin-dev")
+fun findMirrorUrls(): Map<String, String> =
+    if ("CI" in java.lang.System.getenv()) {
+        System.getenv("REPO_MIRROR_URLS")?.split(',')?.associate { nameToUrl ->
+            val (name, url) = nameToUrl.split(':', limit = 2)
+            name to url
+        } ?: emptyMap()
+    } else {
+        emptyMap()
+    }
+
+
+fun RepositoryHandler.kotlinDev(): MavenArtifactRepository {
+    val kotlinDevMirrorUrl = findMirrorUrls()["kotlindev"]
+    return maven(url = kotlinDevMirrorUrl ?: "https://dl.bintray.com/kotlin/kotlin-dev")
+}
 
 pluginManagement {
     repositories {
         kotlinDev()
         gradlePluginPortal()
-    }
-}
-
-gradle.rootProject {
-    allprojects {
-        repositories {
-            kotlinDev()
-        }
     }
 }
 

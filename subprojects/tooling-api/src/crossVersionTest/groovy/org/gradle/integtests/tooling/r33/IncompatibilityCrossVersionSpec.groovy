@@ -67,20 +67,6 @@ class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=3.3")
-    def "can use plugin built with Gradle 1.2 with"() {
-        expect:
-        buildPluginWith("1.2")
-        assertWorks()
-    }
-
-    @TargetGradleVersion(">=3.3")
-    def "can use plugin built with Gradle 2.5 with"() {
-        expect:
-        buildPluginWith("2.5")
-        assertWorks()
-    }
-
-    @TargetGradleVersion(">=3.3")
     def "can use plugin built with Gradle 3.0 with"() {
         expect:
         buildPluginWith("3.0")

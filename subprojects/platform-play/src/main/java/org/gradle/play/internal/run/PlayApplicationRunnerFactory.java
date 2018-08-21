@@ -28,8 +28,6 @@ public class PlayApplicationRunnerFactory {
 
     public static VersionedPlayRunAdapter createPlayRunAdapter(PlayPlatform playPlatform) {
         switch (PlayMajorVersion.forPlatform(playPlatform)) {
-            case PLAY_2_2_X:
-                return new PlayRunAdapterV22X();
             case PLAY_2_4_X:
                 return new PlayRunAdapterV24X();
             case PLAY_2_5_X:

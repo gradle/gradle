@@ -49,7 +49,6 @@ task usage {
         List list = collection as List
         String path = collection.asPath
         File file = collection.singleFile
-        File file2 = collection as File
 
         // Add and subtract collections
         def union = collection + layout.files('src/file2.txt')

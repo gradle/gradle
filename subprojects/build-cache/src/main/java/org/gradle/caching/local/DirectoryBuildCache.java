@@ -18,7 +18,6 @@ package org.gradle.caching.local;
 
 import org.gradle.api.Incubating;
 import org.gradle.caching.configuration.AbstractBuildCache;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 
@@ -47,27 +46,6 @@ public class DirectoryBuildCache extends AbstractBuildCache {
      */
     public void setDirectory(Object directory) {
         this.directory = directory;
-    }
-
-    /**
-     * Used to be the target size of the build cache in megabytes, now returns {@code 0}.
-     *
-     * @deprecated Use {@link #getRemoveUnusedEntriesAfterDays()} instead.
-     */
-    @Deprecated
-    public long getTargetSizeInMB() {
-        DeprecationLogger.nagUserOfReplacedMethod("DirectoryBuildCache.getTargetSizeInMB()", "getRemoveUnusedEntriesAfterDays()");
-        return 0;
-    }
-
-    /**
-     * Used to set the target size of the build cache in megabytes, now has no effect.
-     *
-     * @deprecated Use {@link #setRemoveUnusedEntriesAfterDays(int)} instead.
-     */
-    @Deprecated
-    public void setTargetSizeInMB(long targetSizeInMB) {
-        DeprecationLogger.nagUserOfReplacedMethod("DirectoryBuildCache.setTargetSizeInMB()", "setRemoveUnusedEntriesAfterDays()");
     }
 
     /**
