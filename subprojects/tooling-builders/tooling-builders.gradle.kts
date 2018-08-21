@@ -17,8 +17,10 @@ dependencies {
 }
 
 // -- Testing ----------------------------------------------------------
-tasks.named("test").configure {
-    dependsOn(rootProject.tasks.named("customInstallation"))
+tasks {
+    "test" {
+        dependsOn(":customInstallation")
+    }
 }
 
 withParallelTests()
