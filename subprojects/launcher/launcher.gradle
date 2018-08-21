@@ -26,12 +26,16 @@ dependencies {
     compile libraries.slf4j_api.coordinates
 
     integTestCompile project(':internalIntegTesting')
-    // Needed for testing debug command line option (JDWPUtil)
-    integTestCompile files(rootProject.availableJavaInstallations.javaInstallationForTest.toolsJar ?: [])
     integTestRuntime project(':plugins')
     integTestRuntime project(':languageNative')
 
     testFixturesCompile project(':internalIntegTesting')
+}
+// Needed for testing debug command line option (JDWPUtil)
+if (!rootProject.availableJavaInstallations.javaInstallationForTest.javaVersion.java9Compatible) {
+    dependencies {
+        integTestRuntime files(rootProject.availableJavaInstallations.javaInstallationForTest.toolsJar)
+    }
 }
 
 gradlebuildJava {
@@ -68,6 +72,7 @@ tasks.register("startScripts", GradleStartScriptGenerator) {
 }
 
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+
 testFilesCleanup {
     policy = WhenNotEmpty.REPORT
 }
