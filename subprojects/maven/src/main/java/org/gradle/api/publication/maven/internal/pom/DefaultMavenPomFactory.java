@@ -37,7 +37,6 @@ public class DefaultMavenPomFactory implements Factory<MavenPom> {
     }
 
     public MavenPom create() {
-        return new DefaultMavenPom(configurationContainer,
-                new DefaultConf2ScopeMappingContainer(conf2ScopeMappingContainer.getMappings()), pomDependenciesConverter, fileResolver);
+        return new DefaultMavenPom(configurationContainer, conf2ScopeMappingContainer, pomDependenciesConverter, fileResolver);
     }
 }
