@@ -38,6 +38,13 @@ if (!rootProject.availableJavaInstallations.javaInstallationForTest.javaVersion.
     }
 }
 
+if(rootProject.availableJavaInstallations.currentJavaInstallation.javaVersion.java8) {
+    // If running on Java 8 but compiling with Java 9, Groovy code would still be compiled by Java 8, so here we need the tools.jar
+    dependencies {
+        integTestCompileOnly files(rootProject.availableJavaInstallations.currentJavaInstallation.toolsJar)
+    }
+}
+
 gradlebuildJava {
     moduleType = ModuleType.ENTRY_POINT
 }
@@ -72,7 +79,6 @@ tasks.register("startScripts", GradleStartScriptGenerator) {
 }
 
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-
 testFilesCleanup {
     policy = WhenNotEmpty.REPORT
 }

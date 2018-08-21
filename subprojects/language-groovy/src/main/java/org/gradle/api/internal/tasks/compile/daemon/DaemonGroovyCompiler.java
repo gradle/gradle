@@ -57,9 +57,6 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         Collection<File> antFiles = classPathRegistry.getClassPath("ANT").getAsFiles();
         Iterable<File> groovyFiles = Iterables.concat(spec.getGroovyClasspath(), antFiles);
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(fileResolver).transform(mergeForkOptions(javaOptions, groovyOptions));
-        if (javaOptions.getJavaHome() != null) {
-            javaForkOptions.setExecutable(new File(javaOptions.getJavaHome(), "bin/java").getAbsolutePath());
-        }
         File invocationWorkingDir = javaForkOptions.getWorkingDir();
         javaForkOptions.setWorkingDir(daemonWorkingDir);
 

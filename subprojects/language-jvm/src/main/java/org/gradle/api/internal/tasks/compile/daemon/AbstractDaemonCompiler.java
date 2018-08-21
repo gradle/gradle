@@ -21,7 +21,6 @@ import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.process.JavaForkOptions;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DefaultWorkResult;
 import org.gradle.workers.internal.SimpleActionExecutionSpec;
