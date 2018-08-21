@@ -23,12 +23,11 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.plugins.GroovyJarFile;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.internal.Cast;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -88,10 +87,6 @@ public class GroovyRuntime {
                     throw new GradleException(String.format("Cannot infer Groovy class path because no Groovy Jar was found on class path: %s", Iterables.toString(classpath)));
                 }
 
-                if (groovyJar.isGroovyAll()) {
-                    return Cast.cast(FileCollectionInternal.class, project.getLayout().files(groovyJar.getFile()));
-                }
-
                 if (project.getRepositories().isEmpty()) {
                     throw new GradleException("Cannot infer Groovy class path because no repository is declared for the project.");
                 }
@@ -117,7 +112,8 @@ public class GroovyRuntime {
         };
     }
 
-    private GroovyJarFile findGroovyJarFile(Iterable<File> classpath) {
+    @Nullable
+    private static GroovyJarFile findGroovyJarFile(@Nullable Iterable<File> classpath) {
         if (classpath == null) {
             return null;
         }
