@@ -16,19 +16,8 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-public interface ScriptBlockBuilder {
-    /**
-     * Adds a property assignment statement to this block
-     */
-    void propertyAssignment(String comment, String propertyName, Object propertyValue);
+public interface RepositoriesBuilder {
+    void mavenLocal(String comment);
 
-    /**
-     * Adds a method invocation statement to this block
-     */
-    void methodInvocation(String comment, String methodName, Object... methodArgs);
-
-    /**
-     * Returns a property expression that can be used as a method argument or property assignment value
-     */
-    BuildScriptBuilder.Expression propertyExpression(String value);
+    void maven(String comment, String url);
 }

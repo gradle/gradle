@@ -84,10 +84,11 @@ class Maven2Gradle {
             compilerSettings(rootProject, subprojectsBuilder)
             packageSources(rootProject, subprojectsBuilder)
 
+            getRepositoriesForProjects(allProjects, subprojectsBuilder)
+
             def commonDeps = dependencies.get(rootProject.artifactId.text())
             build = """
 subprojects {
-  ${getRepositoriesForProjects(allProjects)}
   ${globalExclusions(rootProject)}
   ${commonDeps}
   ${testNg(commonDeps)}
@@ -151,15 +152,13 @@ ${globalExclusions(this.effectivePom)}
 
 """
 
+            scriptBuilder.repositories().mavenLocal(null)
             Set<String> repoSet = new LinkedHashSet<String>();
             getRepositoriesForModule(this.effectivePom, repoSet)
-            String repos = """repositories {
-        $localRepoUri
-"""
             repoSet.each {
-                repos = "${repos} ${it}\n"
+                scriptBuilder.repositories().maven(null, it)
             }
-            build += "${repos}}\n"
+
             String dependencies = getDependencies(this.effectivePom, null)
             build += dependencies
 
@@ -257,26 +256,22 @@ ${globalExclusions(this.effectivePom)}
         }
     }
 
-    private String getRepositoriesForProjects(projects) {
-        String repos = """repositories {
-    ${localRepoUri()}
-"""
+    private void getRepositoriesForProjects(projects, builder) {
+        builder.repositories().mavenLocal(null)
         def repoSet = new LinkedHashSet<String>();
         projects.each {
             getRepositoriesForModule(it, repoSet)
         }
         repoSet.each {
-            repos = "${repos}${it}\n"
+            builder.repositories().maven(null, it)
         }
-        repos = "${repos}  }\n"
-        return repos
     }
 
     private void getRepositoriesForModule(module, repoSet) {
         module.repositories.repository.each {
-            repoSet.add("    maven { url \"${it.url}\" }")
+            repoSet.add(it.url.text())
         }
-        //No need to include plugin repos - who cares about maven plugins?
+        // No need to include plugin repos, as they won't be used by Gradle
     }
 
     private String getDependencies(project, allProjects) {
