@@ -77,7 +77,7 @@ class Maven2Gradle {
 
             def allprojectsBuilder = scriptBuilder.allprojects()
             allprojectsBuilder.plugin(null, "maven")
-            addArtifactId(rootProject, allprojectsBuilder)
+            coordinates(rootProject, allprojectsBuilder)
 
             def subprojectsBuilder = scriptBuilder.subprojects()
             subprojectsBuilder.plugin(null, "java")
@@ -99,53 +99,47 @@ subprojects {
                 String moduleDependencies = dependencies.get(id)
                 boolean warPack = module.packaging.text().equals("war")
                 def hasDependencies = !(moduleDependencies == null || moduleDependencies.length() == 0)
-                File submoduleBuildFile = new File(projectDir(module), 'build.gradle')
+                def moduleScriptBuilder = scriptBuilderFactory.script(BuildInitDsl.GROOVY, projectDir(module).path + "/build")
 
-                def group = ''
-                if (module.groupId != rootProject.groupId) {
-                    group = "group = '${module.groupId}'"
+                if (module.groupId.text() != rootProject.groupId.text()) {
+                    moduleScriptBuilder.propertyAssignment(null, "group", module.groupId.text())
                 }
-                String moduleBuild = "${group}\n"
-                if (warPack) {
-                    moduleBuild += """apply plugin: 'war'
 
-"""
+                if (warPack) {
+                    moduleScriptBuilder.plugin(null, "war")
                     if (dependentWars.any { project ->
                         project.groupId.text() == module.groupId.text() &&
                                 project.artifactId.text() == id
                     }) {
-                        moduleBuild += """jar.enabled = true
-"""
+                        moduleScriptBuilder.taskPropertyAssignment(null, "jar", "Jar", "enabled", true)
                     }
                 }
-                if (module.name) {
-                    moduleBuild += "description = '${module.name}'\n"
-                }
 
+                descriptionForProject(module, moduleScriptBuilder)
 
+                def moduleBuild = ""
                 if (hasDependencies) {
                     moduleBuild += moduleDependencies
                 }
 
                 moduleBuild += testNg(moduleDependencies)
 
-                if (submoduleBuildFile.exists()) {
-                    submoduleBuildFile.renameTo(new File(projectDir(module), "build.gradle.bak"))
-                }
                 def packageTests = packageTests(module);
                 if (packageTests) {
                     moduleBuild += packageTests;
                 }
 
-                logger.debug("writing build.gradle file at ${submoduleBuildFile.absolutePath}");
-                submoduleBuildFile.text = moduleBuild
+                moduleScriptBuilder.create().generate()
+
+                File submoduleBuildFile = new File(projectDir(module), 'build.gradle')
+                submoduleBuildFile << moduleBuild
             }
             //TODO deployment
         } else {//simple
             scriptBuilder.plugin(null, 'java')
             scriptBuilder.plugin(null, 'maven')
-            addArtifactId(this.effectivePom, scriptBuilder)
-            addDescription(this.effectivePom, scriptBuilder)
+            coordinates(this.effectivePom, scriptBuilder)
+            descriptionForProject(this.effectivePom, scriptBuilder)
             compilerSettings(this.effectivePom, scriptBuilder)
             globalExclusions(this.effectivePom, scriptBuilder)
 
@@ -235,19 +229,14 @@ subprojects {
         return new DefaultModuleIdentifier(groupId, artifactId)
     }
 
-    def localRepoUri = {
-        """mavenLocal()
-    """
+    private void coordinates(project, builder) {
+        builder.propertyAssignment(null, "group", project.groupId.text())
+        builder.propertyAssignment(null, "version", project.version.text())
     }
 
-    private void addArtifactId(project, builder) {
-        builder.propertyAssignment(null, "group", project.groupId as String)
-        builder.propertyAssignment(null, "version", project.version as String)
-    }
-
-    private void addDescription(project, builder) {
+    private void descriptionForProject(project, builder) {
         if (project.name.text()) {
-            builder.propertyAssignment(null, "description", project.name as String)
+            builder.propertyAssignment(null, "description", project.name.text())
         }
     }
 
@@ -329,7 +318,6 @@ subprojects {
                 }
             }
         }
-
 
         StringBuilder build = new StringBuilder()
         if (!compileTimeScope.isEmpty() || !runTimeScope.isEmpty() || !testScope.isEmpty() || !providedScope.isEmpty() || !systemScope.isEmpty()) {
