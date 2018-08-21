@@ -54,7 +54,7 @@ public class DefaultPropertySpecFactory implements PropertySpecFactory {
 
     @Override
     public DefaultTaskInputPropertySpec createInputPropertySpec(String name, ValidatingValue value) {
-        return new DefaultTaskInputPropertySpec(task.getInputs(), name, value);
+        return new DefaultTaskInputPropertySpec(name, value);
     }
 
     @Override

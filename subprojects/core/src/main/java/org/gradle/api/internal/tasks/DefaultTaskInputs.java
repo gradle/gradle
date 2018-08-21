@@ -55,7 +55,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         String taskName = task.getName();
         this.allInputFiles = new TaskInputUnionFileCollection(taskName, "input", false, task, propertyWalker);
         this.allSourceFiles = new TaskInputUnionFileCollection(taskName, "source", true, task, propertyWalker);
-        this.deprecatedThis = new LenientTaskInputsDeprecationSupport(this);
+        this.deprecatedThis = new TaskInputsDeprecationSupport();
         this.specFactory = specFactory;
     }
 

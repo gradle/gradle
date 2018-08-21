@@ -46,7 +46,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.*;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.BUILD_CACHE_DISABLED;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.CACHE_IF_SPEC_NOT_SATISFIED;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.DO_NOT_CACHE_IF_SPEC_SATISFIED;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.PLURAL_OUTPUTS;
 
 @NonNullApi
 public class DefaultTaskOutputs implements TaskOutputsInternal {
@@ -310,5 +313,4 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             super.visitDependencies(context);
         }
     }
-
 }
