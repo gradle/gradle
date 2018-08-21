@@ -55,7 +55,7 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
         generatedBy[0][1] == version
 
         where:
-        module << ['groovy']
+        module << ['groovy-groovydoc']
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3349")
@@ -106,7 +106,7 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
         overviewSummary.text.contains("Goodbye World")
 
         where:
-        module << ['groovy']
+        module << ['groovy-groovydoc']
     }
 
     @Issue(["GRADLE-3174", "GRADLE-3463"])
@@ -118,7 +118,7 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
             ${mavenCentralRepository()}
 
             dependencies {
-                compile "org.codehaus.groovy:groovy:${version}"
+                compile "org.codehaus.groovy:groovy-groovydoc:${version}"
             }
         """
 
