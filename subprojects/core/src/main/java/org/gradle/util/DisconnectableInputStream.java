@@ -59,7 +59,7 @@ public class DisconnectableInputStream extends BulkReadInputStream {
         this(source, new ThreadExecuter(), bufferLength);
     }
 
-    DisconnectableInputStream(InputStream source, Action<Runnable> executer) {
+    public DisconnectableInputStream(InputStream source, Action<Runnable> executer) {
         this(source, executer, 1024);
     }
 
