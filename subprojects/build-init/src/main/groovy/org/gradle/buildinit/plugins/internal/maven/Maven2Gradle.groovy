@@ -32,7 +32,7 @@ import org.gradle.util.RelativePathUtil
  * This script obtains the effective POM of the current project, reads its dependencies
  * and generates build.gradle scripts. It also generates settings.gradle for multi-module builds. <br/>
  *
- * It currently supports both single-module and multi-module POMs, inheritance, dependency management, properties - everything.
+ * It currently supports both single-module and multi-module POMs, inheritance, dependency management and properties.
  */
 class Maven2Gradle {
     private final BuildScriptBuilderFactory scriptBuilderFactory
@@ -84,12 +84,12 @@ class Maven2Gradle {
             compilerSettings(rootProject, subprojectsBuilder)
             packageSources(rootProject, subprojectsBuilder)
 
-            getRepositoriesForProjects(allProjects, subprojectsBuilder)
+            repositoriesForProjects(allProjects, subprojectsBuilder)
+            globalExclusions(rootProject, subprojectsBuilder)
 
             def commonDeps = dependencies.get(rootProject.artifactId.text())
             build = """
 subprojects {
-  ${globalExclusions(rootProject)}
   ${commonDeps}
   ${testNg(commonDeps)}
 }
@@ -147,10 +147,7 @@ subprojects {
             addArtifactId(this.effectivePom, scriptBuilder)
             addDescription(this.effectivePom, scriptBuilder)
             compilerSettings(this.effectivePom, scriptBuilder)
-            build = """
-${globalExclusions(this.effectivePom)}
-
-"""
+            globalExclusions(this.effectivePom, scriptBuilder)
 
             scriptBuilder.repositories().mavenLocal(null)
             Set<String> repoSet = new LinkedHashSet<String>();
@@ -159,6 +156,7 @@ ${globalExclusions(this.effectivePom)}
                 scriptBuilder.repositories().maven(null, it)
             }
 
+            build = ''
             String dependencies = getDependencies(this.effectivePom, null)
             build += dependencies
 
@@ -177,23 +175,20 @@ ${globalExclusions(this.effectivePom)}
         build
     }
 
-    def globalExclusions = { project ->
-        def exclusions = ''
+    void globalExclusions(project, builder) {
         def enforcerPlugin = plugin('maven-enforcer-plugin', project)
         def enforceGoal = pluginGoal('enforce', enforcerPlugin)
         if (enforceGoal) {
-            exclusions += 'configurations.all {\n'
+            def block = builder.block(null, "configurations.all")
             enforceGoal.configuration.rules.bannedDependencies.excludes.childNodes().each {
                 def tokens = it.text().tokenize(':')
-                exclusions += "it.exclude group: '${tokens[0]}'"
+                def params = [group: tokens[0]]
                 if (tokens.size() > 1 && tokens[1] != '*') {
-                    exclusions += ", module: '${tokens[1]}'"
+                    params.module = tokens[1]
                 }
-                exclusions += '\n'
+                block.methodInvocation(null, "exclude", params)
             }
         }
-        exclusions = exclusions ? exclusions += '}' : exclusions
-        exclusions
     }
 
     def testNg = { moduleDependencies ->
@@ -256,7 +251,7 @@ ${globalExclusions(this.effectivePom)}
         }
     }
 
-    private void getRepositoriesForProjects(projects, builder) {
+    private void repositoriesForProjects(projects, builder) {
         builder.repositories().mavenLocal(null)
         def repoSet = new LinkedHashSet<String>();
         projects.each {

@@ -28,6 +28,13 @@ public interface ScriptBlockBuilder {
     void methodInvocation(String comment, String methodName, Object... methodArgs);
 
     /**
+     * Adds a block statement to this block.
+     *
+     * @return The body of the block, to which further statements can be added.
+     */
+    ScriptBlockBuilder block(String comment, String methodName);
+
+    /**
      * Returns a property expression that can be used as a method argument or property assignment value
      */
     BuildScriptBuilder.Expression propertyExpression(String value);

@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -145,6 +146,14 @@ public class BuildScriptBuilder {
         return result;
     }
 
+    private Map<String, ExpressionValue> expressionMap(Map<String, ?> expressions) {
+        LinkedHashMap<String, ExpressionValue> result = new LinkedHashMap<String, ExpressionValue>();
+        for (Map.Entry<String, ?> entry : expressions.entrySet()) {
+            result.put(entry.getKey(), expressionValue(entry.getValue()));
+        }
+        return result;
+    }
+
     private ExpressionValue expressionValue(Object expression) {
         if (expression instanceof CharSequence) {
             return new StringValue((CharSequence) expression);
@@ -154,6 +163,9 @@ public class BuildScriptBuilder {
         }
         if (expression instanceof Number || expression instanceof Boolean) {
             return new LiteralValue(expression);
+        }
+        if (expression instanceof Map) {
+            return new MapLiteralValue(expressionMap((Map<String, ?>) expression));
         }
         throw new IllegalArgumentException("Don't know how to treat " + expression + " as an expression.");
     }
@@ -195,6 +207,17 @@ public class BuildScriptBuilder {
         return configuration(
             NULL_SELECTOR,
             new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
+    }
+
+    /**
+     * Adds a top level block statement.
+     *
+     * @return The body of the block, to which further statements can be added.
+     */
+    public ScriptBlockBuilder block(String comment, String methodName) {
+        ScriptBlock scriptBlock = new ScriptBlock(comment, methodName);
+        configuration(NULL_SELECTOR, scriptBlock);
+        return scriptBlock.body;
     }
 
     /**
@@ -327,6 +350,24 @@ public class BuildScriptBuilder {
         }
     }
 
+    private static class MapLiteralValue implements ExpressionValue {
+        final Map<String, ExpressionValue> literal;
+
+        public MapLiteralValue(Map<String, ExpressionValue> literal) {
+            this.literal = literal;
+        }
+
+        @Override
+        public boolean isBooleanType() {
+            return false;
+        }
+
+        @Override
+        public String with(Syntax syntax) {
+            return syntax.mapLiteral(literal);
+        }
+    }
+
     private static class MethodInvocationValue implements ExpressionValue {
         final String methodName;
         final List<ExpressionValue> arguments;
@@ -351,18 +392,20 @@ public class BuildScriptBuilder {
             result.append(methodName);
             result.append("(");
             for (int i = 0; i < arguments.size(); i++) {
-                if (i > 0) {
-                    result.append(", ");
-                }
                 ExpressionValue argument = arguments.get(i);
-                result.append(argument.with(syntax));
+                if (i == 0) {
+                    result.append(syntax.firstArg(argument));
+                } else {
+                    result.append(", ");
+                    result.append(argument.with(syntax));
+                }
             }
             result.append(")");
             return result.toString();
         }
     }
 
-    private static class PluginSpec extends ConfigExpression {
+    private static class PluginSpec extends AbstractStatement {
         final String id;
         @Nullable
         final String version;
@@ -553,23 +596,29 @@ public class BuildScriptBuilder {
         }
     }
 
+    /**
+     * Represents a statement in a script. Each statement has an optional comment that explains its purpose
+     */
     private interface Statement {
         @Nullable
         String getComment();
 
+        /**
+         * If true, the statement should not be written to the script.
+         */
         boolean isEmpty();
 
         /**
-         * Writes this statement to the given printer. Should not write the comment.
+         * Writes this statement to the given printer. Should not write the comment. Called only when {@link #isEmpty()} return false.
          */
         void writeCodeTo(PrettyPrinter printer);
     }
 
-    private static abstract class ConfigExpression implements Statement {
+    private static abstract class AbstractStatement implements Statement {
 
         final String comment;
 
-        ConfigExpression(@Nullable String comment) {
+        AbstractStatement(@Nullable String comment) {
             this.comment = comment;
         }
 
@@ -585,7 +634,7 @@ public class BuildScriptBuilder {
         }
     }
 
-    private static class MethodInvocation extends ConfigExpression {
+    private static class MethodInvocation extends AbstractStatement {
 
         final MethodInvocationValue invocationExpression;
 
@@ -600,7 +649,7 @@ public class BuildScriptBuilder {
         }
     }
 
-    private static class PropertyAssignment extends ConfigExpression {
+    private static class PropertyAssignment extends AbstractStatement {
 
         final String propertyName;
         final ExpressionValue propertyValue;
@@ -617,9 +666,10 @@ public class BuildScriptBuilder {
         }
     }
 
+    /**
+     * Represents the contents of a block.
+     */
     private interface BlockBody {
-        boolean isEmpty();
-
         void writeBodyTo(PrettyPrinter printer);
     }
 
@@ -641,7 +691,6 @@ public class BuildScriptBuilder {
             statements.add(statement);
         }
 
-        @Override
         public boolean isEmpty() {
             for (Statement statement : statements) {
                 if (!statement.isEmpty()) {
@@ -702,7 +751,7 @@ public class BuildScriptBuilder {
         }
     }
 
-    private static class MavenRepoExpression extends ConfigExpression {
+    private static class MavenRepoExpression extends AbstractStatement {
         private final String url;
 
         MavenRepoExpression(@Nullable String comment, String url) {
@@ -724,7 +773,6 @@ public class BuildScriptBuilder {
             return this;
         }
 
-        @Override
         public boolean isEmpty() {
             return configSpecs.isEmpty();
         }
@@ -742,6 +790,13 @@ public class BuildScriptBuilder {
         @Override
         public void methodInvocation(String comment, String methodName, Object... methodArgs) {
             configuration(NULL_SELECTOR, new MethodInvocation(comment, new MethodInvocationValue(methodName, expressionValues(methodArgs))));
+        }
+
+        @Override
+        public ScriptBlockBuilder block(String comment, String methodName) {
+            ScriptBlock scriptBlock = new ScriptBlock(comment, methodName);
+            configuration(NULL_SELECTOR, scriptBlock);
+            return scriptBlock.body;
         }
 
         @Override
@@ -779,7 +834,7 @@ public class BuildScriptBuilder {
         public ScriptBlockBuilder taskRegistration(String comment, String taskName, String taskType) {
             TaskRegistration registration = new TaskRegistration(comment, taskName, taskType);
             tasks.add(registration);
-            return registration.block;
+            return registration.body;
         }
 
         @Override
@@ -823,11 +878,38 @@ public class BuildScriptBuilder {
         }
     }
 
+    private class ScriptBlock implements Statement {
+        final String comment;
+        final String methodName;
+        final ScriptBlockImpl body = new ScriptBlockImpl();
+
+        ScriptBlock(String comment, String methodName) {
+            this.comment = comment;
+            this.methodName = methodName;
+        }
+
+        @Nullable
+        @Override
+        public String getComment() {
+            return comment;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return false;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.printBlock(methodName, body);
+        }
+    }
+
     private class TaskRegistration implements Statement {
         final String taskName;
         final String taskType;
         final String comment;
-        final ScriptBlockImpl block = new ScriptBlockImpl();
+        final ScriptBlockImpl body = new ScriptBlockImpl();
 
         TaskRegistration(String comment, String taskName, String taskType) {
             this.comment = comment;
@@ -843,12 +925,12 @@ public class BuildScriptBuilder {
 
         @Override
         public boolean isEmpty() {
-            return block.isEmpty();
+            return body.isEmpty();
         }
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
-            printer.printBlock(printer.syntax.taskRegistration(taskName, taskType), block);
+            printer.printBlock(printer.syntax.taskRegistration(taskName, taskType), body);
         }
     }
 
@@ -929,10 +1011,6 @@ public class BuildScriptBuilder {
         }
 
         public void printBlock(String blockSelector, BlockBody blockBody) {
-            if (blockBody.isEmpty()) {
-                return;
-            }
-
             String indentBefore = indent;
 
             println(blockSelector + " {");
@@ -1082,12 +1160,40 @@ public class BuildScriptBuilder {
         String string(String string);
 
         String taskRegistration(String taskName, String taskType);
+
+        String mapLiteral(Map<String, ExpressionValue> map);
+
+        String firstArg(ExpressionValue argument);
     }
 
     private static final class KotlinSyntax implements Syntax {
         @Override
         public String string(String string) {
             return '"' + string + '"';
+        }
+
+        @Override
+        public String mapLiteral(Map<String, ExpressionValue> map) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("mapOf(");
+            boolean first = true;
+            for (Map.Entry<String, ExpressionValue> entry : map.entrySet()) {
+                if (first) {
+                    first = false;
+                } else {
+                    builder.append(", ");
+                }
+                builder.append(string(entry.getKey()));
+                builder.append(" to ");
+                builder.append(entry.getValue().with(this));
+            }
+            builder.append(")");
+            return builder.toString();
+        }
+
+        @Override
+        public String firstArg(ExpressionValue argument) {
+            return argument.with(this);
         }
 
         @Override
@@ -1155,6 +1261,41 @@ public class BuildScriptBuilder {
         @Override
         public String string(String string) {
             return "'" + string + "'";
+        }
+
+        @Override
+        public String mapLiteral(Map<String, ExpressionValue> map) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("[");
+            addEntries(map, builder);
+            builder.append("]");
+            return builder.toString();
+        }
+
+        private void addEntries(Map<String, ExpressionValue> map, StringBuilder builder) {
+            boolean first = true;
+            for (Map.Entry<String, ExpressionValue> entry : map.entrySet()) {
+                if (first) {
+                    first = false;
+                } else {
+                    builder.append(", ");
+                }
+                builder.append(entry.getKey());
+                builder.append(": ");
+                builder.append(entry.getValue().with(this));
+            }
+        }
+
+        @Override
+        public String firstArg(ExpressionValue argument) {
+            if (argument instanceof MapLiteralValue) {
+                MapLiteralValue literalValue = (MapLiteralValue) argument;
+                StringBuilder builder = new StringBuilder();
+                addEntries(literalValue.literal, builder);
+                return builder.toString();
+            } else {
+                return argument.with(this);
+            }
         }
 
         @Override
