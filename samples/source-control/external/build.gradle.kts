@@ -1,7 +1,11 @@
 import org.eclipse.jgit.api.Git
 
 buildscript {
-    repositories { jcenter() }
+
+    repositories {
+        jcenter()
+    }
+
     dependencies {
         classpath("org.eclipse.jgit:org.eclipse.jgit:5.0.1.201806211838-r")
     }
@@ -12,9 +16,11 @@ plugins {
 }
 
 group = "org.gradle.kotlin.dsl.samples.source-control"
+
 version = "1.0"
 
 tasks {
+
     register("generateGitRepo") {
 
         inputs.dir("src")
