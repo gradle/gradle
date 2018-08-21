@@ -52,16 +52,12 @@ public class BuildScriptBuilder {
 
     private final List<String> headerLines = new ArrayList<String>();
     private final ListMultimap<String, DepSpec> dependencies = MultimapBuilder.linkedHashKeys().arrayListValues().build();
-    private final List<ConfigSpec> configSpecs = new ArrayList<ConfigSpec>();
-    private final ScriptBlockImpl allprojects = new ScriptBlockImpl();
-    private final ScriptBlockImpl subprojects = new ScriptBlockImpl();
+    private final TopLevelBlock block = new TopLevelBlock();
 
     public BuildScriptBuilder(BuildInitDsl dsl, PathToFileResolver fileResolver, String fileNameWithoutExtension) {
         this.dsl = dsl;
         this.fileResolver = fileResolver;
         this.fileNameWithoutExtension = fileNameWithoutExtension;
-        configuration(ALL_PROJECTS_SELECTOR, allprojects);
-        configuration(SUBPROJECTS_SELECTOR, subprojects);
     }
 
     /**
@@ -78,7 +74,8 @@ public class BuildScriptBuilder {
      * @param comment A description of why the plugin is required
      */
     public BuildScriptBuilder plugin(String comment, String pluginId) {
-        return configuration(PLUGINS_SELECTOR, new PluginSpec(pluginId, null, comment));
+        block.plugins.add(new PluginSpec(pluginId, null, comment));
+        return this;
     }
 
     /**
@@ -87,7 +84,8 @@ public class BuildScriptBuilder {
      * @param comment A description of why the plugin is required
      */
     public BuildScriptBuilder plugin(String comment, String pluginId, String version) {
-        return configuration(PLUGINS_SELECTOR, new PluginSpec(pluginId, version, comment));
+        block.plugins.add(new PluginSpec(pluginId, version, comment));
+        return this;
     }
 
     /**
@@ -161,17 +159,24 @@ public class BuildScriptBuilder {
     }
 
     /**
+     * Allows repositories to be added to this script.
+     */
+    public RepositoriesBuilder repositories() {
+        return block.repositories;
+    }
+
+    /**
      * Allows statements to be added to the allprojects block.
      */
-    ScriptBlockBuilder allprojects() {
-        return allprojects;
+    public CrossConfigurationScriptBlockBuilder allprojects() {
+        return block.allprojects;
     }
 
     /**
      * Allows statements to be added to the subprojects block.
      */
-    ScriptBlockBuilder subprojects() {
-        return subprojects;
+    public CrossConfigurationScriptBlockBuilder subprojects() {
+        return block.subprojects;
     }
 
     /**
@@ -228,8 +233,8 @@ public class BuildScriptBuilder {
             new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
     }
 
-    private BuildScriptBuilder configuration(ConfigSelector selector, ConfigExpression expression) {
-        configSpecs.add(new ConfigSpec(selector, expression));
+    private BuildScriptBuilder configuration(ConfigSelector selector, Statement statement) {
+        block.configSpecs.add(new ConfigSpec(selector, statement));
         return this;
     }
 
@@ -243,7 +248,7 @@ public class BuildScriptBuilder {
                     try {
                         PrettyPrinter printer = prettyPrinterFor(dsl, writer);
                         printer.printFileHeader(headerLines);
-                        printer.printConfigSpecs(configSpecs);
+                        block.writeBodyTo(printer);
                         if (!dependencies.isEmpty()) {
                             printer.printDependencies(dependencies);
                             printer.printRepositories();
@@ -307,7 +312,7 @@ public class BuildScriptBuilder {
     private static class LiteralValue implements ExpressionValue {
         final Object literal;
 
-        public LiteralValue(Object literal) {
+        LiteralValue(Object literal) {
             this.literal = literal;
         }
 
@@ -369,7 +374,7 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        void writeCodeFor(PrettyPrinter printer) {
+        public void writeCodeTo(PrettyPrinter printer) {
             printer.println(printer.syntax.pluginDependencySpec(id, version));
         }
     }
@@ -380,7 +385,7 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        void writeCodeFor(PrettyPrinter printer) {
+        public void writeCodeTo(PrettyPrinter printer) {
             printer.println(printer.syntax.nestedPluginDependencySpec(id, version));
         }
     }
@@ -407,13 +412,13 @@ public class BuildScriptBuilder {
         final ConfigSelector selector;
 
         /**
-         * The configuration expression to be applied to the selected model object.
+         * The statement to be applied to the selected model object.
          */
-        final ConfigExpression expression;
+        final Statement statement;
 
-        ConfigSpec(ConfigSelector selector, ConfigExpression expression) {
+        ConfigSpec(ConfigSelector selector, Statement statement) {
             this.selector = selector;
-            this.expression = expression;
+            this.statement = statement;
         }
     }
 
@@ -427,60 +432,12 @@ public class BuildScriptBuilder {
     private static final ConfigSelector NULL_SELECTOR = new ConfigSelector() {
         @Override
         public int order() {
-            return 4;
-        }
-
-        @Override
-        public String codeBlockSelectorFor(Syntax syntax) {
-            return null;
-        }
-    };
-
-    private static final ConfigSelector PLUGINS_SELECTOR = new ConfigSelector() {
-        @Override
-        public int order() {
-            return 0;
-        }
-
-        @Override
-        public String codeBlockSelectorFor(Syntax syntax) {
-            return "plugins";
-        }
-    };
-
-    private static final ConfigSelector NESTED_PLUGINS_SELECTOR = new ConfigSelector() {
-        @Override
-        public int order() {
-            return 0;
-        }
-
-        @Override
-        public String codeBlockSelectorFor(Syntax syntax) {
-            return null;
-        }
-    };
-
-    private static final ConfigSelector ALL_PROJECTS_SELECTOR = new ConfigSelector() {
-        @Override
-        public int order() {
             return 1;
         }
 
         @Override
         public String codeBlockSelectorFor(Syntax syntax) {
-            return "allprojects";
-        }
-    };
-
-    private static final ConfigSelector SUBPROJECTS_SELECTOR = new ConfigSelector() {
-        @Override
-        public int order() {
-            return 2;
-        }
-
-        @Override
-        public String codeBlockSelectorFor(Syntax syntax) {
-            return "subprojects";
+            return null;
         }
     };
 
@@ -496,7 +453,7 @@ public class BuildScriptBuilder {
 
         @Override
         public int order() {
-            return 7;
+            return 5;
         }
 
         @Nullable
@@ -523,45 +480,6 @@ public class BuildScriptBuilder {
         }
     }
 
-    private static class TaskRegistrationSelector implements ConfigSelector {
-
-        final String taskName;
-        final String taskType;
-
-        private TaskRegistrationSelector(String taskName, String taskType) {
-            this.taskName = taskName;
-            this.taskType = taskType;
-        }
-
-        @Override
-        public int order() {
-            return 3;
-        }
-
-        @Nullable
-        @Override
-        public String codeBlockSelectorFor(Syntax syntax) {
-            return syntax.taskRegistration(this);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            TaskRegistrationSelector that = (TaskRegistrationSelector) o;
-            return Objects.equal(taskName, that.taskName) && Objects.equal(taskType, that.taskType);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(taskName, taskType);
-        }
-    }
-
     private static class TaskTypeSelector implements ConfigSelector {
 
         final String taskType;
@@ -572,7 +490,7 @@ public class BuildScriptBuilder {
 
         @Override
         public int order() {
-            return 6;
+            return 4;
         }
 
         @Nullable
@@ -609,7 +527,7 @@ public class BuildScriptBuilder {
 
         @Override
         public int order() {
-            return 5;
+            return 3;
         }
 
         @Override
@@ -635,7 +553,19 @@ public class BuildScriptBuilder {
         }
     }
 
-    private static abstract class ConfigExpression {
+    private interface Statement {
+        @Nullable
+        String getComment();
+
+        boolean isEmpty();
+
+        /**
+         * Writes this statement to the given printer. Should not write the comment.
+         */
+        void writeCodeTo(PrettyPrinter printer);
+    }
+
+    private static abstract class ConfigExpression implements Statement {
 
         final String comment;
 
@@ -643,11 +573,16 @@ public class BuildScriptBuilder {
             this.comment = comment;
         }
 
-        boolean isEmpty() {
-            return false;
+        @Nullable
+        @Override
+        public String getComment() {
+            return comment;
         }
 
-        abstract void writeCodeFor(PrettyPrinter printer);
+        @Override
+        public boolean isEmpty() {
+            return false;
+        }
     }
 
     private static class MethodInvocation extends ConfigExpression {
@@ -660,7 +595,7 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        void writeCodeFor(PrettyPrinter printer) {
+        public void writeCodeTo(PrettyPrinter printer) {
             printer.println(invocationExpression.with(printer.syntax));
         }
     }
@@ -677,37 +612,126 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        void writeCodeFor(PrettyPrinter printer) {
+        public void writeCodeTo(PrettyPrinter printer) {
             printer.println(printer.syntax.propertyAssignment(this));
         }
     }
 
-    private class ScriptBlockImpl extends ConfigExpression implements ScriptBlockBuilder {
-        final List<ConfigSpec> configSpecs = new ArrayList<ConfigSpec>();
+    private interface BlockBody {
+        boolean isEmpty();
 
-        ScriptBlockImpl() {
-            super(null);
+        void writeBodyTo(PrettyPrinter printer);
+    }
+
+    private static class BlockStatements implements BlockBody {
+        final List<Statement> statements = new ArrayList<Statement>();
+
+        BlockStatements() {
         }
 
-        ScriptBlockBuilder configuration(ConfigSelector selector, ConfigExpression expression) {
-            configSpecs.add(new ConfigSpec(selector, expression));
+        BlockStatements(Collection<? extends Statement> statements) {
+            this.statements.addAll(statements);
+        }
+
+        BlockStatements(Statement statement) {
+            this.statements.add(statement);
+        }
+
+        public void add(Statement statement) {
+            statements.add(statement);
+        }
+
+        @Override
+        public boolean isEmpty() {
+            for (Statement statement : statements) {
+                if (!statement.isEmpty()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public void writeBodyTo(PrettyPrinter printer) {
+            printer.printStatements(statements);
+        }
+    }
+
+    private static class BlockStatement implements Statement {
+        final String blockSelector;
+        final BlockStatements body = new BlockStatements();
+
+        BlockStatement(String blockSelector) {
+            this.blockSelector = blockSelector;
+        }
+
+        @Nullable
+        @Override
+        public String getComment() {
+            return null;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return body.isEmpty();
+        }
+
+        void add(Statement statement) {
+            body.add(statement);
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.printBlock(blockSelector, body);
+        }
+    }
+
+    private static class RepositoriesBlock extends BlockStatement implements RepositoriesBuilder {
+        RepositoriesBlock() {
+            super("repositories");
+        }
+
+        @Override
+        public void mavenLocal(String comment) {
+            add(new MethodInvocation(comment, new MethodInvocationValue("mavenLocal")));
+        }
+
+        @Override
+        public void maven(String comment, String url) {
+            add(new MavenRepoExpression(comment, url));
+        }
+    }
+
+    private static class MavenRepoExpression extends ConfigExpression {
+        private final String url;
+
+        MavenRepoExpression(@Nullable String comment, String url) {
+            super(comment);
+            this.url = url;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.printBlock("maven", new BlockStatements(new PropertyAssignment(null, "url", new StringValue(this.url))));
+        }
+    }
+
+    private class ScriptBlockImpl implements ScriptBlockBuilder, BlockBody {
+        final List<ConfigSpec> configSpecs = new ArrayList<ConfigSpec>();
+
+        ScriptBlockBuilder configuration(ConfigSelector selector, Statement statement) {
+            configSpecs.add(new ConfigSpec(selector, statement));
             return this;
         }
 
         @Override
-        boolean isEmpty() {
+        public boolean isEmpty() {
             return configSpecs.isEmpty();
         }
 
         @Override
-        void writeCodeFor(PrettyPrinter printer) {
-            printer.firstExpression = true;
+        public void writeBodyTo(PrettyPrinter printer) {
             printer.printConfigSpecs(configSpecs);
-        }
-
-        @Override
-        public void plugin(String comment, String pluginId) {
-            configuration(NESTED_PLUGINS_SELECTOR, new NestedPluginSpec(pluginId, null, comment));
         }
 
         @Override
@@ -721,20 +745,110 @@ public class BuildScriptBuilder {
         }
 
         @Override
+        public Expression propertyExpression(String value) {
+            return new LiteralValue(value);
+        }
+    }
+
+    private class CrossConfigBlock extends ScriptBlockImpl implements CrossConfigurationScriptBlockBuilder, Statement {
+        final String blockName;
+        final RepositoriesBlock repositories = new RepositoriesBlock();
+        final List<Statement> plugins = new ArrayList<Statement>();
+        final List<Statement> tasks = new ArrayList<Statement>();
+
+        CrossConfigBlock(String blockName) {
+            this.blockName = blockName;
+        }
+
+        @Override
+        public RepositoriesBuilder repositories() {
+            return repositories;
+        }
+
+        @Override
+        public void plugin(String comment, String pluginId) {
+            plugins.add(new NestedPluginSpec(pluginId, null, comment));
+        }
+
+        @Override
         public void taskPropertyAssignment(String comment, String taskType, String propertyName, Object propertyValue) {
             configuration(new TaskTypeSelector(taskType), new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
         }
 
         @Override
         public ScriptBlockBuilder taskRegistration(String comment, String taskName, String taskType) {
-            ScriptBlockImpl block = new ScriptBlockImpl();
-            configuration(new TaskRegistrationSelector(taskName, taskType), block);
-            return block;
+            TaskRegistration registration = new TaskRegistration(comment, taskName, taskType);
+            tasks.add(registration);
+            return registration.block;
         }
 
         @Override
-        public Expression propertyExpression(String value) {
-            return new LiteralValue(value);
+        public boolean isEmpty() {
+            return super.isEmpty() && repositories.isEmpty() && plugins.isEmpty() && tasks.isEmpty();
+        }
+
+        @Nullable
+        @Override
+        public String getComment() {
+            return null;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.printBlock(blockName, this);
+        }
+
+        @Override
+        public void writeBodyTo(PrettyPrinter printer) {
+            printer.printStatements(plugins);
+            printer.printStatement(repositories);
+            printer.printStatements(tasks);
+            super.writeBodyTo(printer);
+        }
+    }
+
+    private class TopLevelBlock extends ScriptBlockImpl {
+        final BlockStatement plugins = new BlockStatement("plugins");
+        final RepositoriesBlock repositories = new RepositoriesBlock();
+        final CrossConfigBlock allprojects = new CrossConfigBlock("allprojects");
+        final CrossConfigBlock subprojects = new CrossConfigBlock("subprojects");
+
+        @Override
+        public void writeBodyTo(PrettyPrinter printer) {
+            printer.printStatement(plugins);
+            printer.printStatement(allprojects);
+            printer.printStatement(subprojects);
+            printer.printStatement(repositories);
+            super.writeBodyTo(printer);
+        }
+    }
+
+    private class TaskRegistration implements Statement {
+        final String taskName;
+        final String taskType;
+        final String comment;
+        final ScriptBlockImpl block = new ScriptBlockImpl();
+
+        TaskRegistration(String comment, String taskName, String taskType) {
+            this.comment = comment;
+            this.taskName = taskName;
+            this.taskType = taskType;
+        }
+
+        @Nullable
+        @Override
+        public String getComment() {
+            return comment;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return block.isEmpty();
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.printBlock(printer.syntax.taskRegistration(taskName, taskType), block);
         }
     }
 
@@ -799,28 +913,12 @@ public class BuildScriptBuilder {
         }
 
         private void printConfigGroup(ConfigGroup configGroup) {
-            if (configGroup.isEmpty()) {
-                return;
-            }
-
-            String indentBefore = indent;
-
             String blockSelector = configGroup.selector.codeBlockSelectorFor(syntax);
             if (blockSelector != null) {
                 printNewLineExceptTheFirstTime();
-                println(blockSelector + " {");
-                indent = indent + "    ";
-                firstExpression = true;
-            }
-            for (ConfigExpression expression : configGroup.expressions) {
-                printNewLineExceptTheFirstTime();
-                printExpression(expression);
-            }
-            indent = indentBefore;
-            firstExpression = false;
-
-            if (blockSelector != null) {
-                println("}");
+                printBlock(blockSelector, configGroup);
+            } else {
+                printStatements(configGroup.statements);
             }
         }
 
@@ -830,26 +928,40 @@ public class BuildScriptBuilder {
             return configGroups;
         }
 
-        private static class ConfigGroup implements Comparable<ConfigGroup> {
+        public void printBlock(String blockSelector, BlockBody blockBody) {
+            if (blockBody.isEmpty()) {
+                return;
+            }
+
+            String indentBefore = indent;
+
+            println(blockSelector + " {");
+            indent = indent + "    ";
+            firstExpression = true;
+
+            blockBody.writeBodyTo(this);
+
+            indent = indentBefore;
+            firstExpression = false;
+            println("}");
+        }
+
+        public void printStatements(List<? extends Statement> statements) {
+            for (Statement statement : statements) {
+                printStatement(statement);
+            }
+        }
+
+        private static class ConfigGroup extends BlockStatements implements Comparable<ConfigGroup> {
 
             /**
              * @see ConfigSpec#selector
              */
             final ConfigSelector selector;
-            final List<ConfigExpression> expressions;
 
-            ConfigGroup(ConfigSelector selector, List<ConfigExpression> expressions) {
+            ConfigGroup(ConfigSelector selector, List<? extends Statement> statements) {
+                super(statements);
                 this.selector = selector;
-                this.expressions = expressions;
-            }
-
-            boolean isEmpty() {
-                for (ConfigExpression expression : expressions) {
-                    if (!expression.isEmpty()) {
-                        return false;
-                    }
-                }
-                return true;
             }
 
             @Override
@@ -900,11 +1012,11 @@ public class BuildScriptBuilder {
             return result;
         }
 
-        private List<ConfigExpression> expressionsOf(Collection<ConfigSpec> specs) {
-            return collect(specs, new Transformer<ConfigExpression, ConfigSpec>() {
+        private List<Statement> expressionsOf(Collection<ConfigSpec> specs) {
+            return collect(specs, new Transformer<Statement, ConfigSpec>() {
                 @Override
-                public ConfigExpression transform(ConfigSpec configSpec) {
-                    return configSpec.expression;
+                public Statement transform(ConfigSpec configSpec) {
+                    return configSpec.statement;
                 }
             });
         }
@@ -925,11 +1037,15 @@ public class BuildScriptBuilder {
             firstExpression = false;
         }
 
-        private void printExpression(ConfigExpression expression) {
-            if (expression.comment != null) {
-                println("// " + expression.comment);
+        private void printStatement(Statement statement) {
+            if (statement.isEmpty()) {
+                return;
             }
-            expression.writeCodeFor(this);
+            printNewLineExceptTheFirstTime();
+            if (statement.getComment() != null) {
+                println("// " + statement.getComment());
+            }
+            statement.writeCodeTo(this);
         }
 
         private String dependencySpec(String config, String notation) {
@@ -965,7 +1081,7 @@ public class BuildScriptBuilder {
 
         String string(String string);
 
-        String taskRegistration(TaskRegistrationSelector selector);
+        String taskRegistration(String taskName, String taskType);
     }
 
     private static final class KotlinSyntax implements Syntax {
@@ -1030,8 +1146,8 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public String taskRegistration(TaskRegistrationSelector selector) {
-            return "val " + selector.taskName + " by tasks.creating(" + selector.taskType + "::class)";
+        public String taskRegistration(String taskName, String taskType) {
+            return "val " + taskName + " by tasks.creating(" + taskType + "::class)";
         }
     }
 
@@ -1080,8 +1196,8 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public String taskRegistration(TaskRegistrationSelector selector) {
-            return "task " + selector.taskName + "(type: " + selector.taskType + ")";
+        public String taskRegistration(String taskName, String taskType) {
+            return "task " + taskName + "(type: " + taskType + ")";
         }
     }
 }
