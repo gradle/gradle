@@ -71,15 +71,15 @@ public class OutputStreamsForwarder implements StreamsHandler {
 
     public void stop() {
         try {
-            standardOutputReader.closeInput();
-            if (standardErrorReader != null) {
-                standardErrorReader.closeInput();
-            }
+//            standardOutputReader.closeInput();
+//            if (standardErrorReader != null) {
+//                standardErrorReader.closeInput();
+//            }
             completed.await();
         } catch (InterruptedException e) {
             throw new UncheckedException(e);
-        } catch (IOException e) {
-            throw new UncheckedException(e);
+//        } catch (IOException e) {
+//            throw new UncheckedException(e);
         }
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.streams;
 
+import com.google.common.io.ByteStreams;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -23,11 +24,8 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.Channels;
-import java.nio.channels.InterruptibleChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.concurrent.CountDownLatch;
@@ -62,13 +60,8 @@ public class ExecOutputHandleRunner implements Runnable {
     }
 
     private void forwardContent() {
-        ByteBuffer buffer = ByteBuffer.allocate(bufferSize);
         try {
-            while (inputChannel.read(buffer) >= 0 || buffer.position() != 0) {
-                ((Buffer)buffer).flip();
-                outputChannel.write(buffer);
-                buffer.compact();
-            }
+            ByteStreams.copy(inputChannel, outputChannel);
             CompositeStoppable.stoppable(inputChannel, outputChannel).stop();
         } catch (AsynchronousCloseException ignored) {
         } catch (Throwable t) {
