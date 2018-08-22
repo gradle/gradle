@@ -16,7 +16,7 @@
 
 package org.gradle.testing;
 
-import org.gradle.api.internal.tasks.options.Option;
+import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
@@ -51,16 +51,14 @@ public class PerformanceTest extends DistributionTest {
     private String checks;
     private String channel;
     private String resultStoreClass = "org.gradle.performance.results.AllResultsStore";
-    private Boolean flamegraphs;
+    private boolean flamegraphs;
 
     private final Map<String, String> databaseParameters = new HashMap<>();
-
-    private final PerformanceTestJvmArgumentsProvider argumentsProvider = new PerformanceTestJvmArgumentsProvider();
 
     private File debugArtifactsDirectory = new File(getProject().getBuildDir(), getName());
 
     public PerformanceTest() {
-        getJvmArgumentProviders().add(argumentsProvider);
+        getJvmArgumentProviders().add(new PerformanceTestJvmArgumentsProvider());
 
         Spec<Task> spec = new Spec<Task>() {
             @Override
@@ -160,11 +158,11 @@ public class PerformanceTest extends DistributionTest {
 
     @Option(option = "flamegraphs", description = "If set to 'true', activates flamegraphs and stores them into the 'flames' directory name under the debug artifacts directory.")
     public void setFlamegraphs(String flamegraphs) {
-        this.flamegraphs = "true".equals(flamegraphs);
+        this.flamegraphs = Boolean.parseBoolean(flamegraphs);
     }
 
-    @Nullable @Optional @Input
-    public Boolean isFlamegraphs() {
+    @Input
+    public boolean isFlamegraphs() {
         return flamegraphs;
     }
 
@@ -194,8 +192,10 @@ public class PerformanceTest extends DistributionTest {
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.checks", checks);
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.channel", channel);
 
-            File artifactsDirectory = new File(getDebugArtifactsDirectory(), "flames");
-            addSystemPropertyIfExist(result, "org.gradle.performance.flameGraphTargetDir", artifactsDirectory.getAbsolutePath());
+            if (flamegraphs) {
+                File artifactsDirectory = new File(getDebugArtifactsDirectory(), "flames");
+                addSystemPropertyIfExist(result, "org.gradle.performance.flameGraphTargetDir", artifactsDirectory.getAbsolutePath());
+            }
         }
 
         private void addDatabaseParameters(List<String> result) {
