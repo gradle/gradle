@@ -131,6 +131,11 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
         return force;
     }
 
+    @Override
+    public ForcingDependencyMetadata forced() {
+        return new LenientPlatformDependencyMetadata(resolveState, from, cs, componentId, platformId, true, transitive);
+    }
+
     private class LenientPlatformConfigurationMetadata extends DefaultConfigurationMetadata implements ConfigurationMetadata {
 
         private final VirtualPlatformState platformState;
