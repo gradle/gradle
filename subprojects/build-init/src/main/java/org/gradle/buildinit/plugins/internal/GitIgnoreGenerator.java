@@ -38,7 +38,7 @@ public class GitIgnoreGenerator implements BuildContentGenerator {
             PrintWriter writer = new PrintWriter(new FileWriter(file));
             try {
                 writer.println("# Ignore Gradle project-specific cache directory");
-                writer.println("/.gradle");
+                writer.println(".gradle");
                 writer.println();
                 writer.println("# Ignore Gradle build output directory");
                 writer.println("build");
