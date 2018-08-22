@@ -19,6 +19,10 @@ For the gradle/gradle build, heap usage dropped by 60 MB to 450 MB, that is a 12
 
 The [Build Init plugin](userguide/build_init_plugin.html) now generates build scripts that use the recommended `implementation`, `testImplementation`, and `testRuntimeOnly` configurations instead of `compile`, `testCompile`, and `testRuntime`, respectively, for all build setup types.
 
+### Default JaCoCo version upgraded to 0.8.2
+
+[The JaCoCo plugin](userguide/jacoco_plugin.html) has been upgraded to use [JaCoCo version 0.8.2](http://www.jacoco.org/jacoco/trunk/doc/changes.html) by default.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
