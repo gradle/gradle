@@ -15,15 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.apache.commons.lang.ClassUtils;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.internal.Cast;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.DefaultVirtualModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
-
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.util.List;
 
 public class VirtualComponentHelper {
     /**
@@ -32,14 +27,14 @@ public class VirtualComponentHelper {
      * @return a virtual component identifier
      */
     public static VirtualComponentIdentifier makeVirtual(final ComponentIdentifier id) {
-        Class<? extends ComponentIdentifier> cidClazz = id.getClass();
-        List<Class<?>> allInterfaces = Cast.uncheckedCast(ClassUtils.getAllInterfaces(cidClazz));
-        allInterfaces.add(VirtualComponentIdentifier.class);
-        return Cast.uncheckedCast(Proxy.newProxyInstance(cidClazz.getClassLoader(), allInterfaces.toArray(new Class<?>[0]), new InvocationHandler() {
-            @Override
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                return method.invoke(id, args);
-            }
-        }));
+        ModuleComponentIdentifier mid = assertModuleComponentIdentifier(id);
+        return new DefaultVirtualModuleComponentIdentifier(mid.getModuleIdentifier(), mid.getVersion());
+    }
+
+    private static ModuleComponentIdentifier assertModuleComponentIdentifier(ComponentIdentifier id) {
+        if (id instanceof ModuleComponentIdentifier) {
+            return (ModuleComponentIdentifier) id;
+        }
+        throw new UnsupportedOperationException("Cannot create a virtual component from a " + id.getClass());
     }
 }
