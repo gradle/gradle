@@ -17,26 +17,32 @@ For the gradle/gradle build, heap usage dropped by 60 MB to 450 MB, that is a 12
 
 ### Build init plugin improvements
 
-#### Kotlin library and applications
-
-The `init` task can now generate a Kotlin library or application, using the `--kotlin-library` or `--kotlin-application` setup type.
+This release includes a number of improvements to The [Build Init plugin](userguide/build_init_plugin.html).
 
 #### Interactive mode
 
-If you run the `init` task from an interactive console without any options, it will prompt you for details of what you'd like to generate.
+If you run the `init` task from an interactive console, it will prompt you for details of the Gradle build that you'd like to generate.
+
+#### Kotlin library and applications
+
+The `init` task can generate a Kotlin library or application, using the `kotlin-library` or `kotlin-application` setup type.
 
 #### Generated builds use recommended configurations
 
-The [Build Init plugin](userguide/build_init_plugin.html) now generates build scripts that use the recommended `implementation`, `testImplementation`, and `testRuntimeOnly` configurations instead of `compile`, `testCompile`, and `testRuntime`, respectively, for all build setup types.
+The `init` task generates build scripts that use the recommended `implementation`, `testImplementation`, and `testRuntimeOnly` configurations instead of `compile`, `testCompile`, and `testRuntime`, respectively, for all build setup types.
 
-#### Specify project and source package names
+#### Configure project and source package names
 
-The `init` task also provides a `--project-name` option to allow you to adjust the name of the generated project, and a `--package` option to allow you to adjust the package for the generated source.
+The `init` task provides a `--project-name` option to allow you to adjust the name of the generated project, and a `--package` option to allow you to adjust the package for the generated source.
 The task will also allow you to specify these if you run the task interactively.
 
 #### Create resource directories
 
-The `init` task now creates empty resource directories in their conventional locations.
+The `init` task creates empty resource directories.
+
+#### Create a .gitignore file
+
+While the `init` task does not automatically create a Git repository, the `init` task generates a simple `.gitignore` file to make it easier for you to set up a Git repository. This `.gitignore` file ignores Gradle's build outputs.
 
 ## Promoted features
 
