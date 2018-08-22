@@ -652,8 +652,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private ResourceLock getOrCreateProjectLock(Project project) {
-        String gradlePath = ((GradleInternal) project.getGradle()).getIdentityPath().toString();
-        String projectPath = ((ProjectInternal) project).getIdentityPath().toString();
+        Path gradlePath = ((GradleInternal) project.getGradle()).getIdentityPath();
+        Path projectPath = ((ProjectInternal) project).getIdentityPath();
         return workerLeaseService.getProjectLock(gradlePath, projectPath);
     }
 

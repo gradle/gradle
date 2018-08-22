@@ -29,8 +29,8 @@ import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
-public abstract class AbstractResourceLockRegistry<T extends ResourceLock> implements ResourceLockRegistry {
-    private final Cache<String, T> resourceLocks = CacheBuilder.newBuilder().weakValues().build();
+public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> implements ResourceLockRegistry {
+    private final Cache<K, T> resourceLocks = CacheBuilder.newBuilder().weakValues().build();
     private final Multimap<Long, ResourceLock> threadResourceLockMap = Multimaps.synchronizedListMultimap(ArrayListMultimap.<Long, ResourceLock>create());
     private final ResourceLockCoordinationService coordinationService;
 
@@ -38,12 +38,12 @@ public abstract class AbstractResourceLockRegistry<T extends ResourceLock> imple
         this.coordinationService = coordinationService;
     }
 
-    protected T getOrRegisterResourceLock(final String displayName, final ResourceLockProducer<T> producer) {
+    protected T getOrRegisterResourceLock(final K key, final ResourceLockProducer<K, T> producer) {
         try {
-            return resourceLocks.get(displayName, new Callable<T>() {
+            return resourceLocks.get(key, new Callable<T>() {
                 @Override
                 public T call() throws Exception {
-                    return producer.create(displayName, coordinationService, getLockAction(), getUnlockAction());
+                    return producer.create(key, coordinationService, getLockAction(), getUnlockAction());
                 }
             });
         } catch (ExecutionException e) {
@@ -80,7 +80,7 @@ public abstract class AbstractResourceLockRegistry<T extends ResourceLock> imple
         return new Action<ResourceLock>() {
             @Override
             public void execute(ResourceLock resourceLock) {
-                unassociatResourceLock(resourceLock);
+                unassociateResourceLock(resourceLock);
             }
         };
     }
@@ -89,11 +89,11 @@ public abstract class AbstractResourceLockRegistry<T extends ResourceLock> imple
         threadResourceLockMap.put(Thread.currentThread().getId(), resourceLock);
     }
 
-    public void unassociatResourceLock(ResourceLock resourceLock) {
+    public void unassociateResourceLock(ResourceLock resourceLock) {
         threadResourceLockMap.remove(Thread.currentThread().getId(), resourceLock);
     }
 
-    public interface ResourceLockProducer<T extends ResourceLock> {
-        T create(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction);
+    public interface ResourceLockProducer<K, T extends ResourceLock> {
+        T create(K key, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction);
     }
 }

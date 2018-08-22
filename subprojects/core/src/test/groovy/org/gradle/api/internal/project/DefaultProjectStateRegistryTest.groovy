@@ -22,11 +22,16 @@ import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultProjectDescriptorRegistry
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService
+import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.Path
 
 class DefaultProjectStateRegistryTest extends ConcurrentSpec {
-    def registry = new DefaultProjectStateRegistry()
+    def coordinationService = new DefaultResourceLockCoordinationService()
+    def workerLeaseService =  new DefaultWorkerLeaseService(coordinationService, new ParallelismConfigurationManagerFixture(true, 4))
+    def registry = new DefaultProjectStateRegistry(workerLeaseService)
 
     def "adds projects for a build"() {
         given:

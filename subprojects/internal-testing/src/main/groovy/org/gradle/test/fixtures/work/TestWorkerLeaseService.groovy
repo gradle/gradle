@@ -19,13 +19,19 @@ package org.gradle.test.fixtures.work
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
+import org.gradle.util.Path
 
 import java.util.concurrent.Callable
 
 
 class TestWorkerLeaseService implements WorkerLeaseService {
     @Override
-    ResourceLock getProjectLock(String gradlePath, String projectPath) {
+    ResourceLock getProjectLock(Path gradlePath, Path projectPath) {
+        return null
+    }
+
+    @Override
+    ResourceLock getProjectLock(Path projectIdentityPath) {
         return null
     }
 

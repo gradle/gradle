@@ -35,10 +35,12 @@ import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -108,7 +110,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
         try {
             action.run();
         } finally {
-            workerLeaseLockRegistry.unassociatResourceLock(sharedLease);
+            workerLeaseLockRegistry.unassociateResourceLock(sharedLease);
             coordinationService.notifyStateChange();
         }
     }
@@ -131,8 +133,13 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
     }
 
     @Override
-    public ResourceLock getProjectLock(String gradlePath, String projectPath) {
-        return projectLockRegistry.getResourceLock(gradlePath, projectPath);
+    public ResourceLock getProjectLock(Path gradleIdentityPath, Path projectIdentityPath) {
+        return projectLockRegistry.getResourceLock(gradleIdentityPath, projectIdentityPath);
+    }
+
+    @Override
+    public ResourceLock getProjectLock(Path projectIdentityPath) {
+        return projectLockRegistry.getResourceLock(projectIdentityPath);
     }
 
     @Override
@@ -149,24 +156,44 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
 
     @Override
     public <T> T withLocks(Iterable<? extends ResourceLock> locks, Callable<T> action) {
-        coordinationService.withStateLock(lock(locks));
+        Iterable<? extends ResourceLock> locksNotHeld = locksNotHeld(locks);
+        coordinationService.withStateLock(lock(locksNotHeld));
         try {
             return action.call();
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
-            coordinationService.withStateLock(unlock(locks));
+            coordinationService.withStateLock(unlock(locksNotHeld));
         }
     }
 
     @Override
     public void withLocks(Iterable<? extends ResourceLock> locks, Runnable action) {
-        coordinationService.withStateLock(lock(locks));
+        Iterable<? extends ResourceLock> locksNotHeld = locksNotHeld(locks);
+        coordinationService.withStateLock(lock(locksNotHeld));
         try {
             action.run();
         } finally {
-            coordinationService.withStateLock(unlock(locks));
+            coordinationService.withStateLock(unlock(locksNotHeld));
         }
+    }
+
+    private Iterable<? extends ResourceLock> locksNotHeld(final Iterable<? extends ResourceLock> locks) {
+        final List<ResourceLock> locksNotHeld = Lists.newArrayList(locks);
+        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+            @Override
+            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                Iterator<ResourceLock> iterator = locksNotHeld.iterator();
+                while (iterator.hasNext()) {
+                    ResourceLock lock = iterator.next();
+                    if (lock.isLockedByCurrentThread()) {
+                        iterator.remove();
+                    }
+                }
+                return FINISHED;
+            }
+        });
+        return locksNotHeld;
     }
 
     @Override
@@ -229,10 +256,26 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
         return allLocked.get();
     }
 
-    private static class ProjectLockRegistry extends AbstractResourceLockRegistry<ExclusiveAccessResourceLock> {
+    private class WorkerLeaseLockRegistry extends AbstractResourceLockRegistry<String, DefaultWorkerLease> {
+        WorkerLeaseLockRegistry(ResourceLockCoordinationService coordinationService) {
+            super(coordinationService);
+        }
+
+        DefaultWorkerLease getResourceLock(final LeaseHolder parent, int workerId, final Thread ownerThread) {
+            String displayName = parent.getDisplayName() + '.' + workerId;
+            return getOrRegisterResourceLock(displayName, new ResourceLockProducer<String, DefaultWorkerLease>() {
+                @Override
+                public DefaultWorkerLease create(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
+                    return new DefaultWorkerLease(displayName, coordinationService, lockAction, unlockAction, parent, ownerThread);
+                }
+            });
+        }
+    }
+
+    private static class ProjectLockRegistry extends AbstractResourceLockRegistry<Path, ExclusiveAccessResourceLock> {
         private volatile boolean parallelEnabled;
 
-        ProjectLockRegistry(ResourceLockCoordinationService coordinationService, boolean parallelEnabled) {
+        public ProjectLockRegistry(ResourceLockCoordinationService coordinationService, boolean parallelEnabled) {
             super(coordinationService);
             this.parallelEnabled = parallelEnabled;
         }
@@ -241,32 +284,15 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
             this.parallelEnabled = parallelEnabled;
         }
 
-        ResourceLock getResourceLock(String gradlePath, String projectPath) {
-            String displayName = projectPath;
-            if (!parallelEnabled) {
-                displayName = gradlePath;
-            }
-
-            return getOrRegisterResourceLock(displayName, new ResourceLockProducer<ExclusiveAccessResourceLock>() {
-                @Override
-                public ExclusiveAccessResourceLock create(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
-                    return new ExclusiveAccessResourceLock(displayName, coordinationService, lockAction, unlockAction);
-                }
-            });
-        }
-    }
-
-    private class WorkerLeaseLockRegistry extends AbstractResourceLockRegistry<DefaultWorkerLease> {
-        WorkerLeaseLockRegistry(ResourceLockCoordinationService coordinationService) {
-            super(coordinationService);
+        ResourceLock getResourceLock(Path gradleIdentityPath, Path projectIdentityPath) {
+            return getResourceLock(parallelEnabled ? projectIdentityPath : gradleIdentityPath);
         }
 
-        DefaultWorkerLease getResourceLock(final LeaseHolder parent, int workerId, final Thread ownerThread) {
-            String displayName = parent.getDisplayName() + '.' + workerId;
-            return getOrRegisterResourceLock(displayName, new ResourceLockProducer<DefaultWorkerLease>() {
+        ResourceLock getResourceLock(final Path lockPath) {
+            return getOrRegisterResourceLock(lockPath, new ResourceLockProducer<Path, ExclusiveAccessResourceLock>() {
                 @Override
-                public DefaultWorkerLease create(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
-                    return new DefaultWorkerLease(displayName, coordinationService, lockAction, unlockAction, parent, ownerThread);
+                public ExclusiveAccessResourceLock create(Path projectPath, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
+                    return new ExclusiveAccessResourceLock(lockPath.getPath(), coordinationService, lockAction, unlockAction);
                 }
             });
         }
