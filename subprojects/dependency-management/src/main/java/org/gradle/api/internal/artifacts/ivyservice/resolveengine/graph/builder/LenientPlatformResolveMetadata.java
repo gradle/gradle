@@ -102,7 +102,8 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
                     DefaultModuleComponentSelector.newSelector(module.getId(), moduleVersionIdentifier.getVersion()),
                     DefaultModuleComponentIdentifier.newId(module.getId(), moduleVersionIdentifier.getVersion()),
                     platformState.getSelectedPlatformId(),
-                    platformState.isForced()
+                    platformState.isForced(),
+                    true
                 ));
             }
             return new RealisedConfigurationMetadata(
