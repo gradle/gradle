@@ -94,9 +94,7 @@ public class PerformanceTest extends DistributionTest {
         this.scenarios = scenarios;
     }
 
-    @Input
-    @Nullable
-    @Optional
+    @Nullable @Optional @Input
     public String getScenarios() {
         return scenarios;
     }
@@ -106,9 +104,7 @@ public class PerformanceTest extends DistributionTest {
         this.baselines = baselines;
     }
 
-    @Input
-    @Nullable
-    @Optional
+    @Nullable @Optional @Input
     public String getBaselines() {
         return baselines;
     }
@@ -118,9 +114,7 @@ public class PerformanceTest extends DistributionTest {
         this.warmups = warmups;
     }
 
-    @Input
-    @Nullable
-    @Optional
+    @Nullable @Optional @Input
     public String getWarmups() {
         return warmups;
     }
@@ -130,9 +124,7 @@ public class PerformanceTest extends DistributionTest {
         this.runs = runs;
     }
 
-    @Input
-    @Nullable
-    @Optional
+    @Nullable @Optional @Input
     public String getRuns() {
         return runs;
     }
@@ -142,9 +134,7 @@ public class PerformanceTest extends DistributionTest {
         this.checks = checks;
     }
 
-    @Input
-    @Nullable
-    @Optional
+    @Nullable @Optional @Input
     public String getChecks() {
         return checks;
     }
@@ -154,9 +144,7 @@ public class PerformanceTest extends DistributionTest {
         this.channel = channel;
     }
 
-    @Input
-    @Nullable
-    @Optional
+    @Nullable @Optional @Input
     public String getChannel() {
         return channel;
     }
@@ -165,9 +153,7 @@ public class PerformanceTest extends DistributionTest {
         this.resultStoreClass = resultStoreClass;
     }
 
-    @Input
-    @Nullable
-    @Optional
+    @Nullable @Optional @Input
     public String getResultStoreClass() {
         return resultStoreClass;
     }
@@ -177,9 +163,7 @@ public class PerformanceTest extends DistributionTest {
         this.flamegraphs = "true".equals(flamegraphs);
     }
 
-    @Input
-    @Nullable
-    @Optional
+    @Nullable @Optional @Input
     public Boolean isFlamegraphs() {
         return flamegraphs;
     }
