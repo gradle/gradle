@@ -51,18 +51,18 @@ public class PerformanceTest extends DistributionTest {
     private String checks;
     private String channel;
     private String resultStoreClass = "org.gradle.performance.results.AllResultsStore";
-    private boolean flamegraphs;
+    private Boolean flamegraphs;
 
-    protected Map<String, String> databaseParameters = new HashMap<>();
+    private final Map<String, String> databaseParameters = new HashMap<>();
 
-    private PerformanceTestJvmArgumentsProvider argumentsProvider = new PerformanceTestJvmArgumentsProvider();
+    private final PerformanceTestJvmArgumentsProvider argumentsProvider = new PerformanceTestJvmArgumentsProvider();
 
     private File debugArtifactsDirectory = new File(getProject().getBuildDir(), getName());
 
     public PerformanceTest() {
         getJvmArgumentProviders().add(argumentsProvider);
 
-        getOutputs().doNotCacheIf("baselines containing version 'last' or 'nightly' which don't need to be cached", new Spec<Task>() {
+        Spec<Task> spec = new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task task) {
                 List<String> baseLineList = new ArrayList<>();
@@ -72,14 +72,26 @@ public class PerformanceTest extends DistributionTest {
                     }
                 }
 
-                return baseLineList.contains("last") || baseLineList.contains("nightly");
+                return !(baseLineList.contains("last") || baseLineList.contains("nightly"));
             }
-        });
+        };
+
+        getOutputs().cacheIf("baselines doesn't containing version 'last' or 'nightly'", spec);
+        getOutputs().upToDateWhen(spec);
+    }
+
+    public void setDebugArtifactsDirectory(File debugArtifactsDirectory) {
+        this.debugArtifactsDirectory = debugArtifactsDirectory;
     }
 
     @OutputDirectory
     public File getDebugArtifactsDirectory() {
         return debugArtifactsDirectory;
+    }
+
+    @Option(option = "scenarios", description = "A semicolon-separated list of performance test scenario ids to run.")
+    public void setScenarios(String scenarios) {
+        this.scenarios = scenarios;
     }
 
     @Input
@@ -89,11 +101,21 @@ public class PerformanceTest extends DistributionTest {
         return scenarios;
     }
 
+    @Option(option = "baselines", description = "A comma or semicolon separated list of Gradle versions to be used as baselines for comparing.")
+    public void setBaselines(@Nullable String baselines) {
+        this.baselines = baselines;
+    }
+
     @Input
     @Nullable
     @Optional
     public String getBaselines() {
         return baselines;
+    }
+
+    @Option(option = "warmups", description = "Number of warmups before measurements")
+    public void setWarmups(@Nullable String warmups) {
+        this.warmups = warmups;
     }
 
     @Input
@@ -103,11 +125,21 @@ public class PerformanceTest extends DistributionTest {
         return warmups;
     }
 
+    @Option(option = "runs", description = "Number of iterations of measurements")
+    public void setRuns(@Nullable String runs) {
+        this.runs = runs;
+    }
+
     @Input
     @Nullable
     @Optional
     public String getRuns() {
         return runs;
+    }
+
+    @Option(option = "checks", description = "Tells which regressions to check. One of [none, speed, all]")
+    public void setChecks(@Nullable String checks) {
+        this.checks = checks;
     }
 
     @Input
@@ -117,11 +149,20 @@ public class PerformanceTest extends DistributionTest {
         return checks;
     }
 
+    @Option(option = "channel", description = "Channel to use when running the performance test. By default, 'commits'.")
+    public void setChannel(@Nullable String channel) {
+        this.channel = channel;
+    }
+
     @Input
     @Nullable
     @Optional
     public String getChannel() {
         return channel;
+    }
+
+    public void setResultStoreClass(String resultStoreClass) {
+        this.resultStoreClass = resultStoreClass;
     }
 
     @Input
@@ -131,54 +172,21 @@ public class PerformanceTest extends DistributionTest {
         return resultStoreClass;
     }
 
-    @Input
-    @Nullable
-    @Optional
-    public boolean isFlamegraphs() {
-        return flamegraphs;
-    }
-
-    @Option(option = "scenarios", description = "A semicolon-separated list of performance test scenario ids to run.")
-    public void setScenarios(String scenarios) {
-        this.scenarios = scenarios;
-    }
-
-    @Option(option = "baselines", description = "A comma or semicolon separated list of Gradle versions to be used as baselines for comparing.")
-    public void setBaselines(@Nullable String baselines) {
-        this.baselines = baselines;
-    }
-
-    @Option(option = "warmups", description = "Number of warmups before measurements")
-    public void setWarmups(@Nullable String warmups) {
-        this.warmups = warmups;
-    }
-
-    @Option(option = "runs", description = "Number of iterations of measurements")
-    public void setRuns(@Nullable String runs) {
-        this.runs = runs;
-    }
-
-    @Option(option = "checks", description = "Tells which regressions to check. One of [none, speed, all]")
-    public void setChecks(@Nullable String checks) {
-        this.checks = checks;
-    }
-
-    @Option(option = "channel", description = "Channel to use when running the performance test. By default, 'commits'.")
-    public void setChannel(@Nullable String channel) {
-        this.channel = channel;
-    }
-
     @Option(option = "flamegraphs", description = "If set to 'true', activates flamegraphs and stores them into the 'flames' directory name under the debug artifacts directory.")
     public void setFlamegraphs(String flamegraphs) {
         this.flamegraphs = "true".equals(flamegraphs);
     }
 
-    public void setResultStoreClass(String resultStoreClass) {
-        this.resultStoreClass = resultStoreClass;
+    @Input
+    @Nullable
+    @Optional
+    public Boolean isFlamegraphs() {
+        return flamegraphs;
     }
 
-    public void setDebugArtifactsDirectory(File debugArtifactsDirectory) {
-        this.debugArtifactsDirectory = debugArtifactsDirectory;
+    @Input
+    public String getDatabaseUrl() {
+        return databaseParameters.get("org.gradle.performance.db.url");
     }
 
     public void addDatabaseParameters(Map<String, String> databaseConnectionParameters) {
