@@ -32,8 +32,7 @@ tasks.withType(AbstractArchiveTask).configureEach {
     destinationDir = rootProject.distsDir
 }
 
-def clean = tasks.named("clean")
-clean.configure {
+tasks.named("clean").configure {
     delete tasks.withType(AbstractArchiveTask)*.archivePath
 }
 
@@ -96,7 +95,6 @@ ext {
 }
 
 def allZip = tasks.register("allZip", Zip) {
-    mustRunAfter clean
     classifier = 'all'
     into(zipRootFolder) {
         with allDistImage
@@ -104,7 +102,6 @@ def allZip = tasks.register("allZip", Zip) {
 }
 
 def binZip = tasks.register("binZip", Zip) {
-    mustRunAfter clean
     classifier = 'bin'
     into(zipRootFolder) {
         with binWithDistDocImage
@@ -112,7 +109,6 @@ def binZip = tasks.register("binZip", Zip) {
 }
 
 def srcZip = tasks.register("srcZip", Zip) {
-    mustRunAfter clean
     classifier = 'src'
     into(zipRootFolder) {
         from(rootProject.file('gradlew')) {
