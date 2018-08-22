@@ -28,20 +28,18 @@ class ComponentMetaDataResolveState {
     private final VersionedComponentChooser versionedComponentChooser;
     private final ComponentOverrideMetadata componentOverrideMetadata;
     private final ModuleComponentIdentifier componentIdentifier;
-    private final boolean retryMissing;
 
     final ModuleComponentRepository repository;
 
     private boolean searchedLocally;
     private boolean searchedRemotely;
 
-    public ComponentMetaDataResolveState(ModuleComponentIdentifier componentIdentifier, ComponentOverrideMetadata componentOverrideMetadata, ModuleComponentRepository repository, VersionedComponentChooser versionedComponentChooser, boolean retryMissing) {
+    public ComponentMetaDataResolveState(ModuleComponentIdentifier componentIdentifier, ComponentOverrideMetadata componentOverrideMetadata, ModuleComponentRepository repository, VersionedComponentChooser versionedComponentChooser) {
         this.componentOverrideMetadata = componentOverrideMetadata;
         this.componentIdentifier = componentIdentifier;
         this.repository = repository;
         this.versionedComponentChooser = versionedComponentChooser;
         this.resolveResult = new DefaultBuildableModuleComponentMetaDataResolveResult();
-        this.retryMissing = retryMissing;
     }
 
     BuildableModuleComponentMetaDataResolveResult resolve() {
@@ -49,7 +47,7 @@ class ComponentMetaDataResolveState {
             searchedLocally = true;
             process(repository.getLocalAccess());
             if (resolveResult.hasResult()) {
-                if (resolveResult.isAuthoritative() || missingButShouldNotRetry()) {
+                if (resolveResult.isAuthoritative()) {
                     // Don't bother searching remotely
                     searchedRemotely = true;
                 }
@@ -65,10 +63,6 @@ class ComponentMetaDataResolveState {
         }
 
         throw new IllegalStateException();
-    }
-
-    private boolean missingButShouldNotRetry() {
-        return resolveResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Missing && !retryMissing;
     }
 
     protected void process(ModuleComponentRepositoryAccess moduleAccess) {

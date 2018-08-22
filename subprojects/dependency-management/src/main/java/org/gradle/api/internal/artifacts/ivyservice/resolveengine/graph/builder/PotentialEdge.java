@@ -57,7 +57,7 @@ class PotentialEdge {
         version.selectedBy(selector);
         // We need to check if the target version exists. For this, we have to try to get metadata for the aligned version.
         // If it's there, it means we can align, otherwise, we must NOT add the edge, or resolution would fail
-        ComponentResolveMetadata metadata = version.getMetadataWithoutRetryMissing();
+        ComponentResolveMetadata metadata = version.getMetadata();
         return new PotentialEdge(edge, toModuleVersionId, metadata, version);
     }
 
