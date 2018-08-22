@@ -22,16 +22,6 @@ dependencies {
     implementation("com.google.code.gson:gson:2.7")
     testImplementation("junit:junit:4.12")
     testImplementation("com.nhaarman:mockito-kotlin:1.6.0")
-    testImplementation("org.codehaus.groovy.modules.http-builder:http-builder:0.7.2") {
-        // Xerces on the runtime classpath is breaking some of our doc tasks
-        exclude(group = "xerces")
-    }
-}
-
-(tasks.getByName("test") as Test).apply {
-    doFirst {
-        systemProperty("test.classpath", classpath.asPath)
-    }
 }
 
 gradlePlugin {

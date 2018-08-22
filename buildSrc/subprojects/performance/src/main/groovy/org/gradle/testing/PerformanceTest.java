@@ -76,7 +76,7 @@ public class PerformanceTest extends DistributionTest {
             }
         };
 
-        getOutputs().cacheIf("baselines doesn't containing version 'last' or 'nightly'", spec);
+        getOutputs().cacheIf("baselines don't contain version 'last' or 'nightly'", spec);
         getOutputs().upToDateWhen(spec);
     }
 

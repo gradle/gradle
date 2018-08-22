@@ -52,8 +52,8 @@ abstract class AbstractIntegrationTest extends Specification {
         result = createAndConfigureGradleRunner(arguments).buildAndFail()
     }
 
-    protected GradleRunner createAndConfigureGradleRunner(File dir = projectDir, String... arguments) {
+    private GradleRunner createAndConfigureGradleRunner(String... arguments) {
         def argumentsToGradle = ['-s'] + Arrays.asList(arguments)
-        GradleRunner.create().withProjectDir(dir).withArguments(argumentsToGradle).withPluginClasspath()
+        GradleRunner.create().withProjectDir(projectDir).withArguments(argumentsToGradle).withPluginClasspath()
     }
 }

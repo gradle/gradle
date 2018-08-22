@@ -241,7 +241,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         create("performanceAdhocTest") {
             addDatabaseParameters(mapOf(PropertyNames.dbUrl to Config.adhocTestDbUrl))
             channel = "adhoc"
-            outputs.doNotCacheIf("Is adhoc performance test currently") { true }
+            outputs.doNotCacheIf("Is adhoc performance test") { true }
         }
     }
 
