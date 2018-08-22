@@ -109,7 +109,8 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
         }
 
         @Override
-        void generate(InitSettings settings) {
+        void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+            throw new UnsupportedOperationException()
         }
 
         @Override

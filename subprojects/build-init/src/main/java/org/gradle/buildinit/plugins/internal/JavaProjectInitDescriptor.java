@@ -49,16 +49,15 @@ public abstract class JavaProjectInitDescriptor extends LanguageLibraryProjectIn
     }
 
     @Override
-    public void generate(InitSettings settings) {
+    protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         Description desc = getDescription();
-        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), "build")
+        buildScriptBuilder
             .fileComment("This generated file contains a sample " + desc.projectType + " project to get you started.")
             .fileComment("For more details take a look at the " + desc.chapterName + " chapter in the Gradle")
             .fileComment("user guide available at " + documentationRegistry.getDocumentationFor(desc.userguideId))
             .plugin("Apply the " + desc.pluginName + " plugin to add support for " + desc.projectType, desc.pluginName);
         configureBuildScript(settings, buildScriptBuilder);
         addTestFramework(settings.getTestFramework(), buildScriptBuilder);
-        buildScriptBuilder.create().generate();
 
         TemplateOperation sourceTemplate = sourceTemplateOperation(settings);
         TemplateOperation testSourceTemplate = testTemplateOperation(settings);

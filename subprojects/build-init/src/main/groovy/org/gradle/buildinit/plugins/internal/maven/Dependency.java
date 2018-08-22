@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.buildinit.plugins.internal;
+package org.gradle.buildinit.plugins.internal.maven;
 
-import javax.annotation.Nullable;
+public class Dependency {
+    private final String configuration;
 
-public interface RepositoriesBuilder {
-    void mavenLocal(@Nullable String comment);
+    public Dependency(String configuration) {
+        this.configuration = configuration;
+    }
 
-    void maven(@Nullable String comment, String url);
-
-    void jcenter(@Nullable String comment);
+    public String getConfiguration() {
+        return configuration;
+    }
 }

@@ -15,7 +15,6 @@
  */
 
 
-
 package org.gradle.buildinit.plugins.internal.maven
 
 import groovy.util.slurpersupport.GPathResult
@@ -51,7 +50,7 @@ class Maven2Gradle {
         this.scriptBuilderFactory = scriptBuilderFactory
     }
 
-    def convert() {
+    void convert() {
         //For now we're building the effective POM XML from the model
         //and then we parse the XML using slurper.
         //This way we don't have to rewrite the Maven2Gradle just yet.
@@ -77,7 +76,7 @@ class Maven2Gradle {
 
             def allprojectsBuilder = scriptBuilder.allprojects()
             allprojectsBuilder.plugin(null, "maven")
-            coordinates(rootProject, allprojectsBuilder)
+            coordinatesForProject(rootProject, allprojectsBuilder)
 
             def subprojectsBuilder = scriptBuilder.subprojects()
             subprojectsBuilder.plugin(null, "java")
@@ -88,17 +87,16 @@ class Maven2Gradle {
             globalExclusions(rootProject, subprojectsBuilder)
 
             def commonDeps = dependencies.get(rootProject.artifactId.text())
+            declareDependencies(commonDeps, subprojectsBuilder)
             build = """
 subprojects {
-  ${commonDeps}
   ${testNg(commonDeps)}
 }
 """
             modules(allProjects, false).each { module ->
                 def id = module.artifactId.text()
-                String moduleDependencies = dependencies.get(id)
+                def moduleDependencies = dependencies.get(id)
                 boolean warPack = module.packaging.text().equals("war")
-                def hasDependencies = !(moduleDependencies == null || moduleDependencies.length() == 0)
                 def moduleScriptBuilder = scriptBuilderFactory.script(BuildInitDsl.GROOVY, projectDir(module).path + "/build")
 
                 if (module.groupId.text() != rootProject.groupId.text()) {
@@ -109,19 +107,16 @@ subprojects {
                     moduleScriptBuilder.plugin(null, "war")
                     if (dependentWars.any { project ->
                         project.groupId.text() == module.groupId.text() &&
-                                project.artifactId.text() == id
+                            project.artifactId.text() == id
                     }) {
                         moduleScriptBuilder.taskPropertyAssignment(null, "jar", "Jar", "enabled", true)
                     }
                 }
 
                 descriptionForProject(module, moduleScriptBuilder)
+                declareDependencies(moduleDependencies, moduleScriptBuilder)
 
                 def moduleBuild = ""
-                if (hasDependencies) {
-                    moduleBuild += moduleDependencies
-                }
-
                 moduleBuild += testNg(moduleDependencies)
 
                 def packageTests = packageTests(module);
@@ -136,9 +131,11 @@ subprojects {
             }
             //TODO deployment
         } else {//simple
+            generateSettings(this.effectivePom.artifactId, null);
+
             scriptBuilder.plugin(null, 'java')
             scriptBuilder.plugin(null, 'maven')
-            coordinates(this.effectivePom, scriptBuilder)
+            coordinatesForProject(this.effectivePom, scriptBuilder)
             descriptionForProject(this.effectivePom, scriptBuilder)
             compilerSettings(this.effectivePom, scriptBuilder)
             globalExclusions(this.effectivePom, scriptBuilder)
@@ -150,16 +147,15 @@ subprojects {
                 scriptBuilder.repositories().maven(null, it)
             }
 
-            build = ''
-            String dependencies = getDependencies(this.effectivePom, null)
-            build += dependencies
+            def dependencies = getDependencies(this.effectivePom, null)
+            declareDependencies(dependencies, scriptBuilder)
 
+            build = ''
             String packageTests = packageTests(this.effectivePom);
             if (packageTests) {
                 build += '//packaging tests'
                 build += packageTests;
             }
-            generateSettings(this.effectivePom.artifactId, null);
         }
 
         scriptBuilder.create().generate()
@@ -167,6 +163,17 @@ subprojects {
         def buildFile = new File(workingDir, "build.gradle")
         buildFile << build
         build
+    }
+
+    void declareDependencies(List<Dependency> dependencies, builder) {
+        def dependenciesBuilder = builder.dependencies()
+        dependencies.each { dep ->
+            if (dep instanceof ProjectDependency) {
+                dependenciesBuilder.projectDependency(dep.configuration, null, dep.projectPath)
+            } else {
+                dependenciesBuilder.dependency(dep.configuration, null, "$dep.group:$dep.module:$dep.version")
+            }
+        }
     }
 
     void globalExclusions(project, builder) {
@@ -229,7 +236,7 @@ subprojects {
         return new DefaultModuleIdentifier(groupId, artifactId)
     }
 
-    private void coordinates(project, builder) {
+    private void coordinatesForProject(project, builder) {
         builder.propertyAssignment(null, "group", project.groupId.text())
         builder.propertyAssignment(null, "version", project.version.text())
     }
@@ -258,7 +265,7 @@ subprojects {
         // No need to include plugin repos, as they won't be used by Gradle
     }
 
-    private String getDependencies(project, allProjects) {
+    private List<Dependency> getDependencies(project, allProjects) {
         // use GPath to navigate the object hierarchy and retrieve the collection of dependency nodes.
         def dependencies = project.dependencies.dependency
         def war = project.packaging == "war"
@@ -299,48 +306,41 @@ subprojects {
          * print function then checks the exclusions node to see if it exists, if
          * so it branches off, otherwise we call our simple print function
          */
-        def createGradleDep = { String scope, StringBuilder sb, mavenDependency ->
+        def createGradleDep = { String scope, List<Dependency> result, mavenDependency ->
             def projectDep = allProjects.find { prj ->
                 return prj.artifactId.text() == mavenDependency.artifactId.text() && prj.groupId.text() == mavenDependency.groupId.text()
             }
 
             if (projectDep) {
-                createProjectDependency(projectDep, sb, scope, allProjects)
+                createProjectDependency(projectDep, result, scope, allProjects)
             } else {
                 if (!war && scope == 'providedCompile') {
                     scope = 'compileOnly'
                 }
-                def exclusions = mavenDependency.exclusions.exclusion
-                if (exclusions.size() > 0) {
-                    createComplexDependency(mavenDependency, sb, scope)
-                } else {
-                    createBasicDependency(mavenDependency, sb, scope)
-                }
+                createExternalDependency(mavenDependency, result, scope)
             }
         }
 
-        StringBuilder build = new StringBuilder()
+        def result = []
         if (!compileTimeScope.isEmpty() || !runTimeScope.isEmpty() || !testScope.isEmpty() || !providedScope.isEmpty() || !systemScope.isEmpty()) {
-            build.append("dependencies {").append("\n")
 // for each collection, one at a time, we take each element and call our print function
             if (!compileTimeScope.isEmpty()) {
-                compileTimeScope.each() { createGradleDep("compile", build, it) }
+                compileTimeScope.each() { createGradleDep("compile", result, it) }
             }
             if (!runTimeScope.isEmpty()) {
-                runTimeScope.each() { createGradleDep("runtime", build, it) }
+                runTimeScope.each() { createGradleDep("runtime", result, it) }
             }
             if (!testScope.isEmpty()) {
-                testScope.each() { createGradleDep("testCompile", build, it) }
+                testScope.each() { createGradleDep("testCompile", result, it) }
             }
             if (!providedScope.isEmpty()) {
-                providedScope.each() { createGradleDep("providedCompile", build, it) }
+                providedScope.each() { createGradleDep("providedCompile", result, it) }
             }
             if (!systemScope.isEmpty()) {
-                systemScope.each() { createGradleDep("system", build, it) }
+                systemScope.each() { createGradleDep("system", result, it) }
             }
-            build.append("}\n")
         }
-        return build.toString();
+        return result
     }
 
     private void compilerSettings(project, builder) {
@@ -448,7 +448,7 @@ artifacts.archives packageTests
                 if (!workingDir.equals(projectDirectory)) {
                     moduleNames.add(fqn)
 
-                    // Calculate the path to the project, ignore if its the default value
+                    // Calculate the path to the project, ignore this path if it's the default value
                     def relativePath = RelativePathUtil.relativePath(workingDir, projectDirectory)
                     if (fqn != ":${relativePath}") {
                         artifactIdToDir[fqn] = relativePath
@@ -467,49 +467,22 @@ artifacts.archives packageTests
         scriptBuilder.create().generate()
     }
 
-/**
- * complex print statement does one extra task which is
- * iterate over each <exclusion> node and print out the artifact id.
- * It also provides review comments for the user.
- */
-    private def createComplexDependency(it, build, scope) {
-        build.append("    ${scope}(${contructSignature(it)}) {\n")
-        it.exclusions.exclusion.each() {
-            build.append("exclude(module: '${it.artifactId}')\n")
-        }
-        build.append("    }\n")
+    private def createExternalDependency(mavenDependency, List<Dependency> result, scope) {
+        def classifier = mavenDependency.classifier ? mavenDependency.classifier.text() : null
+        def exclusions = mavenDependency.exclusions.exclusion.collect { it.artifactId.text() }
+        result.add(new ExternalDependency(scope, mavenDependency.groupId.text(), mavenDependency.artifactId.text(), mavenDependency.version.text(), classifier, exclusions))
     }
 
-/**
- * Print out the basic form og gradle dependency
- */
-    private def createBasicDependency(mavenDependency, build, String scope) {
-        def classifier = contructSignature(mavenDependency)
-        build.append("    ${scope} ${classifier}\n")
-    }
-/**
- * Print out the basic form of gradle dependency
- */
-    private def createProjectDependency(projectDep, build, String scope, allProjects) {
+    private def createProjectDependency(projectDep, List<Dependency> result, String scope, allProjects) {
         if (projectDep.packaging.text() == 'war') {
             dependentWars += projectDep
         }
-        build.append("  ${scope} project('${fqn(projectDep, allProjects)}')\n")
+        result.add(new ProjectDependency(scope, fqn(projectDep, allProjects)))
     }
 
-/**
- * Construct and return the signature of a dependency, including its version and
- * classifier if it exists
- */
-    private def contructSignature(mavenDependency) {
-        def gradelDep = "group: '${mavenDependency.groupId.text()}', name: '${mavenDependency.artifactId.text()}', version:'${mavenDependency?.version?.text()}'"
-        def classifier = elementHasText(mavenDependency.classifier) ? gradelDep + ", classifier:'" + mavenDependency.classifier.text().trim() + "'" : gradelDep
-        return classifier
-    }
-
-/**
- * Check to see if the selected node has content
- */
+    /**
+     * Check to see if the selected node has content
+     */
     private boolean elementHasText(it) {
         return it.text().length() != 0
     }
