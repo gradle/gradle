@@ -77,11 +77,6 @@ public class PerformanceTest extends DistributionTest {
         });
     }
 
-    @Nested
-    public org.gradle.testing.PerformanceTest.PerformanceTestJvmArgumentsProvider getArgumentsProvider() {
-        return argumentsProvider;
-    }
-
     @OutputDirectory
     public File getDebugArtifactsDirectory() {
         return debugArtifactsDirectory;
