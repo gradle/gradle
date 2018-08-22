@@ -59,7 +59,32 @@ Removing tasks from the `TaskContainer` using the following methods has been dep
 - `clear()`
 - `Iterator#remove()` via `TaskContainer#iterator()`
 
-With the deprecation of every method removing a task, registering a callback when an object is removed is also deprecated (`whenObjectRemoved(Closure/Action)`)
+With the deprecation of every method for removing a task, registering a callback when an object is removed is also deprecated (`whenObjectRemoved(Closure/Action)`).
+
+### Replacing tasks 
+
+It is only safe to replace an unrealized tasks registered with the new Task API because this task has not been used by anything else.
+
+In the future, these behaviors will be treated as errors.
+
+#### Replacing tasks that may still be used by other tasks 
+
+Gradle now emits a deprecation warning when you attempt to replace a task that may have already been used by something else.  
+
+#### Replacing tasks with a task of an incompatible type
+
+Gradle now emits a deprecation warning when you attempt to replace a task with a type that's incompatible from the task being replaced. 
+
+#### Replacing a task that does not exist
+
+Gradle now emits a deprecation warning when you attempt to replace a task that does not already exist.
+
+### Removing dependencies from a task
+
+In the next major release (6.0), removing dependencies from a task will become an error.
+
+Gradle will emit a deprecation warning for code such as `foo.dependsOn.remove(bar)`.  Removing dependencies in this way is error-prone and relies on the internal implementation details of how different tasks are wired together.
+At the moment, we are not planning to provide an alternative. In most cases, task dependencies should be expressed via [task inputs](userguide/more_about_tasks.html#sec:task_inputs_outputs) instead of explicit `dependsOn` relationships.
 
 ### The property `append` on `JacocoTaskExtension` has been deprecated
 
@@ -99,6 +124,11 @@ See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-exec
 - Removed the methods `file` and `files` from `TaskDestroyables`.
 - Removed the property `styleSheet` from `ScalaDocOptions`.
 - Forbid passing `null` as configuration action to the methods `from` and `to` on `CopySpec`.
+- Removed the property `bootClasspath` from `CompileOptions`.
+- Registering invalid inputs or outputs via the runtime API is now an error.
+- Chaining calls to the methods `file`, `files`, and `dir` on `TaskInputs` is now impossible.
+- Chaining calls to the methods `file`, `files`, and `dir` on `TaskOutputs` is now impossible.
+- Chaining calls to the method `property` and `properties` on `TaskInputs` is now an error.
 
 ## External contributions
 
@@ -109,6 +139,7 @@ We would like to thank the following community members for making contributions 
 - [Ben McCann](https://github.com/benmccann) - Remove Play 2.2 support (gradle/gradle#3353)
 - [Björn Kautler](https://github.com/Vampire) - No Deprecated Configurations in Build Init (gradle/gradle#6208)
 - [Georg Friedrich](https://github.com/GFriedrich) - Base Java Library Distribution Plugin on Java Library Plugin (gradle/gradle#5695)
+- [Stefan M.](https://github.com/StefMa) — Include Kotlin DSL samples in Gradle wrapper user manual chapter (gradle/gradle#5923)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

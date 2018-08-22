@@ -28,7 +28,6 @@ import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Namer;
 import org.gradle.api.Rule;
 import org.gradle.api.UnknownDomainObjectException;
-import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.ElementSource;
@@ -350,7 +349,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Override
-    public NamedDomainObjectProvider<T> named(String name) throws UnknownTaskException {
+    public NamedDomainObjectProvider<T> named(String name) throws UnknownDomainObjectException {
         NamedDomainObjectProvider<? extends T> provider = findDomainObject(name);
         if (provider == null) {
             throw createNotFoundException(name);
@@ -857,7 +856,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     public abstract class AbstractDomainObjectCreatingProvider<I extends T> extends AbstractNamedDomainObjectProvider<I> {
         private I object;
         private RuntimeException failure;
-        private ImmutableActionSet<I> onCreate;
+        protected ImmutableActionSet<I> onCreate;
         private boolean removedBeforeRealized = false;
 
         public AbstractDomainObjectCreatingProvider(String name, Class<I> type, @Nullable Action<? super I> configureAction) {
@@ -874,6 +873,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             return findDomainObject(getName()) != null;
         }
 
+        @Override
         public void configure(final Action<? super I> action) {
             Action<? super I> wrappedAction = wrap(action);
             if (object != null) {
@@ -943,7 +943,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         protected boolean wasElementRemoved() {
-            return wasElementRemovedBeforeRealized() || wasElementRemovedAfterRealized();
+            // Check for presence as the domain object may have been replaced
+            return (wasElementRemovedBeforeRealized() || wasElementRemovedAfterRealized()) && !isPresent();
         }
 
         private boolean wasElementRemovedBeforeRealized() {

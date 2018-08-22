@@ -33,7 +33,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Version
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
+import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
@@ -265,14 +265,17 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     private static boolean isForced(DependencyMetadata dependencyMetadata) {
-        return dependencyMetadata instanceof LocalOriginDependencyMetadata
-            && ((LocalOriginDependencyMetadata) dependencyMetadata).isForce();
+        return dependencyMetadata instanceof ForcingDependencyMetadata
+            && ((ForcingDependencyMetadata) dependencyMetadata).isForce();
     }
 
     public void update(DependencyState dependencyState) {
         if (dependencyState != this.dependencyState) {
             DependencyMetadata dependency = dependencyState.getDependency();
-            forced |= isForced(dependency);
+            if (!forced && isForced(dependency)) {
+                forced = true;
+                resolved = false; // when a selector changes from non forced to forced, we must reselect
+            }
             addDependencyMetadata(dependency);
         }
     }

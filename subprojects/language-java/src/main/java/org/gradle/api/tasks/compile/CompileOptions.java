@@ -19,12 +19,10 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -40,7 +38,6 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -258,39 +255,6 @@ public class CompileOptions extends AbstractOptions {
      */
     public void setForkOptions(ForkOptions forkOptions) {
         this.forkOptions = forkOptions;
-    }
-
-    /**
-     * Returns the bootstrap classpath to be used for the compiler process. Defaults to {@code null}.
-     *
-     * @deprecated Use {@link #getBootstrapClasspath()} instead.
-     */
-    @Deprecated
-    @Internal
-    @SuppressWarnings("DeprecatedIsStillUsed")
-    public String getBootClasspath() {
-        DeprecationLogger.nagUserOfReplacedProperty("CompileOptions.bootClasspath", "CompileOptions.bootstrapClasspath");
-        return bootstrapClasspath == null ? null : bootstrapClasspath.getAsPath();
-    }
-
-    /**
-     * Sets the bootstrap classpath to be used for the compiler process. Defaults to {@code null}.
-     *
-     * @deprecated Use {@link #setBootstrapClasspath(FileCollection)} instead.
-     */
-    @Deprecated
-    public void setBootClasspath(String bootClasspath) {
-        DeprecationLogger.nagUserOfReplacedProperty("CompileOptions.bootClasspath", "CompileOptions.bootstrapClasspath");
-        if (bootClasspath == null) {
-            this.bootstrapClasspath = null;
-        } else {
-            String[] paths = StringUtils.split(bootClasspath, File.pathSeparatorChar);
-            List<File> files = Lists.newArrayListWithCapacity(paths.length);
-            for (String path : paths) {
-                files.add(new File(path));
-            }
-            this.bootstrapClasspath = ImmutableFileCollection.of(files);
-        }
     }
 
     /**

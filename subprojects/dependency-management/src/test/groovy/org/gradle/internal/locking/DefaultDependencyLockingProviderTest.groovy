@@ -46,13 +46,13 @@ class DefaultDependencyLockingProviderTest extends Specification {
         resolver.canResolveRelativePath() >> true
         resolver.resolve(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER) >> lockDir
         startParameter.getLockedDependenciesToUpdate() >> []
-        provider = new DefaultDependencyLockingProvider(resolver, startParameter)
+        provider = new DefaultDependencyLockingProvider(resolver, startParameter, true)
     }
 
     def 'can persist resolved modules as lockfile'() {
         given:
         startParameter.isWriteDependencyLocks() >> true
-        provider = new DefaultDependencyLockingProvider(resolver, startParameter)
+        provider = new DefaultDependencyLockingProvider(resolver, startParameter, true)
         def modules = [module('org', 'foo', '1.0'), module('org','bar','1.3')] as Set
 
         when:
@@ -82,7 +82,7 @@ org:foo:1.0
         startParameter = Mock()
         startParameter.isWriteDependencyLocks() >> true
         startParameter.getLockedDependenciesToUpdate() >> ['org:foo']
-        provider = new DefaultDependencyLockingProvider(resolver, startParameter)
+        provider = new DefaultDependencyLockingProvider(resolver, startParameter, true)
         lockDir.file('conf.lockfile') << """org:bar:1.3
 org:foo:1.0
 """
@@ -99,7 +99,7 @@ org:foo:1.0
         startParameter = Mock()
         startParameter.isWriteDependencyLocks() >> true
         startParameter.getLockedDependenciesToUpdate() >> ['org:*']
-        provider = new DefaultDependencyLockingProvider(resolver, startParameter)
+        provider = new DefaultDependencyLockingProvider(resolver, startParameter, true)
         lockDir.file('conf.lockfile') << """org:bar:1.3
 org:foo:1.0
 """
@@ -116,7 +116,7 @@ org:foo:1.0
         startParameter = Mock()
         startParameter.isWriteDependencyLocks() >> true
         startParameter.getLockedDependenciesToUpdate() >> ['org.*:foo']
-        provider = new DefaultDependencyLockingProvider(resolver, startParameter)
+        provider = new DefaultDependencyLockingProvider(resolver, startParameter, true)
         lockDir.file('conf.lockfile') << """org.bar:foo:1.3
 com:foo:1.0
 """

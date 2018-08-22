@@ -139,7 +139,7 @@ All enhanced objects in Gradle's domain model can hold extra user-defined proper
 [source.multi-language-sample,groovy]
 .build.gradle
 ----
-include::{samplesPath}/userguide/tutorial/extraProperties/build.gradle[tag=extraProperties]
+include::{samplesPath}/userguide/tutorial/extraProperties/groovy/build.gradle[tag=extraProperties]
 ----
 
 .Output of **`gradle -q printProperties`**

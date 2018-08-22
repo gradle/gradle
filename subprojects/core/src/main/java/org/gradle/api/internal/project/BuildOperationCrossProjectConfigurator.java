@@ -76,25 +76,25 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
         buildOperationExecutor.run(new CrossConfigureProjectBuildOperation(project) {
             @Override
             public void run(BuildOperationContext context) {
-                Actions.with(project, withCrossProjectConfigurationEnabled(configureAction));
+                Actions.with(project, withProjectMutationEnabled(configureAction));
             }
         });
     }
 
     @Override
-    public void assertCrossProjectConfigurationAllowed(String methodName, Project target) {
-        if (!isCrossConfigurationAllowed()) {
+    public void assertProjectMutationAllowed(String methodName, Object target) {
+        if (!isProjectMutationAllowed()) {
             throw createIllegalStateException(methodName, target);
         }
     }
 
     @Override
-    public <T> Action<T> withCrossProjectConfigurationDisabled(final Action<? super T> action) {
+    public <T> Action<T> withProjectMutationDisabled(final Action<? super T> action) {
         return executeActionWithMutation(action, false);
     }
 
     // TODO: Promote to CrossProjectConfigurator interface if this is needed elsewhere.
-    public <T> Action<T> withCrossProjectConfigurationEnabled(final Action<? super T> action) {
+    public <T> Action<T> withProjectMutationEnabled(final Action<? super T> action) {
         return executeActionWithMutation(action, true);
     }
 
@@ -113,11 +113,11 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
         };
     }
 
-    private IllegalStateException createIllegalStateException(String methodName, Project target) {
+    private IllegalStateException createIllegalStateException(String methodName, Object target) {
         return new IllegalCrossProjectConfigurationException(String.format("%s on %s cannot be executed in the current context.", methodName, target));
     }
 
-    private boolean isCrossConfigurationAllowed() {
+    private boolean isProjectMutationAllowed() {
         return allowExecution.get();
     }
 

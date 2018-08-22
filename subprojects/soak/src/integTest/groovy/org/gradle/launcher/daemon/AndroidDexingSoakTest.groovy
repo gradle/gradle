@@ -26,8 +26,8 @@ import org.junit.experimental.categories.Category
 @Category(SoakTest)
 @Requires(TestPrecondition.NOT_WINDOWS)
 class AndroidDexingSoakTest extends DaemonIntegrationSpec {
-    public static final ANDROID_PLUGIN_VERSION = '2.3.1'
-    public static final ANDROID_BUILD_TOOLS_VERSION = '25.0.0'
+    public static final ANDROID_PLUGIN_VERSION = '3.1.4'
+    public static final ANDROID_BUILD_TOOLS_VERSION = '27.0.3'
 
     int buildCount
     int maxRatio
@@ -82,12 +82,11 @@ class AndroidDexingSoakTest extends DaemonIntegrationSpec {
             file("inputs").deleteDir()
 
             executer.withStackTraceChecksDisabled()
-            executer.expectDeprecationWarnings(4)
             executer.withBuildJvmOpts("-Xmx2560m", "-D${HeapProportionalCacheSizer.CACHE_RESERVED_SYSTEM_PROPERTY}=1536")
             args('-x', 'lint')
-            succeeds('clean', 'transformClassesWithDexForRelease')
-            result.assertTaskNotSkipped(':transformClassesWithDexForRelease')
-            String runTime = file("build/runTimes/transformClassesWithDexForRelease").text
+            succeeds('clean', 'transformClassesWithDexBuilderForRelease')
+            result.assertTaskNotSkipped(':transformClassesWithDexBuilderForRelease')
+            String runTime = file("build/runTimes/transformClassesWithDexBuilderForRelease").text
             runTimes.add Integer.valueOf(runTime)
         }
 
@@ -191,6 +190,7 @@ class AndroidDexingSoakTest extends DaemonIntegrationSpec {
         buildFile << """
             buildscript {
                 ${jcenterRepository()}
+                ${googleRepository()}
 
 
                 dependencies {

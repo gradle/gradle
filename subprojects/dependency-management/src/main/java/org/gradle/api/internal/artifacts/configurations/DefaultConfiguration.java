@@ -538,9 +538,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 markParentsObserved(requestedState);
                 markReferencedProjectConfigurationsObserved(requestedState);
 
-                dependencyResolutionListeners.getSource().afterResolve(incoming);
-                // Discard listeners
-                dependencyResolutionListeners.removeAll();
+                if (!cachedResolverResults.hasError()) {
+                    dependencyResolutionListeners.getSource().afterResolve(incoming);
+                    // Discard listeners
+                    dependencyResolutionListeners.removeAll();
+                }
                 captureBuildOperationResult(context, incoming);
             }
 

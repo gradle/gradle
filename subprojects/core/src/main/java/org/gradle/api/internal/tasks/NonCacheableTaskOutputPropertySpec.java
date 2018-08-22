@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.FileNormalizer;
 
 @NonNullApi
-public class NonCacheableTaskOutputPropertySpec extends TaskOutputsDeprecationSupport implements TaskOutputFilePropertySpec {
+public class NonCacheableTaskOutputPropertySpec implements TaskOutputFilePropertySpec {
 
     private final CompositeTaskOutputPropertySpec parent;
     private final int index;

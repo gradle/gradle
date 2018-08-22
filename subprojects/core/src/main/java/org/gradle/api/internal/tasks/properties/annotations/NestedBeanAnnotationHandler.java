@@ -30,8 +30,6 @@ import org.gradle.internal.UncheckedException;
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 
-import static org.gradle.api.internal.tasks.TaskValidationContext.Severity.ERROR;
-
 public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
 
     @Override
@@ -92,7 +90,7 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
 
         @Override
         public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
-            context.recordValidationMessage(ERROR, String.format("No value has been specified for property '%s'.", propertyName));
+            context.recordValidationMessage(String.format("No value has been specified for property '%s'.", propertyName));
         }
 
     }

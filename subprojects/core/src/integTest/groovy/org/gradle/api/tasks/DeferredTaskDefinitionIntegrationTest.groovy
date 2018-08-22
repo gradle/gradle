@@ -561,6 +561,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
+        executer.expectDeprecationWarning()
         succeeds "help"
 
         result.output.count("Create :myTask") == 1
@@ -587,6 +588,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
+        executer.expectDeprecationWarning()
         succeeds "help"
 
         result.output.count("Create :myTask") == 1
@@ -612,6 +614,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
+        executer.expectDeprecationWarning()
         succeeds "help"
 
         result.output.count("Create :myTask") == 2
@@ -637,6 +640,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
+        executer.expectDeprecationWarning()
         succeeds "help"
 
         result.output.count("Create :myTask") == 2
@@ -893,11 +897,32 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private static final def INVALID_CALL_FROM_LAZY_CONFIGURATION = [
-        ["Project#afterEvaluate(Closure)"  , "afterEvaluate {}"],
-        ["Project#afterEvaluate(Action)"   , "afterEvaluate new Action<Project>() { void execute(Project p) {} }"],
-        ["Project#beforeEvaluate(Closure)" , "beforeEvaluate {}"],
-        ["Project#beforeEvaluate(Action)"  , "beforeEvaluate new Action<Project>() { void execute(Project p) {} }"],
+        ["Project#afterEvaluate(Closure)"   , "afterEvaluate {}"],
+        ["Project#afterEvaluate(Action)"    , "afterEvaluate new Action<Project>() { void execute(Project p) {} }"],
+        ["Project#beforeEvaluate(Closure)"  , "beforeEvaluate {}"],
+        ["Project#beforeEvaluate(Action)"   , "beforeEvaluate new Action<Project>() { void execute(Project p) {} }"],
+        ["Gradle#beforeProject(Closure)"    , "gradle.beforeProject {}"],
+        ["Gradle#beforeProject(Action)"     , "gradle.beforeProject new Action<Project>() { void execute(Project p) {} }"],
+        ["Gradle#afterProject(Closure)"     , "gradle.afterProject {}"],
+        ["Gradle#afterProject(Action)"      , "gradle.afterProject new Action<Project>() { void execute(Project p) {} }"],
+        ["Gradle#projectsLoaded(Closure)"   , "gradle.projectsLoaded {}"],
+        ["Gradle#projectsLoaded(Action)"    , "gradle.projectsLoaded new Action<Gradle>() { void execute(Gradle g) {} }"],
+        ["Gradle#projectsEvaluated(Closure)", "gradle.projectsEvaluated {}"],
+        ["Gradle#projectsEvaluated(Action)" , "gradle.projectsEvaluated new Action<Gradle>() { void execute(Gradle g) {} }"]
     ]
+
+    String mutationExceptionFor(description) {
+        def target
+        if (description.startsWith("Project")) {
+            target = "root project 'root'"
+        } else if (description.startsWith("Gradle")) {
+            target = "build 'root'"
+        } else {
+            throw new IllegalArgumentException("Can't determine the exception text for '${description}'")
+        }
+
+        return "$description on ${target} cannot be executed in the current context."
+    }
 
     @Unroll
     def "cannot execute #description during lazy task creation action execution"() {
@@ -911,7 +936,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "foo"
         failure.assertHasCause("Could not create task ':foo'.")
-        failure.assertHasCause("$description on root project 'root' cannot be executed in the current context.")
+        failure.assertHasCause(mutationExceptionFor(description))
 
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
@@ -945,7 +970,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "foo"
         failure.assertHasCause("Could not create task ':foo'.")
-        failure.assertHasCause("$description on root project 'root' cannot be executed in the current context.")
+        failure.assertHasCause(mutationExceptionFor(description))
 
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
@@ -982,7 +1007,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "foo"
         failure.assertHasCause("Could not create task ':other:foo'.")
-        failure.assertHasCause("$description on root project 'root' cannot be executed in the current context.")
+        failure.assertHasCause(mutationExceptionFor(description))
 
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
@@ -1020,7 +1045,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "foo"
         failure.assertHasCause("Could not create task ':other:foo'.")
-        failure.assertHasCause("$description on root project 'root' cannot be executed in the current context.")
+        failure.assertHasCause(mutationExceptionFor(description))
 
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
