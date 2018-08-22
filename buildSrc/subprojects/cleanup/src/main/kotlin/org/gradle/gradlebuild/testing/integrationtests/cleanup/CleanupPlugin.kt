@@ -33,12 +33,17 @@ class CleanupPlugin : Plugin<Project> {
 
         if (BuildEnvironment.isCiServer) {
             tasks {
-                getByName("clean") { // TODO: See https://github.com/gradle/gradle-native/issues/718
+                val cleanTask = getByName("clean") { // TODO: See https://github.com/gradle/gradle-native/issues/718
                     dependsOn(killExistingProcessesStartedByGradle)
                 }
                 subprojects {
                     this.tasks.configureEach {
                         mustRunAfter(killExistingProcessesStartedByGradle)
+
+                        // Workaround for https://github.com/gradle/gradle/issues/2488
+                        if (this != cleanTask) {
+                            mustRunAfter(cleanTask)
+                        }
                     }
                 }
             }
