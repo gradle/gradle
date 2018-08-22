@@ -259,9 +259,6 @@ public class DefaultListenerManager implements ListenerManager {
         }
 
         private void doStartNotification(List<Dispatch<MethodInvocation>> result) {
-            if (result.isEmpty()) {
-                return;
-            }
             for (Dispatch<MethodInvocation> dispatch : result) {
                 if (dispatch instanceof ListenerDetails) {
                     ListenerDetails listenerDetails = (ListenerDetails) dispatch;
@@ -313,12 +310,10 @@ public class DefaultListenerManager implements ListenerManager {
         }
 
         private void endNotification(List<Dispatch<MethodInvocation>> dispatchers) {
-            if (!dispatchers.isEmpty()) {
-                for (Dispatch<MethodInvocation> dispatcher : dispatchers) {
-                    if (dispatcher instanceof ListenerDetails) {
-                        ListenerDetails listener = (ListenerDetails) dispatcher;
-                        listener.endNotification();
-                    }
+            for (Dispatch<MethodInvocation> dispatcher : dispatchers) {
+                if (dispatcher instanceof ListenerDetails) {
+                    ListenerDetails listener = (ListenerDetails) dispatcher;
+                    listener.endNotification();
                 }
             }
             try {
