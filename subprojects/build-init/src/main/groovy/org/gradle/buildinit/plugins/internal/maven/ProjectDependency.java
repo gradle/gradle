@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.buildinit.plugins.internal;
+package org.gradle.buildinit.plugins.internal.maven;
 
-import javax.annotation.Nullable;
+public class ProjectDependency extends Dependency {
+    private final String projectPath;
 
-public interface RepositoriesBuilder {
-    void mavenLocal(@Nullable String comment);
+    public ProjectDependency(String configuration, String projectPath) {
+        super(configuration);
+        this.projectPath = projectPath;
+    }
 
-    void maven(@Nullable String comment, String url);
-
-    void jcenter(@Nullable String comment);
+    public String getProjectPath() {
+        return projectPath;
+    }
 }

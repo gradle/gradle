@@ -221,6 +221,7 @@ Root project 'webinar-parent'
         run 'clean', 'build'
 
         then:
+        file("build.gradle").text.contains("compileOnly 'junit:junit:4.10'")
         file("build/libs/myThing-0.0.1-SNAPSHOT.jar").exists()
     }
 

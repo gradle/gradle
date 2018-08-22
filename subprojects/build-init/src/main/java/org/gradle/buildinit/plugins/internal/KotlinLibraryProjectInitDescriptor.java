@@ -49,16 +49,14 @@ public class KotlinLibraryProjectInitDescriptor extends LanguageLibraryProjectIn
     }
 
     @Override
-    public void generate(InitSettings settings) {
+    protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         String kotlinVersion = libraryVersionProvider.getVersion("kotlin");
-        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), "build")
+        buildScriptBuilder
             .fileComment("This generated file contains a sample Kotlin library project to get you started.")
             .plugin("Apply the Kotlin JVM plugin to add support for Kotlin on the JVM", "org.jetbrains.kotlin.jvm", kotlinVersion)
             .implementationDependency("Use the Kotlin JDK 8 standard library", "org.jetbrains.kotlin:kotlin-stdlib-jdk8")
             .testImplementationDependency("Use the Kotlin test library", "org.jetbrains.kotlin:kotlin-test")
             .testImplementationDependency("Use the Kotlin JUnit integration", "org.jetbrains.kotlin:kotlin-test-junit");
-
-        buildScriptBuilder.create().generate();
 
         TemplateOperation kotlinSourceTemplate = fromClazzTemplate("kotlinlibrary/Library.kt.template", settings, "main");
         TemplateOperation kotlinTestTemplate = fromClazzTemplate("kotlinlibrary/LibraryTest.kt.template", settings, "test");

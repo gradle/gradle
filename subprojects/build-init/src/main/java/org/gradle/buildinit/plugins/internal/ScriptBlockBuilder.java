@@ -16,23 +16,25 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import javax.annotation.Nullable;
+
 public interface ScriptBlockBuilder {
     /**
      * Adds a property assignment statement to this block
      */
-    void propertyAssignment(String comment, String propertyName, Object propertyValue);
+    void propertyAssignment(@Nullable String comment, String propertyName, Object propertyValue);
 
     /**
      * Adds a method invocation statement to this block
      */
-    void methodInvocation(String comment, String methodName, Object... methodArgs);
+    void methodInvocation(@Nullable String comment, String methodName, Object... methodArgs);
 
     /**
      * Adds a block statement to this block.
      *
      * @return The body of the block, to which further statements can be added.
      */
-    ScriptBlockBuilder block(String comment, String methodName);
+    ScriptBlockBuilder block(@Nullable String comment, String methodName);
 
     /**
      * Returns a property expression that can be used as a method argument or property assignment value

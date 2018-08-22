@@ -18,10 +18,8 @@ package org.gradle.buildinit.plugins.internal;
 
 import javax.annotation.Nullable;
 
-public interface RepositoriesBuilder {
-    void mavenLocal(@Nullable String comment);
+public interface DependenciesBuilder {
+    void projectDependency(String configuration, @Nullable String comment, String projectPath);
 
-    void maven(@Nullable String comment, String url);
-
-    void jcenter(@Nullable String comment);
+    void dependency(String configuration, @Nullable String comment, String... dependencies);
 }

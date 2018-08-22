@@ -52,7 +52,6 @@ public class BuildScriptBuilder {
     private final String fileNameWithoutExtension;
 
     private final List<String> headerLines = new ArrayList<String>();
-    private final ListMultimap<String, DepSpec> dependencies = MultimapBuilder.linkedHashKeys().arrayListValues().build();
     private final TopLevelBlock block = new TopLevelBlock();
 
     public BuildScriptBuilder(BuildInitDsl dsl, PathToFileResolver fileResolver, String fileNameWithoutExtension) {
@@ -65,8 +64,12 @@ public class BuildScriptBuilder {
      * Adds a comment to the header of the file.
      */
     public BuildScriptBuilder fileComment(String comment) {
-        headerLines.addAll(Splitter.on("\n").splitToList(comment));
+        headerLines.addAll(splitComment(comment));
         return this;
+    }
+
+    private static List<String> splitComment(String comment) {
+        return Splitter.on("\n").splitToList(comment.trim());
     }
 
     /**
@@ -74,7 +77,7 @@ public class BuildScriptBuilder {
      *
      * @param comment A description of why the plugin is required
      */
-    public BuildScriptBuilder plugin(String comment, String pluginId) {
+    public BuildScriptBuilder plugin(@Nullable String comment, String pluginId) {
         block.plugins.add(new PluginSpec(pluginId, null, comment));
         return this;
     }
@@ -84,50 +87,50 @@ public class BuildScriptBuilder {
      *
      * @param comment A description of why the plugin is required
      */
-    public BuildScriptBuilder plugin(String comment, String pluginId, String version) {
+    public BuildScriptBuilder plugin(@Nullable String comment, String pluginId, String version) {
         block.plugins.add(new PluginSpec(pluginId, version, comment));
         return this;
     }
 
     /**
-     * Adds one or more dependency to the specified configuration
+     * Adds one or more external dependencies to the specified configuration.
      *
      * @param configuration The configuration where the dependency should be added
      * @param comment A description of why the dependencies are required
-     * @param dependencies the dependencies
+     * @param dependencies the dependencies, in string notation
      */
-    public BuildScriptBuilder dependency(String configuration, String comment, String... dependencies) {
-        this.dependencies.put(configuration, new DepSpec(comment, Arrays.asList(dependencies)));
+    public BuildScriptBuilder dependency(String configuration, @Nullable String comment, String... dependencies) {
+        this.block.dependencies.dependency(configuration, comment, dependencies);
         return this;
     }
 
     /**
-     * Adds one or more implementation dependencies.
+     * Adds one or more external implementation dependencies.
      *
      * @param comment A description of why the dependencies are required
-     * @param dependencies The dependencies
+     * @param dependencies The dependencies, in string notation
      */
-    public BuildScriptBuilder implementationDependency(String comment, String... dependencies) {
+    public BuildScriptBuilder implementationDependency(@Nullable String comment, String... dependencies) {
         return dependency("implementation", comment, dependencies);
     }
 
     /**
-     * Adds one or more test implementation dependencies.
+     * Adds one or more external test implementation dependencies.
      *
      * @param comment A description of why the dependencies are required
-     * @param dependencies The dependencies
+     * @param dependencies The dependencies, in string notation
      */
-    public BuildScriptBuilder testImplementationDependency(String comment, String... dependencies) {
+    public BuildScriptBuilder testImplementationDependency(@Nullable String comment, String... dependencies) {
         return dependency("testImplementation", comment, dependencies);
     }
 
     /**
-     * Adds one or more test runtime only dependencies.
+     * Adds one or more external test runtime only dependencies.
      *
      * @param comment A description of why the dependencies are required
-     * @param dependencies The dependencies
+     * @param dependencies The dependencies, in string notation
      */
-    public BuildScriptBuilder testRuntimeOnlyDependency(String comment, String... dependencies) {
+    public BuildScriptBuilder testRuntimeOnlyDependency(@Nullable String comment, String... dependencies) {
         return dependency("testRuntimeOnly", comment, dependencies);
     }
 
@@ -178,6 +181,13 @@ public class BuildScriptBuilder {
     }
 
     /**
+     * Allows dependencies to be added to this script.
+     */
+    DependenciesBuilder dependencies() {
+        return block.dependencies;
+    }
+
+    /**
      * Allows statements to be added to the allprojects block.
      */
     public CrossConfigurationScriptBlockBuilder allprojects() {
@@ -194,7 +204,7 @@ public class BuildScriptBuilder {
     /**
      * Adds a top level method invocation statement.
      */
-    public BuildScriptBuilder methodInvocation(String comment, String methodName, Object... methodArgs) {
+    public BuildScriptBuilder methodInvocation(@Nullable String comment, String methodName, Object... methodArgs) {
         return configuration(
             NULL_SELECTOR,
             new MethodInvocation(comment, new MethodInvocationValue(methodName, expressionValues(methodArgs))));
@@ -203,7 +213,7 @@ public class BuildScriptBuilder {
     /**
      * Adds a top level property assignment statement.
      */
-    public BuildScriptBuilder propertyAssignment(String comment, String propertyName, Object propertyValue) {
+    public BuildScriptBuilder propertyAssignment(@Nullable String comment, String propertyName, Object propertyValue) {
         return configuration(
             NULL_SELECTOR,
             new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
@@ -214,7 +224,7 @@ public class BuildScriptBuilder {
      *
      * @return The body of the block, to which further statements can be added.
      */
-    public ScriptBlockBuilder block(String comment, String methodName) {
+    public ScriptBlockBuilder block(@Nullable String comment, String methodName) {
         ScriptBlock scriptBlock = new ScriptBlock(comment, methodName);
         configuration(NULL_SELECTOR, scriptBlock);
         return scriptBlock.body;
@@ -223,7 +233,7 @@ public class BuildScriptBuilder {
     /**
      * Adds a method invocation statement to the configuration of a particular task.
      */
-    public BuildScriptBuilder taskMethodInvocation(String comment, String taskName, String taskType, String methodName) {
+    public BuildScriptBuilder taskMethodInvocation(@Nullable String comment, String taskName, String taskType, String methodName) {
         return configuration(
             new TaskSelector(taskName, taskType),
             new MethodInvocation(comment, new MethodInvocationValue(methodName)));
@@ -232,7 +242,7 @@ public class BuildScriptBuilder {
     /**
      * Adds a property assignment statement to the configuration of a particular task.
      */
-    public BuildScriptBuilder taskPropertyAssignment(String comment, String taskName, String taskType, String propertyName, Object propertyValue) {
+    public BuildScriptBuilder taskPropertyAssignment(@Nullable String comment, String taskName, String taskType, String propertyName, Object propertyValue) {
         return configuration(
             new TaskSelector(taskName, taskType),
             new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
@@ -241,7 +251,7 @@ public class BuildScriptBuilder {
     /**
      * Adds a property assignment statement to the configuration of all tasks of a particular type.
      */
-    public BuildScriptBuilder taskPropertyAssignment(String comment, String taskType, String propertyName, Object propertyValue) {
+    public BuildScriptBuilder taskPropertyAssignment(@Nullable String comment, String taskType, String propertyName, Object propertyValue) {
         return configuration(
             new TaskTypeSelector(taskType),
             new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
@@ -250,7 +260,7 @@ public class BuildScriptBuilder {
     /**
      * Adds a property assignment statement to the configuration of a particular convention.
      */
-    public BuildScriptBuilder conventionPropertyAssignment(String comment, String conventionName, String propertyName, Object propertyValue) {
+    public BuildScriptBuilder conventionPropertyAssignment(@Nullable String comment, String conventionName, String propertyName, Object propertyValue) {
         return configuration(
             new ConventionSelector(conventionName),
             new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
@@ -272,10 +282,6 @@ public class BuildScriptBuilder {
                         PrettyPrinter printer = prettyPrinterFor(dsl, writer);
                         printer.printFileHeader(headerLines);
                         block.writeBodyTo(printer);
-                        if (!dependencies.isEmpty()) {
-                            printer.printDependencies(dependencies);
-                            printer.printRepositories();
-                        }
                     } finally {
                         writer.close();
                     }
@@ -433,14 +439,37 @@ public class BuildScriptBuilder {
         }
     }
 
-    private static class DepSpec {
-
-        final String comment;
+    private static class DepSpec extends AbstractStatement {
+        final String configuration;
         final List<String> deps;
 
-        DepSpec(String comment, List<String> deps) {
-            this.comment = comment;
+        DepSpec(String configuration, String comment, List<String> deps) {
+            super(comment);
+            this.configuration = configuration;
             this.deps = deps;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            for (String dep : deps) {
+                printer.println(printer.syntax.dependencySpec(configuration, printer.syntax.string(dep)));
+            }
+        }
+    }
+
+    private static class ProjectDepSpec extends AbstractStatement {
+        private final String configuration;
+        private final String projectPath;
+
+        ProjectDepSpec(String configuration, String comment, String projectPath) {
+            super(comment);
+            this.configuration = configuration;
+            this.projectPath = projectPath;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.println(printer.syntax.dependencySpec(configuration, "project(" + printer.syntax.string(projectPath) + ")"));
         }
     }
 
@@ -746,8 +775,52 @@ public class BuildScriptBuilder {
         }
 
         @Override
+        public void jcenter(@Nullable String comment) {
+            add(new MethodInvocation(comment, new MethodInvocationValue("jcenter")));
+        }
+
+        @Override
         public void maven(String comment, String url) {
             add(new MavenRepoExpression(comment, url));
+        }
+    }
+
+    private static class DependenciesBlock implements DependenciesBuilder, Statement, BlockBody {
+        final ListMultimap<String, Statement> dependencies = MultimapBuilder.linkedHashKeys().arrayListValues().build();
+
+        @Override
+        public void dependency(String configuration, @Nullable String comment, String... dependencies) {
+            this.dependencies.put(configuration, new DepSpec(configuration, comment, Arrays.asList(dependencies)));
+        }
+
+        @Override
+        public void projectDependency(String configuration, @Nullable String comment, String projectPath) {
+            this.dependencies.put(configuration, new ProjectDepSpec(configuration, comment, projectPath));
+        }
+
+        @Nullable
+        @Override
+        public String getComment() {
+            return null;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return dependencies.isEmpty();
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.printBlock("dependencies", this);
+        }
+
+        @Override
+        public void writeBodyTo(PrettyPrinter printer) {
+            for (String config : dependencies.keySet()) {
+                for (Statement depSpec : dependencies.get(config)) {
+                    printer.printStatement(depSpec);
+                }
+            }
         }
     }
 
@@ -808,6 +881,7 @@ public class BuildScriptBuilder {
     private class CrossConfigBlock extends ScriptBlockImpl implements CrossConfigurationScriptBlockBuilder, Statement {
         final String blockName;
         final RepositoriesBlock repositories = new RepositoriesBlock();
+        final DependenciesBlock dependencies = new DependenciesBlock();
         final List<Statement> plugins = new ArrayList<Statement>();
         final List<Statement> tasks = new ArrayList<Statement>();
 
@@ -818,6 +892,11 @@ public class BuildScriptBuilder {
         @Override
         public RepositoriesBuilder repositories() {
             return repositories;
+        }
+
+        @Override
+        public DependenciesBuilder dependencies() {
+            return dependencies;
         }
 
         @Override
@@ -839,7 +918,7 @@ public class BuildScriptBuilder {
 
         @Override
         public boolean isEmpty() {
-            return super.isEmpty() && repositories.isEmpty() && plugins.isEmpty() && tasks.isEmpty();
+            return super.isEmpty() && repositories.isEmpty() && plugins.isEmpty() && tasks.isEmpty() && dependencies.isEmpty();
         }
 
         @Nullable
@@ -857,6 +936,7 @@ public class BuildScriptBuilder {
         public void writeBodyTo(PrettyPrinter printer) {
             printer.printStatements(plugins);
             printer.printStatement(repositories);
+            printer.printStatement(dependencies);
             printer.printStatements(tasks);
             super.writeBodyTo(printer);
         }
@@ -865,6 +945,7 @@ public class BuildScriptBuilder {
     private class TopLevelBlock extends ScriptBlockImpl {
         final BlockStatement plugins = new BlockStatement("plugins");
         final RepositoriesBlock repositories = new RepositoriesBlock();
+        final DependenciesBlock dependencies = new DependenciesBlock();
         final CrossConfigBlock allprojects = new CrossConfigBlock("allprojects");
         final CrossConfigBlock subprojects = new CrossConfigBlock("subprojects");
 
@@ -874,6 +955,7 @@ public class BuildScriptBuilder {
             printer.printStatement(allprojects);
             printer.printStatement(subprojects);
             printer.printStatement(repositories);
+            printer.printStatement(dependencies);
             super.writeBodyTo(printer);
         }
     }
@@ -956,33 +1038,6 @@ public class BuildScriptBuilder {
                 }
             }
             println(" */");
-        }
-
-        public void printRepositories() {
-            println();
-            println("// In this section you declare where to find the dependencies of your project");
-            println("repositories {");
-            println("    // Use jcenter for resolving your dependencies.");
-            println("    // You can declare any Maven/Ivy/file repository here.");
-            println("    jcenter()");
-            println("}");
-        }
-
-        public void printDependencies(ListMultimap<String, DepSpec> dependencies) {
-            println();
-            println("dependencies {");
-            firstExpression = true;
-            for (String config : dependencies.keySet()) {
-                for (DepSpec depSpec : dependencies.get(config)) {
-                    printNewLineExceptTheFirstTime();
-                    println("    // " + depSpec.comment);
-                    for (String dep : depSpec.deps) {
-                        println("    " + dependencySpec(config, dep));
-                    }
-                }
-            }
-            println("}");
-            firstExpression = false;
         }
 
         public void printConfigSpecs(List<ConfigSpec> configSpecs) {
@@ -1121,13 +1176,11 @@ public class BuildScriptBuilder {
             }
             printNewLineExceptTheFirstTime();
             if (statement.getComment() != null) {
-                println("// " + statement.getComment());
+                for (String line : splitComment(statement.getComment())) {
+                    println("// " + line);
+                }
             }
             statement.writeCodeTo(this);
-        }
-
-        private String dependencySpec(String config, String notation) {
-            return syntax.dependencySpec(config, notation);
         }
 
         private void println(String s) {
@@ -1214,7 +1267,7 @@ public class BuildScriptBuilder {
 
         @Override
         public String dependencySpec(String config, String notation) {
-            return config + "(\"" + notation + "\")";
+            return config + "(" + notation + ")";
         }
 
         @Override
@@ -1316,7 +1369,7 @@ public class BuildScriptBuilder {
 
         @Override
         public String dependencySpec(String config, String notation) {
-            return config + " '" + notation + "'";
+            return config + " " + notation;
         }
 
         @Override

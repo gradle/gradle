@@ -49,9 +49,9 @@ public class KotlinApplicationProjectInitDescriptor extends LanguageLibraryProje
     }
 
     @Override
-    public void generate(InitSettings settings) {
+    protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         String kotlinVersion = libraryVersionProvider.getVersion("kotlin");
-        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), "build")
+        buildScriptBuilder
             .fileComment("This generated file contains a sample Kotlin application project to get you started.")
             .plugin("Apply the Kotlin JVM plugin to add support for Kotlin on the JVM", "org.jetbrains.kotlin.jvm", kotlinVersion)
             .plugin("Apply the application to add support for building a CLI application", "application")
@@ -61,8 +61,6 @@ public class KotlinApplicationProjectInitDescriptor extends LanguageLibraryProje
             .conventionPropertyAssignment(
                 "Define the main class for the application",
                 "application", "mainClassName", withPackage(settings, "AppKt"));
-
-        buildScriptBuilder.create().generate();
 
         TemplateOperation kotlinSourceTemplate = fromClazzTemplate("kotlinapp/App.kt.template", settings, "main");
         TemplateOperation kotlinTestTemplate = fromClazzTemplate("kotlinapp/AppTest.kt.template", settings, "test");

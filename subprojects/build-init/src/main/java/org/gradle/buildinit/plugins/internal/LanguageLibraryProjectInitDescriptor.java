@@ -46,6 +46,16 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
         return BuildInitDsl.GROOVY;
     }
 
+    @Override
+    public void generate(InitSettings settings) {
+        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), "build");
+        buildScriptBuilder.repositories().jcenter("Use jcenter for resolving your dependencies.\nYou can declare any Maven/Ivy/file repository here.");
+        generate(settings, buildScriptBuilder);
+        buildScriptBuilder.create().generate();
+    }
+
+    protected abstract void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder);
+
     protected TemplateOperation whenNoSourcesAvailable(TemplateOperation... operations) {
         return new ConditionalTemplateOperation(new Factory<Boolean>() {
             public Boolean create() {

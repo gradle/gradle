@@ -16,28 +16,35 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import javax.annotation.Nullable;
+
 public interface CrossConfigurationScriptBlockBuilder extends ScriptBlockBuilder {
     /**
-     * allows repository definitions to be added to this block.
+     * Allows repository definitions to be added to the target of this block.
      */
     RepositoriesBuilder repositories();
 
     /**
-     * Adds a plugin to be applied within this block.
+     * Allows dependencies to be added to the target of this block.
+     */
+    DependenciesBuilder dependencies();
+
+    /**
+     * Adds a plugin to be applied to the target of this block.
      *
      * @param comment A description of why the plugin is required
      */
-    void plugin(String comment, String pluginId);
+    void plugin(@Nullable String comment, String pluginId);
 
     /**
-     * Adds a property assignment statement to the configuration of all tasks with the given type.
+     * Adds a property assignment statement to the configuration of all tasks with the given type of the target of this block.
      */
-    void taskPropertyAssignment(String comment, String taskType, String propertyName, Object propertyValue);
+    void taskPropertyAssignment(@Nullable String comment, String taskType, String propertyName, Object propertyValue);
 
     /**
-     * Creates a task within this block.
+     * Creates a task in the target of this block.
      *
      * @return the configuration block for the task.
      */
-    ScriptBlockBuilder taskRegistration(String comment, String taskName, String taskType);
+    ScriptBlockBuilder taskRegistration(@Nullable String comment, String taskName, String taskType);
 }

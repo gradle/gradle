@@ -35,8 +35,8 @@ public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProject
     }
 
     @Override
-    public void generate(InitSettings settings) {
-        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), "build")
+    protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+        buildScriptBuilder
             .fileComment("This generated file contains a sample Groovy project to get you started.")
             .fileComment("For more details take a look at the Groovy Quickstart chapter in the Gradle")
             .fileComment("user guide available at " + documentationRegistry.getDocumentationFor("tutorial_groovy_projects"))
@@ -46,7 +46,6 @@ public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProject
             .testImplementationDependency("Use the awesome Spock testing and specification framework",
                 "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"));
         configureBuildScript(settings, buildScriptBuilder);
-        buildScriptBuilder.create().generate();
 
         TemplateOperation sourceTemplate = sourceTemplateOperation(settings);
         TemplateOperation testSourceTemplate = testTemplateOperation(settings);
