@@ -1425,7 +1425,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     private void assertMutatingMethodAllowed(String methodName) {
-        getProjectConfigurator().assertCrossProjectConfigurationAllowed(methodName, this);
+        getProjectConfigurator().assertProjectMutationAllowed(methodName, this);
     }
 
     // These are here just so that ProjectInternal can implement FileOperations to work around https://github.com/gradle/gradle/issues/6027
