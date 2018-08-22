@@ -73,7 +73,7 @@ testFixtures {
 
 apply(from = "buildship.gradle")
 
-tasks.named("sourceJar").configureAs<Jar> {
+tasks.named<Jar>("sourceJar") {
     configurations.compile.allDependencies.withType<ProjectDependency>().forEach {
         from(it.dependencyProject.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].groovy.srcDirs)
         from(it.dependencyProject.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].java.srcDirs)
