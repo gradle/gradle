@@ -202,7 +202,6 @@ public class ThingTest {
         buildFile << """
         test {
             jacoco {
-                append = false
                 destinationFile = file("\$buildDir/tmp/jacoco/jacocoTest.exec")
                 classDumpDir = file("\$buildDir/tmp/jacoco/classpathdumps")
             }
