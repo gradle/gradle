@@ -21,6 +21,7 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.internal.classpath.ClassPath;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API;
@@ -28,16 +29,22 @@ import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFacto
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.LOCAL_GROOVY;
 
 public class DependencyClassPathProvider implements ClassPathProvider {
+    private static final String[] LOCAL_GROOVY_MODULES = {
+        "groovy", "groovy-ant", "groovy-cli-commons", "groovy-cli-picocli", "groovy-console", "groovy-datetime", "groovy-docgenerator", "groovy-groovydoc", "groovy-groovysh", "groovy-jmx", "groovy-json", "groovy-jsr223", "groovy-macro", "groovy-nio", "groovy-servlet", "groovy-sql", "groovy-swing", "groovy-templates", "groovy-test", "groovy-test-junit5", "groovy-testng", "groovy-xml"
+    };
     private final ModuleRegistry moduleRegistry;
     private final PluginModuleRegistry pluginModuleRegistry;
 
     private ClassPath gradleApi;
+    private ClassPath localGroovy;
 
     public DependencyClassPathProvider(ModuleRegistry moduleRegistry, PluginModuleRegistry pluginModuleRegistry) {
         this.moduleRegistry = moduleRegistry;
         this.pluginModuleRegistry = pluginModuleRegistry;
     }
 
+    @Nullable
+    @Override
     public ClassPath findClassPath(String name) {
         if (name.equals(GRADLE_API.name())) {
             return gradleApi();
@@ -76,6 +83,17 @@ public class DependencyClassPathProvider implements ClassPathProvider {
     }
 
     private ClassPath localGroovy() {
-        return moduleRegistry.getExternalModule("groovy").getClasspath();
+        if (localGroovy == null) {
+            localGroovy = initLocalGroovy();
+        }
+        return localGroovy;
+    }
+
+    private ClassPath initLocalGroovy() {
+        ClassPath classpath = ClassPath.EMPTY;
+        for (String groovyModule : LOCAL_GROOVY_MODULES) {
+            classpath = classpath.plus(moduleRegistry.getExternalModule(groovyModule).getClasspath());
+        }
+        return classpath;
     }
 }
