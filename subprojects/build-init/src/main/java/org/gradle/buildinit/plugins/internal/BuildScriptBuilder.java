@@ -22,7 +22,6 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.Transformer;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.internal.file.PathToFileResolver;
 
@@ -37,10 +36,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import static java.util.Collections.sort;
-import static org.gradle.util.CollectionUtils.collect;
-import static org.gradle.util.CollectionUtils.groupBy;
 
 /**
  * Assembles the parts of a build script.
@@ -141,6 +136,13 @@ public class BuildScriptBuilder {
         return new MethodInvocationValue(methodName, expressionValues(methodArgs));
     }
 
+    /**
+     * Creates a property expression. to use as a method argument or the RHS of a property assignment.
+     */
+    public Expression propertyExpression(String value) {
+        return new LiteralValue(value);
+    }
+
     private static List<ExpressionValue> expressionValues(Object... expressions) {
         List<ExpressionValue> result = new ArrayList<ExpressionValue>(expressions.length);
         for (Object expression : expressions) {
@@ -229,41 +231,51 @@ public class BuildScriptBuilder {
     /**
      * Adds a method invocation statement to the configuration of a particular task.
      */
-    public BuildScriptBuilder taskMethodInvocation(@Nullable String comment, String taskName, String taskType, String methodName) {
-        return configuration(
+    public BuildScriptBuilder taskMethodInvocation(@Nullable String comment, String taskName, String taskType, String methodName, Object... methodArgs) {
+        block.tasks.add(
             new TaskSelector(taskName, taskType),
-            new MethodInvocation(comment, new MethodInvocationValue(methodName)));
+            new MethodInvocation(comment, new MethodInvocationValue(methodName, expressionValues(methodArgs))));
+        return this;
     }
 
     /**
      * Adds a property assignment statement to the configuration of a particular task.
      */
     public BuildScriptBuilder taskPropertyAssignment(@Nullable String comment, String taskName, String taskType, String propertyName, Object propertyValue) {
-        return configuration(
+        block.tasks.add(
             new TaskSelector(taskName, taskType),
             new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
+        return this;
     }
 
     /**
      * Adds a property assignment statement to the configuration of all tasks of a particular type.
      */
     public BuildScriptBuilder taskPropertyAssignment(@Nullable String comment, String taskType, String propertyName, Object propertyValue) {
-        return configuration(
+        block.taskTypes.add(
             new TaskTypeSelector(taskType),
             new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
+        return this;
+    }
+
+    /**
+     * Registers a task.
+     *
+     * @return The body of the configuration action for the task.
+     */
+    public ScriptBlockBuilder taskRegistration(String comment, String taskName, String taskType) {
+        TaskRegistration registration = new TaskRegistration(comment, taskName, taskType);
+        block.tasksRegistrations.add(registration);
+        return registration.body;
     }
 
     /**
      * Adds a property assignment statement to the configuration of a particular convention.
      */
     public BuildScriptBuilder conventionPropertyAssignment(@Nullable String comment, String conventionName, String propertyName, Object propertyValue) {
-        return configuration(
+        block.conventions.add(
             new ConventionSelector(conventionName),
             new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
-    }
-
-    private BuildScriptBuilder configuration(ConfigSelector selector, Statement statement) {
-        block.configSpecs.add(new ConfigSpec(selector, statement));
         return this;
     }
 
@@ -491,8 +503,6 @@ public class BuildScriptBuilder {
     }
 
     private interface ConfigSelector {
-        int order();
-
         @Nullable
         String codeBlockSelectorFor(Syntax syntax);
     }
@@ -505,11 +515,6 @@ public class BuildScriptBuilder {
         private TaskSelector(String taskName, String taskType) {
             this.taskName = taskName;
             this.taskType = taskType;
-        }
-
-        @Override
-        public int order() {
-            return 5;
         }
 
         @Nullable
@@ -544,11 +549,6 @@ public class BuildScriptBuilder {
             this.taskType = taskType;
         }
 
-        @Override
-        public int order() {
-            return 4;
-        }
-
         @Nullable
         @Override
         public String codeBlockSelectorFor(Syntax syntax) {
@@ -579,11 +579,6 @@ public class BuildScriptBuilder {
 
         private ConventionSelector(String conventionName) {
             this.conventionName = conventionName;
-        }
-
-        @Override
-        public int order() {
-            return 3;
         }
 
         @Override
@@ -691,6 +686,30 @@ public class BuildScriptBuilder {
      */
     private interface BlockBody {
         void writeBodyTo(PrettyPrinter printer);
+    }
+
+    private static class StatementSequence implements Statement {
+        final ScriptBlockImpl statements = new ScriptBlockImpl();
+
+        public void add(Statement statement) {
+            statements.add(statement);
+        }
+
+        @Nullable
+        @Override
+        public String getComment() {
+            return null;
+        }
+
+        @Override
+        public Statement.Type type() {
+            return statements.type();
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            statements.writeBodyTo(printer);
+        }
     }
 
     private static class BlockStatement implements Statement {
@@ -861,13 +880,15 @@ public class BuildScriptBuilder {
         }
     }
 
-    private class CrossConfigBlock extends ScriptBlockImpl implements CrossConfigurationScriptBlockBuilder, Statement {
+    private static class CrossConfigBlock extends ScriptBlockImpl implements CrossConfigurationScriptBlockBuilder, Statement {
         final String blockName;
         final RepositoriesBlock repositories = new RepositoriesBlock();
         final DependenciesBlock dependencies = new DependenciesBlock();
-        final List<Statement> plugins = new ArrayList<Statement>();
-        final List<Statement> tasks = new ArrayList<Statement>();
-        final List<ConfigSpec> configSpecs = new ArrayList<ConfigSpec>();
+        final StatementSequence plugins = new StatementSequence();
+        final StatementSequence taskRegistrations = new StatementSequence();
+        final ConfigurationStatements<TaskTypeSelector> taskTypes = new ConfigurationStatements<TaskTypeSelector>();
+        final ConfigurationStatements<TaskSelector> tasks = new ConfigurationStatements<TaskSelector>();
+        final ConfigurationStatements<ConventionSelector> conventions = new ConfigurationStatements<ConventionSelector>();
 
         CrossConfigBlock(String blockName) {
             this.blockName = blockName;
@@ -888,19 +909,20 @@ public class BuildScriptBuilder {
             plugins.add(new NestedPluginSpec(pluginId, null, comment));
         }
 
-        void configuration(ConfigSelector selector, Statement statement) {
-            configSpecs.add(new ConfigSpec(selector, statement));
+        @Override
+        public void taskPropertyAssignment(String comment, String taskType, String propertyName, Object propertyValue) {
+            taskTypes.add(new TaskTypeSelector(taskType), new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
         }
 
         @Override
-        public void taskPropertyAssignment(String comment, String taskType, String propertyName, Object propertyValue) {
-            configuration(new TaskTypeSelector(taskType), new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
+        public void taskMethodInvocation(@Nullable String comment, String taskName, String taskType, String methodName, Object... methodArgs) {
+            tasks.add(new TaskSelector(taskName, taskType), new MethodInvocation(comment, new MethodInvocationValue(methodName, expressionValues(methodArgs))));
         }
 
         @Override
         public ScriptBlockBuilder taskRegistration(String comment, String taskName, String taskType) {
             TaskRegistration registration = new TaskRegistration(comment, taskName, taskType);
-            tasks.add(registration);
+            taskRegistrations.add(registration);
             return registration.body;
         }
 
@@ -908,8 +930,11 @@ public class BuildScriptBuilder {
         public Type type() {
             if (super.type() == Type.Empty
                 && repositories.type() == Type.Empty
-                && plugins.isEmpty()
-                && tasks.isEmpty()
+                && plugins.type() == Type.Empty
+                && taskRegistrations.type() == Type.Empty
+                && conventions.type() == Type.Empty
+                && tasks.type() == Type.Empty
+                && taskTypes.type() == Type.Empty
                 && dependencies.type() == Type.Empty) {
                 return Type.Empty;
             }
@@ -929,22 +954,27 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeBodyTo(PrettyPrinter printer) {
-            printer.printStatements(plugins);
+            printer.printStatement(plugins);
             printer.printStatement(repositories);
             printer.printStatement(dependencies);
-            printer.printStatements(tasks);
+            printer.printStatement(taskRegistrations);
             super.writeBodyTo(printer);
-            printer.printConfigSpecs(configSpecs);
+            printer.printStatement(conventions);
+            printer.printStatement(taskTypes);
+            printer.printStatement(tasks);
         }
     }
 
-    private class TopLevelBlock extends ScriptBlockImpl {
+    private static class TopLevelBlock extends ScriptBlockImpl {
         final BlockStatement plugins = new BlockStatement("plugins");
+        final StatementSequence tasksRegistrations = new StatementSequence();
         final RepositoriesBlock repositories = new RepositoriesBlock();
         final DependenciesBlock dependencies = new DependenciesBlock();
         final CrossConfigBlock allprojects = new CrossConfigBlock("allprojects");
         final CrossConfigBlock subprojects = new CrossConfigBlock("subprojects");
-        final List<ConfigSpec> configSpecs = new ArrayList<ConfigSpec>();
+        final ConfigurationStatements<TaskTypeSelector> taskTypes = new ConfigurationStatements<TaskTypeSelector>();
+        final ConfigurationStatements<TaskSelector> tasks = new ConfigurationStatements<TaskSelector>();
+        final ConfigurationStatements<ConventionSelector> conventions = new ConfigurationStatements<ConventionSelector>();
 
         @Override
         public void writeBodyTo(PrettyPrinter printer) {
@@ -953,12 +983,15 @@ public class BuildScriptBuilder {
             printer.printStatement(subprojects);
             printer.printStatement(repositories);
             printer.printStatement(dependencies);
+            printer.printStatement(tasksRegistrations);
             super.writeBodyTo(printer);
-            printer.printConfigSpecs(configSpecs);
+            printer.printStatement(conventions);
+            printer.printStatement(taskTypes);
+            printer.printStatement(tasks);
         }
     }
 
-    private class TaskRegistration implements Statement {
+    private static class TaskRegistration implements Statement {
         final String taskName;
         final String taskType;
         final String comment;
@@ -987,6 +1020,39 @@ public class BuildScriptBuilder {
         }
     }
 
+    private static class ConfigurationStatements<T extends ConfigSelector> implements Statement {
+        final ListMultimap<T, Statement> blocks = MultimapBuilder.linkedHashKeys().arrayListValues().build();
+
+        void add(T selector, Statement statement) {
+            blocks.put(selector, statement);
+        }
+
+        @Nullable
+        @Override
+        public String getComment() {
+            return null;
+        }
+
+        @Override
+        public Type type() {
+            return blocks.isEmpty() ? Type.Empty : Type.Single;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            for (T configSelector : blocks.keySet()) {
+                String selector = configSelector.codeBlockSelectorFor(printer.syntax);
+                if (selector != null) {
+                    BlockStatement statement = new BlockStatement(selector);
+                    statement.body.statements.addAll(blocks.get(configSelector));
+                    printer.printStatement(statement);
+                } else {
+                    printer.printStatements(blocks.get(configSelector));
+                }
+            }
+        }
+    }
+
     private static final class PrettyPrinter {
 
         private final Syntax syntax;
@@ -994,6 +1060,7 @@ public class BuildScriptBuilder {
         private String indent = "";
         private boolean needSeparatorLine = true;
         private boolean firstStatementOfBlock = false;
+        private boolean hasSeparatorLine = false;
 
         PrettyPrinter(Syntax syntax, PrintWriter writer) {
             this.syntax = syntax;
@@ -1010,32 +1077,6 @@ public class BuildScriptBuilder {
                 }
             }
             println(" */");
-        }
-
-        public void printConfigSpecs(List<ConfigSpec> configSpecs) {
-            if (configSpecs.isEmpty()) {
-                return;
-            }
-            for (ConfigGroup group : sortedConfigGroups(configSpecs)) {
-                printConfigGroup(group);
-            }
-        }
-
-        private void printConfigGroup(ConfigGroup configGroup) {
-            String blockSelector = configGroup.selector.codeBlockSelectorFor(syntax);
-            if (blockSelector != null) {
-                needSeparatorLine = true;
-                printStatementSeparator();
-                printBlock(blockSelector, configGroup);
-            } else {
-                printStatements(configGroup.statements);
-            }
-        }
-
-        private List<ConfigGroup> sortedConfigGroups(List<ConfigSpec> configSpecs) {
-            List<ConfigGroup> configGroups = configGroupsFrom(groupBySelector(configSpecs));
-            sort(configGroups);
-            return configGroups;
         }
 
         public void printBlock(String blockSelector, BlockBody blockBody) {
@@ -1061,82 +1102,8 @@ public class BuildScriptBuilder {
             }
         }
 
-        private static class ConfigGroup extends ScriptBlockImpl implements Comparable<ConfigGroup> {
-            final ConfigSelector selector;
-
-            ConfigGroup(ConfigSelector selector, List<? extends Statement> statements) {
-                this.selector = selector;
-                this.statements.addAll(statements);
-            }
-
-            @Override
-            public int compareTo(ConfigGroup that) {
-                return compareSelectors(this.selector, that.selector);
-            }
-
-            private int compareSelectors(ConfigSelector s1, ConfigSelector s2) {
-                int diff = s1.order() - s2.order();
-                if (diff < 0) {
-                    return -1;
-                }
-                if (diff > 0) {
-                    return 1;
-                }
-                if (s1 instanceof ConventionSelector) {
-                    return conventionNameOf(s1).compareTo(conventionNameOf(s2));
-                }
-                if (s1 instanceof TaskSelector) {
-                    return taskNameOf(s1).compareTo(taskNameOf(s2));
-                }
-                if (s1 instanceof TaskTypeSelector) {
-                    return taskTypeOf(s1).compareTo(taskTypeOf(s2));
-                }
-                throw new IllegalStateException();
-            }
-
-            private String taskTypeOf(ConfigSelector selector) {
-                return ((TaskTypeSelector) selector).taskType;
-            }
-
-            private String conventionNameOf(ConfigSelector selector) {
-                return ((ConventionSelector) selector).conventionName;
-            }
-
-            private String taskNameOf(ConfigSelector selector) {
-                return ((TaskSelector) selector).taskName;
-            }
-        }
-
-        private List<ConfigGroup> configGroupsFrom(Map<ConfigSelector, Collection<ConfigSpec>> groupedConfigSpecs) {
-            ArrayList<ConfigGroup> result = new ArrayList<ConfigGroup>(groupedConfigSpecs.size());
-            for (Map.Entry<ConfigSelector, Collection<ConfigSpec>> group : groupedConfigSpecs.entrySet()) {
-                ConfigSelector selector = group.getKey();
-                Collection<ConfigSpec> specs = group.getValue();
-                result.add(new ConfigGroup(selector, expressionsOf(specs)));
-            }
-            return result;
-        }
-
-        private List<Statement> expressionsOf(Collection<ConfigSpec> specs) {
-            return collect(specs, new Transformer<Statement, ConfigSpec>() {
-                @Override
-                public Statement transform(ConfigSpec configSpec) {
-                    return configSpec.statement;
-                }
-            });
-        }
-
-        private Map<ConfigSelector, Collection<ConfigSpec>> groupBySelector(List<ConfigSpec> configSpecs) {
-            return groupBy(configSpecs, new Transformer<ConfigSelector, ConfigSpec>() {
-                @Override
-                public ConfigSelector transform(ConfigSpec configSpec) {
-                    return configSpec.selector;
-                }
-            });
-        }
-
         private void printStatementSeparator() {
-            if (needSeparatorLine) {
+            if (needSeparatorLine && !hasSeparatorLine) {
                 println();
                 needSeparatorLine = false;
             }
@@ -1177,10 +1144,12 @@ public class BuildScriptBuilder {
                 writer.print(indent);
             }
             writer.println(s);
+            hasSeparatorLine = false;
         }
 
         private void println() {
             writer.println();
+            hasSeparatorLine = true;
         }
     }
 

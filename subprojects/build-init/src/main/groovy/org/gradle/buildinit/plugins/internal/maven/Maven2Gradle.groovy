@@ -61,7 +61,6 @@ class Maven2Gradle {
 
         def scriptBuilder = scriptBuilderFactory.script(BuildInitDsl.GROOVY, "build")
 
-        String build
         def multimodule = this.effectivePom.name() == "projects"
 
         if (multimodule) {
@@ -88,11 +87,8 @@ class Maven2Gradle {
 
             def commonDeps = dependencies.get(rootProject.artifactId.text())
             declareDependencies(commonDeps, subprojectsBuilder)
-            build = """
-subprojects {
-  ${testNg(commonDeps)}
-}
-"""
+            testNg(commonDeps, subprojectsBuilder)
+
             modules(allProjects, false).each { module ->
                 def id = module.artifactId.text()
                 def moduleDependencies = dependencies.get(id)
@@ -115,19 +111,11 @@ subprojects {
 
                 descriptionForProject(module, moduleScriptBuilder)
                 declareDependencies(moduleDependencies, moduleScriptBuilder)
+                testNg(moduleDependencies, moduleScriptBuilder)
 
-                def moduleBuild = ""
-                moduleBuild += testNg(moduleDependencies)
-
-                def packageTests = packageTests(module);
-                if (packageTests) {
-                    moduleBuild += packageTests;
-                }
+                packageTests(module, moduleScriptBuilder);
 
                 moduleScriptBuilder.create().generate()
-
-                File submoduleBuildFile = new File(projectDir(module), 'build.gradle')
-                submoduleBuildFile << moduleBuild
             }
             //TODO deployment
         } else {//simple
@@ -149,20 +137,12 @@ subprojects {
 
             def dependencies = getDependencies(this.effectivePom, null)
             declareDependencies(dependencies, scriptBuilder)
+            testNg(dependencies, scriptBuilder)
 
-            build = ''
-            String packageTests = packageTests(this.effectivePom);
-            if (packageTests) {
-                build += '//packaging tests'
-                build += packageTests;
-            }
+            packageTests(this.effectivePom, scriptBuilder)
         }
 
         scriptBuilder.create().generate()
-
-        def buildFile = new File(workingDir, "build.gradle")
-        buildFile << build
-        build
     }
 
     void declareDependencies(List<Dependency> dependencies, builder) {
@@ -192,12 +172,10 @@ subprojects {
         }
     }
 
-    def testNg = { moduleDependencies ->
-        if (moduleDependencies.contains('testng')) {
-            """test.useTestNG()
-"""
-        } else {
-            ''
+    void testNg(List<Dependency> moduleDependencies, builder) {
+        boolean testng = moduleDependencies.find { it instanceof ExternalDependency && it.groupId == 'org.testng' && it.module == 'testng' }
+        if (testng) {
+            builder.taskMethodInvocation(null, "test", "Test", "useTestNG")
         }
     }
 
@@ -373,15 +351,14 @@ subprojects {
         }
     }
 
-    def packageTests = { project ->
+    void packageTests(project, builder) {
         def jarPlugin = plugin('maven-jar-plugin', project)
-        pluginGoal('test-jar', jarPlugin) ? """
-task packageTests(type: Jar) {
-  from sourceSets.test.output
-  classifier = 'tests'
-}
-artifacts.archives packageTests
-""" : ''
+        if (pluginGoal('test-jar', jarPlugin)) {
+            def taskConfigBuilder = builder.taskRegistration(null, "packageTests", "Jar")
+            taskConfigBuilder.propertyAssignment(null, "classifier", "tests")
+            taskConfigBuilder.methodInvocation(null, "from", builder.propertyExpression("sourceSets.test.output"))
+            builder.methodInvocation(null, "artifacts.archives", builder.propertyExpression("tasks.packageTests"))
+        }
     }
 
     void packageSources(project, builder) {

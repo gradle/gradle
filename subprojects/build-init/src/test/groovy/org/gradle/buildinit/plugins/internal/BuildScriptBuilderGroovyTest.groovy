@@ -330,15 +330,15 @@ allprojects {
         foo.bar = 'bazar'
     }
 
-    tasks.withType(AType) {
-        foo.bar = 'bazar'
-    }
-
     tasks.withType(SomeType) {
         // Configure a thing
         foo.bar = 'bazar'
 
         thing = 45
+    }
+
+    tasks.withType(AType) {
+        foo.bar = 'bazar'
     }
 }
 """)
@@ -354,8 +354,8 @@ allprojects {
         def nested = block.block("A block", "nested")
         nested.propertyAssignment(null, "foo.bar", "bazar")
         block.taskPropertyAssignment("Configure a thing", "SomeType", "foo.bar", "bazar")
-        block.taskPropertyAssignment(null, "SomeType", "thing", 45)
         block.taskPropertyAssignment(null, "AType", "foo.bar", "bazar")
+        block.taskPropertyAssignment(null, "SomeType", "thing", 45)
         block.dependencies().projectDependency("api", "Project dep", ":pr1")
 
         when:
@@ -390,15 +390,15 @@ subprojects {
         foo.bar = 'bazar'
     }
 
-    tasks.withType(AType) {
-        foo.bar = 'bazar'
-    }
-
     tasks.withType(SomeType) {
         // Configure a thing
         foo.bar = 'bazar'
 
         thing = 45
+    }
+
+    tasks.withType(AType) {
+        foo.bar = 'bazar'
     }
 }
 """)
@@ -501,8 +501,8 @@ other {
             .methodInvocation("Call a method", "foo.bar", "bazar", 12, builder.methodInvocationExpression("child", "a", 45))
             .conventionPropertyAssignment("Convention configuration A", "application", "mainClassName", "com.example.Main")
             .conventionPropertyAssignment("Convention configuration B", "application", "applicationName", "My Application")
-            .conventionPropertyAssignment("C convention", "c", "cp", 42)
             .conventionPropertyAssignment("B convention", "b", "bp", 0)
+            .conventionPropertyAssignment("C convention", "c", "cp", 42)
             .taskMethodInvocation("Use TestNG", "test", "Test", "useTestNG")
             .propertyAssignment(null, "cathedral", 42)
             .methodInvocation(null, "cathedral")
