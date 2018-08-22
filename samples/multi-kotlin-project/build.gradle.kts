@@ -1,6 +1,6 @@
 plugins {
     base
-    kotlin("jvm") version "1.2.60" apply false
+    kotlin("jvm") version "1.2.61" apply false
 }
 
 allprojects {
