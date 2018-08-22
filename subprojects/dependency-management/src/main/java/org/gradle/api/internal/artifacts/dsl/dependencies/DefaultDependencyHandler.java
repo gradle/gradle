@@ -226,7 +226,9 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
     public Dependency enforcedPlatform(Object notation) {
         Dependency platformDependency = create(notation);
         if (platformDependency instanceof ExternalModuleDependency) {
-            ((ExternalModuleDependency) platformDependency).setForce(true);
+            ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) platformDependency;
+            externalModuleDependency.setForce(true);
+            PlatformSupport.addEnforcedPlatformRule(getComponents(), externalModuleDependency.getModule(), externalModuleDependency.getVersion());
         }
         return platformDependency;
     }

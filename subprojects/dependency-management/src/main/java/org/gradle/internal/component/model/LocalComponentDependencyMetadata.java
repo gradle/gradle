@@ -180,6 +180,14 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     @Override
+    public LocalOriginDependencyMetadata forced() {
+        if (force) {
+            return this;
+        }
+        return copyWithForce(true);
+    }
+
+    @Override
     public DependencyMetadata withReason(String reason) {
         if (Objects.equal(reason, this.reason)) {
             return this;
@@ -193,6 +201,10 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
 
     private LocalOriginDependencyMetadata copyWithReason(String reason) {
         return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, reason);
+    }
+
+    private LocalOriginDependencyMetadata copyWithForce(boolean force) {
+        return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, pending, reason);
     }
 
 }

@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.DependencyConstraint;
+import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
 import org.gradle.internal.metaobject.MethodAccess;
@@ -33,12 +34,15 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     private final ConfigurationContainer configurationContainer;
     private final DependencyFactory dependencyFactory;
     private final DynamicAddDependencyMethods dynamicMethods;
+    private final ComponentMetadataHandler componentMetadataHandler;
 
     public DefaultDependencyConstraintHandler(ConfigurationContainer configurationContainer,
-                                              DependencyFactory dependencyFactory) {
+                                              DependencyFactory dependencyFactory,
+                                              ComponentMetadataHandler componentMetadataHandler) {
         this.configurationContainer = configurationContainer;
         this.dependencyFactory = dependencyFactory;
         this.dynamicMethods = new DynamicAddDependencyMethods(configurationContainer, new DependencyConstraintAdder());
+        this.componentMetadataHandler = componentMetadataHandler;
     }
 
     @Override
@@ -77,6 +81,7 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     public DependencyConstraint enforcedPlatform(Object notation) {
         DependencyConstraintInternal platformDependency = (DependencyConstraintInternal) create(notation);
         platformDependency.setForce(true);
+        PlatformSupport.addEnforcedPlatformRule(componentMetadataHandler, platformDependency.getModule(), platformDependency.getVersion());
         return platformDependency;
     }
 
