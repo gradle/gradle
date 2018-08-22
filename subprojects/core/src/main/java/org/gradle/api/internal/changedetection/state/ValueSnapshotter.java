@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class ValueSnapshotter implements IsolatableFactory {
+    private static final String GENERATED_LAMBDA_CLASS_SUFFIX = "$$Lambda$";
     private final ClassLoaderHierarchyHasher classLoaderHasher;
     private final NamedObjectInstantiator namedObjectInstantiator;
     private final ValueSnapshotStrategy valueSnapshotStrategy;
@@ -118,7 +119,8 @@ public class ValueSnapshotter implements IsolatableFactory {
         }
         if (value instanceof Class<?>) {
             Class<?> implementation = (Class<?>) value;
-            return new ImplementationSnapshot(implementation.getName(), classLoaderHasher.getClassLoaderHash(implementation.getClassLoader()));
+            String name = determineImplementationName(implementation);
+            return new ImplementationSnapshot(name, classLoaderHasher.getClassLoaderHash(implementation.getClassLoader()));
         }
         if (value.getClass().equals(File.class)) {
             // Not subtypes as we don't know whether they are immutable or not
@@ -183,6 +185,16 @@ public class ValueSnapshotter implements IsolatableFactory {
 
         // Fall back to serialization
         return serialize(value);
+    }
+
+    private String determineImplementationName(Class<?> implementation) {
+        String className = implementation.getName();
+        if (implementation.isSynthetic() && className.contains(GENERATED_LAMBDA_CLASS_SUFFIX)) {
+            int index = className.lastIndexOf(GENERATED_LAMBDA_CLASS_SUFFIX);
+            return className.substring(0, index + GENERATED_LAMBDA_CLASS_SUFFIX.length());
+        } else {
+            return className;
+        }
     }
 
     private SerializedValueSnapshot serialize(Object value) {

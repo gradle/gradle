@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -803,37 +804,17 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/5510")
     @Requires(TestPrecondition.JDK8_OR_LATER)
     def "implementations in nested property defined by Java 8 lambda is tracked"() {
         setupTaskClassWithNestedAction()
-        file('buildSrc/src/main/java/LambdaActions.java') << """
-            import org.gradle.api.Action;
-            
-            import java.io.File;
-            import java.io.IOException;
-            import java.nio.file.Files;
-            
-            public class LambdaActions {
-                public static final Action<File> ORIGINAL = file -> {
-                    try {
-                        Files.write(file.toPath(), "original".getBytes());
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                };
-                
-                public static final Action<File> CHANGED = file -> {
-                    try {
-                        Files.write(file.toPath(), "changed".getBytes());
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                };
-            }
-        """
+        def originalClassName = "LambdaActionOriginal"
+        def changedClassName = "LambdaActionChanged"
+        file("buildSrc/src/main/java/${originalClassName}.java") << classWithLambda(originalClassName, lambdaWritingFile("ACTION", "original"))
+        file("buildSrc/src/main/java/${changedClassName}.java") << classWithLambda(changedClassName, lambdaWritingFile("ACTION", "changed"))
         buildFile << """
             task myTask(type: TaskWithNestedAction) {
-                action = LambdaActions.ORIGINAL
+                action = ${originalClassName}.ACTION
             }
         """
 
@@ -852,7 +833,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildFile.text = """
             task myTask(type: TaskWithNestedAction) {
-                action = LambdaActions.CHANGED
+                action = ${changedClassName}.ACTION
             }
         """
         run 'myTask', '--info'
@@ -860,6 +841,69 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(':myTask')
         file('build/tmp/myTask/output.txt').text == "changed"
         output.contains "Implementation of input property 'action' has changed for task ':myTask'"
+    }
+
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/5510")
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "choosing a different Java 8 lambda in the same class is not detected"() {
+        setupTaskClassWithNestedAction()
+        def className = "LambdaActions"
+        file("buildSrc/src/main/java/${className}.java") << classWithLambda(
+            className,
+            lambdaWritingFile("ORIGINAL", "original") + lambdaWritingFile("CHANGED", "changed"))
+        buildFile << """
+            task myTask(type: TaskWithNestedAction) {
+                action = ${className}.ORIGINAL
+            }
+        """
+
+        buildFile.makeOlder()
+
+        when:
+        run 'myTask'
+        then:
+        executedAndNotSkipped(':myTask')
+
+        when:
+        buildFile.text = """
+            task myTask(type: TaskWithNestedAction) {
+                action = ${className}.CHANGED
+            }
+        """
+        run 'myTask', '--info'
+        then:
+        // TODO: Task should have been executed
+        skipped(':myTask')
+        // TODO: Should equal "changed"
+        file('build/tmp/myTask/output.txt').text != "changed"
+        // TODO: Output should contain this reason
+        !output.contains("Implementation of input property 'action' has changed for task ':myTask'")
+    }
+
+    private static String classWithLambda(String className, String classBody) {
+        """
+            import org.gradle.api.Action;
+            
+            import java.io.File;
+            import java.io.IOException;
+            import java.nio.file.Files;
+            
+            public class ${className} {
+${classBody}
+            }
+        """
+    }
+    
+    private static String lambdaWritingFile(String constantName, String outputString) {
+        """
+                public static final Action<File> ${constantName} = file -> {
+                    try {
+                        Files.write(file.toPath(), "${outputString}".getBytes());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                };
+        """
     }
 
     private TestFile setupTaskClassWithNestedAction() {
