@@ -144,8 +144,12 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Override
-    public void addLater(final Provider<? extends T> provider) {
+    public void addLater(Provider<? extends T> provider) {
         assertMutable("addLater(Provider)");
+        if (provider instanceof Named && !(provider instanceof NamedDomainObjectProvider)) {
+            final Named named = (Named) provider;
+            provider = createExternalProvider(named.getName(), provider);
+        }
         super.addLater(provider);
         if (provider instanceof Named) {
             final Named named = (Named) provider;
@@ -796,6 +800,10 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return Cast.uncheckedCast(getInstantiator().newInstance(ExistingNamedDomainObjectProvider.class, this, name));
     }
 
+    protected NamedDomainObjectProvider<? extends T> createExternalProvider(String name, Provider<? extends T> object) {
+        return Cast.uncheckedCast(getInstantiator().newInstance(ExternalDomainObjectCreatingProvider.class, this, name, object));
+    }
+
     protected abstract class AbstractNamedDomainObjectProvider<I extends T> extends AbstractProvider<I> implements Named, NamedDomainObjectProvider<I> {
         private final String name;
         private final Class<I> type;
@@ -958,6 +966,20 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         protected RuntimeException domainObjectCreationException(Throwable cause) {
             return new IllegalStateException(String.format("Could not create domain object '%s' (%s)", getName(), getType().getSimpleName()), cause);
+        }
+    }
+
+    public class ExternalDomainObjectCreatingProvider<I extends T> extends AbstractDomainObjectCreatingProvider<I> {
+        private final ProviderInternal<I> provider;
+
+        public ExternalDomainObjectCreatingProvider(String name, ProviderInternal<I> provider) {
+            super(name, provider.getType(), null);
+            this.provider = provider;
+        }
+
+        @Override
+        protected I createDomainObject() {
+            return provider.get();
         }
     }
 
