@@ -76,8 +76,9 @@ apply(from = "buildship.gradle")
 
 tasks.named("sourceJar").configureAs<Jar> {
     configurations.compile.allDependencies.withType<ProjectDependency>().forEach {
-        from(it.dependencyProject.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].groovy.srcDirs)
-        from(it.dependencyProject.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].java.srcDirs)
+        val sourceSet = it.dependencyProject.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
+        from(sourceSet.groovy.srcDirs)
+        from(sourceSet.java.srcDirs)
     }
 }
 
