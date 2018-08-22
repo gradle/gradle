@@ -16,17 +16,27 @@
 
 package org.gradle.internal.resources;
 
+import org.gradle.util.Path;
+
 import java.util.concurrent.Callable;
 
 public interface ProjectLeaseRegistry {
     /**
      * Get a lock for the specified project.
      *
-     * @param gradlePath
-     * @param projectPath
+     * @param gradleIdentityPath
+     * @param projectIdentityPath
      * @return the requested {@link ResourceLock}
      */
-    ResourceLock getProjectLock(String gradlePath, String projectPath);
+    ResourceLock getProjectLock(Path gradleIdentityPath, Path projectIdentityPath);
+
+    /**
+     * Get a lock for the specified project.
+     *
+     * @param projectIdentityPath
+     * @return the requested {@link ResourceLock}
+     */
+    ResourceLock getProjectLock(Path projectIdentityPath);
 
     /**
      * Releases all project locks held by the current thread and executes the {@link Callable}.  Upon completion of the
