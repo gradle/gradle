@@ -79,8 +79,8 @@ public class GroovyBasePlugin implements Plugin<Project> {
         project.getTasks().withType(GroovyCompile.class).configureEach(new Action<GroovyCompile>() {
             public void execute(final GroovyCompile compile) {
                 compile.getConventionMapping().map("groovyClasspath", new Callable<Object>() {
-                    public Object call() throws Exception {
-                        return groovyRuntime.inferGroovyClasspath(compile.getClasspath());
+                    public Object call() {
+                        return groovyRuntime.inferGroovyCompilerClasspath(compile.getClasspath());
                     }
                 });
             }
