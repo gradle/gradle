@@ -117,8 +117,8 @@ include::{samplesPath}/testing/jacoco/quickstart/build.gradle[tag=testtask-confi
 
 [NOTE]
 ====
-Using the configuration `append = true` (the default) causes the JaCoCo agent to append to a shared output file that may be left over from a different test execution.
-If `append = true`, Gradle disables caching for the Test task since it cannot guarantee the same results each time.
+Tasks configured for running with the JaCoCo agent delete the destination file for the execution data when the task starts executing.
+This ensures that no stale coverage data is present in the execution data.
 ====
 
 .Default values of the JaCoCo Task extension
@@ -126,7 +126,6 @@ If `append = true`, Gradle disables caching for the Test task since it cannot gu
 ----
 test {
     jacoco {
-        append = true
         enabled = true
         destPath = "$buildDir/jacoco"
         includes = []

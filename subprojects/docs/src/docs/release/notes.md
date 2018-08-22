@@ -10,14 +10,20 @@ Add-->
 ### Example new and noteworthy
 -->
 
-### Incremental build uses less memory
-
-Memory usage for up-to-date checking has been improved.
-For the gradle/gradle build, heap usage dropped by 60 MB to 450 MB, that is a 12% reduction.
-
 ### Build Init plugin uses recommended configurations
 
 The [Build Init plugin](userguide/build_init_plugin.html) now generates build scripts that use the recommended `implementation`, `testImplementation`, and `testRuntimeOnly` configurations instead of `compile`, `testCompile`, and `testRuntime`, respectively, for all build setup types.
+
+### JaCoCo plugin now works with the build cache and parallel test execution
+
+The [JaCoCo plugin](userguide/jacoco_plugin.html) plugin now works seamlessly with the build cache.
+When applying the plugin with no extra configuration, the test task stays cacheable and parallel test execution can be used.  
+
+In order to make the tasks cacheable when generating execution data with `append = true`, the tasks running with code coverage are configured to delete the execution data just before they starts executing.
+In this way, stale execution data, which would cause non-repeatable task outputs, is removed.
+
+Since Gradle now takes care of removing the execution data, the `JacocoPluginExtension.append` property has been deprecated.
+The JaCoCo agent is always configured with `append = true`, so it can be used when running tests in parallel. 
 
 ## Promoted features
 
@@ -55,6 +61,9 @@ Removing tasks from the `TaskContainer` using the following methods has been dep
 
 With the deprecation of every method removing a task, registering a callback when an object is removed is also deprecated (`whenObjectRemoved(Closure/Action)`)
 
+### The property `append` on `JacocoTaskExtension` has been deprecated
+
+See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
 
 ## Potential breaking changes
 
@@ -71,6 +80,10 @@ Additionally the created distribution will contain all artifacts of the `runtime
 ### Removed support for Play Framework 2.2
 
 The previously deprecated support for Play Framework 2.2 has been removed.
+
+### JaCoCo plugin deletes execution data on task execution
+
+See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
 
 ### Changes to previously deprecated APIs
 
