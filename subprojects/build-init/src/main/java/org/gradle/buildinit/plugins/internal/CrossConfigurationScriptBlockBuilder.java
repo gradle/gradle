@@ -42,6 +42,11 @@ public interface CrossConfigurationScriptBlockBuilder extends ScriptBlockBuilder
     void taskPropertyAssignment(@Nullable String comment, String taskType, String propertyName, Object propertyValue);
 
     /**
+     * Adds a property assignment statement to the configuration of all tasks with the given type of the target of this block.
+     */
+    void taskMethodInvocation(@Nullable String comment, String taskName, String taskType, String methodName, Object... methodArgs);
+
+    /**
      * Creates a task in the target of this block.
      *
      * @return the configuration block for the task.

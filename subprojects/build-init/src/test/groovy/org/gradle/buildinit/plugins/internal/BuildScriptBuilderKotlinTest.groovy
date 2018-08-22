@@ -329,15 +329,15 @@ allprojects {
         foo.bar = "bazar"
     }
 
-    tasks.withType(AType) {
-        foo.bar = "bazar"
-    }
-
     tasks.withType(SomeType) {
         // Configure a thing
         foo.bar = "bazar"
 
         thing = 45
+    }
+
+    tasks.withType(AType) {
+        foo.bar = "bazar"
     }
 }
 """)
@@ -389,15 +389,15 @@ subprojects {
         foo.bar = "bazar"
     }
 
-    tasks.withType(AType) {
-        foo.bar = "bazar"
-    }
-
     tasks.withType(SomeType) {
         // Configure a thing
         foo.bar = "bazar"
 
         thing = 45
+    }
+
+    tasks.withType(AType) {
+        foo.bar = "bazar"
     }
 }
 """)
@@ -500,8 +500,8 @@ other {
             .methodInvocation("Call a method", "foo.bar", "bazar", 12, builder.methodInvocationExpression("child", "a", 45))
             .conventionPropertyAssignment("Convention configuration A", "application", "mainClassName", "com.example.Main")
             .conventionPropertyAssignment("Convention configuration B", "application", "applicationName", "My Application")
-            .conventionPropertyAssignment("C convention", "c", "cp", 42)
             .conventionPropertyAssignment("B convention", "b", "bp", 0)
+            .conventionPropertyAssignment("C convention", "c", "cp", 42)
             .taskMethodInvocation("Use TestNG", "test", "Test", "useTestNG")
             .propertyAssignment(null, "cathedral", 42)
             .methodInvocation(null, "cathedral")
