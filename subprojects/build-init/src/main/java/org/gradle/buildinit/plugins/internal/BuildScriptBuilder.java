@@ -100,7 +100,7 @@ public class BuildScriptBuilder {
      * @param dependencies the dependencies, in string notation
      */
     public BuildScriptBuilder dependency(String configuration, @Nullable String comment, String... dependencies) {
-        this.block.dependencies.dependency(configuration, comment, dependencies);
+        dependencies().dependency(configuration, comment, dependencies);
         return this;
     }
 
@@ -141,7 +141,7 @@ public class BuildScriptBuilder {
         return new MethodInvocationValue(methodName, expressionValues(methodArgs));
     }
 
-    private List<ExpressionValue> expressionValues(Object... expressions) {
+    private static List<ExpressionValue> expressionValues(Object... expressions) {
         List<ExpressionValue> result = new ArrayList<ExpressionValue>(expressions.length);
         for (Object expression : expressions) {
             result.add(expressionValue(expression));
@@ -149,7 +149,7 @@ public class BuildScriptBuilder {
         return result;
     }
 
-    private Map<String, ExpressionValue> expressionMap(Map<String, ?> expressions) {
+    private static Map<String, ExpressionValue> expressionMap(Map<String, ?> expressions) {
         LinkedHashMap<String, ExpressionValue> result = new LinkedHashMap<String, ExpressionValue>();
         for (Map.Entry<String, ?> entry : expressions.entrySet()) {
             result.put(entry.getKey(), expressionValue(entry.getValue()));
@@ -157,7 +157,7 @@ public class BuildScriptBuilder {
         return result;
     }
 
-    private ExpressionValue expressionValue(Object expression) {
+    private static ExpressionValue expressionValue(Object expression) {
         if (expression instanceof CharSequence) {
             return new StringValue((CharSequence) expression);
         }
@@ -205,18 +205,16 @@ public class BuildScriptBuilder {
      * Adds a top level method invocation statement.
      */
     public BuildScriptBuilder methodInvocation(@Nullable String comment, String methodName, Object... methodArgs) {
-        return configuration(
-            NULL_SELECTOR,
-            new MethodInvocation(comment, new MethodInvocationValue(methodName, expressionValues(methodArgs))));
+        block.methodInvocation(comment, methodName, methodArgs);
+        return this;
     }
 
     /**
      * Adds a top level property assignment statement.
      */
     public BuildScriptBuilder propertyAssignment(@Nullable String comment, String propertyName, Object propertyValue) {
-        return configuration(
-            NULL_SELECTOR,
-            new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
+        block.propertyAssignment(comment, propertyName, propertyValue);
+        return this;
     }
 
     /**
@@ -225,9 +223,7 @@ public class BuildScriptBuilder {
      * @return The body of the block, to which further statements can be added.
      */
     public ScriptBlockBuilder block(@Nullable String comment, String methodName) {
-        ScriptBlock scriptBlock = new ScriptBlock(comment, methodName);
-        configuration(NULL_SELECTOR, scriptBlock);
-        return scriptBlock.body;
+        return block.block(comment, methodName);
     }
 
     /**
@@ -501,18 +497,6 @@ public class BuildScriptBuilder {
         String codeBlockSelectorFor(Syntax syntax);
     }
 
-    private static final ConfigSelector NULL_SELECTOR = new ConfigSelector() {
-        @Override
-        public int order() {
-            return 1;
-        }
-
-        @Override
-        public String codeBlockSelectorFor(Syntax syntax) {
-            return null;
-        }
-    };
-
     private static class TaskSelector implements ConfigSelector {
 
         final String taskName;
@@ -626,19 +610,21 @@ public class BuildScriptBuilder {
     }
 
     /**
-     * Represents a statement in a script. Each statement has an optional comment that explains its purpose
+     * Represents a statement in a script. Each statement has an optional comment that explains its purpose.
      */
     private interface Statement {
+        enum Type {Empty, Single, Group}
+
         @Nullable
         String getComment();
 
         /**
-         * If true, the statement should not be written to the script.
+         * Returns details of the size of this statement. Returns {@link Type#Empty} when this statement is empty and should not be included in the script.
          */
-        boolean isEmpty();
+        Type type();
 
         /**
-         * Writes this statement to the given printer. Should not write the comment. Called only when {@link #isEmpty()} return false.
+         * Writes this statement to the given printer. Should not write the comment. Called only when {@link #type()} returns a value != {@link Type#Empty}
          */
         void writeCodeTo(PrettyPrinter printer);
     }
@@ -658,8 +644,13 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public boolean isEmpty() {
-            return false;
+        public void writeCodeTo(PrettyPrinter printer) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Type type() {
+            return Type.Single;
         }
     }
 
@@ -702,56 +693,30 @@ public class BuildScriptBuilder {
         void writeBodyTo(PrettyPrinter printer);
     }
 
-    private static class BlockStatements implements BlockBody {
-        final List<Statement> statements = new ArrayList<Statement>();
-
-        BlockStatements() {
-        }
-
-        BlockStatements(Collection<? extends Statement> statements) {
-            this.statements.addAll(statements);
-        }
-
-        BlockStatements(Statement statement) {
-            this.statements.add(statement);
-        }
-
-        public void add(Statement statement) {
-            statements.add(statement);
-        }
-
-        public boolean isEmpty() {
-            for (Statement statement : statements) {
-                if (!statement.isEmpty()) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        @Override
-        public void writeBodyTo(PrettyPrinter printer) {
-            printer.printStatements(statements);
-        }
-    }
-
     private static class BlockStatement implements Statement {
+        private final String comment;
         final String blockSelector;
-        final BlockStatements body = new BlockStatements();
+        final ScriptBlockImpl body = new ScriptBlockImpl();
 
         BlockStatement(String blockSelector) {
+            this.comment = null;
+            this.blockSelector = blockSelector;
+        }
+
+        BlockStatement(String comment, String blockSelector) {
+            this.comment = comment;
             this.blockSelector = blockSelector;
         }
 
         @Nullable
         @Override
         public String getComment() {
-            return null;
+            return comment;
         }
 
         @Override
-        public boolean isEmpty() {
-            return body.isEmpty();
+        public Type type() {
+            return body.type();
         }
 
         void add(Statement statement) {
@@ -761,6 +726,18 @@ public class BuildScriptBuilder {
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
             printer.printBlock(blockSelector, body);
+        }
+    }
+
+    private static class ScriptBlock extends BlockStatement {
+        ScriptBlock(String comment, String methodName) {
+            super(comment, methodName);
+        }
+
+        @Override
+        public Type type() {
+            // Always treat as non-empty
+            return Type.Group;
         }
     }
 
@@ -805,8 +782,8 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public boolean isEmpty() {
-            return dependencies.isEmpty();
+        public Type type() {
+            return dependencies.isEmpty() ? Type.Empty : Type.Group;
         }
 
         @Override
@@ -834,41 +811,47 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
-            printer.printBlock("maven", new BlockStatements(new PropertyAssignment(null, "url", new StringValue(this.url))));
+            ScriptBlockImpl statements = new ScriptBlockImpl();
+            statements.propertyAssignment(null, "url", url);
+            printer.printBlock("maven", statements);
         }
     }
 
-    private class ScriptBlockImpl implements ScriptBlockBuilder, BlockBody {
-        final List<ConfigSpec> configSpecs = new ArrayList<ConfigSpec>();
+    private static class ScriptBlockImpl implements ScriptBlockBuilder, BlockBody {
+        final List<Statement> statements = new ArrayList<Statement>();
 
-        ScriptBlockBuilder configuration(ConfigSelector selector, Statement statement) {
-            configSpecs.add(new ConfigSpec(selector, statement));
-            return this;
+        public void add(Statement statement) {
+            statements.add(statement);
         }
 
-        public boolean isEmpty() {
-            return configSpecs.isEmpty();
+        public Statement.Type type() {
+            for (Statement statement : statements) {
+                if (statement.type() != Statement.Type.Empty) {
+                    return Statement.Type.Group;
+                }
+            }
+            return Statement.Type.Empty;
         }
 
         @Override
         public void writeBodyTo(PrettyPrinter printer) {
-            printer.printConfigSpecs(configSpecs);
+            printer.printStatements(statements);
         }
 
         @Override
         public void propertyAssignment(String comment, String propertyName, Object propertyValue) {
-            configuration(NULL_SELECTOR, new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
+            statements.add(new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
         }
 
         @Override
         public void methodInvocation(String comment, String methodName, Object... methodArgs) {
-            configuration(NULL_SELECTOR, new MethodInvocation(comment, new MethodInvocationValue(methodName, expressionValues(methodArgs))));
+            statements.add(new MethodInvocation(comment, new MethodInvocationValue(methodName, expressionValues(methodArgs))));
         }
 
         @Override
         public ScriptBlockBuilder block(String comment, String methodName) {
             ScriptBlock scriptBlock = new ScriptBlock(comment, methodName);
-            configuration(NULL_SELECTOR, scriptBlock);
+            statements.add(scriptBlock);
             return scriptBlock.body;
         }
 
@@ -884,6 +867,7 @@ public class BuildScriptBuilder {
         final DependenciesBlock dependencies = new DependenciesBlock();
         final List<Statement> plugins = new ArrayList<Statement>();
         final List<Statement> tasks = new ArrayList<Statement>();
+        final List<ConfigSpec> configSpecs = new ArrayList<ConfigSpec>();
 
         CrossConfigBlock(String blockName) {
             this.blockName = blockName;
@@ -904,6 +888,10 @@ public class BuildScriptBuilder {
             plugins.add(new NestedPluginSpec(pluginId, null, comment));
         }
 
+        void configuration(ConfigSelector selector, Statement statement) {
+            configSpecs.add(new ConfigSpec(selector, statement));
+        }
+
         @Override
         public void taskPropertyAssignment(String comment, String taskType, String propertyName, Object propertyValue) {
             configuration(new TaskTypeSelector(taskType), new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
@@ -917,8 +905,15 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public boolean isEmpty() {
-            return super.isEmpty() && repositories.isEmpty() && plugins.isEmpty() && tasks.isEmpty() && dependencies.isEmpty();
+        public Type type() {
+            if (super.type() == Type.Empty
+                && repositories.type() == Type.Empty
+                && plugins.isEmpty()
+                && tasks.isEmpty()
+                && dependencies.type() == Type.Empty) {
+                return Type.Empty;
+            }
+            return Type.Group;
         }
 
         @Nullable
@@ -939,6 +934,7 @@ public class BuildScriptBuilder {
             printer.printStatement(dependencies);
             printer.printStatements(tasks);
             super.writeBodyTo(printer);
+            printer.printConfigSpecs(configSpecs);
         }
     }
 
@@ -948,6 +944,7 @@ public class BuildScriptBuilder {
         final DependenciesBlock dependencies = new DependenciesBlock();
         final CrossConfigBlock allprojects = new CrossConfigBlock("allprojects");
         final CrossConfigBlock subprojects = new CrossConfigBlock("subprojects");
+        final List<ConfigSpec> configSpecs = new ArrayList<ConfigSpec>();
 
         @Override
         public void writeBodyTo(PrettyPrinter printer) {
@@ -957,33 +954,7 @@ public class BuildScriptBuilder {
             printer.printStatement(repositories);
             printer.printStatement(dependencies);
             super.writeBodyTo(printer);
-        }
-    }
-
-    private class ScriptBlock implements Statement {
-        final String comment;
-        final String methodName;
-        final ScriptBlockImpl body = new ScriptBlockImpl();
-
-        ScriptBlock(String comment, String methodName) {
-            this.comment = comment;
-            this.methodName = methodName;
-        }
-
-        @Nullable
-        @Override
-        public String getComment() {
-            return comment;
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return false;
-        }
-
-        @Override
-        public void writeCodeTo(PrettyPrinter printer) {
-            printer.printBlock(methodName, body);
+            printer.printConfigSpecs(configSpecs);
         }
     }
 
@@ -1006,8 +977,8 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public boolean isEmpty() {
-            return body.isEmpty();
+        public Type type() {
+            return Type.Group;
         }
 
         @Override
@@ -1021,7 +992,8 @@ public class BuildScriptBuilder {
         private final Syntax syntax;
         private final PrintWriter writer;
         private String indent = "";
-        private boolean firstExpression = false;
+        private boolean needSeparatorLine = true;
+        private boolean firstStatementOfBlock = false;
 
         PrettyPrinter(Syntax syntax, PrintWriter writer) {
             this.syntax = syntax;
@@ -1052,7 +1024,8 @@ public class BuildScriptBuilder {
         private void printConfigGroup(ConfigGroup configGroup) {
             String blockSelector = configGroup.selector.codeBlockSelectorFor(syntax);
             if (blockSelector != null) {
-                printNewLineExceptTheFirstTime();
+                needSeparatorLine = true;
+                printStatementSeparator();
                 printBlock(blockSelector, configGroup);
             } else {
                 printStatements(configGroup.statements);
@@ -1070,13 +1043,16 @@ public class BuildScriptBuilder {
 
             println(blockSelector + " {");
             indent = indent + "    ";
-            firstExpression = true;
+            needSeparatorLine = false;
+            firstStatementOfBlock = true;
 
             blockBody.writeBodyTo(this);
 
             indent = indentBefore;
-            firstExpression = false;
             println("}");
+
+            // Write a line separator after any block
+            needSeparatorLine = true;
         }
 
         public void printStatements(List<? extends Statement> statements) {
@@ -1085,16 +1061,12 @@ public class BuildScriptBuilder {
             }
         }
 
-        private static class ConfigGroup extends BlockStatements implements Comparable<ConfigGroup> {
-
-            /**
-             * @see ConfigSpec#selector
-             */
+        private static class ConfigGroup extends ScriptBlockImpl implements Comparable<ConfigGroup> {
             final ConfigSelector selector;
 
             ConfigGroup(ConfigSelector selector, List<? extends Statement> statements) {
-                super(statements);
                 this.selector = selector;
+                this.statements.addAll(statements);
             }
 
             @Override
@@ -1163,24 +1135,41 @@ public class BuildScriptBuilder {
             });
         }
 
-        private void printNewLineExceptTheFirstTime() {
-            if (!firstExpression) {
+        private void printStatementSeparator() {
+            if (needSeparatorLine) {
                 println();
+                needSeparatorLine = false;
             }
-            firstExpression = false;
         }
 
         private void printStatement(Statement statement) {
-            if (statement.isEmpty()) {
+            Statement.Type type = statement.type();
+            if (type == Statement.Type.Empty) {
                 return;
             }
-            printNewLineExceptTheFirstTime();
-            if (statement.getComment() != null) {
+
+            boolean hasComment = statement.getComment() != null;
+
+            // Add separators before and after anything with a comment or that is a block or group of statements
+            boolean needsSeparator = hasComment || type == Statement.Type.Group;
+            if (needsSeparator && !firstStatementOfBlock) {
+                needSeparatorLine = true;
+            }
+
+            printStatementSeparator();
+
+            if (hasComment) {
                 for (String line : splitComment(statement.getComment())) {
                     println("// " + line);
                 }
             }
+
             statement.writeCodeTo(this);
+
+            firstStatementOfBlock = false;
+            if (needsSeparator) {
+                needSeparatorLine = true;
+            }
         }
 
         private void println(String s) {

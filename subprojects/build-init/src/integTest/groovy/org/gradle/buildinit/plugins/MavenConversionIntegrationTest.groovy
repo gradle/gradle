@@ -196,11 +196,8 @@ Root project 'webinar-parent'
         and:
         buildFile.text.contains("""configurations.all {
     exclude(group: 'org.apache.maven')
-
     exclude(group: 'org.apache.maven', module: 'badArtifact')
-
     exclude(group: '*', module: 'badArtifact')
-
     exclude(group: 'broken')
 }""")
         when:
