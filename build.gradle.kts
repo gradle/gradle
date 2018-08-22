@@ -43,11 +43,15 @@ defaultTasks("assemble")
 base.archivesBaseName = "gradle"
 
 buildTypes {
+    create("compileAllBuild") {
+        tasks(":createBuildReceipt", "compileAll")
+        projectProperties("ignoreIncomingBuildReceipt" to true)
+    }
+
     create("sanityCheck") {
         tasks(
             "classes", "doc:checkstyleApi", "codeQuality",
             "docs:check", "distribution:checkBinaryCompatibility", "javadocAll")
-        projectProperties("ignoreIncomingBuildReceipt" to true)
     }
 
     // Used by the first phase of the build pipeline, running only last version on multiversion - tests
