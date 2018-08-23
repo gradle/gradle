@@ -89,7 +89,7 @@ public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigur
      * @param notation the coordinates of the owner
      * @param virtual must be set to true if the platform is a virtual platform, or false if it's a published platform
      *
-     * @since 4.11
+     * @since 5.0
      */
     void belongsTo(Object notation, boolean virtual);
 }
