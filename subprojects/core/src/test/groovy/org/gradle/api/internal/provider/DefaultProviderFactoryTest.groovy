@@ -61,7 +61,7 @@ class DefaultProviderFactoryTest extends Specification {
 
     def "cannot create property for null value"() {
         when:
-        providerFactory.property(null)
+        providerFactory.propertyNoNag(null)
 
         then:
         def t = thrown(IllegalArgumentException)
@@ -71,7 +71,7 @@ class DefaultProviderFactoryTest extends Specification {
     @Unroll
     def "property state representing boolean and numbers provide default value for #type"() {
         given:
-        def property = providerFactory.property(type)
+        def property = providerFactory.propertyNoNag(type)
 
         expect:
         property.get() == defaultValue
@@ -91,7 +91,7 @@ class DefaultProviderFactoryTest extends Specification {
     @Unroll
     def "can create property state for #type"() {
         when:
-        def property = providerFactory.property(type)
+        def property = providerFactory.propertyNoNag(type)
         property.set(value)
 
         then:
@@ -114,7 +114,7 @@ class DefaultProviderFactoryTest extends Specification {
 
     def "creating property type for reference type throws exception upon retrieval of value"() {
         when:
-        def property = providerFactory.property(Runnable)
+        def property = providerFactory.propertyNoNag(Runnable)
         property.get()
 
         then:

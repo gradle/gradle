@@ -71,7 +71,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
@@ -923,11 +922,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     public <T> Provider<T> provider(Callable<T> value) {
         return getProviders().provider(value);
-    }
-
-    @Override
-    public <T> PropertyState<T> property(Class<T> clazz) {
-        return getProviders().property(clazz);
     }
 
     @Override

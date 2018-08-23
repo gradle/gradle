@@ -17,13 +17,13 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.provider.PropertyState;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
-public class DefaultPropertyState<T> implements PropertyInternal<T>, PropertyState<T>, ProviderInternal<T> {
+public class DefaultPropertyState<T> implements PropertyInternal<T>, Property<T>, ProviderInternal<T> {
     private final Class<T> type;
     private Provider<? extends T> provider = Providers.notDefined();
 

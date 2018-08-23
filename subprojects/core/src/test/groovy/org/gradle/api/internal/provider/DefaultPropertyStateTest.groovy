@@ -17,7 +17,7 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
-import org.gradle.api.provider.PropertyState
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 
 class DefaultPropertyStateTest extends PropertySpec<String> {
@@ -222,8 +222,8 @@ class DefaultPropertyStateTest extends PropertySpec<String> {
         0 * _
     }
 
-    private PropertyState<Boolean> createBooleanPropertyState(Boolean value) {
-        PropertyState<Boolean> propertyState = new DefaultPropertyState<Boolean>(Boolean)
+    private Property<Boolean> createBooleanPropertyState(Boolean value) {
+        def propertyState = new DefaultPropertyState<Boolean>(Boolean)
         propertyState.set(value)
         propertyState
     }
