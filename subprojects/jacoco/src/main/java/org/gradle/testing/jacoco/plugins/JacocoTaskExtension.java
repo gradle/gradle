@@ -152,7 +152,7 @@ public class JacocoTaskExtension {
     }
 
     private void nagAboutDeprecatedAppendProperty() {
-        DeprecationLogger.nagUserWith("The append property has been deprecated.", "This is scheduled to be removed in Gradle 6.0.", "Append should always be true.", null);
+        DeprecationLogger.nagUserOfDiscontinuedProperty("append", "Append should always be true.");
     }
 
     /**
