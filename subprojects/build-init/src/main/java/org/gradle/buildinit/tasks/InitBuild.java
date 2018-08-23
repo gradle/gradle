@@ -82,7 +82,7 @@ public class InitBuild extends DefaultTask {
      *
      * This property can be set via command-line option '--project-name'.
      *
-     * @since 4.11
+     * @since 5.0
      */
     @Incubating
     @Input
@@ -95,7 +95,7 @@ public class InitBuild extends DefaultTask {
      *
      * This property can be set via command-line option '--package'.
      *
-     * @since 4.11
+     * @since 5.0
      */
     @Incubating
     @Input
@@ -258,7 +258,7 @@ public class InitBuild extends DefaultTask {
     /**
      * Set the project name.
      *
-     * @since 4.11
+     * @since 5.0
      */
     @Incubating
     @Option(option = "project-name", description = "Set the project name.")
@@ -269,7 +269,7 @@ public class InitBuild extends DefaultTask {
     /**
      * Set the package name.
      *
-     * @since 4.11
+     * @since 5.0
      */
     @Incubating
     @Option(option = "package", description = "Set the package for source files.")
