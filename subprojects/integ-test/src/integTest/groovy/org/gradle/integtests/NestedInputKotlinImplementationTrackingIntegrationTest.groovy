@@ -42,6 +42,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
         buildFile.makeOlder()
 
         when:
+        executer.expectDeprecationWarning()
         run 'myTask'
         then:
         executedAndNotSkipped(':myTask')
@@ -52,6 +53,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
                 action = Action { writeText("changed") }
             }                      
         """
+        executer.expectDeprecationWarning()
         run 'myTask', '--info'
         then:
         executedAndNotSkipped(':myTask')
@@ -70,6 +72,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
         buildFile.makeOlder()
 
         when:
+        executer.expectDeprecationWarning()
         run 'myTask'
         then:
         executedAndNotSkipped(':myTask')
@@ -80,6 +83,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
                 action = { it.writeText("changed") }
             }
         """
+        executer.expectDeprecationWarning()
         run 'myTask', '--info'
         then:
         executedAndNotSkipped(':myTask')

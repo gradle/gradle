@@ -52,6 +52,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         commonFilesGenerated(scriptDsl)
 
         when:
+        executer.expectDeprecationWarning()
         run("build")
 
         then:
@@ -74,6 +75,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         commonFilesGenerated(scriptDsl)
 
         when:
+        executer.expectDeprecationWarning()
         run("build")
 
         then:
@@ -107,6 +109,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:
+        executer.expectDeprecationWarning()
         run("build")
 
         then:

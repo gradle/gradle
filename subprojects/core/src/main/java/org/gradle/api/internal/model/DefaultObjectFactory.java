@@ -30,7 +30,11 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
+import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.DeprecationLogger;
+
+import javax.annotation.Nullable;
 
 public class DefaultObjectFactory implements ObjectFactory {
     private final Instantiator instantiator;
@@ -56,8 +60,14 @@ public class DefaultObjectFactory implements ObjectFactory {
     }
 
     @Override
-    public SourceDirectorySet sourceDirectorySet(String name, String displayName) {
-        return new DefaultSourceDirectorySet(name, displayName, fileResolver, directoryFileTreeFactory, this);
+    public SourceDirectorySet sourceDirectorySet(final String name, final String displayName) {
+        return DeprecationLogger.whileDisabled(new Factory<SourceDirectorySet>() {
+            @Nullable
+            @Override
+            public SourceDirectorySet create() {
+                return new DefaultSourceDirectorySet(name, displayName, fileResolver, directoryFileTreeFactory, DefaultObjectFactory.this);
+            }
+        });
     }
 
     @Override
