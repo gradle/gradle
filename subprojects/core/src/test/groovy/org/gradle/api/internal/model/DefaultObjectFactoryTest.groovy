@@ -18,6 +18,7 @@ package org.gradle.api.internal.model
 
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
+import spock.lang.Unroll
 
 
 class DefaultObjectFactoryTest extends Specification {
@@ -28,6 +29,45 @@ class DefaultObjectFactoryTest extends Specification {
         def property = factory.property(Boolean)
         property.present
         !property.get()
+    }
+
+    def "cannot create property for null value"() {
+        when:
+        factory.property(null)
+
+        then:
+        def t = thrown(IllegalArgumentException)
+        t.message == 'Class cannot be null'
+    }
+
+    @Unroll
+    def "properties wih boolean and numbers provide default value for #type"() {
+        given:
+        def property = factory.property(type)
+
+        expect:
+        property.get() == defaultValue
+
+        where:
+        type      | defaultValue
+        Boolean   | false
+        Byte      | 0
+        Short     | 0
+        Integer   | 0
+        Long      | 0L
+        Float     | 0.0f
+        Double    | 0.0d
+        Character | '\u0000'
+    }
+
+    def "creating property type for reference type throws exception upon retrieval of value"() {
+        when:
+        def property = factory.property(Runnable)
+        property.get()
+
+        then:
+        def t = thrown(IllegalStateException)
+        t.message == 'No value has been specified for this provider.'
     }
 
     def "can create a List property"() {

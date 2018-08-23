@@ -17,23 +17,26 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.model.ObjectFactory;
 
 public class DefaultSourceDirectorySetFactory implements SourceDirectorySetFactory {
     private final FileResolver fileResolver;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
+    private final ObjectFactory objectFactory;
 
-    public DefaultSourceDirectorySetFactory(FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public DefaultSourceDirectorySetFactory(FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, ObjectFactory objectFactory) {
         this.fileResolver = fileResolver;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
+        this.objectFactory = objectFactory;
     }
 
     @Override
     public DefaultSourceDirectorySet create(String name) {
-        return new DefaultSourceDirectorySet(name, fileResolver, directoryFileTreeFactory);
+        return new DefaultSourceDirectorySet(name, name, fileResolver, directoryFileTreeFactory, objectFactory);
     }
 
     @Override
     public DefaultSourceDirectorySet create(String name, String displayName) {
-        return new DefaultSourceDirectorySet(name, displayName, fileResolver, directoryFileTreeFactory);
+        return new DefaultSourceDirectorySet(name, displayName, fileResolver, directoryFileTreeFactory, objectFactory);
     }
 }

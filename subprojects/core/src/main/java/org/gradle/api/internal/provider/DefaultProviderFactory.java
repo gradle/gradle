@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 
@@ -28,36 +27,6 @@ public class DefaultProviderFactory implements ProviderFactory {
         if (value == null) {
             throw new IllegalArgumentException("Value cannot be null");
         }
-
         return new DefaultProvider<T>(value);
-    }
-
-    // This should be extracted out
-    public <T> Property<T> propertyNoNag(Class<T> valueType) {
-        if (valueType == null) {
-            throw new IllegalArgumentException("Class cannot be null");
-        }
-
-        Property<T> property = new DefaultPropertyState<T>(valueType);
-
-        if (valueType == Boolean.class) {
-            ((Property<Boolean>) property).set(Providers.FALSE);
-        } else if (valueType == Byte.class) {
-            ((Property<Byte>) property).set(Providers.BYTE_ZERO);
-        } else if (valueType == Short.class) {
-            ((Property<Short>) property).set(Providers.SHORT_ZERO);
-        } else if (valueType == Integer.class) {
-            ((Property<Integer>) property).set(Providers.INTEGER_ZERO);
-        } else if (valueType == Long.class) {
-            ((Property<Long>) property).set(Providers.LONG_ZERO);
-        } else if (valueType == Float.class) {
-            ((Property<Float>) property).set(Providers.FLOAT_ZERO);
-        } else if (valueType == Double.class) {
-            ((Property<Double>) property).set(Providers.DOUBLE_ZERO);
-        } else if (valueType == Character.class) {
-            ((Property<Character>) property).set(Providers.CHAR_ZERO);
-        }
-
-        return property;
     }
 }
