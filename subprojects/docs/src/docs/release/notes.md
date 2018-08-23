@@ -133,17 +133,28 @@ The previously deprecated support for Play Framework 2.2 has been removed.
 - Removed the methods `execute`, `getExecuter`, `setExecuter`, `getValidators` and `addValidator` from `TaskInternal`.
 - Removed the methods `stopExecutionIfEmpty` and `add` from `FileCollection`.
 - Removed the ability to cast (Groovy `as`) `FileCollection` to `File[]` and `File`.
-- Removed the class `SimpleFileCollection`.
 - Removed the method `getBuildDependencies` from `AbstractFileCollection`. 
-- Removed the class `SimpleWorkResult`.
 - Removed the methods `file` and `files` from `TaskDestroyables`.
 - Removed the property `styleSheet` from `ScalaDocOptions`.
+- Removed the methods `newFileVar` and `newDirectoryVar` from `ProjectLayout`.
+- Removed the method `property` from `ProviderFactory`.
+- Removed the method `property` from `Project`.
+- Removed the method `property` from `Script`.
+- Removed the type `RegularFileVar`.
+- Removed the type `DirectoryVar`.
+- Removed the type `PropertyState`.
 - Forbid passing `null` as configuration action to the methods `from` and `to` on `CopySpec`.
 - Removed the property `bootClasspath` from `CompileOptions`.
 - Validation problems for inputs or outputs registered via the runtime API now fail the build.
 - Chaining calls to the methods `file`, `files`, and `dir` on `TaskInputs` is now impossible.
 - Chaining calls to the methods `file`, `files`, and `dir` on `TaskOutputs` is now impossible.
 - Chaining calls to the method `property` and `properties` on `TaskInputs` is now an error.
+
+### Changes to internal APIs
+
+- Removed the internal class `SimpleFileCollection`.
+- Removed the internal class `SimpleWorkResult`.
+- Removed the internal method `getAddAction` from `BroadcastingCollectionEventRegister`.
 
 ## External contributions
 

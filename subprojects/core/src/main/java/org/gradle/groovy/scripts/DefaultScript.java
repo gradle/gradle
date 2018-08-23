@@ -39,7 +39,6 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
-import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
@@ -263,11 +262,6 @@ public abstract class DefaultScript extends BasicScript {
     @Override
     public <T> Provider<T> provider(Callable<T> value) {
         return providerFactory.provider(value);
-    }
-
-    @Override
-    public <T> PropertyState<T> property(Class<T> clazz) {
-        return providerFactory.property(clazz);
     }
 
     @Override

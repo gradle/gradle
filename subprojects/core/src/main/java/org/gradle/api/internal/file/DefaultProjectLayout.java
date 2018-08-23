@@ -21,14 +21,12 @@ import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.DirectoryVar;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.file.RegularFileVar;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
@@ -42,7 +40,6 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -71,37 +68,25 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     }
 
     @Override
-    public DirectoryVar newDirectoryVar() {
-        DeprecationLogger.nagUserOfReplacedMethod("ProjectLayout.newDirectoryVar()", "ProjectLayout.directoryProperty()");
-        return directoryProperty();
-    }
-
-    @Override
-    public DirectoryVar directoryProperty() {
+    public DirectoryProperty directoryProperty() {
         return new DefaultDirectoryVar(projectDir.fileResolver);
     }
 
     @Override
-    public DirectoryVar directoryProperty(Provider<? extends Directory> initialProvider) {
-        DirectoryVar result = directoryProperty();
+    public DirectoryProperty directoryProperty(Provider<? extends Directory> initialProvider) {
+        DirectoryProperty result = directoryProperty();
         result.set(initialProvider);
         return result;
     }
 
     @Override
-    public RegularFileVar newFileVar() {
-        DeprecationLogger.nagUserOfReplacedMethod("ProjectLayout.newFileVar()", "ProjectLayout.fileProperty()");
-        return fileProperty();
-    }
-
-    @Override
-    public RegularFileVar fileProperty() {
+    public RegularFileProperty fileProperty() {
         return new DefaultRegularFileVar(projectDir.fileResolver);
     }
 
     @Override
-    public RegularFileVar fileProperty(Provider<? extends RegularFile> initialProvider) {
-        RegularFileVar result = fileProperty();
+    public RegularFileProperty fileProperty(Provider<? extends RegularFile> initialProvider) {
+        RegularFileProperty result = fileProperty();
         result.set(initialProvider);
         return result;
     }
@@ -260,7 +245,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         }
     }
 
-    private static class DefaultRegularFileVar extends DefaultPropertyState<RegularFile> implements RegularFileVar, TaskDependencyContainer {
+    private static class DefaultRegularFileVar extends DefaultPropertyState<RegularFile> implements RegularFileProperty, TaskDependencyContainer {
         private final PathToFileResolver fileResolver;
 
         DefaultRegularFileVar(PathToFileResolver fileResolver) {
@@ -349,7 +334,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         }
     }
 
-    private static class DefaultDirectoryVar extends DefaultPropertyState<Directory> implements DirectoryVar, TaskDependencyContainer {
+    private static class DefaultDirectoryVar extends DefaultPropertyState<Directory> implements DirectoryProperty, TaskDependencyContainer {
         private final FileResolver resolver;
 
         DefaultDirectoryVar(FileResolver resolver) {

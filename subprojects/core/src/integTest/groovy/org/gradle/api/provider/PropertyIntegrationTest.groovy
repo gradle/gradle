@@ -27,29 +27,6 @@ class PropertyIntegrationTest extends AbstractIntegrationSpec {
     private final PropertyStateProjectUnderTest projectUnderTest = new PropertyStateProjectUnderTest(testDirectory)
 
     @Unroll
-    def "receives deprecation warning when using #expr"() {
-        given:
-        buildFile << """
-PropertyState<String> p = $expr
-p.set("123")
-p.get()
-"""
-
-        when:
-        executer.expectDeprecationWarning()
-        run()
-
-        then:
-        output.contains("The property(Class) method has been deprecated.")
-
-        where:
-        expr                         | _
-        "providers.property(String)" | _
-        "project.property(String)"   | _
-        "property(String)"           | _
-    }
-
-    @Unroll
     def "can create and use property state by custom task written as #language class"() {
         given:
         projectUnderTest.writeCustomTaskTypeToBuildSrc(language)
