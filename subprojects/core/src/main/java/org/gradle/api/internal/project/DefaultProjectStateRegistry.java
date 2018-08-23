@@ -158,6 +158,27 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
         @Override
         public <T> T withMutableState(final Factory<? extends T> action) {
+            Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
+            if (currentLocks.contains(projectLock)) {
+                currentLocks = Lists.newArrayList(currentLocks);
+                currentLocks.remove(projectLock);
+                return workerLeaseService.withoutLocks(currentLocks, new Callable<T>() {
+                    @Override
+                    public T call() throws Exception {
+                        return action.create();
+                    }
+                });
+            } else {
+                return workerLeaseService.withoutLocks(currentLocks, new Callable<T>() {
+                    @Override
+                    public T call() throws Exception {
+                        return withProjectLock(projectLock, action);
+                    }
+                });
+            }
+        }
+
+        private <T> T withProjectLock(ResourceLock projectLock, final Factory<? extends T> action) {
             return workerLeaseService.withLocks(Lists.newArrayList(projectLock), new Callable<T>() {
                 @Override
                 public T call() throws Exception {

@@ -18,6 +18,7 @@ package org.gradle.internal.resources;
 
 import org.gradle.util.Path;
 
+import java.util.Collection;
 import java.util.concurrent.Callable;
 
 public interface ProjectLeaseRegistry {
@@ -53,4 +54,9 @@ public interface ProjectLeaseRegistry {
      * lock, all worker leases held by the thread will be released and reacquired once the project lock is obtained.
      */
     void withoutProjectLock(Runnable action);
+
+    /**
+     * Returns any projects locks currently held by this thread.
+     */
+    Collection<? extends ResourceLock> getCurrentProjectLocks();
 }

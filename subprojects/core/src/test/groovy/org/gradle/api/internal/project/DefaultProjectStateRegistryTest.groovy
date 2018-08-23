@@ -29,8 +29,8 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.Path
 
 class DefaultProjectStateRegistryTest extends ConcurrentSpec {
-    def coordinationService = new DefaultResourceLockCoordinationService()
-    def workerLeaseService =  new DefaultWorkerLeaseService(coordinationService, new ParallelismConfigurationManagerFixture(true, 4))
+    def workerLeaseService =  new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new ParallelismConfigurationManagerFixture(true, 4))
+    def parentLease = workerLeaseService.getWorkerLease()
     def registry = new DefaultProjectStateRegistry(workerLeaseService)
 
     def "adds projects for a build"() {
@@ -73,14 +73,14 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
 
         when:
         async {
-            start {
+            workerThread {
                 state.withMutableState {
                     instant.start
                     thread.block()
                     instant.thread1
                 }
             }
-            start {
+            workerThread {
                 thread.blockUntil.start
                 state.withMutableState {
                     instant.thread2
@@ -90,6 +90,48 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
 
         then:
         instant.thread2 > instant.thread1
+    }
+
+    def "a given thread can only access the state of one project at a time"() {
+        given:
+        def build = build("p1", "p2")
+        def project1 = project("p1")
+        def project2 = project("p2")
+
+        registry.registerProjects(build)
+        def state1 = registry.stateFor(project1)
+        def state2 = registry.stateFor(project2)
+
+        def projectLock1 = workerLeaseService.getProjectLock(project1.getIdentityPath())
+        def projectLock2 = workerLeaseService.getProjectLock(project2.getIdentityPath())
+
+        expect:
+        async {
+            workerThread {
+                state1.withMutableState {
+                    instant.start1
+                    thread.blockUntil.start2
+                    state2.withMutableState {
+                        assert workerLeaseService.getCurrentProjectLocks().contains(projectLock2)
+                        assert !workerLeaseService.getCurrentProjectLocks().contains(projectLock1)
+                        instant.thread1
+                        thread.blockUntil.thread2
+                    }
+                }
+            }
+            workerThread {
+                state2.withMutableState {
+                    instant.start2
+                    thread.blockUntil.start1
+                    state1.withMutableState {
+                        assert workerLeaseService.getCurrentProjectLocks().contains(projectLock1)
+                        assert !workerLeaseService.getCurrentProjectLocks().contains(projectLock2)
+                        instant.thread2
+                        thread.blockUntil.thread1
+                    }
+                }
+            }
+        }
     }
 
     ProjectInternal project(String name) {
@@ -115,5 +157,11 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         build.getIdentityPathForProject(_) >> { Path path -> path }
         build.getIdentifierForProject(_) >> { Path path -> new DefaultProjectComponentIdentifier(DefaultBuildIdentifier.ROOT, path, path, "??") }
         return build
+    }
+
+    void workerThread(Closure closure) {
+        start {
+            workerLeaseService.withLocks([parentLease.createChild()], closure)
+        }
     }
 }
