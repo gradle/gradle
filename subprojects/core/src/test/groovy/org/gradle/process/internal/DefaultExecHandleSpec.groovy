@@ -19,7 +19,6 @@ package org.gradle.process.internal
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.jvm.Jvm
 import org.gradle.process.ExecResult
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -32,11 +31,9 @@ import spock.lang.Timeout
 
 import java.util.concurrent.Callable
 import java.util.concurrent.Executor
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 @UsesNativeServices
-@IntegrationTestTimeout(10)
+@Timeout(60)
 class DefaultExecHandleSpec extends ConcurrentSpec {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     private BuildCancellationToken buildCancellationToken = Mock(BuildCancellationToken)
@@ -47,10 +44,10 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         def err = new ByteArrayOutputStream()
 
         def execHandle = handle()
-                .args(args(TestApp.class, "arg1", "arg2"))
-                .setStandardOutput(out)
-                .setErrorOutput(err)
-                .build()
+            .args(args(TestApp.class, "arg1", "arg2"))
+            .setStandardOutput(out)
+            .setErrorOutput(err)
+            .build()
 
         when:
         def result = execHandle.start().waitForFinish()
@@ -74,8 +71,8 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     void "waiting for process returns quickly if process already completed"() {
         given:
         def execHandle = handle()
-                .args(args(TestApp.class))
-                .build()
+            .args(args(TestApp.class))
+            .build()
 
         def handle = execHandle.start()
 
@@ -447,10 +444,10 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     }
 
     private DefaultExecHandleBuilder handle() {
-        new DefaultExecHandleBuilder(TestFiles.pathToFileResolver(), Executors.newCachedThreadPool(), buildCancellationToken)
-                .executable(Jvm.current().getJavaExecutable().getAbsolutePath())
-                .setTimeout(20000) //sanity timeout
-                .workingDir(tmpDir.getTestDirectory())
+        new DefaultExecHandleBuilder(TestFiles.pathToFileResolver(), executor, buildCancellationToken)
+            .executable(Jvm.current().getJavaExecutable().getAbsolutePath())
+            .setTimeout(20000) //sanity timeout
+            .workingDir(tmpDir.getTestDirectory())
     }
 
     private List args(Class mainClass, String ... args) {

@@ -16,7 +16,6 @@
 
 package org.gradle.process.internal.streams;
 
-import com.google.common.io.ByteStreams;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -24,24 +23,26 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.channels.AsynchronousCloseException;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
 import java.util.concurrent.CountDownLatch;
 
 public class ExecOutputHandleRunner implements Runnable {
     private final static Logger LOGGER = Logging.getLogger(ExecOutputHandleRunner.class);
 
     private final String displayName;
-    private final ReadableByteChannel inputChannel;
-    private final WritableByteChannel outputChannel;
+    private final InputStream inputStream;
+    private final OutputStream outputStream;
+    private final int bufferSize;
     private final CountDownLatch completed;
 
     public ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream, CountDownLatch completed) {
+        this(displayName, inputStream, outputStream, 2048, completed);
+    }
+
+    ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream, int bufferSize, CountDownLatch completed) {
         this.displayName = displayName;
-        this.inputChannel = Channels.newChannel(inputStream);
-        this.outputChannel = Channels.newChannel(outputStream);
+        this.inputStream = inputStream;
+        this.outputStream = outputStream;
+        this.bufferSize = bufferSize;
         this.completed = completed;
     }
 
@@ -54,9 +55,17 @@ public class ExecOutputHandleRunner implements Runnable {
     }
 
     private void forwardContent() {
+        byte[] buffer = new byte[bufferSize];
         try {
-            ByteStreams.copy(inputChannel, outputChannel);
-            CompositeStoppable.stoppable(inputChannel, outputChannel).stop();
+            while (true) {
+                int nread = inputStream.read(buffer);
+                if (nread < 0) {
+                    break;
+                }
+                outputStream.write(buffer, 0, nread);
+                outputStream.flush();
+            }
+            CompositeStoppable.stoppable(inputStream, outputStream).stop();
         } catch (Throwable t) {
             if (wasInterrupted(t)) {
                 return;
@@ -74,7 +83,7 @@ public class ExecOutputHandleRunner implements Runnable {
     }
 
     public void closeInput() throws IOException {
-        inputChannel.close();
+        inputStream.close();
     }
 
     @Override

@@ -19,14 +19,12 @@ package org.gradle.process.internal.streams;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.CurrentBuildOperationPreservingRunnable;
 import org.gradle.process.internal.StreamsHandler;
+import org.gradle.util.DisconnectableInputStream;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 
 /**
  * Reads from the process' stdout and stderr (if not merged into stdout) and forwards to {@link OutputStream}.
@@ -64,7 +62,7 @@ public class OutputStreamsForwarder implements StreamsHandler {
     }
 
     private InputStream wrapInDisconnectedInputStream(InputStream is) {
-        return is;
+        return new DisconnectableInputStream(is);
     }
 
     private Runnable wrapInBuildOperation(Runnable runnable) {
@@ -73,14 +71,8 @@ public class OutputStreamsForwarder implements StreamsHandler {
 
     public void stop() {
         try {
-            if (readErrorStream) {
-                standardErrorReader.closeInput();
-            }
-            standardOutputReader.closeInput();
             completed.await();
         } catch (InterruptedException e) {
-            throw new UncheckedException(e);
-        } catch (IOException e) {
             throw new UncheckedException(e);
         }
     }
