@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Incubating
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.plugins.ExtensionContainer
 
@@ -55,5 +56,82 @@ inline fun <reified T : Any> ExtensionContainer.getByName(name: String) =
     }
 
 
+/**
+ * Delegated property getter that locates extensions.
+ */
 inline operator fun <reified T : Any> ExtensionContainer.getValue(thisRef: Any?, property: KProperty<*>): T =
     getByName<T>(property.name)
+
+
+/**
+ * Adds a new extension to this container.
+ *
+ * @param T the public type of the added extension
+ * @param name the name of the extension
+ * @param extension the extension instance
+ *
+ * @throws IllegalArgumentException When an extension with the given name already exists.
+ *
+ * @see [ExtensionContainer.add]
+ */
+@Incubating
+@Suppress("extension_shadowed_by_member")
+inline fun <reified T : Any> ExtensionContainer.add(name: String, extension: T) {
+    add(typeOf<T>(), name, extension)
+}
+
+
+/**
+ * Creates and adds a new extension to this container.
+ *
+ * @param T the instance type of the new extension
+ * @param name the extension's name
+ * @param constructionArguments construction arguments
+ * @return the created instance
+ *
+ * @see [ExtensionContainer.create]
+ */
+@Incubating
+inline fun <reified T : Any> ExtensionContainer.create(name: String, vararg constructionArguments: Any): T =
+    create(name, T::class.java, *constructionArguments)
+
+
+/**
+ * Looks for the extension of a given type.
+ *
+ * @param T the extension type
+ * @return the extension
+ * @throws UnknownDomainObjectException when no matching extension can be found
+ *
+ * @see [ExtensionContainer.getByType]
+ */
+@Incubating
+inline fun <reified T : Any> ExtensionContainer.getByType(): T =
+    getByType(typeOf<T>())
+
+
+/**
+ * Looks for the extension of a given type.
+ *
+ * @param T the extension type
+ * @return the extension or null if not found
+ *
+ * @see [ExtensionContainer.findByType]
+ */
+@Incubating
+inline fun <reified T : Any> ExtensionContainer.findByType(): T? =
+    findByType(typeOf<T>())
+
+
+/**
+ * Looks for the extension of the specified type and configures it with the supplied action.
+ *
+ * @param T the extension type
+ * @param action the configuration action
+ *
+ * @see [ExtensionContainer.configure]
+ */
+@Incubating
+inline fun <reified T : Any> ExtensionContainer.configure(noinline action: T.() -> Unit) {
+    configure(typeOf<T>(), action)
+}

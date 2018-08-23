@@ -2,6 +2,7 @@ package org.gradle.kotlin.dsl
 
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.eq
+import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
@@ -9,6 +10,7 @@ import com.nhaarman.mockito_kotlin.whenever
 
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Project
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.plugins.Convention
@@ -175,6 +177,29 @@ class ProjectExtensionsTest {
             verify(convention).findByType(eq(conventionType))
             verify(convention).findPlugin(eq(JavaPluginConvention::class.java))
             verify(convention).configure(eq(conventionType), any<Action<JavaPluginConvention>>())
+            verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun container() {
+
+        val project = mock<Project> {
+            on { container(any<Class<String>>()) } doReturn mock<NamedDomainObjectContainer<String>>()
+            on { container(any<Class<String>>(), any<NamedDomainObjectFactory<String>>()) } doReturn mock<NamedDomainObjectContainer<String>>()
+        }
+
+        project.container<String>()
+
+        inOrder(project) {
+            verify(project).container(String::class.java)
+            verifyNoMoreInteractions()
+        }
+
+        project.container { "some" }
+
+        inOrder(project) {
+            verify(project).container(any<Class<String>>(), any<NamedDomainObjectFactory<String>>())
             verifyNoMoreInteractions()
         }
     }

@@ -19,8 +19,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.SourceSetContainer
 
 import org.gradle.kotlin.dsl.*
 
@@ -28,6 +28,8 @@ import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript
+
+import org.gradle.kotlin.dsl.provider.gradleKotlinDslJarsOf
 
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -60,19 +62,18 @@ open class PrecompiledScriptPlugins : Plugin<Project> {
 private
 fun Project.enableScriptCompilation() {
 
-    afterEvaluate {
+    dependencies {
+        "kotlinCompilerPluginClasspath"(gradleKotlinDslJarsOf(project))
+        "kotlinCompilerPluginClasspath"(gradleApi())
+    }
 
-        tasks {
-
-            "compileKotlin"(KotlinCompile::class) {
-                kotlinOptions {
-                    freeCompilerArgs += listOf(
-                        "-script-templates", scriptTemplates,
-                        // Propagate implicit imports and other settings
-                        "-Xscript-resolver-environment=${resolverEnvironment()}"
-                    )
-                }
-            }
+    tasks.named("compileKotlin").configure {
+        (it as KotlinCompile).kotlinOptions {
+            freeCompilerArgs += listOf(
+                "-script-templates", scriptTemplates,
+                // Propagate implicit imports and other settings
+                "-Xscript-resolver-environment=${resolverEnvironment()}"
+            )
         }
     }
 }
@@ -145,26 +146,22 @@ fun Project.declareScriptPlugins(scriptPlugins: List<ScriptPlugin>) {
 private
 fun Project.generatePluginAdaptersFor(scriptPlugins: List<ScriptPlugin>, scriptSourceFiles: FileTree) {
 
-    tasks {
+    val generatedSourcesDir = layout.buildDirectory.dir("generated-sources/kotlin-dsl-plugins/kotlin")
+    sourceSets["main"].kotlin.srcDir(generatedSourcesDir)
 
-        val generatedSourcesDir = layout.buildDirectory.dir("generated-sources/kotlin-dsl-plugins/kotlin")
-
-        sourceSets["main"].kotlin.srcDir(generatedSourcesDir)
-
-        val generateScriptPluginAdapters by creating {
-            inputs.files(scriptSourceFiles)
-            outputs.dir(generatedSourcesDir)
-            doLast {
-                val outputDir = generatedSourcesDir.get().asFile
-                for (scriptPlugin in scriptPlugins) {
-                    scriptPlugin.writeScriptPluginAdapterTo(outputDir)
-                }
+    val generateScriptPluginAdapters = tasks.register("generateScriptPluginAdapters") {
+        it.inputs.files(scriptSourceFiles)
+        it.outputs.dir(generatedSourcesDir)
+        it.doLast {
+            val outputDir = generatedSourcesDir.get().asFile
+            for (scriptPlugin in scriptPlugins) {
+                scriptPlugin.writeScriptPluginAdapterTo(outputDir)
             }
         }
+    }
 
-        getByName("compileKotlin") {
-            it.dependsOn(generateScriptPluginAdapters)
-        }
+    tasks.named("compileKotlin").configure {
+        it.dependsOn(generateScriptPluginAdapters)
     }
 }
 
@@ -218,7 +215,7 @@ fun File.mkdir(relative: String) =
 
 private
 val Project.sourceSets
-    get() = project.the<JavaPluginConvention>().sourceSets
+    get() = project.the<SourceSetContainer>()
 
 
 private

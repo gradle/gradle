@@ -18,12 +18,12 @@ open class GreetingPlugin : Plugin<Project> {
         // Add the 'greeting' extension object
         val greeting = extensions.create(
             "greeting",
-            GreetingPluginExtension::class.java,
+            GreetingPluginExtension::class,
             project)
 
         // Add a task that uses the configuration
         tasks {
-            "hello"(Greeting::class) {
+            register("hello", Greeting::class) {
                 group = "Greeting"
                 message.set(greeting.message)
                 outputFiles.setFrom(greeting.outputFiles)

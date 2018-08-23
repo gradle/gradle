@@ -59,7 +59,11 @@ import kotlin.script.templates.ScriptTemplateDefinition
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
     scriptFilePattern = ".+\\.init\\.gradle\\.kts")
-@ScriptTemplateAdditionalCompilerArguments(["-Xjsr305=strict"])
+@ScriptTemplateAdditionalCompilerArguments([
+    "-Xjsr305=strict",
+    "-XXLanguage:+NewInference",
+    "-XXLanguage:+SamConversionForKotlinFunctions"
+])
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 abstract class KotlinInitScript(
     private val host: KotlinScriptHost<Gradle>
@@ -237,7 +241,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      */
     @Suppress("unused")
     fun files(vararg paths: Any): ConfigurableFileCollection =
-        operations.files(paths)
+        operations.configurableFiles(paths)
 
     /**
      * Creates a [ConfigurableFileCollection] containing the given files.
@@ -249,7 +253,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      */
     @Suppress("unused")
     fun files(paths: Any, configuration: ConfigurableFileCollection.() -> Unit): ConfigurableFileCollection =
-        operations.files(paths).also(configuration)
+        operations.configurableFiles(paths).also(configuration)
 
     /**
      * Creates a new [ConfigurableFileTree] using the given base directory.

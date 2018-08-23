@@ -4,10 +4,14 @@ plugins {
 }
 
 gradlePlugin {
-    (plugins) {
-        "greet-plugin" {
+    plugins {
+        register("greet-plugin") {
             id = "greet"
             implementationClass = "GreetPlugin"
         }
     }
+}
+
+repositories {
+    jcenter()
 }

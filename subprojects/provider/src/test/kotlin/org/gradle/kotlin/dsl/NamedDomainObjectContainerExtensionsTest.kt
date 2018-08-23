@@ -1,14 +1,23 @@
 package org.gradle.kotlin.dsl
 
-import com.nhaarman.mockito_kotlin.*
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.eq
+import com.nhaarman.mockito_kotlin.inOrder
+import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.verify
 
-import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.api.Action
+import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.NamedDomainObjectProvider
+import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.TaskProvider
+
+import org.gradle.kotlin.dsl.support.uncheckedCast
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
@@ -27,10 +36,14 @@ class NamedDomainObjectContainerExtensionsTest {
         val alice = DomainObject()
         val bob = DomainObject()
         val john = DomainObject()
+        val marty = mockDomainObjectProviderFor(DomainObject())
+        val doc = mockDomainObjectProviderFor(DomainObject())
         val container = mock<NamedDomainObjectContainer<DomainObject>> {
             on { getByName("alice") } doReturn alice
             on { create("bob") } doReturn bob
             on { maybeCreate("john") } doReturn john
+            on { named("marty") } doReturn marty
+            on { register("doc") } doReturn doc
         }
 
         // regular syntax
@@ -42,6 +55,9 @@ class NamedDomainObjectContainerExtensionsTest {
         }
         container.maybeCreate("john")
 
+        container.named("marty")
+        container.register("doc")
+
         // invoke syntax
         container {
             getByName("alice") {
@@ -51,6 +67,9 @@ class NamedDomainObjectContainerExtensionsTest {
                 it.foo = "bob-foo"
             }
             maybeCreate("john")
+
+            named("marty")
+            register("doc")
         }
     }
 
@@ -60,11 +79,19 @@ class NamedDomainObjectContainerExtensionsTest {
         val alice = DomainObjectBase.Foo()
         val bob = DomainObjectBase.Bar()
         val default = DomainObjectBase.Default()
+        val marty = DomainObjectBase.Foo()
+        val martyProvider = mockDomainObjectProviderFor<DomainObjectBase>(marty)
+        val doc = DomainObjectBase.Bar()
+        val docProvider = mockDomainObjectProviderFor<DomainObjectBase>(doc)
+        val docProviderAsBarProvider = uncheckedCast<NamedDomainObjectProvider<DomainObjectBase.Bar>>(docProvider)
         val container = mock<PolymorphicDomainObjectContainer<DomainObjectBase>> {
             on { getByName("alice") } doReturn alice
             on { maybeCreate("alice", DomainObjectBase.Foo::class.java) } doReturn alice
-            on { create(argThat { equals("bob") }, argThat { equals(DomainObjectBase.Bar::class.java) }, any<Action<DomainObjectBase.Bar>>()) } doReturn bob
+            on { create(eq("bob"), eq(DomainObjectBase.Bar::class.java), any<Action<DomainObjectBase.Bar>>()) } doReturn bob
             on { create("john", DomainObjectBase.Default::class.java) } doReturn default
+            on { named("marty") } doReturn martyProvider
+            on { register(eq("doc"), eq(DomainObjectBase.Bar::class.java)) } doReturn docProviderAsBarProvider
+            onRegisterWithAction("doc", DomainObjectBase.Bar::class, docProviderAsBarProvider)
         }
 
         // regular syntax
@@ -77,6 +104,16 @@ class NamedDomainObjectContainerExtensionsTest {
         }
         container.create("john")
 
+        container.named("marty", DomainObjectBase.Foo::class) {
+            foo = "marty-foo"
+        }
+        container.named<DomainObjectBase.Foo>("marty") {
+            foo = "marty-foo-2"
+        }
+        container.register<DomainObjectBase.Bar>("doc") {
+            bar = true
+        }
+
         // invoke syntax
         container {
             getByName<DomainObjectBase.Foo>("alice") {
@@ -87,6 +124,16 @@ class NamedDomainObjectContainerExtensionsTest {
                 bar = true
             }
             create("john")
+
+            named("marty", DomainObjectBase.Foo::class) {
+                foo = "marty-foo"
+            }
+            named<DomainObjectBase.Foo>("marty") {
+                foo = "marty-foo-2"
+            }
+            register<DomainObjectBase.Bar>("doc") {
+                bar = true
+            }
         }
     }
 
@@ -94,10 +141,14 @@ class NamedDomainObjectContainerExtensionsTest {
     fun `can configure monomorphic container`() {
 
         val alice = DomainObject()
+        val aliceProvider = mockDomainObjectProviderFor(alice)
+
         val bob = DomainObject()
+        val bobProvider = mockDomainObjectProviderFor(bob)
+
         val container = mock<NamedDomainObjectContainer<DomainObject>> {
-            on { maybeCreate("alice") } doReturn alice
-            on { maybeCreate("bob") } doReturn bob
+            on { named("alice") } doReturn aliceProvider
+            on { named("bob") } doReturn bobProvider
         }
 
         container {
@@ -133,13 +184,19 @@ class NamedDomainObjectContainerExtensionsTest {
     fun `can configure polymorphic container`() {
 
         val alice = DomainObjectBase.Foo()
+        val aliceProvider = mockDomainObjectProviderFor(alice)
+
         val bob = DomainObjectBase.Bar()
+        val bobProvider = mockDomainObjectProviderFor(bob)
+
         val default: DomainObjectBase = DomainObjectBase.Default()
+        val defaultProvider = mockDomainObjectProviderFor(default)
+
         val container = mock<PolymorphicDomainObjectContainer<DomainObjectBase>> {
-            on { maybeCreate("alice", DomainObjectBase.Foo::class.java) } doReturn alice
-            on { maybeCreate("bob", DomainObjectBase.Bar::class.java) } doReturn bob
-            on { maybeCreate("jim") } doReturn default
-            on { maybeCreate("steve") } doReturn default
+            on { named("alice") } doReturn uncheckedCast<NamedDomainObjectProvider<DomainObjectBase>>(aliceProvider)
+            on { named("bob") } doReturn uncheckedCast<NamedDomainObjectProvider<DomainObjectBase>>(bobProvider)
+            on { named("jim") } doReturn defaultProvider
+            on { named("steve") } doReturn defaultProvider
         }
 
         container {
@@ -150,10 +207,10 @@ class NamedDomainObjectContainerExtensionsTest {
             val j = "jim" {}
             val s = "steve"() // can invoke without a block, but must invoke
 
-            assertThat(a, sameInstance(alice))
-            assertThat(b, sameInstance(bob))
-            assertThat(j, sameInstance(default))
-            assertThat(s, sameInstance(default))
+            assertThat(a.get(), sameInstance(alice))
+            assertThat(b.get(), sameInstance(bob))
+            assertThat(j.get(), sameInstance(default))
+            assertThat(s.get(), sameInstance(default))
         }
 
         assertThat(
@@ -169,10 +226,12 @@ class NamedDomainObjectContainerExtensionsTest {
     fun `can create and configure tasks`() {
 
         val clean = mock<Delete>()
+        val cleanProvider = mockTaskProviderFor(clean)
+
         val tasks = mock<TaskContainer> {
-            on { create(argThat { equals("clean") }, argThat { equals(Delete::class.java) }, any<Action<Delete>>()) } doReturn clean
+            on { create(eq("clean"), eq(Delete::class.java), any<Action<Delete>>()) } doReturn clean
             on { getByName("clean") } doReturn clean
-            on { maybeCreate("clean", Delete::class.java) } doReturn clean
+            on { named("clean") } doReturn uncheckedCast<TaskProvider<Task>>(cleanProvider)
         }
 
         tasks {
@@ -199,132 +258,34 @@ class NamedDomainObjectContainerExtensionsTest {
     }
 
     @Test
-    fun `can create element in monomorphic container via delegated property`() {
-
-        val container = mock<NamedDomainObjectContainer<DomainObject>> {
-            on { create("domainObject") } doReturn DomainObject()
-        }
-
-        @Suppress("unused_variable")
-        val domainObject by container.creating
-
-        verify(container).create("domainObject")
-    }
-
-    @Test
-    fun `can create and configure element in monomorphic container via delegated property`() {
-
-        val element = DomainObject()
-        val container = mock<NamedDomainObjectContainer<DomainObject>> {
-            on { create("domainObject") } doReturn element
-            on { getByName("domainObject") } doReturn element
-        }
-
-        val domainObject by container.creating {
-            foo = "domain-foo"
-            bar = true
-        }
-
-        verify(container).create("domainObject")
-        assertThat(
-            domainObject,
-            equalTo(DomainObject("domain-foo", true)))
-    }
-
-    @Test
-    fun `can create and configure element in polymorphic container via delegated property`() {
-
-        val element = DomainObjectBase.Foo()
-        val container = mock<PolymorphicDomainObjectContainer<DomainObjectBase>> {
-            on { create("domainObject", DomainObjectBase.Foo::class.java) } doReturn element
-            on { getByName("domainObject") } doReturn element
-        }
-
-        val domainObject by container.creating(type = DomainObjectBase.Foo::class) {
-            foo = "domain-foo"
-        }
-
-        verify(container).create("domainObject", DomainObjectBase.Foo::class.java)
-        assertThat(
-            domainObject.foo,
-            equalTo("domain-foo"))
-    }
-
-    @Test
-    fun `can create element in polymorphic container via delegated property`() {
-
-        val container = mock<PolymorphicDomainObjectContainer<DomainObjectBase>> {
-            on { create("domainObject", DomainObjectBase.Foo::class.java) } doReturn DomainObjectBase.Foo()
-        }
-
-        @Suppress("unused_variable")
-        val domainObject by container.creating(DomainObjectBase.Foo::class)
-
-        verify(container).create("domainObject", DomainObjectBase.Foo::class.java)
-    }
-
-    @Test
     fun `can create element within configuration block via delegated property`() {
+
         val tasks = mock<TaskContainer> {
-            on { create("hello") } doReturn mock<Task>()
+            on { register("hello") } doReturn mock<TaskProvider<Task>>()
         }
 
         tasks {
             @Suppress("unused_variable")
             val hello by creating
         }
-        verify(tasks).create("hello")
+        verify(tasks).register("hello")
     }
 
     @Test
     fun `can get element of specific type within configuration block via delegated property`() {
+
+        val taskProvider = mock<TaskProvider<Task>> {
+            on { get() } doReturn mock<JavaExec>()
+        }
         val tasks = mock<TaskContainer> {
-            on { getByName("hello") } doReturn mock<JavaExec>()
+            on { named("hello") } doReturn taskProvider
         }
 
         @Suppress("unused_variable")
         tasks {
-            val hello: JavaExec by getting
+            val hello by getting(JavaExec::class)
             val ref = hello // forces the element to be accessed
         }
-        verify(tasks).getByName("hello")
-    }
-
-    @Test
-    fun `can create element of specific type within configuration block via delegated property`() {
-
-        val container = mock<PolymorphicDomainObjectContainer<DomainObjectBase>> {
-            on { create("domainObject", DomainObjectBase.Foo::class.java) } doReturn DomainObjectBase.Foo()
-        }
-
-        container {
-
-            @Suppress("unused_variable")
-            val domainObject by creating(type = DomainObjectBase.Foo::class)
-        }
-
-        verify(container).create("domainObject", DomainObjectBase.Foo::class.java)
-    }
-
-    @Test
-    fun `can create and configure element of specific type within configuration block via delegated property`() {
-
-        val element = DomainObjectBase.Foo()
-        val container = mock<PolymorphicDomainObjectContainer<DomainObjectBase>> {
-            on { create("domainObject", DomainObjectBase.Foo::class.java) } doReturn element
-        }
-
-        container {
-
-            @Suppress("unused_variable")
-            val domainObject by creating(DomainObjectBase.Foo::class) {
-                foo = "domain-foo"
-            }
-        }
-
-        verify(container).create("domainObject", DomainObjectBase.Foo::class.java)
-        assertThat(
-            element.foo,
-            equalTo("domain-foo"))
+        verify(tasks).named("hello")
     }
 }

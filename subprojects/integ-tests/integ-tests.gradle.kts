@@ -6,7 +6,8 @@ plugins {
 }
 
 dependencies {
-    compile(project(":test-fixtures"))
+    testImplementation(project(":test-fixtures"))
+    testImplementation("com.squareup.okhttp3:mockwebserver:3.9.1")
 }
 
 val pluginBundles = listOf(
@@ -22,17 +23,22 @@ val futurePluginVersionsTasks =
         project(it).tasks["writeFuturePluginVersions"] as WriteProperties
     }
 
+val prepareIntegrationTestFixtures by rootProject.tasks
 val customInstallation by rootProject.tasks
 
-tasks {
+tasks.apply {
 
-    "test" {
+    val testEnvironment = register("testEnvironment") {
+        dependsOn(prepareIntegrationTestFixtures)
         dependsOn(customInstallation)
         pluginBundles.forEach {
             dependsOn(":$it:publishPluginsToTestRepository")
         }
     }
 
+    withType<Test>().configureEach {
+        dependsOn(testEnvironment)
+    }
 
     val processTestResources by getting(ProcessResources::class)
 

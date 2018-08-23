@@ -1,8 +1,10 @@
 package org.gradle.kotlin.dsl.samples
 
-import org.gradle.kotlin.dsl.fixtures.toPlatformLineSeparators
+import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
+
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
+
 import org.junit.Assert.assertThat
 import org.junit.Test
 
@@ -15,10 +17,10 @@ class HelloKaptSampleTest : AbstractSampleTest("hello-kapt") {
 
         assertThat(
             output,
-            containsString("""
+            containsMultiLineString("""
                 Hello Writer{name=Douglas, age=41, books=[THGttG, DGHDA]}
                 The answer is 42
-            """.trimIndent().toPlatformLineSeparators())
+            """)
         )
     }
 

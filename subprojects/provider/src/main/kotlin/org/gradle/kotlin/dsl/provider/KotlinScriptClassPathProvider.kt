@@ -20,9 +20,12 @@ import org.gradle.api.Project
 
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.SelfResolvingDependency
+import org.gradle.api.file.FileCollection
 
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.api.internal.file.DefaultFileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 
 import org.gradle.internal.classloader.ClassLoaderVisitor
@@ -30,10 +33,12 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.kotlin.dsl.codegen.generateApiExtensionsJar
+import org.gradle.kotlin.dsl.support.gradleApiMetadataModuleName
 import org.gradle.kotlin.dsl.support.ProgressMonitor
-import org.gradle.kotlin.dsl.support.minus
-import org.gradle.kotlin.dsl.support.root
 import org.gradle.kotlin.dsl.support.serviceOf
+
+import org.gradle.kotlin.dsl.isGradleKotlinDslJar
+import org.gradle.kotlin.dsl.isGradleKotlinDslJarName
 
 import org.gradle.util.GFileUtils.moveFile
 
@@ -52,6 +57,19 @@ fun gradleKotlinDslOf(project: Project): List<File> =
     }
 
 
+fun gradleKotlinDslJarsOf(project: Project): FileCollection =
+    fileCollectionOf(
+        kotlinScriptClassPathProviderOf(project).gradleKotlinDslJars.asFiles.filter(::isGradleKotlinDslJar),
+        "gradleKotlinDsl"
+    )
+
+
+internal
+fun fileCollectionOf(files: Collection<File>, name: String): FileCollection =
+    DefaultFileCollectionFactory().fixed(name, files)
+
+
+internal
 fun kotlinScriptClassPathProviderOf(project: Project) =
     project.serviceOf<KotlinScriptClassPathProvider>()
 
@@ -73,7 +91,9 @@ typealias JarsProvider = () -> Collection<File>
 
 
 class KotlinScriptClassPathProvider(
+    val moduleRegistry: ModuleRegistry,
     val classPathRegistry: ClassPathRegistry,
+    val coreAndPluginsScope: ClassLoaderScope,
     val gradleApiJarsProvider: JarsProvider,
     val jarCache: JarCache,
     val progressMonitorProvider: JarGenerationProgressMonitorProvider
@@ -82,10 +102,12 @@ class KotlinScriptClassPathProvider(
     /**
      * Generated Gradle API jar plus supporting libraries such as groovy-all.jar and generated API extensions.
      */
+    internal
     val gradleKotlinDsl: ClassPath by lazy {
         gradleApi + gradleApiExtensions + gradleKotlinDslJars
     }
 
+    private
     val gradleApi: ClassPath by lazy {
         DefaultClassPath.of(gradleApiJarsProvider())
     }
@@ -93,6 +115,7 @@ class KotlinScriptClassPathProvider(
     /**
      * Generated extensions to the Gradle API.
      */
+    private
     val gradleApiExtensions: ClassPath by lazy {
         DefaultClassPath.of(gradleKotlinDslExtensions())
     }
@@ -100,8 +123,18 @@ class KotlinScriptClassPathProvider(
     /**
      * gradle-kotlin-dsl.jar plus kotlin libraries.
      */
+    internal
     val gradleKotlinDslJars: ClassPath by lazy {
         DefaultClassPath.of(gradleKotlinDslJars())
+    }
+
+    /**
+     * The Gradle implementation classpath which should **NOT** be visible
+     * in the compilation classpath of any script.
+     */
+    private
+    val gradleImplementationClassPath: Set<File> by lazy {
+        cachedClassLoaderClassPath.of(coreAndPluginsScope.exportClassLoader)
     }
 
     fun compilationClassPathOf(scope: ClassLoaderScope): ClassPath =
@@ -116,21 +149,20 @@ class KotlinScriptClassPathProvider(
         require(scope.isLocked) {
             "$scope must be locked before it can be used to compute a classpath!"
         }
-        val fullClassPath = cachedClassLoaderClassPath.of(scope.exportClassLoader)
-        val rootClassPath = cachedClassLoaderClassPath.of(scope.root.exportClassLoader)
-        return fullClassPath - rootClassPath
+        val exportedClassPath = cachedClassLoaderClassPath.of(scope.exportClassLoader)
+        return DefaultClassPath.of(exportedClassPath - gradleImplementationClassPath)
     }
 
     private
     fun gradleKotlinDslExtensions(): File =
         produceFrom("kotlin-dsl-extensions") { outputFile, onProgress ->
-            generateApiExtensionsJar(outputFile, gradleJars, onProgress)
+            generateApiExtensionsJar(outputFile, gradleJars, gradleApiMetadataJar, onProgress)
         }
 
     private
     fun produceFrom(id: String, generate: JarGeneratorWithProgress): File =
         jarCache(id) { outputFile ->
-            progressMonitorFor(outputFile, 1).use { progressMonitor ->
+            progressMonitorFor(outputFile, 3).use { progressMonitor ->
                 generateAtomically(outputFile) { generate(it, progressMonitor::onProgress) }
             }
         }
@@ -154,13 +186,18 @@ class KotlinScriptClassPathProvider(
 
     private
     fun gradleKotlinDslJars(): List<File> =
-        gradleJars.filter {
-            it.name.let { isKotlinJar(it) || it.startsWith("gradle-kotlin-dsl-") }
+        gradleJars.filter { file ->
+            file.name.let { isKotlinJar(it) || isGradleKotlinDslJarName(it) }
         }
 
     private
     val gradleJars by lazy {
         classPathRegistry.getClassPath(gradleApiNotation.name).asFiles
+    }
+
+    private
+    val gradleApiMetadataJar by lazy {
+        moduleRegistry.getExternalModule(gradleApiMetadataModuleName).classpath.asFiles.single()
     }
 
     private
@@ -195,16 +232,16 @@ private
 class ClassLoaderClassPathCache {
 
     private
-    val cachedClassPaths = hashMapOf<ClassLoader, ClassPath>()
+    val cachedClassPaths = hashMapOf<ClassLoader, Set<File>>()
 
-    fun of(classLoader: ClassLoader): ClassPath =
+    fun of(classLoader: ClassLoader): Set<File> =
         cachedClassPaths.getOrPut(classLoader) {
             classPathOf(classLoader)
         }
 
     private
-    fun classPathOf(classLoader: ClassLoader): ClassPath {
-        val classPathFiles = mutableListOf<File>()
+    fun classPathOf(classLoader: ClassLoader): Set<File> {
+        val classPathFiles = mutableSetOf<File>()
 
         object : ClassLoaderVisitor() {
             override fun visitClassPath(classPath: Array<URL>) {
@@ -216,11 +253,11 @@ class ClassLoaderClassPathCache {
             }
 
             override fun visitParent(classLoader: ClassLoader) {
-                classPathFiles.addAll(of(classLoader).asFiles)
+                classPathFiles.addAll(of(classLoader))
             }
         }.visit(classLoader)
 
-        return DefaultClassPath.of(classPathFiles)
+        return classPathFiles
     }
 
     private

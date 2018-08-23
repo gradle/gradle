@@ -1,10 +1,25 @@
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.gradle.kotlin.dsl.integration
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
-import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
 import org.gradle.kotlin.dsl.fixtures.LightThought
@@ -16,6 +31,7 @@ import org.gradle.kotlin.dsl.fixtures.rootProjectDir
 
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Assert.assertNotEquals
@@ -24,17 +40,19 @@ import org.junit.Test
 import java.io.File
 
 
-class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
+class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     @LeaksFileHandles
     fun `given a buildscript block, it will be used to compute the runtime classpath`() {
-        checkBuildscriptBlockIsUsedToComputeRuntimeClasspathAfter({ it })
+        checkBuildscriptBlockIsUsedToComputeRuntimeClasspathAfter { it }
     }
 
     @Test
     fun `given a buildscript block separated by CRLF, it will be used to compute the runtime classpath`() {
-        checkBuildscriptBlockIsUsedToComputeRuntimeClasspathAfter({ it.replace("\r\n", "\n").replace("\n", "\r\n") })
+        checkBuildscriptBlockIsUsedToComputeRuntimeClasspathAfter {
+            it.replace("\r\n", "\n").replace("\n", "\r\n")
+        }
     }
 
     private
@@ -163,7 +181,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `given a plugin compiled against Kotlin one dot zero, it will run against the embedded Kotlin version`() {
+    fun `given a plugin compiled against Kotlin one dot one, it will run against the embedded Kotlin version`() {
 
         assumeJavaLessThan9()
 
@@ -174,7 +192,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
                     jcenter()
                 }
                 dependencies {
-                    classpath("org.gradle.kotlin.dsl.fixtures:plugin-compiled-against-kotlin-1.0:1.0")
+                    classpath("org.gradle.kotlin.dsl.fixtures:plugin-compiled-against-kotlin-1.1:1.0")
                 }
             }
 
@@ -232,7 +250,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
 
         assertThat(
             build("print-kotlin-version").output,
-            containsString(expectedKotlinCompilerVersionString + "[compileKotlin=true, compileTestKotlin=true]"))
+            containsString("$expectedKotlinCompilerVersionString[compileKotlin=true, compileTestKotlin=true]"))
     }
 
     @Test
@@ -623,26 +641,32 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
 
         assertThat(
             buildFailureOutput().convertLineSeparators(),
-            containsString("""
-                FAILURE: Build failed with an exception.
+            allOf(
+                containsString("""
+                    FAILURE: Build failed with an exception.
 
-                * Where:
-                Build file '${buildFile.canonicalPath}' line: 1
+                    * Where:
+                    Build file '${buildFile.canonicalPath}' line: 1
 
-                * What went wrong:
-                Script compilation errors:
+                    * What went wrong:
+                    Script compilation errors:
 
-                  Line 01: println(foo)
-                                   ^ Unresolved reference: foo
+                """.replaceIndent()),
 
-                  Line 06: println("foo").bar.bazar
-                                          ^ Unresolved reference: bar
+                containsString("""
+                |  Line 01: println(foo)
+                |                   ^ Unresolved reference: foo
+                """.trimMargin()),
 
-                  Line 10: println(cathedral)
-                                   ^ Unresolved reference: cathedral
+                containsString("""
+                |  Line 06: println("foo").bar.bazar
+                |                          ^ Unresolved reference: bar
+                """.trimMargin()),
 
-                3 errors
-            """.replaceIndent()))
+                containsString("""
+                |  Line 10: println(cathedral)
+                |                   ^ Unresolved reference: cathedral
+                """.trimMargin())))
     }
 
     @Test
@@ -804,7 +828,10 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `given generic extension types they can be accessed and configured`() {
 
+        withDefaultSettingsIn("buildSrc")
+
         withFile("buildSrc/build.gradle.kts", """
+
             plugins {
                 `kotlin-dsl`
                 `java-gradle-plugin`
@@ -812,12 +839,14 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
 
             gradlePlugin {
                 (plugins) {
-                    "my" {
+                    register("my") {
                         id = "my"
                         implementationClass = "my.MyPlugin"
                     }
                 }
             }
+
+            $repositoriesBlock
         """)
 
         withFile("buildSrc/src/main/kotlin/my/MyPlugin.kt", """
@@ -832,7 +861,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
                 override fun apply(project: Project): Unit = project.run {
                     extensions.add(typeOf<MutableMap<String, String>>(), "mapOfString", mutableMapOf("foo" to "bar"))
                     extensions.add(typeOf<MutableMap<String, Int>>(), "mapOfInt", mutableMapOf("deep" to 42))
-                    extensions.add(typeOf<NamedDomainObjectContainer<Book>>(), "books", container(Book::class.java))
+                    extensions.add(typeOf<NamedDomainObjectContainer<Book>>(), "books", container(Book::class))
                 }
             }
         """)
@@ -861,6 +890,23 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
         """)
 
         build("help")
+    }
+
+    @Test
+    fun `can use kotlin java8 inline-only methods`() {
+
+        withBuildScript("""
+            task("test") {
+                doLast {
+                    println(project.properties.getOrDefault("non-existent-property", "default-value"))
+                }
+            }
+        """)
+
+        assertThat(
+            build("-q", "test").output.trim(),
+            equalTo("default-value")
+        )
     }
 
     private

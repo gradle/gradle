@@ -29,19 +29,27 @@ import java.util.zip.ZipOutputStream
 
 
 fun zipTo(zipFile: File, baseDir: File) {
-    val files = baseDir.walkTopDown().filter { it.isFile }
-    zipTo(zipFile, baseDir, files)
+    zipTo(zipFile, baseDir, baseDir.walkTopDown())
 }
 
 
 fun zipTo(zipFile: File, baseDir: File, files: Sequence<File>) {
-    val entries = files.map { file ->
-        val path = file.relativeTo(baseDir).path
-        val bytes = file.readBytes()
-        normaliseFileSeparators(path) to bytes
-    }
-    zipTo(zipFile, entries)
+    zipTo(zipFile, fileEntriesRelativeTo(baseDir, files))
 }
+
+
+private
+fun fileEntriesRelativeTo(baseDir: File, files: Sequence<File>): Sequence<Pair<String, ByteArray>> =
+    files.filter { it.isFile }.map { file ->
+        val path = file.normalisedPathRelativeTo(baseDir)
+        val bytes = file.readBytes()
+        path to bytes
+    }
+
+
+internal
+fun File.normalisedPathRelativeTo(baseDir: File) =
+    normaliseFileSeparators(relativeTo(baseDir).path)
 
 
 fun zipTo(zipFile: File, entries: Sequence<Pair<String, ByteArray>>) {
@@ -61,7 +69,6 @@ fun zipTo(outputStream: OutputStream, entries: Sequence<Pair<String, ByteArray>>
 }
 
 
-internal
 fun unzipTo(outputDirectory: File, zipFile: File) {
     ZipFile(zipFile).use { zip ->
         val outputDirectoryCanonicalPath = outputDirectory.canonicalPath
@@ -81,6 +88,7 @@ fun unzipEntryTo(outputDirectory: File, outputDirectoryCanonicalPath: String, zi
     if (entry.isDirectory) {
         output.mkdirs()
     } else {
+        output.parentFile.mkdirs()
         zip.getInputStream(entry).use { it.copyTo(output) }
     }
 }

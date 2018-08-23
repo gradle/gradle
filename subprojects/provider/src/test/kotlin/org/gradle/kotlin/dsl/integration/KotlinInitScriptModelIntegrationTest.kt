@@ -1,6 +1,5 @@
 package org.gradle.kotlin.dsl.integration
 
-import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -22,7 +21,7 @@ class KotlinInitScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         assertContainsGradleKotlinDslJars(classPath)
         assertThat(
             classPath.map { it.name },
-            not(hasItem("buildSrc.jar")))
+            not(hasBuildSrc()))
     }
 
     @Test

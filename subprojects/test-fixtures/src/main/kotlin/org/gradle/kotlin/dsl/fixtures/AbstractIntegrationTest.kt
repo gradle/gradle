@@ -11,6 +11,7 @@ import org.gradle.testkit.runner.GradleRunner
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
+import org.hamcrest.Matcher
 
 import org.junit.Assert.assertThat
 import org.junit.Assume.assumeTrue
@@ -29,18 +30,40 @@ val isCI by lazy { !System.getenv("CI").isNullOrEmpty() }
 open class AbstractIntegrationTest {
 
     @JvmField
-    @Rule val testName = TestName()
+    @Rule
+    val testName = TestName()
 
     @JvmField
-    @Rule val temporaryFolder = ForcefullyDeletedTemporaryFolder()
+    @Rule
+    val temporaryFolder = ForcefullyDeletedTemporaryFolder()
 
     @Before
     fun withDefaultGradleJvmArguments() =
         withGradleJvmArguments("-Xms128m", "-Xmx512m", "-Dfile.encoding=UTF-8")
 
     protected
+    open val defaultSettingsScript
+        get() = ""
+
+    protected
+    val repositoriesBlock
+        get() = """
+            repositories {
+                gradlePluginPortal()
+            }
+        """
+
+    protected
     val projectRoot: File
         get() = File(temporaryFolder.root, toSafeFileName(testName.methodName)).apply { mkdirs() }
+
+    protected
+    fun withDefaultSettings() =
+        withDefaultSettingsIn(".")
+
+    protected
+    fun withDefaultSettingsIn(baseDir: String) =
+        withSettingsIn(baseDir, defaultSettingsScript)
 
     protected
     fun withSettings(script: String, produceFile: (String) -> File = ::newFile): File =
@@ -74,12 +97,16 @@ open class AbstractIntegrationTest {
         """)
 
     protected
-    fun withKotlinBuildSrc() =
+    fun withKotlinBuildSrc() {
+        withDefaultSettingsIn("buildSrc")
         withBuildScriptIn("buildSrc", """
             plugins {
                 `kotlin-dsl`
             }
+
+            $repositoriesBlock
         """)
+    }
 
     protected
     fun withClassJar(fileName: String, vararg classes: Class<*>) =
@@ -96,6 +123,10 @@ open class AbstractIntegrationTest {
         makeParentFoldersOf(fileName)
         return File(projectRoot, fileName).canonicalFile.apply { createNewFile() }
     }
+
+    protected
+    fun newDir(relativePath: String): File =
+        existing(relativePath).apply { assert(mkdirs()) }
 
     protected
     fun newOrExisting(fileName: String) =
@@ -173,10 +204,14 @@ open class AbstractIntegrationTest {
 fun AbstractIntegrationTest.canPublishBuildScan() {
     assertThat(
         build("tasks", "--scan").output,
-        allOf(
-            containsString("Publishing build scan..."),
-            not(containsString("The build scan plugin was applied after other plugins."))))
+        containsBuildScanPluginOutput())
 }
+
+
+fun containsBuildScanPluginOutput(): Matcher<String> = allOf(
+    containsString("Publishing build scan..."),
+    not(containsString("The build scan plugin was applied after other plugins."))
+)
 
 
 private

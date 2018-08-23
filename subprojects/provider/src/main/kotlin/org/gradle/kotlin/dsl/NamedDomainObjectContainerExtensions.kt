@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl
 
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.PolymorphicDomainObjectContainer
 
 import kotlin.reflect.KClass
@@ -25,7 +26,7 @@ import kotlin.reflect.KProperty
 
 
 /**
- * Allows the container to be configured, creating missing objects as they are referenced.
+ * Allows the container to be configured via an augmented DSL.
  *
  * @param configuration The expression to configure this container with
  * @return The container.
@@ -40,11 +41,167 @@ inline operator fun <T : Any, C : NamedDomainObjectContainer<T>> C.invoke(
 
 
 /**
+ * Property delegate for registering new elements in the container.
+ *
+ * `tasks { val rebuild by registering }`
+ *
+ * @param T the domain object type
+ * @param C the concrete container type
+ */
+inline val <T : Any, C : NamedDomainObjectContainer<T>> C.registering: RegisteringDomainObjectDelegateProvider<out C>
+    get() = RegisteringDomainObjectDelegateProvider(this)
+
+
+/**
+ * Property delegate for registering new elements in the container.
+ *
+ * ```kotlin
+ * tasks {
+ *    val rebuild by registering {
+ *        dependsOn("clean", "build")
+ *    }
+ * }
+ * ```
+ *
+ * @param T the domain object type
+ * @param C the concrete container type
+ * @param action the configuration action
+ */
+fun <T : Any, C : PolymorphicDomainObjectContainer<T>> C.registering(action: T.() -> Unit): RegisteringDomainObjectDelegateProviderWithAction<out C, T> =
+    RegisteringDomainObjectDelegateProviderWithAction(this, action)
+
+
+/**
+ * Property delegate for registering new elements in the container.
+ *
+ * `tasks { val jar by registering(Jar::class) }`
+ *
+ * @param T the domain object type
+ * @param C the concrete container type
+ * @param type the domain object type
+ */
+fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> C.registering(type: KClass<U>): RegisteringDomainObjectDelegateProviderWithType<out C, U> =
+    RegisteringDomainObjectDelegateProviderWithType(this, type)
+
+
+/**
+ * Property delegate for registering new elements in the container.
+ *
+ * `tasks { val jar by registering(Jar::class) { } }`
+ *
+ * @param T the container element type
+ * @param C the container type
+ * @param U the desired domain object type
+ * @param type the domain object type
+ * @param action the configuration action
+ */
+fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> C.registering(
+    type: KClass<U>,
+    action: U.() -> Unit
+): RegisteringDomainObjectDelegateProviderWithTypeAndAction<out C, U> =
+    RegisteringDomainObjectDelegateProviderWithTypeAndAction(this, type, action)
+
+
+/**
+ * Registers an element and provides a delegate with the resulting [NamedDomainObjectProvider].
+ */
+operator fun <T : Any, C : NamedDomainObjectContainer<T>> RegisteringDomainObjectDelegateProvider<C>.provideDelegate(
+    receiver: Any?,
+    property: KProperty<*>
+) = ExistingDomainObjectDelegate(
+    delegateProvider.register(property.name)
+)
+
+
+/**
+ * Registers an element and provides a delegate with the resulting [NamedDomainObjectProvider].
+ */
+operator fun <T : Any, C : PolymorphicDomainObjectContainer<T>> RegisteringDomainObjectDelegateProviderWithAction<C, T>.provideDelegate(
+    receiver: Any?,
+    property: KProperty<*>
+) = ExistingDomainObjectDelegate(
+    delegateProvider.register(property.name, action)
+)
+
+
+/**
+ * Registers an element and provides a delegate with the resulting [NamedDomainObjectProvider].
+ */
+operator fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> RegisteringDomainObjectDelegateProviderWithType<C, U>.provideDelegate(
+    receiver: Any?,
+    property: KProperty<*>
+) = ExistingDomainObjectDelegate(
+    delegateProvider.register(property.name, type.java)
+)
+
+
+/**
+ * Registers an element and provides a delegate with the resulting [NamedDomainObjectProvider].
+ */
+operator fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> RegisteringDomainObjectDelegateProviderWithTypeAndAction<C, U>.provideDelegate(
+    receiver: Any?,
+    property: KProperty<*>
+) = ExistingDomainObjectDelegate(
+    delegateProvider.register(property.name, type.java, action)
+)
+
+
+/**
+ * Holds the delegate provider for the `registering` property delegate with
+ * the purpose of providing specialized implementations for the `provideDelegate` operator
+ * based on the static type of the provider.
+ */
+class RegisteringDomainObjectDelegateProvider<T>(
+    val delegateProvider: T
+)
+
+
+/**
+ * Holds the delegate provider for the `registering` property delegate with
+ * the purpose of providing specialized implementations for the `provideDelegate` operator
+ * based on the static type of the provider.
+ */
+class RegisteringDomainObjectDelegateProviderWithAction<C, T>(
+    val delegateProvider: C,
+    val action: T.() -> Unit
+)
+
+
+/**
+ * Holds the delegate provider and expected element type for the `registering` property delegate with
+ * the purpose of providing specialized implementations for the `provideDelegate` operator
+ * based on the static type of the provider.
+ */
+class RegisteringDomainObjectDelegateProviderWithType<T, U : Any>(
+    val delegateProvider: T,
+    val type: KClass<U>
+)
+
+
+/**
+ * Holds the delegate provider and expected element type for the `registering` property delegate with
+ * the purpose of providing specialized implementations for the `provideDelegate` operator
+ * based on the static type of the provider.
+ */
+class RegisteringDomainObjectDelegateProviderWithTypeAndAction<T, U : Any>(
+    val delegateProvider: T,
+    val type: KClass<U>,
+    val action: U.() -> Unit
+)
+
+
+/**
  * Receiver for [NamedDomainObjectContainer] configuration blocks.
  */
 class NamedDomainObjectContainerScope<T : Any>(
     private val container: NamedDomainObjectContainer<T>
 ) : NamedDomainObjectContainer<T> by container, PolymorphicDomainObjectContainer<T> {
+
+    override fun <U : T> register(name: String, type: Class<U>, configurationAction: Action<in U>): NamedDomainObjectProvider<U> =
+        polymorphicDomainObjectContainer().register(name, type, configurationAction)
+
+    override fun <U : T> register(name: String, type: Class<U>): NamedDomainObjectProvider<U> =
+        polymorphicDomainObjectContainer().register(name, type)
 
     override fun <U : T> create(name: String, type: Class<U>): U =
         polymorphicDomainObjectContainer().create(name, type)
@@ -59,28 +216,38 @@ class NamedDomainObjectContainerScope<T : Any>(
         polymorphicDomainObjectContainer().containerWithType(type)
 
     /**
-     * @see [NamedDomainObjectContainer.maybeCreate]
+     * Configures an object by name, without triggering its creation or configuration, failing if there is no such object.
+     *
+     * @see [NamedDomainObjectContainer.named]
+     * @see [NamedDomainObjectProvider.configure]
      */
-    inline operator fun String.invoke(configuration: T.() -> Unit): T =
-        this().apply(configuration)
+    operator fun String.invoke(configuration: T.() -> Unit): NamedDomainObjectProvider<T> =
+        this().apply { configure(configuration) }
 
     /**
-     * @see [NamedDomainObjectContainer.maybeCreate]
+     * Locates an object by name, without triggering its creation or configuration, failing if there is no such object.
+     *
+     * @see [NamedDomainObjectContainer.named]
      */
-    operator fun String.invoke(): T =
-        container.maybeCreate(this)
+    operator fun String.invoke(): NamedDomainObjectProvider<T> =
+        container.named(this)
 
     /**
-     * @see [PolymorphicDomainObjectContainer.maybeCreate]
+     * Configures an object by name, without triggering its creation or configuration, failing if there is no such object.
+     *
+     * @see [PolymorphicDomainObjectContainer.named]
+     * @see [NamedDomainObjectProvider.configure]
      */
-    inline operator fun <U : T> String.invoke(type: KClass<U>, configuration: U.() -> Unit): U =
-        this(type).apply(configuration)
+    operator fun <U : T> String.invoke(type: KClass<U>, configuration: U.() -> Unit): NamedDomainObjectProvider<U> =
+        container.named(this, type, configuration)
 
     /**
-     * @see [PolymorphicDomainObjectContainer.maybeCreate]
+     * Locates an object by name and type, without triggering its creation or configuration, failing if there is no such object.
+     *
+     * @see [PolymorphicDomainObjectContainer.named]
      */
-    operator fun <U : T> String.invoke(type: KClass<U>): U =
-        polymorphicDomainObjectContainer().maybeCreate(this, type.java)
+    operator fun <U : T> String.invoke(type: KClass<U>): NamedDomainObjectProvider<U> =
+        container.named(this, type)
 
     /**
      * Cast this to [PolymorphicDomainObjectContainer] or throw [IllegalArgumentException].
@@ -101,7 +268,7 @@ class NamedDomainObjectContainerScope<T : Any>(
  * Provides a property delegate that creates elements of the default collection type.
  */
 val <T : Any> NamedDomainObjectContainer<T>.creating
-    get() = NamedDomainObjectContainerDelegateProvider(this, {})
+    get() = NamedDomainObjectContainerCreatingDelegateProvider(this)
 
 
 /**
@@ -110,7 +277,7 @@ val <T : Any> NamedDomainObjectContainer<T>.creating
  * `val myElement by myContainer.creating { myProperty = 42 }`
  */
 fun <T : Any> NamedDomainObjectContainer<T>.creating(configuration: T.() -> Unit) =
-    NamedDomainObjectContainerDelegateProvider(this, configuration)
+    NamedDomainObjectContainerCreatingDelegateProvider(this, configuration)
 
 
 /**
@@ -118,14 +285,14 @@ fun <T : Any> NamedDomainObjectContainer<T>.creating(configuration: T.() -> Unit
  *
  * See [creating]
  */
-class NamedDomainObjectContainerDelegateProvider<T : Any>(
+class NamedDomainObjectContainerCreatingDelegateProvider<T : Any>(
     val container: NamedDomainObjectContainer<T>,
-    val configuration: T.() -> Unit
+    val configuration: (T.() -> Unit)? = null
 ) {
-
     operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) =
-        container.apply {
-            create(property.name).apply(configuration)
+        when (configuration) {
+            null -> container.register(property.name)
+            else -> container.register(property.name, configuration)
         }
 }
 
@@ -134,7 +301,7 @@ class NamedDomainObjectContainerDelegateProvider<T : Any>(
  * Provides a property delegate that creates elements of the given [type].
  */
 fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.creating(type: KClass<U>) =
-    creating(type.java, {})
+    PolymorphicDomainObjectContainerCreatingDelegateProvider(this, type.java)
 
 
 /**
@@ -149,23 +316,22 @@ fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.creating(type: KClass<U
  * with the given [configuration].
  */
 fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.creating(type: Class<U>, configuration: U.() -> Unit) =
-    PolymorphicDomainObjectContainerDelegateProvider(this, type, configuration)
+    PolymorphicDomainObjectContainerCreatingDelegateProvider(this, type, configuration)
 
 
 /**
  * A property delegate that creates elements of the given [type] with the given [configuration] in the given [container].
  */
-class PolymorphicDomainObjectContainerDelegateProvider<T : Any, U : T>(
+class PolymorphicDomainObjectContainerCreatingDelegateProvider<T : Any, U : T>(
     val container: PolymorphicDomainObjectContainer<T>,
     val type: Class<U>,
-    val configuration: U.() -> Unit
+    val configuration: (U.() -> Unit)? = null
 ) {
-
-    @Suppress("unchecked_cast")
     operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) =
-        container.apply {
-            create(property.name, type).apply(configuration)
-        } as PolymorphicDomainObjectContainer<U>
+        when (configuration) {
+            null -> container.register(property.name, type)
+            else -> container.register(property.name, type, configuration)
+        }
 }
 
 
@@ -180,20 +346,7 @@ fun <T : Any, U : T> NamedDomainObjectContainer<T>.getting(type: KClass<U>, conf
  * Provides a property delegate that gets elements of the given [type].
  */
 fun <T : Any, U : T> NamedDomainObjectContainer<T>.getting(type: KClass<U>) =
-    PolymorphicDomainObjectContainerGettingDelegate(this, type)
-
-
-/**
- * A property delegate that gets elements of the given [type] in the given [container].
- */
-class PolymorphicDomainObjectContainerGettingDelegate<T : Any, U : T>(
-    val container: NamedDomainObjectContainer<T>,
-    val type: KClass<U>
-) {
-
-    operator fun getValue(receiver: Any?, property: kotlin.reflect.KProperty<*>): U =
-        container.getByName(property.name, type)
-}
+    PolymorphicDomainObjectContainerGettingDelegateProvider(this, type)
 
 
 /**
@@ -203,12 +356,11 @@ class PolymorphicDomainObjectContainerGettingDelegate<T : Any, U : T>(
 class PolymorphicDomainObjectContainerGettingDelegateProvider<T : Any, U : T>(
     val container: NamedDomainObjectContainer<T>,
     val type: KClass<U>,
-    val configuration: U.() -> Unit
+    val configuration: (U.() -> Unit)? = null
 ) {
-
-    @Suppress("unchecked_cast")
     operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) =
-        container.apply {
-            getByName(property.name, type).configuration()
-        } as NamedDomainObjectContainer<U>
+        when (configuration) {
+            null -> container.named(property.name, type)
+            else -> container.named(property.name, type, configuration)
+        }
 }

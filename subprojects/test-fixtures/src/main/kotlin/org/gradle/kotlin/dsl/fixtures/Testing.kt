@@ -36,6 +36,10 @@ inline fun <reified T> assertInstanceOf(o: Any): T {
 }
 
 
+inline fun withClassLoaderFor(vararg classPath: File, action: ClassLoader.() -> Unit) =
+    classLoaderFor(*classPath).use(action)
+
+
 fun classLoaderFor(vararg classPath: File): URLClassLoader =
     URLClassLoader.newInstance(
         classPath.map { it.toURI().toURL() }.toTypedArray())

@@ -21,7 +21,7 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ExtraPropertiesExtension
 
-import org.gradle.internal.Cast.uncheckedCast
+import org.gradle.kotlin.dsl.support.uncheckedCast
 
 import kotlin.reflect.KProperty
 
@@ -35,6 +35,9 @@ val ExtensionAware.extra: ExtraPropertiesExtension
     get() = extensions.extraProperties
 
 
+/**
+ * Provides property delegate for typed access to extra properties.
+ */
 operator fun ExtraPropertiesExtension.provideDelegate(receiver: Any?, property: KProperty<*>): MutablePropertyDelegate =
     if (property.returnType.isMarkedNullable) NullableExtraPropertyDelegate(this, property.name)
     else NonNullExtraPropertyDelegate(this, property.name)
@@ -92,6 +95,9 @@ operator fun <T> ExtraPropertiesExtension.invoke(initialValue: T): InitialValueE
     InitialValueExtraPropertyDelegateProvider(this, initialValue)
 
 
+/**
+ * Enables typed access to extra properties with initial value.
+ */
 class InitialValueExtraPropertyDelegateProvider<T>(
     val extra: ExtraPropertiesExtension,
     val initialValue: T

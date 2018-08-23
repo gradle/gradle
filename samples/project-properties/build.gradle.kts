@@ -13,6 +13,6 @@ val label: String by project
  */
 val answer: String by project
 
-task("compute") {
+tasks.register("compute") {
     doLast { println("The ${label ?: "answer"} is $answer.") }
 }

@@ -88,7 +88,24 @@ fun javaExtensionsWith(otherExtensions: List<ProjectSchemaEntry<String>>) =
             ProjectSchemaEntry(
                 "org.gradle.api.reporting.ReportingExtension",
                 "ext",
-                "org.gradle.api.plugins.ExtraPropertiesExtension")) +
+                "org.gradle.api.plugins.ExtraPropertiesExtension"),
+            ProjectSchemaEntry(
+                "org.gradle.api.Project",
+                "sourceSets",
+                "org.gradle.api.tasks.SourceSetContainer"),
+            ProjectSchemaEntry(
+                "org.gradle.api.tasks.SourceSetContainer",
+                "ext",
+                "org.gradle.api.plugins.ExtraPropertiesExtension"),
+            ProjectSchemaEntry(
+                "org.gradle.api.Project",
+                "java",
+                "org.gradle.api.plugins.JavaPluginExtension"),
+            ProjectSchemaEntry(
+                "org.gradle.api.plugins.JavaPluginExtension",
+                "ext",
+                "org.gradle.api.plugins.ExtraPropertiesExtension")
+        ) +
         otherExtensions +
         listOf(
             ProjectSchemaEntry(
@@ -121,15 +138,16 @@ val javaProjectSchema: ProjectSchema<String> =
 private
 val groovyProjectSchema: ProjectSchema<String> =
     ProjectSchema(
-        extensions = javaExtensionsWith(listOf(
-            ProjectSchemaEntry(
-                "org.gradle.api.Project",
-                "groovyRuntime",
-                "org.gradle.api.tasks.GroovyRuntime"),
-            ProjectSchemaEntry(
-                "org.gradle.api.tasks.GroovyRuntime",
-                "ext",
-                "org.gradle.api.plugins.ExtraPropertiesExtension"))),
+        extensions = javaExtensionsWith(
+            listOf(
+                ProjectSchemaEntry(
+                    "org.gradle.api.Project",
+                    "groovyRuntime",
+                    "org.gradle.api.tasks.GroovyRuntime"),
+                ProjectSchemaEntry(
+                    "org.gradle.api.tasks.GroovyRuntime",
+                    "ext",
+                    "org.gradle.api.plugins.ExtraPropertiesExtension"))),
         conventions = javaProjectSchema.conventions,
         configurations = javaProjectSchema.configurations)
 
@@ -137,38 +155,48 @@ val groovyProjectSchema: ProjectSchema<String> =
 private
 val kotlinDslProjectSchema: ProjectSchema<String> =
     ProjectSchema(
-        extensions = javaExtensionsWith(listOf(
-            ProjectSchemaEntry(
-                "org.gradle.api.Project",
-                "kotlin",
-                "org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension"),
-            ProjectSchemaEntry(
-                "org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension",
-                "ext",
-                "org.gradle.api.plugins.ExtraPropertiesExtension"),
-            ProjectSchemaEntry(
-                "org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension",
-                "experimental",
-                "org.jetbrains.kotlin.gradle.dsl.ExperimentalExtension"),
-            ProjectSchemaEntry(
-                "org.jetbrains.kotlin.gradle.dsl.ExperimentalExtension",
-                "ext",
-                "org.gradle.api.plugins.ExtraPropertiesExtension"),
-            ProjectSchemaEntry(
-                "org.gradle.api.Project",
-                "kapt",
-                "org.jetbrains.kotlin.gradle.plugin.KaptExtension"),
-            ProjectSchemaEntry(
-                "org.jetbrains.kotlin.gradle.plugin.KaptExtension",
-                "ext",
-                "org.gradle.api.plugins.ExtraPropertiesExtension"),
-            ProjectSchemaEntry(
-                "org.gradle.api.Project",
-                "samWithReceiver",
-                "org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverExtension"),
-            ProjectSchemaEntry(
-                "org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverExtension",
-                "ext",
-                "org.gradle.api.plugins.ExtraPropertiesExtension"))),
+        extensions = javaExtensionsWith(
+            listOf(
+                ProjectSchemaEntry(
+                    "org.gradle.api.Project",
+                    "kotlin",
+                    "org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension"),
+                ProjectSchemaEntry(
+                    "org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension",
+                    "ext",
+                    "org.gradle.api.plugins.ExtraPropertiesExtension"),
+
+                ProjectSchemaEntry(
+                    "org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension",
+                    "experimental",
+                    "org.jetbrains.kotlin.gradle.dsl.ExperimentalExtension"),
+                ProjectSchemaEntry(
+                    "org.jetbrains.kotlin.gradle.dsl.ExperimentalExtension",
+                    "ext",
+                    "org.gradle.api.plugins.ExtraPropertiesExtension"),
+
+                ProjectSchemaEntry(
+                    "org.gradle.api.Project",
+                    "kotlinDslPluginOptions",
+                    "org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPluginOptions"),
+
+                ProjectSchemaEntry(
+                    "org.gradle.api.Project",
+                    "samWithReceiver",
+                    "org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverExtension"),
+                ProjectSchemaEntry(
+                    "org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverExtension",
+                    "ext",
+                    "org.gradle.api.plugins.ExtraPropertiesExtension"),
+
+                ProjectSchemaEntry(
+                    target = "org.gradle.api.Project",
+                    name = "kotlinScripting",
+                    type = "org.jetbrains.kotlin.gradle.scripting.ScriptingExtension"),
+                ProjectSchemaEntry(
+                    target = "org.jetbrains.kotlin.gradle.scripting.ScriptingExtension",
+                    name = "ext",
+                    type = "org.gradle.api.plugins.ExtraPropertiesExtension")
+            )),
         conventions = javaProjectSchema.conventions,
-        configurations = (javaProjectSchema.configurations + listOf("embeddedKotlin", "kapt", "kaptTest")).sorted())
+        configurations = (javaProjectSchema.configurations + listOf("embeddedKotlin", "kapt", "kaptTest", "kotlinCompilerClasspath", "kotlinCompilerPluginClasspath")).sorted())

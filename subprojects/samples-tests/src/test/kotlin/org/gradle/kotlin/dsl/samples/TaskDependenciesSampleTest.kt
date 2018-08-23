@@ -22,19 +22,4 @@ class TaskDependenciesSampleTest : AbstractSampleTest("task-dependencies") {
                 > Task :chat
             """))
     }
-
-    @Test
-    fun `mixItUp`() {
-        assertThat(
-            build("mixItUp").output,
-            containsMultiLineString("""
-                > Task :hello
-                Hello!
-
-                > Task :goodbye
-                Goodbye!
-
-                > Task :mixItUp
-            """))
-    }
 }

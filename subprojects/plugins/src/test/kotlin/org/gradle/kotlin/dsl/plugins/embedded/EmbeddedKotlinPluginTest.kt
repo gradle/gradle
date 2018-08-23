@@ -18,7 +18,12 @@ package org.gradle.kotlin.dsl.plugins.embedded
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 
+import org.gradle.api.logging.Logger
+
 import org.gradle.testkit.runner.TaskOutcome
+
+import com.nhaarman.mockito_kotlin.inOrder
+import com.nhaarman.mockito_kotlin.mock
 
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
@@ -54,10 +59,10 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
             }
 
             tasks {
-                "assertions" {
+                register("assertions") {
                     doLast {
                         val requiredLibs = listOf("kotlin-stdlib-jdk8-$embeddedKotlinVersion.jar", "kotlin-reflect-$embeddedKotlinVersion.jar")
-                        listOf("compileOnly", "testCompileOnly").forEach { configuration ->
+                        listOf("compileOnly", "testRuntimeClasspath").forEach { configuration ->
                             require(configurations[configuration].files.map { it.name }.containsAll(requiredLibs), {
                                 "Embedded Kotlin libraries not found in ${'$'}configuration"
                             })
@@ -106,9 +111,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
                 `embedded-kotlin`
             }
 
-            repositories {
-                jcenter()
-            }
+            $repositoriesBlock
 
             dependencies {
                 ${dependencyDeclarationsFor("compile", listOf("stdlib", "reflect"))}
@@ -165,9 +168,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
                 `embedded-kotlin`
             }
 
-            repositories {
-                jcenter()
-            }
+            $repositoriesBlock
 
             dependencies {
                 ${dependencyDeclarationsFor("compile", listOf("stdlib", "reflect", "compiler-embeddable"), "1.1.1")}
@@ -225,9 +226,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
                 customConfiguration("org.jetbrains.kotlinx:kotlinx-coroutines-core:0.15")
             }
 
-            repositories {
-                jcenter()
-            }
+            $repositoriesBlock
 
             configurations["customConfiguration"].files.map { println(it) }
         """)
@@ -251,6 +250,8 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
                 `embedded-kotlin`
             }
 
+            $repositoriesBlock
+
         """)
 
         withFile("src/main/kotlin/source.kt", """var foo = "bar"""")
@@ -260,9 +261,42 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
         assertThat(result.outcomeOf(":compileKotlin"), equalTo(TaskOutcome.SUCCESS))
     }
 
+    @Test
+    fun `emit a warning if the kotlin plugin version is not the same as embedded`() {
+
+        val logger = mock<Logger>()
+        val template = """
+            WARNING: Unsupported Kotlin plugin version.
+            The `embedded-kotlin` and `kotlin-dsl` plugins rely on features of Kotlin `{}` that might work differently than in the requested version `{}`.
+        """.trimIndent()
+
+
+        logger.warnOnDifferentKotlinVersion(embeddedKotlinVersion)
+
+        inOrder(logger) {
+            verifyNoMoreInteractions()
+        }
+
+
+        logger.warnOnDifferentKotlinVersion("1.3")
+
+        inOrder(logger) {
+            verify(logger).warn(template, embeddedKotlinVersion, "1.3")
+            verifyNoMoreInteractions()
+        }
+
+
+        logger.warnOnDifferentKotlinVersion(null)
+
+        inOrder(logger) {
+            verify(logger).warn(template, embeddedKotlinVersion, null)
+            verifyNoMoreInteractions()
+        }
+    }
+
     private
     fun dependencyDeclarationsFor(configuration: String, modules: List<String>, version: String? = null) =
-        modules.map {
+        modules.joinToString("\n") {
             "$configuration(\"org.jetbrains.kotlin:kotlin-$it:${version ?: embeddedKotlinVersion}\")"
-        }.joinToString("\n")
+        }
 }

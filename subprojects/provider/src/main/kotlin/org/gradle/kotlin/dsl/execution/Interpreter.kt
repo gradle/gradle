@@ -82,6 +82,7 @@ class Interpreter(val host: Host) {
         )
 
         fun cachedDirFor(
+            scriptHost: KotlinScriptHost<*>,
             templateId: String,
             sourceHash: HashCode,
             parentClassLoader: ClassLoader,
@@ -117,6 +118,8 @@ class Interpreter(val host: Host) {
         fun closeTargetScopeOf(scriptHost: KotlinScriptHost<*>)
 
         fun hashOf(classPath: ClassPath): HashCode
+
+        fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String
 
         val implicitImports: List<String>
     }
@@ -164,6 +167,7 @@ class Interpreter(val host: Host) {
 
         val specializedProgram =
             emitSpecializedProgramFor(
+                scriptHost,
                 scriptSource,
                 sourceHash,
                 templateId,
@@ -219,6 +223,7 @@ class Interpreter(val host: Host) {
 
     private
     fun emitSpecializedProgramFor(
+        scriptHost: KotlinScriptHost<Any>,
         scriptSource: ScriptSource,
         sourceHash: HashCode,
         templateId: String,
@@ -230,10 +235,11 @@ class Interpreter(val host: Host) {
     ): Class<*> {
 
         val scriptPath =
-            scriptSource.fileName!!
+            scriptHost.fileName
 
         val cachedDir =
             host.cachedDirFor(
+                scriptHost,
                 templateId,
                 sourceHash,
                 parentClassLoader,
@@ -261,9 +267,9 @@ class Interpreter(val host: Host) {
                         residualProgramCompilerFor(
                             sourceHash,
                             outputDir,
-                            targetScope.parent,
                             programKind,
-                            programTarget
+                            programTarget,
+                            host.compilationClassPathOf(targetScope.parent)
                         ).compile(residualProgram)
                     }
                 }
@@ -309,18 +315,20 @@ class Interpreter(val host: Host) {
     fun residualProgramCompilerFor(
         sourceHash: HashCode,
         outputDir: File,
-        classLoaderScopeForClassPath: ClassLoaderScope,
         programKind: ProgramKind,
-        programTarget: ProgramTarget
+        programTarget: ProgramTarget,
+        classPath: ClassPath
     ): ResidualProgramCompiler =
 
         ResidualProgramCompiler(
             outputDir,
-            host.compilationClassPathOf(classLoaderScopeForClassPath),
+            classPath,
             sourceHash,
             programKind,
             programTarget,
-            host.implicitImports)
+            host.implicitImports,
+            interpreterLogger,
+            host::runCompileBuildOperation)
 
     private
     val defaultProgramHost = ProgramHost()
@@ -413,8 +421,7 @@ class Interpreter(val host: Host) {
             ).bin
 
         override fun compileSecondStageScript(
-            scriptPath: String,
-            originalScriptPath: String,
+            scriptText: String,
             scriptHost: KotlinScriptHost<*>,
             scriptTemplateId: String,
             sourceHash: HashCode,
@@ -422,6 +429,9 @@ class Interpreter(val host: Host) {
             programTarget: ProgramTarget,
             accessorsClassPath: ClassPath?
         ): Class<*> {
+
+            val originalScriptPath =
+                scriptHost.fileName
 
             val targetScope =
                 scriptHost.targetScope
@@ -434,6 +444,7 @@ class Interpreter(val host: Host) {
 
             val cacheDir =
                 host.cachedDirFor(
+                    scriptHost,
                     scriptTemplateId,
                     sourceHash,
                     parentClassLoader,
@@ -451,17 +462,23 @@ class Interpreter(val host: Host) {
                             } ?: targetScopeClassPath
 
                         scriptSource.withLocationAwareExceptionHandling {
-                            ResidualProgramCompiler(
-                                outputDir,
-                                compilationClassPath,
-                                sourceHash,
-                                programKind,
-                                programTarget,
-                                host.implicitImports
-                            ).emitStage2ProgramFor(
-                                File(scriptPath),
-                                originalScriptPath
-                            )
+
+                            withTemporaryScriptFileFor(originalScriptPath, scriptText) { scriptFile ->
+
+                                ResidualProgramCompiler(
+                                    outputDir,
+                                    compilationClassPath,
+                                    sourceHash,
+                                    programKind,
+                                    programTarget,
+                                    host.implicitImports,
+                                    interpreterLogger,
+                                    host::runCompileBuildOperation
+                                ).emitStage2ProgramFor(
+                                    scriptFile,
+                                    originalScriptPath
+                                )
+                            }
                         }
                     }
                 }

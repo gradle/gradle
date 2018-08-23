@@ -62,6 +62,10 @@ import kotlin.script.experimental.dependencies.DependenciesResolver
 import kotlin.script.experimental.dependencies.ScriptDependencies
 
 
+internal
+typealias CompileBuildOperationRunner = (String, String, () -> String) -> String
+
+
 /**
  * Compiles the given [residual program][ResidualProgram] to an [ExecutableProgram] subclass named `Program`
  * stored in the given [outputDir].
@@ -74,7 +78,8 @@ class ResidualProgramCompiler(
     private val programKind: ProgramKind,
     private val programTarget: ProgramTarget,
     private val implicitImports: List<String> = emptyList(),
-    private val logger: Logger = interpreterLogger
+    private val logger: Logger = interpreterLogger,
+    private val compileBuildOperationRunner: CompileBuildOperationRunner = { _, _, action -> action() }
 ) {
 
     fun compile(program: ResidualProgram) = when (program) {
@@ -96,11 +101,6 @@ class ResidualProgramCompiler(
     private
     fun emitDynamicProgram(program: Dynamic) {
 
-        val scriptSource = program.source
-        val originalScriptPath = scriptSource.path
-        val scriptFile = scriptFileFor(scriptSource, "stage-2")
-        val sourceFilePath = scriptFile.canonicalPath
-
         program<ExecutableProgram.StagedProgram> {
 
             overrideExecute {
@@ -109,7 +109,7 @@ class ResidualProgramCompiler(
                 emitEvaluateSecondStageOf()
             }
 
-            overrideLoadSecondStageFor(sourceFilePath, originalScriptPath)
+            overrideLoadSecondStageFor(program.source.text)
         }
     }
 
@@ -218,7 +218,12 @@ class ResidualProgramCompiler(
 
     fun emitStage2ProgramFor(scriptFile: File, originalPath: String) {
 
-        val precompiledScriptClass = compileScript(scriptFile, originalPath, stage2ScriptDefinition)
+        val precompiledScriptClass = compileScript(
+            scriptFile,
+            originalPath,
+            stage2ScriptDefinition,
+            StableDisplayNameFor.stage2
+        )
 
         program<ExecutableProgram> {
 
@@ -300,7 +305,7 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun ClassWriter.overrideLoadSecondStageFor(sourceFilePath: String, originalPath: String) {
+    fun ClassWriter.overrideLoadSecondStageFor(scriptText: String) {
         publicMethod(
             "loadSecondStageFor",
             "(" +
@@ -319,16 +324,15 @@ class ResidualProgramCompiler(
                 ")Ljava/lang/Class<*>;"
         ) {
 
-            emitCompileSecondStageScript(sourceFilePath, originalPath)
+            emitCompileSecondStageScript(scriptText)
             ARETURN()
         }
     }
 
     private
-    fun MethodVisitor.emitCompileSecondStageScript(sourceFilePath: String, originalScriptPath: String) {
+    fun MethodVisitor.emitCompileSecondStageScript(scriptText: String) {
         ALOAD(Vars.ProgramHost)
-        LDC(sourceFilePath)
-        LDC(originalScriptPath)
+        LDC(scriptText)
         ALOAD(Vars.ScriptHost)
         ALOAD(3)
         ALOAD(4)
@@ -338,7 +342,7 @@ class ResidualProgramCompiler(
         invokeHost(
             ExecutableProgram.Host::compileSecondStageScript.name,
             "(" +
-                "Ljava/lang/String;Ljava/lang/String;" +
+                "Ljava/lang/String;" +
                 "Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;" +
                 "Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;" +
                 "Lorg/gradle/kotlin/dsl/execution/ProgramKind;" +
@@ -503,40 +507,42 @@ class ResidualProgramCompiler(
 
     private
     fun compileStage1(source: ProgramSource, scriptDefinition: KotlinScriptDefinition): String {
-        val scriptFile = scriptFileFor(source, "stage-1")
-        val originalScriptPath = source.path
-        return compileScript(scriptFile, originalScriptPath, scriptDefinition)
+        withTemporaryScriptFileFor(source.path, source.text) { scriptFile ->
+            val originalScriptPath = source.path
+            return compileScript(
+                scriptFile,
+                originalScriptPath,
+                scriptDefinition,
+                StableDisplayNameFor.stage1
+            )
+        }
     }
 
     private
-    fun compileScript(scriptFile: File, originalPath: String, scriptDefinition: KotlinScriptDefinition): String =
-        compileKotlinScriptToDirectory(
-            outputDir,
-            scriptFile,
-            scriptDefinition,
-            classPath.asFiles,
-            messageCollectorFor(logger) { path ->
-                if (path == scriptFile.path) originalPath
-                else path
-            })
-
-    private
-    fun scriptFileFor(source: ProgramSource, stage: String) =
-        uniqueScriptFileFor(source.path, stage).apply {
-            writeText(source.text)
+    fun compileScript(scriptFile: File, originalPath: String, scriptDefinition: KotlinScriptDefinition, stage: String): String =
+        compileBuildOperationRunner(originalPath, stage) {
+            compileKotlinScriptToDirectory(
+                outputDir,
+                scriptFile,
+                scriptDefinition,
+                classPath.asFiles,
+                messageCollectorFor(logger) { path ->
+                    if (path == scriptFile.path) originalPath
+                    else path
+                })
         }
 
+    /**
+     * Stage descriptions for build operations.
+     *
+     * Changes to these constants must be coordinated with the GE team.
+     */
     private
-    fun uniqueScriptFileFor(sourcePath: String, stage: String) =
-        outputDir
-            .resolve(stage)
-            .apply { mkdirs() }
-            .resolve(scriptFileNameFor(sourcePath))
+    object StableDisplayNameFor {
 
-    private
-    fun scriptFileNameFor(scriptPath: String) = scriptPath.run {
-        val index = lastIndexOf('/')
-        if (index != -1) substring(index + 1, length) else substringAfterLast('\\')
+        const val stage1 = "CLASSPATH"
+
+        const val stage2 = "BODY"
     }
 
     private

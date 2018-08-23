@@ -9,7 +9,7 @@ base {
 }
 
 dependencies {
-    compileOnly(gradleApi())
+    compileOnly(gradleApiWithParameterNames())
 
     compile(project(":provider"))
 
@@ -17,11 +17,8 @@ dependencies {
 }
 
 // -- Testing ----------------------------------------------------------
-val customInstallation by rootProject.tasks
-tasks {
-    "test" {
-        dependsOn(customInstallation)
-    }
+tasks.named("test").configure {
+    dependsOn(rootProject.tasks.named("customInstallation"))
 }
 
 withParallelTests()

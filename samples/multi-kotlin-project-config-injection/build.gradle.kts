@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     base
-    kotlin("jvm") version "1.2.41" apply false
+    kotlin("jvm") version "1.2.60" apply false
 }
 
 allprojects {
@@ -19,7 +19,7 @@ allprojects {
 // Configure all KotlinCompile tasks on each sub-project
 subprojects {
 
-    tasks.withType<KotlinCompile> {
+    tasks.withType<KotlinCompile>().configureEach {
         println("Configuring $name in project ${project.name}...")
         kotlinOptions {
             suppressWarnings = true

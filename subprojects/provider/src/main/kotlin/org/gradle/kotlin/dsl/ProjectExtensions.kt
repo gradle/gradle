@@ -16,33 +16,25 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.Incubating
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.model.ObjectFactory
 
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 
-import org.gradle.api.file.FileCollection
-
 import org.gradle.api.initialization.dsl.ScriptHandler
 
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
-import org.gradle.api.internal.file.DefaultFileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.PluginAware
 
-import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.Property
-import org.gradle.api.provider.PropertyState
-
 import org.gradle.api.tasks.TaskContainer
 
+import org.gradle.kotlin.dsl.provider.fileCollectionOf
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
 import org.gradle.kotlin.dsl.support.configureWith
 
@@ -52,6 +44,9 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 
+/**
+ * Configures the build script classpath for this project.
+ */
 fun Project.buildscript(action: ScriptHandlerScope.() -> Unit): Unit =
     project.buildscript.configureWith(action)
 
@@ -135,18 +130,6 @@ inline fun <reified type : Task> Project.task(name: String) =
 
 
 fun <T : Task> Project.task(name: String, type: KClass<T>, configuration: T.() -> Unit) =
-    createTask(name, type, configuration)
-
-
-/**
- * Creates a [Task] with the given [name] and [DefaultTask] type, configures it with the given [configuration] action,
- * and adds it to this project tasks container.
- */
-fun Project.task(name: String, configuration: Task.() -> Unit): DefaultTask =
-    createTask(name, DefaultTask::class, configuration)
-
-
-fun <T : Task> Project.createTask(name: String, type: KClass<T>, configuration: T.() -> Unit): T =
     tasks.create(name, type.java, configuration)
 
 
@@ -162,6 +145,9 @@ fun Project.repositories(configuration: RepositoryHandler.() -> Unit) =
     repositories.configuration()
 
 
+/**
+ * Configures the repositories for the script dependencies.
+ */
 fun ScriptHandler.repositories(configuration: RepositoryHandler.() -> Unit) =
     repositories.configuration()
 
@@ -186,34 +172,38 @@ operator fun Project.provideDelegate(any: Any?, property: KProperty<*>): Propert
 
 
 /**
- * Creates a [Property] that holds values of the given type [T].
+ * Creates a container for managing named objects of the specified type.
  *
- * @see [ObjectFactory.property]
+ * The specified type must have a public constructor which takes the name as a [String] parameter.
+ *
+ * All objects **MUST** expose their name as a bean property named `name`.
+ * The name must be constant for the life of the object.
+ *
+ * @param T The type of objects for the container to contain.
+ * @return The container.
+ *
+ * @see [Project.container]
  */
-@Incubating
-inline fun <reified T> ObjectFactory.property(): Property<T> =
-    property(T::class.java)
+inline fun <reified T> Project.container(): NamedDomainObjectContainer<T> =
+    container(T::class.java)
 
 
 /**
- * Creates a [ListProperty] that holds values of the given type [T].
+ * Creates a container for managing named objects of the specified type.
  *
- * @see [ObjectFactory.listProperty]
- */
-@Incubating
-inline fun <reified T> ObjectFactory.listProperty(): ListProperty<T> =
-    listProperty(T::class.java)
-
-
-/**
- * Creates a [PropertyState] that holds values of the given type [T].
+ * The given factory is used to create object instances.
  *
- * @see [Project.property]
+ * All objects **MUST** expose their name as a bean property named `name`.
+ * The name must be constant for the life of the object.
+ *
+ * @param T The type of objects for the container to contain.
+ * @param factory The factory to use to create object instances.
+ * @return The container.
+ *
+ * @see [Project.container]
  */
-@Incubating
-@Deprecated("Will be removed in 1.0", replaceWith = ReplaceWith("objects.property()"))
-inline fun <reified T> Project.property(): PropertyState<T> =
-    property(T::class.java)
+inline fun <reified T> Project.container(noinline factory: (String) -> T): NamedDomainObjectContainer<T> =
+    container(T::class.java, factory)
 
 
 /**
@@ -227,14 +217,16 @@ fun Project.gradleKotlinDsl(): Dependency =
     DefaultSelfResolvingDependency(
         fileCollectionOf(
             gradleKotlinDslOf(project),
-            "gradleKotlinDsl") as FileCollectionInternal)
+            "gradleKotlinDsl"
+        ) as FileCollectionInternal
+    )
 
 
-@Deprecated("Will be removed in 1.0", ReplaceWith("gradleKotlinDsl()"))
-fun Project.gradleScriptKotlinApi(): Dependency =
-    gradleKotlinDsl()
+internal
+fun isGradleKotlinDslJar(file: File) =
+    isGradleKotlinDslJarName(file.name)
 
 
-private
-fun fileCollectionOf(files: Collection<File>, name: String): FileCollection =
-    DefaultFileCollectionFactory().fixed(name, files)
+internal
+fun isGradleKotlinDslJarName(jarName: String) =
+    jarName.startsWith("gradle-kotlin-dsl-")

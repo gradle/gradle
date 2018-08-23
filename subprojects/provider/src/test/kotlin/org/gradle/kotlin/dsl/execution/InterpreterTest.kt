@@ -32,7 +32,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.ScriptSource
 
 import org.gradle.internal.hash.HashCode
-
 import org.gradle.internal.resource.TextResource
 import org.gradle.internal.service.ServiceRegistry
 
@@ -42,6 +41,7 @@ import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.junit.Test
 
 import java.io.File
+
 import java.net.URLClassLoader
 
 
@@ -101,27 +101,31 @@ class InterpreterTest : TestWithTempFiles() {
 
             on { startCompilerOperation(any()) } doReturn compilerOperation
 
+            on { runCompileBuildOperation(any(), any(), any()) } doAnswer { it.getArgument<() -> String>(2)() }
+
             on {
                 cachedDirFor(
+                    any(),
                     eq(stage1TemplateId),
                     eq(sourceHash),
                     same(parentClassLoader),
                     isNull(),
                     any())
             } doAnswer {
-                it.getArgument<(File) -> Unit>(4).invoke(stage1CacheDir)
+                it.getArgument<(File) -> Unit>(5).invoke(stage1CacheDir)
                 stage1CacheDir
             }
 
             on {
                 cachedDirFor(
+                    any(),
                     eq(stage2TemplateId),
                     eq(sourceHash),
                     same(targetScopeExportClassLoader),
                     isNull(),
                     any())
             } doAnswer {
-                it.getArgument<(File) -> Unit>(4).invoke(stage2CacheDir)
+                it.getArgument<(File) -> Unit>(5).invoke(stage2CacheDir)
                 stage2CacheDir
             }
 
@@ -134,9 +138,15 @@ class InterpreterTest : TestWithTempFiles() {
             on {
                 loadClassInChildScopeOf(any(), any(), any(), any(), isNull())
             } doAnswer {
-                classLoaderFor(it.getArgument(2))
+
+                val location = it.getArgument<File>(2)
+                val className = it.getArgument<String>(3)
+
+                val newLocation = relocate(location)
+
+                classLoaderFor(newLocation)
                     .also { classLoaders.add(it) }
-                    .loadClass(it.getArgument(3))
+                    .loadClass(className)
             }
         }
 
@@ -212,5 +222,12 @@ class InterpreterTest : TestWithTempFiles() {
                 it.close()
             }
         }
+    }
+
+    private
+    fun relocate(location: File): File {
+        val newLocation = location.parentFile.resolve(location.name + "-relocated")
+        location.renameTo(newLocation)
+        return newLocation
     }
 }

@@ -26,6 +26,8 @@ class TestKitIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `withPluginClasspath works`() {
 
+        withDefaultSettings()
+
         withBuildScript("""
 
             plugins {
@@ -35,7 +37,7 @@ class TestKitIntegrationTest : AbstractIntegrationTest() {
 
             gradlePlugin {
                 (plugins) {
-                    "test" {
+                    register("test") {
                         id = "test"
                         implementationClass = "plugin.TestPlugin"
                     }
@@ -43,12 +45,12 @@ class TestKitIntegrationTest : AbstractIntegrationTest() {
             }
 
             dependencies {
+                compile(kotlin("stdlib-jdk8"))
                 testImplementation("junit:junit:4.12")
             }
 
-            repositories {
-                jcenter()
-            }
+            $repositoriesBlock
+
         """)
 
         withFile("src/main/kotlin/plugin/TestPlugin.kt", """
@@ -56,10 +58,11 @@ class TestKitIntegrationTest : AbstractIntegrationTest() {
             package plugin
 
             import org.gradle.api.*
+            import org.gradle.kotlin.dsl.*
 
             class TestPlugin : Plugin<Project> {
                 override fun apply(project: Project) {
-                    project.extensions.create("test", TestExtension::class.java)
+                    project.extensions.create("test", TestExtension::class)
                 }
             }
 

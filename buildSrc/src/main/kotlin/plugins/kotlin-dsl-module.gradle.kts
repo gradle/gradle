@@ -22,20 +22,19 @@
  *  - include all sources
  */
 
-import accessors.java
+import accessors.sourceSets
 
 plugins {
     id("kotlin-library")
 }
 
 // including all sources
-val main by java.sourceSets
-afterEvaluate {
-    tasks.getByName<Jar>("jar") {
-        from(main.allSource)
-        manifest.attributes.apply {
-            put("Implementation-Title", "Gradle Kotlin DSL (${project.name})")
-            put("Implementation-Version", version)
-        }
+val main by sourceSets
+tasks.named("jar").configure {
+    this as Jar
+    from(main.allSource)
+    manifest.attributes.apply {
+        put("Implementation-Title", "Gradle Kotlin DSL (${project.name})")
+        put("Implementation-Version", version)
     }
 }

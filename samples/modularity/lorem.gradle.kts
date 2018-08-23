@@ -10,7 +10,7 @@ buildscript {
     }
 }
 
-task("lorem") {
+tasks.register("lorem") {
     group = "sample"
     doLast {
         println(LoremIpsum.getInstance().getParagraphs(1, 1))

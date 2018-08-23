@@ -19,7 +19,12 @@ package org.gradle.kotlin.dsl.codegen
 
 internal
 val fileHeader: String
-    get() = """$licenseHeader
+    get() = fileHeaderFor(packageName)
+
+
+internal
+fun fileHeaderFor(packageName: String) =
+    """$licenseHeader
 
 package $packageName
 """
@@ -31,7 +36,7 @@ const val packageName = "org.gradle.kotlin.dsl"
 
 internal
 const val licenseHeader = """/*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

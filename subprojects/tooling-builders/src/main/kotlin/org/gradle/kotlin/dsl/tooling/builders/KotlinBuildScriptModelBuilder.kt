@@ -26,8 +26,8 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
-import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.SourceSetContainer
 
 import org.gradle.groovy.scripts.TextResourceScriptSource
 
@@ -39,8 +39,6 @@ import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.accessorsClassPathFor
 
 import org.gradle.kotlin.dsl.execution.EvalOption
-
-import org.gradle.kotlin.dsl.findPlugin
 
 import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
@@ -56,6 +54,9 @@ import org.gradle.kotlin.dsl.support.kotlinScriptTypeFor
 import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
+
+import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.provider.ignoringErrors
 
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 
@@ -152,7 +153,7 @@ fun Project.findSourceSetOf(file: File): SourceSet? =
 
 private
 val Project.sourceSets
-    get() = convention.findPlugin<JavaPluginConvention>()?.sourceSets
+    get() = extensions.findByType(typeOf<SourceSetContainer>())
 
 
 private
@@ -300,9 +301,13 @@ data class KotlinScriptTargetModelBuilder(
 ) {
 
     fun buildModel(): KotlinBuildScriptModel {
-        val accessorsClassPath = accessorsClassPath(scriptClassPath)
         val classpathSources = sourcePathFor(sourceLookupScriptHandlers)
         val classPathModeExceptionCollector = project.serviceOf<ClassPathModeExceptionCollector>()
+        val accessorsClassPath =
+            classPathModeExceptionCollector.ignoringErrors {
+                accessorsClassPath(scriptClassPath)
+            } ?: AccessorsClassPath.empty
+
         return StandardKotlinBuildScriptModel(
             (scriptClassPath + accessorsClassPath.bin).asFiles,
             (gradleSource() + classpathSources + accessorsClassPath.src).asFiles,
@@ -313,7 +318,11 @@ data class KotlinScriptTargetModelBuilder(
     private
     fun gradleSource() =
         SourcePathProvider.sourcePathFor(
-            scriptClassPath, rootDir, gradleHomeDir, SourceDistributionResolver(project))
+            scriptClassPath,
+            rootDir,
+            gradleHomeDir,
+            SourceDistributionResolver(project)
+        )
 
     val gradleHomeDir
         get() = project.gradle.gradleHomeDir
@@ -333,7 +342,9 @@ val KotlinBuildScriptModelParameter.scriptFile
 
 private
 val Settings.scriptCompilationClassPath
-    get() = serviceOf<KotlinScriptClassPathProvider>().compilationClassPathOf(classLoaderScope)
+    get() = serviceOf<KotlinScriptClassPathProvider>().safeCompilationClassPathOf(classLoaderScope) {
+        this as SettingsInternal
+    }
 
 
 private
@@ -353,7 +364,21 @@ val Project.scriptCompilationClassPath
 
 private
 fun Project.compilationClassPathOf(classLoaderScope: ClassLoaderScope) =
-    serviceOf<KotlinScriptClassPathProvider>().compilationClassPathOf(classLoaderScope)
+    serviceOf<KotlinScriptClassPathProvider>().safeCompilationClassPathOf(classLoaderScope) { settings }
+
+
+private
+inline fun KotlinScriptClassPathProvider.safeCompilationClassPathOf(
+    classLoaderScope: ClassLoaderScope,
+    getSettings: () -> SettingsInternal
+): ClassPath = try {
+    compilationClassPathOf(classLoaderScope)
+} catch (error: Exception) {
+    getSettings().run {
+        serviceOf<ClassPathModeExceptionCollector>().collect(error)
+        compilationClassPathOf(rootClassLoaderScope)
+    }
+}
 
 
 private

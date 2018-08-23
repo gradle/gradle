@@ -14,18 +14,23 @@ import java.util.*
  */
 open class AbstractPluginTest : AbstractIntegrationTest() {
 
+    override val defaultSettingsScript: String
+        get() = pluginManagementBlock
+
     protected
     val pluginManagementBlock by lazy {
         """
+            import org.gradle.kotlin.dsl.support.kotlinEap
+
             pluginManagement {
-                $repositoriesBlock
+                $pluginRepositoriesBlock
                 $resolutionStrategyBlock
             }
         """
     }
 
-    private
-    val repositoriesBlock by lazy {
+    protected
+    val pluginRepositoriesBlock by lazy {
         """
             repositories {
                 $testRepositories

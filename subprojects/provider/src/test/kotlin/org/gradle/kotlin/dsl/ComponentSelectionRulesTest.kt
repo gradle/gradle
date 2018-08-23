@@ -1,7 +1,7 @@
 package org.gradle.kotlin.dsl
 
 import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 
@@ -39,12 +39,15 @@ class ComponentSelectionRulesTest {
             }
         }
         val configurations = mock<ConfigurationContainer> {
-            on { maybeCreate("conf") } doReturn conf
+            on { create(eq("conf"), any<Action<Configuration>>()) }.thenAnswer {
+                it.getArgument<Action<Configuration>>(1).execute(conf)
+                conf
+            }
         }
 
         configurations {
-            "conf" {
-                resolutionStrategy {
+            create("conf") {
+                it.resolutionStrategy {
                     it.componentSelection {
                         it.all { selection ->
                             selection.reject("all")

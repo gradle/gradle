@@ -5,7 +5,7 @@ import org.gradle.internal.hash.Hashing
 
 plugins {
     id("kotlin-dsl-plugin-bundle")
-    id("com.github.johnrengelman.shadow") version "2.0.3" apply false
+    id("com.github.johnrengelman.shadow") version "2.0.4" apply false
 }
 
 base {
@@ -19,7 +19,7 @@ repositories {
 dependencies {
     compileOnly(project(":provider"))
 
-    implementation("gradle.plugin.org.jlleitschuh.gradle:ktlint-gradle:4.0.0")
+    implementation("gradle.plugin.org.jlleitschuh.gradle:ktlint-gradle:5.0.0")
     implementation(futureKotlin("stdlib-jdk8"))
 
     testImplementation(project(":test-fixtures"))
@@ -37,7 +37,7 @@ bundledGradlePlugin(
 
 // default versions ---------------------------------------------------
 
-val ktlintVersion = "0.23.1"
+val ktlintVersion = "0.27.0"
 
 val basePackagePath = "org/gradle/kotlin/dsl/experiments/plugins"
 val processResources: ProcessResources by tasks
@@ -50,7 +50,7 @@ processResources.dependsOn(writeDefaultVersionsProperties)
 
 // ktlint custom ruleset ----------------------------------------------
 
-val ruleset by java.sourceSets.creating
+val ruleset by sourceSets.creating
 val rulesetShaded by configurations.creating
 val rulesetCompileOnly by configurations.getting {
     extendsFrom(rulesetShaded)
@@ -75,7 +75,7 @@ val rulesetChecksum by tasks.creating {
         rulesetChecksumFile.writeText(Hashing.md5().hashBytes(rulesetJar.archivePath.readBytes()).toString())
     }
 }
-java.sourceSets["main"].output.dir(
+sourceSets["main"].output.dir(
     mapOf("builtBy" to listOf(rulesetJar, rulesetChecksum)),
     generatedResourcesRulesetJarDir)
 

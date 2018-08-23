@@ -69,7 +69,11 @@ import kotlin.script.templates.ScriptTemplateDefinition
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
     scriptFilePattern = "^(settings|.+\\.settings)\\.gradle\\.kts$")
-@ScriptTemplateAdditionalCompilerArguments(["-Xjsr305=strict"])
+@ScriptTemplateAdditionalCompilerArguments([
+    "-Xjsr305=strict",
+    "-XXLanguage:+NewInference",
+    "-XXLanguage:+SamConversionForKotlinFunctions"
+])
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 abstract class KotlinSettingsScript(
     private val host: KotlinScriptHost<Settings>
@@ -238,7 +242,7 @@ abstract class SettingsScriptApi(settings: Settings) : Settings by settings {
      */
     @Suppress("unused")
     fun files(vararg paths: Any): ConfigurableFileCollection =
-        fileOperations.files(paths)
+        fileOperations.configurableFiles(paths)
 
     /**
      * Creates a [ConfigurableFileCollection] containing the given files.
@@ -250,7 +254,7 @@ abstract class SettingsScriptApi(settings: Settings) : Settings by settings {
      */
     @Suppress("unused")
     fun files(paths: Any, configuration: ConfigurableFileCollection.() -> Unit): ConfigurableFileCollection =
-        fileOperations.files(paths).also(configuration)
+        fileOperations.configurableFiles(paths).also(configuration)
 
     /**
      * Creates a new [ConfigurableFileTree] using the given base directory.
@@ -422,7 +426,7 @@ abstract class SettingsScriptApi(settings: Settings) : Settings by settings {
      * @param configuration the block to configure an {@link ObjectConfigurationAction} with before “executing” it
      */
     open fun apply(configuration: ObjectConfigurationAction.() -> Unit) =
-        settings.apply({ it.configuration() })
+        settings.apply(configuration)
 }
 
 

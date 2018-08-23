@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
 
 plugins {
-    id("kotlin2js") version "1.2.41"
+    id("kotlin2js") version "1.2.60"
 }
 
 dependencies {
@@ -12,7 +12,7 @@ repositories {
     jcenter()
 }
 
-val mainSourceSet = the<JavaPluginConvention>().sourceSets["main"]!!
+val mainSourceSet = sourceSets["main"]
 
 tasks {
     "compileKotlin2Js"(Kotlin2JsCompile::class) {
@@ -21,7 +21,7 @@ tasks {
             sourceMap = true
         }
     }
-    val unpackKotlinJsStdlib by creating {
+    val unpackKotlinJsStdlib by registering {
         group = "build"
         description = "Unpack the Kotlin JavaScript standard library"
         val outputDir = file("$buildDir/$name")
@@ -41,7 +41,7 @@ tasks {
             }
         }
     }
-    val assembleWeb by creating(Copy::class) {
+    val assembleWeb by registering(Copy::class) {
         group = "build"
         description = "Assemble the web application"
         includeEmptyDirs = false

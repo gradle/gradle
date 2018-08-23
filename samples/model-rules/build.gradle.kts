@@ -1,2 +1,2 @@
 
-apply(mapOf("plugin" to my.Rules::class.java))
+apply("plugin" to my.Rules::class.java)

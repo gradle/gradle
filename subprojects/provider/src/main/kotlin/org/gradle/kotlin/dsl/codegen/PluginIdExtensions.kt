@@ -31,8 +31,6 @@ fun writeBuiltinPluginIdExtensionsTo(file: File, gradleJars: Iterable<File>) {
         it.apply {
             write(fileHeader)
             write("\n")
-            write("import ${PluginDependenciesSpec::class.qualifiedName}\n")
-            write("import ${PluginDependencySpec::class.qualifiedName}\n")
             pluginIdExtensionDeclarationsFor(gradleJars).forEach {
                 write("\n")
                 write(it)
@@ -45,8 +43,8 @@ fun writeBuiltinPluginIdExtensionsTo(file: File, gradleJars: Iterable<File>) {
 
 private
 fun pluginIdExtensionDeclarationsFor(jars: Iterable<File>): Sequence<String> {
-    val extendedType = PluginDependenciesSpec::class.simpleName
-    val extensionType = PluginDependencySpec::class.simpleName
+    val extendedType = PluginDependenciesSpec::class.qualifiedName!!
+    val extensionType = PluginDependencySpec::class.qualifiedName!!
     return pluginExtensionsFrom(jars)
         .map { (memberName, pluginId, website, implementationClass) ->
             """
@@ -116,7 +114,7 @@ object UserGuideLink {
             "binary-base" to "software_model_concepts.html",
 
             "build-announcements" to "build_announcements_plugin.html",
-            "build-dashboard" to "buildDashboard_plugin.html",
+            "build-dashboard" to "build_dashboard_plugin.html",
 
             "build-init" to "build_init_plugin.html",
             "c" to "native_software.html#sec:c_sources",
@@ -170,12 +168,12 @@ object UserGuideLink {
             "java" to "java_plugin.html",
             "java-base" to "standard_plugins.html#sec:base_plugins",
 
-            "java-gradle-plugin" to "javaGradle_plugin.html",
+            "java-gradle-plugin" to "java_gradle_plugin.html",
 
             "java-lang" to "java_software.html",
 
             "java-library" to "java_library_plugin.html",
-            "java-library-distribution" to "javaLibraryDistribution_plugin.html",
+            "java-library-distribution" to "java_library_distribution_plugin.html",
 
             // "javascript-base" to "javascript_base_plugin.html",
 
@@ -215,8 +213,8 @@ object UserGuideLink {
 
             "pmd" to "pmd_plugin.html",
 
-            "project-report" to "project_reports_plugin.html",
-            "project-reports" to "project_reports_plugin.html",
+            "project-report" to "project_report_plugin.html",
+            "project-reports" to "project_report_plugin.html",
 
             // "publishing" to "publishing_plugin.html",
 

@@ -3,13 +3,13 @@ language: java
 matrix:
   include:
     - os: linux
-      sudo: false
+      sudo: required
       jdk: oraclejdk8
     - os: linux
-      sudo: false
+      sudo: required
       jdk: openjdk8
     - os: linux
-      sudo: false
+      sudo: required
       jdk: oraclejdk9
 
 script: ./gradlew :provider:check --info --stacktrace --console=plain --max-workers=1 --no-daemon -Dkotlin.compiler.execution.strategy="in-process" -Dkotlin.colors.enabled=false

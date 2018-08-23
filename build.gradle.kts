@@ -19,26 +19,25 @@ plugins {
 
 allprojects {
     group = "org.gradle"
-    version = "0.18.4"
-    createOpenTestReportTasks()
+    version = "1.0-rc-3"
 }
 
-val publishedPluginsVersion by extra { "0.18.1" }
-val futurePluginsVersion = "0.18.2"
+val publishedPluginsVersion by extra { "1.0-rc-3" }
+val futurePluginsVersion = "1.0-rc-4"
 project(":plugins") {
     group = "org.gradle.kotlin"
     version = futurePluginsVersion
 }
 
-val publishedPluginsExperimentsVersion by extra { "0.1.8" }
-val futurePluginsExperimentsVersion = "0.1.9"
+val publishedPluginsExperimentsVersion by extra { "0.1.14" }
+val futurePluginsExperimentsVersion = "0.1.15"
 project(":plugins-experiments") {
     group = "org.gradle.kotlin"
     version = futurePluginsExperimentsVersion
 }
 
 // --- Configure publications ------------------------------------------
-val publishedProjects =
+val distributionProjects =
     listOf(
         project(":provider"),
         project(":provider-plugins"),
@@ -48,7 +47,7 @@ val publishedProjects =
 // For documentation and meaningful `./gradlew dependencies` output
 val distribution by configurations.creating
 dependencies {
-    publishedProjects.forEach {
+    distributionProjects.forEach {
         distribution(it)
     }
 }
@@ -98,8 +97,12 @@ val customInstallation by task<Copy> {
 
 // -- Performance testing ----------------------------------------------
 val benchmark by task<integration.Benchmark> {
-    dependsOn(customInstallation)
+    excludingSamplesMatching(
+        "android",
+        "source-control"
+    )
     latestInstallation = customInstallationDir
+    dependsOn(customInstallation)
 }
 
 
@@ -140,22 +143,3 @@ idea {
 // --- Utility functions -----------------------------------------------
 inline fun <reified T : Task> task(noinline configuration: T.() -> Unit) =
     tasks.creating(T::class, configuration)
-
-
-fun Project.createOpenTestReportTasks() {
-    tasks.withType<Test> {
-        val test = this
-        reports.all {
-            val report = this
-            tasks.register("open${test.name.capitalize()}${report.name.capitalize()}Report") {
-                group = JavaBasePlugin.VERIFICATION_GROUP
-                description = "Opens the ${report.name} report produced by the ${test.name} task."
-                doLast {
-                    exec {
-                        commandLine("open", report.destination)
-                    }
-                }
-            }
-        }
-    }
-}

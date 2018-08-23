@@ -23,7 +23,6 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.plugins.PluginAwareInternal
 
 import org.gradle.cache.CacheOpenException
-import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.CacheKeyBuilder
 
 import org.gradle.groovy.scripts.ScriptSource
@@ -32,8 +31,18 @@ import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+
 import org.gradle.internal.hash.HashCode
+
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
+
+import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.CallableBuildOperation
+
+import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
+import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 
 import org.gradle.kotlin.dsl.cache.ScriptCache
 
@@ -52,6 +61,7 @@ import org.gradle.kotlin.dsl.support.transitiveClosureOf
 
 import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.management.internal.PluginRequests
+
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 import java.io.File
@@ -84,7 +94,8 @@ class StandardKotlinScriptEvaluator(
     private val classPathHasher: ClasspathHasher,
     private val scriptCache: ScriptCache,
     private val implicitImports: ImplicitImports,
-    private val progressLoggerFactory: ProgressLoggerFactory
+    private val progressLoggerFactory: ProgressLoggerFactory,
+    private val buildOperationExecutor: BuildOperationExecutor
 ) : KotlinScriptEvaluator {
 
     override fun evaluate(
@@ -134,8 +145,25 @@ class StandardKotlinScriptEvaluator(
         Interpreter(InterpreterHost())
     }
 
-    private
     inner class InterpreterHost : Interpreter.Host {
+
+        override fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String =
+
+            buildOperationExecutor.call(object : CallableBuildOperation<String> {
+
+                override fun call(context: BuildOperationContext): String =
+                    action().also {
+                        context.setResult(object : Result {})
+                    }
+
+                override fun description(): BuildOperationDescriptor.Builder {
+                    val name = "Compile script ${scriptPath.substringAfterLast(File.separator)} ($stage)"
+                    return BuildOperationDescriptor.displayName(name).name(name).details(object : Details {
+                        override fun getStage(): String = stage
+                        override fun getLanguage(): String = "KOTLIN"
+                    })
+                }
+            })
 
         override fun setupEmbeddedKotlinFor(scriptHost: KotlinScriptHost<*>) {
             setupEmbeddedKotlinForBuildscript(scriptHost.scriptHandler)
@@ -165,6 +193,7 @@ class StandardKotlinScriptEvaluator(
         }
 
         override fun closeTargetScopeOf(scriptHost: KotlinScriptHost<*>) {
+
             pluginRequestApplicator.applyPlugins(
                 DefaultPluginRequests.EMPTY,
                 scriptHost.scriptHandler as ScriptHandlerInternal?,
@@ -187,6 +216,7 @@ class StandardKotlinScriptEvaluator(
         }
 
         override fun cachedDirFor(
+            scriptHost: KotlinScriptHost<*>,
             templateId: String,
             sourceHash: HashCode,
             parentClassLoader: ClassLoader,
@@ -201,19 +231,23 @@ class StandardKotlinScriptEvaluator(
                 accessorsClassPath?.let { baseCacheKey + it }
                     ?: baseCacheKey
 
-            cacheDirFor(effectiveCacheKey) {
-                initializer(baseDir)
-            }
+            cacheDirFor(scriptHost, effectiveCacheKey, initializer)
         } catch (e: CacheOpenException) {
             throw e.cause as? ScriptCompilationException ?: e
         }
 
         private
-        fun cacheDirFor(cacheKeySpec: CacheKeyBuilder.CacheKeySpec, initializer: PersistentCache.() -> Unit): File =
-            scriptCache.cacheDirFor(cacheKeySpec, properties = cacheProperties, initializer = initializer)
-
-        private
-        val cacheProperties = mapOf("version" to "9")
+        fun cacheDirFor(
+            scriptHost: KotlinScriptHost<*>,
+            cacheKeySpec: CacheKeyBuilder.CacheKeySpec,
+            initializer: (File) -> Unit
+        ): File =
+            scriptCache.cacheDirFor(
+                cacheKeySpec,
+                scriptTarget = scriptHost.target,
+                displayName = scriptHost.scriptSource.displayName,
+                initializer = initializer
+            )
 
         private
         val cacheKeyPrefix =
@@ -247,12 +281,3 @@ private
 val embeddedKotlinModules by lazy {
     transitiveClosureOf("stdlib-jdk8", "reflect")
 }
-
-
-private
-inline fun ClassPathModeExceptionCollector.ignoringErrors(action: () -> Unit) =
-    try {
-        action()
-    } catch (e: Exception) {
-        collect(e)
-    }

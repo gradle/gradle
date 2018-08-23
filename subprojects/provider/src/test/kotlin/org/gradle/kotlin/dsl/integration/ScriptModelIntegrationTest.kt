@@ -1,7 +1,6 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.concurrent.future
-import org.gradle.kotlin.dsl.embeddedKotlinVersion
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.customInstallation
@@ -11,9 +10,11 @@ import org.gradle.kotlin.dsl.fixtures.withTestDaemon
 import org.gradle.kotlin.dsl.resolver.GradleInstallation
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptModelRequest
 import org.gradle.kotlin.dsl.resolver.fetchKotlinBuildScriptModelFor
+
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 
 import org.hamcrest.CoreMatchers.*
+
 import org.hamcrest.Matcher
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -24,51 +25,6 @@ import java.io.File
  * Base class for [KotlinBuildScriptModel] integration tests.
  */
 abstract class ScriptModelIntegrationTest : AbstractIntegrationTest() {
-
-    protected
-    fun assertSourcePathIncludesGradleSourcesGiven(rootProjectScript: String, subProjectScript: String) {
-
-        assertSourcePathGiven(
-            rootProjectScript,
-            subProjectScript,
-            hasItems("core-api"))
-    }
-
-    protected
-    fun assertSourcePathIncludesKotlinStdlibSourcesGiven(rootProjectScript: String, subProjectScript: String) {
-
-        assertSourcePathGiven(
-            rootProjectScript,
-            subProjectScript,
-            hasItems("kotlin-stdlib-jdk8-$embeddedKotlinVersion-sources.jar"))
-    }
-
-    protected
-    fun assertSourcePathIncludesKotlinPluginSourcesGiven(rootProjectScript: String, subProjectScript: String) {
-
-        assertSourcePathGiven(
-            rootProjectScript,
-            subProjectScript,
-            hasItems(
-                equalTo("kotlin-gradle-plugin-$embeddedKotlinVersion-sources.jar"),
-                matching("annotations-[0-9.]+-sources\\.jar")))
-    }
-
-    private
-    fun assertSourcePathGiven(
-        rootProjectScript: String,
-        subProjectScript: String,
-        matches: Matcher<Iterable<String>>
-    ) {
-
-        val subProjectName = "sub"
-        withSettings("include(\"$subProjectName\")")
-
-        withBuildScript(rootProjectScript)
-        val subProjectScriptFile = withBuildScriptIn(subProjectName, subProjectScript)
-
-        assertThat(sourcePathFor(subProjectScriptFile).map { it.name }, matches)
-    }
 
     protected
     fun sourcePathFor(scriptFile: File) =
@@ -115,7 +71,9 @@ abstract class ScriptModelIntegrationTest : AbstractIntegrationTest() {
 
     protected
     fun withMultiProjectKotlinBuildSrc(): Array<ProjectSourceRoots> {
-        withFile("buildSrc/settings.gradle.kts", """include(":a", ":b", ":c")""")
+        withSettingsIn("buildSrc", """
+            include(":a", ":b", ":c")
+        """)
         withFile("buildSrc/build.gradle.kts", """
             plugins {
                 java
@@ -177,7 +135,11 @@ abstract class ScriptModelIntegrationTest : AbstractIntegrationTest() {
     fun assertContainsBuildSrc(classPath: List<File>) =
         assertThat(
             classPath.map { it.name },
-            hasItem("buildSrc.jar"))
+            hasBuildSrc())
+
+    protected
+    fun hasBuildSrc() =
+        hasItem("buildSrc.jar")
 
     protected
     fun assertIncludes(classPath: List<File>, vararg files: File) =

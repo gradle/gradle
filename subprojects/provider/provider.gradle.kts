@@ -11,7 +11,7 @@ base {
 }
 
 dependencies {
-    compileOnly(gradleApi())
+    compileOnly(gradleApiWithParameterNames())
 
     compile(project(":tooling-models"))
     compile(futureKotlin("stdlib-jdk8"))
@@ -22,15 +22,14 @@ dependencies {
     }
 
     testCompile(project(":test-fixtures"))
-    testCompile("com.squareup.okhttp3:mockwebserver:3.9.1")
-    testCompile("com.tngtech.archunit:archunit:0.8.0")
+    testCompile("com.tngtech.archunit:archunit:0.8.3")
 }
 
 
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = file("src/generated/kotlin")
 
-java.sourceSets["main"].kotlin {
+sourceSets["main"].kotlin {
     srcDir(apiExtensionsOutputDir)
 }
 
@@ -65,11 +64,15 @@ val processResources by tasks.getting(ProcessResources::class) {
 }
 
 // -- Testing ----------------------------------------------------------
-val prepareIntegrationTestFixtures by rootProject.tasks
+// Disable incremental compilation for Java fixture sources
+// Incremental compilation is causing OOMEs with our low build daemon heap settings
+tasks.withType(JavaCompile::class.java).named("compileTestJava").configure {
+    options.isIncremental = false
+}
+
 val customInstallation by rootProject.tasks
 
 tasks.named("test").configure {
-    dependsOn(prepareIntegrationTestFixtures)
     dependsOn(customInstallation)
 }
 

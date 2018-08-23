@@ -97,9 +97,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
         // given:
         val expectedMessage = "Not on my watch!"
 
-        withPrecompiledScriptPluginsPlus(
-            "kotlin-dsl",
-            "java-gradle-plugin")
+        withPrecompiledScriptPluginsPlus("java-gradle-plugin")
 
         withFile("src/main/kotlin/my-project-script.gradle.kts", """
             throw IllegalStateException("$expectedMessage")
@@ -134,7 +132,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
         """)
 
         val tasks = mock<TaskContainer>()
-        val project = mock<Project>() {
+        val project = mock<Project> {
             on { getTasks() } doReturn tasks
         }
 
@@ -190,9 +188,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
                 withFile(
                     "build.gradle.kts",
-                    scriptWithPrecompiledScriptPluginsPlus(
-                        "kotlin-dsl",
-                        "java-gradle-plugin"))
+                    scriptWithPrecompiledScriptPluginsPlus("java-gradle-plugin"))
             }
         }
 
@@ -263,6 +259,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
                     plugins {
                         `kotlin-dsl`
+                        `kotlin-dsl-precompiled-script-plugins`
                         `java-gradle-plugin`
                         `maven-publish`
                     }
@@ -271,7 +268,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
                     version = "0.1.0"
 
-                    $applyPrecompiledScriptPlugins
+                    $repositoriesBlock
 
                     publishing {
                         repositories {
@@ -331,7 +328,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
     private
     fun givenPrecompiledKotlinScript(fileName: String, code: String) {
-        withPrecompiledScriptPluginsPlus("kotlin-dsl")
+        withPrecompiledScriptPluginsPlus()
         withFile("src/main/kotlin/$fileName", code)
         compileKotlin()
     }
@@ -355,15 +352,13 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
     fun scriptWithPrecompiledScriptPluginsPlus(vararg additionalPlugins: String): String =
         """
             plugins {
+                `kotlin-dsl`
+                `kotlin-dsl-precompiled-script-plugins`
                 ${additionalPlugins.asIterable().joinLines { "`$it`" }}
             }
 
-            $applyPrecompiledScriptPlugins
+            $repositoriesBlock
         """
-
-    private
-    val applyPrecompiledScriptPlugins
-        get() = "apply<${PrecompiledScriptPlugins::class.qualifiedName}>()"
 
     private
     fun compileKotlin() {

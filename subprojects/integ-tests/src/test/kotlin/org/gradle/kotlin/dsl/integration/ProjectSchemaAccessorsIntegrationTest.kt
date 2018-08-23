@@ -1,28 +1,34 @@
-package org.gradle.kotlin.dsl.accessors
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
+package org.gradle.kotlin.dsl.integration
+
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
-import org.gradle.kotlin.dsl.fixtures.fileByName
-import org.gradle.kotlin.dsl.fixtures.matching
 import org.gradle.kotlin.dsl.fixtures.withFolders
-
-import org.gradle.kotlin.dsl.integration.kotlinBuildScriptModelFor
 
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.CoreMatchers.not
-
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
 
-import java.io.File
 
-
-class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
+class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     fun `multiple generic extension targets`() {
@@ -47,10 +53,10 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
                         package my
 
-                        val strings = container(NamedString::class.java) { NamedString(it) }
+                        val strings = container(NamedString::class) { NamedString(it) }
                         extensions.add("strings", strings)
 
-                        val longs = container(NamedLong::class.java) { NamedLong(it) }
+                        val longs = container(NamedLong::class) { NamedLong(it) }
                         extensions.add("longs", longs)
 
                         tasks.register("printStringsAndLongs") {
@@ -59,7 +65,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
                                 longs.forEach { println("long: " + it) }
                             }
                         }
-                    """.trimIndent())
+                    """)
                 }
             }
         }
@@ -97,10 +103,10 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
                         open class Lib { lateinit var name: String }
                     """)
                     withFile("app.gradle.kts", """
-                        extensions.create("my", my.App::class.java)
+                        extensions.create("my", my.App::class)
                     """)
                     withFile("lib.gradle.kts", """
-                        extensions.create("my", my.Lib::class.java)
+                        extensions.create("my", my.Lib::class)
                     """)
                 }
             }
@@ -127,16 +133,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
         build("tasks")
     }
 
-    private
-    fun FoldersDsl.withPrecompiledPlugins() =
-        withFile("build.gradle.kts", """
-            plugins {
-                `kotlin-dsl`
-                `java-gradle-plugin`
-            }
-            apply<org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins>()
-        """)
-
     @Test
     fun `conflicting extensions across build runs`() {
 
@@ -144,13 +140,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
             "buildSrc" {
 
-                withFile("build.gradle.kts", """
-                    plugins {
-                        `kotlin-dsl`
-                        `java-gradle-plugin`
-                    }
-                    apply<org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins>()
-                """)
+                withPrecompiledPlugins()
 
                 "src/main/kotlin" {
                     withFile("my/extensions.kt", """
@@ -160,7 +150,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
                     """)
                     withFile("app-or-lib.gradle.kts", """
                         val my: String? by project
-                        val extensionType = if (my == "app") my.App::class.java else my.Lib::class.java
+                        val extensionType = if (my == "app") my.App::class else my.Lib::class
                         extensions.create("my", extensionType)
                     """)
                 }
@@ -171,11 +161,26 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
                 my { name = "kotlin-dsl" }
             """)
 
-            withFile("settings.gradle.kts")
+            withDefaultSettings()
         }
 
         build("tasks", "-Pmy=lib")
         build("tasks", "-Pmy=app")
+    }
+
+    private
+    fun FoldersDsl.withPrecompiledPlugins() {
+        withFile("settings.gradle.kts", defaultSettingsScript)
+        withFile("build.gradle.kts", """
+
+            plugins {
+                `kotlin-dsl`
+                `kotlin-dsl-precompiled-script-plugins`
+                `java-gradle-plugin`
+            }
+
+            $repositoriesBlock
+        """)
     }
 
     @Test
@@ -222,11 +227,12 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
             package my
 
             import org.gradle.api.*
+            import org.gradle.kotlin.dsl.*
 
             class DocumentationPlugin : Plugin<Project> {
 
                 override fun apply(project: Project) {
-                    val books = project.container(Book::class.java, ::Book)
+                    val books = project.container(Book::class, ::Book)
                     project.extensions.add("the books", books)
                 }
             }
@@ -249,14 +255,14 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
         buildFile.appendText("""
 
             (`the books`) {
-                "quickStart" {
+                register("quickStart") {
                 }
-                "userGuide" {
+                register("userGuide") {
                 }
             }
 
             tasks {
-                "books" {
+                register("books") {
                     doLast { println(`the books`.joinToString { it.name }) }
                 }
             }
@@ -343,58 +349,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `classpath model includes generated accessors`() {
-
-        val buildFile = withBuildScript("""
-            plugins { java }
-        """)
-
-        println(
-            build("kotlinDslAccessorsSnapshot").output)
-
-        assertAccessorsInClassPathOf(buildFile)
-    }
-
-    @Test
-    fun `classpath model includes jit accessors by default`() {
-
-        val buildFile = withBuildScript("""
-            plugins { java }
-        """)
-
-        assertAccessorsInClassPathOf(buildFile)
-    }
-
-    @Test
-    fun `jit accessors can be turned off`() {
-
-        val buildFile = withBuildScript("""
-            plugins { java }
-        """)
-
-        withFile("gradle.properties", "org.gradle.kotlin.dsl.accessors=off")
-
-        assertThat(
-            classPathFor(buildFile),
-            not(hasAccessorsJar()))
-    }
-
-    @Test
-    fun `the set of jit accessors is a function of the set of applied plugins`() {
-
-        val s1 = setOfAutomaticAccessorsFor(setOf("application"))
-        val s2 = setOfAutomaticAccessorsFor(setOf("java"))
-        val s3 = setOfAutomaticAccessorsFor(setOf("application"))
-        val s4 = setOfAutomaticAccessorsFor(setOf("application", "java"))
-        val s5 = setOfAutomaticAccessorsFor(setOf("java"))
-
-        assertThat(s1, not(equalTo(s2))) // application ≠ java
-        assertThat(s1, equalTo(s3))      // application = application
-        assertThat(s2, equalTo(s5))      // java        = java
-        assertThat(s1, equalTo(s4))      // application ⊇ java
-    }
-
-    @Test
     fun `accessors tasks applied in a mixed Groovy-Kotlin multi-project build`() {
 
         withSettings("include(\"a\")")
@@ -445,6 +399,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `given extension with erased generic type parameters, its accessor is typed Any`() {
 
+        withDefaultSettingsIn("buildSrc")
+
         withFile("buildSrc/build.gradle.kts", """
             plugins {
                 `kotlin-dsl`
@@ -453,12 +409,14 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
             gradlePlugin {
                 (plugins) {
-                    "mine" {
+                    register("mine") {
                         id = "mine"
                         implementationClass = "foo.FooPlugin"
                     }
                 }
             }
+
+            $repositoriesBlock
         """)
 
         withFile("buildSrc/src/main/kotlin/foo/FooPlugin.kt", """
@@ -494,19 +452,25 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
     @Test
     fun `can access nested extensions and conventions registered by declared plugins via jit accessors`() {
+
+        withDefaultSettingsIn("buildSrc")
+
         withBuildScriptIn("buildSrc", """
             plugins {
                 `java-gradle-plugin`
                 `kotlin-dsl`
             }
+
             gradlePlugin {
                 (plugins) {
-                    "my-plugin" {
+                    register("my-plugin") {
                         id = "my-plugin"
                         implementationClass = "plugins.MyPlugin"
                     }
                 }
             }
+
+            $repositoriesBlock
         """)
 
         withFile("buildSrc/src/main/kotlin/plugins/MyPlugin.kt", """
@@ -582,19 +546,25 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
     @Test
     fun `convention accessors honor HasPublicType`() {
+
+        withDefaultSettingsIn("buildSrc")
+
         withBuildScriptIn("buildSrc", """
             plugins {
                 `java-gradle-plugin`
                 `kotlin-dsl`
             }
+
             gradlePlugin {
                 (plugins) {
-                    "my-plugin" {
+                    register("my-plugin") {
                         id = "my-plugin"
                         implementationClass = "plugins.MyPlugin"
                     }
                 }
             }
+
+            $repositoriesBlock
         """)
 
         withFile("buildSrc/src/main/kotlin/plugins/MyPlugin.kt", """
@@ -653,45 +623,4 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
             build("help").output,
             containsString("Type of `myConvention` receiver is MyConvention"))
     }
-
-    private
-    fun setOfAutomaticAccessorsFor(plugins: Set<String>): File {
-        val script = "plugins {\n${plugins.joinToString(separator = "\n")}\n}"
-        val buildFile = withBuildScript(script, produceFile = ::newOrExisting)
-        return accessorsJarFor(buildFile)!!.relativeTo(buildFile.parentFile)
-    }
-
-    private
-    fun assertAccessorsInClassPathOf(buildFile: File) {
-        val model = kotlinBuildScriptModelFor(buildFile)
-        assertThat(model.classPath, hasAccessorsJar())
-        assertThat(model.sourcePath, hasAccessorsSource())
-    }
-
-    private
-    fun hasAccessorsSource() =
-        hasItem(
-            matching<File>({ appendText("accessors source") }) {
-                File(this, "org/gradle/kotlin/dsl/ConfigurationAccessors.kt").isFile
-            })
-
-    private
-    fun hasAccessorsJar() =
-        hasItem(fileByName(accessorsJarFileName))
-
-    private
-    fun accessorsJarFor(buildFile: File) =
-        classPathFor(buildFile)
-            .find { it.isFile && it.name == accessorsJarFileName }
-
-    private
-    val accessorsJarFileName = "gradle-kotlin-dsl-accessors.jar"
-
-    private
-    fun classPathFor(buildFile: File) =
-        kotlinBuildScriptModelFor(buildFile).classPath
-
-    private
-    fun kotlinBuildScriptModelFor(buildFile: File) =
-        kotlinBuildScriptModelFor(projectRoot, buildFile)
 }

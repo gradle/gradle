@@ -1,11 +1,9 @@
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
-
 import org.junit.Test
 
 
-class PrecompiledScriptPluginIntegrationTest : AbstractPluginTest() {
+class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     fun `generated code follows kotlin-dsl coding conventions`() {
@@ -13,11 +11,10 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginTest() {
         withBuildScript("""
             plugins {
                 `kotlin-dsl`
+                `kotlin-dsl-precompiled-script-plugins`
                 `java-gradle-plugin`
                 id("org.gradle.kotlin.ktlint-convention")
             }
-
-            apply<org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins>()
 
             repositories { jcenter() }
         """)
@@ -30,9 +27,4 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginTest() {
         build("generateScriptPluginAdapters")
         build("ktlintC")
     }
-
-    override val testRepositoryPaths: List<String>
-        get() = normalisedPathsOf(
-            "../plugins/build/repository",
-            "../plugins-experiments/build/repository")
 }

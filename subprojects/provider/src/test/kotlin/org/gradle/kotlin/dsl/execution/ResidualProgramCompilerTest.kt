@@ -49,8 +49,8 @@ import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
 
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
-import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.equalToMultiLineString
+import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 
@@ -189,15 +189,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                 sourceHash,
                 null)
 
-            val scriptFile = outputDir().resolve("stage-2").resolve("settings.gradle.kts")
-            assertThat(
-                "Preprocessed script file is cached.",
-                scriptFile.readText(),
-                equalTo(source.text))
-
             verify(programHost).compileSecondStageScript(
-                scriptFile.canonicalPath,
-                source.path,
+                source.text,
                 scriptHost,
                 stage2SettingsTemplateId,
                 sourceHash,
@@ -478,8 +471,6 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                 program.loadSecondStageFor(programHost, scriptHost, scriptTemplateId, sourceHash, accessorsClassPath)
             }
 
-            val originalScriptPath = stagedProgram.source.path
-
             inOrder(programHost) {
 
                 verify(programHost).applyPluginsTo(
@@ -495,10 +486,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                     sourceHash = sourceHash,
                     accessorsClassPath = accessorsClassPath)
 
-                val scriptFile = outputDir().resolve("stage-2").resolve(originalScriptPath)
                 verify(programHost).compileSecondStageScript(
-                    scriptFile.canonicalPath,
-                    originalScriptPath,
+                    stagedProgram.source.text,
                     scriptHost,
                     scriptTemplateId,
                     sourceHash,
@@ -514,9 +503,11 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
     private
     fun scriptHostWith(
         target: Any = mock(),
-        scriptSource: ScriptSource = mock(),
         scriptHandler: ScriptHandlerInternal = mock()
-    ) = KotlinScriptHost(target, scriptSource, scriptHandler, mock(), mock(), mock())
+    ) = KotlinScriptHost(target, scriptSource(), scriptHandler, mock(), mock(), mock())
+
+    private
+    fun scriptSource(): ScriptSource = mock { on { fileName } doReturn "script.gradle.kts" }
 
     private
     fun withExecutableProgramFor(
@@ -529,8 +520,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
 
         outputDir().let { outputDir ->
             compileProgramTo(outputDir, program, sourceHash, programKind, programTarget)
-            classLoaderFor(outputDir).use { classLoader ->
-                val executableProgram = classLoader.loadClass("Program").newInstance()
+            withClassLoaderFor(outputDir) {
+                val executableProgram = loadClass("Program").newInstance()
                 action(executableProgram as ExecutableProgram)
             }
         }
