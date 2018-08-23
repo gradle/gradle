@@ -32,7 +32,56 @@ import org.junit.Test
 class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
-    fun `can access extensions of a nested type`() {
+    fun `can access extension of default package type`() {
+
+        withFolders {
+
+            "buildSrc" {
+
+                withPrecompiledPlugins()
+
+                "src/main/kotlin" {
+
+                    withFile("Extension.kt", """
+                        class Extension(private val name: String) : org.gradle.api.Named {
+                            override fun getName() = name
+                        }
+                    """)
+
+                    withFile("plugin.gradle.kts", """
+                        extensions.add("extension", Extension("foo"))
+                        extensions.add("beans", container(Extension::class))
+                    """)
+                }
+            }
+        }
+
+        withBuildScript("""
+
+            plugins { id("plugin") }
+
+            inline fun <reified T> typeOf(value: T) = typeOf<T>()
+
+            println("extension: " + typeOf(extension))
+            extension { println("extension{} " + typeOf(this)) }
+
+            println("beans: " + typeOf(beans))
+            beans { println("beans{} " + typeOf(beans)) }
+        """)
+
+        assertThat(
+            build("help", "-q").output,
+            containsMultiLineString("""
+                extension: Extension
+                extension{} Extension
+                beans: org.gradle.api.NamedDomainObjectContainer<Extension>
+                beans{} org.gradle.api.NamedDomainObjectContainer<Extension>
+            """)
+        )
+    }
+
+    @Test
+    fun `can access extension of nested type`() {
 
         withFolders {
 
