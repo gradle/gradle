@@ -27,8 +27,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.model.DefaultObjectFactory;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.model.InstantiatorBackedObjectFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -72,7 +71,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
 
     // Used by the Kotlin plugin
     public DefaultSourceDirectorySet(String name, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        this(name, name, fileResolver, directoryFileTreeFactory, new DefaultObjectFactory(DirectInstantiator.INSTANCE, new NamedObjectInstantiator()));
+        this(name, name, fileResolver, directoryFileTreeFactory, new InstantiatorBackedObjectFactory(DirectInstantiator.INSTANCE));
     }
 
     public String getName() {

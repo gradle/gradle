@@ -58,7 +58,6 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
@@ -258,8 +257,8 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @SuppressWarnings("unused")
     static class BasicServicesRules extends RuleSource {
         @Hidden @Model
-        SourceDirectorySetFactory sourceDirectorySetFactory(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(SourceDirectorySetFactory.class);
+        ObjectFactory objectFactory(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ObjectFactory.class);
         }
 
         @Hidden @Model

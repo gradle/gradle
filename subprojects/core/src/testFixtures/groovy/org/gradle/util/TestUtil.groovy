@@ -26,6 +26,8 @@ import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.model.DefaultObjectFactory
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.internal.project.ProjectInternal
@@ -42,6 +44,7 @@ import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 
@@ -66,9 +69,17 @@ class TestUtil {
     }
 
     static ObjectFactory objectFactory() {
+        return objFactory(TestFiles.resolver())
+    }
+
+    static ObjectFactory objectFactory(TestFile baseDir) {
+        return objFactory(TestFiles.resolver(baseDir))
+    }
+
+    private static ObjectFactory objFactory(FileResolver fileResolver) {
         DefaultServiceRegistry services = new DefaultServiceRegistry()
         services.add(ProviderFactory, new DefaultProviderFactory())
-        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services), NamedObjectInstantiator.INSTANCE)
+        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services), NamedObjectInstantiator.INSTANCE, fileResolver, TestFiles.directoryFileTreeFactory())
     }
 
     static ValueSnapshotter valueSnapshotter() {

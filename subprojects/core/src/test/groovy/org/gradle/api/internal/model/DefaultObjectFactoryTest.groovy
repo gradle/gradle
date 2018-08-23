@@ -16,13 +16,15 @@
 
 package org.gradle.api.internal.model
 
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
 import spock.lang.Unroll
 
 
 class DefaultObjectFactoryTest extends Specification {
-    def factory = new DefaultObjectFactory(Stub(Instantiator), Stub(NamedObjectInstantiator))
+    def factory = new DefaultObjectFactory(Stub(Instantiator), Stub(NamedObjectInstantiator), Stub(FileResolver), Stub(DirectoryFileTreeFactory))
 
     def "can create a property"() {
         expect:
@@ -68,6 +70,11 @@ class DefaultObjectFactoryTest extends Specification {
         then:
         def t = thrown(IllegalStateException)
         t.message == 'No value has been specified for this provider.'
+    }
+
+    def "can create SourceDirectorySet"() {
+        expect:
+        factory.sourceDirectorySet("name", "display") != null
     }
 
     def "can create a List property"() {

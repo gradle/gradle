@@ -17,6 +17,10 @@
 package org.gradle.api.internal.model;
 
 import org.gradle.api.Named;
+import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.file.DefaultSourceDirectorySet;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.provider.DefaultListProperty;
 import org.gradle.api.internal.provider.DefaultPropertyState;
 import org.gradle.api.internal.provider.DefaultSetProperty;
@@ -31,10 +35,14 @@ import org.gradle.internal.reflect.Instantiator;
 public class DefaultObjectFactory implements ObjectFactory {
     private final Instantiator instantiator;
     private final NamedObjectInstantiator namedObjectInstantiator;
+    private final FileResolver fileResolver;
+    private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
-    public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator) {
+    public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.instantiator = instantiator;
         this.namedObjectInstantiator = namedObjectInstantiator;
+        this.fileResolver = fileResolver;
+        this.directoryFileTreeFactory = directoryFileTreeFactory;
     }
 
     @Override
@@ -45,6 +53,11 @@ public class DefaultObjectFactory implements ObjectFactory {
     @Override
     public <T> T newInstance(Class<? extends T> type, Object... parameters) throws ObjectInstantiationException {
         return instantiator.newInstance(type, parameters);
+    }
+
+    @Override
+    public SourceDirectorySet sourceDirectorySet(String name, String displayName) {
+        return new DefaultSourceDirectorySet(name, displayName, fileResolver, directoryFileTreeFactory, this);
     }
 
     @Override
