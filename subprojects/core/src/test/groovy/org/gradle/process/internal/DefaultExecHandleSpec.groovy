@@ -19,6 +19,7 @@ package org.gradle.process.internal
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.jvm.Jvm
 import org.gradle.process.ExecResult
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -31,9 +32,11 @@ import spock.lang.Timeout
 
 import java.util.concurrent.Callable
 import java.util.concurrent.Executor
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 @UsesNativeServices
-@Timeout(60)
+@IntegrationTestTimeout(10)
 class DefaultExecHandleSpec extends ConcurrentSpec {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     private BuildCancellationToken buildCancellationToken = Mock(BuildCancellationToken)
@@ -444,7 +447,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     }
 
     private DefaultExecHandleBuilder handle() {
-        new DefaultExecHandleBuilder(TestFiles.pathToFileResolver(), executor, buildCancellationToken)
+        new DefaultExecHandleBuilder(TestFiles.pathToFileResolver(), Executors.newCachedThreadPool(), buildCancellationToken)
                 .executable(Jvm.current().getJavaExecutable().getAbsolutePath())
                 .setTimeout(20000) //sanity timeout
                 .workingDir(tmpDir.getTestDirectory())

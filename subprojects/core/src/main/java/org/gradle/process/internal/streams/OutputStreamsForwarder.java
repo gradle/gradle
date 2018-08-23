@@ -25,6 +25,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 /**
  * Reads from the process' stdout and stderr (if not merged into stdout) and forwards to {@link OutputStream}.
@@ -71,15 +73,15 @@ public class OutputStreamsForwarder implements StreamsHandler {
 
     public void stop() {
         try {
-//            standardOutputReader.closeInput();
-//            if (standardErrorReader != null) {
-//                standardErrorReader.closeInput();
-//            }
+            if (readErrorStream) {
+                standardErrorReader.closeInput();
+            }
+            standardOutputReader.closeInput();
             completed.await();
         } catch (InterruptedException e) {
             throw new UncheckedException(e);
-//        } catch (IOException e) {
-//            throw new UncheckedException(e);
+        } catch (IOException e) {
+            throw new UncheckedException(e);
         }
     }
 }

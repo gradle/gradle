@@ -36,18 +36,12 @@ public class ExecOutputHandleRunner implements Runnable {
     private final String displayName;
     private final ReadableByteChannel inputChannel;
     private final WritableByteChannel outputChannel;
-    private final int bufferSize;
     private final CountDownLatch completed;
 
     public ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream, CountDownLatch completed) {
-        this(displayName, inputStream, outputStream, 2048, completed);
-    }
-
-    ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream, int bufferSize, CountDownLatch completed) {
         this.displayName = displayName;
         this.inputChannel = Channels.newChannel(inputStream);
         this.outputChannel = Channels.newChannel(outputStream);
-        this.bufferSize = bufferSize;
         this.completed = completed;
     }
 
@@ -63,7 +57,6 @@ public class ExecOutputHandleRunner implements Runnable {
         try {
             ByteStreams.copy(inputChannel, outputChannel);
             CompositeStoppable.stoppable(inputChannel, outputChannel).stop();
-        } catch (AsynchronousCloseException ignored) {
         } catch (Throwable t) {
             if (wasInterrupted(t)) {
                 return;
