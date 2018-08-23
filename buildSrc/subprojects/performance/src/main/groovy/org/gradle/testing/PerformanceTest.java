@@ -171,6 +171,10 @@ public class PerformanceTest extends DistributionTest {
         return databaseParameters.get("org.gradle.performance.db.url");
     }
 
+    protected Map<String, String> getDatabaseParameters() {
+        return databaseParameters;
+    }
+
     public void addDatabaseParameters(Map<String, String> databaseConnectionParameters) {
         this.databaseParameters.putAll(databaseConnectionParameters);
     }
