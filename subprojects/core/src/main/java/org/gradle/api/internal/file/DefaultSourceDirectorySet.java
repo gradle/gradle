@@ -27,14 +27,17 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.provider.DefaultProviderFactory;
+import org.gradle.api.internal.model.DefaultObjectFactory;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -56,7 +59,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     private final FileCollection dirs;
     private final Property<File> outputDir;
 
-    public DefaultSourceDirectorySet(String name, String displayName, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public DefaultSourceDirectorySet(String name, String displayName, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, ObjectFactory objectFactory) {
         this.name = name;
         this.displayName = displayName;
         this.fileResolver = fileResolver;
@@ -64,12 +67,12 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
         this.patterns = fileResolver.getPatternSetFactory().create();
         this.filter = fileResolver.getPatternSetFactory().create();
         this.dirs = new FileCollectionAdapter(new SourceDirectories());
-        DefaultProviderFactory providerFactory = new DefaultProviderFactory();
-        this.outputDir = providerFactory.propertyNoNag(File.class);
+        this.outputDir = objectFactory.property(File.class);
     }
 
+    // Used by the Kotlin plugin
     public DefaultSourceDirectorySet(String name, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        this(name, name, fileResolver, directoryFileTreeFactory);
+        this(name, name, fileResolver, directoryFileTreeFactory, new DefaultObjectFactory(DirectInstantiator.INSTANCE, new NamedObjectInstantiator()));
     }
 
     public String getName() {
