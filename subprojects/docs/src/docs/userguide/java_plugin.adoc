@@ -551,6 +551,8 @@ To help you understand how incremental compilation works, the following provides
 ==== Known issues
 
 * If a compile task fails due to a compile error, it will do a full compilation again the next time it is invoked.
+* If you are using an annotation processor that reads resources (e.g. a configuration file), you need to declare those resources as an input of the compile task.
+* If a resource file is changed, Gradle will trigger a full recompilation.
 
 [[sec:incremental_annotation_processing]]
 === Incremental annotation processing
@@ -599,8 +601,6 @@ Both categories have the following limitations:
 * They must not depend on compiler-specific APIs like https://docs.oracle.com/javase/8/docs/jdk/api/javac/tree/com/sun/source/util/Trees.html[com.sun.source.util.Trees].
     Gradle wraps the processing APIs, so attempts to cast to compiler-specific types will fail.
     If your processor does this, it cannot be incremental, unless you have some fallback mechanism.
-* If they use https://docs.oracle.com/javase/10/docs/api/javax/annotation/processing/Filer.html#getResource(javax.tools.JavaFileManager.Location,java.lang.CharSequence,java.lang.CharSequence)[Filer#getResource], Gradle will recompile all source files.
-    See link:https://github.com/gradle/gradle/issues/4701[gradle/issues/4701]
 * If they use link:https://docs.oracle.com/javase/10/docs/api/javax/annotation/processing/Filer.html#createResource(javax.tools.JavaFileManager.Location,java.lang.CharSequence,java.lang.CharSequence,javax.lang.model.element.Element++...++)[Filer#createResource], Gradle will recompile all source files.
     See https://github.com/gradle/gradle/issues/4702[gradle/issues/4702]
 

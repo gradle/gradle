@@ -39,10 +39,13 @@ abstract class IncrementalProcessingStrategy {
     public abstract void recordGeneratedType(CharSequence name, Element[] originatingElements);
 
     public final void recordGeneratedResource(JavaFileManager.Location location, CharSequence pkg, CharSequence relativeName, Element[] originatingElements) {
-        result.setFullRebuildCause("incremental annotation processors are not allowed to create resources");
+        result.setFullRebuildCause("an annotation processor generated a resource");
     }
 
+    /**
+     * We don't trigger a full recompile on resource reads, because we already trigger a full recompile when any
+     * resource changes.
+     */
     public final void recordAccessedResource(JavaFileManager.Location location, CharSequence pkg, CharSequence relativeName) {
-        result.setFullRebuildCause("incremental annotation processors are not allowed to read resources");
     }
 }
