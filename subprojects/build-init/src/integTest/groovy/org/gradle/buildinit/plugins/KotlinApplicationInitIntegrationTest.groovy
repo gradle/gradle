@@ -50,12 +50,14 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         commonFilesGenerated(scriptDsl)
 
         when:
+        executer.expectDeprecationWarning()
         run("build")
 
         then:
         assertTestPassed("some.thing.AppTest", "testAppHasAGreeting")
 
         when:
+        executer.expectDeprecationWarning()
         run("run")
 
         then:
@@ -78,12 +80,14 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         commonFilesGenerated(scriptDsl)
 
         when:
+        executer.expectDeprecationWarning()
         run("build")
 
         then:
         assertTestPassed("my.app.AppTest", "testAppHasAGreeting")
 
         when:
+        executer.expectDeprecationWarning()
         run("run")
 
         then:
@@ -117,6 +121,7 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:
+        executer.expectDeprecationWarning()
         run("build")
 
         then:

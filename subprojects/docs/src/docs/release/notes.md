@@ -25,7 +25,7 @@ If you run the `init` task from an interactive console, it will prompt you for d
 
 #### Kotlin library and applications
 
-The `init` task can generate a Kotlin library or application, using the `kotlin-library` or `kotlin-application` setup type.
+The `init` task can generate a Kotlin library or application, using the `kotlin-library` or `kotlin-application` setup type. This was one of our top 10 most voted issues.
 
 #### Generated builds use recommended configurations
 
@@ -43,6 +43,14 @@ The `init` task creates empty resource directories.
 #### Create a .gitignore file
 
 While the `init` task does not automatically create a Git repository, the `init` task generates a simple `.gitignore` file to make it easier for you to set up a Git repository. This `.gitignore` file ignores Gradle's build outputs.
+
+### Plugin authoring features
+
+#### Public method to create SourceDirectorySet instances
+
+The `SourceDirectorySet` type is often used by plugins to represent some set of source directories and files. Previously, it was only possible to create instances of `SourceDirectorySet` using internal types. This is problematic because when a plugin uses internal types it can often break when new versions of Gradle are released because internal types may change in breaking ways between releases.
+
+In this release of Gradle, the `ObjectFactory` service, which is part of the public API, now includes a method to create `SourceDirectorySet` instances. A plugin can now use this method instead of the internal types.
 
 ## Promoted features
 
