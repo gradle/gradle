@@ -471,7 +471,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
 
             gradlePlugin {
-                (plugins) {
+                plugins {
                     register("mine") {
                         id = "mine"
                         implementationClass = "foo.FooPlugin"
@@ -525,7 +525,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
 
             gradlePlugin {
-                (plugins) {
+                plugins {
                     register("my-plugin") {
                         id = "my-plugin"
                         implementationClass = "plugins.MyPlugin"
@@ -619,7 +619,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
 
             gradlePlugin {
-                (plugins) {
+                plugins {
                     register("my-plugin") {
                         id = "my-plugin"
                         implementationClass = "plugins.MyPlugin"
