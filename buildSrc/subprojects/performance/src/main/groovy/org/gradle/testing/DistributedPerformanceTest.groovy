@@ -31,11 +31,14 @@ import org.gradle.api.tasks.testing.TestListener
 import org.gradle.api.tasks.testing.TestOutputListener
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.IoActions
+import org.gradle.process.CommandLineArgumentProvider
 
 import javax.inject.Inject
 import java.util.concurrent.TimeUnit
 import java.util.zip.ZipInputStream
-import javax.annotation.Nullable
+import org.gradle.api.Action
+import org.gradle.process.JavaExecSpec
+import groovy.transform.CompileStatic
 
 /**
  * Runs each performance test scenario in a dedicated TeamCity job.
@@ -78,6 +81,10 @@ class DistributedPerformanceTest extends PerformanceTest {
     @PathSensitive(PathSensitivity.RELATIVE)
     File scenarioReport
 
+    @OutputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
+    File reportDir
+
     private RESTClient client
 
     private List<String> scheduledBuilds = Lists.newArrayList()
@@ -95,19 +102,12 @@ class DistributedPerformanceTest extends PerformanceTest {
     DistributedPerformanceTest(BuildCancellationToken cancellationToken) {
         this.testEventsGenerator = new JUnitXmlTestEventsGenerator(listenerManager.createAnonymousBroadcaster(TestListener.class), listenerManager.createAnonymousBroadcaster(TestOutputListener.class))
         this.cancellationToken = cancellationToken
-    }
-
-    @Nullable
-    @Optional
-    @Input
-    String getBaselineCacheKey() {
-        List baselineList = baselines == null ? [] : baselines.split(',').collect { String it -> it.trim() }
-        if (baselineList.contains('last') || baselineList.contains('nightly')) {
-            // turn off cache if the baseline contains 'nightly' or 'last'
-            return UUID.randomUUID().toString()
-        } else {
-            return baselines
-        }
+        jvmArgumentProviders.add(new CommandLineArgumentProvider() {
+            @Override
+            Iterable<String> asArguments() {
+                return ["-Dorg.gradle.performance.scenario.list=$scenarioList".toString()]
+            }
+        })
     }
 
     @Override
@@ -121,7 +121,6 @@ class DistributedPerformanceTest extends PerformanceTest {
     }
 
     void setScenarioList(File scenarioList) {
-        systemProperty "org.gradle.performance.scenario.list", scenarioList
         this.scenarioList = scenarioList
     }
 
@@ -132,8 +131,22 @@ class DistributedPerformanceTest extends PerformanceTest {
             doExecuteTests()
         } finally {
             testEventsGenerator.release()
+            generatePerformanceReport()
             cleanTempFiles()
         }
+    }
+
+    private void generatePerformanceReport() {
+        project.delete(reportDir)
+        project.javaexec(new Action<JavaExecSpec>() {
+            void execute(JavaExecSpec spec) {
+                spec.setMain("org.gradle.performance.results.ReportGenerator")
+                spec.args(resultStoreClass, reportDir.getPath())
+                spec.systemProperties(databaseParameters)
+                spec.systemProperty("org.gradle.performance.execution.channel", channel)
+                spec.setClasspath(DistributedPerformanceTest.this.getClasspath())
+            }
+        })
     }
 
     private void createWorkerTestResultsTempDir() {
