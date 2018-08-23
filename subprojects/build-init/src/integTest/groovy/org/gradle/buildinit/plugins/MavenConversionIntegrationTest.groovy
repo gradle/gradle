@@ -28,6 +28,7 @@ import org.gradle.test.fixtures.server.http.PomHttpArtifact
 import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
+import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -193,12 +194,12 @@ Root project 'webinar-parent'
         gradleFilesGenerated()
 
         and:
-        buildFile.text.contains("""configurations.all {
+        buildFile.text.contains(TextUtil.toPlatformLineSeparators("""configurations.all {
     exclude(group: 'org.apache.maven')
     exclude(group: 'org.apache.maven', module: 'badArtifact')
     exclude(group: '*', module: 'badArtifact')
     exclude(group: 'broken')
-}""")
+}"""))
         when:
         run 'clean', 'build'
 
