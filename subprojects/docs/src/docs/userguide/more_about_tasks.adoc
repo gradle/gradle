@@ -797,7 +797,9 @@ This runtime API is provided through a couple of aptly named properties that are
 * link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:outputs[Task.getOutputs()] of type link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html[TaskOutputs]
 * link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:destroyables[Task.getDestroyables()] of type link:{javadocPath}/org/gradle/api/tasks/TaskDestroyables.html[TaskDestroyables]
 
-These objects have methods that allow you to specify files, directories and values which constitute the task’s inputs and outputs. In fact, the runtime API has almost feature parity with the annotations. All it lacks is validation of whether declared files are actually files and declared directories are directories. Nor will it create output directories if they don't exist. But that's it.
+These objects have methods that allow you to specify files, directories and values which constitute the task’s inputs and outputs.
+In fact, the runtime API has almost feature parity with the annotations.
+All it lacks is an equivalent for `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]`.
 
 Let’s take the template processing example from before and see how it would look as an ad-hoc task that uses the runtime API:
 
@@ -817,7 +819,9 @@ include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/incremen
 
 As before, there’s much to talk about. To begin with, you should really write a custom task class for this as it’s a non-trivial implementation that has several configuration options. In this case, there are no task properties to store the root source folder, the location of the output directory or any of the other settings. That’s deliberate to highlight the fact that the runtime API doesn’t require the task to have any state. In terms of incremental build, the above ad-hoc task will behave the same as the custom task class.
 
-All the input and output definitions are done through the methods on `inputs` and `outputs`, such as `property()`, `files()`, and `dir()`. Gradle performs up-to-date checks on the argument values to determine whether the task needs to run again or not. Each method corresponds to one of the incremental build annotations, for example `inputs.property()` maps to `@Input` and `outputs.dir()` maps to `@OutputDirectory`. The only difference is that the `file()`, `files()`, `dir()` and `dirs()` methods don’t validate the type of file object at the given path (file or directory), unlike the annotations.
+All the input and output definitions are done through the methods on `inputs` and `outputs`, such as `property()`, `files()`, and `dir()`.
+Gradle performs up-to-date checks on the argument values to determine whether the task needs to run again or not.
+Each method corresponds to one of the incremental build annotations, for example `inputs.property()` maps to `@Input` and `outputs.dir()` maps to `@OutputDirectory`.
 
 The files that a task removes can be specified through `destroyables.register()`.
 
@@ -882,8 +886,6 @@ include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/runtimeI
 ----
 
 The `TaskInputs.files()` method returns a builder that has a `skipWhenEmpty()` method. Invoking this method is equivalent to annotating to the property with <<#skip-when-empty,`@SkipWhenEmpty`>>.
-
-Prior to Gradle 3.0, you had to use the `TaskInputs.source()` and `TaskInputs.sourceDir()` methods to get the same behavior as with `skipWhenEmpty()`. These methods are now deprecated and should not be used with Gradle 3.0 and above.
 
 Now that you have seen both the annotations and the runtime API, you may be wondering which API you should be using. Our recommendation is to use the annotations wherever possible, and it’s sometimes worth creating a custom task class just so that you can make use of them. The runtime API is more for situations in which you can’t use the annotations.
 

@@ -61,16 +61,16 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         listener.artifactAvailable(artifact)
 
         then:
-        1 * transformListener.beforeTransform(transformer, artifactId, artifactFile)
+        0 * transformListener.beforeTransform(transformer, artifactId, artifactFile)
         1 * transformer.transform(artifactFile)
-        1 * transformListener.afterTransform(transformer, artifactId, artifactFile, null)
+        0 * transformListener.afterTransform(transformer, artifactId, artifactFile, null)
 
         when:
         listener.fileAvailable(file)
 
         then:
-        1 * transformListener.beforeTransform(transformer, null, file)
+        0 * transformListener.beforeTransform(transformer, null, file)
         1 * transformer.transform(file)
-        1 * transformListener.afterTransform(transformer, null, file, null)
+        0 * transformListener.afterTransform(transformer, null, file, null)
     }
 }

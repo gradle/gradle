@@ -125,7 +125,7 @@ See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-exec
 - Removed the property `styleSheet` from `ScalaDocOptions`.
 - Forbid passing `null` as configuration action to the methods `from` and `to` on `CopySpec`.
 - Removed the property `bootClasspath` from `CompileOptions`.
-- Registering invalid inputs or outputs via the runtime API is now an error.
+- Validation problems for inputs or outputs registered via the runtime API now fail the build.
 - Chaining calls to the methods `file`, `files`, and `dir` on `TaskInputs` is now impossible.
 - Chaining calls to the methods `file`, `files`, and `dir` on `TaskOutputs` is now impossible.
 - Chaining calls to the method `property` and `properties` on `TaskInputs` is now an error.

@@ -75,7 +75,7 @@ public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigur
     void allVariants(Action<? super VariantMetadata> action);
 
     /**
-     * Declares that this component belongs to a platform, which should be
+     * Declares that this component belongs to a virtual platform, which should be
      * considered during dependency resolution.
      * @param notation the coordinates of the owner
      *
@@ -83,4 +83,13 @@ public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigur
      */
     void belongsTo(Object notation);
 
+    /**
+     * Declares that this component belongs to a platform, which should be
+     * considered during dependency resolution.
+     * @param notation the coordinates of the owner
+     * @param virtual must be set to true if the platform is a virtual platform, or false if it's a published platform
+     *
+     * @since 5.0
+     */
+    void belongsTo(Object notation, boolean virtual);
 }

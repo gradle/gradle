@@ -246,7 +246,7 @@ public abstract class TypeOf<T> {
      * For array types like {@code TypeOf<String[]>}, the concrete type will be an array of the component type ({@code String[].class}).
      * </p>
      *
-     * @since 4.11
+     * @since 5.0
      * 
      * @return Underlying Java Class of this type.
      */

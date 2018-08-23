@@ -58,7 +58,7 @@ task noop{
         succeeds('noop')
 
         then:
-        outputContains("The support for implicit import of internal classes has been deprecated. This is scheduled to be removed in Gradle 5.0.")
+        outputContains("The support for implicit import of internal classes has been deprecated.")
         outputContains("build.gradle' is using GradleVersion from the private org.gradle.util package. Please either stop using internal classes (recommended) or import them explicitly at the top of your build file.")
     }
 
@@ -76,7 +76,7 @@ task noop{
         succeeds('noop')
 
         then:
-        outputContains("The support for implicit import of internal classes has been deprecated. This is scheduled to be removed in Gradle 5.0.")
+        outputContains("The support for implicit import of internal classes has been deprecated.")
         outputContains("foo.gradle' is using GradleVersion from the private org.gradle.util package. Please either stop using internal classes (recommended) or import them explicitly at the top of your build file.")
     }
 
@@ -94,7 +94,7 @@ task noop{
         succeeds('noop')
 
         then:
-        outputContains('The support for implicit import of internal classes has been deprecated. This is scheduled to be removed in Gradle 5.0. Build file')
+        outputContains('The support for implicit import of internal classes has been deprecated.')
         outputContains("build.gradle' is using CollectionUtils and GradleVersion from the private org.gradle.util package. Please either stop using internal classes (recommended) or import them explicitly at the top of your build file.")
     }
 }

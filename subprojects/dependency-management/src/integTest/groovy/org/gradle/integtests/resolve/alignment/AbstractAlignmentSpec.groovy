@@ -102,10 +102,7 @@ abstract class AbstractAlignmentSpec extends AbstractModuleDependencyResolveTest
     }
 
     public final static Closure<Void> VIRTUAL_PLATFORM = {
-        expectGetMetadataMissing()
-        if (!GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-            expectHeadArtifactMissing()
-        }
+        // If the platform is declared as virtual, we won't fetch metadata
     }
 
     void expectAlignment(@DelegatesTo(value = AlignmentSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
@@ -243,7 +240,7 @@ abstract class AbstractAlignmentSpec extends AbstractModuleDependencyResolveTest
         """
     }
 
-    protected void 'a rule which declares that Groovy belongs to the Groovy and the Spring platforms'() {
+    protected void 'a rule which declares that Groovy belongs to the Groovy and the Spring platforms'(boolean groovyVirtual=false, boolean springVirtual = false) {
         buildFile << """
             dependencies {
                 components.all(GroovyRule)
@@ -253,8 +250,8 @@ abstract class AbstractAlignmentSpec extends AbstractModuleDependencyResolveTest
                 void execute(ComponentMetadataContext ctx) {
                     ctx.details.with {
                         if ('org.apache.groovy' == id.group) {
-                           belongsTo("org.apache.groovy:platform:\${id.version}")
-                           belongsTo("org.springframework:spring-platform:1.0")
+                           belongsTo("org.apache.groovy:platform:\${id.version}", $groovyVirtual)
+                           belongsTo("org.springframework:spring-platform:1.0", $springVirtual)
                         }
                     }
                 }

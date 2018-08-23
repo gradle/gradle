@@ -41,10 +41,4 @@ public interface BuildableComponentResolveResult extends ComponentResolveResult,
      */
     void setMetadata(ComponentResolveMetadata metadata);
 
-    /**
-     * Returns true if we should retry to get the resource when it was missing. This should only
-     * be used if the result of resolution shouldn't be impacted by a missing module (that is to say,
-     * it doesn't fail if a module is missing).
-     */
-    boolean isRetryMissing();
 }

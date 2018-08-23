@@ -6,7 +6,6 @@ import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.TaskContainer
-import org.gradle.api.tasks.TaskProvider
 
 
 // This file contains members intended to be pulled upstream into the next Gradle Kotlin DSL release
@@ -76,12 +75,3 @@ fun <reified T : Task> TaskContainer.register(name: String, noinline configurati
 
 inline fun <reified T : Task> TaskContainer.withType(): TaskCollection<T> =
     withType(T::class.java)
-
-
-inline fun <reified T : Any> TaskProvider<out Task>.configureAs(noinline configurationAction: T.() -> Unit) =
-    configure {
-        configurationAction(
-            this as? T
-                ?: throw IllegalArgumentException(
-                    "Task of type '${javaClass.name}' cannot be cast to '${T::class.qualifiedName}'."))
-    }
