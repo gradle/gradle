@@ -19,6 +19,7 @@ package org.gradle.internal.work;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Path;
 
+import java.util.Collection;
 import java.util.concurrent.Callable;
 
 public class StopShieldingWorkerLeaseService implements WorkerLeaseService {
@@ -77,6 +78,11 @@ public class StopShieldingWorkerLeaseService implements WorkerLeaseService {
     @Override
     public ResourceLock getProjectLock(Path projectIdentityPath) {
         return delegate.getProjectLock(projectIdentityPath);
+    }
+
+    @Override
+    public Collection<? extends ResourceLock> getCurrentProjectLocks() {
+        return delegate.getCurrentProjectLocks();
     }
 
     @Override

@@ -143,6 +143,11 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
     }
 
     @Override
+    public Collection<? extends ResourceLock> getCurrentProjectLocks() {
+        return projectLockRegistry.getResourceLocksByCurrentThread();
+    }
+
+    @Override
     public <T> T withoutProjectLock(Callable<T> action) {
         final Iterable<? extends ResourceLock> projectLocks = projectLockRegistry.getResourceLocksByCurrentThread();
         return withoutLocks(projectLocks, action);

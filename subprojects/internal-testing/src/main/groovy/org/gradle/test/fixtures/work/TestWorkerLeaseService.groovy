@@ -36,6 +36,11 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
+    Collection<? extends ResourceLock> getCurrentProjectLocks() {
+        return null
+    }
+
+    @Override
     void stop() {
     }
 
