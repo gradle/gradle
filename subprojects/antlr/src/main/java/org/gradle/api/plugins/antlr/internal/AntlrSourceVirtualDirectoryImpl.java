@@ -18,7 +18,7 @@ package org.gradle.api.plugins.antlr.internal;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
@@ -32,9 +32,8 @@ import static org.gradle.api.reflect.TypeOf.typeOf;
 public class AntlrSourceVirtualDirectoryImpl implements AntlrSourceVirtualDirectory, HasPublicType {
     private final SourceDirectorySet antlr;
 
-    public AntlrSourceVirtualDirectoryImpl(String parentDisplayName, SourceDirectorySetFactory sourceDirectorySetFactory) {
-        final String displayName = parentDisplayName + " Antlr source";
-        antlr = sourceDirectorySetFactory.create(displayName);
+    public AntlrSourceVirtualDirectoryImpl(String parentDisplayName, ObjectFactory objectFactory) {
+        antlr = objectFactory.sourceDirectorySet(parentDisplayName + ".antlr", parentDisplayName + " Antlr source");
         antlr.getFilter().include("**/*.g");
         antlr.getFilter().include("**/*.g4");
     }

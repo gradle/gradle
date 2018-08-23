@@ -32,11 +32,9 @@ import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.DefaultProjectLayout;
-import org.gradle.api.internal.file.DefaultSourceDirectorySetFactory;
 import org.gradle.api.internal.file.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
@@ -132,10 +130,6 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected FileResolver createFileResolver(Factory<PatternSet> patternSetFactory) {
         return new BaseDirFileResolver(get(FileSystem.class), project.getProjectDir(), patternSetFactory);
-    }
-
-    protected SourceDirectorySetFactory createSourceDirectorySetFactory(FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, ObjectFactory objectFactory) {
-        return new DefaultSourceDirectorySetFactory(fileResolver, directoryFileTreeFactory, objectFactory);
     }
 
     protected LoggingManagerInternal createLoggingManager() {
@@ -293,9 +287,9 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return ConfigurationTargetIdentifier.of(project);
     }
 
-    protected ObjectFactory createObjectFactory(final InstantiatorFactory instantiatorFactory) {
+    protected ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
         Instantiator instantiator = instantiatorFactory.injectAndDecorate(ProjectScopeServices.this);
-        return new DefaultObjectFactory(instantiator, NamedObjectInstantiator.INSTANCE);
+        return new DefaultObjectFactory(instantiator, NamedObjectInstantiator.INSTANCE, fileResolver, directoryFileTreeFactory);
     }
 
 }

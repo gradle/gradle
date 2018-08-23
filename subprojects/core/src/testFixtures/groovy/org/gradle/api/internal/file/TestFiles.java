@@ -36,7 +36,6 @@ import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
-import org.gradle.util.TestUtil;
 
 import java.io.File;
 
@@ -107,14 +106,6 @@ public class TestFiles {
 
     public static FileCollectionFactory fileCollectionFactory() {
         return new DefaultFileCollectionFactory();
-    }
-
-    public static SourceDirectorySetFactory sourceDirectorySetFactory() {
-        return new DefaultSourceDirectorySetFactory(resolver(), new DefaultDirectoryFileTreeFactory(), TestUtil.objectFactory());
-    }
-
-    public static SourceDirectorySetFactory sourceDirectorySetFactory(File baseDir) {
-        return new DefaultSourceDirectorySetFactory(resolver(baseDir), new DefaultDirectoryFileTreeFactory(), TestUtil.objectFactory());
     }
 
     public static ExecFactory execFactory() {

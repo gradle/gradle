@@ -202,4 +202,15 @@ class DefaultObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause('Could not create an instance of type Thing.')
         failure.assertHasCause('The constructor for class Thing should be annotated with @Inject.')
     }
+
+    def "plugin can create SourceDirectorySet instances"() {
+        given:
+        buildFile << """
+            def dirSet = project.objects.sourceDirectorySet("sources", "some source files")
+            assert dirSet != null
+        """
+
+        expect:
+        succeeds()
+    }
 }
