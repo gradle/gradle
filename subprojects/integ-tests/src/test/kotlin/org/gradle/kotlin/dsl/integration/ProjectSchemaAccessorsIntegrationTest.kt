@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
+import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.withFolders
 
@@ -31,9 +32,71 @@ import org.junit.Test
 class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
+    fun `can access extensions of a nested type`() {
+
+        withFolders {
+
+            "buildSrc" {
+
+                withPrecompiledPlugins()
+
+                "src/main/kotlin/my" {
+
+                    withFile("Extension.kt", """
+                        package my
+
+                        class Nested {
+                            class Extension(private val name: String) : org.gradle.api.Named {
+                                override fun getName() = name
+                            }
+                        }
+                    """)
+
+                    withFile("plugin.gradle.kts", """
+                        package my
+
+                        extensions.add("nested", Nested.Extension("foo"))
+                        extensions.add("beans", container(Nested.Extension::class))
+                    """)
+                }
+            }
+        }
+
+
+        withBuildScript("""
+
+            plugins { id("my.plugin") }
+
+            inline fun <reified T> typeOf(value: T) = typeOf<T>()
+
+            println("nested: " + typeOf(nested))
+            nested { println("nested{} " + typeOf(this)) }
+
+            println("beans: " + typeOf(beans))
+            beans { println("beans{} " + typeOf(beans)) }
+
+            // ensure API usage
+            println(beans.create("bar").name)
+            beans.create("baz") { println(name) }
+        """)
+
+        assertThat(
+            build("help", "-q").output,
+            containsMultiLineString("""
+                nested: my.Nested.Extension
+                nested{} my.Nested.Extension
+                beans: org.gradle.api.NamedDomainObjectContainer<my.Nested.Extension>
+                beans{} org.gradle.api.NamedDomainObjectContainer<my.Nested.Extension>
+                bar
+                baz
+            """)
+        )
+    }
+
+    @Test
     fun `multiple generic extension targets`() {
 
-        projectRoot.withFolders {
+        withFolders {
 
             "buildSrc" {
 
@@ -90,7 +153,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `conflicting extensions across build scripts with same body`() {
 
-        projectRoot.withFolders {
+        withFolders {
 
             "buildSrc" {
 
@@ -136,7 +199,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `conflicting extensions across build runs`() {
 
-        projectRoot.withFolders {
+        withFolders {
 
             "buildSrc" {
 
@@ -623,4 +686,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             build("help").output,
             containsString("Type of `myConvention` receiver is MyConvention"))
     }
+
+    private
+    fun withFolders(folders: FoldersDslExpression) =
+        projectRoot.withFolders(folders)
 }
