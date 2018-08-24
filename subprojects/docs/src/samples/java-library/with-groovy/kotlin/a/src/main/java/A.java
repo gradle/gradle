@@ -1,5 +1,3 @@
-import org.gradle.api.artifacts.type.ArtifactTypeDefinition
-
 /*
  * Copyright 2017 the original author or authors.
  *
@@ -15,21 +13,5 @@ import org.gradle.api.artifacts.type.ArtifactTypeDefinition
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+public class A {}
 
-apply plugin: 'java-library'
-apply plugin: 'groovy'
-
-dependencies {
-    compile localGroovy()
-}
-
-// tag::configure-groovy[]
-configurations {
-    apiElements {
-        outgoing.variants.getByName('classes').artifact(
-            file: compileGroovy.destinationDir,
-            type: ArtifactTypeDefinition.JVM_CLASS_DIRECTORY,
-            builtBy: compileGroovy)
-    }
-}
-// end::configure-groovy[]

@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-apply plugin: 'java'
+plugins {
+    java
+}
 
 dependencies {
-   implementation project(':a')
+   implementation(project(":a"))
 }

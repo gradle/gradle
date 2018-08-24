@@ -14,4 +14,7 @@
  * limitations under the License.
  */
 
-public class C {}
+public class C {
+    A a;
+    B b;
+}
