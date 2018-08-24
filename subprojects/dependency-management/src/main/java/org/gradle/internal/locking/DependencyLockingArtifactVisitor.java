@@ -49,7 +49,6 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
     private Set<ModuleComponentIdentifier> allResolvedModules;
     private Set<ModuleComponentIdentifier> changingResolvedModules;
     private Set<ModuleComponentIdentifier> extraModules;
-    private Set<ModuleComponentIdentifier> incorrectModules;
     private Map<ModuleIdentifier, ModuleComponentIdentifier> modulesToBeLocked;
     private DependencyLockingState dependencyLockingState;
 
@@ -70,7 +69,6 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
             }
             allResolvedModules = Sets.newHashSetWithExpectedSize(this.modulesToBeLocked.size());
             extraModules = Sets.newHashSet();
-            incorrectModules = Sets.newHashSet();
         } else {
             modulesToBeLocked = Collections.emptyMap();
             allResolvedModules = Sets.newHashSet();
@@ -99,9 +97,6 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
                         ModuleComponentIdentifier lockedId = modulesToBeLocked.remove(id.getModuleIdentifier());
                         if (lockedId == null) {
                             extraModules.add(id);
-                        } else if (!lockedId.getVersion().equals(id.getVersion())) {
-                            node.getIncomingEdges();
-                            incorrectModules.add(lockedId);
                         }
                     }
                 }
@@ -139,24 +134,21 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
         });
     }
 
-    private void throwLockOutOfDateException(Collection<String> notResolvedConstraints, Collection<String> extraModules, Collection<String> incorrectModules) {
-        List<String> errors = Lists.newArrayListWithCapacity(notResolvedConstraints.size() + extraModules.size() + incorrectModules.size());
+    private void throwLockOutOfDateException(Collection<String> notResolvedConstraints, Collection<String> extraModules) {
+        List<String> errors = Lists.newArrayListWithExpectedSize(notResolvedConstraints.size() + extraModules.size());
         for (String notResolvedConstraint : notResolvedConstraints) {
             errors.add("Did not resolve '" + notResolvedConstraint + "' which is part of the lock state");
         }
         for (String extraModule : extraModules) {
             errors.add("Resolved '" + extraModule + "' which is not part of the lock state");
         }
-        for (String incorrectModule : incorrectModules) {
-            errors.add("Lock entry '" + incorrectModule + "' is incompatible with declared dependencies");
-        }
         throw LockOutOfDateException.createLockOutOfDateException(configurationName, errors);
     }
 
     public void complete() {
         if (dependencyLockingState.mustValidateLockState()) {
-            if (!modulesToBeLocked.isEmpty() || !extraModules.isEmpty() || !incorrectModules.isEmpty()) {
-                throwLockOutOfDateException(getSortedDisplayNames(modulesToBeLocked.values()), getSortedDisplayNames(extraModules), getSortedDisplayNames(incorrectModules));
+            if (!modulesToBeLocked.isEmpty() || !extraModules.isEmpty()) {
+                throwLockOutOfDateException(getSortedDisplayNames(modulesToBeLocked.values()), getSortedDisplayNames(extraModules));
             }
         }
         Set<ModuleComponentIdentifier> changingModules = this.changingResolvedModules == null ? Collections.<ModuleComponentIdentifier>emptySet() : this.changingResolvedModules;
