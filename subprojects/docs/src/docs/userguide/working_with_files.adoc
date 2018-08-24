@@ -199,13 +199,11 @@ Many tasks need to create directories to store the files they generate, which is
 
 In cases where you need to create a directory manually, you can use the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:mkdir(java.lang.Object)[Project.mkdir(java.lang.Object)] method from within your build scripts or custom task implementations. Here's a simple example that creates a single `images` directory in the project folder:
 
-=== Example: Manually creating a directory
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/misc/build.gradle[tag=mkdir-example]
-----
+.Manually creating a directory
+====
+include::sample[dir="userguide/files/misc/groovy",files="build.gradle[tags=mkdir-example]"]
+include::sample[dir="userguide/files/misc/kotlin",files="build.gradle.kts[tags=mkdir-example]"]
+====
 
 As described in the {antManual}/Tasks/mkdir.html[Apache Ant manual], the `mkdir` task will automatically create all necessary directories in the given path and will do nothing if the directory already exists.
 
@@ -214,13 +212,11 @@ As described in the {antManual}/Tasks/mkdir.html[Apache Ant manual], the `mkdir`
 
 Gradle has no API for moving files and directories around, but you can use the <<ant.adoc#ant,Apache Ant integration>> to easily do that, as shown in this example:
 
-=== Example: Moving a directory using the Ant task
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/misc/build.gradle[tag=move-example]
-----
+.Moving a directory using the Ant task
+====
+include::sample[dir="userguide/files/misc/groovy",files="build.gradle[tags=move-example]"]
+include::sample[dir="userguide/files/misc/kotlin",files="build.gradle.kts[tags=move-example]"]
+====
 
 This is not a common requirement and should be used sparingly as you lose information and can easily break a build. It's generally preferable to copy directories and files instead.
 
@@ -255,26 +251,21 @@ In both cases, you specify which files and directories to delete in a way suppor
 
 For example, the following task deletes the entire contents of a build's output directory:
 
-=== Example: Deleting a directory
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/misc/build.gradle[tag=delete-example]
-----
+.Deleting a directory
+====
+include::sample[dir="userguide/files/misc/groovy",files="build.gradle[tags=delete-example]"]
+include::sample[dir="userguide/files/misc/kotlin",files="build.gradle.kts[tags=delete-example]"]
+====
 
 If you want more control over which files are deleted, you can't use inclusions and exclusions in the same way as for copying files.
 Instead, you have to use the builtin filtering mechanisms of `FileCollection` and `FileTree`.
 The following example does just that to clear out temporary files from a source directory:
 
-=== Example: Deleting files matching a specific pattern
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/misc/build.gradle[tag=delete-with-filter-example]
-----
-
+.Deleting files matching a specific pattern
+====
+include::sample[dir="userguide/files/misc/groovy",files="build.gradle[tags=delete-with-filter-example]"]
+include::sample[dir="userguide/files/misc/kotlin",files="build.gradle.kts[tags=delete-with-filter-example]"]
+====
 
 You'll learn more about file collections and file trees in the next section.
 
@@ -330,13 +321,11 @@ As you can see, you can pass strings, `File` instances and `{javaApi}/java/nio/f
 
 What happens in the case of multi-project builds? The `file()` method will always turn relative paths into paths that are relative to the current project directory, which may be a child project. If you want to use a path that's relative to the _root project_ directory, then you need to use the special link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:rootDir[Project.getRootDir()] property to construct an absolute path, like so:
 
-=== Example: Creating a path relative to a parent project
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/misc/project2/build.gradle[tag=using-root-dir-property]
-----
+.Creating a path relative to a parent project
+====
+include::sample[dir="userguide/files/misc/groovy",files="build.gradle[tags=using-root-dir-property]"]
+include::sample[dir="userguide/files/misc/kotlin",files="build.gradle.kts[tags=using-root-dir-property]"]
+====
 
 Let's say you're working on a multi-project build in a `dev/projects/AcmeHealth` directory. You use the above example in the build of the library you're fixing — at `AcmeHealth/subprojects/AcmePatientRecordLib/build.gradle`. The file path will resolve to the absolute version of `dev/projects/AcmeHealth/shared/config.xml`.
 
