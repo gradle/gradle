@@ -152,13 +152,11 @@ Each type of archive has its own task type, the most common ones being link:{gro
 
 One of the most common scenarios involves copying files into specified subdirectories of the archive. For example, let's say you want to package all PDFs into a `docs` directory in the root of the archive. This `docs` directory doesn't exist in the source location, so you have to create it as part of the archive. You do this by adding an `into()` declaration for just the PDFs:
 
-=== Example: Using the Base Plugin for its archive name convention
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/archivesWithBasePlugin/build.gradle[tag=create-archive-with-base-plugin-example]
-----
+.Using the Base Plugin for its archive name convention
+====
+include::sample[dir="userguide/files/archivesWithBasePlugin/groovy",files="build.gradle[tags=create-archive-with-base-plugin-example]"]
+include::sample[dir="userguide/files/archivesWithBasePlugin/kotlin",files="build.gradle.kts[tags=create-archive-with-base-plugin-example]"]
+====
 
 As you can see, you can have multiple `from()` declarations in a copy specification, each with its own configuration. See <<#sub:using_child_copy_specifications,Using child copy specifications>> for more information on this feature.
 
