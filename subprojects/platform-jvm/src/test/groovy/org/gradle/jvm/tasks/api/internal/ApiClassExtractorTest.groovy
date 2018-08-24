@@ -24,6 +24,7 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import spock.lang.Unroll
 
+import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Modifier
 
 class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
@@ -50,8 +51,8 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         o.foo()
 
         then:
-        thrown(UnsupportedOperationException)
-
+        def e = thrown(InvocationTargetException)
+        e.cause instanceof UnsupportedOperationException
     }
 
     def "should not remove protected method"() {
@@ -75,7 +76,8 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         extracted.getConstructor().newInstance()
 
         then:
-        thrown(UnsupportedOperationException)
+        def e = thrown(InvocationTargetException)
+        e.cause instanceof UnsupportedOperationException
 
     }
 
@@ -205,7 +207,8 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         extractedB.getConstructor().newInstance()
 
         then:
-        thrown(UnsupportedOperationException)
+        def e = thrown(InvocationTargetException)
+        e.cause instanceof UnsupportedOperationException
 
         when:
         extractedA.STATIC_IN_A()
@@ -325,8 +328,8 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         o.foo()
 
         then:
-        thrown(UnsupportedOperationException)
-
+        def e = thrown(InvocationTargetException)
+        e.cause instanceof UnsupportedOperationException
     }
 
     def "should not remove protected field"() {
@@ -350,8 +353,8 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         extracted.getConstructor().newInstance()
 
         then:
-        thrown(UnsupportedOperationException)
-
+        def e = thrown(InvocationTargetException)
+        e.cause instanceof UnsupportedOperationException
     }
 
     def "should remove private field"() {

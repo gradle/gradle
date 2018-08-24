@@ -19,6 +19,7 @@ package org.gradle.jvm.tasks.api.internal
 import org.objectweb.asm.Opcodes
 import spock.lang.Unroll
 
+import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Modifier
 
 class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
@@ -51,11 +52,12 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
         hasMethod(extractedInner, 'foo').modifiers == Modifier.PUBLIC
 
         when:
-        def o = modifier =~ /static/ ? extractedInner.getConstructor().newInstance() : extractedInner.newInstance(extractedOuter.getConstructor().newInstance())
+        def o = (modifier =~ /static/) ? newInstance(extractedInner) : extractedInner.newInstance(newInstance(extractedOuter))
         o.foo()
 
         then:
-        thrown(UnsupportedOperationException)
+        def e = thrown(InvocationTargetException)
+        e.cause instanceof UnsupportedOperationException
 
         where:
         modifier           | access
@@ -65,6 +67,12 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
         'public static'    | ACC_PUBLICSTATIC
         'protected static' | ACC_PROTECTEDSTATIC
         'static'           | Opcodes.ACC_STATIC
+    }
+
+    def newInstance(Class aClass) {
+        def constructor = aClass.getDeclaredConstructor()
+        constructor.setAccessible(true)
+        constructor.newInstance()
     }
 
     @Unroll
