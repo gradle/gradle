@@ -789,13 +789,11 @@ include::{samplesPath}/userguide/files/archiveNaming/zipWithCustomName.out[]
 
 You can also override the default `baseName` value for _all_ the archive tasks in your build by using the _project_ property `archivesBaseName`, as demonstrated by the following example:
 
-=== Example: Configuration of archive task - appendix &amp; classifier
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/archivesChangedBaseName/build.gradle[]
-----
+.Configuration of archive task - appendix &amp; classifier
+====
+include::sample[dir="userguide/files/archivesChangedBaseName/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/files/archivesChangedBaseName/kotlin",files="build.gradle.kts[]"]
+====
 
 .Output of **`gradle -q echoNames`**
 ----
