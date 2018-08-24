@@ -22,7 +22,7 @@ import org.gradle.api.Project;
 import java.util.concurrent.Callable;
 
 /**
- * A factory for creating instances of {@code Provider} and {@code PropertyState}.
+ * A factory for creating instances of {@link Provider} and {@link Property}.
  * <p>
  * An instance of the factory can be injected into a task or plugin by annotating a public constructor or method with {@code javax.inject.Inject}.
  *
@@ -56,19 +56,4 @@ public interface ProviderFactory {
      * @return The provider. Never returns null.
      */
     <T> Provider<T> provider(Callable<? extends T> value);
-
-    /**
-     * Creates a {@link PropertyState} implementation to hold values of the given type.
-     *
-     * <p>The property will have a value equal to the default value of that type as defined by the Java language specification.
-     * Please see <a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">Oracle's Java manual</a> for more information.
-     * <p>
-     * Any other data type than the standard Java data types returns a property with no value defined.
-     *
-     * @param valueType The type of the property.
-     * @return The property. Never returns null.
-     * @deprecated Use {@link org.gradle.api.model.ObjectFactory#property(Class)} instead.
-     */
-    @Deprecated
-    <T> PropertyState<T> property(Class<T> valueType);
 }

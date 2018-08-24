@@ -16,8 +16,13 @@
 
 package org.gradle.play.plugins;
 
-import org.gradle.api.*;
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
+import org.gradle.api.Action;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
@@ -26,7 +31,13 @@ import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.coffeescript.CoffeeScriptSourceSet;
 import org.gradle.language.javascript.JavaScriptSourceSet;
-import org.gradle.model.*;
+import org.gradle.model.Defaults;
+import org.gradle.model.Each;
+import org.gradle.model.Finalize;
+import org.gradle.model.ModelMap;
+import org.gradle.model.Mutate;
+import org.gradle.model.Path;
+import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
@@ -80,12 +91,12 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void createGeneratedJavaScriptSourceSets(@Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> binaries, final SourceDirectorySetFactory sourceDirectorySetFactory) {
+        void createGeneratedJavaScriptSourceSets(@Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> binaries, final ObjectFactory objectFactory) {
             binaries.all(new Action<PlayApplicationBinarySpecInternal>() {
                 @Override
                 public void execute(PlayApplicationBinarySpecInternal playApplicationBinarySpec) {
                     for (CoffeeScriptSourceSet coffeeScriptSourceSet : playApplicationBinarySpec.getInputs().withType(CoffeeScriptSourceSet.class)) {
-                        playApplicationBinarySpec.addGeneratedJavaScript(coffeeScriptSourceSet, sourceDirectorySetFactory);
+                        playApplicationBinarySpec.addGeneratedJavaScript(coffeeScriptSourceSet, objectFactory);
                     }
                 }
             });

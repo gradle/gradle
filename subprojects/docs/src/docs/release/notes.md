@@ -10,9 +10,42 @@ Add-->
 ### Example new and noteworthy
 -->
 
-### Build Init plugin uses recommended configurations
+### Build init plugin improvements
 
-The [Build Init plugin](userguide/build_init_plugin.html) now generates build scripts that use the recommended `implementation`, `testImplementation`, and `testRuntimeOnly` configurations instead of `compile`, `testCompile`, and `testRuntime`, respectively, for all build setup types.
+This release includes a number of improvements to The [Build Init plugin](userguide/build_init_plugin.html).
+
+#### Interactive mode
+
+If you run the `init` task from an interactive console, it will prompt you for details of the Gradle build that you'd like to generate.
+
+#### Kotlin library and applications
+
+The `init` task can generate a Kotlin library or application, using the `kotlin-library` or `kotlin-application` setup type. This was one of our top 10 most voted issues.
+
+#### Generated builds use recommended configurations
+
+The `init` task generates build scripts that use the recommended `implementation`, `testImplementation`, and `testRuntimeOnly` configurations instead of `compile`, `testCompile`, and `testRuntime`, respectively, for all build setup types.
+
+#### Configure project and source package names
+
+The `init` task provides a `--project-name` option to allow you to adjust the name of the generated project, and a `--package` option to allow you to adjust the package for the generated source.
+The task will also allow you to specify these if you run the task interactively.
+
+#### Create resource directories
+
+The `init` task creates empty resource directories.
+
+#### Create a .gitignore file
+
+While the `init` task does not automatically create a Git repository, the `init` task generates a simple `.gitignore` file to make it easier for you to set up a Git repository. This `.gitignore` file ignores Gradle's build outputs.
+
+### Plugin authoring features
+
+#### Public method to create SourceDirectorySet instances
+
+The `SourceDirectorySet` type is often used by plugins to represent some set of source directories and files. Previously, it was only possible to create instances of `SourceDirectorySet` using internal types. This is problematic because when a plugin uses internal types it can often break when new versions of Gradle are released because internal types may change in breaking ways between releases.
+
+In this release of Gradle, the `ObjectFactory` service, which is part of the public API, now includes a method to create `SourceDirectorySet` instances. A plugin can now use this method instead of the internal types.
 
 ### JaCoCo plugin now works with the build cache and parallel test execution
 
@@ -44,6 +77,10 @@ Features that have become superseded or irrelevant due to the natural evolution 
 in the next major Gradle version (Gradle 5.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
+
+### StartParameter.interactive flag 
+
+The `interactive` flag is deprecated and will be removed in Gradle 6.0.
 
 <!--
 ### Example deprecation
@@ -118,17 +155,28 @@ See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-exec
 - Removed the methods `execute`, `getExecuter`, `setExecuter`, `getValidators` and `addValidator` from `TaskInternal`.
 - Removed the methods `stopExecutionIfEmpty` and `add` from `FileCollection`.
 - Removed the ability to cast (Groovy `as`) `FileCollection` to `File[]` and `File`.
-- Removed the class `SimpleFileCollection`.
 - Removed the method `getBuildDependencies` from `AbstractFileCollection`. 
-- Removed the class `SimpleWorkResult`.
 - Removed the methods `file` and `files` from `TaskDestroyables`.
 - Removed the property `styleSheet` from `ScalaDocOptions`.
+- Removed the methods `newFileVar` and `newDirectoryVar` from `ProjectLayout`.
+- Removed the method `property` from `ProviderFactory`.
+- Removed the method `property` from `Project`.
+- Removed the method `property` from `Script`.
+- Removed the type `RegularFileVar`.
+- Removed the type `DirectoryVar`.
+- Removed the type `PropertyState`.
 - Forbid passing `null` as configuration action to the methods `from` and `to` on `CopySpec`.
 - Removed the property `bootClasspath` from `CompileOptions`.
 - Validation problems for inputs or outputs registered via the runtime API now fail the build.
 - Chaining calls to the methods `file`, `files`, and `dir` on `TaskInputs` is now impossible.
 - Chaining calls to the methods `file`, `files`, and `dir` on `TaskOutputs` is now impossible.
 - Chaining calls to the method `property` and `properties` on `TaskInputs` is now an error.
+
+### Changes to internal APIs
+
+- Removed the internal class `SimpleFileCollection`.
+- Removed the internal class `SimpleWorkResult`.
+- Removed the internal method `getAddAction` from `BroadcastingCollectionEventRegister`.
 
 ## External contributions
 
@@ -140,6 +188,7 @@ We would like to thank the following community members for making contributions 
 - [Björn Kautler](https://github.com/Vampire) - No Deprecated Configurations in Build Init (gradle/gradle#6208)
 - [Georg Friedrich](https://github.com/GFriedrich) - Base Java Library Distribution Plugin on Java Library Plugin (gradle/gradle#5695)
 - [Stefan M.](https://github.com/StefMa) — Include Kotlin DSL samples in Gradle wrapper user manual chapter (gradle/gradle#5923)
+- [Jean-Baptiste Nizet](https://github.com/StefMa) — Include Kotlin DSL samples in Gradle Base Plugin user manual chapter (gradle/gradle#6488)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

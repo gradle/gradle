@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.events
+package org.gradle.buildinit.plugins.internal.maven;
 
-import org.gradle.api.logging.LogLevel
-import spock.lang.Specification
+public class ProjectDependency extends Dependency {
+    private final String projectPath;
 
-class UserInputRequestEventTest extends Specification {
+    public ProjectDependency(String configuration, String projectPath) {
+        super(configuration);
+        this.projectPath = projectPath;
+    }
 
-    def "can create instance for provided prompt"() {
-        given:
-        def prompt = 'Please provide your input:'
-
-        when:
-        def userInputRequestEvent = new UserInputRequestEvent(prompt)
-
-        then:
-        userInputRequestEvent.prompt == prompt
-        userInputRequestEvent.logLevel == LogLevel.QUIET
+    public String getProjectPath() {
+        return projectPath;
     }
 }

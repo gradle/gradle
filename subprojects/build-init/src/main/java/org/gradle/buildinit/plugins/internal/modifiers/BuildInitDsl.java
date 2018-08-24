@@ -17,6 +17,7 @@ package org.gradle.buildinit.plugins.internal.modifiers;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
+import org.gradle.internal.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -41,7 +42,14 @@ public enum BuildInitDsl {
                 return language;
             }
         }
-        throw new GradleException("The requested build script DSL '" + name + "' is not supported.");
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node("The requested build script DSL '" + name + "' is not supported. Supported DSLs");
+        formatter.startChildren();
+        for (BuildInitDsl dsl : values()) {
+            formatter.node("'" + dsl.getId() + "'");
+        }
+        formatter.endChildren();
+        throw new GradleException(formatter.toString());
     }
 
     public static List<String> listSupported() {

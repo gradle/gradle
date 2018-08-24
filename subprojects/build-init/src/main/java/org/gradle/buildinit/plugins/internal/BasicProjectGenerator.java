@@ -18,23 +18,25 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
-import org.gradle.internal.file.PathToFileResolver;
 
-public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescriptor {
+import java.util.Collections;
+import java.util.Set;
 
-    private final PathToFileResolver fileResolver;
-    private final ProjectInitDescriptor globalSettingsDescriptor;
+public class BasicProjectGenerator implements ProjectGenerator {
+    private final BuildScriptBuilderFactory scriptBuilderFactory;
 
-    public BasicTemplateBasedProjectInitDescriptor(PathToFileResolver fileResolver, ProjectInitDescriptor globalSettingsDescriptor) {
-        this.fileResolver = fileResolver;
-        this.globalSettingsDescriptor = globalSettingsDescriptor;
+    public BasicProjectGenerator(BuildScriptBuilderFactory scriptBuilderFactory) {
+        this.scriptBuilderFactory = scriptBuilderFactory;
     }
 
     @Override
-    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
-        globalSettingsDescriptor.generate(dsl, testFramework);
+    public String getId() {
+        return "basic";
+    }
 
-        new BuildScriptBuilder(dsl, fileResolver, "build")
+    @Override
+    public void generate(InitSettings settings) {
+        scriptBuilderFactory.script(settings.getDsl(), "build")
             .fileComment("This is a general purpose Gradle build.\n"
                 + "Learn how to create Gradle builds at https://guides.gradle.org/creating-new-gradle-builds/")
             .create()
@@ -42,12 +44,22 @@ public class BasicTemplateBasedProjectInitDescriptor implements ProjectInitDescr
     }
 
     @Override
-    public boolean supports(BuildInitDsl dsl) {
-        return true;
+    public BuildInitDsl getDefaultDsl() {
+        return BuildInitDsl.GROOVY;
     }
 
     @Override
-    public boolean supports(BuildInitTestFramework testFramework) {
+    public boolean supportsPackage() {
         return false;
+    }
+
+    @Override
+    public BuildInitTestFramework getDefaultTestFramework() {
+        return BuildInitTestFramework.NONE;
+    }
+
+    @Override
+    public Set<BuildInitTestFramework> getTestFrameworks() {
+        return Collections.singleton(BuildInitTestFramework.NONE);
     }
 }

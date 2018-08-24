@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,14 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-public abstract class BuildInitTypeIds {
+/**
+ * Converts some existing build to a Gradle build.
+ */
+public interface BuildConverter extends BuildInitializer {
+    /**
+     * Can this converter be applied to the contents of the current directory?
+     */
+    boolean canApplyToCurrentDirectory();
 
-    private BuildInitTypeIds() {}
-
-    public static final String BASIC = "basic";
-    public static final String POM = "pom";
-    public static final String JAVA_LIBRARY = "java-library";
-    public static final String JAVA_APPLICATION = "java-application";
-    public static final String GROOVY_APPLICATION = "groovy-application";
-    public static final String GROOVY_LIBRARY = "groovy-library";
-    public static final String SCALA_LIBRARY = "scala-library";
-
+    String getSourceBuildDescription();
 }

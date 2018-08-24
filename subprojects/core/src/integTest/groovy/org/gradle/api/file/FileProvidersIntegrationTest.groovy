@@ -21,24 +21,6 @@ import org.gradle.util.ToBeImplemented
 import spock.lang.Unroll
 
 class FileProvidersIntegrationTest extends AbstractIntegrationSpec {
-    @Unroll
-    def "receives warning when using deprecated factory methods - #expr"() {
-        buildFile << """
-def p = $expr
-"""
-        when:
-        executer.expectDeprecationWarning()
-        run()
-
-        then:
-        output.contains(warning)
-
-        where:
-        expr                       | warning
-        "layout.newDirectoryVar()" | "The ProjectLayout.newDirectoryVar() method has been deprecated."
-        "layout.newFileVar()"      | "The ProjectLayout.newFileVar() method has been deprecated."
-    }
-
     def "can attach a calculated directory to task property"() {
         buildFile << """
             class SomeTask extends DefaultTask {

@@ -30,6 +30,7 @@
                                         <exclude>org.apache.maven</exclude>
                                         <exclude>org.apache.maven:badArtifact</exclude>
                                         <exclude>*:badArtifact</exclude>
+                                        <exclude>broken:*</exclude>
                                     </excludes>
                                 </bannedDependencies>
                             </rules>

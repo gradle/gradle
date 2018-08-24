@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.concurrent.Callable;
 
@@ -29,42 +27,6 @@ public class DefaultProviderFactory implements ProviderFactory {
         if (value == null) {
             throw new IllegalArgumentException("Value cannot be null");
         }
-
         return new DefaultProvider<T>(value);
-    }
-
-    @Override
-    public <T> PropertyState<T> property(Class<T> valueType) {
-        DeprecationLogger.nagUserOfReplacedMethod("property(Class)", "ObjectFactory.property(Class)");
-        return propertyNoNag(valueType);
-    }
-
-    // This should be extracted out
-    public <T> PropertyState<T> propertyNoNag(Class<T> valueType) {
-        if (valueType == null) {
-            throw new IllegalArgumentException("Class cannot be null");
-        }
-
-        PropertyState<T> propertyState = new DefaultPropertyState<T>(valueType);
-
-        if (valueType == Boolean.class) {
-            ((PropertyState<Boolean>) propertyState).set(Providers.FALSE);
-        } else if (valueType == Byte.class) {
-            ((PropertyState<Byte>) propertyState).set(Providers.BYTE_ZERO);
-        } else if (valueType == Short.class) {
-            ((PropertyState<Short>) propertyState).set(Providers.SHORT_ZERO);
-        } else if (valueType == Integer.class) {
-            ((PropertyState<Integer>) propertyState).set(Providers.INTEGER_ZERO);
-        } else if (valueType == Long.class) {
-            ((PropertyState<Long>) propertyState).set(Providers.LONG_ZERO);
-        } else if (valueType == Float.class) {
-            ((PropertyState<Float>) propertyState).set(Providers.FLOAT_ZERO);
-        } else if (valueType == Double.class) {
-            ((PropertyState<Double>) propertyState).set(Providers.DOUBLE_ZERO);
-        } else if (valueType == Character.class) {
-            ((PropertyState<Character>) propertyState).set(Providers.CHAR_ZERO);
-        }
-
-        return propertyState;
     }
 }

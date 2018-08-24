@@ -16,7 +16,40 @@
 
 package org.gradle.api.internal.tasks.userinput;
 
-public interface UserInputHandler {
+import javax.annotation.Nullable;
+import java.util.Collection;
 
+public interface UserInputHandler {
+    /**
+     * Prompts the user with a yes/no question and returns the answer.
+     *
+     * @param question The text of the question.
+     * @return the answer or {@code null} if not connected to a user console.
+     */
+    @Nullable
     Boolean askYesNoQuestion(String question);
+
+    /**
+     * Prompts the user with a yes/no question and returns the answer.
+     *
+     * @param question The text of the question.
+     * @return the answer or the given default if not connected to a user console.
+     */
+    boolean askYesNoQuestion(String question, boolean defaultValue);
+
+    /**
+     * Prompts the user to select an option from the given list and returns the answer.
+     * Uses the {@link Object#toString()} representation of the options to format the prompt.
+     *
+     * @param question The text of the question.
+     * @return the answer or the given default if not connected to a user console.
+     */
+    <T> T selectOption(String question, Collection<T> options, T defaultOption);
+
+    /**
+     * Prompts the user to provide a string value.
+     * @param question The text of the question.
+     * @return The answer of the given default if not connected to a user console.
+     */
+    String askQuestion(String question, String defaultValue);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,51 +13,89 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.buildinit.plugins.internal;
+package org.gradle.buildinit.plugins.internal.maven;
 
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
-import org.gradle.buildinit.plugins.internal.maven.Maven2Gradle;
-import org.gradle.buildinit.plugins.internal.maven.MavenConversionException;
-import org.gradle.buildinit.plugins.internal.maven.MavenProjectsCreator;
+import org.gradle.buildinit.plugins.internal.BuildConverter;
+import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory;
+import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Set;
 
-public class PomProjectInitDescriptor implements ProjectInitDescriptor {
+public class PomProjectInitDescriptor implements BuildConverter {
     private final MavenSettingsProvider settingsProvider;
+    private final BuildScriptBuilderFactory scriptBuilderFactory;
     private final PathToFileResolver fileResolver;
 
-    public PomProjectInitDescriptor(PathToFileResolver fileResolver, MavenSettingsProvider mavenSettingsProvider) {
+    public PomProjectInitDescriptor(PathToFileResolver fileResolver, MavenSettingsProvider mavenSettingsProvider, BuildScriptBuilderFactory scriptBuilderFactory) {
         this.fileResolver = fileResolver;
         this.settingsProvider = mavenSettingsProvider;
+        this.scriptBuilderFactory = scriptBuilderFactory;
     }
 
     @Override
-    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
+    public String getId() {
+        return "pom";
+    }
+
+    @Override
+    public String getSourceBuildDescription() {
+        return "Maven";
+    }
+
+    @Override
+    public void generate(InitSettings initSettings) {
         SingleMessageLogger.incubatingFeatureUsed("Maven to Gradle conversion");
         File pom = fileResolver.resolve("pom.xml");
         try {
             Settings settings = settingsProvider.buildSettings();
             Set<MavenProject> mavenProjects = new MavenProjectsCreator().create(settings, pom);
-            new Maven2Gradle(mavenProjects, fileResolver.resolve(".")).convert();
+            new Maven2Gradle(mavenProjects, fileResolver.resolve("."), scriptBuilderFactory).convert();
         } catch (Exception exception) {
             throw new MavenConversionException(String.format("Could not convert Maven POM %s to a Gradle build.", pom), exception);
         }
     }
 
     @Override
-    public boolean supports(BuildInitDsl dsl) {
-        return BuildInitDsl.GROOVY == dsl;
+    public boolean supportsProjectName() {
+        return false;
     }
 
     @Override
-    public boolean supports(BuildInitTestFramework testFramework) {
+    public boolean canApplyToCurrentDirectory() {
+        return fileResolver.resolve("pom.xml").isFile();
+    }
+
+    @Override
+    public Set<BuildInitDsl> getDsls() {
+        return Collections.singleton(BuildInitDsl.GROOVY);
+    }
+
+    @Override
+    public BuildInitDsl getDefaultDsl() {
+        return BuildInitDsl.GROOVY;
+    }
+
+    @Override
+    public boolean supportsPackage() {
         return false;
+    }
+
+    @Override
+    public BuildInitTestFramework getDefaultTestFramework() {
+        return BuildInitTestFramework.NONE;
+    }
+
+    @Override
+    public Set<BuildInitTestFramework> getTestFrameworks() {
+        return Collections.singleton(BuildInitTestFramework.NONE);
     }
 }
