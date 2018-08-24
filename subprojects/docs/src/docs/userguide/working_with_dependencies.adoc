@@ -36,13 +36,11 @@ None of the <<inspecting_dependencies.adoc#inspecting_dependencies,dependency re
 
 You can iterate over the complete set of artifacts resolved for a module with the help of the method link:{javadocPath}/org/gradle/api/file/FileCollection.html#getFiles--[FileCollection.getFiles()]. Every file instance returned from the method points to its location in the <<dependency_cache.adoc#dependency_cache,dependency cache>>. Using this method on a `Configuration` instance is possible as the interface extends `FileCollection`.
 
-=== Example: Iterating over the artifacts resolved for a module
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/workingWithDependencies/iterateArtifacts/build.gradle[tag=iteration-task]
-----
+.Iterating over the artifacts resolved for a module
+====
+include::sample[dir="userguide/dependencyManagement/workingWithDependencies/iterateArtifacts/groovy",files="build.gradle[tags=iteration-task]"]
+include::sample[dir="userguide/dependencyManagement/workingWithDependencies/iterateArtifacts/kotlin",files="build.gradle.kts[tags=iteration-task]"]
+====
 
 [NOTE]
 ====
