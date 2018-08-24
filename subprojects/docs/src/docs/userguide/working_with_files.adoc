@@ -410,13 +410,11 @@ NOTE: Although `FileTree` extends `FileCollection` (an is-a relationship), their
 
 The simplest way to create a file tree is to pass a file or directory path to the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[Project.fileTree(java.lang.Object)] method. This will create a tree of all the files and directories in that base directory (but not the base directory itself). The following example demonstrates how to use the basic method and, in addition, how to filter the files and directories using Ant-style patterns:
 
-=== Example: Creating a file tree
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/fileTrees/build.gradle[tag=define]
-----
+.Creating a file tree
+====
+include::sample[dir="userguide/files/fileTrees/groovy",files="build.gradle[tags=define]"]
+include::sample[dir="userguide/files/fileTrees/kotlin",files="build.gradle.kts[tags=define]"]
+====
 
 You can see more examples of supported patterns in the API docs for link:{javadocPath}/org/gradle/api/tasks/util/PatternFilterable.html[PatternFilterable]. Also, see the API documentation for `fileTree()` to see what types you can pass as the base directory.
 
@@ -440,13 +438,11 @@ You can do many of the same things with file trees that you can with file collec
 
 You can also traverse file trees using the link:{javadocPath}/org/gradle/api/file/FileTree.html#visit-org.gradle.api.Action-[FileTree.visit(org.gradle.api.Action)] method. All of these techniques are demonstrated in the following example:
 
-=== Example: Using a file tree
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/fileTrees/build.gradle[tag=use]
-----
+.Using a file tree
+====
+include::sample[dir="userguide/files/fileTrees/groovy",files="build.gradle[tags=use]"]
+include::sample[dir="userguide/files/fileTrees/kotlin",files="build.gradle.kts[tags=use]"]
+====
 
 We've discussed how to create your own file trees and file collections, but it's also worth bearing in mind that many Gradle plugins provide their own instances of file trees, such as <<building_java_projects.adoc#sec:java_source_sets,Java's source sets>>. These can be used and manipulated in exactly the same way as the file trees you create yourself.
 
@@ -459,13 +455,11 @@ An archive is a directory and file hierarchy packed into a single file. In other
 
 Here are some simple examples of creating archive-based file trees:
 
-=== Example: Using an archive as a file tree
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/fileTrees/build.gradle[tag=archive-trees]
-----
+.Using an archive as a file tree
+====
+include::sample[dir="userguide/files/fileTrees/groovy",files="build.gradle[tags=archive-trees]"]
+include::sample[dir="userguide/files/fileTrees/kotlin",files="build.gradle.kts[tags=archive-trees]"]
+====
 
 You can see a practical example of extracting an archive file <<#sec:unpacking_archives_example,in among the common scenarios>> we cover.
 
