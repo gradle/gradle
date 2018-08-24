@@ -319,8 +319,8 @@ What happens in the case of multi-project builds? The `file()` method will alway
 
 .Creating a path relative to a parent project
 ====
-include::sample[dir="userguide/files/misc/groovy",files="build.gradle[tags=using-root-dir-property]"]
-include::sample[dir="userguide/files/misc/kotlin",files="build.gradle.kts[tags=using-root-dir-property]"]
+include::sample[dir="userguide/files/misc/groovy/project2",files="build.gradle[tags=using-root-dir-property]"]
+include::sample[dir="userguide/files/misc/kotlin/project2",files="build.gradle.kts[tags=using-root-dir-property]"]
 ====
 
 Let's say you're working on a multi-project build in a `dev/projects/AcmeHealth` directory. You use the above example in the build of the library you're fixing — at `AcmeHealth/subprojects/AcmePatientRecordLib/build.gradle`. The file path will resolve to the absolute version of `dev/projects/AcmeHealth/shared/config.xml`.
@@ -339,13 +339,11 @@ Learn about all the supported argument types in the reference guide.
 
 As with the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method covered in the <<#sec:single_file_paths,previous section>>, all relative paths are evaluated relative to the current project directory. The following example demonstrates some of the variety of argument types you can use — strings, `File` instances, a list and a `{javaApi}/java/nio/file/Path.html[Path]`:
 
-=== Example: Creating a file collection
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/fileCollections/build.gradle[tag=simple-params]
-----
+.Creating a file collection
+====
+include::sample[dir="userguide/files/fileCollections/groovy",files="build.gradle[tags=simple-params]"]
+include::sample[dir="userguide/files/fileCollections/kotlin",files="build.gradle.kts[tags=simple-params]"]
+====
 
 File collections have some important attributes in Gradle. They can be:
 
@@ -356,13 +354,11 @@ File collections have some important attributes in Gradle. They can be:
 
 _Lazy creation_ of a file collection is useful when you need to evaluate the files that make up a collection at the time a build runs. In the following example, we query the file system to find out what files exist in a particular directory and then make those into a file collection:
 
-=== Example: Implementing a file collection
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/fileCollections/build.gradle[tag=closure]
-----
+.Implementing a file collection
+====
+include::sample[dir="userguide/files/fileCollections/groovy",files="build.gradle[tags=closure]"]
+include::sample[dir="userguide/files/fileCollections/kotlin",files="build.gradle.kts[tags=closure]"]
+====
 
 .Output of **`gradle -q list`**
 ----
@@ -376,13 +372,11 @@ _Iterating over a file collection_ can be done through the `each()` method on th
 
 The following example demonstrates such iteration as well as how you can convert file collections to other types using the `as` operator or supported properties:
 
-=== Example: Using a file collection
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/fileCollections/build.gradle[tag=usage]
-----
+.Using a file collection
+====
+include::sample[dir="userguide/files/fileCollections/groovy",files="build.gradle[tags=usage]"]
+include::sample[dir="userguide/files/fileCollections/kotlin",files="build.gradle.kts[tags=usage]"]
+====
 
 You can also see at the end of the example _how to combine file collections_ using the `+` and `-` operators to merge and subtract them. An important feature of the resulting file collections is that they are _live_. In other words, when you combine file collections in this way, the result always reflects what's currently in the source file collections, even if they change during the build.
 
@@ -390,13 +384,11 @@ For example, imagine `collection` in the above example gains an extra file or tw
 
 Live collections are also important when it comes to _filtering_. If you want to use a subset of a file collection, you can take advantage of the link:{javadocPath}/org/gradle/api/file/FileCollection.html#filter-org.gradle.api.specs.Spec-[FileCollection.filter(org.gradle.api.specs.Spec)] method to determine which files to "keep". In the following example, we create a new collection that consists of only the files that end with .txt in the source collection:
 
-=== Example: Filtering a file collection
-
-[source.multi-language-sample,groovy,indent=0]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/fileCollections/build.gradle[tag=filtering-file-collections]
-----
+.Filtering a file collection
+====
+include::sample[dir="userguide/files/fileCollections/groovy",files="build.gradle[tags=filtering-file-collections]"]
+include::sample[dir="userguide/files/fileCollections/kotlin",files="build.gradle.kts[tags=filtering-file-collections]"]
+====
 
 .Output of **`gradle -q filterTextFiles`**
 ----
