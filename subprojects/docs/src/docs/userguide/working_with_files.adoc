@@ -755,13 +755,11 @@ Gradle has several conventions around the naming of archives and where they are 
 
 The following example comes from a project named 'zipProject', hence the `myZip` task creates an archive named 'zipProject-1.0.zip':
 
-=== Example: Creation of ZIP archive
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/archiveNaming/build.gradle[tag=zip-task]
-----
+.Creation of ZIP archive
+====
+include::sample[dir="userguide/files/archiveNaming/groovy",files="build.gradle[tags=zip-task]"]
+include::sample[dir="userguide/files/archiveNaming/kotlin",files="build.gradle.kts[tags=zip-task]"]
+====
 
 .Output of **`gradle -q myZip`**
 ----
@@ -777,13 +775,11 @@ Alternatively, you can make use of the default archive name pattern provided by 
 
 This example — from the same project as the one above — configures just the `baseName` property, overriding the default value of the project name:
 
-=== Example: Configuration of archive task - custom archive name
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/archiveNaming/build.gradle[tag=zip-task-with-custom-base-name]
-----
+.Configuration of archive task - custom archive name
+====
+include::sample[dir="userguide/files/archiveNaming/groovy",files="build.gradle[tags=zip-task-with-custom-base-name]"]
+include::sample[dir="userguide/files/archiveNaming/kotlin",files="build.gradle.kts[tags=zip-task-with-custom-base-name]"]
+====
 
 .Output of **`gradle -q myCustomZip`**
 ----
