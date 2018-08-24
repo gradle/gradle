@@ -28,8 +28,73 @@ import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
 
+import java.io.File
+
 
 class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
+
+    @Test
+    fun `can access extension of internal type made public`() {
+
+        lateinit var extensionSourceFile: File
+
+        withFolders {
+
+            "buildSrc" {
+
+                withPrecompiledPlugins()
+
+                "src/main/kotlin" {
+
+                    extensionSourceFile =
+                        withFile("Extension.kt", """
+                            internal
+                            class Extension
+                        """)
+
+                    withFile("plugin.gradle.kts", """
+                        extensions.add("extension", Extension())
+                    """)
+                }
+            }
+        }
+
+        withBuildScript("""
+
+            plugins { id("plugin") }
+
+            inline fun <reified T> typeOf(value: T) = typeOf<T>()
+
+            println("extension: " + typeOf(extension))
+            extension { println("extension{} " + typeOf(this)) }
+        """)
+
+        // The internal Extension type is not accessible
+        // so the accessors are typed Any (java.lang.Object)
+        assertThat(
+            build("help", "-q").output,
+            containsMultiLineString("""
+                extension: java.lang.Object
+                extension{} java.lang.Object
+            """)
+        )
+
+        // Making the Extension type accessible
+        // should cause the accessors to be regenerated
+        // with the now accessible type
+        extensionSourceFile.writeText("""
+            public
+            class Extension
+        """)
+
+        assertThat(
+            build("help", "-q").output,
+            containsMultiLineString("""
+                extension: Extension
+                extension{} Extension
+            """)
+        )
+    }
 
     @Test
     fun `can access extension of default package type`() {
