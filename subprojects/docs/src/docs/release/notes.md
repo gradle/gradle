@@ -155,6 +155,7 @@ We would like to thank the following community members for making contributions 
 - [Björn Kautler](https://github.com/Vampire) - No Deprecated Configurations in Build Init (gradle/gradle#6208)
 - [Georg Friedrich](https://github.com/GFriedrich) - Base Java Library Distribution Plugin on Java Library Plugin (gradle/gradle#5695)
 - [Stefan M.](https://github.com/StefMa) — Include Kotlin DSL samples in Gradle wrapper user manual chapter (gradle/gradle#5923)
+- [Jean-Baptiste Nizet](https://github.com/StefMa) — Include Kotlin DSL samples in Gradle Base Plugin user manual chapter (gradle/gradle#6488)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
