@@ -244,7 +244,7 @@ public class JavaReflectionUtil {
             handlerClass = fallbackType;
         }
         try {
-            return Cast.uncheckedCast(handlerClass.newInstance());
+            return Cast.uncheckedCast(handlerClass.getConstructor().newInstance());
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

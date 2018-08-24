@@ -789,7 +789,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
                 if (params.length > 0) {
                     return type.cast(decorated.constructors[0].newInstance(params))
                 } else {
-                    return decorated.newInstance()
+                    return decorated.getConstructor().newInstance()
                 }
             }
         })

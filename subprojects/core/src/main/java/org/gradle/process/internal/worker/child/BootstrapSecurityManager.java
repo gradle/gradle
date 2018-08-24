@@ -86,7 +86,7 @@ public class BootstrapSecurityManager extends SecurityManager {
             SecurityManager securityManager;
             try {
                 Class<?> aClass = systemClassLoader.loadClass(securityManagerType);
-                securityManager = (SecurityManager) aClass.newInstance();
+                securityManager = (SecurityManager) aClass.getConstructor().newInstance();
             } catch (Exception e) {
                 throw new RuntimeException("Could not create an instance of '" + securityManagerType + "' specified for system SecurityManager.", e);
             }

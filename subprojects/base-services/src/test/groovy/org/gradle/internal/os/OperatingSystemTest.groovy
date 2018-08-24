@@ -330,7 +330,7 @@ class OperatingSystemTest extends Specification {
                 .each { Field field ->
                 if (OperatingSystem.isAssignableFrom(field.getType())) {
                     makeFinalFieldAccessibleForTesting(field)
-                    field.set(null, field.getType().newInstance())
+                    field.set(null, field.getType().getConstructor().newInstance())
                 }
             }
             return true

@@ -21,7 +21,7 @@ class DefaultSerializerTest extends SerializerSpec {
         DefaultSerializer serializer = new DefaultSerializer(classLoader)
 
         Class cl = classLoader.parseClass('package org.gradle.cache; class TestObj implements Serializable { }')
-        Object o = cl.newInstance()
+        Object o = cl.getConstructor().newInstance()
 
         when:
         def r = serialize(o, serializer)

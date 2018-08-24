@@ -35,7 +35,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
     def setup() {
         taskFactory = new TaskFactory(generator).createChild(project, instantiator)
         _ * generator.generate(_) >> { Class type -> type }
-        _ * instantiator.newInstance(_) >> { args -> args[0].newInstance() }
+        _ * instantiator.newInstance(_) >> { args -> args[0].getConstructor().newInstance() }
     }
 
     public void injectsProjectAndNameIntoTask() {

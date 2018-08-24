@@ -66,7 +66,7 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRe
                     getSubject() >> action.subject
                     getInputs() >> action.inputs
                     execute(_, _) >> { MutableModelNode node, List<ModelView<?>> inputs ->
-                        action.execute(new DefaultModelRuleInvoker(rule.ruleDefinition.method, { rule.ruleDefinition.method.method.declaringClass.newInstance() } as Factory), node, inputs) }
+                        action.execute(new DefaultModelRuleInvoker(rule.ruleDefinition.method, { rule.ruleDefinition.method.method.declaringClass.getConstructor().newInstance() } as Factory), node, inputs) }
                 }
             }
             getScope() >> ModelPath.ROOT

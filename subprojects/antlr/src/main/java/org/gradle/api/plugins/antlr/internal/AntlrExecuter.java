@@ -94,7 +94,7 @@ public class AntlrExecuter implements AntlrWorker {
             try {
                 Class<?> toolClass = Class.forName(className); // ok to use caller classloader
                 if (args == null) {
-                    return toolClass.newInstance();
+                    return toolClass.getConstructor().newInstance();
                 } else {
                     Constructor<?> constructor = toolClass.getConstructor(String[].class);
                     return constructor.newInstance(new Object[]{args});

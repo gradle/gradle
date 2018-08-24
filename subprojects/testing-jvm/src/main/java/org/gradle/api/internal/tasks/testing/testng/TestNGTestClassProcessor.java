@@ -120,7 +120,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         //this way, custom listeners are more powerful and, for example, they can change test status.
         for (String listenerClass : options.getListeners()) {
             try {
-                testNg.addListener(applicationClassLoader.loadClass(listenerClass).newInstance());
+                testNg.addListener(applicationClassLoader.loadClass(listenerClass).getConstructor().newInstance());
             } catch (Throwable e) {
                 throw new GradleException(String.format("Could not add a test listener with class '%s'.", listenerClass), e);
             }

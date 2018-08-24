@@ -41,7 +41,7 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
         def classpath = []
         factory.getClassPathFor(actionClass, classpath)
         def loader = new VisitableURLClassLoader(ClassLoader.systemClassLoader.parent, classpath)
-        def action = loader.loadClass(CustomAction.name).newInstance()
+        def action = loader.loadClass(CustomAction.name).getConstructor().newInstance()
         action.execute(null)
     }
 
@@ -53,7 +53,7 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
         def classpath = []
         factory.getClassPathFor(actionClass, classpath)
         def loader = new VisitableURLClassLoader(ClassLoader.systemClassLoader.parent, classpath)
-        def action = loader.loadClass(CustomAction.name).newInstance()
+        def action = loader.loadClass(CustomAction.name).getConstructor().newInstance()
         action.execute(null)
     }
 
@@ -66,7 +66,7 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
         def classpath = []
         factory.getClassPathFor(actionClass, classpath)
         def loader = new VisitableURLClassLoader(ClassLoader.systemClassLoader.parent, classpath)
-        def action = loader.loadClass(CustomAction.name).newInstance()
+        def action = loader.loadClass(CustomAction.name).getConstructor().newInstance()
         action.execute(null)
     }
 
@@ -79,7 +79,7 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
         def classpath = []
         factory.getClassPathFor(actionClass, classpath)
         def loader = new VisitableURLClassLoader(ClassLoader.systemClassLoader.parent, classpath)
-        def action = loader.loadClass(CustomAction.name).newInstance()
+        def action = loader.loadClass(CustomAction.name).getConstructor().newInstance()
         action.execute(null)
     }
 
@@ -95,7 +95,7 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
         def loader
         try {
             loader = new VisitableURLClassLoader(ClassLoader.systemClassLoader.parent, classpath)
-            def action = loader.loadClass(CustomAction.name).newInstance()
+            def action = loader.loadClass(CustomAction.name).getConstructor().newInstance()
             action.execute(null)
         } finally {
             loader?.close()

@@ -162,7 +162,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
         // we must use a String literal here, otherwise using things like Foo.class.name will trigger unnecessary
         // loading of classes in the classloader of the DefaultIsolatedAntBuilder, which is not what we want.
         try {
-            return antAdapterLoader.loadClass(className).newInstance();
+            return antAdapterLoader.loadClass(className).getConstructor().newInstance();
         } catch (Exception e) {
             // should never happen
             throw UncheckedException.throwAsUncheckedException(e);

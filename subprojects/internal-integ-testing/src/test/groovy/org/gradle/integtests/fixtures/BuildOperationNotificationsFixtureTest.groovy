@@ -81,7 +81,7 @@ class BuildOperationNotificationsFixtureTest extends Specification {
     BuildOperationNotificationListener2 listener() {
         GroovyClassLoader groovyClassLoader = new GroovyClassLoader(BuildOperationNotificationsFixture.getClassLoader())
         Class theParsedClass = groovyClassLoader.parseClass(BuildOperationNotificationsFixture.EVALUATION_LISTENER_SOURCE)
-        return theParsedClass.newInstance() as BuildOperationNotificationListener2
+        return theParsedClass.getConstructor().newInstance() as BuildOperationNotificationListener2
     }
 
     def progressNotification(Class<SimpleProgress> progressClazz = null) {
