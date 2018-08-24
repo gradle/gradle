@@ -478,23 +478,19 @@ Alternatively, you can remove all doubt by explicitly using link:{javadocPath}/o
 
 Here are some examples of the different types of arguments that the `source` property can take:
 
-=== Example: Specifying a set of files
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/inputFiles/build.gradle[tag=set-input-files]
-----
+.Specifying a set of files
+====
+include::sample[dir="userguide/files/inputFiles/groovy",files="build.gradle[tags=set-input-files]"]
+include::sample[dir="userguide/files/inputFiles/kotlin",files="build.gradle.kts[tags=set-input-files]"]
+====
 
 One other thing to note is that properties like `source` have corresponding methods in core Gradle tasks. Those methods follow the convention of _appending_ to collections of values rather than replacing them. Again, this method accepts any of the types supported by the <<#sec:file_collections,files()>> method, as shown here:
 
-=== Example: Appending a set of files
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/inputFiles/build.gradle[tag=add-input-files]
-----
+.Appending a set of files
+====
+include::sample[dir="userguide/files/inputFiles/groovy",files="build.gradle[tags=add-input-files]"]
+include::sample[dir="userguide/files/inputFiles/kotlin",files="build.gradle.kts[tags=add-input-files]"]
+====
 
 As this is a common convention, we recommend that you follow it in your own custom tasks. Specifically, if you plan to add a method to configure a collection-based property, make sure the method appends rather than replaces values.
 
