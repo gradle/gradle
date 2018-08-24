@@ -67,7 +67,7 @@ class ApiClassExtractorTestSupportTest extends ApiClassExtractorTestSupport {
         b.name == 'com.acme.B'
 
         when:
-        def aa = a.newInstance()
+        def aa = a.getConstructor().newInstance()
 
         then:
         aa.id == 'id'

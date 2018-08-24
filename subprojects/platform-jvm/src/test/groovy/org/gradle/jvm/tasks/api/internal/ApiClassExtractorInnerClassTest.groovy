@@ -51,7 +51,7 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
         hasMethod(extractedInner, 'foo').modifiers == Modifier.PUBLIC
 
         when:
-        def o = !(modifier =~ /static/) ? extractedInner.newInstance(extractedOuter.newInstance()) : extractedInner.newInstance()
+        def o = modifier =~ /static/ ? extractedInner.getConstructor().newInstance() : extractedInner.newInstance(extractedOuter.getConstructor().newInstance())
         o.foo()
 
         then:

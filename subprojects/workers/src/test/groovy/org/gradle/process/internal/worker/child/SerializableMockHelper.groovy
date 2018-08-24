@@ -53,7 +53,7 @@ class TestAction implements ${Action.class.name}, ${Serializable.class.name}
         unit.setClassgenCallback(collector);
         unit.compile(Phases.CLASS_GENERATION);
 
-        Object instance = collector.generated.newInstance()
+        Object instance = collector.generated.getConstructor().newInstance()
         instance.key = counter.getAndIncrement()
         ACTIONS[instance.key] = action
         return instance

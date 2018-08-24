@@ -55,7 +55,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         cl.protectionDomain.codeSource.location == classesDir.toURI().toURL()
         cl.package.name == "org.gradle.api.plugins"
 
-        def obj = cl.newInstance()
+        def obj = cl.getConstructor().newInstance()
         obj instanceof GroovyObject
         obj.getMetaClass()
         obj.metaClass
@@ -138,7 +138,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, DefaultClassPath.of(classesDir), new DefaultLegacyTypesSupport())
 
         def cl = loader.loadClass(className)
-        def obj = cl.newInstance()
+        def obj = cl.getConstructor().newInstance()
         obj.getSomeBoolean() == true
         obj.someBoolean == true
 

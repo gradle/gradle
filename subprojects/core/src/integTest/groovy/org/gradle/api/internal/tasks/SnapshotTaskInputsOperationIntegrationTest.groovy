@@ -183,7 +183,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                     void execute(task) {}
                 }
             '''
-            customTask.doLast(c.newInstance())
+            customTask.doLast(c.getConstructor().newInstance())
         """
 
         when:

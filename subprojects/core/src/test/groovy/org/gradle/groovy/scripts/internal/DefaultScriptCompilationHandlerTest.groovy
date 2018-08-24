@@ -125,7 +125,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         then:
         compiledScript.runDoesSomething
         compiledScript.data == null
-        Script script = compiledScript.loadClass().newInstance()
+        Script script = compiledScript.loadClass().getConstructor().newInstance()
         evaluateScript(script)
     }
 
@@ -209,7 +209,7 @@ println 'hi'
         compiledScript.data == null
 
         and:
-        Script script = compiledScript.loadClass().newInstance()
+        Script script = compiledScript.loadClass().getConstructor().newInstance()
         expectedScriptClass.isInstance(script)
         script.method(12) == "[12]"
     }
@@ -327,7 +327,7 @@ println 'hi'
         compiledScript.runDoesSomething
         !compiledScript.hasMethods
         compiledScript.data == "extracted data"
-        def script = compiledScript.loadClass().newInstance()
+        def script = compiledScript.loadClass().getConstructor().newInstance()
         evaluateScript(script)
     }
 

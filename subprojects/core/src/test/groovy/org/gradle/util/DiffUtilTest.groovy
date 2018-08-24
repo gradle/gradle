@@ -139,8 +139,8 @@ class DiffUtilTest extends Specification {
 
             assert clazz1 != clazz2
 
-            Object o1 = clazz1.newInstance()
-            Object o2 = clazz2.newInstance()
+            Object o1 = clazz1.getConstructor().newInstance()
+            Object o2 = clazz2.getConstructor().newInstance()
 
             expect:
             o1 != o2

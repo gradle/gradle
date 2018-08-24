@@ -46,7 +46,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasMethod(extracted, 'foo')
 
         when:
-        def o = extracted.newInstance()
+        def o = extracted.getConstructor().newInstance()
         o.foo()
 
         then:
@@ -72,7 +72,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasMethod(extracted, 'foo')
 
         when:
-        extracted.newInstance()
+        extracted.getConstructor().newInstance()
 
         then:
         thrown(UnsupportedOperationException)
@@ -202,7 +202,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasMethod(extractedB, 'foo').modifiers == Opcodes.ACC_PUBLIC
 
         when:
-        extractedB.newInstance()
+        extractedB.getConstructor().newInstance()
 
         then:
         thrown(UnsupportedOperationException)
@@ -321,7 +321,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasField(extracted, 'foo', String)
 
         when:
-        def o = extracted.newInstance()
+        def o = extracted.getConstructor().newInstance()
         o.foo()
 
         then:
@@ -347,7 +347,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasField(extracted, 'foo', String)
 
         when:
-        extracted.newInstance()
+        extracted.getConstructor().newInstance()
 
         then:
         thrown(UnsupportedOperationException)
