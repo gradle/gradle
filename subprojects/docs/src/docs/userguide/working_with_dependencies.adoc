@@ -67,10 +67,9 @@ The artifact query API provides access to the raw files of a module. Currently, 
 
 Let's say you wanted to post-process the metadata file of a Maven module. The group, name and version of the module component serve as input to the artifact resolution query. After executing the query, you get a handle to all components that match the criteria and their underlying files. Additionally, it's very easy to post-process the metadata file. The example code uses Groovy's link:http://docs.groovy-lang.org/latest/html/api/groovy/util/XmlSlurper.html[XmlSlurper] to ask for POM element values.
 
-=== Example: Accessing a Maven module's metadata artifact
+.Accessing a Maven module's metadata artifact
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/workingWithDependencies/accessMetadataArtifact/build.gradle[tag=accessing-metadata-artifact]
-----
+====
+include::sample[dir="userguide/dependencyManagement/workingWithDependencies/accessMetadataArtifact/groovy",files="build.gradle[tags=accessing-metadata-artifact]"]
+include::sample[dir="userguide/dependencyManagement/workingWithDependencies/accessMetadataArtifact/kotlin",files="build.gradle.kts[tags=accessing-metadata-artifact]"]
+====
