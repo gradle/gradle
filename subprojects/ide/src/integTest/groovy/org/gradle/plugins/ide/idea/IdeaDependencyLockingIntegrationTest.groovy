@@ -17,8 +17,6 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
-import org.gradle.util.ToBeImplemented
-import org.junit.Ignore
 import org.junit.Test
 
 class IdeaDependencyLockingIntegrationTest extends AbstractIdeIntegrationTest {
@@ -56,10 +54,9 @@ dependencies {
 
         //then
         assert content.count("artifactTwo-2.0.jar") == 1
+        assert content.count("unresolved dependency - groupOne artifactTwo") >= 1
     }
 
-    @ToBeImplemented
-    @Ignore
     @Test
     void "does not break when extra dependency not in lockfile is defined"() {
         //given
@@ -93,7 +90,9 @@ dependencies {
         def content = getFile([print : true], 'root.iml').text
 
         //then
+        assert content.count("artifactOne-1.1.jar") == 1
         assert content.count("artifactTwo-2.0.jar") == 1
+        assert content.count("unresolved dependency - groupOne artifactTwo 2.0") == 1
     }
 
 }

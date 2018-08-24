@@ -22,6 +22,8 @@ import org.gradle.internal.text.TreeFormatter;
 
 import java.util.List;
 
+import static java.util.Collections.emptyList;
+
 public class LockOutOfDateException extends GraphValidationException {
 
     private final List<String> errors;
@@ -35,6 +37,11 @@ public class LockOutOfDateException extends GraphValidationException {
         }
         treeFormatter.endChildren();
         return new LockOutOfDateException(treeFormatter.toString(), ImmutableList.copyOf(errors));
+    }
+
+    public LockOutOfDateException(String message) {
+        super(message);
+        this.errors = emptyList();
     }
 
     private LockOutOfDateException(String message, List<String> errors) {

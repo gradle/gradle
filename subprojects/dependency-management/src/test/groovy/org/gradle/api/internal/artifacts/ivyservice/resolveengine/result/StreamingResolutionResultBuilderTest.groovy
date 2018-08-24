@@ -34,6 +34,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import static java.util.Collections.emptySet
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultPrinter.printGraph
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.*
 
@@ -49,7 +50,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.finish(rootNode)
 
         when:
-        def result = builder.complete()
+        def result = builder.complete(emptySet())
 
         then:
         with(result) {
@@ -81,7 +82,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.finish(root)
 
         when:
-        def result = builder.complete()
+        def result = builder.complete(emptySet())
 
         then:
         printGraph(result.root) == """org:root:1.0
@@ -110,7 +111,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.finish(root)
 
         when:
-        def result = builder.complete()
+        def result = builder.complete(emptySet())
 
         then:
         printGraph(result.root) == """org:root:1.0
@@ -150,7 +151,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.finish(root)
 
         when:
-        def result = builder.complete()
+        def result = builder.complete(emptySet())
 
         then:
         printGraph(result.root) == """org:root:1.0
@@ -189,7 +190,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.finish(root)
 
         when:
-        def result = builder.complete()
+        def result = builder.complete(emptySet())
 
         then:
         printGraph(result.root) == """org:root:1.0

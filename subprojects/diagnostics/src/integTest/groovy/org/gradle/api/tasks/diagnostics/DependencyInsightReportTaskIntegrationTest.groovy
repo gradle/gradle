@@ -453,17 +453,19 @@ dependencies {
         succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'
 
         then:
-        outputContains """The dependency locks are out-of-date:
-   - Did not resolve 'org:bar:1.0' which is part of the lock state
-   - Resolved 'org:foo:1.1' which is not part of the lock state
+        outputContains """org:foo:1.1 FAILED
+   Selection reasons:
+      - By constraint : Dependency locking
+   Failures:
+      - Dependency lock state out of date:
+          - Resolved 'org:foo:1.1' which is not part of the lock state
 
-org:foo:1.1
-   variant "default" [
-      org.gradle.status = release (not requested)
-   ]
+org:foo:1.1 FAILED
+\\--- lockedConf
 
 org:foo:1.+ -> 1.1
-\\--- lockedConf"""
+\\--- lockedConf
+"""
     }
 
     def "displays a dependency insight report even if locks are out of date because of new constraint"() {

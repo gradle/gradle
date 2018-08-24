@@ -16,8 +16,6 @@
 
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.util.ToBeImplemented
-import org.junit.Ignore
 import org.junit.Test
 
 class EclipseDependencyLockingIntegrationTest extends AbstractEclipseIntegrationTest {
@@ -58,8 +56,6 @@ dependencies {
         libraries[0].assertHasJar(repoJar)
     }
 
-    @ToBeImplemented
-    @Ignore
     @Test
     void "does not break when extra dependency not in lockfile is defined"() {
         //given
@@ -93,7 +89,7 @@ dependencies {
 
         //then
         def libraries = classpath.libs
-        assert libraries.size() == 2
+        assert libraries.size() == 3
         libraries[0].assertHasJar(artifactOne)
         libraries[1].assertHasJar(artifactTwo)
     }

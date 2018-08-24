@@ -105,6 +105,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
                     errors.add("Did not resolve '" + lockedDependency.getGroup() + ":" + lockedDependency.getModule() + ":" + lockedDependency.getVersion() + "' which is part of the lock state");
                 }
                 results.graphResolved(emptyResult, emptyProjectResult, EmptyResults.INSTANCE);
+                // TODO LJA Transform this to be lenient
                 throw LockOutOfDateException.createLockOutOfDateException(configuration.getName(), errors);
             }
             dependencyLockingProvider.persistResolvedDependencies(configuration.getName(), Collections.<ModuleComponentIdentifier>emptySet(), Collections.<ModuleComponentIdentifier>emptySet());
