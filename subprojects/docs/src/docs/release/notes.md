@@ -10,11 +10,6 @@ Add-->
 ### Example new and noteworthy
 -->
 
-### Incremental build uses less memory
-
-Memory usage for up-to-date checking has been improved.
-For the gradle/gradle build, heap usage dropped by 60 MB to 450 MB, that is a 12% reduction.
-
 ### Build init plugin improvements
 
 This release includes a number of improvements to The [Build Init plugin](userguide/build_init_plugin.html).
@@ -51,6 +46,17 @@ While the `init` task does not automatically create a Git repository, the `init`
 The `SourceDirectorySet` type is often used by plugins to represent some set of source directories and files. Previously, it was only possible to create instances of `SourceDirectorySet` using internal types. This is problematic because when a plugin uses internal types it can often break when new versions of Gradle are released because internal types may change in breaking ways between releases.
 
 In this release of Gradle, the `ObjectFactory` service, which is part of the public API, now includes a method to create `SourceDirectorySet` instances. A plugin can now use this method instead of the internal types.
+
+### JaCoCo plugin now works with the build cache and parallel test execution
+
+The [JaCoCo plugin](userguide/jacoco_plugin.html) plugin now works seamlessly with the build cache.
+When applying the plugin with no extra configuration, the test task stays cacheable and parallel test execution can be used.  
+
+In order to make the tasks cacheable when generating execution data with `append = true`, the tasks running with code coverage are configured to delete the execution data just before they starts executing.
+In this way, stale execution data, which would cause non-repeatable task outputs, is removed.
+
+Since Gradle now takes care of removing the execution data, the `JacocoPluginExtension.append` property has been deprecated.
+The JaCoCo agent is always configured with `append = true`, so it can be used when running tests in parallel. 
 
 ## Promoted features
 
@@ -117,6 +123,10 @@ In the next major release (6.0), removing dependencies from a task will become a
 Gradle will emit a deprecation warning for code such as `foo.dependsOn.remove(bar)`.  Removing dependencies in this way is error-prone and relies on the internal implementation details of how different tasks are wired together.
 At the moment, we are not planning to provide an alternative. In most cases, task dependencies should be expressed via [task inputs](userguide/more_about_tasks.html#sec:task_inputs_outputs) instead of explicit `dependsOn` relationships.
 
+### The property `append` on `JacocoTaskExtension` has been deprecated
+
+See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
+
 ## Potential breaking changes
 
 <!--
@@ -132,6 +142,10 @@ Additionally the created distribution will contain all artifacts of the `runtime
 ### Removed support for Play Framework 2.2
 
 The previously deprecated support for Play Framework 2.2 has been removed.
+
+### JaCoCo plugin deletes execution data on task execution
+
+See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
 
 ### Changes to previously deprecated APIs
 
