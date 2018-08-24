@@ -1,17 +1,10 @@
-buildscript {
-    repositories {
-        maven {
-            url 'https://plugins.gradle.org/m2/'
-        }
-    }
-    dependencies {
-        classpath 'gradle.plugin.org.gretty:gretty:2.1.0'
-    }
-}
-apply plugin: 'org.gretty'
-
 // tag::use-plugin[]
-apply plugin: 'war'
+plugins {
+    id 'war'
+// end::use-plugin[]
+    id 'org.gretty' version '2.2.0'
+// tag::use-plugin[]
+}
 // end::use-plugin[]
 group = 'gradle'
 version = '1.0'

@@ -22,13 +22,11 @@ The War plugin extends the Java plugin to add support for assembling web applica
 
 To use the War plugin, include the following in your build script:
 
-=== Example: Using the War plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/webApplication/quickstart/build.gradle[tag=use-war-plugin]
-----
+.Using the War plugin
+====
+include::sample[dir="webApplication/quickstart/groovy",files="build.gradle[tags=use-war-plugin]"]
+include::sample[dir="webApplication/quickstart/kotlin",files="build.gradle.kts[tags=use-war-plugin]"]
+====
 
 [[sec:war_project_layout]]
 == Project layout
@@ -101,12 +99,10 @@ The link:{groovyDslPath}/org.gradle.api.tasks.bundling.War.html[War] class in th
 
 Here is an example with the most important customization options:
 
-=== Example: Customization of war plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/webApplication/customized/build.gradle[tag=customization]
-----
+.Customization of war plugin
+====
+include::sample[dir="webApplication/customized/groovy",files="build.gradle[tags=customization]"]
+include::sample[dir="webApplication/customized/kotlin",files="build.gradle.kts[tags=customization]"]
+====
 
 Of course one can configure the different file-sets with a closure to define excludes and includes.
