@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.util.SingleMessageLogger;
 
 import javax.annotation.Nullable;
 
@@ -46,6 +47,12 @@ public class ImplementationSnapshot implements ValueSnapshot {
 
     private static String determineImplementationName(String className, boolean mayBeLambda) {
         if (mayBeLambda && className.contains(GENERATED_LAMBDA_CLASS_SUFFIX)) {
+            SingleMessageLogger.nagUserWith(
+                "Java lambda is used as an input.",
+                "Gradle can only track the lambda used in your code with some loss of precision that may lead to some changes going undetected.",
+                "Use an anonymous inner class instead.",
+                ""
+            );
             int index = className.lastIndexOf(GENERATED_LAMBDA_CLASS_SUFFIX);
             return className.substring(0, index + GENERATED_LAMBDA_CLASS_SUFFIX.length());
         } else {

@@ -76,6 +76,10 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/5510")
     @Requires(TestPrecondition.JDK8_OR_LATER)
     def "implementations in nested property defined by Java 8 lambda is tracked"() {
+        executer.beforeExecute {
+            withStackTraceChecksDisabled()
+        }
+
         setupTaskClassWithNestedAction()
         def originalClassName = "LambdaActionOriginal"
         def changedClassName = "LambdaActionChanged"
@@ -93,6 +97,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec {
         run 'myTask'
         then:
         executedAndNotSkipped(':myTask')
+        output.contains("Java lambda is used as an input. Gradle can only track the lambda used in your code with some loss of precision that may lead to some changes going undetected. Use an anonymous inner class instead.")
 
         when:
         run 'myTask'
@@ -115,6 +120,9 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec {
     @ToBeImplemented("https://github.com/gradle/gradle/issues/5510")
     @Requires(TestPrecondition.JDK8_OR_LATER)
     def "choosing a different Java 8 lambda in the same class is not detected"() {
+        executer.beforeExecute {
+            withStackTraceChecksDisabled()
+        }
         setupTaskClassWithNestedAction()
         def className = "LambdaActions"
         file("buildSrc/src/main/java/${className}.java") << classWithLambda(
@@ -208,12 +216,15 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.withStackTraceChecksDisabled()
         run "myTask"
         then:
         executedAndNotSkipped(":myTask")
         output.contains("From Lambda: original")
+        output.contains("Java lambda is used as an input. Gradle can only track the lambda used in your code with some loss of precision that may lead to some changes going undetected. Use an anonymous inner class instead.")
 
         when:
+        executer.withStackTraceChecksDisabled()
         run "myTask"
         then:
         skipped(":myTask")
@@ -223,6 +234,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             myTask.doLast(LambdaActionChanged.ACTION)
         """
+        executer.withStackTraceChecksDisabled()
         run "myTask", "--info"
         then:
         executedAndNotSkipped(":myTask")
