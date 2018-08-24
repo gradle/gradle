@@ -719,13 +719,11 @@ The link:{groovyDslPath}/org.gradle.api.tasks.Sync.html[Sync] task, which extend
 
 Here is an example which maintains a copy of the project's runtime dependencies in the `build/libs` directory.
 
-=== Example: Using the Sync task to copy dependencies
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/sync/build.gradle[tag=copy-dependencies]
-----
+.Using the Sync task to copy dependencies
+====
+include::sample[dir="userguide/files/sync/groovy",files="build.gradle[tags=copy-dependencies]"]
+include::sample[dir="userguide/files/sync/kotlin",files="build.gradle.kts[tags=copy-dependencies]"]
+====
 
 You can also perform the same function in your own tasks with the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:sync(org.gradle.api.Action)[Project.sync(org.gradle.api.Action)] method.
 
