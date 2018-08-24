@@ -72,7 +72,7 @@ fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath) =
     configuredProjectSchemaOf(project)?.let { projectSchema ->
         val cacheDir =
             scriptCacheOf(project)
-                .cacheDirFor(cacheKeyFor(projectSchema)) { baseDir ->
+                .cacheDirFor(cacheKeyFor(projectSchema, classPath)) { baseDir ->
                     buildAccessorsJarFor(projectSchema, classPath, outputDir = baseDir)
                 }
         AccessorsClassPath(
@@ -532,8 +532,10 @@ fun classLoaderScopeOf(project: Project) =
 
 
 private
-fun cacheKeyFor(projectSchema: ProjectSchema<String>): CacheKeySpec =
-    CacheKeySpec.withPrefix("gradle-kotlin-dsl-accessors") + projectSchema.toCacheKeyString()
+fun cacheKeyFor(projectSchema: ProjectSchema<String>, classPath: ClassPath): CacheKeySpec =
+    (CacheKeySpec.withPrefix("gradle-kotlin-dsl-accessors")
+        + projectSchema.toCacheKeyString()
+        + classPath)
 
 
 private
