@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,7 @@
  * limitations under the License.
  */
 
-// tag::use-plugin[]
-apply plugin: 'java-library'
-// end::use-plugin[]
-
-
-// tag::repo[]
-repositories {
-    mavenCentral()
+public class C {
+    A a;
+    B b;
 }
-// end::repo[]
-
-// tag::dependencies[]
-dependencies {
-    api 'commons-httpclient:commons-httpclient:3.1'
-    implementation 'org.apache.commons:commons-lang3:3.5'
-}
-// end::dependencies[]

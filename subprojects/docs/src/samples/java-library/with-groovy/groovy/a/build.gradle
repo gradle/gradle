@@ -14,8 +14,22 @@
  * limitations under the License.
  */
 
-apply plugin: 'java'
+plugins {
+    id 'java-library'
+    id 'groovy'
+}
 
 dependencies {
-   implementation project(':a')
+    compile localGroovy()
 }
+
+// tag::configure-groovy[]
+configurations {
+    apiElements {
+        outgoing.variants.getByName('classes').artifact(
+            file: compileGroovy.destinationDir,
+            type: ArtifactTypeDefinition.JVM_CLASS_DIRECTORY,
+            builtBy: compileGroovy)
+    }
+}
+// end::configure-groovy[]
