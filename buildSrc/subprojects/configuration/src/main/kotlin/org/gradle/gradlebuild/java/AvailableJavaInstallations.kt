@@ -119,10 +119,9 @@ open class AvailableJavaInstallations(private val project: Project, private val 
 
     private
     fun validateBuildJdks(): Map<String, Boolean> =
-        mapOf(
-            "Must use JDK 8+ to perform this build. Is currently ${currentJavaInstallation.vendorAndMajorVersion} at ${currentJavaInstallation.javaHome}." to
-                (!currentJavaInstallation.javaVersion.isJava8Compatible)
-        )
+        if (!JavaVersion.current().isJava8Compatible)
+            mapOf("Must use JDK 8+ to perform this build. Is currently ${currentJavaInstallation.vendorAndMajorVersion} at ${currentJavaInstallation.javaHome}." to true)
+        else emptyMap()
 
     private
     fun validateProductionJdks(): Map<String, Boolean> =
