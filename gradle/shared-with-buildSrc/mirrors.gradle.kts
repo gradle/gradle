@@ -59,9 +59,7 @@ fun withMirrors(handler: RepositoryHandler) {
         if (this is MavenArtifactRepository) {
             originalUrls.forEach { name, orignalUrl ->
                 if (normalizeUrl(orignalUrl) == normalizeUrl(this.url.toString()) && mirrorUrls.containsKey(name)) {
-                    val mirrorUrl = mirrorUrls.get(name)
-                    println("Replacing repository ${this.name}'s url ${this.url} to ${mirrorUrl}")
-                    this.setUrl(mirrorUrl)
+                    this.setUrl(mirrorUrls.get(name))
                 }
             }
         }
