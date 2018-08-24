@@ -24,6 +24,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import javax.tools.Diagnostic
+import javax.tools.DiagnosticListener
 import javax.tools.ToolProvider
 
 class MixInLegacyTypesClassLoaderTest extends Specification {
@@ -38,7 +40,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
 
         def original = compileJavaToDir(className, """
             package org.gradle.api.plugins;
-            class JavaPluginConvention {
+            public class JavaPluginConvention {
                 String _prop;
                 String getProp() { return _prop; }
                 void setProp(String value) { _prop = value; }
@@ -112,7 +114,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
 
         def original = compileJavaToDir(className, """
             package org.gradle.api.plugins;
-            class JavaPluginConvention {
+            public class JavaPluginConvention {
                 private boolean someBoolean = true;
                 private boolean booleanWithGetter = false;
                 private static boolean staticBoolean = true;
@@ -217,15 +219,22 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
 
     def compileJavaToDir(String className, String text) {
         srcDir.createDir()
-        def srcFile = srcDir.file(className + ".java")
+        def srcFile = srcDir.file(className.split(/\./)[-1] + ".java")
         srcFile.text = text
 
         def compiler = ToolProvider.systemJavaCompiler
         classesDir.createDir()
 
-        def fileManager = compiler.getStandardFileManager(null, null, null)
-        def task = compiler.getTask(null, fileManager, null, ["-d", classesDir.path], null, fileManager.getJavaFileObjects(srcFile))
-        task.call()
+        DiagnosticListener listener = new DiagnosticListener() {
+            @Override
+            void report(Diagnostic diagnostic) {
+                println(diagnostic.getMessage(null))
+            }
+        }
+
+        def fileManager = compiler.getStandardFileManager(listener, null, null)
+        def task = compiler.getTask(null, fileManager, listener, ["-d", classesDir.path], null, fileManager.getJavaFileObjects(srcFile))
+        assert task.call()
         def cl = new VisitableURLClassLoader(groovyClassLoader, DefaultClassPath.of(classesDir))
         cl.loadClass(className)
     }
