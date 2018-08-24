@@ -93,7 +93,7 @@ image::copy-with-flat-filter-example.png[]
 
 You can include files in subdirectories by using an Ant-style glob pattern (`\**/*`), as done in this updated example:
 
-.Example: Using a deep filter
+.Using a deep filter
 ====
 include::sample[dir="userguide/files/copy/groovy",files="build.gradle[tags=copy-multiple-files-with-deep-filter-example]"]
 include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=copy-multiple-files-with-deep-filter-example]"]
@@ -307,13 +307,11 @@ Never use `new File(relative path)`, as this creates a path relative to the curr
 
 Here are some examples of using the `file()` method with different types of argument:
 
-=== Example: Locating files
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/file/build.gradle[tag=simple-params]
-----
+.Locating files
+====
+include::sample[dir="userguide/files/file/groovy",files="build.gradle[tags=simple-params]"]
+include::sample[dir="userguide/files/file/kotlin",files="build.gradle.kts[tags=simple-params]"]
+====
 
 As you can see, you can pass strings, `File` instances and `{javaApi}/java/nio/file/Path.html[Path]` instances to the `file()` method, all of which result in an absolute `File` object. You can find other options for argument types in the reference guide, linked in the previous paragraph.
 
