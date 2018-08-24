@@ -39,35 +39,29 @@ The <<#sec:locating_files,File paths in depth>> section covers the first of thes
 
 You copy a file by creating an instance of Gradle's builtin link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy] task and configuring it with the location of the file and where you want to put it. This example mimics copying a generated report into a directory that will be packed into an archive, such as a ZIP or TAR:
 
-=== Example: How to copy a single file
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/copy/build.gradle[tag=copy-single-file-example]
-----
+.How to copy a single file
+====
+include::sample[dir="userguide/files/copy/groovy",files="build.gradle[tags=copy-single-file-example]"]
+include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=copy-single-file-example]"]
+====
 
 The link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method is used to create a file or directory path relative to the current project and is a common way to make build scripts work regardless of the project path. The file and directory paths are then used to specify what file to copy using link:{groovyDslPath}/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:from(java.lang.Object++[]++)[Copy.from(java.lang.Object...)] and which directory to copy it to using link:{groovyDslPath}/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:into(java.lang.Object)[Copy.into(java.lang.Object)].
 
 You can even use the path directly without the `file()` method, as explained early in the section <<#sec:copying_files,File copying in depth>>:
 
-=== Example: Using implicit string paths
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/copy/build.gradle[tag=copy-single-file-example-without-file-method]
-----
+.Using implicit string paths
+====
+include::sample[dir="userguide/files/copy/groovy",files="build.gradle[tags=copy-single-file-example-without-file-method]"]
+include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=copy-single-file-example-without-file-method]"]
+====
 
 Although hard-coded paths make for simple examples, they also make the build brittle. It's better to use a reliable, single source of truth, such as a task or shared project property. In the following modified example, we use a report task defined elsewhere that has the report's location stored in its `outputFile` property:
 
-=== Example: Prefer task/project properties over hard-coded paths
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/copy/build.gradle[tag=copy-single-file-example-with-task-properties]
-----
+.Prefer task/project properties over hard-coded paths
+====
+include::sample[dir="userguide/files/copy/groovy",files="build.gradle[tags=copy-single-file-example-with-task-properties]"]
+include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=copy-single-file-example-with-task-properties]"]
+====
 
 We have also assumed that the reports will be archived by `archiveReportsTask`, which provides us with the directory that will be archived and hence where we want to put the copies of the reports.
 
@@ -76,25 +70,21 @@ We have also assumed that the reports will be archived by `archiveReportsTask`, 
 
 You can extend the previous examples to multiple files very easily by providing multiple arguments to `from()`:
 
-=== Example: Using multiple arguments with from()
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/copy/build.gradle[tag=copy-multiple-files-example]
-----
+.Using multiple arguments with from()
+====
+include::sample[dir="userguide/files/copy/groovy",files="build.gradle[tags=copy-multiple-files-example]"]
+include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=copy-multiple-files-example]"]
+====
 
 Two files are now copied into the archive directory. You can also use multiple `from()` statements to do the same thing, as shown in the first example of the section <<#sec:copying_files, File copying in depth>>.
 
 Now consider another example: what if you want to copy all the PDFs in a directory without having to specify each one? To do this, attach inclusion and/or exclusion patterns to the copy specification. Here we use a string pattern to include PDFs only:
 
-=== Example: Using a flat filter
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/copy/build.gradle[tag=copy-multiple-files-with-flat-filter-example]
-----
+.Using a flat filter
+====
+include::sample[dir="userguide/files/copy/groovy",files="build.gradle[tags=copy-multiple-files-with-flat-filter-example]"]
+include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=copy-multiple-files-with-flat-filter-example]"]
+====
 
 One thing to note, as demonstrated in the following diagram, is that only the PDFs that reside directly in the `reports` directory are copied:
 
@@ -103,13 +93,11 @@ image::copy-with-flat-filter-example.png[]
 
 You can include files in subdirectories by using an Ant-style glob pattern (`\**/*`), as done in this updated example:
 
-=== Example: Using a deep filter
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/copy/build.gradle[tag=copy-multiple-files-with-deep-filter-example]
-----
+.Example: Using a deep filter
+====
+include::sample[dir="userguide/files/copy/groovy",files="build.gradle[tags=copy-multiple-files-with-deep-filter-example]"]
+include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=copy-multiple-files-with-deep-filter-example]"]
+====
 
 This task has the following effect:
 
@@ -125,25 +113,21 @@ This is just one of the variations in behavior you're likely to come across when
 
 You may have a need to copy not just files, but the directory structure they reside in as well. This is the default behavior when you specify a directory as the `from()` argument, as demonstrated by the following example that copies everything in the `reports` directory, including all its subdirectories, to the destination:
 
-=== Example: Copying an entire directory
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/copy/build.gradle[tag=copy-directory-example]
-----
+.Copying an entire directory
+====
+include::sample[dir="userguide/files/copy/groovy",files="build.gradle[tags=copy-directory-example]"]
+include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=copy-directory-example]"]
+====
 
 The key aspect that users struggle with is controlling how much of the directory structure goes to the destination. In the above example, do you get a `toArchive/reports` directory or does everything in `reports` go straight into `toArchive`? The answer is the latter. If a directory is part of the `from()` path, then it _won't_ appear in the destination.
 
 So how do you ensure that `reports` itself is copied across, but not any other directory in `$buildDir`? The answer is to add it as an include pattern:
 
-=== Example: Copying an entire directory, including itself
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/copy/build.gradle[tag=copy-directory-including-itself-example]
-----
+.Copying an entire directory, including itself
+====
+include::sample[dir="userguide/files/copy/groovy",files="build.gradle[tags=copy-directory-including-itself-example]"]
+include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=copy-directory-including-itself-example]"]
+====
 
 You'll get the same behavior as before except with one extra level of directory in the destination, i.e. `toArchive/reports`.
 
@@ -156,13 +140,11 @@ From the perspective of Gradle, packing files into an archive is effectively a c
 
 The simplest case involves archiving the entire contents of a directory, which this example demonstrates by creating a ZIP of the `toArchive` directory:
 
-=== Example: Archiving a directory as a ZIP
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/copy/build.gradle[tag=create-archive-example]
-----
+.Archiving a directory as a ZIP
+====
+include::sample[dir="userguide/files/copy/groovy",files="build.gradle[tags=create-archive-example]"]
+include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=create-archive-example]"]
+====
 
 Notice how we specify the destination and name of the archive instead of an `into()`: both are required. You often won't see them explicitly set, because most projects apply the <<base_plugin.adoc#base_plugin,Base Plugin>>. It provides some conventional values for those properties. The next example demonstrates this and you can learn more about the conventions in the <<#sec:archive_naming,archive naming>> section.
 
@@ -255,23 +237,19 @@ The files used and generated by your builds sometimes don't have names that suit
 
 The following example removes the "-staging-" marker from the names of any files that have it:
 
-=== Example: Renaming files as they are copied
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/copy/build.gradle[tag=rename-on-copy-example]
-----
+.Renaming files as they are copied
+====
+include::sample[dir="userguide/files/copy/groovy",files="build.gradle[tags=rename-on-copy-example]"]
+include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=rename-on-copy-example]"]
+====
 
 You can use regular expressions for this, as in the above example, or closures that use more complex logic to determine the target filename. For example, the following task truncates filenames:
 
-=== Example: Truncating filenames as they are copied
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/copy/build.gradle[tag=truncate-names-example]
-----
+.Truncating filenames as they are copied
+====
+include::sample[dir="userguide/files/copy/groovy",files="build.gradle[tags=truncate-names-example]"]
+include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=truncate-names-example]"]
+====
 
 As with filtering, you can also apply renaming to a subset of files by configuring it as part of a child specification on a `from()`.
 
@@ -475,13 +453,11 @@ By default, `fileTree()` returns a `FileTree` instance that applies some default
 
 If those default exclusions prove problematic, you can workaround the issue by using the {antManual}/Tasks/defaultexcludes.html[`defaultexcludes` Ant task], as demonstrated in this example:
 
-=== Example: Changing Ant default exclusions for a copy task
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/copy/build.gradle[tag=change-default-exclusions]
-----
+.Changing Ant default exclusions for a copy task
+====
+include::sample[dir="userguide/files/copy/groovy",files="build.gradle[tags=change-default-exclusions]"]
+include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=change-default-exclusions]"]
+====
 
 In general, it's best to ensure that the default exclusions are reset whenever you change them as modifications are visible to the entire build. The above example is performing such a reset in its `doLast` action.
 
@@ -592,13 +568,11 @@ Something else to consider is what type of thing a file path refers to:
 
 Here is an example that uses multiple `from()` specifications, each with a different argument type. You will probably also notice that `into()` is configured lazily using a closure — a technique that also works with `from()`:
 
-=== Example: Specifying copy task source files and destination directory
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/copy/build.gradle[tag=copy-task-2]
-----
+.Specifying copy task source files and destination directory
+====
+include::sample[dir="userguide/files/copy/groovy",files="build.gradle[tags=copy-task-2]"]
+include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=copy-task-2]"]
+====
 
 Note that the lazy configuration of `into()` is different from a <<#sub:using_child_copy_specifications,child specification>>, even though the syntax is similar. Keep an eye on the number of arguments to distinguish between them.
 
@@ -608,13 +582,11 @@ You've already seen that you can filter file collections and file trees directly
 
 Both of these methods are normally used with Ant-style include or exclude patterns, as described in link:{javadocPath}/org/gradle/api/tasks/util/PatternFilterable.html[PatternFilterable]. You can also perform more complex logic by using a closure that takes a link:{javadocPath}/org/gradle/api/file/FileTreeElement.html[FileTreeElement] and returns `true` if the file should be included or `false` otherwise. The following example demonstrates both forms, ensuring that only .html and .jsp files are copied, except for those .html files with the word "DRAFT" in their content:
 
-=== Example: Selecting the files to copy
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/copy/build.gradle[tag=copy-task-with-patterns]
-----
+.Selecting the files to copy
+====
+include::sample[dir="userguide/files/copy/groovy",files="build.gradle[tags=copy-task-with-patterns]"]
+include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=copy-task-with-patterns]"]
+====
 
 A question you may ask yourself at this point is what happens when inclusion and exclusion patterns overlap? Which pattern wins? Here are the basic rules:
 
@@ -636,13 +608,11 @@ The <<#sec:renaming_files_example,example of how to rename files on copy>> gives
 
 Regular expressions are a flexible approach to renaming, particularly as Gradle supports regex groups that allow you to remove and replaces parts of the source filename. The following example shows how you can remove the string "-staging-" from any filename that contains it using a simple regular expression:
 
-=== Example: Renaming files as they are copied
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/copy/build.gradle[tag=rename-files]
-----
+.Renaming files as they are copied
+====
+include::sample[dir="userguide/files/copy/groovy",files="build.gradle[tags=rename-files]"]
+include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=rename-files]"]
+====
 
 You can use any regular expression supported by the Java `{javaApi}/java/util/regex/Pattern.html[Pattern]` class and the substitution string (the second argument of `rename()` works on the same principles as the `{javaApi}/java/util/regex/Matcher.html#appendReplacement(java.lang.StringBuffer,%20java.lang.String)[Matcher.appendReplacement()]` method.
 
@@ -666,13 +636,11 @@ Not to be confused with filtering which files are copied, _file content filterin
 
 The following example demonstrates several forms of filtering, including token substitution using the link:{javadocPath}/org/gradle/api/file/CopySpec.html#expand-java.util.Map-[CopySpec.expand(java.util.Map)] method and another using link:{javadocPath}/org/gradle/api/file/CopySpec.html#filter-java.lang.Class-[CopySpec.filter(java.lang.Class)] with an https://ant.apache.org/manual/Types/filterchain.html[Ant filter]:
 
-=== Example: Filtering files as they are copied
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/copy/build.gradle[tag=filter-files]
-----
+.Filtering files as they are copied
+====
+include::sample[dir="userguide/files/copy/groovy",files="build.gradle[tags=filter-files]"]
+include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=filter-files]"]
+====
 
 The `filter()` method has two variants, which behave differently:
 
@@ -702,13 +670,11 @@ Consider a build that has several tasks that copy a project's static website res
 
 One solution Gradle provides is the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:copySpec(org.gradle.api.Action)[Project.copySpec(org.gradle.api.Action)] method. This allows you to create a copy spec outside of a task, which can then be attached to an appropriate task using the link:{javadocPath}/org/gradle/api/file/CopySpec.html#with-org.gradle.api.file.CopySpec++...++-[CopySpec.with(org.gradle.api.file.CopySpec...)] method. The following example demonstrates how this is done:
 
-=== Example: Sharing copy specifications
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/copy/build.gradle[tag=standalone-copyspec]
-----
+.Sharing copy specifications
+====
+include::sample[dir="userguide/files/copy/groovy",files="build.gradle[tags=standalone-copyspec]"]
+include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=standalone-copyspec]"]
+====
 
 Both the `copyAssets` and `distApp` tasks will process the static resources under `src/main/webapp`, as specified by `webAssetsSpec`.
 
@@ -721,13 +687,11 @@ This can be confusing to understand, so it's probably best to treat `with()` as 
 
 If you encounter a scenario in which you want to apply the same copy configuration to _different_ sets of files, then you can share the configuration block directly without using `copySpec()`. Here's an example that has two independent tasks that happen to want to process image files only:
 
-=== Example: Sharing copy patterns only
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/copy/build.gradle[tag=shared-copy-patterns]
-----
+.Sharing copy patterns only
+====
+include::sample[dir="userguide/files/copy/groovy",files="build.gradle[tags=shared-copy-patterns]"]
+include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=shared-copy-patterns]"]
+====
 
 In this case, we assign the copy configuration to its own variable and apply it to whatever `from()` specification we want. This doesn't just work for inclusions, but also exclusions, file renaming, and file content filtering.
 
@@ -767,13 +731,11 @@ There might be occasions when you want to copy files or directories as _part_ of
 
 The solution is to use the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:copy(org.gradle.api.Action)[Project.copy(org.gradle.api.Action)] method. It works the same way as the `Copy` task by configuring it with a copy spec. Here's a trivial example:
 
-=== Example: Copying files using the copy() method without up-to-date check
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/copy/build.gradle[tag=copy-method]
-----
+.Copying files using the copy() method without up-to-date check
+====
+include::sample[dir="userguide/files/copy/groovy",files="build.gradle[tags=copy-method]"]
+include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=copy-method]"]
+====
 
 The above example demonstrates the basic syntax and also highlights two major limitations of using the `copy()` method:
 
@@ -783,13 +745,11 @@ The above example demonstrates the basic syntax and also highlights two major li
 
 The following example shows you how to workaround these limitations by using the <<more_about_tasks.adoc#sec:task_input_output_runtime_api,dynamic API for task inputs and outputs>>:
 
-=== Example: Copying files using the copy() method with up-to-date check
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/copy/build.gradle[tag=copy-method-with-dependency]
-----
+.Copying files using the copy() method with up-to-date check
+====
+include::sample[dir="userguide/files/copy/groovy",files="build.gradle[tags=copy-method-with-dependency]"]
+include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=copy-method-with-dependency]"]
+====
 
 These limitations make it preferable to use the `Copy` task wherever possible, because of its builtin support for incremental building and task dependency inference. That is why the `copy()` method is intended for use by <<custom_tasks.adoc#custom_tasks,custom tasks>> that need to copy files as part of their function. Custom tasks that use the `copy()` method should declare the necessary inputs and outputs relevant to the copy action.
 
@@ -819,13 +779,11 @@ Out of the box, Gradle supports creation of both ZIP and TAR archives, and by ex
 
 Creating an archive file is essentially a file copy in which the destination is implicit, i.e. the archive file itself. Here's a basic example that specifies the path and name of the target archive file:
 
-=== Example: Archiving a directory as a ZIP
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/copy/build.gradle[tag=create-archive-example]
-----
+.Archiving a directory as a ZIP
+====
+include::sample[dir="userguide/files/copy/groovy",files="build.gradle[tags=create-archive-example]"]
+include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=create-archive-example]"]
+====
 
 In the next section you'll learn about convention-based archive names, which can save you from always configuring the destination directory and archive name.
 
