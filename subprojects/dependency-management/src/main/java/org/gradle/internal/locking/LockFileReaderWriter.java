@@ -43,11 +43,9 @@ public class LockFileReaderWriter {
 
     private final Path lockFilesRoot;
     private final DomainObjectContext context;
-    private final boolean isProjectScope;
 
-    public LockFileReaderWriter(FileResolver fileResolver, DomainObjectContext context, boolean isProjectScope) {
+    public LockFileReaderWriter(FileResolver fileResolver, DomainObjectContext context) {
         this.context = context;
-        this.isProjectScope = isProjectScope;
         Path resolve = null;
         if (fileResolver.canResolveRelativePath()) {
             resolve = fileResolver.resolve(DEPENDENCY_LOCKING_FOLDER).toPath();
@@ -96,10 +94,10 @@ public class LockFileReaderWriter {
     }
 
     private String decorate(String configurationName) {
-        if (isProjectScope) {
-            return configurationName;
-        } else {
+        if (context.isScript()) {
             return "buildscript-" + configurationName;
+        } else {
+            return configurationName;
         }
     }
 

@@ -45,9 +45,9 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private final LockEntryFilter lockEntryFilter;
     private final DomainObjectContext context;
 
-    public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, boolean isProjectScope) {
+    public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context) {
         this.context = context;
-        this.lockFileReaderWriter = new LockFileReaderWriter(fileResolver, context, isProjectScope);
+        this.lockFileReaderWriter = new LockFileReaderWriter(fileResolver, context);
         this.writeLocks = startParameter.isWriteDependencyLocks();
         if (writeLocks) {
             LOGGER.debug("Write locks is enabled");

@@ -40,7 +40,7 @@ class LockFileReaderWriterTest extends Specification {
         context.identityPath(_) >> { String value -> Path.path(value) }
         resolver.canResolveRelativePath() >> true
         resolver.resolve(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER) >> lockDir
-        lockFileReaderWriter = new LockFileReaderWriter(resolver, context, true)
+        lockFileReaderWriter = new LockFileReaderWriter(resolver, context)
     }
 
     def 'writes a lock file on persist'() {
@@ -69,7 +69,8 @@ line2"""
 
     def 'writes a lock file with prefix on persist'() {
         when:
-        lockFileReaderWriter = new LockFileReaderWriter(resolver, context, false)
+        context.isScript() >> true
+        lockFileReaderWriter = new LockFileReaderWriter(resolver, context)
         lockFileReaderWriter.writeLockFile('conf', ['line1', 'line2'])
 
         then:
@@ -80,7 +81,8 @@ line2
 
     def 'reads a lock file with prefix'() {
         given:
-        lockFileReaderWriter = new LockFileReaderWriter(resolver, context, false)
+        context.isScript() >> true
+        lockFileReaderWriter = new LockFileReaderWriter(resolver, context)
         lockDir.file('buildscript-conf.lockfile') << """#Ignored
 line1
 
@@ -96,7 +98,7 @@ line2"""
     def 'fails to read a lockfile if root could not be determined'() {
         FileResolver resolver = Mock()
         resolver.canResolveRelativePath() >> false
-        lockFileReaderWriter = new LockFileReaderWriter(resolver, context, true)
+        lockFileReaderWriter = new LockFileReaderWriter(resolver, context)
 
         when:
         lockFileReaderWriter.readLockFile('foo')
@@ -111,7 +113,7 @@ line2"""
     def 'fails to write a lockfile if root could not be determined'() {
         FileResolver resolver = Mock()
         resolver.canResolveRelativePath() >> false
-        lockFileReaderWriter = new LockFileReaderWriter(resolver, context, true)
+        lockFileReaderWriter = new LockFileReaderWriter(resolver, context)
 
         when:
         lockFileReaderWriter.writeLockFile('foo', [])

@@ -124,21 +124,15 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         services.add(DependencyMetaDataProvider.class, dependencyMetaDataProvider);
         services.add(ProjectFinder.class, projectFinder);
         services.add(DomainObjectContext.class, domainObjectContext);
-        services.addProvider(new DependencyResolutionScopeServices(false));
+        services.addProvider(new DependencyResolutionScopeServices());
         return services.get(DependencyResolutionServices.class);
     }
 
     public void addDslServices(ServiceRegistration registration) {
-        registration.addProvider(new DependencyResolutionScopeServices(true));
+        registration.addProvider(new DependencyResolutionScopeServices());
     }
 
     private static class DependencyResolutionScopeServices {
-
-        private boolean isProjectScope;
-
-        public DependencyResolutionScopeServices(boolean isProjectScope) {
-            this.isProjectScope = isProjectScope;
-        }
 
         AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
             return instantiatorFactory.decorate().newInstance(DefaultAttributesSchema.class, new ComponentAttributeMatcher(), instantiatorFactory, isolatableFactory);
@@ -253,7 +247,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         DependencyLockingProvider createDependencyLockingProvider(Instantiator instantiator, FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context) {
-            return instantiator.newInstance(DefaultDependencyLockingProvider.class, fileResolver, startParameter, context, isProjectScope);
+            return instantiator.newInstance(DefaultDependencyLockingProvider.class, fileResolver, startParameter, context);
         }
 
         DependencyConstraintHandler createDependencyConstraintHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory) {
