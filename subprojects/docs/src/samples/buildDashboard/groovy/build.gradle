@@ -15,16 +15,20 @@
  */
 
 // tag::use-build-dashboard-plugin[]
-apply plugin: 'build-dashboard'
+plugins {
+    id 'build-dashboard'
 // end::use-build-dashboard-plugin[]
-apply plugin: 'codenarc'
-apply plugin: 'groovy'
+    id 'codenarc'
+    id 'groovy'
+// tag::use-build-dashboard-plugin[]
+}
+// end::use-build-dashboard-plugin[]
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compile localGroovy()
-    testCompile 'junit:junit:4.12'
+    implementation localGroovy()
+    testImplementation 'junit:junit:4.12'
 }
