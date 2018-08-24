@@ -174,7 +174,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
     }
 
     private static ImplementationSnapshot impl(Class<?> type, HashCode classLoaderHash) {
-        new ImplementationSnapshot(type.getName(), classLoaderHash)
+        ImplementationSnapshot.of(type.getName(), classLoaderHash)
     }
 
     private class SimpleTask extends DefaultTask {}

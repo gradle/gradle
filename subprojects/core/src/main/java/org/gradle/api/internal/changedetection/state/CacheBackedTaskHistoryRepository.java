@@ -135,7 +135,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     private CurrentTaskExecution createExecution(TaskInternal task, TaskProperties taskProperties, @Nullable HistoricalTaskExecution previousExecution, InputNormalizationStrategy normalizationStrategy) {
         Class<? extends TaskInternal> taskClass = task.getClass();
         List<ContextAwareTaskAction> taskActions = task.getTaskActions();
-        ImplementationSnapshot taskImplementation = new ImplementationSnapshot(taskClass.getName(), classLoaderHierarchyHasher.getClassLoaderHash(taskClass.getClassLoader()));
+        ImplementationSnapshot taskImplementation = ImplementationSnapshot.of(taskClass, classLoaderHierarchyHasher);
         ImmutableList<ImplementationSnapshot> taskActionImplementations = collectActionImplementations(taskActions, classLoaderHierarchyHasher);
 
         if (LOGGER.isDebugEnabled()) {
@@ -307,7 +307,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         for (ContextAwareTaskAction taskAction : taskActions) {
             String typeName = taskAction.getActionClassName();
             HashCode classLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(taskAction.getClassLoader());
-            actionImplementations.add(new ImplementationSnapshot(typeName, classLoaderHash));
+            actionImplementations.add(ImplementationSnapshot.withDeterministicClassName(typeName, classLoaderHash));
         }
         return actionImplementations.build();
     }

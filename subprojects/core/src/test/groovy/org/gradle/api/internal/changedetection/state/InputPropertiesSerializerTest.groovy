@@ -177,7 +177,7 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     def "serializes implementation properties"() {
-        def original = [a: new ImplementationSnapshot("someClassName", HashCode.fromString("0123456789"))]
+        def original = [a: ImplementationSnapshot.of("someClassName", HashCode.fromString("0123456789"))]
         write(original)
 
         expect:
@@ -185,7 +185,7 @@ class InputPropertiesSerializerTest extends Specification {
     }
 
     def "serializes implementation properties with unknown classloader"() {
-        def original = new ImplementationSnapshot("someClassName", null)
+        def original = ImplementationSnapshot.of("someClassName", null)
         def originalMap = [a: original]
         write(originalMap)
 

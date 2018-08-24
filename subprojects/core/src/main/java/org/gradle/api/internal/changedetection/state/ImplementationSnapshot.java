@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
@@ -26,10 +27,33 @@ import javax.annotation.Nullable;
  * the classloader hierarchy by its hash code.
  */
 public class ImplementationSnapshot implements ValueSnapshot {
+    private static final String GENERATED_LAMBDA_CLASS_SUFFIX = "$$Lambda$";
+
     private final String typeName;
     private final HashCode classLoaderHash;
 
-    public ImplementationSnapshot(String typeName, @Nullable HashCode classLoaderHash) {
+    public static ImplementationSnapshot of(Class<?> type, ClassLoaderHierarchyHasher classLoaderHasher) {
+        return of(determineImplementationName(type.getName(), type.isSynthetic()), classLoaderHasher.getClassLoaderHash(type.getClassLoader()));
+    }
+
+    public static ImplementationSnapshot of(String typeName, @Nullable HashCode classLoaderHash) {
+        return new ImplementationSnapshot(typeName, classLoaderHash);
+    }
+
+    public static ImplementationSnapshot withDeterministicClassName(String className, @Nullable HashCode classLoaderHash) {
+        return of(determineImplementationName(className, true), classLoaderHash);
+    }
+
+    private static String determineImplementationName(String className, boolean mayBeLambda) {
+        if (mayBeLambda && className.contains(GENERATED_LAMBDA_CLASS_SUFFIX)) {
+            int index = className.lastIndexOf(GENERATED_LAMBDA_CLASS_SUFFIX);
+            return className.substring(0, index + GENERATED_LAMBDA_CLASS_SUFFIX.length());
+        } else {
+            return className;
+        }
+    }
+
+    private ImplementationSnapshot(String typeName, @Nullable HashCode classLoaderHash) {
         this.typeName = typeName;
         this.classLoaderHash = classLoaderHash;
     }

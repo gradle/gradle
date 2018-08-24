@@ -104,7 +104,7 @@ public class TaskExecutionFingerprintSerializer extends AbstractSerializer<Histo
     private static ImplementationSnapshot readImplementation(Decoder decoder) throws IOException {
         String typeName = decoder.readString();
         HashCode classLoaderHash = decoder.readBoolean() ? HashCode.fromBytes(decoder.readBinary()) : null;
-        return new ImplementationSnapshot(typeName, classLoaderHash);
+        return ImplementationSnapshot.of(typeName, classLoaderHash);
     }
 
     private static void writeImplementation(Encoder encoder, ImplementationSnapshot implementation) throws IOException {
