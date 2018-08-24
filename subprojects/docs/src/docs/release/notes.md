@@ -8,9 +8,8 @@ If so, you'll be relieved to know that Gradle will now [periodically clean up un
 
 A moment you have anticipated is nearly here, as the [Kotlin DSL reaches version 1.0 RC3](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC3).
 Configuration avoidance, `buildSrc` refactoring propagation to the IDE, and lots of DSL polish make this the release to try.
-Gradle Kotlin DSL 1.0 will ship with the next version of Gradle.
-Please give it a go and file issues in the [gradle/kotlin-dsl](https://github.com/gradle/kotlin-dsl) project.
-_If you are interested in using the Kotlin DSL, please check out the [Gradle guides](https://gradle.org/guides/), especially the [Groovy DSL to Kotlin DSL migration guide](https://guides.gradle.org/migrating-build-logic-from-groovy-to-kotlin/)._
+Gradle Kotlin DSL 1.0 will ship with the next version of Gradle, 5.0.
+Read [this blog post](https://blog.gradle.org/gradle-kotlin-dsl-release-candidate) for guidance on trying the Kotlin DSL and submitting feedback.
 
 You can now use [SNAPSHOT plugin versions with the `plugins {}`](#use-snapshot-plugin-versions-with-the-plugins-{}-block) and `pluginManagement {}` blocks.
 This is especially good news for Kotlin DSL users, who will get code assistance and auto-completion for these `SNAPSHOT` plugins.
@@ -52,6 +51,21 @@ We are now confident that the incremental compiler is ready to be used in every 
 ### Periodic cache cleanup
 
 Caching has always been one of the strong suits of Gradle. Over time, more and more persistent caches have been added to improve performance and support new features, requiring more and more disk space on build servers and developer workstations. Gradle now addresses one of the most highly voted issues on GitHub and introduces the cleanup strategies for the caches in the [Gradle user home directory](userguide/directory_layout.html#dir:gradle_user_home:cache_cleanup) and the [project root directory](userguide/directory_layout.html#dir:project_root:cache_cleanup).
+
+### Kotlin DSL 1.0 RC
+
+[Kotlin DSL version 1.0 RC](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC3) is now available. Major updates from v0.18 include:
+ 
+ * API Documentation in IDE and reference forms
+ * Script compilation build cache
+ * IDE integration improvements
+ * Support for configuration avoidance
+ * `buildSrc` refactoring propagation to the IDE
+ 
+This version includes the last set of backward compatibility-breaking DSL changes until Gradle 6.0.
+
+Please give it a go and file issues in the [gradle/kotlin-dsl](https://github.com/gradle/kotlin-dsl) project.
+_If you are interested in using the Kotlin DSL, please check out the [Gradle guides](https://gradle.org/guides/), especially the [Groovy DSL to Kotlin DSL migration guide](https://guides.gradle.org/migrating-build-logic-from-groovy-to-kotlin/)._
 
 ### Use SNAPSHOT plugin versions with the `plugins {}` block
 
