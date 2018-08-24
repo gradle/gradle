@@ -1,3 +1,11 @@
+// tag::zip[]
+// tag::tar[]
+plugins {
+    id 'java'
+}
+// end::tar[]
+// end::zip[]
+
 // tag::unpack-archive-example[]
 task unpackFiles(type: Copy) {
     from zipTree("src/resources/thirdPartyResources.zip")
@@ -6,8 +14,6 @@ task unpackFiles(type: Copy) {
 // end::unpack-archive-example[]
 
 // tag::zip[]
-apply plugin: 'java'
-
 task zip(type: Zip) {
     from 'src/dist'
     into('libs') {
@@ -17,8 +23,6 @@ task zip(type: Zip) {
 // end::zip[]
 
 // tag::tar[]
-apply plugin: 'java'
-
 task tar(type: Tar) {
     from 'src/dist'
     into('libs') {

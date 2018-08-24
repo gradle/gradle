@@ -167,13 +167,11 @@ Archives are effectively self-contained file systems, so unpacking them is a cas
 
 The two functions of interest are link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:zipTree(java.lang.Object)[Project.zipTree(java.lang.Object)] and link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:tarTree(java.lang.Object)[Project.tarTree(java.lang.Object)], which produce a link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree] from a corresponding archive file. That file tree can then be used in a `from()` specification, like so:
 
-=== Example: Unpacking a ZIP file
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/archives/build.gradle[tag=unpack-archive-example]
-----
+.Unpacking a ZIP file
+====
+include::sample[dir="userguide/files/archives/groovy",files="build.gradle[tags=unpack-archive-example]"]
+include::sample[dir="userguide/files/archives/kotlin",files="build.gradle.kts[tags=unpack-archive-example]"]
+====
 
 As with a normal copy, you can control which files are unpacked via filters and even rename files as they are unpacked.
 
@@ -888,12 +886,10 @@ Reproducing the same byte-for-byte archive poses some challenges since the order
 
 For example, to make a `Zip` task reproducible you need to set link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html#org.gradle.api.tasks.bundling.Zip:reproducibleFileOrder[Zip.isReproducibleFileOrder()] to `true` and link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html#org.gradle.api.tasks.bundling.Zip:preserveFileTimestamps[Zip.isPreserveFileTimestamps()] to `false`. In order to make all archive tasks in your build reproducible, consider adding the following configuration to your build file:
 
-=== Example: Activating reproducible archives
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/archives/build.gradle[tag=reproducible]
-----
+.Activating reproducible archives
+====
+include::sample[dir="userguide/files/archives/groovy",files="build.gradle[tags=reproducible]"]
+include::sample[dir="userguide/files/archives/kotlin",files="build.gradle.kts[tags=reproducible]"]
+====
 
 Often you will want to publish an archive, so that it is usable from another project. This process is described in <<artifact_management.adoc#artifact_management,Legacy Publishing>>.
