@@ -47,7 +47,10 @@ class FoldersDsl(val root: File) {
         asCanonicalFile().apply { mkdirs() }
 
     fun withFile(fileName: String, content: String = "") =
-        fileName.asCanonicalFile().apply { parentFile.mkdirs() }.writeText(content)
+        fileName.asCanonicalFile().apply {
+            parentFile.mkdirs()
+            writeText(content)
+        }
 
     private
     fun String.asCanonicalFile(): File =
