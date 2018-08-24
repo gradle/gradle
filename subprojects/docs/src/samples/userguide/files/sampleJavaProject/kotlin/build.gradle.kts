@@ -1,0 +1,40 @@
+plugins {
+    java
+}
+
+version = "1.0.0"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("commons-io:commons-io:2.6")
+}
+
+// tag::link-task-properties[]
+val archivesDirPath by extra { "${buildDir}/archives" }
+
+tasks.create<Zip>("packageClasses") {
+    appendix = "classes"
+    destinationDir = file(archivesDirPath)
+
+    from(tasks.getByName("compileJava"))
+}
+// end::link-task-properties[]
+
+// tag::nested-specs[]
+tasks.create<Copy>("nestedSpecs") {
+    into("${buildDir}/explodedWar")
+    exclude("**/*staging*")
+    from("src/dist") {
+        include("**/*.html", "**/*.png", "**/*.jpg")
+    }
+    from(sourceSets["main"].output) {
+        into("WEB-INF/classes")
+    }
+    into("WEB-INF/lib") {
+        from(configurations.runtimeClasspath)
+    }
+}
+// end::nested-specs[]
