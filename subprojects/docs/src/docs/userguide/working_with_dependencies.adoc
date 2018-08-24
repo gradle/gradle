@@ -53,13 +53,11 @@ As a plugin developer, you may want to navigate the full graph of dependencies a
 
 The resolution result provides various methods for accessing the resolved and unresolved dependencies. For demonstration purposes the sample code uses link:{javadocPath}/org/gradle/api/artifacts/result/ResolutionResult.html#getRoot--[ResolutionResult.getRoot()] to access the root node the resolved dependency graph. Each dependency of this component returns an instance of link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedDependencyResult.html[ResolvedDependencyResult] or link:{javadocPath}/org/gradle/api/artifacts/result/UnresolvedDependencyResult.html[UnresolvedDependencyResult] providing detailed information about the node.
 
-=== Example: Walking the resolved and unresolved dependencies of a configuration
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/workingWithDependencies/walkGraph/build.gradle[tag=walk-task]
-----
+.Walking the resolved and unresolved dependencies of a configuration
+====
+include::sample[dir="userguide/dependencyManagement/workingWithDependencies/walkGraph/groovy",files="build.gradle[tags=walk-task]"]
+include::sample[dir="userguide/dependencyManagement/workingWithDependencies/walkGraph/kotlin",files="build.gradle.kts[tags=walk-task]"]
+====
 
 == Accessing a module’s metadata file
 
