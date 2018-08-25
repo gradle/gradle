@@ -54,13 +54,11 @@ include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingSin
 
 Or the following, as a way to lock all configurations:
 
-==== Example: Locking all configurations
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingAllConfigurations/build.gradle[tag=locking-all]
-----
+.Locking all configurations
+====
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingAllConfigurations/groovy",files="build.gradle[tags=locking-all]"]
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingAllConfigurations/kotlin",files="build.gradle.kts[tags=locking-all]"]
+====
 
 [NOTE]
 ====
@@ -102,13 +100,11 @@ This will effectively lock all resolvable configurations that have locking enabl
 Note that in a multi project setup, `dependencies` only is executed on _one_ project, the root one in this case.
 * Declare a custom task that will resolve all configurations
 
-==== Example: Resolving all configurations
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingAllConfigurations/build.gradle[tag=resolve-all]
-----
+.Resolving all configurations
+====
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingAllConfigurations/groovy",files="build.gradle[tags=resolve-all]"]
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingAllConfigurations/kotlin",files="build.gradle.kts[tags=resolve-all]"]
+====
 
 That second option, with proper choosing of configurations, can be the only option in the native world, where not all configurations can be resolved on a single platform.
 
