@@ -40,8 +40,8 @@ repositories {
 }
 
 dependencies {
-    compile(localGroovy())
-    testCompile("junit:junit:4.12")
+    implementation(localGroovy())
+    testImplementation("junit:junit:4.12")
 }
 
 // tag::customize-checkstyle-report[]
