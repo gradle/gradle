@@ -54,13 +54,11 @@ You can fine-tune certain aspects of caching programmatically using the link:{ja
 
 By default, Gradle caches dynamic versions for 24 hours. To change how long Gradle will cache the resolved version for a dynamic version, use:
 
-=== Example: Dynamic version cache control
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/troubleshooting/cache/dynamic/build.gradle[tag=dynamic-version-cache-control]
-----
+.Dynamic version cache control
+====
+include::sample[dir="userguide/dependencyManagement/troubleshooting/cache/dynamic/groovy",files="build.gradle[tags=dynamic-version-cache-control]"]
+include::sample[dir="userguide/dependencyManagement/troubleshooting/cache/dynamic/kotlin",files="build.gradle.kts[tags=dynamic-version-cache-control]"]
+====
 
 By default, Gradle caches changing modules for 24 hours. To change how long Gradle will cache the meta-data and artifacts for a changing module, use:
 
