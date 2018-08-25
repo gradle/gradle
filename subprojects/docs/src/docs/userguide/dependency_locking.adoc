@@ -46,13 +46,11 @@ Gradle will even emit a warning when persisting lock state and changing dependen
 
 Locking of a configuration happens through the link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy]:
 
-==== Example: Locking a specific configuration
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/build.gradle[tag=locking-one]
-----
+.Locking a specific configuration
+====
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/groovy",files="build.gradle[tags=locking-one]"]
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/kotlin",files="build.gradle.kts[tags=locking-one]"]
+====
 
 Or the following, as a way to lock all configurations:
 
@@ -129,18 +127,16 @@ Module notations are ordered alphabetically, to ease diffs.
 [source.multi-language-sample,groovy]
 .gradle/dependency-locks/compileClasspath.lockfile
 ----
-include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/gradle/dependency-locks/compileClasspath.lockfile[]
+include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/groovy/gradle/dependency-locks/compileClasspath.lockfile[]
 ----
 
 which matches the following dependency declaration:
 
-==== Example: Dynamic dependency declaration
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/build.gradle[tag=locking-deps]
-----
+.Dynamic dependency declaration
+====
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/groovy",files="build.gradle[tags=locking-deps]"]
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/kotlin",files="build.gradle.kts[tags=locking-deps]"]
+====
 
 == Running a build with lock state present
 
