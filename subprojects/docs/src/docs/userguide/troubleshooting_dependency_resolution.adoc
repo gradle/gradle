@@ -62,13 +62,11 @@ include::sample[dir="userguide/dependencyManagement/troubleshooting/cache/dynami
 
 By default, Gradle caches changing modules for 24 hours. To change how long Gradle will cache the meta-data and artifacts for a changing module, use:
 
-=== Example: Changing module cache control
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/troubleshooting/cache/changing/build.gradle[tag=changing-module-cache-control]
-----
+.Changing module cache control
+====
+include::sample[dir="userguide/dependencyManagement/troubleshooting/cache/changing/groovy",files="build.gradle[tags=changing-module-cache-control]"]
+include::sample[dir="userguide/dependencyManagement/troubleshooting/cache/changing/kotlin",files="build.gradle.kts[tags=changing-module-cache-control]"]
+====
 
 [[sec:controlling_dependency_caching_command_line]]
 == Controlling dependency caching from the command line
