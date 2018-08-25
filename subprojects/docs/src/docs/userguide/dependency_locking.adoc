@@ -71,17 +71,16 @@ Applying locking on non resolvable-configurations is simply a no-op.
 The above will lock all _project_ configurations, but not the _buildscript_ ones.
 ====
 
-==== Example: Locking buildscript classpath configuration
+== Locking buildscript classpath configuration
 
 If you apply plugins to your build, you may want to leverage dependency locking there as well.
 In order to lock the <<plugins.adoc#sec:applying_plugins_buildscript,`classpath` configuration>> used for script plugins, do the following:
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingClasspathConfiguration/build.gradle[tag=locking-classpath]
-----
-
+.Locking buildscript classpath configuration
+====
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingClasspathConfiguration/groovy",files="build.gradle[tags=locking-classpath]"]
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingClasspathConfiguration/kotlin",files="build.gradle.kts[tags=locking-classpath]"]
+====
 
 == Generating and updating dependency locks
 
