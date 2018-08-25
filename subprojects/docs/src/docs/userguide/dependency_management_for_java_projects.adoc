@@ -75,23 +75,19 @@ How does Gradle know where to find the files for external dependencies? Gradle l
 
 By default, Gradle does not define any repositories. You need to define at least one with the help of link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:repositories(groovy.lang.Closure)[Project.repositories{}] before you can use module dependencies. One option is use the Maven Central repository:
 
-=== Example: Usage of Maven central repository
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/artifacts/defineRepository/build.gradle[tag=maven-central]
-----
+.Usage of Maven central repository
+====
+include::sample[dir="userguide/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-central]"]
+include::sample[dir="userguide/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-central]"]
+====
 
 You can also have repositories on the local file system. This works for both Maven and Ivy repositories.
 
-=== Example: Usage of a local Ivy directory
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/artifacts/defineRepository/build.gradle[tag=local-ivy-repo]
-----
+.Usage of a local Ivy directory
+====
+include::sample[dir="userguide/artifacts/defineRepository/groovy",files="build.gradle[tags=local-ivy-repo]"]
+include::sample[dir="userguide/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=local-ivy-repo]"]
+====
 
 A project can have multiple repositories. Gradle will look for a dependency in each repository in the order they are specified, stopping at the first repository that contains the requested module.
 
