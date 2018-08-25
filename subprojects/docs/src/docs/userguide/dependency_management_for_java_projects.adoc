@@ -22,13 +22,11 @@ This chapter explains how to apply basic dependency management concepts to Java-
 
 Let's have a look at a very simple build script for a Java-based project. It applies the <<java_library_plugin.adoc#java_library_plugin,Java Library plugin>> which automatically introduces a standard project layout, provides tasks for performing typical work and adequate support for dependency management.
 
-=== Example: Dependency declarations for a Java-based project
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/artifacts/dependencyBasics/build.gradle[]
-----
+.Dependency declarations for a Java-based project
+====
+include::sample[dir="userguide/artifacts/dependencyBasics/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/artifacts/dependencyBasics/kotlin",files="build.gradle.kts[]"]
+====
 
 The link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:dependencies(groovy.lang.Closure)[Project.dependencies{}] code block declares that Hibernate core 3.6.7.Final is required to compile the project's production source code. It also states that junit &gt;= 4.0 is required to compile the project's tests. All dependencies are supposed to be looked up in the Maven Central repository as defined by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:repositories(groovy.lang.Closure)[Project.repositories{}]. The following sections explain each aspect in more detail.
 
