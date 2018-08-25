@@ -37,13 +37,11 @@ There are various <<dependency_types.adoc#dependency_types,types of dependencies
 
 To define an module dependency, you add it to a <<#sec:configurations_java_tutorial,dependency configuration>>:
 
-=== Example: Definition of a module dependency
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/artifacts/externalDependencies/build.gradle[tag=define-dependency]
-----
+.Definition of a module dependency
+====
+include::sample[dir="userguide/artifacts/externalDependencies/groovy",files="build.gradle[tags=define-dependency]"]
+include::sample[dir="userguide/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=define-dependency]"]
+====
 
 To find out more about defining dependencies, have a look at <<declaring_dependencies.adoc#declaring_dependencies,Declaring Dependencies>>.
 

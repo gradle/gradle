@@ -7,6 +7,22 @@ configurations {
     runtime
 }
 
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 // tag::define-dependency[]
 dependencies {
     implementation 'org.hibernate:hibernate-core:3.6.7.Final'
@@ -39,26 +55,6 @@ dependencies {
     }
 }
 // end::module-dependencies[]
-
-// tag::dependency-configurations[]
-dependencies {
-    runtime group: 'org.somegroup', name: 'somedependency', version: '1.0', configuration: 'someConfiguration'
-}
-// end::dependency-configurations[]
-
-// tag::client-modules[]
-dependencies {
-    runtime module("org.codehaus.groovy:groovy:2.4.15") {
-        dependency("commons-cli:commons-cli:1.0") {
-            transitive = false
-        }
-        module(group: 'org.apache.ant', name: 'ant', version: '1.9.9') {
-            dependencies "org.apache.ant:ant-launcher:1.9.9@jar",
-                         "org.apache.ant:ant-junit:1.9.9"
-        }
-    }
-}
-// end::client-modules[]
 
 // tag::file-dependencies[]
 dependencies {
