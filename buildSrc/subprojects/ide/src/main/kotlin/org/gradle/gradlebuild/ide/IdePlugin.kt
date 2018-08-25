@@ -278,6 +278,7 @@ open class IdePlugin : Plugin<Project> {
     fun ProjectSettings.configureCompilerSettings(project: Project) {
         compiler {
             processHeapSize = 2045
+            useReleaseOption = false
         }
         groovyCompiler {
             excludes {
