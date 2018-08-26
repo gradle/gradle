@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
-
-import org.gradle.internal.metaobject.BeanDynamicObject;
-import org.gradle.internal.metaobject.DynamicObject;
+package org.gradle.internal.metaobject;
 
 public abstract class DynamicObjectUtil {
-
     public static DynamicObject asDynamicObject(Object object) {
         if (object instanceof DynamicObject) {
             return (DynamicObject)object;

@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal
-
-import org.gradle.internal.metaobject.DynamicInvokeResult
-import org.gradle.internal.metaobject.MethodAccess
-import org.gradle.internal.metaobject.MethodMixIn
+package org.gradle.internal.metaobject
 
 class BeanWithMixInMethods implements MethodMixIn {
     String prop

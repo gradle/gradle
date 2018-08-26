@@ -17,7 +17,6 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.ExtensibleDynamicObject;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -26,6 +25,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.metaobject.DynamicObjectAware;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 

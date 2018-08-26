@@ -19,7 +19,6 @@ package org.gradle.internal.metaobject;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingMethodException;
-import org.gradle.api.internal.DynamicObjectUtil;
 
 import javax.annotation.concurrent.NotThreadSafe;
 

@@ -19,6 +19,7 @@ import groovy.lang.GroovyObject;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.Named;
 import org.gradle.api.Namer;
+import org.gradle.internal.metaobject.DynamicObjectUtil;
 
 import java.util.Map;
 

@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal
-
-import org.gradle.internal.metaobject.DynamicInvokeResult
-import org.gradle.internal.metaobject.PropertyAccess
-import org.gradle.internal.metaobject.PropertyMixIn
+package org.gradle.internal.metaobject
 
 class BeanWithMixInProperties implements PropertyMixIn {
     String prop

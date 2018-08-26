@@ -17,9 +17,6 @@
 package org.gradle.internal.metaobject
 
 import org.codehaus.groovy.reflection.CachedClass
-import org.gradle.api.internal.BeanWithDynamicProperties
-import org.gradle.api.internal.BeanWithMixInMethods
-import org.gradle.api.internal.BeanWithMixInProperties
 import org.gradle.api.internal.coerce.MethodArgumentsTransformer
 import org.gradle.api.internal.coerce.PropertySetTransformer
 import spock.lang.Specification
