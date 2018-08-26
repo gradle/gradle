@@ -290,13 +290,11 @@ include::sample[dir="testing/junitplatform/tagging/kotlin",files="build.gradle.k
 
 The TestNG framework uses the concept of test groups for a similar effect.footnote:[The TestNG documentation contains more details about test groups: http://testng.org/doc/documentation-main.html#test-groups[].] You can configure which test groups to include or exclude during the test execution via the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:useTestNG(org.gradle.api.Action)[Test.useTestNG(org.gradle.api.Action)] setting, as seen here:
 
-=== Example: Grouping TestNG tests
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/testing/testng/groups/build.gradle[tag=test-config]
-----
+.Grouping TestNG tests
+====
+include::sample[dir="testing/testng/groups/groovy",files="build.gradle[tags=test-config]"]
+include::sample[dir="testing/testng/groups/kotlin",files="build.gradle.kts[tags=test-config]"]
+====
 
 [[using_junit5]]
 == Using JUnit 5
