@@ -340,13 +340,11 @@ You can then put your test cases into _src/test/java_ as normal and execute them
 
 If you want to run JUnit 3/4 tests on JUnit Platform, or even mix them with Jupiter tests, you should add extra JUnit Vintage Engine dependencies:
 
-=== Example: JUnit Vintage dependencies
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/testing/junitplatform/mix//build.gradle[tag=vintage-dependencies]
-----
+.JUnit Vintage dependencies
+====
+include::sample[dir="testing/junitplatform/mix/groovy",files="build.gradle[tags=vintage-dependencies]"]
+include::sample[dir="testing/junitplatform/mix/kotlin",files="build.gradle.kts[tags=vintage-dependencies]"]
+====
 
 In this way, you can use `gradle test` to test JUnit 3/4 tests on JUnit Platform, without the need to rewrite them.
 
