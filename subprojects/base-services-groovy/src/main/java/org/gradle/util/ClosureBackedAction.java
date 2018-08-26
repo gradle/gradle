@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.util;
 
 import com.google.common.base.Objects;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidActionClosureException;
-import org.gradle.util.Configurable;
 
 /**
  * NOTE: You should use {@link ConfigureUtil} instead of this class when adding a closure backed method to the DSL, whether statically or dynamically added. {@link ConfigureUtil} is much more efficient and takes care of applying consistent DSL behaviour when closures are nested.
