@@ -83,7 +83,7 @@ class PropertyIntegrationTest extends AbstractIntegrationSpec {
         projectUnderTest.assertCustomOutputFileContent()
     }
 
-    def "can use property state as task input"() {
+    def "can use property as task input"() {
         given:
         buildFile << """
 class SomeTask extends DefaultTask {
