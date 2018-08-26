@@ -31,7 +31,6 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;

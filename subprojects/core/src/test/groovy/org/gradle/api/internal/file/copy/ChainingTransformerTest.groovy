@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal
+package org.gradle.api.internal.file.copy
 
 import org.gradle.api.Transformer
 import spock.lang.Specification
 
-public class ChainingTransformerTest extends Specification {
+class ChainingTransformerTest extends Specification {
     private final ChainingTransformer<String> transformer = new ChainingTransformer<String>(String.class)
 
     def 'does nothing when no transformers added'() {

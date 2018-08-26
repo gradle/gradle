@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal;
+package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
 import groovy.lang.GString;
-
-import java.util.List;
-import java.util.ArrayList;
-
 import org.gradle.api.Transformer;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ChainingTransformer<T> implements Transformer<T, T> {
     private final List<Transformer<T, T>> transformers = new ArrayList<Transformer<T, T>>();
