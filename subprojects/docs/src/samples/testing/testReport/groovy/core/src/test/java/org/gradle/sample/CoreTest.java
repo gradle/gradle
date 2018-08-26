@@ -1,7 +1,6 @@
 package org.gradle.sample;
 
 import org.junit.Test;
-import java.lang.System;
 
 public class CoreTest {
     @Test

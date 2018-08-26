@@ -1,3 +1,15 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile 'junit:junit:4.12'
+}
+
 /*
  * Copyright 2018 the original author or authors.
  *
@@ -14,13 +26,11 @@
  * limitations under the License.
  */
 
-package org.gradle.sample;
-
-import org.junit.Test;
-
-public class UtilTest {
-    @Test
-    public void ok() {
-        System.out.println("hello from UtilTest.");
+// tag::test-categories[]
+test {
+    useJUnit {
+        includeCategories 'org.gradle.junit.CategoryA'
+        excludeCategories 'org.gradle.junit.CategoryB'
     }
 }
+// end::test-categories[]

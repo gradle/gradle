@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.sample;
+package org.gradle.junit;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
-public class UtilTest {
+public class CategorizedJUnitTest {
+
+    @Category(CategoryA.class)
     @Test
-    public void ok() {
-        System.out.println("hello from UtilTest.");
+    public void a() {
+        System.out.println("hello from CategorizedTest a.");
+    }
+
+    @Category(CategoryB.class)
+    @Test
+    public void b() {
+        System.out.println("hello from CategorizedTest b.");
     }
 }
