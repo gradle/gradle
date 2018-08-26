@@ -189,6 +189,7 @@ We would like to thank the following community members for making contributions 
 - [Georg Friedrich](https://github.com/GFriedrich) - Base Java Library Distribution Plugin on Java Library Plugin (gradle/gradle#5695)
 - [Stefan M.](https://github.com/StefMa) — Include Kotlin DSL samples in Gradle wrapper and Java Gradle Plugin user manual chapters (gradle/gradle#5923 and gradle/gradle#6485)
 - [Jean-Baptiste Nizet](https://github.com/jnizet) — Include Kotlin DSL samples in Gradle Base Plugin user manual chapter (gradle/gradle#6488)
+- [Xiang Li](https://github.com/lixiangconan) and [Theodore Ni](https://github.com/tjni) - Make FileUtils#calculateRoots more efficient (gradle/gradle#6455)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
