@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.internal.tasks.TaskDependencies;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
@@ -67,7 +67,7 @@ public class FileSystemPublishArtifact implements PublishArtifact {
 
     @Override
     public TaskDependency getBuildDependencies() {
-        return TaskDependencies.EMPTY;
+        return TaskDependencyInternal.EMPTY;
     }
 
     private ArtifactFile getValue() {

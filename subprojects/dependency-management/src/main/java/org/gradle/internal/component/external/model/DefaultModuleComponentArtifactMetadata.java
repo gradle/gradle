@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
-import org.gradle.api.internal.tasks.TaskDependencies;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -62,6 +62,6 @@ public class DefaultModuleComponentArtifactMetadata implements ModuleComponentAr
 
     @Override
     public TaskDependency getBuildDependencies() {
-        return TaskDependencies.EMPTY;
+        return TaskDependencyInternal.EMPTY;
     }
 }

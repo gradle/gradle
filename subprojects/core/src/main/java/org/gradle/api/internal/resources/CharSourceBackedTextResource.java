@@ -18,7 +18,7 @@ package org.gradle.api.internal.resources;
 
 import com.google.common.io.CharSource;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.TaskDependencies;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.resources.internal.TextResourceInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.resource.ResourceExceptions;
@@ -87,6 +87,6 @@ public class CharSourceBackedTextResource implements TextResourceInternal {
 
     @Override
     public TaskDependency getBuildDependencies() {
-        return TaskDependencies.EMPTY;
+        return TaskDependencyInternal.EMPTY;
     }
 }

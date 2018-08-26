@@ -18,7 +18,7 @@ package org.gradle.language.jvm.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
-import org.gradle.api.internal.tasks.TaskDependencies;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.jvm.Classpath;
 
@@ -31,6 +31,6 @@ public class EmptyClasspath implements Classpath {
 
     @Override
     public TaskDependency getBuildDependencies() {
-        return TaskDependencies.EMPTY;
+        return TaskDependencyInternal.EMPTY;
     }
 }

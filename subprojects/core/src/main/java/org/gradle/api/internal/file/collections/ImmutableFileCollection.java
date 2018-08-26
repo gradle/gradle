@@ -23,7 +23,7 @@ import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencies;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 
@@ -74,7 +74,7 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
 
     @Override
     public TaskDependency getBuildDependencies() {
-        return TaskDependencies.EMPTY;
+        return TaskDependencyInternal.EMPTY;
     }
 
     private static class FileOnlyImmutableFileCollection extends ImmutableFileCollection {
