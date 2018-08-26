@@ -125,13 +125,11 @@ With Gradle's test filtering you can select tests to run based on:
 
 You can enable filtering either in the build script or via the `--tests` command-line option. Here's an example of some filters that are applied every time the build runs:
 
-=== Example: Filtering tests in the build script
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/testing/filtering/build.gradle[tag=test-filtering]
-----
+.Filtering tests in the build script
+====
+include::sample[dir="testing/filtering/groovy",files="build.gradle[tags=test-filtering]"]
+include::sample[dir="testing/filtering/kotlin",files="build.gradle.kts[tags=test-filtering]"]
+====
 
 For more details and examples of declaring filters in the build script, please see the link:{javadocPath}/org/gradle/api/tasks/testing/TestFilter.html[TestFilter] reference.
 
