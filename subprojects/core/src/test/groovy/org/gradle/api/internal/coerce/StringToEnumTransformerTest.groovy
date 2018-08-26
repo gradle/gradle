@@ -17,7 +17,6 @@
 package org.gradle.api.internal.coerce
 
 import org.codehaus.groovy.reflection.CachedClass
-import org.gradle.internal.typeconversion.TypeConversionException
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -79,7 +78,7 @@ class StringToEnumTransformerTest extends Specification {
         transformer.transformValue(TestEnum, "invalid")
 
         then:
-        def e = thrown TypeConversionException
+        def e = thrown IllegalArgumentException
         TestEnum.values().every { e.message.contains(it.name()) }
     }
 

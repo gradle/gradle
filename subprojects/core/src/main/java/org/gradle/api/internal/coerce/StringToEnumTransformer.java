@@ -17,8 +17,7 @@
 package org.gradle.api.internal.coerce;
 
 import org.codehaus.groovy.reflection.CachedClass;
-import org.gradle.internal.typeconversion.EnumFromCharSequenceNotationParser;
-import org.gradle.internal.typeconversion.NotationParserBuilder;
+import org.gradle.util.GUtil;
 
 public class StringToEnumTransformer implements MethodArgumentsTransformer, PropertySetTransformer {
 
@@ -48,7 +47,7 @@ public class StringToEnumTransformer implements MethodArgumentsTransformer, Prop
             Object arg = args[i];
             Class type = types[i].getTheClass();
             if (type.isEnum() && arg instanceof CharSequence) {
-                transformed[i] = toEnumValue(type, (CharSequence) arg);
+                transformed[i] = toEnumValue(type, arg);
             } else {
                 transformed[i] = args[i];
             }
@@ -70,17 +69,13 @@ public class StringToEnumTransformer implements MethodArgumentsTransformer, Prop
     public Object transformValue(Class<?> type, Object value) {
         if (value instanceof CharSequence && type.isEnum()) {
             @SuppressWarnings("unchecked") Class<? extends Enum> enumType = (Class<? extends Enum>) type;
-            return toEnumValue(enumType, (CharSequence) value);
+            return toEnumValue(enumType, value);
         }
 
         return value;
     }
 
-    static public <T extends Enum<T>> T toEnumValue(Class<T> enumType, CharSequence charSequence) {
-        return NotationParserBuilder
-                .builder(CharSequence.class, enumType)
-                .fromCharSequence(new EnumFromCharSequenceNotationParser<T>(enumType))
-                .toComposite()
-                .parseNotation(charSequence);
+    static public <T extends Enum<T>> T toEnumValue(Class<T> enumType, Object value) {
+        return GUtil.toEnum(enumType, value);
     }
 }
