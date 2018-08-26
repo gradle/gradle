@@ -28,6 +28,7 @@ dependencies {
     api(library("jsr305"))
     api(library("inject"))
 
+    implementation(project(":logging"))
     implementation(project(":native"))
     implementation(library("commons_io"))
 
