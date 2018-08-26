@@ -385,15 +385,11 @@ The `groupByInstance` property controls whether tests should be grouped by insta
 
 Note that you typically only have more than one instance of a test if you're using a data provider to parameterize it. Also, grouping tests by instances was introduced with TestNG version 6.1. Setting the `groupByInstances` property to `true` for an older TestNG version will cause the build to fail.
 
-=== Example: Grouping TestNG tests by instances
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/testing/testng/groupbyinstances/build.gradle[tag=test-config]
-----
-
-
+.Grouping TestNG tests by instances
+====
+include::sample[dir="testing/testng/groupbyinstances/groovy",files="build.gradle[tags=test-config]"]
+include::sample[dir="testing/testng/groupbyinstances/kotlin",files="build.gradle.kts[tags=test-config]"]
+====
 
 [[testNgParameterizedReporting]]
 === TestNG parameterized methods and reporting
