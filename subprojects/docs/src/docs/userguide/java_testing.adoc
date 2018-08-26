@@ -375,13 +375,11 @@ TestNG allows explicit control of the execution order of tests when you use a _t
 
 While preserving the order of tests is the default behavior when directly working with _testng.xml_ files, the https://jitpack.io/com/github/cbeust/testng/master/javadoc/org/testng/TestNG.html[TestNG API] that is used by Gradle's TestNG integration executes tests in unpredictable order by default.footnote:[The TestNG documentation contains more details about test ordering when working with `testng.xml` files: http://testng.org/doc/documentation-main.html#testng-xml[].] The ability to preserve test execution order was introduced with TestNG version 5.14.5. Setting the `preserveOrder` property to `true` for an older TestNG version will cause the build to fail.
 
-=== Example: Preserving order of TestNG tests
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/testing/testng/preserveorder/build.gradle[tag=test-config]
-----
+.Preserving order of TestNG tests
+====
+include::sample[dir="testing/testng/preserveorder/groovy",files="build.gradle[tags=test-config]"]
+include::sample[dir="testing/testng/preserveorder/kotlin",files="build.gradle.kts[tags=test-config]"]
+====
 
 The `groupByInstance` property controls whether tests should be grouped by instance rather than by class. The http://testng.org/doc/documentation-main.html#dependencies-with-annotations[TestNG documentation] explains the difference in more detail, but essentially, if you have a test method `A()` that depends on `B()`, grouping by instance ensures that each A-B pairing, e.g. `B(1)`-`A(1)`, is executed before the next pairing. With group by class, all `B()` methods are run and then all `A()` ones.
 
