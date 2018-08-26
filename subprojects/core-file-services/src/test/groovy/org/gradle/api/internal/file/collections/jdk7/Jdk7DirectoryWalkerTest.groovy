@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         setup:
         System.setProperty("file.encoding", fileEncoding)
         Charset.defaultCharset = null
-        def directoryWalkerFactory = directoryFileTreeFactory().create(tmpDir.createDir("root")).directoryWalkerFactory
+        def directoryWalkerFactory = org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory().create(tmpDir.createDir("root")).directoryWalkerFactory
         directoryWalkerFactory.reset()
         expect:
         directoryWalkerFactory.create().class.simpleName == expectedClassName

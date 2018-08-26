@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.file.collections.jdk7
 
-import com.google.api.client.repackaged.com.google.common.base.Throwables
+import com.google.common.base.Throwables
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTree
