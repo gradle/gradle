@@ -309,13 +309,11 @@ The JUnit Platform serves as a foundation for launching testing frameworks on th
 
 The following code enables JUnit Platform support in `build.gradle`:
 
-=== Example: Enabling JUnit Platform to run your tests
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/testing/junitplatform/jupiter/build.gradle[tag=enabling-junit-platform]
-----
+.Enabling JUnit Platform to run your tests
+====
+include::sample[dir="testing/junitplatform/jupiter/groovy",files="build.gradle[tags=enabling-junit-platform]"]
+include::sample[dir="testing/junitplatform/jupiter/kotlin",files="build.gradle.kts[tags=enabling-junit-platform]"]
+====
 
 See link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform[Test.useJUnitPlatform()] for more details.
 
@@ -329,13 +327,11 @@ There are some known limitations of using JUnit 5 with Gradle, for example that 
 
 To enable JUnit Jupiter support in Gradle, all you need to do is add the following dependencies:
 
-=== Example: JUnit Jupiter dependencies
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/testing/junitplatform/jupiter/build.gradle[tag=jupiter-dependencies]
-----
+.JUnit Jupiter dependencies
+====
+include::sample[dir="testing/junitplatform/jupiter/groovy",files="build.gradle[tags=jupiter-dependencies]"]
+include::sample[dir="testing/junitplatform/jupiter/kotlin",files="build.gradle.kts[tags=jupiter-dependencies]"]
+====
 
 You can then put your test cases into _src/test/java_ as normal and execute them with `gradle test`.
 

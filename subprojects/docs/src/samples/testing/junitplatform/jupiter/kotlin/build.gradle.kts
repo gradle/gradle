@@ -1,4 +1,6 @@
-apply plugin: 'java'
+plugins {
+    java
+}
 
 repositories {
     mavenCentral()
@@ -6,13 +8,13 @@ repositories {
 
 // tag::jupiter-dependencies[]
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.1.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.1.0'
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.1.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.1.0")
 }
 // end::jupiter-dependencies[]
 
 // tag::enabling-junit-platform[]
-test {
+tasks.getByName<Test>("test") {
     useJUnitPlatform()
 }
 // end::enabling-junit-platform[]
