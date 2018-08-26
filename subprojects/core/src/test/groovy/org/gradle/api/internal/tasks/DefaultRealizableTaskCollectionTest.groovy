@@ -24,7 +24,7 @@ import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import spock.lang.Specification
 
-class RealizableTaskCollectionTest extends Specification {
+class DefaultRealizableTaskCollectionTest extends Specification {
 
     def instantiator = DirectInstantiator.INSTANCE
     
@@ -40,7 +40,7 @@ class RealizableTaskCollectionTest extends Specification {
         }
 
         when:
-        new RealizableTaskCollection(realizableType, Mock(DefaultTaskCollection), registry.node(path), instantiator).realizeRuleTaskTypes()
+        new DefaultRealizableTaskCollection(realizableType, Mock(DefaultTaskCollection), registry.node(path), instantiator).realizeRuleTaskTypes()
 
         then:
         registry.state(taskPath) == ModelNode.State.GraphClosed
@@ -64,7 +64,7 @@ class RealizableTaskCollectionTest extends Specification {
         }
 
         when:
-        def collection = new RealizableTaskCollection(BasicTask, Mock(DefaultTaskCollection), registry.node(path), instantiator)
+        def collection = new DefaultRealizableTaskCollection(BasicTask, Mock(DefaultTaskCollection), registry.node(path), instantiator)
         collection.realizeRuleTaskTypes()
 
         then:
@@ -85,7 +85,7 @@ class RealizableTaskCollectionTest extends Specification {
 
 
         when:
-        RealizableTaskCollection collection = new RealizableTaskCollection(Class, Mock(TaskCollection), registry.node(path), instantiator)
+        DefaultRealizableTaskCollection collection = new DefaultRealizableTaskCollection(Class, Mock(TaskCollection), registry.node(path), instantiator)
         collection.realizeRuleTaskTypes()
         collection.realizeRuleTaskTypes()
 
