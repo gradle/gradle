@@ -18,7 +18,6 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Iterables;
-import groovy.lang.GString;
 import org.gradle.api.provider.Provider;
 import org.gradle.util.CollectionUtils;
 
@@ -385,7 +384,7 @@ public class Collectors {
 
     public static class IdentityValueCollector implements ValueCollector<Object> {
         @Override
-        public void add(Object value, Collection<Object> dest) {
+        public void add(@Nullable Object value, Collection<Object> dest) {
             dest.add(value);
         }
 
@@ -397,12 +396,9 @@ public class Collectors {
 
     public static class StringValueCollector implements ValueCollector<Object> {
         @Override
-        public void add(Object value, Collection<Object> dest) {
-            if (value instanceof GString) {
-                dest.add(value.toString());
-            } else {
-                dest.add(value);
-            }
+        public void add(@Nullable Object value, Collection<Object> dest) {
+            // Make sure we convert GStrings to Strings
+            dest.add(value == null ? null : value.toString());
         }
 
         @Override

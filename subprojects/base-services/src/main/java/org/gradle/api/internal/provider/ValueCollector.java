@@ -16,10 +16,11 @@
 
 package org.gradle.api.internal.provider;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 public interface ValueCollector<T> {
-    void add(T value, Collection<T> dest);
+    void add(@Nullable T value, Collection<T> dest);
 
     void addAll(Iterable<? extends T> values, Collection<T> dest);
 }

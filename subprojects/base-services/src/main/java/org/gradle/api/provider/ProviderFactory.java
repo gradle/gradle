@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Project;
 
 import java.util.concurrent.Callable;
 
@@ -40,7 +39,7 @@ import java.util.concurrent.Callable;
  * }
  * </pre>
  *
- * <p>An instance of the factory is also available using {@link Project#getProviders()}</p>
+ * <p>An instance of the factory is also available using {@link org.gradle.api.Project#getProviders()}</p>
  *
  * @since 4.0
  */
