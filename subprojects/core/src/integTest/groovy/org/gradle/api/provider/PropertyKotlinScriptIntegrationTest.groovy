@@ -18,19 +18,17 @@ package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.KotlinScriptIntegrationTest
 import org.gradle.util.Requires
-import spock.lang.Ignore
 
 import static PropertyStateProjectUnderTest.OUTPUT_FILE_CONTENT
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
-@Ignore("Fails on CI for unknown reason")
 @Requires(KOTLIN_SCRIPT)
 class PropertyKotlinScriptIntegrationTest extends KotlinScriptIntegrationTest {
 
     private final PropertyStateProjectUnderTest projectUnderTest = new PropertyStateProjectUnderTest(testDirectory)
 
-    def "can create and use property state in Kotlin-based build script"() {
+    def "can create and use property in Kotlin-based build script"() {
         given:
         withKotlinBuildSrc()
         file("buildSrc/src/main/kotlin/MyTask.kt") << """
