@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.resources;
-
+package org.gradle.api.internal.file.archive.compression
 
 import spock.lang.Specification
 
-public class URIBuilderTest extends Specification {
+class URIBuilderTest extends Specification {
 
     def "builds URIs"() {
         expect:

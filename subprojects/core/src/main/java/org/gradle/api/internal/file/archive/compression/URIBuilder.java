@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.resources;
+package org.gradle.api.internal.file.archive.compression;
 
 import org.gradle.util.GUtil;
 
