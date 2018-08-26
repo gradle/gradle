@@ -23,7 +23,7 @@ import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
 class ConfigureUtilTest extends Specification {
-    
+
     def doesNothingWhenNullClosureIsProvided() {
         given:
         def obj = []
@@ -33,7 +33,7 @@ class ConfigureUtilTest extends Specification {
         def action = ConfigureUtil.configureUsing(null)
         action.execute(obj)
         ConfigureUtil.configureSelf(null, obj)
-        
+
         then:
         obj.empty
     }
@@ -143,10 +143,10 @@ class ConfigureUtilTest extends Specification {
         e.type == Bean
         e.property == 'unknown'
     }
-    
+
     static class TestConfigurable implements Configurable {
         def props = [:]
-        
+
         TestConfigurable configure(Closure closure) {
             props.with(closure)
             this
@@ -189,7 +189,7 @@ class ConfigureUtilTest extends Specification {
         then:
         bean.prop == "foo"
     }
-    
+
 }
 
 class Bean {
