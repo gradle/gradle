@@ -216,13 +216,11 @@ In most cases, you'll work with the standard HTML report, which automatically in
 
 Unlike with many of the testing configuration options, there are several project-level <<java_plugin.adoc#sec:java_convention_properties,convention properties that affect the test reports>>. For example, you can change the destination of the test results and reports like so:
 
-=== Example: Changing the default test report and results directories
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/java/customDirs/build.gradle[tag=custom-report-dirs]
-----
+.Changing the default test report and results directories
+====
+include::sample[dir="userguide/java/customDirs/groovy",files="build.gradle[tags=custom-report-dirs]"]
+include::sample[dir="userguide/java/customDirs/kotlin",files="build.gradle.kts[tags=custom-report-dirs]"]
+====
 
 .Output of **`gradle -q showDirs`**
 ----
