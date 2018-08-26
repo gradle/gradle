@@ -234,13 +234,11 @@ Follow the link to the convention properties for more details.
 
 There is also a standalone link:{groovyDslPath}/org.gradle.api.tasks.testing.TestReport.html[TestReport] task type that you can use to generate a custom HTML test report. All it requires are a value for `destinationDir` and the test results you want included in the report. Here is a sample which generates a combined report for the unit tests from all subprojects:
 
-=== Example: Creating a unit test report for subprojects
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/testing/testReport/build.gradle[tag=test-report]
-----
+.Creating a unit test report for subprojects
+====
+include::sample[dir="testing/testReport/groovy",files="build.gradle[tags=test-report]"]
+include::sample[dir="testing/testReport/kotlin",files="build.gradle.kts[tags=test-report]"]
+====
 
 You should note that the `TestReport` type combines the results from multiple test tasks and needs to aggregate the results of individual test classes. This means that if a given test class is executed by multiple test tasks, then the test report will include executions of that class, but it can be hard to distinguish individual executions of that class and their output.
 
