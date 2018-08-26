@@ -1,26 +1,24 @@
 // tag::use-plugin[]
-apply plugin: 'announce'
+plugins {
+    announce
+}
 // end::use-plugin[]
-// tag::use-build-announcements-plugin[]
-apply plugin: 'build-announcements'
-// end::use-build-announcements-plugin[]
 
 // tag::announce-plugin-conf[]
 announce {
-  username = 'myId'
-  password = 'myPassword'
+    username = "myId"
+    password = "myPassword"
 }
 // end::announce-plugin-conf[]
 
-
 // tag::announce-usage[]
-task helloWorld {
+task("helloWorld") {
     doLast {
-        println "Hello, world!"
+        println("Hello, world!")
     }
 }
 
-helloWorld.doLast {
+tasks.getByName("helloWorld").doLast {
     announce.announce("helloWorld completed!", "twitter")
     announce.announce("helloWorld completed!", "local")
 }
