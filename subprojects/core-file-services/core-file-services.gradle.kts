@@ -38,7 +38,7 @@ dependencies {
 
 java {
     gradlebuildJava {
-        moduleType = ModuleType.REQUIRES_JAVA_9_COMPILER
+        moduleType = ModuleType.ENTRY_POINT
     }
 }
 
