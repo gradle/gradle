@@ -18,7 +18,6 @@ package org.gradle.performance.results;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.internal.util.ClassUtils;
 import org.gradle.performance.results.HtmlPageGenerator.NavigationItem;
 import org.gradle.util.GFileUtils;
 
@@ -31,7 +30,7 @@ public class ReportGenerator {
     public static void main(String... args) throws Exception {
         Class<?> resultStoreClass = Class.forName(args[0]);
         File outputDirectory = new File(args[1]);
-        ResultsStore resultStore = (ResultsStore) ClassUtils.newInstance(resultStoreClass);
+        ResultsStore resultStore = (ResultsStore) resultStoreClass.getConstructor().newInstance();
         try {
             new ReportGenerator().generate(resultStore, outputDirectory);
         } finally {

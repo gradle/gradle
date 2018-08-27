@@ -44,7 +44,7 @@ import org.gradle.internal.resource.TextResource
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
-import org.gradle.internal.util.ClassUtils
+import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -126,7 +126,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         then:
         compiledScript.runDoesSomething
         compiledScript.data == null
-        Script script = ClassUtils.newInstance(compiledScript.loadClass())
+        Script script = JavaReflectionUtil.newInstance(compiledScript.loadClass())
         evaluateScript(script)
     }
 
@@ -210,7 +210,7 @@ println 'hi'
         compiledScript.data == null
 
         and:
-        Script script = ClassUtils.newInstance(compiledScript.loadClass())
+        Script script = JavaReflectionUtil.newInstance(compiledScript.loadClass())
         expectedScriptClass.isInstance(script)
         script.method(12) == "[12]"
     }
@@ -328,7 +328,7 @@ println 'hi'
         compiledScript.runDoesSomething
         !compiledScript.hasMethods
         compiledScript.data == "extracted data"
-        def script = ClassUtils.newInstance(compiledScript.loadClass())
+        def script = JavaReflectionUtil.newInstance(compiledScript.loadClass())
         evaluateScript(script)
     }
 

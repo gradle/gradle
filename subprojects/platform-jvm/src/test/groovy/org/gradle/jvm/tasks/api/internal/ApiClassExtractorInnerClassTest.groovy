@@ -22,6 +22,8 @@ import spock.lang.Unroll
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Modifier
 
+import static org.gradle.internal.reflect.JavaReflectionUtil.newInstance
+
 class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
 
     private final static int ACC_PUBLICSTATIC = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC
@@ -67,12 +69,6 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
         'public static'    | ACC_PUBLICSTATIC
         'protected static' | ACC_PROTECTEDSTATIC
         'static'           | Opcodes.ACC_STATIC
-    }
-
-    def newInstance(Class aClass) {
-        def constructor = aClass.getDeclaredConstructor()
-        constructor.setAccessible(true)
-        constructor.newInstance()
     }
 
     @Unroll

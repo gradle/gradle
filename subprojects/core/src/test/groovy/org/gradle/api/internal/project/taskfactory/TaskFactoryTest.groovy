@@ -25,7 +25,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.tasks.TaskInstantiationException
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.api.reflect.ObjectInstantiationException
-import org.gradle.internal.util.ClassUtils
+import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class TaskFactoryTest extends AbstractProjectBuilderSpec {
@@ -36,7 +36,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
     def setup() {
         taskFactory = new TaskFactory(generator).createChild(project, instantiator)
         _ * generator.generate(_) >> { Class type -> type }
-        _ * instantiator.newInstance(_) >> { args -> ClassUtils.newInstance(args[0]) }
+        _ * instantiator.newInstance(_) >> { args -> JavaReflectionUtil.newInstance(args[0]) }
     }
 
     public void injectsProjectAndNameIntoTask() {

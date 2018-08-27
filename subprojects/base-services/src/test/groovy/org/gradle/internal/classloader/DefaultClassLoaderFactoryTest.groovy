@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.classloader
 
-import org.gradle.internal.util.ClassUtils
 import spock.lang.Specification
 
 class DefaultClassLoaderFactoryTest extends Specification {
@@ -61,7 +60,7 @@ class DefaultClassLoaderFactoryTest extends Specification {
 
         when:
         Thread.currentThread().contextClassLoader = cl
-        ClassUtils.newInstance(c).doStuff()
+        c.getConstructor().newInstance().doStuff()
 
         then:
         notThrown()

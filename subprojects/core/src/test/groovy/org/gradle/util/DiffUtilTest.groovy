@@ -16,7 +16,7 @@
 package org.gradle.util
 
 import org.gradle.internal.concurrent.CompositeStoppable
-import org.gradle.internal.util.ClassUtils
+import org.gradle.internal.reflect.JavaReflectionUtil
 import spock.lang.Specification
 
 class DiffUtilTest extends Specification {
@@ -140,8 +140,8 @@ class DiffUtilTest extends Specification {
 
             assert clazz1 != clazz2
 
-            Object o1 = ClassUtils.newInstance(clazz1)
-            Object o2 = ClassUtils.newInstance(clazz2)
+            Object o1 = JavaReflectionUtil.newInstance(clazz1)
+            Object o2 = JavaReflectionUtil.newInstance(clazz2)
 
             expect:
             o1 != o2

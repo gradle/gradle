@@ -16,7 +16,6 @@
 
 package org.gradle.process.internal.worker.child;
 
-import org.gradle.internal.util.ClassUtils;
 import org.gradle.process.internal.streams.EncodedStream;
 
 import java.io.DataInputStream;
@@ -87,7 +86,7 @@ public class BootstrapSecurityManager extends SecurityManager {
             SecurityManager securityManager;
             try {
                 Class<?> aClass = systemClassLoader.loadClass(securityManagerType);
-                securityManager = (SecurityManager) ClassUtils.newInstance(aClass);
+                securityManager = (SecurityManager) aClass.getConstructor().newInstance();
             } catch (Exception e) {
                 throw new RuntimeException("Could not create an instance of '" + securityManagerType + "' specified for system SecurityManager.", e);
             }

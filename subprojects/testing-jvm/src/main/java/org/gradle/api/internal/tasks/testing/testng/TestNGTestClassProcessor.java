@@ -27,7 +27,6 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.NoSuchMethodException;
 import org.gradle.internal.time.Clock;
-import org.gradle.internal.util.ClassUtils;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 import org.testng.IMethodInstance;
@@ -121,7 +120,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         //this way, custom listeners are more powerful and, for example, they can change test status.
         for (String listenerClass : options.getListeners()) {
             try {
-                testNg.addListener(ClassUtils.newInstance(applicationClassLoader.loadClass(listenerClass)));
+                testNg.addListener(JavaReflectionUtil.newInstance(applicationClassLoader.loadClass(listenerClass)));
             } catch (Throwable e) {
                 throw new GradleException(String.format("Could not add a test listener with class '%s'.", listenerClass), e);
             }

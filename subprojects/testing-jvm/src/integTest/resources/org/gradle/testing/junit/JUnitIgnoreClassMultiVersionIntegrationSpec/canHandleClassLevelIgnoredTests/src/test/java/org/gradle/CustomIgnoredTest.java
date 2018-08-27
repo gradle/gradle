@@ -1,6 +1,6 @@
 package org.gradle;
 
-import org.gradle.internal.util.ClassUtils;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.junit.Ignore;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;

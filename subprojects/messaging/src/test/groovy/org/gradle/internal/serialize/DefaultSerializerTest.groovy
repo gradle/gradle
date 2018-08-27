@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.serialize
 
-import org.gradle.internal.util.ClassUtils
+import org.gradle.internal.reflect.JavaReflectionUtil
 
 class DefaultSerializerTest extends SerializerSpec {
     def canSerializeAndDeserializeObject() {
@@ -23,7 +23,7 @@ class DefaultSerializerTest extends SerializerSpec {
         DefaultSerializer serializer = new DefaultSerializer(classLoader)
 
         Class cl = classLoader.parseClass('package org.gradle.cache; class TestObj implements Serializable { }')
-        Object o = ClassUtils.newInstance(cl)
+        Object o = JavaReflectionUtil.newInstance(cl)
 
         when:
         def r = serialize(o, serializer)

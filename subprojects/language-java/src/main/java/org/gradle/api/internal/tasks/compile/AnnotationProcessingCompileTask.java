@@ -26,7 +26,7 @@ import org.gradle.api.internal.tasks.compile.processing.NonIncrementalProcessor;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.util.ClassUtils;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import javax.annotation.processing.Processor;
 import javax.tools.JavaCompiler;
@@ -98,7 +98,7 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
         List<Processor> processors = new ArrayList<Processor>(processorDeclarations.size());
         for (AnnotationProcessorDeclaration declaredProcessor : processorDeclarations) {
             Class<?> processorClass = loadProcessor(declaredProcessor);
-            Processor processor = instantiateProcessor(processorClass);
+            Processor processor = (Processor) JavaReflectionUtil.newInstance(processorClass);
             processor = decorateForIncrementalProcessing(processor, declaredProcessor.getType());
             processors.add(processor);
         }
@@ -130,14 +130,6 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
             return processorClassloader.loadClass(declaredProcessor.getClassName());
         } catch (ClassNotFoundException e) {
             throw new IllegalArgumentException("Annotation processor '" + declaredProcessor.getClassName() + "' not found");
-        }
-    }
-
-    private Processor instantiateProcessor(Class<?> processorClass) {
-        try {
-            return (Processor) ClassUtils.newInstance(processorClass);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Could not instantiate annotation processor '" + processorClass.getName() + "'");
         }
     }
 
