@@ -109,18 +109,16 @@ include::sample[dir="userguide/ant/useExternalAntTaskWithConfig/kotlin",files="b
 
 You can use the `ant.importBuild()` method to import an Ant build into your Gradle project. When you import an Ant build, each Ant target is treated as a Gradle task. This means you can manipulate and execute the Ant targets in exactly the same way as Gradle tasks.
 
-=== Example: Importing an Ant build
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/ant/hello/build.gradle[]
-----
+.Importing an Ant build
+====
+include::sample[dir="userguide/ant/hello/groovy",files="build.gradle"]
+include::sample[dir="userguide/ant/hello/kotlin",files="build.gradle.kts"]
+====
 
 [source,xml]
 .build.xml
 ----
-include::{samplesPath}/userguide/ant/hello/build.xml[]
+include::{samplesPath}/userguide/ant/hello/groovy/build.xml[]
 ----
 
 .Output of `gradle hello`
