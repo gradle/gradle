@@ -13,7 +13,7 @@ dependencies {
 // tag::test-config[]
 tasks.getByName<Test>("test") {
     useTestNG {
-        (this as TestNGOptions).preserveOrder = true
+        preserveOrder = true
     }
 }
 // end::test-config[]
