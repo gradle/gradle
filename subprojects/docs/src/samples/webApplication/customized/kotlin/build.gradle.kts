@@ -11,7 +11,7 @@ group = "gradle"
 version = "1.0"
 
 // tag::customization[]
-val moreLibs by configurations.creating
+val moreLibs = configurations.create("moreLibs")
 
 repositories {
     flatDir { dir("lib") }
