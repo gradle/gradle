@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import org.gradle.build.ReproduciblePropertiesWriter
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import java.util.Properties
 
 dependencies {
@@ -45,10 +44,6 @@ dependencies {
     implementation(project(":dependencyManagement"))
 
     runtime(project(":logging"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
 }
 
 testFixtures {

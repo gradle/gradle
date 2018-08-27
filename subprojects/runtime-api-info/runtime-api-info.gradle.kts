@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 import org.gradle.api.internal.runtimeshaded.PackageListGenerator
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 val runtimeShadedPath = "$buildDir/runtime-api-info"
 
 dependencies {
     compile(project(":distributionsDependencies"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
 }
 
 val generateGradleApiPackageList = tasks.register<PackageListGenerator>("generateGradleApiPackageList") {

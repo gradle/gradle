@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import accessors.*
 
 plugins {
@@ -49,10 +48,6 @@ dependencies {
     flamegraph("com.github.oehme:jfr-flame-graph:v0.0.10:all")
 
     runtime("com.h2database:h2:1.4.192")
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
 }
 
 val generatedResourcesDir = gradlebuildJava.generatedResourcesDir

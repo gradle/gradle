@@ -1,5 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2011 the original author or authors.
  *
@@ -43,10 +41,6 @@ dependencies {
     integTestRuntime(project(":toolingApiBuilders"))
 
     css(project(":docs"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.PLUGIN
 }
 
 testFixtures {

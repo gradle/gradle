@@ -1,4 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /**
  * Logging infrastructure.
@@ -27,10 +26,6 @@ dependencies {
     runtimeOnly libraries.jcl_to_slf4j.coordinates
 
     testImplementation project(":internalTesting")
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

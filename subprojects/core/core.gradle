@@ -1,6 +1,4 @@
 import org.gradle.gradlebuild.ProjectGroups
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -83,10 +81,6 @@ dependencies {
 
     integTestRuntimeOnly project(':maven')
     integTestRuntimeOnly project(':apiMetadata')
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

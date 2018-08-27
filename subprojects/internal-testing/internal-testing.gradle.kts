@@ -1,5 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -39,10 +37,6 @@ dependencies {
     testLibraries("jmock").forEach { compile(it) }
     compile(testLibrary("spock"))
     compile(testLibrary("jsoup"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
 }
 
 ideConfiguration {

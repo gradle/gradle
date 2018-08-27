@@ -20,7 +20,6 @@ import accessors.java
 import availableJavaInstallations
 import library
 import maxParallelForks
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
 import org.gradle.api.Named
 import org.gradle.api.Plugin
@@ -45,16 +44,8 @@ import testLibrary
 import java.util.jar.Attributes
 
 
-enum class ModuleType(val source: JavaVersion, val target: JavaVersion) {
-    UNDEFINED(JavaVersion.VERSION_1_1, JavaVersion.VERSION_1_1),
-    ENTRY_POINT(JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6),
-    WORKER(JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6),
-    CORE(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
-    PLUGIN(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
-    INTERNAL(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
-    REQUIRES_JAVA_8(JavaVersion.VERSION_1_8, JavaVersion.VERSION_1_8),
-    REQUIRES_JAVA_9_COMPILER(JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6);
-}
+private
+val targetVersion = JavaVersion.VERSION_1_6
 
 
 class UnitTestAndCompilePlugin : Plugin<Project> {
@@ -76,6 +67,10 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         afterEvaluate {
             val availableJavaInstallations = rootProject.the<AvailableJavaInstallations>()
 
+            tasks.withType<JavaCompile>().configureEach {
+                sourceCompatibility = targetVersion.toString()
+                targetCompatibility = targetVersion.toString()
+            }
             tasks.withType<JavaCompile>().configureEach {
                 options.isIncremental = true
                 configureCompileTask(this, options, availableJavaInstallations)
@@ -212,20 +207,6 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 open class UnitTestAndCompileExtension(val project: Project) {
     val generatedResourcesDir = project.file("${project.buildDir}/generated-resources/main")
     val generatedTestResourcesDir = project.file("${project.buildDir}/generated-resources/test")
-    var moduleType: ModuleType = ModuleType.UNDEFINED
-        set(value) {
-            field = value
-            project.java.targetCompatibility = moduleType.target
-            project.java.sourceCompatibility = moduleType.source
-        }
-
-    init {
-        project.afterEvaluate {
-            if (this@UnitTestAndCompileExtension.moduleType == ModuleType.UNDEFINED) {
-                throw InvalidUserDataException("gradlebuild.moduletype must be set for project $project")
-            }
-        }
-    }
 }
 
 

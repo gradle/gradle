@@ -1,5 +1,4 @@
 import org.gradle.build.GradleStartScriptGenerator
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     id 'gradlebuild.classycle'
@@ -43,10 +42,6 @@ if(rootProject.availableJavaInstallations.currentJavaInstallation.javaVersion.ja
     dependencies {
         integTestCompileOnly files(rootProject.availableJavaInstallations.currentJavaInstallation.toolsJar)
     }
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

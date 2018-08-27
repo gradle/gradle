@@ -1,4 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
  * Copyright 2010 the original author or authors.
@@ -23,10 +22,6 @@ dependencies {
     compile project(":cli")
 
     testCompile libraries.ant.coordinates
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

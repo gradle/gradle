@@ -15,7 +15,6 @@
  */
 
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
@@ -47,10 +46,6 @@ dependencies {
     integTestRuntimeOnly(project(":apiMetadata"))
 
     testFixturesImplementation(project(":internalIntegTesting"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.PLUGIN
 }
 
 testFixtures {

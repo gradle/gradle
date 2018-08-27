@@ -1,5 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -24,10 +22,6 @@ dependencies {
     compileOnly("antlr:antlr:2.7.7")
 
     compile(library("slf4j_api"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.PLUGIN
 }
 
 testFixtures {

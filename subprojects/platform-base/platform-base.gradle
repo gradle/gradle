@@ -1,4 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     id 'gradlebuild.strict-compile'
@@ -12,10 +11,6 @@ dependencies {
     compile libraries.commons_collections.coordinates
     compile libraries.commons_lang.coordinates
     testFixturesCompile project(path: ':modelCore', configuration: 'testFixturesUsageRuntime')
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.WORKER
 }
 
 testFixtures {

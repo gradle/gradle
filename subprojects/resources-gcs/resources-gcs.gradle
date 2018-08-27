@@ -1,4 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     id 'gradlebuild.strict-compile'
@@ -14,10 +13,6 @@ dependencies {
     compile libraries.gcs.coordinates, libraries.commons_httpclient.coordinates, libraries.joda.coordinates
     compile libraries.commons_lang.coordinates
     testCompile libraries.groovy.coordinates
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.PLUGIN
 }
 
 testFixtures {

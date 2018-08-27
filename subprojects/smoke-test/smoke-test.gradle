@@ -1,5 +1,4 @@
 import org.gradle.gradlebuild.BuildEnvironment
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.gradlebuild.test.integrationtests.SmokeTest
 
 sourceSets {
@@ -28,10 +27,6 @@ dependencies {
     smokeTestRuntimeOnly project(':maven')
     smokeTestRuntimeOnly project(':plugins')
     smokeTestRuntimeOnly project(':toolingApiBuilders')
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
 }
 
 testFixtures {

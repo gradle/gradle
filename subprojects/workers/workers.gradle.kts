@@ -1,4 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     id("gradlebuild.classycle")
@@ -9,10 +8,6 @@ dependencies {
     compile(library("jcip"))
 
     integTestCompile(project(":internalIntegTesting"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

@@ -1,4 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
  * A set of general-purpose resource abstractions.
@@ -18,10 +17,6 @@ dependencies {
     implementation libraries.commons_io.coordinates
 
     integTestImplementation project(':internalIntegTesting')
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

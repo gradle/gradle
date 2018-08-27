@@ -15,7 +15,6 @@
  */
 
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 dependencies {
     compile(project(":core"))
@@ -26,10 +25,6 @@ dependencies {
     integTestRuntime(project(":ide"))
     integTestRuntime(project(":pluginDevelopment"))
     integTestRuntime(project(":testKit"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }
 
 testFixtures {

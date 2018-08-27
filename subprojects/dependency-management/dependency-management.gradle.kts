@@ -16,8 +16,6 @@
 
 import org.gradle.build.ClasspathManifest
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
     `java-library`
 }
@@ -54,10 +52,6 @@ dependencies {
 
     testFixturesCompile(project(":resourcesHttp", "testFixturesUsageCompile"))
     testFixturesImplementation(project(":internalIntegTesting"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }
 
 testFixtures {

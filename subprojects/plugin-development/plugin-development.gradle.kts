@@ -15,7 +15,6 @@
  */
 
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     id("gradlebuild.strict-compile")
@@ -35,10 +34,6 @@ dependencies {
     integTestRuntime(project(":toolingApiBuilders"))
 }
 
-
-gradlebuildJava {
-    moduleType = ModuleType.PLUGIN
-}
 
 testFixtures {
     from(":core")

@@ -27,7 +27,6 @@ import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.ProjectGroups
 import org.gradle.gradlebuild.PublicApi
 import org.gradle.gradlebuild.docs.PegDown
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     id 'base'
@@ -77,10 +76,6 @@ dependencies {
     testCompile libraries.commons_httpclient.coordinates
     testCompile "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
     testCompile project(":core")
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.PLUGIN
 }
 
 ext {

@@ -1,4 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /**
  * Process execution abstractions.
@@ -16,10 +15,6 @@ dependencies {
     implementation libraries.slf4j_api.coordinates
 }
 
-
-gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
-}
 
 testFixtures {
     from(':core')

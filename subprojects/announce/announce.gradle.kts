@@ -1,5 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -22,12 +20,6 @@ dependencies {
     compile(project(":core"))
     testRuntime(project(":plugins"))
 }
-
-gradlebuildJava {
-    moduleType = ModuleType.PLUGIN
-
-}
-
 
 testFixtures {
     from(":core")

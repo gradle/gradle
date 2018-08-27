@@ -20,7 +20,6 @@ import org.gradle.build.BuildReceipt
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.packaging.ShadedJarExtension
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.plugins.ide.eclipse.model.Classpath
 import org.gradle.plugins.ide.eclipse.model.SourceFolder
 
@@ -59,10 +58,6 @@ dependencies {
     crossVersionTestRuntime(project(":ivy"))
     crossVersionTestRuntime(project(":maven"))
     crossVersionTestRuntimeOnly(project(":apiMetadata"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {
