@@ -193,6 +193,7 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
 
     private void configureSchema() {
         attributesSchema.attribute(ARTIFACT_FORMAT);
+        PlatformSupport.configureSchema(attributesSchema);
     }
 
     @Override
@@ -228,7 +229,7 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
         if (platformDependency instanceof ExternalModuleDependency) {
             ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) platformDependency;
             externalModuleDependency.setForce(true);
-            PlatformSupport.addEnforcedPlatformRule(getComponents(), externalModuleDependency.getModule(), externalModuleDependency.getVersion());
+            PlatformSupport.addPlatformAttribute(externalModuleDependency, PlatformSupport.ENFORCED_PLATFORM);
         }
         return platformDependency;
     }

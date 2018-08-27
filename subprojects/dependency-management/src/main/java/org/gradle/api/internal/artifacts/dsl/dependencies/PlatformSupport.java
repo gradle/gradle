@@ -16,47 +16,49 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ComponentMetadataDetails;
-import org.gradle.api.artifacts.DependenciesMetadata;
-import org.gradle.api.artifacts.DependencyMetadata;
-import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.VariantMetadata;
-import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
-import org.gradle.api.internal.artifacts.repositories.resolver.AbstractDependencyMetadataAdapter;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.AttributeDisambiguationRule;
+import org.gradle.api.attributes.AttributeMatchingStrategy;
+import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.attributes.HasConfigurableAttributes;
+import org.gradle.api.attributes.MultipleCandidatesDetails;
 
-abstract class PlatformSupport {
-    static void addEnforcedPlatformRule(ComponentMetadataHandler components, final ModuleIdentifier module, final String version) {
-        components.withModule(module, new Action<ComponentMetadataDetails>() {
+import java.util.Set;
+
+public abstract class PlatformSupport {
+    public static final Attribute<String> COMPONENT_CATEGORY = Attribute.of("org.gradle.component.category", String.class);
+    public static final String LIBRARY = "library";
+    public static final String REGULAR_PLATFORM = "platform";
+    public static final String ENFORCED_PLATFORM = "enforced-platform";
+
+    public static void configureSchema(AttributesSchema attributesSchema) {
+        AttributeMatchingStrategy<String> componentTypeMatchingStrategy = attributesSchema.attribute(PlatformSupport.COMPONENT_CATEGORY);
+        componentTypeMatchingStrategy.getDisambiguationRules().add(PlatformSupport.ComponentCategoryDisambiguationRule.class);
+    }
+
+    static <T> void addPlatformAttribute(HasConfigurableAttributes<T> dependency, final String type) {
+        dependency.attributes(new Action<AttributeContainer>() {
             @Override
-            public void execute(ComponentMetadataDetails componentMetadataDetails) {
-                if (componentMetadataDetails.getId().getVersion().equals(version)) {
-                    componentMetadataDetails.allVariants(new ForceDirectDependenciesAction());
-                }
+            public void execute(AttributeContainer attributeContainer) {
+                attributeContainer.attribute(COMPONENT_CATEGORY, type);
             }
         });
     }
 
-    private static class ForceDirectDependenciesAction implements Action<VariantMetadata> {
-
-        private  <T extends DependencyMetadata> void forceAll(DependenciesMetadata<T> dependencies) {
-            for (T dependency : dependencies) {
-                if (dependency instanceof AbstractDependencyMetadataAdapter) {
-                    ((AbstractDependencyMetadataAdapter) dependency).forced();
+    public static class ComponentCategoryDisambiguationRule implements AttributeDisambiguationRule<String> {
+        @Override
+        public void execute(MultipleCandidatesDetails<String> details) {
+            String consumerValue = details.getConsumerValue();
+            Set<String> candidateValues = details.getCandidateValues();
+            if (consumerValue == null) {
+                // consumer expressed no preference, defaults to library
+                if (candidateValues.contains(LIBRARY)) {
+                    details.closestMatch(LIBRARY);
+                    return;
                 }
             }
         }
 
-        private final Action<DependenciesMetadata<?>> forceDependencies = new Action<DependenciesMetadata<?>>() {
-            @Override
-            public void execute(DependenciesMetadata<?> dependencies) {
-                forceAll(dependencies);
-            }
-        };
-
-        @Override
-        public void execute(VariantMetadata variantMetadata) {
-            variantMetadata.withDependencies(forceDependencies);
-            variantMetadata.withDependencyConstraints(forceDependencies);
-        }
     }
 }

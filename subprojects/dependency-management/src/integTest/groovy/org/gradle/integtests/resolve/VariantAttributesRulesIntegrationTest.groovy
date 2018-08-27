@@ -206,6 +206,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                                 if (GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
                                     // when experimental resolve is on, the "compile" configuration is mapped to the "java-api" usage
                                     expectedAttributes['org.gradle.usage'] = 'java-api'
+                                    expectedAttributes['org.gradle.component.category'] = 'library'
                                 }
                             }
                         }
