@@ -54,13 +54,11 @@ It's also worth bearing in mind that the `test` source set automatically creates
 
 All you need to do in most cases is configure the appropriate compilation and runtime dependencies and add any necessary configuration to the `test` task. The following example shows a simple setup that uses JUnit 4.x and changes the maximum heap size for the tests' JVM to 1 gigabyte:
 
-=== Example: A basic configuration for the 'test' task
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/java/basic/build.gradle[tag=java-basic-test-config]
-----
+.A basic configuration for the 'test' task
+====
+include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=java-basic-test-config]"]
+include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=java-basic-test-config]"]
+====
 
 The link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task has many generic configuration options as well as several framework-specific ones that you can find described in link:{javadocPath}/org/gradle/api/tasks/testing/junit/JUnitOptions.html[JUnitOptions], link:{javadocPath}/org/gradle/api/tasks/testing/junitplatform/JUnitPlatformOptions.html[JUnitPlatformOptions] and link:{javadocPath}/org/gradle/api/tasks/testing/testng/TestNGOptions.html[TestNGOptions]. We cover a significant number of them in the rest of the chapter.
 
@@ -218,13 +216,11 @@ In most cases, you'll work with the standard HTML report, which automatically in
 
 Unlike with many of the testing configuration options, there are several project-level <<java_plugin.adoc#sec:java_convention_properties,convention properties that affect the test reports>>. For example, you can change the destination of the test results and reports like so:
 
-=== Example: Changing the default test report and results directories
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/java/customDirs/build.gradle[tag=custom-report-dirs]
-----
+.Changing the default test report and results directories
+====
+include::sample[dir="userguide/java/customDirs/groovy",files="build.gradle[tags=custom-report-dirs]"]
+include::sample[dir="userguide/java/customDirs/kotlin",files="build.gradle.kts[tags=custom-report-dirs]"]
+====
 
 .Output of **`gradle -q showDirs`**
 ----
@@ -439,13 +435,11 @@ You may also need to perform some additional configuration depending on what for
 
 Let's start with a practical example that implements the first three steps in a build script, centered around a new source set `intTest`:
 
-=== Example: Setting up working integration tests
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/java/basic/build.gradle[tag=practical-integ-test-source-set]
-----
+.Setting up working integration tests
+====
+include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=practical-integ-test-source-set]"]
+include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=practical-integ-test-source-set]"]
+====
 
 This will set up a new source set called `intTest` that automatically creates:
 
@@ -469,13 +463,11 @@ There are a couple of other facets of the example you should take note of:
 
 Creating and configuring a source set automatically sets up the compilation stage, but it does nothing with respect to running the integration tests. So the last piece of the puzzle is a custom test task that uses the information from the new source set to configure its runtime classpath and the test classes:
 
-=== Example: Defining a working integration test task
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/java/basic/build.gradle[tag=integ-test-task]
-----
+.Defining a working integration test task
+====
+include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=integ-test-task]"]
+include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=integ-test-task]"]
+====
 
 Again, we're accessing a source set to get the relevant information, i.e. where the compiled test classes are — the `testClassesDir` property — and what needs to be on the classpath when running them — `classpath`.
 
@@ -492,13 +484,11 @@ This excludes the `test` task and any other task that it _exclusively_ depends o
 
 Skipping a test via the build script can be done a few ways. One common approach is to make test execution conditional via the link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:onlyIf(org.gradle.api.specs.Spec)[Task.onlyIf(org.gradle.api.specs.Spec)] method. The following sample skips the `test` task if the project has a property called `mySkipTests`:
 
-=== Example: Skipping the unit tests based on a project property
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/java/basic/build.gradle[tag=skip-tests-condition]
-----
+.Skipping the unit tests based on a project property
+====
+include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=skip-tests-condition]"]
+include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=skip-tests-condition]"]
+====
 
 In this case, Gradle will mark the skipped tests as "SKIPPED" rather than exclude them from the build.
 
