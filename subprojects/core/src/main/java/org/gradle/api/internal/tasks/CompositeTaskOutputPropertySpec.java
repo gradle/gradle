@@ -23,7 +23,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionVisitor;
+import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
@@ -82,14 +82,14 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
             final List<File> roots = Lists.newArrayList();
             final MutableBoolean nonFileRoot = new MutableBoolean();
             FileCollectionInternal outputFileCollection = resolver.resolveFiles(unpackedPaths);
-            outputFileCollection.visitRootElements(new FileCollectionVisitor() {
+            outputFileCollection.visitLeafCollections(new FileCollectionLeafVisitor() {
                 @Override
                 public void visitCollection(FileCollectionInternal fileCollection) {
                     Iterables.addAll(roots, fileCollection);
                 }
 
                 @Override
-                public void visitTree(FileTreeInternal fileTree) {
+                public void visitGenericFileTree(FileTreeInternal fileTree) {
                     nonFileRoot.set(true);
                 }
 

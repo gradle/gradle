@@ -229,7 +229,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     @Override
-    public void visitRootElements(FileCollectionVisitor visitor) {
+    public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
         visitor.visitCollection(this);
     }
 

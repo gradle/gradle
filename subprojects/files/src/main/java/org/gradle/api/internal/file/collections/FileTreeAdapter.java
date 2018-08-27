@@ -19,7 +19,7 @@ import org.gradle.api.Buildable;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.AbstractFileTree;
-import org.gradle.api.internal.file.FileCollectionVisitor;
+import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskDependency;
@@ -119,12 +119,12 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
     }
 
     @Override
-    public void visitRootElements(FileCollectionVisitor visitor) {
+    public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
         if (tree instanceof DirectoryFileTree) {
             DirectoryFileTree directoryFileTree = (DirectoryFileTree) tree;
             visitor.visitDirectoryTree(directoryFileTree);
         } else {
-            visitor.visitTree(this);
+            visitor.visitGenericFileTree(this);
         }
     }
 
