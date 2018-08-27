@@ -1,8 +1,13 @@
 import org.gradle.gradlebuild.ProjectGroups.javaProjects
 import org.gradle.gradlebuild.PublicApi
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     id("gradlebuild.api-metadata")
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.INTERNAL
 }
 
 apiMetadata {

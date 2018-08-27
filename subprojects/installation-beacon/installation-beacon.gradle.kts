@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2016 the original author or authors.
  *
@@ -18,4 +20,8 @@
 dependencies {
     //import dependency constraints
     compile(project(":distributionsDependencies"))
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.CORE
 }

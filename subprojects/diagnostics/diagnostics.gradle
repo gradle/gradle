@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2012 the original author or authors.
  *
@@ -42,6 +44,11 @@ testFixtures {
     from(':platformNative', 'testFixtures')
     from(':logging')
 }
+
+gradlebuildJava {
+    moduleType = ModuleType.WORKER
+}
+
 
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 testFilesCleanup {

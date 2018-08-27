@@ -1,3 +1,4 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     id("gradlebuild.strict-compile")
@@ -10,6 +11,10 @@ dependencies {
     compile(project(":launcher"))
     compile(project(":toolingApi"))
     compile(project(":compositeBuilds"))
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.CORE
 }
 
 strictCompile {

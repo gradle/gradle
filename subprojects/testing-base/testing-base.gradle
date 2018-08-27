@@ -1,3 +1,4 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
  * Copyright 2015 the original author or authors.
@@ -23,6 +24,10 @@ dependencies {
     implementation libraries.kryo.coordinates
 
     testFixturesCompile project(':internalIntegTesting')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.WORKER
 }
 
 testFixtures {

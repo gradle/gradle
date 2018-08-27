@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
     id 'gradlebuild.classycle'
 }
@@ -20,6 +22,10 @@ dependencies {
     crossVersionTestCompile project(':signing')
 
     crossVersionTestRuntime allTestRuntimeDependencies
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.INTERNAL
 }
 
 testFixtures {

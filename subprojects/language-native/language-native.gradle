@@ -1,3 +1,4 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
  * Copyright 2014 the original author or authors.
@@ -29,6 +30,10 @@ dependencies {
     implementation libraries.commons_io.coordinates
 
     integTestRuntimeOnly project(":ideNative")
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
 }
 
 testFixtures {

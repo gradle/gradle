@@ -1,3 +1,4 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
  * Copyright 2014 the original author or authors.
@@ -40,6 +41,10 @@ dependencies {
     testImplementation testLibraries.jetty
 
     testFixturesImplementation project(":internalIntegTesting")
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
 }
 
 testFixtures {

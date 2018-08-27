@@ -1,3 +1,4 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
  * Copyright 2014 the original author or authors.
@@ -30,6 +31,10 @@ dependencies {
     integTestRuntime project(':toolingApiBuilders')
 }
 
+
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
+}
 
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 testFilesCleanup {

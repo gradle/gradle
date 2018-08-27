@@ -1,4 +1,5 @@
 import org.gradle.gradlebuild.BuildEnvironment
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     id 'gradlebuild.strict-compile'

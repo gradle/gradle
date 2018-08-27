@@ -1,3 +1,4 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
  * Copyright 2011 the original author or authors.
@@ -25,6 +26,10 @@ dependencies {
     testCompile project(':ivy')
 
     compile libraries.bouncycastle_pgp.coordinates
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
 }
 
 testFixtures {

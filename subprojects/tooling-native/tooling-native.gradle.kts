@@ -1,3 +1,4 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     id("gradlebuild.strict-compile")
@@ -10,6 +11,10 @@ dependencies {
     compile(project(":toolingApi"))
     // To pick up various builders (which should live somewhere else)
     compile(project(":ide"))
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
 }
 
 testFixtures {

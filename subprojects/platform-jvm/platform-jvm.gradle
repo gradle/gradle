@@ -1,3 +1,4 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     id 'gradlebuild.strict-compile'
@@ -15,6 +16,10 @@ dependencies {
     // To pick up JavaToolChainInternal implementation
     // TODO - get rid of cycle
     integTestRuntime project(':languageJava')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.WORKER
 }
 
 testFixtures {

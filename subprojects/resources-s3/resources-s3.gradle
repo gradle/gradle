@@ -1,3 +1,4 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     id 'java-library'
@@ -22,6 +23,10 @@ testFixtures {
     from(':dependencyManagement')
     from(':ivy')
     from(':maven')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
 }
 
 tasks.withType(Test).configureEach {

@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2011 the original author or authors.
  *
@@ -27,4 +29,8 @@ plugins {
 
 dependencies{
     compile project(':distributionsDependencies')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }

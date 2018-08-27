@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -47,6 +49,10 @@ dependencies {
     integTestRuntime project(":maven")
 }
 
+
+gradlebuildJava {
+    moduleType = ModuleType.WORKER
+}
 
 testFixtures {
     from(':core')

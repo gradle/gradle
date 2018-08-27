@@ -1,3 +1,4 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
  * Copyright 2018 the original author or authors.
@@ -26,4 +27,8 @@ dependencies {
 
     implementation libraries.junit.coordinates
     implementation libraries.junit_platform.coordinates
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.REQUIRES_JAVA_8
 }
