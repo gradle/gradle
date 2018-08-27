@@ -61,13 +61,11 @@ include::{samplesPath}/userguide/ant/taskWithNestedText/taskWithNestedText.out[]
 
 You pass nested elements to an Ant task inside a closure. Nested elements are defined in the same way as tasks, by calling a method with the same name as the element we want to define.
 
-=== Example: Passing nested elements to an Ant task
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/ant/taskWithNestedElements/build.gradle[]
-----
+.Passing nested elements to an Ant task
+====
+include::sample[dir="userguide/ant/taskWithNestedElements/groovy",files="build.gradle"]
+include::sample[dir="userguide/ant/taskWithNestedElements/kotlin",files="build.gradle.kts"]
+====
 
 You can access Ant types in the same way that you access tasks, using the name of the type as the method name. The method call returns the Ant data type, which you can then use directly in your build script. In the following example, we create an Ant `path` object, then iterate over the contents of it.
 
