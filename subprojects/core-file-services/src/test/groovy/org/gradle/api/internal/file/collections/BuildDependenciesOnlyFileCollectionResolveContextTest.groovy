@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file.collections
 
+import org.gradle.api.Buildable
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
@@ -167,5 +168,8 @@ class BuildDependenciesOnlyFileCollectionResolveContextTest extends Specificatio
         then:
         1 * taskContext.add(task)
         0 * taskContext._
+    }
+
+    interface TestFileSet extends MinimalFileSet, Buildable {
     }
 }

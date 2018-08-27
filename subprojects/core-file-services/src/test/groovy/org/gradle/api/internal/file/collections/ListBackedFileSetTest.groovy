@@ -15,13 +15,11 @@
  */
 package org.gradle.api.internal.file.collections
 
-import org.junit.Test
-
 import spock.lang.Specification
 
 class ListBackedFileSetTest extends Specification {
 
-    public void hasUsefulDisplayName() {
+    void hasUsefulDisplayName() {
         def testFile = new File('test-file')
         def testFile2 = new File('test-file2')
 
@@ -31,8 +29,7 @@ class ListBackedFileSetTest extends Specification {
         new ListBackedFileSet(testFile, testFile2).displayName == "files '$testFile', '$testFile2'"
     }
 
-    @Test
-    public void containsSpecifiedFiles() {
+    void containsSpecifiedFiles() {
         def testFile = new File('test-file')
 
         expect:

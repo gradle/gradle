@@ -172,7 +172,7 @@ class FileTreeAdapterTest extends Specification {
         1 * visitor.visitTree(adapter)
         0 * visitor._
     }
-}
 
-interface TestFileTree extends MinimalFileTree, Buildable, RandomAccessFileCollection {
+    interface TestFileTree extends MinimalFileTree, Buildable, RandomAccessFileCollection {
+    }
 }

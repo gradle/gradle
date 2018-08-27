@@ -31,6 +31,7 @@ dependencies {
     implementation(project(":logging"))
     implementation(project(":native"))
     implementation(library("commons_io"))
+    implementation(library("commons_lang"))
 
     testImplementation(project(":internalTesting"))
 }

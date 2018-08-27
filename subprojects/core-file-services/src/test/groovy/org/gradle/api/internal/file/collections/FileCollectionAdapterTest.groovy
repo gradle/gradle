@@ -60,8 +60,7 @@ class FileCollectionAdapterTest extends Specification {
         dependencies == expectedDependency
         1 * fileSet.buildDependencies >> expectedDependency
     }
-}
 
-interface TestFileSet extends MinimalFileSet, Buildable {
-
+    interface TestFileSet extends MinimalFileSet, Buildable {
+    }
 }
