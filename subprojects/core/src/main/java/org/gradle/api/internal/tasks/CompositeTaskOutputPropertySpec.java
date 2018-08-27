@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.AbstractIterator;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
@@ -26,6 +27,7 @@ import org.gradle.api.internal.file.FileCollectionVisitor;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.internal.MutableBoolean;
 import org.gradle.util.DeferredUtil;
 
 import java.io.File;
@@ -77,41 +79,46 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
                 }
             };
         } else {
-            final List<Object> roots = Lists.newArrayList();
-            resolver.resolveFiles(paths).visitRootElements(new FileCollectionVisitor() {
+            final List<File> roots = Lists.newArrayList();
+            final MutableBoolean nonFileRoot = new MutableBoolean();
+            FileCollectionInternal outputFileCollection = resolver.resolveFiles(unpackedPaths);
+            outputFileCollection.visitRootElements(new FileCollectionVisitor() {
                 @Override
                 public void visitCollection(FileCollectionInternal fileCollection) {
-                    visitRoot(fileCollection);
+                    Iterables.addAll(roots, fileCollection);
                 }
 
                 @Override
                 public void visitTree(FileTreeInternal fileTree) {
-                    visitRoot(fileTree);
+                    nonFileRoot.set(true);
                 }
 
                 @Override
                 public void visitDirectoryTree(DirectoryFileTree directoryTree) {
-                    visitRoot(directoryTree);
-                }
-
-                private void visitRoot(Object root) {
-                    roots.add(root);
+                    if (directoryTree.getPatternSet().isEmpty()) {
+                        roots.add(directoryTree.getDir());
+                    } else {
+                        nonFileRoot.set(true);
+                    }
                 }
             });
 
-            final Iterator<Object> iterator = roots.iterator();
-            return new AbstractIterator<TaskOutputFilePropertySpec>() {
-                private int index;
+            if (nonFileRoot.get()) {
+                return Iterators.<TaskOutputFilePropertySpec>singletonIterator(CompositeTaskOutputPropertySpec.this);
+            } else {
+                final Iterator<File> iterator = roots.iterator();
+                return new AbstractIterator<TaskOutputFilePropertySpec>() {
+                    private int index;
 
-                @Override
-                protected TaskOutputFilePropertySpec computeNext() {
-                    if (!iterator.hasNext()) {
-                        return endOfData();
+                    @Override
+                    protected TaskOutputFilePropertySpec computeNext() {
+                        if (!iterator.hasNext()) {
+                            return endOfData();
+                        }
+                        return new CacheableTaskOutputCompositeFilePropertyElementSpec(CompositeTaskOutputPropertySpec.this, "$" + (++index), iterator.next());
                     }
-                    Object root = iterator.next();
-                    return new NonCacheableTaskOutputPropertySpec(taskName, CompositeTaskOutputPropertySpec.this, ++index, resolver, root);
-                }
-            };
+                };
+            }
         }
     }
 

@@ -58,6 +58,14 @@ In this way, stale execution data, which would cause non-repeatable task outputs
 Since Gradle now takes care of removing the execution data, the `JacocoPluginExtension.append` property has been deprecated.
 The JaCoCo agent is always configured with `append = true`, so it can be used when running tests in parallel. 
 
+### Plural task output properties don't disable caching anymore
+
+When using `@OutputFiles` or `@OutputDirectories` with an `Iterable` type, Gradle used to disable caching for the task with the following message:
+
+> Declares multiple output files for the single output property 'outputFiles' via @OutputFiles, @OutputDirectories or TaskOutputs.files()
+
+This is no longer the case, and using such properties doesn't prevent the task from being cached. The only remaining reason to disable caching for the task is if the output contains filtered `DirectoryFileTree`s or non-directory based `FileTree`s.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

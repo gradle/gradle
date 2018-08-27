@@ -133,12 +133,14 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         withBuildCache().run "cacheable"
     }
 
-    def "cacheability for a task with plural outputs is PLURAL_OUTPUTS"() {
+    def "cacheability for a task with file tree outputs is PLURAL_OUTPUTS"() {
         buildFile << """
             @CacheableTask
             class PluralOutputs extends BaseTask {
                 @OutputFiles
-                Set<File> outputFiles = ['some.txt']
+                FileTree outputFiles = project.fileTree('build/some-dir') {
+                    exclude "*.log"
+                }
                 
                 @TaskAction
                 void generate() {}
@@ -146,7 +148,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
             
             task cacheable(type: PluralOutputs) {
                 cachingEnabled = false
-                disabledReason = "Declares multiple output files for the single output property 'outputFiles' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
+                disabledReason = "Declares complex output for the output property 'outputFiles'"
                 disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.PLURAL_OUTPUTS
             }
         """

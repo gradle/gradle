@@ -127,13 +127,13 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
                     relativePath, overlappingOutputs.getPropertyName()));
         }
 
-        for (TaskPropertySpec spec : taskProperties.getOutputFileProperties()) {
-            if (spec instanceof NonCacheableTaskOutputPropertySpec) {
+        for (TaskOutputFilePropertySpec spec : taskProperties.getOutputFileProperties()) {
+            if (!(spec instanceof CacheableTaskOutputFilePropertySpec)) {
                 return DefaultTaskOutputCachingState.disabled(
                     PLURAL_OUTPUTS,
-                    "Declares multiple output files for the single output property '"
-                        + ((NonCacheableTaskOutputPropertySpec) spec).getOriginalPropertyName()
-                        + "' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
+                    "Declares complex output for the output property '"
+                        + spec.getPropertyName()
+                        + "'"
                 );
             }
         }
