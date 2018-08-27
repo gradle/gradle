@@ -47,7 +47,7 @@ class ProbedLocalJavaInstallation(private val javaHome: File) : LocalJavaInstall
 
 
 private
-const val compileJavaHomePropertyName = "java9Home"
+const val java9HomePropertyName = "java9Home"
 
 
 private
@@ -73,8 +73,11 @@ open class AvailableJavaInstallations(private val project: Project, private val 
     init {
         currentJavaInstallation = JavaInstallation(true, Jvm.current(), JavaVersion.current(), javaInstallationProbe)
         javaInstallationForTest = determineJavaInstallation(testJavaHomePropertyName)
-        javaInstallationForCompilation = determineJavaInstallation(compileJavaHomePropertyName)
+        javaInstallationForCompilation = determineJavaInstallationForCompilation()
     }
+
+    private
+    fun determineJavaInstallationForCompilation() = if (JavaVersion.current().isJava9Compatible) currentJavaInstallation else determineJavaInstallation(java9HomePropertyName)
 
     private
     fun determineJavaInstallation(propertyName: String): JavaInstallation {
@@ -105,7 +108,7 @@ open class AvailableJavaInstallations(private val project: Project, private val 
     fun validate(errorMessages: Map<String, Boolean>) {
         val errors = errorMessages.filterValues { it }.keys
         if (errors.isNotEmpty()) {
-            throw GradleException(formatValidationError("JDKs not configured correctly for production build.", errors))
+            throw GradleException(formatValidationError("JDKs not configured correctly for the build.", errors))
         }
     }
 
@@ -113,7 +116,7 @@ open class AvailableJavaInstallations(private val project: Project, private val 
     fun validateCompilationJdks(): Map<String, Boolean> =
         mapOf(
             "Must use JDK 9+ to perform compilation in this build. It's currently ${javaInstallationForCompilation.vendorAndMajorVersion} at ${javaInstallationForCompilation.javaHome}. " +
-                "You can set a project or system property '$compileJavaHomePropertyName' to an Java9-compatible JDK home path" to
+                "You can set a project or system property '$java9HomePropertyName' to an Java9-compatible JDK home path" to
                 !javaInstallationForCompilation.javaVersion.isJava9Compatible
         )
 

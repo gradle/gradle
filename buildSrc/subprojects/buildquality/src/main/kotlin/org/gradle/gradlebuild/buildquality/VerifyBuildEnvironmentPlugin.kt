@@ -16,9 +16,8 @@ open class VerifyBuildEnvironmentPlugin : Plugin<Project> {
     }
 
     private
-    fun validateForAllBuilds(rootProject: Project) = rootProject.afterEvaluate {
+    fun validateForAllBuilds(rootProject: Project) =
         rootProject.availableJavaInstallations.validateForAllBuilds()
-    }
 
     private
     fun validateForProductionEnvironments(rootProject: Project) =
