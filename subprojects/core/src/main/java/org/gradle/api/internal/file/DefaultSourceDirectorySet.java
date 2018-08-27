@@ -27,14 +27,17 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.provider.DefaultProviderFactory;
+import org.gradle.api.internal.model.InstantiatorBackedObjectFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -56,7 +59,10 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     private final FileCollection dirs;
     private final Property<File> outputDir;
 
-    public DefaultSourceDirectorySet(String name, String displayName, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    // Note: don't actually remove this in 6.0, the deprecation is here to encourage people to use ObjectFactory instead. Just remove the overload and the nag and leave the method here
+    @Deprecated
+    public DefaultSourceDirectorySet(String name, String displayName, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, ObjectFactory objectFactory) {
+        DeprecationLogger.nagUserOfDeprecated("The DefaultSourceDirectorySet constructor", "Please use the ObjectFactory service to create instances of SourceDirectorySet instead.");
         this.name = name;
         this.displayName = displayName;
         this.fileResolver = fileResolver;
@@ -64,10 +70,17 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
         this.patterns = fileResolver.getPatternSetFactory().create();
         this.filter = fileResolver.getPatternSetFactory().create();
         this.dirs = new FileCollectionAdapter(new SourceDirectories());
-        DefaultProviderFactory providerFactory = new DefaultProviderFactory();
-        this.outputDir = providerFactory.propertyNoNag(File.class);
+        this.outputDir = objectFactory.property(File.class);
     }
 
+    // Used by the Javascript plugins
+    @Deprecated
+    public DefaultSourceDirectorySet(String name, String displayName, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
+        this(name, displayName, fileResolver, directoryFileTreeFactory, new InstantiatorBackedObjectFactory(DirectInstantiator.INSTANCE));
+    }
+
+    // Used by the Kotlin plugin
+    @Deprecated
     public DefaultSourceDirectorySet(String name, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this(name, name, fileResolver, directoryFileTreeFactory);
     }

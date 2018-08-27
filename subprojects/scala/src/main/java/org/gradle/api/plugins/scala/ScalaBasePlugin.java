@@ -26,8 +26,8 @@ import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.tasks.DefaultScalaSourceSet;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -56,11 +56,11 @@ public class ScalaBasePlugin implements Plugin<Project> {
     @VisibleForTesting
     public static final String ZINC_CONFIGURATION_NAME = "zinc";
     public static final String SCALA_RUNTIME_EXTENSION_NAME = "scalaRuntime";
-    private final SourceDirectorySetFactory sourceDirectorySetFactory;
+    private final ObjectFactory objectFactory;
 
     @Inject
-    public ScalaBasePlugin(SourceDirectorySetFactory sourceDirectorySetFactory) {
-        this.sourceDirectorySetFactory = sourceDirectorySetFactory;
+    public ScalaBasePlugin(ObjectFactory objectFactory) {
+        this.objectFactory = objectFactory;
     }
 
     public void apply(Project project) {
@@ -69,7 +69,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
         configureConfigurations(project);
         ScalaRuntime scalaRuntime = configureScalaRuntimeExtension(project);
         configureCompileDefaults(project, scalaRuntime);
-        configureSourceSetDefaults(project, sourceDirectorySetFactory);
+        configureSourceSetDefaults(project, objectFactory);
         configureScaladoc(project, scalaRuntime);
     }
 
@@ -87,13 +87,13 @@ public class ScalaBasePlugin implements Plugin<Project> {
         return project.getExtensions().create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntime.class, project);
     }
 
-    private static void configureSourceSetDefaults(final Project project, final SourceDirectorySetFactory sourceDirectorySetFactory) {
+    private static void configureSourceSetDefaults(final Project project, final ObjectFactory objectFactory) {
         project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(new Action<SourceSet>() {
             @Override
             public void execute(final SourceSet sourceSet) {
                 String displayName = (String) InvokerHelper.invokeMethod(sourceSet, "getDisplayName", null);
                 Convention sourceSetConvention = (Convention) InvokerHelper.getProperty(sourceSet, "convention");
-                DefaultScalaSourceSet scalaSourceSet = new DefaultScalaSourceSet(displayName, sourceDirectorySetFactory);
+                DefaultScalaSourceSet scalaSourceSet = new DefaultScalaSourceSet(displayName, objectFactory);
                 sourceSetConvention.getPlugins().put("scala", scalaSourceSet);
                 final SourceDirectorySet scalaDirectorySet = scalaSourceSet.getScala();
                 scalaDirectorySet.srcDir(new Callable<File>() {

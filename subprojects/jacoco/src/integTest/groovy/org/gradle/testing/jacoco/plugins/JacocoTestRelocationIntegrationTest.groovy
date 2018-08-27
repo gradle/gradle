@@ -34,14 +34,6 @@ class JacocoTestRelocationIntegrationTest extends AbstractProjectRelocationInteg
     protected void setupProjectIn(TestFile projectDir) {
         def javaProjectUnderTest = new JavaProjectUnderTest(projectDir)
         javaProjectUnderTest.writeBuildScript().writeSourceFiles()
-        projectDir.file("build.gradle") << """
-            test {
-                jacoco {
-                    // No caching when append is enabled
-                    append = false
-                }
-            }
-        """
     }
 
     @Override

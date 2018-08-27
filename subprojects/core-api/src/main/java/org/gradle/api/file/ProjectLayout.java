@@ -44,14 +44,6 @@ public interface ProjectLayout {
     DirectoryProperty getBuildDirectory();
 
     /**
-     * Creates a new {@link DirectoryVar} that uses the project directory to resolve paths, if required. The var has no initial value.
-     *
-     * @deprecated Use {@link #directoryProperty()} instead.
-     */
-    @Deprecated
-    DirectoryVar newDirectoryVar();
-
-    /**
      * Creates a new {@link DirectoryProperty} that uses the project directory to resolve paths, if required. The property has no initial value.
      *
      * @since 4.3
@@ -65,14 +57,6 @@ public interface ProjectLayout {
      * @since 4.4
      */
     DirectoryProperty directoryProperty(Provider<? extends Directory> initialProvider);
-
-    /**
-     * Creates a new {@link RegularFileVar} that uses the project directory to resolve paths, if required. The var has no initial value.
-     *
-     * @deprecated Use {@link #fileProperty()} instead.
-     */
-    @Deprecated
-    RegularFileVar newFileVar();
 
     /**
      * Creates a new {@link RegularFileProperty} that uses the project directory to resolve paths, if required. The property has no initial value.

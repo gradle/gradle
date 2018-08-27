@@ -16,6 +16,8 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.util.TextUtil;
+
 public class TemplateValue {
     private final String value;
 
@@ -58,6 +60,22 @@ public class TemplateValue {
             }
         }
         return result.toString();
+    }
+
+    public String getStatement() {
+        if (value.isEmpty()) {
+            return "";
+        } else {
+            return value + TextUtil.getPlatformLineSeparator();
+        }
+    }
+
+    public String getJavaStatement() {
+        if (value.isEmpty()) {
+            return "";
+        } else {
+            return value + ";" + TextUtil.getPlatformLineSeparator();
+        }
     }
 
     @Override

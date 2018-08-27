@@ -176,7 +176,8 @@ public class ProviderConnection {
                        Parameters parameters) {
         try {
             BuildActionExecuter<ProviderOperationParameters> executer = createExecuter(providerParameters, parameters);
-            BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(providerParameters.getStartTime()), cancellationToken, buildEventConsumer);
+            boolean interactive = providerParameters.getStandardInput() != null;
+            BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(providerParameters.getStartTime(), interactive), cancellationToken, buildEventConsumer);
             BuildActionResult result = (BuildActionResult) executer.execute(action, buildRequestContext, providerParameters, sharedServices);
             if (result.failure != null) {
                 throw (RuntimeException) payloadSerializer.deserialize(result.failure);

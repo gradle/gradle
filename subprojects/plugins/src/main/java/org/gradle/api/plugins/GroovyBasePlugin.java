@@ -24,10 +24,10 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultGroovySourceSet;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.SourceSetUtil;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
@@ -48,15 +48,15 @@ import java.util.concurrent.Callable;
 public class GroovyBasePlugin implements Plugin<Project> {
     public static final String GROOVY_RUNTIME_EXTENSION_NAME = "groovyRuntime";
 
-    private final SourceDirectorySetFactory sourceDirectorySetFactory;
+    private final ObjectFactory objectFactory;
     private final ModuleRegistry moduleRegistry;
 
     private Project project;
     private GroovyRuntime groovyRuntime;
 
     @Inject
-    public GroovyBasePlugin(SourceDirectorySetFactory sourceDirectorySetFactory, ModuleRegistry moduleRegistry) {
-        this.sourceDirectorySetFactory = sourceDirectorySetFactory;
+    public GroovyBasePlugin(ObjectFactory objectFactory, ModuleRegistry moduleRegistry) {
+        this.objectFactory = objectFactory;
         this.moduleRegistry = moduleRegistry;
     }
 
@@ -90,7 +90,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
     private void configureSourceSetDefaults() {
         project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(new Action<SourceSet>() {
             public void execute(final SourceSet sourceSet) {
-                final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet("groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), sourceDirectorySetFactory);
+                final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet("groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
                 new DslObject(sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
 
                 groovySourceSet.getGroovy().srcDir("src/" + sourceSet.getName() + "/groovy");

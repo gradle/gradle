@@ -109,6 +109,7 @@ import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.BuildOperationSettingsProcessor;
+import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.initialization.DefaultClassLoaderScopeRegistry;
@@ -469,12 +470,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return registry;
     }
 
-    protected UserInputHandler createUserInputHandler(StartParameter startParameter, OutputEventListenerManager outputEventListenerManager) {
-        if (!startParameter.isInteractive()) {
+    protected UserInputHandler createUserInputHandler(BuildRequestMetaData requestMetaData, OutputEventListenerManager outputEventListenerManager, Clock clock) {
+        if (!requestMetaData.isInteractive()) {
             return new NonInteractiveUserInputHandler();
         }
 
-        return new DefaultUserInputHandler(outputEventListenerManager.getBroadcaster(), new DefaultUserInputReader());
+        return new DefaultUserInputHandler(outputEventListenerManager.getBroadcaster(), clock, new DefaultUserInputReader());
     }
 
     protected BuildScanUserInputHandler createBuildScanUserInputHandler(UserInputHandler userInputHandler) {

@@ -58,7 +58,6 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
@@ -71,7 +70,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
@@ -259,8 +257,8 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @SuppressWarnings("unused")
     static class BasicServicesRules extends RuleSource {
         @Hidden @Model
-        SourceDirectorySetFactory sourceDirectorySetFactory(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(SourceDirectorySetFactory.class);
+        ObjectFactory objectFactory(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ObjectFactory.class);
         }
 
         @Hidden @Model
@@ -923,11 +921,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     public <T> Provider<T> provider(Callable<T> value) {
         return getProviders().provider(value);
-    }
-
-    @Override
-    public <T> PropertyState<T> property(Class<T> clazz) {
-        return getProviders().property(clazz);
     }
 
     @Override

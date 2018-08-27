@@ -32,8 +32,6 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.model.DefaultObjectFactory
-import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity
@@ -444,7 +442,7 @@ class DefaultMavenPublicationTest extends Specification {
 
     def createPublication() {
         def instantiator = DirectInstantiator.INSTANCE
-        def objectFactory = new DefaultObjectFactory(instantiator, new NamedObjectInstantiator())
+        def objectFactory = TestUtil.objectFactory()
         def publication = new DefaultMavenPublication("pub-name", module, notationParser, instantiator, objectFactory, projectDependencyResolver, TestFiles.fileCollectionFactory(), featurePreviews, TestUtil.attributesFactory())
         publication.setPomGenerator(createArtifactGenerator(pomFile))
         publication.setModuleDescriptorGenerator(createArtifactGenerator(gradleMetadataFile))

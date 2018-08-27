@@ -55,4 +55,9 @@ public class DefaultBuildRequestContext implements BuildRequestContext {
     public long getStartTime() {
         return metaData.getStartTime();
     }
+
+    @Override
+    public boolean isInteractive() {
+        return metaData.isInteractive();
+    }
 }

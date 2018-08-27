@@ -19,30 +19,24 @@ package org.gradle.internal.logging.console
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
-import org.gradle.internal.logging.events.PromptOutputEvent
 import org.gradle.internal.logging.events.UserInputRequestEvent
 import org.gradle.internal.logging.events.UserInputResumeEvent
-import org.gradle.internal.time.Clock
 import spock.lang.Specification
 import spock.lang.Subject
 
 class UserInputStandardOutputRendererTest  extends Specification {
-
     def listener = Mock(OutputEventListener)
-    def clock = Mock(Clock)
-    @Subject def renderer = new UserInputStandardOutputRenderer(listener, clock)
+    @Subject def renderer = new UserInputStandardOutputRenderer(listener)
 
     def "can handle user input request and resume events"() {
         given:
-        def prompt = 'Please enter:'
-        def userInputRequestEvent = new UserInputRequestEvent(prompt)
+        def userInputRequestEvent = new UserInputRequestEvent()
         def userInputResumeEvent = new UserInputResumeEvent()
 
         when:
         renderer.onOutput(userInputRequestEvent)
 
         then:
-        1 * listener.onOutput(_ as PromptOutputEvent)
         renderer.eventQueue.empty
 
         when:
@@ -69,15 +63,13 @@ class UserInputStandardOutputRendererTest  extends Specification {
 
     def "can replay queued events if event handling is paused"() {
         given:
-        def prompt = 'Please enter:'
-        def userInputRequestEvent = new UserInputRequestEvent(prompt)
+        def userInputRequestEvent = new UserInputRequestEvent()
         def userInputResumeEvent = new UserInputResumeEvent()
 
         when:
         renderer.onOutput(userInputRequestEvent)
 
         then:
-        1 * listener.onOutput(_ as PromptOutputEvent)
         renderer.eventQueue.empty
 
         when:

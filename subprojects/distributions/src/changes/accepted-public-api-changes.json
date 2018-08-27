@@ -1,6 +1,14 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.buildinit.tasks.InitBuild",
+            "member": "Method org.gradle.buildinit.tasks.InitBuild.setProjectLayoutRegistry(org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry)",
+            "acceptation": "Changed services injected into task",
+            "changes": [
+                "Method is less accessible"
+            ]
+        },
+        {
             "type": "org.gradle.api.DefaultTask",
             "member": "Class org.gradle.api.DefaultTask",
             "acceptation": "Removed deprecated methods",

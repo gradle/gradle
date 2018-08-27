@@ -24,10 +24,6 @@ import org.gradle.gradlebuild.ProjectGroups.javaProjects
 import org.gradle.gradlebuild.ProjectGroups.pluginProjects
 import org.gradle.gradlebuild.ProjectGroups.publishedProjects
 
-buildscript {
-    project.apply(from = "$rootDir/gradle/shared-with-buildSrc/mirrors.gradle.kts")
-}
-
 plugins {
     `java-base`
     id("gradlebuild.build-types")
@@ -43,11 +39,15 @@ defaultTasks("assemble")
 base.archivesBaseName = "gradle"
 
 buildTypes {
+    create("compileAllBuild") {
+        tasks(":createBuildReceipt", "compileAll")
+        projectProperties("ignoreIncomingBuildReceipt" to true)
+    }
+
     create("sanityCheck") {
         tasks(
             "classes", "doc:checkstyleApi", "codeQuality",
             "docs:check", "distribution:checkBinaryCompatibility", "javadocAll")
-        projectProperties("ignoreIncomingBuildReceipt" to true)
     }
 
     // Used by the first phase of the build pipeline, running only last version on multiversion - tests
@@ -134,17 +134,18 @@ buildTypes {
     }
 }
 
-var kotlinDevMirrorUrl = (project.rootProject.extensions.extraProperties.get("repositoryMirrors") as Map<String, String>).get("kotlindev")
-
 allprojects {
     group = "org.gradle"
 
     repositories {
-        maven(url = "https://repo.gradle.org/gradle/libs-releases")
-        maven(url = "https://repo.gradle.org/gradle/libs")
-        maven(url = "https://repo.gradle.org/gradle/libs-milestones")
-        maven(url = "https://repo.gradle.org/gradle/libs-snapshots")
-        maven(url = kotlinDevMirrorUrl ?: "https://dl.bintray.com/kotlin/kotlin-dev")
+        maven {
+            name = "Gradle libs"
+            url = uri("https://repo.gradle.org/gradle/libs")
+        }
+        maven {
+            name = "kotlin-dev"
+            url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
+        }
     }
 
     // patchExternalModules lives in the root project - we need to activate normalization there, too.

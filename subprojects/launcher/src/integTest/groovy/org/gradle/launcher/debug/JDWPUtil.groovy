@@ -21,6 +21,8 @@ import com.sun.jdi.VMDisconnectedException
 import com.sun.jdi.VirtualMachine
 import com.sun.jdi.VirtualMachineManager
 import com.sun.jdi.connect.AttachingConnector
+import org.gradle.util.ports.DefaultPortDetector
+import org.junit.Assume
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -34,6 +36,7 @@ class JDWPUtil implements TestRule {
     VirtualMachine vm
 
     JDWPUtil(Integer port) {
+        Assume.assumeTrue(new DefaultPortDetector().isAvailable(port))
         this.port = port
     }
 
