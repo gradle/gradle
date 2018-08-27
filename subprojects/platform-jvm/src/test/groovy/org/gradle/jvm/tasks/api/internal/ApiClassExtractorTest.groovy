@@ -25,7 +25,6 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import spock.lang.Unroll
 
-import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Modifier
 
 class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
@@ -52,7 +51,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         o.foo()
 
         then:
-        def e = thrown(InvocationTargetException)
+        def e = thrown(Exception)
         e.cause.cause instanceof UnsupportedOperationException
     }
 
@@ -77,7 +76,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         JavaReflectionUtil.newInstance(extracted)
 
         then:
-        def e = thrown(InvocationTargetException)
+        def e = thrown(Exception)
         e.cause.cause instanceof UnsupportedOperationException
 
     }
@@ -208,7 +207,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         JavaReflectionUtil.newInstance(extractedB)
 
         then:
-        def e = thrown(InvocationTargetException)
+        def e = thrown(Exception)
         e.cause.cause instanceof UnsupportedOperationException
 
         when:
@@ -329,7 +328,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         o.foo()
 
         then:
-        def e = thrown(InvocationTargetException)
+        def e = thrown(Exception)
         e.cause.cause instanceof UnsupportedOperationException
     }
 
@@ -354,7 +353,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         JavaReflectionUtil.newInstance(extracted)
 
         then:
-        def e = thrown(InvocationTargetException)
+        def e = thrown(Exception)
         e.cause.cause instanceof UnsupportedOperationException
     }
 

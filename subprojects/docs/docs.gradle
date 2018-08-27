@@ -387,7 +387,7 @@ tasks.register("serveDocs", Exec) {
 tasks.register("editReleaseNotes") {
     group = "release notes"
     doLast {
-        ClasssUtils.newInstance(Class.forName("java.awt.Desktop")).edit(file("src/docs/release/notes.md"))
+        Class.forName("java.awt.Desktop").getConstructor().newInstance().edit(file("src/docs/release/notes.md"))
     }
 }
 

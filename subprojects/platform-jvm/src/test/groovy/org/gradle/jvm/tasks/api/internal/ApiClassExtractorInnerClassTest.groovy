@@ -19,7 +19,6 @@ package org.gradle.jvm.tasks.api.internal
 import org.objectweb.asm.Opcodes
 import spock.lang.Unroll
 
-import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Modifier
 
 import static org.gradle.internal.reflect.JavaReflectionUtil.newInstance
@@ -58,8 +57,8 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
         o.foo()
 
         then:
-        def e = thrown(InvocationTargetException)
-        e.cause instanceof UnsupportedOperationException
+        def e = thrown(Exception)
+        e.cause.cause instanceof UnsupportedOperationException
 
         where:
         modifier           | access
