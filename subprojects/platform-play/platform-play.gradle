@@ -19,11 +19,6 @@ dependencies {
     testFixturesCompile libraries.commons_httpclient.coordinates
 }
 
-gradlebuildJava {
-    // Code needs to run in the compiler daemon
-    moduleType = ModuleType.WORKER
-}
-
 testFixtures {
     from(':core')
     from(':languageScala', 'integTest')
