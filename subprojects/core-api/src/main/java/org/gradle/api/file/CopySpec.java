@@ -23,7 +23,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.HasInternalProtocol;
 
-import javax.annotation.Nullable;
 import java.io.FilterReader;
 import java.util.Map;
 import java.util.regex.Pattern;
