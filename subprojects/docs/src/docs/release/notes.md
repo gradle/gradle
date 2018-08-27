@@ -55,13 +55,13 @@ Caching has always been one of the strong suits of Gradle. Over time, more and m
 ### Kotlin DSL 1.0 RC
 
 [Kotlin DSL version 1.0 RC](https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC3) is now available. Major updates from v0.18 include:
- 
+
  * API Documentation in IDE and reference forms
  * Script compilation build cache
  * IDE integration improvements
  * Support for configuration avoidance
  * `buildSrc` refactoring propagation to the IDE
- 
+
 This version includes the last set of backward compatibility-breaking DSL changes until Gradle 6.0.
 
 Please give it a go and file issues in the [gradle/kotlin-dsl](https://github.com/gradle/kotlin-dsl) project.
@@ -103,6 +103,21 @@ However, we strongly recommend that build and plugin authors use Gradle properti
 
 Memory usage for up-to-date checking has been improved.
 For the gradle/gradle build, heap usage dropped by 60 MB to 450 MB, that is a 12% reduction.
+
+### More build insights with Gradle build scan plugin 1.16
+
+Using build scan plugin version >= 1.16 and Gradle 4.10 provides you deeper insights of your build, for example   
+
+- Sources of slow configuration lifecycle callbacks
+- Build script compilation
+- Build deprecation warnings
+- Dependency repositories
+
+in your build scans.
+
+You can enable build scans by running your build with `--scan`.
+
+For further details and getting started with Gradle build scans check the [Build Scan Plugin User Manual](https://docs.gradle.com/build-scan-plugin/).
 
 ## Promoted features
 
