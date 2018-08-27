@@ -301,8 +301,5 @@ tasks.register<Install>("installAll") {
 fun distributionImage(named: String) =
     project(":distributions").property(named) as CopySpec
 
-fun Project.buildCacheConfiguration() =
-    (gradle as GradleInternal).settings.buildCache
-
 fun Configuration.usage(named: String) =
     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(named))

@@ -45,15 +45,14 @@ import testLibrary
 import java.util.jar.Attributes
 
 
-enum class ModuleType(val source: JavaVersion, val target: JavaVersion) {
-    UNDEFINED(JavaVersion.VERSION_1_1, JavaVersion.VERSION_1_1),
-    ENTRY_POINT(JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6),
-    WORKER(JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6),
-    CORE(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
-    PLUGIN(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
-    INTERNAL(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
-    REQUIRES_JAVA_8(JavaVersion.VERSION_1_8, JavaVersion.VERSION_1_8),
-    REQUIRES_JAVA_9_COMPILER(JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6);
+enum class ModuleType(val compatibility: JavaVersion) {
+    UNDEFINED(JavaVersion.VERSION_1_1),
+    ENTRY_POINT(JavaVersion.VERSION_1_6),
+    WORKER(JavaVersion.VERSION_1_6),
+    CORE(JavaVersion.VERSION_1_7),
+    PLUGIN(JavaVersion.VERSION_1_7),
+    INTERNAL(JavaVersion.VERSION_1_7),
+    REQUIRES_JAVA_8(JavaVersion.VERSION_1_8)
 }
 
 
@@ -66,13 +65,13 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         base.archivesBaseName = "gradle-${name.replace(Regex("\\p{Upper}")) { "-${it.value.toLowerCase()}" }}"
         addDependencies()
         addGeneratedResources(extension)
-        configureCompile(extension)
+        configureCompile()
         configureJarTasks()
         configureTests()
     }
 
     private
-    fun Project.configureCompile(extension: UnitTestAndCompileExtension) {
+    fun Project.configureCompile() {
         afterEvaluate {
             val availableJavaInstallations = rootProject.the<AvailableJavaInstallations>()
 
@@ -215,8 +214,8 @@ open class UnitTestAndCompileExtension(val project: Project) {
     var moduleType: ModuleType = ModuleType.UNDEFINED
         set(value) {
             field = value
-            project.java.targetCompatibility = moduleType.target
-            project.java.sourceCompatibility = moduleType.source
+            project.java.targetCompatibility = moduleType.compatibility
+            project.java.sourceCompatibility = moduleType.compatibility
         }
 
     init {

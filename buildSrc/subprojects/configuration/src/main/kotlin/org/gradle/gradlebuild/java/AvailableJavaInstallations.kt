@@ -3,6 +3,7 @@ package org.gradle.gradlebuild.java
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
+import org.gradle.api.internal.GradleInternal
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmVersionDetector
@@ -89,20 +90,27 @@ open class AvailableJavaInstallations(private val project: Project, private val 
     }
 
     fun validateForAllBuilds() {
-        if (project.gradle.startParameter.isBuildCacheEnabled && currentJavaInstallation.vendorAndMajorVersion != oracleJdk8) {
-            System.err.println("To leverage remote cache, you'd better use Oracle JDK 8 to perform this build. It's currently Is currently ${currentJavaInstallation.vendorAndMajorVersion} at ${currentJavaInstallation.javaHome}")
-        }
-
         validate(validateBuildJdks())
     }
 
     fun validateForCompilation() {
+        if (remoteBuildCacheEnabled()) {
+            validate(validateForRemoteCache())
+        }
         validate(validateCompilationJdks())
     }
 
     fun validateForProductionEnvironment() {
         validate(validateProductionJdks())
     }
+
+    private
+    fun remoteBuildCacheEnabled() = (project.gradle as GradleInternal).settings.buildCache.remote?.isEnabled == true
+
+    private
+    fun validateForRemoteCache(): Map<String, Boolean> =
+        mapOf("Must use Oracle JDK 8/9 to perform this build. Is currently ${currentJavaInstallation.vendorAndMajorVersion} at ${currentJavaInstallation.javaHome}." to
+            (currentJavaInstallation.vendorAndMajorVersion != oracleJdk8 && currentJavaInstallation.vendorAndMajorVersion != oracleJdk9))
 
     private
     fun validate(errorMessages: Map<String, Boolean>) {

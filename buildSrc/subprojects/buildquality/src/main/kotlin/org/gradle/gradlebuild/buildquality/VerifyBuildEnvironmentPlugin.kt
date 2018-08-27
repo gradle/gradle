@@ -33,7 +33,7 @@ open class VerifyBuildEnvironmentPlugin : Plugin<Project> {
 
     private
     fun validateForAllCompileTasks(rootProject: Project) {
-        val verifyCompilationJdkIs9Task = rootProject.tasks.register("verifyCompilationJdkIs9") {
+        val verifyBuildEnvironment = rootProject.tasks.register("verifyBuildEnvironment") {
             doLast {
                 rootProject.availableJavaInstallations.validateForCompilation()
             }
@@ -41,7 +41,7 @@ open class VerifyBuildEnvironmentPlugin : Plugin<Project> {
 
         rootProject.subprojects {
             tasks.withType<AbstractCompile>().configureEach {
-                dependsOn(verifyCompilationJdkIs9Task)
+                dependsOn(verifyBuildEnvironment)
             }
         }
     }
