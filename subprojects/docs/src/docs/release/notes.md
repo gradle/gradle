@@ -104,16 +104,16 @@ However, we strongly recommend that build and plugin authors use Gradle properti
 Memory usage for up-to-date checking has been improved.
 For the gradle/gradle build, heap usage dropped by 60 MB to 450 MB, that is a 12% reduction.
 
-### More build insights with Gradle build scan plugin 1.16
+### Build Scan Plugin default version updated to 1.16
 
-Using build scan plugin version >= 1.16 and Gradle 4.10 provides you deeper insights of your build, for example   
+The default build scan plugin version has been updated to. This version provides you new insights of your build, for example:
 
 - Sources of slow configuration lifecycle callbacks
 - Build script compilation
 - Build deprecation warnings
 - Dependency repositories
 
-in your build scans.
+in build scans.
 
 You can enable build scans by running your build with `--scan`.
 
