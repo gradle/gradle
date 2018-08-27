@@ -143,22 +143,22 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
         if (dependencyLockingState.mustValidateLockState()) {
             if (!modulesToBeLocked.isEmpty() || !extraModules.isEmpty()) {
                 lockOutOfDate = true;
-                return createFailures(failures, modulesToBeLocked, extraModules);
+                return createLockingFailures(failures, modulesToBeLocked, extraModules);
             }
         }
         return Collections.emptySet();
     }
 
-    private Set<UnresolvedDependency> createFailures(Set<UnresolvedDependency> extraFailures, Map<ModuleIdentifier, ModuleComponentIdentifier> modulesToBeLocked, Set<ModuleComponentIdentifier> extraModules) {
+    public static Set<UnresolvedDependency> createLockingFailures(Set<UnresolvedDependency> extraFailures, Map<ModuleIdentifier, ModuleComponentIdentifier> modulesToBeLocked, Set<ModuleComponentIdentifier> extraModules) {
         Set<UnresolvedDependency> completedFailures = Sets.newHashSetWithExpectedSize(extraFailures.size() + modulesToBeLocked.values().size() + extraModules.size());
         completedFailures.addAll(extraFailures);
         for (ModuleComponentIdentifier presentInLock : modulesToBeLocked.values()) {
             completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(presentInLock.getModuleIdentifier(), presentInLock.getVersion()),
-                                  new LockOutOfDateException("Did not resolve '" + presentInLock.getDisplayName() + "' which is part of the lock state")));
+                                  new LockOutOfDateException("Did not resolve '" + presentInLock.getDisplayName() + "' which is part of the dependency lock state")));
         }
         for (ModuleComponentIdentifier extraModule : extraModules) {
             completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(extraModule.getModuleIdentifier(), extraModule.getVersion()),
-                new LockOutOfDateException("Resolved '" + extraModule.getDisplayName() + "' which is not part of the lock state")));
+                new LockOutOfDateException("Resolved '" + extraModule.getDisplayName() + "' which is not part of the dependency lock state")));
         }
         return completedFailures;
     }

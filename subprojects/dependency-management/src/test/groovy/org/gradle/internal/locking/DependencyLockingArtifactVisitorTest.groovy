@@ -149,7 +149,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         failures.size() == 1
         failures.each {
             assert it.problem instanceof LockOutOfDateException
-            assert it.problem.message.contains("Resolved 'org:foo:1.0' which is not part of the lock state")
+            assert it.problem.message.contains("Resolved 'org:foo:1.0' which is not part of the dependency lock state")
         }
     }
 
@@ -164,7 +164,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         failures.size() == 1
         failures.each {
             assert it.problem instanceof LockOutOfDateException
-            assert it.problem.message.contains("Did not resolve 'org:foo:1.1' which is part of the lock state")
+            assert it.problem.message.contains("Did not resolve 'org:foo:1.1' which is part of the dependency lock state")
         }
     }
 

@@ -180,8 +180,8 @@ dependencies {
 
         then:
         failure.assertHasCause("Could not resolve all dependencies for configuration ':lockedConf'.")
-        failure.assertHasCause("Did not resolve 'org:bar:1.0' which is part of the lock state")
-        failure.assertHasCause("Did not resolve 'org:baz:1.0' which is part of the lock state")
+        failure.assertHasCause("Did not resolve 'org:bar:1.0' which is part of the dependency lock state")
+        failure.assertHasCause("Did not resolve 'org:baz:1.0' which is part of the dependency lock state")
     }
 
     def 'fails when lock file does not contain entry for module in resolution result'() {
@@ -216,7 +216,7 @@ dependencies {
 
         then:
         failure.assertHasCause("Could not resolve all dependencies for configuration ':lockedConf'.")
-        failure.assertHasCause("Resolved 'org:bar:1.0' which is not part of the lock state")
+        failure.assertHasCause("Resolved 'org:bar:1.0' which is not part of the dependency lock state")
     }
 
     def 'fails when resolution result is empty and lock file contains entries'() {
@@ -239,10 +239,11 @@ configurations {
         lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'])
 
         when:
-        fails 'dependencies'
+        fails 'checkDeps'
 
         then:
-        failure.assertHasCause('Dependency lock state for configuration \'lockedConf\' is out of date: Did not resolve \'org:foo:1.0\' which is part of the lock state')
+        failure.assertHasCause('Could not resolve all dependencies for configuration \':lockedConf\'.')
+        failure.assertHasCause('Did not resolve \'org:foo:1.0\' which is part of the dependency lock state')
     }
 
     def 'succeeds without lock file present and does not create one'() {

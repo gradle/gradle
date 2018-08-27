@@ -458,7 +458,7 @@ dependencies {
       - By constraint : Dependency locking
    Failures:
       - Dependency lock state out of date:
-          - Resolved 'org:foo:1.1' which is not part of the lock state
+          - Resolved 'org:foo:1.1' which is not part of the dependency lock state
 
 org:foo:1.1 FAILED
 \\--- lockedConf
