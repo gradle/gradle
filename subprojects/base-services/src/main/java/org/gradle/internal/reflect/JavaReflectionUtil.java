@@ -21,6 +21,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.util.ClassUtils;
 import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
@@ -244,7 +245,7 @@ public class JavaReflectionUtil {
             handlerClass = fallbackType;
         }
         try {
-            return Cast.uncheckedCast(handlerClass.getConstructor().newInstance());
+            return Cast.uncheckedCast(ClassUtils.newInstance(handlerClass));
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

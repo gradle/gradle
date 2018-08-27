@@ -20,6 +20,7 @@ import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classloader.VisitableURLClassLoader
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.util.ClassUtils
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -40,7 +41,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
 
         def original = compileJavaToDir(className, """
             package org.gradle.api.plugins;
-            public class JavaPluginConvention {
+            class JavaPluginConvention {
                 String _prop;
                 String getProp() { return _prop; }
                 void setProp(String value) { _prop = value; }
@@ -57,7 +58,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         cl.protectionDomain.codeSource.location == classesDir.toURI().toURL()
         cl.package.name == "org.gradle.api.plugins"
 
-        def obj = cl.getConstructor().newInstance()
+        def obj = ClassUtils.newInstance(cl)
         obj instanceof GroovyObject
         obj.getMetaClass()
         obj.metaClass
@@ -114,7 +115,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
 
         def original = compileJavaToDir(className, """
             package org.gradle.api.plugins;
-            public class JavaPluginConvention {
+            class JavaPluginConvention {
                 private boolean someBoolean = true;
                 private boolean booleanWithGetter = false;
                 private static boolean staticBoolean = true;
@@ -140,7 +141,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, DefaultClassPath.of(classesDir), new DefaultLegacyTypesSupport())
 
         def cl = loader.loadClass(className)
-        def obj = cl.getConstructor().newInstance()
+        def obj = ClassUtils.newInstance(cl)
         obj.getSomeBoolean() == true
         obj.someBoolean == true
 
@@ -219,22 +220,15 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
 
     def compileJavaToDir(String className, String text) {
         srcDir.createDir()
-        def srcFile = srcDir.file(className.split(/\./)[-1] + ".java")
+        def srcFile = srcDir.file(className + ".java")
         srcFile.text = text
 
         def compiler = ToolProvider.systemJavaCompiler
         classesDir.createDir()
 
-        DiagnosticListener listener = new DiagnosticListener() {
-            @Override
-            void report(Diagnostic diagnostic) {
-                println(diagnostic.getMessage(null))
-            }
-        }
-
-        def fileManager = compiler.getStandardFileManager(listener, null, null)
-        def task = compiler.getTask(null, fileManager, listener, ["-d", classesDir.path], null, fileManager.getJavaFileObjects(srcFile))
-        assert task.call()
+        def fileManager = compiler.getStandardFileManager(null, null, null)
+        def task = compiler.getTask(null, fileManager, null, ["-d", classesDir.path], null, fileManager.getJavaFileObjects(srcFile))
+        task.call()
         def cl = new VisitableURLClassLoader(groovyClassLoader, DefaultClassPath.of(classesDir))
         cl.loadClass(className)
     }

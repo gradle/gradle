@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.compile.processing.NonIncrementalProcessor;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.util.ClassUtils;
 
 import javax.annotation.processing.Processor;
 import javax.tools.JavaCompiler;
@@ -134,7 +135,7 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
 
     private Processor instantiateProcessor(Class<?> processorClass) {
         try {
-            return (Processor) processorClass.getConstructor().newInstance();
+            return (Processor) ClassUtils.newInstance(processorClass);
         } catch (Exception e) {
             throw new IllegalArgumentException("Could not instantiate annotation processor '" + processorClass.getName() + "'");
         }

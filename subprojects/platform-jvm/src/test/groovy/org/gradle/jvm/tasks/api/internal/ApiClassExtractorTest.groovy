@@ -17,6 +17,7 @@
 package org.gradle.jvm.tasks.api.internal
 
 import org.gradle.internal.classanalysis.AsmConstants
+import org.gradle.internal.util.ClassUtils
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Label
@@ -47,7 +48,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasMethod(extracted, 'foo')
 
         when:
-        def o = extracted.getConstructor().newInstance()
+        def o = ClassUtils.newInstance(extracted)
         o.foo()
 
         then:
@@ -73,7 +74,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasMethod(extracted, 'foo')
 
         when:
-        extracted.getConstructor().newInstance()
+        ClassUtils.newInstance(extracted)
 
         then:
         def e = thrown(InvocationTargetException)
@@ -204,7 +205,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasMethod(extractedB, 'foo').modifiers == Opcodes.ACC_PUBLIC
 
         when:
-        extractedB.getConstructor().newInstance()
+        ClassUtils.newInstance(extractedB)
 
         then:
         def e = thrown(InvocationTargetException)
@@ -324,7 +325,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasField(extracted, 'foo', String)
 
         when:
-        def o = extracted.getConstructor().newInstance()
+        def o = ClassUtils.newInstance(extracted)
         o.foo()
 
         then:
@@ -350,7 +351,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasField(extracted, 'foo', String)
 
         when:
-        extracted.getConstructor().newInstance()
+        ClassUtils.newInstance(extracted)
 
         then:
         def e = thrown(InvocationTargetException)

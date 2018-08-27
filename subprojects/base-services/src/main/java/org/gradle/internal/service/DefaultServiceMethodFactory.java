@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.service;
 
+import org.gradle.internal.util.ClassUtils;
+
 import java.lang.reflect.Method;
 
 /**
@@ -26,7 +28,7 @@ class DefaultServiceMethodFactory implements ServiceMethodFactory {
     DefaultServiceMethodFactory() {
         ServiceMethodFactory factory;
         try {
-            factory = (ServiceMethodFactory) Class.forName("org.gradle.internal.service.MethodHandleBasedServiceMethodFactory").getConstructor().newInstance();
+            factory = ClassUtils.newInstance((Class<ServiceMethodFactory>) Class.forName("org.gradle.internal.service.MethodHandleBasedServiceMethodFactory"));
         } catch (Exception e) {
             factory = new ReflectionBasedServiceMethodFactory();
         }

@@ -25,6 +25,7 @@ import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.util.ClassUtils;
 
 import java.lang.reflect.Method;
 
@@ -55,7 +56,7 @@ public class ProcessBootstrap {
 
         try {
             Class<?> mainClass = runtimeClassLoader.loadClass(mainClassName);
-            Object entryPoint = mainClass.getConstructor().newInstance();
+            Object entryPoint = ClassUtils.newInstance(mainClass);
             Method mainMethod = mainClass.getMethod("run", String[].class);
             mainMethod.invoke(entryPoint, new Object[]{args});
         } finally {

@@ -39,6 +39,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.util.ClassUtils;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -162,7 +163,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
         // we must use a String literal here, otherwise using things like Foo.class.name will trigger unnecessary
         // loading of classes in the classloader of the DefaultIsolatedAntBuilder, which is not what we want.
         try {
-            return antAdapterLoader.loadClass(className).getConstructor().newInstance();
+            return ClassUtils.newInstance(antAdapterLoader.loadClass(className));
         } catch (Exception e) {
             // should never happen
             throw UncheckedException.throwAsUncheckedException(e);

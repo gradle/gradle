@@ -15,13 +15,15 @@
  */
 package org.gradle.internal.serialize
 
+import org.gradle.internal.util.ClassUtils
+
 class DefaultSerializerTest extends SerializerSpec {
     def canSerializeAndDeserializeObject() {
         GroovyClassLoader classLoader = new GroovyClassLoader(getClass().classLoader)
         DefaultSerializer serializer = new DefaultSerializer(classLoader)
 
         Class cl = classLoader.parseClass('package org.gradle.cache; class TestObj implements Serializable { }')
-        Object o = cl.getConstructor().newInstance()
+        Object o = ClassUtils.newInstance(cl)
 
         when:
         def r = serialize(o, serializer)

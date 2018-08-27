@@ -25,6 +25,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Named;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.util.ClassUtils;
 import org.gradle.model.internal.asm.AsmClassGenerator;
 import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
 import org.gradle.model.internal.inspect.ValidationProblemCollector;
@@ -191,7 +192,7 @@ public class NamedObjectInstantiator {
         visitor.visitEnd();
         Class<Object> factoryClass = generator.define();
         try {
-            return (ClassGeneratingLoader) (factoryClass.getConstructor().newInstance());
+            return (ClassGeneratingLoader) ClassUtils.newInstance(factoryClass);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

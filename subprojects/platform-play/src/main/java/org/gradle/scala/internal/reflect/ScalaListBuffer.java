@@ -16,6 +16,8 @@
 
 package org.gradle.scala.internal.reflect;
 
+import org.gradle.internal.util.ClassUtils;
+
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -23,7 +25,7 @@ public class ScalaListBuffer {
     public static <T> Object fromList(ClassLoader cl, List<T> list) {
         try {
             Class<?> bufferClass = cl.loadClass("scala.collection.mutable.ListBuffer");
-            Object buffer = bufferClass.getConstructor().newInstance();
+            Object buffer = ClassUtils.newInstance(bufferClass);
             Method bufferPlusEq = bufferClass.getMethod("$plus$eq", Object.class);
 
             for (T elem : list) {

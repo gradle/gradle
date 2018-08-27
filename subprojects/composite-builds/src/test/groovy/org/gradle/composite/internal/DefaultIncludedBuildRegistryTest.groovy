@@ -30,6 +30,7 @@ import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.util.ClassUtils
 import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
@@ -237,7 +238,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     }
 
     def build(File rootDir) {
-        return BuildDefinition.fromStartParameterForBuild(StartParameter.getConstructor().newInstance(), null, rootDir, DefaultPluginRequests.EMPTY, null)
+        return BuildDefinition.fromStartParameterForBuild(ClassUtils.newInstance(StartParameter), null, rootDir, DefaultPluginRequests.EMPTY, null)
     }
 
     def rootBuild() {

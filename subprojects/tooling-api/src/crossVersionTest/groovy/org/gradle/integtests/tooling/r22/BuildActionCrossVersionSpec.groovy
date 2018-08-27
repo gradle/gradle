@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
 import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.internal.util.ClassUtils
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.ProjectConnection
@@ -53,7 +54,7 @@ public class ActionImpl implements ${BuildAction.name}<java.io.File> {
         builder.buildJar(implJar)
 
         def cl1 = new URLClassLoader([implJar.toURI().toURL()] as URL[], getClass().classLoader)
-        def action1 = cl1.loadClass("ActionImpl").getConstructor().newInstance()
+        def action1 = ClassUtils.newInstance(cl1.loadClass("ActionImpl"))
 
         when:
         File actualJar1 = withConnection { ProjectConnection connection ->
@@ -76,7 +77,7 @@ public class ActionImpl implements ${BuildAction.name}<String> {
 """
         builder.buildJar(implJar)
         def cl2 = new URLClassLoader([implJar.toURI().toURL()] as URL[], getClass().classLoader)
-        def action2 = cl2.loadClass("ActionImpl").getConstructor().newInstance()
+        def action2 = ClassUtils.newInstance(cl2.loadClass("ActionImpl"))
 
         String result2 = withConnection { ProjectConnection connection ->
             connection.action(action2).run()

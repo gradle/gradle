@@ -24,6 +24,7 @@ import org.gradle.api.plugins.antlr.internal.antlr2.MetadataExtracter;
 import org.gradle.api.plugins.antlr.internal.antlr2.XRef;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.util.ClassUtils;
 import org.gradle.util.RelativePathUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,7 +95,7 @@ public class AntlrExecuter implements AntlrWorker {
             try {
                 Class<?> toolClass = Class.forName(className); // ok to use caller classloader
                 if (args == null) {
-                    return toolClass.getConstructor().newInstance();
+                    return ClassUtils.newInstance(toolClass);
                 } else {
                     Constructor<?> constructor = toolClass.getConstructor(String[].class);
                     return constructor.newInstance(new Object[]{args});

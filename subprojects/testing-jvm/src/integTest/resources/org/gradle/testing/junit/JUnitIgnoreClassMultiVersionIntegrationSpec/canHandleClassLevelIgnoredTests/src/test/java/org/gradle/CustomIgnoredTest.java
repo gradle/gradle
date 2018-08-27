@@ -1,5 +1,6 @@
 package org.gradle;
 
+import org.gradle.internal.util.ClassUtils;
 import org.junit.Ignore;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
@@ -57,7 +58,7 @@ public class CustomIgnoredTest {
 
         private org.gradle.CustomIgnoredTest reflectMeATestContainingInstance(Class<? extends org.gradle.CustomIgnoredTest> testClass) {
             try {
-                return testClass.getConstructor().newInstance();
+                return ClassUtils.newInstance(testClass);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

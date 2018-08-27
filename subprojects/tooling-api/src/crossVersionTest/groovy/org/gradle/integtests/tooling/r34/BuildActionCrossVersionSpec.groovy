@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.internal.util.ClassUtils
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.ProjectConnection
@@ -47,7 +48,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         def classloader = new URLClassLoader([jar.toURL()] as URL[], getClass().classLoader)
-        def action = classloader.loadClass("ActionImpl").getConstructor().newInstance()
+        def action = ClassUtils.newInstance(classloader.loadClass("ActionImpl"))
         withConnection { ProjectConnection connection ->
             connection.action(action).run()
         }

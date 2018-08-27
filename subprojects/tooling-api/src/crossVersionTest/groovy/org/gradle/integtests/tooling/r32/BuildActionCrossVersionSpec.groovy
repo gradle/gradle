@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r32
 import org.gradle.integtests.tooling.fixture.ClassLoaderFixture
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.internal.util.ClassUtils
 import org.gradle.test.fixtures.file.TestFile
 
 @TargetGradleVersion('>=1.8')
@@ -45,11 +46,11 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         expect:
         def l1 = withConnection { c ->
-            return c.action(action1.getConstructor().newInstance()).run()
+            return c.action(ClassUtils.newInstance(action1)).run()
         }
         l1 == ["not broken 1"]
         def l2 = withConnection { c ->
-            return c.action(action2.getConstructor().newInstance()).run()
+            return c.action(ClassUtils.newInstance(action2)).run()
         }
         l2 == ["not broken 2"]
     }
@@ -77,11 +78,11 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         expect:
         def l1 = withConnection { c ->
-            return c.action(action1.getConstructor().newInstance()).run()
+            return c.action(ClassUtils.newInstance(action1)).run()
         }
         l1 == ["not broken 1"]
         def l2 = withConnection { c ->
-            return c.action(action2.getConstructor().newInstance()).run()
+            return c.action(ClassUtils.newInstance(action2)).run()
         }
         l2 == ["not broken 1"]
     }
