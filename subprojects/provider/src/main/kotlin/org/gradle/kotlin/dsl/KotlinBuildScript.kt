@@ -46,6 +46,7 @@ annotation class KotlinScriptTemplate
     resolver = KotlinBuildScriptDependenciesResolver::class,
     scriptFilePattern = ".*\\.gradle\\.kts")
 @ScriptTemplateAdditionalCompilerArguments([
+    "-jvm-target", "1.8",
     "-Xjsr305=strict",
     "-XXLanguage:+NewInference",
     "-XXLanguage:+SamConversionForKotlinFunctions"

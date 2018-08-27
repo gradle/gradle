@@ -60,6 +60,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
     resolver = KotlinBuildScriptDependenciesResolver::class,
     scriptFilePattern = ".+\\.init\\.gradle\\.kts")
 @ScriptTemplateAdditionalCompilerArguments([
+    "-jvm-target", "1.8",
     "-Xjsr305=strict",
     "-XXLanguage:+NewInference",
     "-XXLanguage:+SamConversionForKotlinFunctions"
