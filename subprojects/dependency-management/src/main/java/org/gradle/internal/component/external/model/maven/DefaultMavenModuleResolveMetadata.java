@@ -22,6 +22,8 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -104,14 +106,28 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     private ImmutableList<? extends ConfigurationMetadata> getDerivedVariants() {
         if (derivedVariants == null) {
             derivedVariants = ImmutableList.of(
-                withUsageAttribute((DefaultConfigurationMetadata) getConfiguration("compile"), Usage.JAVA_API, getAttributesFactory()),
-                withUsageAttribute((DefaultConfigurationMetadata) getConfiguration("runtime"), Usage.JAVA_RUNTIME, getAttributesFactory()));
+                libraryWithUsageAttribute((DefaultConfigurationMetadata) getConfiguration("compile"), Usage.JAVA_API, getAttributesFactory()),
+                libraryWithUsageAttribute((DefaultConfigurationMetadata) getConfiguration("runtime"), Usage.JAVA_RUNTIME, getAttributesFactory()),
+                platformWithUsageAttribute((DefaultConfigurationMetadata) getConfiguration("compile"), Usage.JAVA_API, getAttributesFactory(), false),
+                platformWithUsageAttribute((DefaultConfigurationMetadata) getConfiguration("runtime"), Usage.JAVA_RUNTIME, getAttributesFactory(), false),
+                platformWithUsageAttribute((DefaultConfigurationMetadata) getConfiguration("compile"), Usage.JAVA_API, getAttributesFactory(), true),
+                platformWithUsageAttribute((DefaultConfigurationMetadata) getConfiguration("runtime"), Usage.JAVA_RUNTIME, getAttributesFactory(), true));
         }
         return derivedVariants;
     }
 
-    private ConfigurationMetadata withUsageAttribute(DefaultConfigurationMetadata conf, String usage, ImmutableAttributesFactory attributesFactory) {
-        return conf.withAttributes(attributesFactory.concat(getAttributes().asImmutable(), USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator)));
+    private ConfigurationMetadata libraryWithUsageAttribute(DefaultConfigurationMetadata conf, String usage, ImmutableAttributesFactory attributesFactory) {
+        ImmutableAttributes attributes = attributesFactory.concat(getAttributes().asImmutable(), USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator));
+        attributes = attributesFactory.concat(attributes, PlatformSupport.COMPONENT_CATEGORY, PlatformSupport.LIBRARY);
+        return conf.withAttributes(attributes);
+    }
+
+    private ConfigurationMetadata platformWithUsageAttribute(DefaultConfigurationMetadata conf, String usage, ImmutableAttributesFactory attributesFactory, boolean enforcedPlatform) {
+        ImmutableAttributes attributes = attributesFactory.concat(getAttributes().asImmutable(), USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator));
+        String componentType = enforcedPlatform ? PlatformSupport.ENFORCED_PLATFORM : PlatformSupport.REGULAR_PLATFORM;
+        attributes = attributesFactory.concat(attributes, PlatformSupport.COMPONENT_CATEGORY, componentType);
+        String prefix = enforcedPlatform ? "enforced-platform-" : "platform-";
+        return conf.withAttributes(prefix + conf.getName(), attributes);
     }
 
     private ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(String name) {

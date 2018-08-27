@@ -81,7 +81,7 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     public DependencyConstraint enforcedPlatform(Object notation) {
         DependencyConstraintInternal platformDependency = (DependencyConstraintInternal) create(notation);
         platformDependency.setForce(true);
-        PlatformSupport.addEnforcedPlatformRule(componentMetadataHandler, platformDependency.getModule(), platformDependency.getVersion());
+        PlatformSupport.addPlatformAttribute(platformDependency, PlatformSupport.ENFORCED_PLATFORM);
         return platformDependency;
     }
 

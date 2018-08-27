@@ -85,4 +85,8 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
         return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), ImmutableList.copyOf(getHierarchy()), ImmutableList.copyOf(getArtifacts()), componentMetadataRules, getExcludes(), attributes, getConfigDependencies());
     }
 
+    public DefaultConfigurationMetadata withAttributes(String newName, ImmutableAttributes attributes) {
+        return new DefaultConfigurationMetadata(getComponentId(), newName, isTransitive(), isVisible(), ImmutableList.copyOf(getHierarchy()), ImmutableList.copyOf(getArtifacts()), componentMetadataRules, getExcludes(), attributes, getConfigDependencies());
+    }
+
 }
