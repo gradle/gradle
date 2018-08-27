@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.ToBeImplemented
 import spock.lang.Unroll
 
-class FileProvidersIntegrationTest extends AbstractIntegrationSpec {
+class FilePropertiesIntegrationTest extends AbstractIntegrationSpec {
     def "can attach a calculated directory to task property"() {
         buildFile << """
             class SomeTask extends DefaultTask {
