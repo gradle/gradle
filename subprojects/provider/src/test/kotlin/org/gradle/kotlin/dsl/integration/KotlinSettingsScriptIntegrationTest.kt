@@ -1,5 +1,8 @@
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.api.Plugin
+import org.gradle.api.initialization.Settings
+
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
@@ -11,6 +14,29 @@ import org.junit.Test
 
 
 class KotlinSettingsScriptIntegrationTest : AbstractIntegrationTest() {
+
+    @Test
+    fun `can apply plugin using ObjectConfigurationAction syntax`() {
+
+        withFile("buildSrc/src/main/java/MySettingsPlugin.java", """
+            import ${Plugin::class.qualifiedName};
+            import ${Settings::class.qualifiedName};
+
+            public class MySettingsPlugin implements Plugin<Settings> {
+                public void apply(Settings settings) {}
+            }
+        """)
+
+        withSettings("""
+            apply {
+                plugin<MySettingsPlugin>()
+            }
+        """)
+
+        withBuildScript("")
+
+        build("help", "-q")
+    }
 
     @Test
     fun `Settings script path is resolved relative to parent script dir`() {
