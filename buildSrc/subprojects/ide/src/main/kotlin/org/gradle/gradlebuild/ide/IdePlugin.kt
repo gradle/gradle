@@ -20,9 +20,7 @@ import accessors.eclipse
 import accessors.idea
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
-import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
-import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.JavaPlugin
@@ -38,16 +36,11 @@ import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.gradle.plugins.ide.idea.model.IdeaModule
 import org.gradle.plugins.ide.idea.model.IdeaProject
 import org.jetbrains.gradle.ext.Application
-import org.jetbrains.gradle.ext.CodeStyleConfig
-import org.jetbrains.gradle.ext.CopyrightConfiguration
 import org.jetbrains.gradle.ext.ForceBraces.FORCE_BRACES_ALWAYS
-import org.jetbrains.gradle.ext.GroovyCompilerConfiguration
-import org.jetbrains.gradle.ext.IdeaCompilerConfiguration
 import org.jetbrains.gradle.ext.JUnit
 import org.jetbrains.gradle.ext.Make
 import org.jetbrains.gradle.ext.ProjectSettings
 import org.jetbrains.gradle.ext.Remote
-import org.jetbrains.gradle.ext.RunConfiguration
 import java.io.File
 
 
@@ -55,23 +48,6 @@ const val ideConfigurationBaseName = "ideConfiguration"
 
 
 fun IdeaProject.settings(configuration: ProjectSettings.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
-
-
-fun ProjectSettings.compiler(configuration: IdeaCompilerConfiguration.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
-
-
-fun ProjectSettings.groovyCompiler(configuration: GroovyCompilerConfiguration.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
-
-
-fun ProjectSettings.copyright(configuration: CopyrightConfiguration.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
-
-
-fun ProjectSettings.codeStyle(configuration: CodeStyleConfig.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
-
-
-fun ProjectSettings.runConfigurations(configuration: PolymorphicDomainObjectContainer<RunConfiguration>.() -> kotlin.Unit) = (this as ExtensionAware).configure<NamedDomainObjectContainer<RunConfiguration>> {
-    (this as PolymorphicDomainObjectContainer<RunConfiguration>).apply(configuration)
-}
 
 
 open class IdePlugin : Plugin<Project> {
@@ -258,9 +234,10 @@ open class IdePlugin : Plugin<Project> {
     fun ProjectSettings.configureCopyright() {
         copyright {
             useDefault = "ASL2"
-            profiles.create("ASL2") {
-                notice =
-                    """Copyright ${"$"}{today.year} the original author or authors.
+            profiles {
+                create("ASL2") {
+                    notice =
+                        """Copyright ${"$"}{today.year} the original author or authors.
      Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
@@ -270,17 +247,19 @@ open class IdePlugin : Plugin<Project> {
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License."""
-                keyword = "Copyright"
+                    keyword = "Copyright"
+                }
             }
         }
     }
 
     fun ProjectSettings.configureCompilerSettings(project: Project) {
         compiler {
-            processHeapSize = 2045
-            useReleaseOption = false
+            processHeapSize = 2048
+//            useReleaseOption = false
         }
         groovyCompiler {
+            heapSize = 2048
             excludes {
                 file("${project.rootProject.projectDir.absolutePath}/subprojects/plugins/src/test/groovy/org/gradle/api/internal/tasks/testing/junit/JUnitTestClassProcessorTest.groovy")
             }
