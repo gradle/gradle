@@ -106,29 +106,9 @@ For the gradle/gradle build, heap usage dropped by 60 MB to 450 MB, that is a 12
 
 ### Build Scan Plugin default version updated to 1.16
 
-The default build scan plugin version has been updated to. This version provides you new insights of your build, for example:
+The built-in build scan plugin version has been updated to 1.16. When used with Gradle Enterprise 2018.4 or [scans.gradle.com](https://scans.gradle.com/), this provides deeper configuration time profiling, dependency repository insights, deprecated Gradle functionality usage analysis, and more.
 
-- Sources of slow configuration lifecycle callbacks
-- Build script compilation
-- Build deprecation warnings
-- Dependency repositories
-
-in build scans.
-
-You can enable build scans by running your build with `--scan`.
-
-For further details and getting started with Gradle build scans check the [Build Scan Plugin User Manual](https://docs.gradle.com/build-scan-plugin/).
-
-## Promoted features
-
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the features that have been promoted in this Gradle release.
-
-<!--
-### Example promoted
--->
+For more information on how to use build scans, see [https://scans.gradle.com/](https://scans.gradle.com/). For more information on new features in Gradle Enterprise 2018.4, see the [Gradle Enterprise 2018.4 Release Notes](https://gradle.com/enterprise/releases/2018.4/).
 
 ## Fixed issues
 
