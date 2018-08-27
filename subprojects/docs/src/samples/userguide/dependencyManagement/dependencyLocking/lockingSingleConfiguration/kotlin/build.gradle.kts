@@ -6,12 +6,9 @@ repositories {
     mavenCentral()
 }
 
-
 // tag::locking-one[]
-configurations {
-    "compileClasspath" {
-        resolutionStrategy.activateDependencyLocking()
-    }
+configurations.getByName("compileClasspath") {
+    resolutionStrategy.activateDependencyLocking()
 }
 // end::locking-one[]
 

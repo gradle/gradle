@@ -117,9 +117,8 @@ In that case the configuration name will be prefixed with `buildscript-`.
 The content of the file is a module notation per line, with a header giving some context.
 Module notations are ordered alphabetically, to ease diffs.
 
-==== Example: Lockfile content
-
-[source.multi-language-sample,groovy]
+.Lockfile content
+[listing]
 .gradle/dependency-locks/compileClasspath.lockfile
 ----
 include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/groovy/gradle/dependency-locks/compileClasspath.lockfile[]
