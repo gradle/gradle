@@ -249,7 +249,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
-    public void setDuplicatesStrategy(@Nullable DuplicatesStrategy strategy) {
+    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
         getRootSpec().setDuplicatesStrategy(strategy);
     }
 

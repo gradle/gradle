@@ -53,7 +53,11 @@ public enum DuplicatesStrategy {
      * <p> 
      * Use this strategy when duplicates are an error condition that should cause the build to fail.
      */
-    FAIL
+    FAIL,
 
-
+    /**
+     * The default strategy, which is inherited from the parent copy spec, if any,
+     * or {@link DuplicatesStrategy#INCLUDE} if the copy spec has no parent.
+     */
+    DEFAULT
 }
