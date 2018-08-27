@@ -33,13 +33,11 @@ In your build script, a property called `ant` is provided by Gradle. This is a r
 
 You execute an Ant task by calling a method on the `AntBuilder` instance. You use the task name as the method name. For example, you execute the Ant `echo` task by calling the `ant.echo()` method. The attributes of the Ant task are passed as Map parameters to the method. Below is an example of the `echo` task. Notice that we can also mix Groovy code and the Ant task markup. This can be extremely powerful.
 
-=== Example: Using an Ant task
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/ant/useAntTask/build.gradle[]
-----
+.Using an Ant task
+====
+include::sample[dir="userguide/ant/useAntTask/groovy",files="build.gradle"]
+include::sample[dir="userguide/ant/useAntTask/kotlin",files="build.gradle.kts"]
+====
 
 .Output of `gradle hello`
 ----
