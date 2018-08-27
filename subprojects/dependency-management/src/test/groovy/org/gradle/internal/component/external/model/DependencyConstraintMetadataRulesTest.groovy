@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
+import org.gradle.internal.component.external.model.maven.MavenDependencyType
 import org.gradle.util.TestUtil
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
@@ -45,8 +46,8 @@ class DependencyConstraintMetadataRulesTest extends AbstractDependencyMetadataRu
     def "maven optional dependencies are accessible as dependency constraints"() {
         given:
         def mavenMetadata = mavenMetadataFactory.create(componentIdentifier, [
-            new MavenDependencyDescriptor(MavenScope.Compile, false, newSelector(DefaultModuleIdentifier.newId("org", "notOptional"), "1.0"), null, []),
-            new MavenDependencyDescriptor(MavenScope.Compile, true, newSelector(DefaultModuleIdentifier.newId("org", "optional"), "1.0"), null, [])
+            new MavenDependencyDescriptor(MavenScope.Compile, MavenDependencyType.DEPENDENCY, newSelector(DefaultModuleIdentifier.newId("org", "notOptional"), "1.0"), null, []),
+            new MavenDependencyDescriptor(MavenScope.Compile, MavenDependencyType.OPTIONAL_DEPENDENCY, newSelector(DefaultModuleIdentifier.newId("org", "optional"), "1.0"), null, [])
         ])
 
         when:
