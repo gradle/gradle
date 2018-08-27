@@ -57,8 +57,8 @@ fun withMirrors(handler: RepositoryHandler) {
     }
     handler.all {
         if (this is MavenArtifactRepository) {
-            originalUrls.forEach { name, orignalUrl ->
-                if (normalizeUrl(orignalUrl) == normalizeUrl(this.url.toString()) && mirrorUrls.containsKey(name)) {
+            originalUrls.forEach { name, originalUrl ->
+                if (normalizeUrl(originalUrl) == normalizeUrl(this.url.toString()) && mirrorUrls.containsKey(name)) {
                     this.setUrl(mirrorUrls.get(name))
                 }
             }
@@ -71,7 +71,7 @@ fun normalizeUrl(url: String): String {
     return if (result.endsWith("/")) result else result + "/"
 }
 
-project.allprojects {
+gradle.allprojects {
     buildscript.configurations["classpath"].incoming.beforeResolve {
         withMirrors(buildscript.repositories)
     }
@@ -80,5 +80,6 @@ project.allprojects {
     }
 }
 
-val settings = (gradle as org.gradle.api.internal.GradleInternal).settings
-withMirrors(settings.pluginManagement.repositories)
+gradle.settingsEvaluated {
+    withMirrors(settings.pluginManagement.repositories)
+}

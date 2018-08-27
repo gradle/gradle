@@ -23,11 +23,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import java.util.Properties
 
-
-buildscript {
-    project.apply(from = "$rootDir/../gradle/shared-with-buildSrc/mirrors.gradle.kts")
-}
-
 plugins {
     `kotlin-dsl`
     id("org.gradle.kotlin.ktlint-convention") version "0.1.14" apply false
