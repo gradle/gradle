@@ -36,6 +36,7 @@ import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.FileCopier;
 import org.gradle.api.internal.file.delete.Deleter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
+import org.gradle.api.internal.resources.DefaultResourceResolver;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.internal.LocalResourceAdapter;
@@ -82,17 +83,18 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     }
 
     public DefaultFileOperations(FileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, ExecFactory execFactory, @Nullable TextResourceLoader textResourceLoader) {
+        FileSystem fileSystem = fileLookup.getFileSystem();
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
         this.temporaryFileProvider = temporaryFileProvider;
         this.instantiator = instantiator;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
-        this.resourceHandler = new DefaultResourceHandler(this, temporaryFileProvider, textResourceLoader);
+        this.resourceHandler = new DefaultResourceHandler(this, new DefaultResourceResolver(fileResolver, fileSystem), temporaryFileProvider, textResourceLoader);
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
         this.execFactory = execFactory;
         this.fileCopier = new FileCopier(this.instantiator, this.fileResolver, fileLookup, directoryFileTreeFactory);
-        this.fileSystem = fileLookup.getFileSystem();
+        this.fileSystem = fileSystem;
         this.deleter = new Deleter(fileResolver, fileSystem);
     }
 
@@ -133,12 +135,12 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
 
     @Override
     public ConfigurableFileTree fileTree(Object baseDir) {
-        return new DefaultConfigurableFileTree(baseDir, fileResolver, taskResolver, fileCopier, directoryFileTreeFactory);
+        return new DefaultConfigurableFileTree(baseDir, fileResolver, taskResolver, directoryFileTreeFactory);
     }
 
     @Override
     public ConfigurableFileTree fileTree(Map<String, ?> args) {
-        return new DefaultConfigurableFileTree(args, fileResolver, taskResolver, fileCopier, directoryFileTreeFactory);
+        return new DefaultConfigurableFileTree(args, fileResolver, taskResolver, directoryFileTreeFactory);
     }
 
     @Override

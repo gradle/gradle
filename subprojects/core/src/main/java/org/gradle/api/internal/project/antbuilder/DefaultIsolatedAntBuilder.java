@@ -19,7 +19,6 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -39,6 +38,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.util.ClosureBackedAction;
 
 import java.io.File;
 import java.lang.reflect.Method;

@@ -21,8 +21,8 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.plugins.ide.eclipse.model.ResourceFilterMatcher;
+import org.gradle.util.ClosureBackedAction;
 
 import javax.annotation.Nullable;
 import java.util.Set;

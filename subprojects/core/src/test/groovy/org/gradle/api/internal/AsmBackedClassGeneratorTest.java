@@ -59,8 +59,19 @@ import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.TestUtil.TEST_CLOSURE;
 import static org.gradle.util.TestUtil.call;
 import static org.gradle.util.WrapUtil.toList;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class AsmBackedClassGeneratorTest {
     private final AbstractClassGenerator generator = new AsmBackedClassGenerator();

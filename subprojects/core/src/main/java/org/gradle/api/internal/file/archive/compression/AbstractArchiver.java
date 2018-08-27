@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.file.archive.compression;
 
-import org.gradle.api.internal.resources.URIBuilder;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 
 import java.io.File;
