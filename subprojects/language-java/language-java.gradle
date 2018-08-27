@@ -18,6 +18,11 @@ dependencies {
     integTestRuntime project(':plugins')
 }
 
+gradlebuildJava {
+    // Needs to run in the compiler daemon
+    moduleType = ModuleType.REQUIRES_JAVA_9_COMPILER
+}
+
 testFixtures {
     from(':core')
     from(':languageJvm', 'testFixtures')

@@ -30,6 +30,11 @@ dependencies {
     integTestRuntime project(':maven')
 }
 
+gradlebuildJava {
+    // Needs to run in the compiler daemon
+    moduleType = ModuleType.WORKER
+}
+
 testFixtures {
     from(':plugins') // include core test fixtures
     from(':languageJvm')
