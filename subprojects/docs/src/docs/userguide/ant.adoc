@@ -90,23 +90,19 @@ include::sample[dir="userguide/ant/useExternalAntTask/kotlin",files="build.gradl
 
 You can use Gradle's dependency management to assemble the classpath to use for the custom tasks. To do this, you need to define a custom configuration for the classpath, then add some dependencies to the configuration. This is described in more detail in link:declaring_dependencies.html[Declaring Dependencies].
 
-=== Example: Declaring the classpath for a custom Ant task
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/ant/useExternalAntTaskWithConfig/build.gradle[tag=define-classpath]
-----
+.Declaring the classpath for a custom Ant task
+====
+include::sample[dir="userguide/ant/useExternalAntTaskWithConfig/groovy",files="build.gradle[tags=define-classpath]"]
+include::sample[dir="userguide/ant/useExternalAntTaskWithConfig/kotlin",files="build.gradle.kts[tags=define-classpath]"]
+====
 
 To use the classpath configuration, use the `asPath` property of the custom configuration.
 
-=== Example: Using a custom Ant task and dependency management together
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/ant/useExternalAntTaskWithConfig/build.gradle[tag=use-classpath]
-----
+.Using a custom Ant task and dependency management together
+====
+include::sample[dir="userguide/ant/useExternalAntTaskWithConfig/groovy",files="build.gradle[tags=use-classpath]"]
+include::sample[dir="userguide/ant/useExternalAntTaskWithConfig/kotlin",files="build.gradle.kts[tags=use-classpath]"]
+====
 
 [[sec:import_ant_build]]
 == Importing an Ant build
