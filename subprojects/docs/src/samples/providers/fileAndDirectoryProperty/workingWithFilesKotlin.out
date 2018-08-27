@@ -1,8 +1,8 @@
 
 > Task :print
-foo.someDirectory = /home/user/gradle/samples/some-directory
+foo.someDirectory = /home/user/gradle/samples/kotlin/some-directory
 foo.someFiles contains someDirectory? true
-foo.someFile = /home/user/gradle/samples/build/some-file
+foo.someFile = /home/user/gradle/samples/kotlin/build/some-file
 foo.someFiles contains someFile? true
 
 BUILD SUCCESSFUL in 0s
