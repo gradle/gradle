@@ -29,7 +29,7 @@ import org.junit.Test
 class SamplesJUnitIntegrationTest extends AbstractIntegrationTest {
 
     @Rule
-    public final Sample sample = new Sample(testDirectoryProvider, 'testing/junit')
+    public final Sample sample = new Sample(testDirectoryProvider, 'testing/junit/groovy')
 
     @Before
     void setup() {
