@@ -69,16 +69,13 @@ include::sample[dir="userguide/ant/taskWithNestedElements/kotlin",files="build.g
 
 You can access Ant types in the same way that you access tasks, using the name of the type as the method name. The method call returns the Ant data type, which you can then use directly in your build script. In the following example, we create an Ant `path` object, then iterate over the contents of it.
 
-=== Example: Using an Ant type
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/ant/useAntType/build.gradle[]
-----
+.Using an Ant type
+====
+include::sample[dir="userguide/ant/useAntType/groovy",files="build.gradle"]
+include::sample[dir="userguide/ant/useAntType/kotlin",files="build.gradle.kts"]
+====
 
 More information about `AntBuilder` can be found in 'Groovy in Action' 8.4 or at the http://groovy-lang.org/scripting-ant.html[Groovy Wiki].
-
 
 [[sec:using_custom_ant_tasks]]
 === Using custom Ant tasks in your build
