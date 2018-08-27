@@ -17,6 +17,7 @@
 package org.gradle.internal.hash;
 
 import com.google.common.base.Charsets;
+import org.gradle.internal.io.BufferCaster;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -159,7 +160,7 @@ public class Hashing {
         private void update(int length) {
             checkNotDone();
             digest.update(buffer.array(), 0, length);
-            ((Buffer)buffer).clear();
+            BufferCaster.cast(buffer).clear();
         }
 
         @Override

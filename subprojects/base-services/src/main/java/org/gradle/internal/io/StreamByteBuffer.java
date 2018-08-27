@@ -192,7 +192,7 @@ public class StreamByteBuffer {
                 // copy one by one until the underflow has been resolved
                 buf = ByteBuffer.allocate(buf.remaining() + 1).put(buf);
                 buf.put(nextBuf.get());
-                ((Buffer)buf).flip();
+                BufferCaster.cast(buf).flip();
             } else {
                 if (hasRemaining(nextBuf)) {
                     buf = nextBuf;
@@ -235,7 +235,7 @@ public class StreamByteBuffer {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }
-        ((Buffer) charbuffer).flip();
+        BufferCaster.cast(charbuffer).flip();
         return charbuffer;
     }
 
