@@ -16,12 +16,14 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -49,17 +51,22 @@ class AbstractVariantBackedConfigurationMetadata implements ConfigurationMetadat
         this.componentId = componentId;
         this.variant = variant;
         List<GradleDependencyMetadata> dependencies = new ArrayList<GradleDependencyMetadata>(variant.getDependencies().size());
+        // Forced dependencies are only supported for enforced platforms, so it is currently hardcoded.
+        // Should we want to add this as a first class concept to Gradle metadata, then it should be available on the component variant
+        // metadata as well.
+        boolean forcedDependencies = Objects.equal(variant.getAttributes().getAttribute(PlatformSupport.COMPONENT_CATEGORY), PlatformSupport.ENFORCED_PLATFORM);
         for (ComponentVariant.Dependency dependency : variant.getDependencies()) {
             ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getModule()), dependency.getVersionConstraint(), dependency.getAttributes());
             List<ExcludeMetadata> excludes = dependency.getExcludes();
-            dependencies.add(new GradleDependencyMetadata(selector, excludes, false, dependency.getReason()));
+            dependencies.add(new GradleDependencyMetadata(selector, excludes, false, dependency.getReason(), forcedDependencies));
         }
         for (ComponentVariant.DependencyConstraint dependencyConstraint : variant.getDependencyConstraints()) {
             dependencies.add(new GradleDependencyMetadata(
                 DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependencyConstraint.getGroup(), dependencyConstraint.getModule()), dependencyConstraint.getVersionConstraint(), dependencyConstraint.getAttributes()),
                 Collections.<ExcludeMetadata>emptyList(),
                 true,
-                dependencyConstraint.getReason()
+                dependencyConstraint.getReason(),
+                forcedDependencies
             ));
         }
         this.dependencies = ImmutableList.copyOf(dependencies);

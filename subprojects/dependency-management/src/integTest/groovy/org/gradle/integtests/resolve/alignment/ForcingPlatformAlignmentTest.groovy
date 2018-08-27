@@ -239,10 +239,13 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                 path "kotlin:$v -> annotations:$v"
 
                 "org:platform:$v" {
-                    constraint("org:core:$v")
-                    constraint("org:databind:$v")
-                    constraint("org:kotlin:$v")
-                    constraint("org:annotations:$v")
+                    variant("enforced-platform") {
+                        attribute('org.gradle.component.category', 'enforced-platform')
+                        constraint("org:core:$v")
+                        constraint("org:databind:$v")
+                        constraint("org:kotlin:$v")
+                        constraint("org:annotations:$v")
+                    }
                 }
             }
         }
@@ -291,7 +294,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
                 }
-                module('org:platform:2.7.9:runtime') {
+                module('org:platform:2.7.9:enforced-platform') {
                     module('org:core:2.7.9')
                     module('org:databind:2.7.9')
                     module('org:annotations:2.7.9')
@@ -322,10 +325,13 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                 path "kotlin:$v -> annotations:$v"
 
                 "org:platform:$v" {
-                    constraint("org:core:$v")
-                    constraint("org:databind:$v")
-                    constraint("org:kotlin:$v")
-                    constraint("org:annotations:$v")
+                    variant("enforced-platform") {
+                        attribute('org.gradle.component.category', 'enforced-platform')
+                        constraint("org:core:$v")
+                        constraint("org:databind:$v")
+                        constraint("org:kotlin:$v")
+                        constraint("org:annotations:$v")
+                    }
                 }
             }
         }
