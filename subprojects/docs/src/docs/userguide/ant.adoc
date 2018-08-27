@@ -47,13 +47,11 @@ include::{samplesPath}/userguide/ant/useAntTask/useAntTask.out[]
 
 You pass nested text to an Ant task by passing it as a parameter of the task method call. In this example, we pass the message for the `echo` task as nested text:
 
-=== Example: Passing nested text to an Ant task
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/ant/taskWithNestedText/build.gradle[]
-----
+.Passing nested text to an Ant task
+====
+include::sample[dir="userguide/ant/taskWithNestedText/groovy",files="build.gradle"]
+include::sample[dir="userguide/ant/taskWithNestedText/kotlin",files="build.gradle.kts"]
+====
 
 .Output of `gradle hello`
 ----
