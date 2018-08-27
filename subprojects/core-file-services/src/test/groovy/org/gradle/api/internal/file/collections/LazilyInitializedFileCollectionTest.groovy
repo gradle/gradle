@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file
+package org.gradle.api.internal.file.collections
 
 import org.gradle.api.Task
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
-import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
+import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification

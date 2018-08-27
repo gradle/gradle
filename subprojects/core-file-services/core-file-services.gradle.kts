@@ -44,4 +44,5 @@ java {
 
 testFixtures {
     from(":core")
+    from(":coreApi")
 }
