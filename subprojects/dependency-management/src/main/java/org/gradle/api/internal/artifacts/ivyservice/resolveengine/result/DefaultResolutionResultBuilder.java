@@ -58,8 +58,8 @@ public class DefaultResolutionResultBuilder {
     }
 
     public void visitOutgoingEdges(Long fromComponent, Collection<? extends DependencyResult> dependencies) {
+        DefaultResolvedComponentResult from = modules.get(fromComponent);
         for (DependencyResult d : dependencies) {
-            DefaultResolvedComponentResult from = modules.get(fromComponent);
             org.gradle.api.artifacts.result.DependencyResult dependency;
             if (d.getFailure() != null) {
                 dependency = dependencyResultFactory.createUnresolvedDependency(d.getRequested(), from, d.getReason(), d.getFailure());

@@ -141,13 +141,15 @@ open class BuildScanPlugin : Plugin<Project> {
             val tasksToInvestigate = System.getProperty("cache.investigate.tasks", ":baseServices:classpathManifest")
                 .split(",")
 
-            buildScan.buildFinished {
-                gradle.taskGraph.allTasks
-                    .filter { it.state.executed && it.path in tasksToInvestigate }
-                    .forEach { task ->
-                        val hasher = (gradle as GradleInternal).services.get(ClassLoaderHierarchyHasher::class.java)
-                        Visitor(buildScan, hasher, task).visit(task::class.java.classLoader)
-                    }
+            gradle.taskGraph.whenReady {
+                buildScan.buildFinished {
+                    gradle.taskGraph.allTasks
+                        .filter { it.state.executed && it.path in tasksToInvestigate }
+                        .forEach { task ->
+                            val hasher = (gradle as GradleInternal).services.get(ClassLoaderHierarchyHasher::class.java)
+                            Visitor(buildScan, hasher, task).visit(task::class.java.classLoader)
+                        }
+                }
             }
         }
     }
