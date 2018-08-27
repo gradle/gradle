@@ -23,7 +23,7 @@ class ListPropertyIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
             class MyTask extends DefaultTask {
-                ListProperty<String> prop = project.objects.listProperty(String)
+                final ListProperty<String> prop = project.objects.listProperty(String)
                 List<String> expected = []
                 
                 @TaskAction
@@ -129,6 +129,90 @@ class ListPropertyIntegrationTest extends AbstractIntegrationSpec {
         '"${str.toLowerCase().substring(1, 2)}", "${str.substring(2, 3)}"'                            | _
         '[ "${str.toLowerCase().substring(1, 2)}", "${str.substring(2, 3)}" ]'                        | _
         'providers.provider { [ "${str.toLowerCase().substring(1, 2)}", "${str.substring(2, 3)}" ] }' | _
+    }
+
+    def "reports failure to set property value using incompatible type"() {
+        given:
+        buildFile << """
+task wrongValueTypeDsl {
+    doLast {
+        verify.prop = 123
+    }
+}
+
+task wrongRuntimeElementType {
+    doLast {
+        verify.prop = [123]
+        verify.prop.get()
+    }
+}
+
+task wrongPropertyTypeDsl {
+    doLast {
+        verify.prop = objects.property(Integer)
+    }
+}
+
+task wrongPropertyTypeApi {
+    doLast {
+        verify.prop.set(objects.property(Integer))
+    }
+}
+
+task wrongPropertyElementTypeDsl {
+    doLast {
+        verify.prop = objects.listProperty(Integer)
+    }
+}
+
+task wrongPropertyElementTypeApi {
+    doLast {
+        verify.prop.set(objects.listProperty(Integer))
+    }
+}
+"""
+
+        when:
+        fails("wrongValueTypeDsl")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':wrongValueTypeDsl'.")
+        failure.assertHasCause("Cannot set the value of a property of type java.util.List using an instance of type java.lang.Integer.")
+
+        when:
+        fails("wrongRuntimeElementType")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':wrongRuntimeElementType'.")
+        failure.assertHasCause("Cannot get the value of a property of type java.util.List with element type java.lang.String as the source value contains an element of type java.lang.Integer.")
+
+        when:
+        fails("wrongPropertyTypeDsl")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeDsl'.")
+        failure.assertHasCause("Cannot set the value of a property of type java.util.List using a provider of type java.lang.Integer.")
+
+        when:
+        fails("wrongPropertyTypeApi")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeApi'.")
+        failure.assertHasCause("Cannot set the value of a property of type java.util.List using a provider of type java.lang.Integer.")
+
+        when:
+        fails("wrongPropertyElementTypeDsl")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':wrongPropertyElementTypeDsl'.")
+        failure.assertHasCause("Cannot set the value of a property of type java.util.List with element type java.lang.String using a provider with element type java.lang.Integer.")
+
+        when:
+        fails("wrongPropertyElementTypeApi")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':wrongPropertyElementTypeApi'.")
+        failure.assertHasCause("Cannot set the value of a property of type java.util.List with element type java.lang.String using a provider with element type java.lang.Integer.")
     }
 
     def "can add elements to empty list property"() {
