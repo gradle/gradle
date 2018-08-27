@@ -108,6 +108,30 @@ assert tasks.t.prop.get() == "changed"
         succeeds()
     }
 
+    def "can set String property value from DSL using a GString"() {
+        given:
+        buildFile << """
+class SomeExtension {
+    final Property<String> prop
+    
+    @javax.inject.Inject
+    SomeExtension(ObjectFactory objects) {
+        prop = objects.property(String)
+    }
+}
+
+extensions.create('custom', SomeExtension, objects)
+custom.prop = "\${'some value'.substring(5)}"
+assert custom.prop.get() == "value"
+
+custom.prop = providers.provider { "\${'some new value'.substring(5)}" }
+assert custom.prop.get() == "new value"
+"""
+
+        expect:
+        succeeds()
+    }
+
     def "reports failure to set property value using incompatible type"() {
         given:
         buildFile << """

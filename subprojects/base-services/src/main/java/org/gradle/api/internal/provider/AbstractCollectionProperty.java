@@ -18,7 +18,13 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.provider.Collectors.*;
+import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
+import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
+import org.gradle.api.internal.provider.Collectors.ElementsFromCollection;
+import org.gradle.api.internal.provider.Collectors.ElementsFromCollectionProvider;
+import org.gradle.api.internal.provider.Collectors.EmptyCollection;
+import org.gradle.api.internal.provider.Collectors.NoValueCollector;
+import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
@@ -26,9 +32,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-
-import static org.gradle.api.internal.provider.Collectors.IDENTITY_VALUE_COLLECTOR;
-import static org.gradle.api.internal.provider.Collectors.STRING_VALUE_COLLECTOR;
 
 public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractProvider<C> implements CollectionPropertyInternal<T, C> {
     private static final EmptyCollection EMPTY_COLLECTION = new EmptyCollection();
@@ -42,7 +45,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     AbstractCollectionProperty(Class<? extends Collection> collectionType, Class<T> elementType) {
         this.collectionType = collectionType;
         this.elementType = elementType;
-        valueCollector = (ValueCollector<T>) (elementType == String.class ? STRING_VALUE_COLLECTOR : IDENTITY_VALUE_COLLECTOR);
+        valueCollector = ValueSanitizers.collectorFor(elementType);
     }
 
     /**
