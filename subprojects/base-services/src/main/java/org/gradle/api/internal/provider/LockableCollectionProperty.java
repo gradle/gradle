@@ -30,6 +30,11 @@ public abstract class LockableCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
+    public Class<T> getElementType() {
+        return delegate.getElementType();
+    }
+
+    @Override
     public void add(T element) {
         assertNotLocked();
         delegate.add(element);

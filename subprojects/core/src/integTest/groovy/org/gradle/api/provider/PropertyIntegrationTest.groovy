@@ -126,6 +126,9 @@ assert custom.prop.get() == "value"
 
 custom.prop = providers.provider { "\${'some new value'.substring(5)}" }
 assert custom.prop.get() == "new value"
+
+custom.prop.set("\${'some other value'.substring(5)}")
+assert custom.prop.get() == "other value"
 """
 
         expect:
@@ -146,15 +149,27 @@ class SomeExtension {
 
 extensions.create('custom', SomeExtension, objects)
 
-task wrongValueType {
+task wrongValueTypeDsl {
     doLast {
         custom.prop = 123
     }
 }
 
-task wrongPropertyType {
+task wrongValueTypeApi {
+    doLast {
+        custom.prop.set(123)
+    }
+}
+
+task wrongPropertyTypeDsl {
     doLast {
         custom.prop = objects.property(Integer)
+    }
+}
+
+task wrongPropertyTypeApi {
+    doLast {
+        custom.prop.set(objects.property(Integer))
     }
 }
 
@@ -167,17 +182,31 @@ task wrongRuntimeType {
 """
 
         when:
-        fails("wrongValueType")
+        fails("wrongValueTypeDsl")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongValueType'.")
+        failure.assertHasDescription("Execution failed for task ':wrongValueTypeDsl'.")
         failure.assertHasCause("Cannot set the value of a property of type java.lang.String using an instance of type java.lang.Integer.")
 
         when:
-        fails("wrongPropertyType")
+        fails("wrongValueTypeApi")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyType'.")
+        failure.assertHasDescription("Execution failed for task ':wrongValueTypeApi'.")
+        failure.assertHasCause("Cannot set the value of a property of type java.lang.String using an instance of type java.lang.Integer.")
+
+        when:
+        fails("wrongPropertyTypeDsl")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeDsl'.")
+        failure.assertHasCause("Cannot set the value of a property of type java.lang.String using a provider of type java.lang.Integer.")
+
+        when:
+        fails("wrongPropertyTypeApi")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeApi'.")
         failure.assertHasCause("Cannot set the value of a property of type java.lang.String using a provider of type java.lang.Integer.")
 
         when:
