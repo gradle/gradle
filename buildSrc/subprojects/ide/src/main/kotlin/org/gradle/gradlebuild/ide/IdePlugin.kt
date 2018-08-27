@@ -126,6 +126,7 @@ open class IdePlugin : Plugin<Project> {
         configureJUnitDefaults()
     }
 
+    private
     fun Project.configureJUnitDefaults() {
         val rootProject = this
         val docsProject = project(":docs")
@@ -170,6 +171,7 @@ open class IdePlugin : Plugin<Project> {
         }
     }
 
+    private
     fun ProjectSettings.configureRunConfigurations(rootProject: Project) {
         runConfigurations {
             val gradleRunners = mapOf(
@@ -200,6 +202,7 @@ open class IdePlugin : Plugin<Project> {
         }
     }
 
+    private
     fun ProjectSettings.configureCodeStyle() {
         codeStyle {
             @Suppress("DEPRECATION")
@@ -231,6 +234,7 @@ open class IdePlugin : Plugin<Project> {
         }
     }
 
+    private
     fun ProjectSettings.configureCopyright() {
         copyright {
             useDefault = "ASL2"
@@ -253,10 +257,11 @@ open class IdePlugin : Plugin<Project> {
         }
     }
 
+    private
     fun ProjectSettings.configureCompilerSettings(project: Project) {
         compiler {
             processHeapSize = 2048
-//            useReleaseOption = false
+            useReleaseOption = false
         }
         groovyCompiler {
             heapSize = 2048
