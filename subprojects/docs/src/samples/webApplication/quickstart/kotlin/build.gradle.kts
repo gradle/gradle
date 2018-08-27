@@ -16,8 +16,8 @@ repositories {
 }
 
 dependencies {
-    compile(group = "commons-io", name = "commons-io", version = "1.4")
-    compile(group = "log4j", name = "log4j", version = "1.2.15", ext = "jar")
+    implementation(group = "commons-io", name = "commons-io", version = "1.4")
+    implementation(group = "log4j", name = "log4j", version = "1.2.15", ext = "jar")
 }
 
 gretty {

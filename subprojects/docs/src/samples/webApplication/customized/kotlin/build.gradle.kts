@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    compile(module(":compile:1.0") {
+    implementation(module(":compile:1.0") {
         dependency(":compile-transitive-1.0@jar")
         dependency( ":providedCompile-transitive:1.0@jar")
     })
@@ -27,9 +27,9 @@ dependencies {
     providedCompile(module(":providedCompile:1.0") {
         dependency(":providedCompile-transitive:1.0@jar")
     })
-    runtime(":runtime:1.0")
+    runtimeOnly(":runtime:1.0")
     providedRuntime(":providedRuntime:1.0@jar")
-    testCompile("junit:junit:4.12")
+    testImplementation("junit:junit:4.12")
     moreLibs(":otherLib:1.0")
 }
 
