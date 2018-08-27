@@ -135,12 +135,12 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
 
     @Override
     public ConfigurableFileTree fileTree(Object baseDir) {
-        return new DefaultConfigurableFileTree(baseDir, fileResolver, taskResolver, fileCopier, directoryFileTreeFactory);
+        return new DefaultConfigurableFileTree(baseDir, fileResolver, taskResolver, directoryFileTreeFactory);
     }
 
     @Override
     public ConfigurableFileTree fileTree(Map<String, ?> args) {
-        return new DefaultConfigurableFileTree(args, fileResolver, taskResolver, fileCopier, directoryFileTreeFactory);
+        return new DefaultConfigurableFileTree(args, fileResolver, taskResolver, directoryFileTreeFactory);
     }
 
     @Override

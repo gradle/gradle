@@ -22,14 +22,12 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.copy.FileCopier
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.util.AbstractTestForPatternSet
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Rule
@@ -47,7 +45,6 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
     File testDir = tmpDir.testDirectory
     def fileLookup = Mock(FileLookup)
     FileResolver fileResolverStub = resolver(testDir)
-    FileCopier fileCopier
 
     PatternFilterable getPatternSet() {
         return fileSet
@@ -55,8 +52,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
 
     void setup() {
         NativeServicesTestFixture.initialize()
-        fileSet = new DefaultConfigurableFileTree(testDir, fileResolverStub, taskResolverStub, fileCopier, directoryFileTreeFactory())
-        fileCopier = new FileCopier(DirectInstantiator.INSTANCE, fileResolverStub, fileLookup, directoryFileTreeFactory())
+        fileSet = new DefaultConfigurableFileTree(testDir, fileResolverStub, taskResolverStub, directoryFileTreeFactory())
     }
 
     def testFileSetConstructionWithBaseDir() {
@@ -65,7 +61,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
     }
 
     def testFileSetConstructionFromMap() {
-        fileSet = new DefaultConfigurableFileTree(fileResolverStub, taskResolverStub, dir: testDir, includes: ['include'], builtBy: ['a'], fileCopier, directoryFileTreeFactory())
+        fileSet = new DefaultConfigurableFileTree(fileResolverStub, taskResolverStub, dir: testDir, includes: ['include'], builtBy: ['a'], directoryFileTreeFactory())
 
         expect:
         testDir == fileSet.dir
@@ -74,7 +70,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
     }
 
     def testFileSetConstructionWithNoBaseDirSpecified() {
-        DefaultConfigurableFileTree fileSet = new DefaultConfigurableFileTree([:], fileResolverStub, taskResolverStub, fileCopier, directoryFileTreeFactory())
+        DefaultConfigurableFileTree fileSet = new DefaultConfigurableFileTree([:], fileResolverStub, taskResolverStub, directoryFileTreeFactory())
 
         when:
         fileSet.contains(new File('unknown'))
@@ -83,7 +79,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
     }
 
     def testFileSetConstructionWithBaseDirAsString() {
-        DefaultConfigurableFileTree fileSet = new DefaultConfigurableFileTree(fileResolverStub, taskResolverStub, dir: 'dirname', fileCopier, directoryFileTreeFactory())
+        DefaultConfigurableFileTree fileSet = new DefaultConfigurableFileTree(fileResolverStub, taskResolverStub, dir: 'dirname', directoryFileTreeFactory())
 
         expect:
         tmpDir.file("dirname") == fileSet.dir
@@ -294,7 +290,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         def fileResolverStub = Stub(FileResolver.class) {
             getPatternSetFactory() >> TestFiles.getPatternSetFactory()
         }
-        fileSet = new DefaultConfigurableFileTree(testDir, fileResolverStub, taskResolverStub, fileCopier, directoryFileTreeFactory())
+        fileSet = new DefaultConfigurableFileTree(testDir, fileResolverStub, taskResolverStub, directoryFileTreeFactory())
         def task = Stub(Task)
 
         expect:
