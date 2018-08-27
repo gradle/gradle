@@ -307,7 +307,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         for (ContextAwareTaskAction taskAction : taskActions) {
             String typeName = taskAction.getActionClassName();
             HashCode classLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(taskAction.getClassLoader());
-            actionImplementations.add(ImplementationSnapshot.withDeterministicClassName(typeName, classLoaderHash));
+            actionImplementations.add(ImplementationSnapshot.of(typeName, classLoaderHash));
         }
         return actionImplementations.build();
     }

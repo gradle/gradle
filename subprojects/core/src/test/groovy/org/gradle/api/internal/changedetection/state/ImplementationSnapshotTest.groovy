@@ -23,18 +23,30 @@ import spock.lang.Unroll
 class ImplementationSnapshotTest extends Specification {
 
     @Unroll
-    def "non-deterministic part of class name #className is #expectedClassName"() {
+    def "class name #className is lambda: #lambda"() {
         HashCode classloaderHash = HashCode.fromInt(1234)
 
         expect:
-        ImplementationSnapshot.withDeterministicClassName(className, classloaderHash).typeName == expectedClassName
+        ImplementationSnapshot.of(className, classloaderHash).known == !lambda
 
         where:
-        className                                    | expectedClassName
-        'SomeClassName'                              | 'SomeClassName'
-        'SomeClassName$1$2$5'                        | 'SomeClassName$1$2$5'
-        'SomeClassName$1$$Lambda$5/23154546436'      | 'SomeClassName$1$$Lambda$'
-        'SomeClassName$$Lambda$154/00000000082FF1F0' | 'SomeClassName$$Lambda$'
-        'SomeClassName$$Lambda$267/19410584'         | 'SomeClassName$$Lambda$'
+        className                                    | lambda
+        'SomeClassName'                              | false
+        'SomeClassName$1$2$5'                        | false
+        'SomeClassName$1$$Lambda$5/23154546436'      | true
+        'SomeClassName$$Lambda$154/00000000082FF1F0' | true
+        'SomeClassName$$Lambda$267/19410584'         | true
+    }
+
+    def "implementation snapshots are not equal when unknown"() {
+        HashCode classloaderHash = HashCode.fromInt(1234)
+        String lambdaClassName = 'SomeClass$$Lambda$3/23501234324'
+        def className = "SomeClass"
+
+        expect:
+        ImplementationSnapshot.of(className, classloaderHash) == ImplementationSnapshot.of(className, classloaderHash)
+        ImplementationSnapshot.of(className, null) != ImplementationSnapshot.of(className, null)
+        ImplementationSnapshot.of(lambdaClassName, classloaderHash) != ImplementationSnapshot.of(lambdaClassName, classloaderHash)
+        ImplementationSnapshot.of(lambdaClassName, null) != ImplementationSnapshot.of(lambdaClassName, null)
     }
 }

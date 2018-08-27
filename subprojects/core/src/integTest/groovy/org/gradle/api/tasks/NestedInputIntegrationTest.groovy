@@ -760,8 +760,8 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         when:
         withBuildCache().run "customTask", "--info", "-D${BuildCacheDebugLoggingOption.GRADLE_PROPERTY}=true"
         then:
-        output.contains "The implementation of 'bean' cannot be determined, because it was loaded by an unknown classloader"
-        output.contains "Not loading task ':customTask' from cache because no valid cache key was generated"
+        output.contains "The implementation of 'bean' cannot be determined. It was probably loaded by an unknown classloader"
+        output.contains "Caching disabled for task ':customTask': Invalid build cache key was generated"
     }
 
     def "task with nested bean loaded with custom classloader is never up-to-date"() {

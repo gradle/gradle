@@ -17,13 +17,13 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
 
-class LambdaInputsIntegrationTest extends AbstractIntegrationSpec {
+class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     def "implementation of nested property in Groovy build script is tracked"() {
         setupTaskClassWithNestedAction()
@@ -75,11 +75,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/5510")
     @Requires(TestPrecondition.JDK8_OR_LATER)
-    def "implementations in nested property defined by Java 8 lambda is tracked"() {
-        executer.beforeExecute {
-            withStackTraceChecksDisabled()
-        }
-
+    def "task with nested property defined by Java 8 lambda is never up-to-date"() {
         setupTaskClassWithNestedAction()
         def originalClassName = "LambdaActionOriginal"
         def changedClassName = "LambdaActionChanged"
@@ -97,12 +93,12 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec {
         run 'myTask'
         then:
         executedAndNotSkipped(':myTask')
-        output.contains("Java lambda is used as an input. Gradle can only track the lambda used in your code with some loss of precision that may lead to some changes going undetected. Use an anonymous inner class instead.")
 
         when:
-        run 'myTask'
+        run 'myTask', "--info"
         then:
-        skipped(':myTask')
+        executedAndNotSkipped(':myTask')
+        output.contains("Implementation of input property 'action' has changed for task ':myTask'")
 
         when:
         buildFile.text = """
@@ -117,44 +113,31 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Implementation of input property 'action' has changed for task ':myTask'"
     }
 
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/5510")
+    @Issue("https://github.com/gradle/gradle/issues/5510")
     @Requires(TestPrecondition.JDK8_OR_LATER)
-    def "choosing a different Java 8 lambda in the same class is not detected"() {
-        executer.beforeExecute {
-            withStackTraceChecksDisabled()
-        }
+    def "caching is disabled for task with nested property defined by Java 8 lambda"() {
         setupTaskClassWithNestedAction()
-        def className = "LambdaActions"
-        file("buildSrc/src/main/java/${className}.java") << classWithLambda(
-            className,
-            lambdaWritingFile("ORIGINAL", "original") + lambdaWritingFile("CHANGED", "changed"))
+        file("buildSrc/src/main/java/LambdaAction.java") << classWithLambda("LambdaAction", lambdaWritingFile("ACTION", "original"))
         buildFile << """
             task myTask(type: TaskWithNestedAction) {
-                action = ${className}.ORIGINAL
+                action = LambdaAction.ACTION
+                outputs.cacheIf { true }
             }
         """
 
         buildFile.makeOlder()
 
         when:
-        run 'myTask'
+        withBuildCache().run 'myTask', "--info"
         then:
         executedAndNotSkipped(':myTask')
+        assertInvalidBuildCacheKeyGenerated(':myTask')
 
         when:
-        buildFile.text = """
-            task myTask(type: TaskWithNestedAction) {
-                action = ${className}.CHANGED
-            }
-        """
-        run 'myTask', '--info'
+        withBuildCache().run 'myTask', "--info"
         then:
-        // TODO: Task should have been executed
-        skipped(':myTask')
-        // TODO: Should equal "changed"
-        file('build/tmp/myTask/output.txt').text != "changed"
-        // TODO: Output should contain this reason
-        !output.contains("Implementation of input property 'action' has changed for task ':myTask'")
+        executedAndNotSkipped(':myTask')
+        assertInvalidBuildCacheKeyGenerated(':myTask')
     }
 
     private TestFile setupTaskClassWithNestedAction() {
@@ -199,8 +182,9 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/5510")
     @Requires(TestPrecondition.JDK8_OR_LATER)
-    def "changes to Java 8 Lambda actions are tracked"() {
+    def "task with Java 8 Lambda actions is never up-to-date"() {
         file("buildSrc/src/main/java/LambdaActionOriginal.java") << classWithLambda("LambdaActionOriginal", lambdaPrintingString("ACTION", "From Lambda: original"))
         file("buildSrc/src/main/java/LambdaActionChanged.java") << classWithLambda("LambdaActionChanged", lambdaPrintingString("ACTION", "From Lambda: changed"))
 
@@ -216,30 +200,58 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.withStackTraceChecksDisabled()
         run "myTask"
         then:
         executedAndNotSkipped(":myTask")
-        output.contains("From Lambda: original")
-        output.contains("Java lambda is used as an input. Gradle can only track the lambda used in your code with some loss of precision that may lead to some changes going undetected. Use an anonymous inner class instead.")
 
         when:
-        executer.withStackTraceChecksDisabled()
-        run "myTask"
+        run "myTask", "--info"
         then:
-        skipped(":myTask")
+        executedAndNotSkipped(":myTask")
+        output.contains("Task ':myTask' has an additional action that was implemented by a Java 8 lambda")
 
         when:
         buildFile.text = script
         buildFile << """
             myTask.doLast(LambdaActionChanged.ACTION)
         """
-        executer.withStackTraceChecksDisabled()
         run "myTask", "--info"
         then:
         executedAndNotSkipped(":myTask")
-        output.contains("From Lambda: changed")
-        output.contains("Task ':myTask' has additional actions that have changed")
+        output.contains("Task ':myTask' has an additional action that was implemented by a Java 8 lambda")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/5510")
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "caching is disabled for task with Java 8 Lambda action"() {
+        file("buildSrc/src/main/java/LambdaAction.java") << classWithLambda("LambdaAction", lambdaPrintingString("ACTION", "From Lambda: original"))
+
+        setupCustomTask()
+
+        buildFile <<
+        """      
+            task myTask(type: CustomTask) {
+                outputs.cacheIf { true }
+            }
+
+            myTask.doLast(LambdaAction.ACTION)
+        """
+
+        when:
+        withBuildCache().run "myTask", "-info"
+        then:
+        executedAndNotSkipped(":myTask")
+        assertInvalidBuildCacheKeyGenerated(':myTask')
+
+        when:
+        withBuildCache().run "myTask", "--info"
+        then:
+        executedAndNotSkipped(":myTask")
+        assertInvalidBuildCacheKeyGenerated(':myTask')
+    }
+
+    private void assertInvalidBuildCacheKeyGenerated(String taskPath) {
+        assert output.contains("Caching disabled for task '${taskPath}': Invalid build cache key was generated")
     }
 
     private TestFile setupCustomTask() {

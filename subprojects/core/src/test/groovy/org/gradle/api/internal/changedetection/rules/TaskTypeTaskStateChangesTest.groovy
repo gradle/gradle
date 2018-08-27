@@ -173,8 +173,8 @@ class TaskTypeTaskStateChangesTest extends Specification {
         return visitor.changes*.message
     }
 
-    private static ImplementationSnapshot impl(Class<?> type, HashCode classLoaderHash) {
-        ImplementationSnapshot.of(type.getName(), classLoaderHash)
+    private static ImplementationSnapshot impl(Class<?> type, HashCode classLoaderHash, boolean lambda = false) {
+        ImplementationSnapshot.of(type.getName(), classLoaderHash, lambda)
     }
 
     private class SimpleTask extends DefaultTask {}

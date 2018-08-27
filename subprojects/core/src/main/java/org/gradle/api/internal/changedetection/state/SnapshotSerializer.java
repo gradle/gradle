@@ -108,7 +108,7 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
             case MANAGED_NAMED_SNAPSHOT:
                 return new ManagedNamedTypeSnapshot(decoder.readString(), decoder.readString());
             case IMPLEMENTATION_SNAPSHOT:
-                return ImplementationSnapshot.of(decoder.readString(), decoder.readBoolean() ? null : serializer.read(decoder));
+                return ImplementationSnapshot.of(decoder.readString(), decoder.readBoolean() ? null : serializer.read(decoder), false);
             case DEFAULT_SNAPSHOT:
                 return new SerializedValueSnapshot(decoder.readBoolean() ? serializer.read(decoder) : null, decoder.readBinary());
             default:

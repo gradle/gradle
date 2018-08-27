@@ -21,6 +21,8 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
+import javax.annotation.Nullable;
+
 class TaskTypeTaskStateChanges implements TaskStateChanges {
     private final TaskExecution previousExecution;
     private final TaskExecution currentExecution;
@@ -40,22 +42,24 @@ class TaskTypeTaskStateChanges implements TaskStateChanges {
             return visitor.visitChange(new DescriptiveChange("Task '%s' has changed type from '%s' to '%s'.",
                 task.getIdentityPath(), prevImplementation.getTypeName(), taskImplementation.getTypeName()));
         }
-        if (taskImplementation.hasUnknownClassLoader()) {
-            return visitor.visitChange(new DescriptiveChange("Task '%s' was loaded with an unknown classloader", task.getIdentityPath()));
+        if (!taskImplementation.isKnown()) {
+            return visitor.visitChange(new DescriptiveChange("Task '%s' %s", task.getIdentityPath(), taskImplementation.getUnknownImplementationMessage()));
         }
-        if (prevImplementation.hasUnknownClassLoader()) {
-            return visitor.visitChange(new DescriptiveChange("Task '%s' was loaded with an unknown classloader during the previous execution", task.getIdentityPath()));
+        if (!prevImplementation.isKnown()) {
+            return visitor.visitChange(new DescriptiveChange("Task '%s' %s during the previous execution", task.getIdentityPath(), prevImplementation.getUnknownImplementationMessage()));
         }
         if (!taskImplementation.getClassLoaderHash().equals(prevImplementation.getClassLoaderHash())) {
             return visitor.visitChange(new DescriptiveChange("Task '%s' class path has changed from %s to %s.", task.getIdentityPath(), prevImplementation.getClassLoaderHash(), taskImplementation.getClassLoaderHash()));
         }
 
         ImmutableList<ImplementationSnapshot> taskActionImplementations = currentExecution.getTaskActionImplementations();
-        if (hasAnyUnknownClassLoader(taskActionImplementations)) {
-            return visitor.visitChange(new DescriptiveChange("Task '%s' has an additional action that was loaded with an unknown classloader", task.getIdentityPath()));
+        String unknownImplementation = findUnknownImplementation(taskActionImplementations);
+        if (unknownImplementation != null) {
+            return visitor.visitChange(new DescriptiveChange("Task '%s' has an additional action that %s", task.getIdentityPath(), unknownImplementation));
         }
-        if (hasAnyUnknownClassLoader(previousExecution.getTaskActionImplementations())) {
-            return visitor.visitChange(new DescriptiveChange("Task '%s' had an additional action that was loaded with an unknown classloader during the previous execution", task.getIdentityPath()));
+        String previousUnknownImplementation = findUnknownImplementation(previousExecution.getTaskActionImplementations());
+        if (previousUnknownImplementation != null) {
+            return visitor.visitChange(new DescriptiveChange("Task '%s' had an additional action that %s during the previous execution", task.getIdentityPath(), previousUnknownImplementation));
         }
         if (!taskActionImplementations.equals(previousExecution.getTaskActionImplementations())) {
             return visitor.visitChange(new DescriptiveChange("Task '%s' has additional actions that have changed", task.getIdentityPath()));
@@ -63,12 +67,14 @@ class TaskTypeTaskStateChanges implements TaskStateChanges {
         return true;
     }
 
-    private static boolean hasAnyUnknownClassLoader(Iterable<ImplementationSnapshot> implementations) {
+    @Nullable
+    private static String findUnknownImplementation(Iterable<ImplementationSnapshot> implementations) {
         for (ImplementationSnapshot implementation : implementations) {
-            if (implementation.hasUnknownClassLoader()) {
-                return true;
+            String unknownImplementationMessage = implementation.getUnknownImplementationMessage();
+            if (unknownImplementationMessage != null) {
+                return unknownImplementationMessage;
             }
         }
-        return false;
+        return null;
     }
 }

@@ -19,7 +19,6 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.util.SingleMessageLogger;
 
 import javax.annotation.Nullable;
 
@@ -32,37 +31,29 @@ public class ImplementationSnapshot implements ValueSnapshot {
 
     private final String typeName;
     private final HashCode classLoaderHash;
+    private final boolean lambda;
 
     public static ImplementationSnapshot of(Class<?> type, ClassLoaderHierarchyHasher classLoaderHasher) {
-        return of(determineImplementationName(type.getName(), type.isSynthetic()), classLoaderHasher.getClassLoaderHash(type.getClassLoader()));
+        String className = type.getName();
+        return of(className, classLoaderHasher.getClassLoaderHash(type.getClassLoader()), type.isSynthetic() && isLambdaClassName(className));
     }
 
-    public static ImplementationSnapshot of(String typeName, @Nullable HashCode classLoaderHash) {
-        return new ImplementationSnapshot(typeName, classLoaderHash);
+    public static ImplementationSnapshot of(String typeName, @Nullable HashCode classLoaderHash, boolean lambda) {
+        return new ImplementationSnapshot(typeName, classLoaderHash, lambda);
     }
 
-    public static ImplementationSnapshot withDeterministicClassName(String className, @Nullable HashCode classLoaderHash) {
-        return of(determineImplementationName(className, true), classLoaderHash);
+    public static ImplementationSnapshot of(String className, @Nullable HashCode classLoaderHash) {
+        return of(className, classLoaderHash, isLambdaClassName(className));
     }
 
-    private static String determineImplementationName(String className, boolean mayBeLambda) {
-        if (mayBeLambda && className.contains(GENERATED_LAMBDA_CLASS_SUFFIX)) {
-            SingleMessageLogger.nagUserWith(
-                "Java lambda is used as an input.",
-                "Gradle can only track the lambda used in your code with some loss of precision that may lead to some changes going undetected.",
-                "Use an anonymous inner class instead.",
-                ""
-            );
-            int index = className.lastIndexOf(GENERATED_LAMBDA_CLASS_SUFFIX);
-            return className.substring(0, index + GENERATED_LAMBDA_CLASS_SUFFIX.length());
-        } else {
-            return className;
-        }
+    private static boolean isLambdaClassName(String className) {
+        return className.contains(GENERATED_LAMBDA_CLASS_SUFFIX);
     }
 
-    private ImplementationSnapshot(String typeName, @Nullable HashCode classLoaderHash) {
+    private ImplementationSnapshot(String typeName, @Nullable HashCode classLoaderHash, boolean lambda) {
         this.typeName = typeName;
         this.classLoaderHash = classLoaderHash;
+        this.lambda = lambda;
     }
 
     public String getTypeName() {
@@ -82,13 +73,28 @@ public class ImplementationSnapshot implements ValueSnapshot {
 
     @Override
     public void appendToHasher(BuildCacheHasher hasher) {
-        if (classLoaderHash == null) {
-            hasher.markAsInvalid();
-        } else {
+        if (isKnown()) {
             hasher.putString(ImplementationSnapshot.class.getName());
             hasher.putString(typeName);
             hasher.putHash(classLoaderHash);
+        } else {
+            hasher.markAsInvalid();
         }
+    }
+
+    public boolean isKnown() {
+        return getUnknownImplementationMessage() == null;
+    }
+
+    @Nullable
+    public String getUnknownImplementationMessage() {
+        if (classLoaderHash == null) {
+            return "was loaded with an unknown classloader";
+        }
+        if (lambda) {
+            return "was implemented by a Java 8 lambda";
+        }
+        return null;
     }
 
     @Override
@@ -122,7 +128,7 @@ public class ImplementationSnapshot implements ValueSnapshot {
             return false;
         }
         ImplementationSnapshot that = (ImplementationSnapshot) o;
-        if (classLoaderHash == null || that.classLoaderHash == null) {
+        if (!isKnown() || !that.isKnown()) {
             return false;
         }
         if (this == o) {
