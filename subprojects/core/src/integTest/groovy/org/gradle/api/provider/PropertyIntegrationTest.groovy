@@ -17,72 +17,8 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
-
-import static PropertyStateProjectUnderTest.Language
-import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class PropertyIntegrationTest extends AbstractIntegrationSpec {
-
-    private final PropertyStateProjectUnderTest projectUnderTest = new PropertyStateProjectUnderTest(testDirectory)
-
-    @Unroll
-    def "can create and use property state by custom task written as #language class"() {
-        given:
-        projectUnderTest.writeCustomTaskTypeToBuildSrc(language)
-        buildFile << """
-            task myTask(type: MyTask)
-        """
-
-        when:
-        succeeds('myTask')
-
-        then:
-        projectUnderTest.assertDefaultOutputFileDoesNotExist()
-
-        when:
-        buildFile << """
-             myTask {
-                enabled = true
-                outputFiles = files("${normaliseFileSeparators(projectUnderTest.customOutputFile.canonicalPath)}")
-            }
-        """
-        succeeds('myTask')
-
-        then:
-        projectUnderTest.assertDefaultOutputFileDoesNotExist()
-        projectUnderTest.assertCustomOutputFileContent()
-
-        where:
-        language << [Language.GROOVY, Language.JAVA]
-    }
-
-    def "can lazily map extension property state to task property with convention mapping"() {
-        given:
-        projectUnderTest.writeCustomGroovyBasedTaskTypeToBuildSrc()
-        projectUnderTest.writePluginWithExtensionMappingUsingConventionMapping()
-
-        when:
-        succeeds('myTask')
-
-        then:
-        projectUnderTest.assertDefaultOutputFileDoesNotExist()
-        projectUnderTest.assertCustomOutputFileContent()
-    }
-
-    def "can lazily map extension property state to task property with property state"() {
-        given:
-        projectUnderTest.writeCustomGroovyBasedTaskTypeToBuildSrc()
-        projectUnderTest.writePluginWithExtensionMappingUsingPropertyState()
-
-        when:
-        succeeds('myTask')
-
-        then:
-        projectUnderTest.assertDefaultOutputFileDoesNotExist()
-        projectUnderTest.assertCustomOutputFileContent()
-    }
-
     def "can use property as task input"() {
         given:
         buildFile << """
