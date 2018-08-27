@@ -33,7 +33,6 @@ import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.metaobject.DynamicObjectAware;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
 import spock.lang.Issue;
