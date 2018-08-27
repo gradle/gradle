@@ -19,7 +19,6 @@ package org.gradle.internal.hash;
 import com.google.common.base.Charsets;
 import org.gradle.internal.io.BufferCaster;
 
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.MessageDigest;
