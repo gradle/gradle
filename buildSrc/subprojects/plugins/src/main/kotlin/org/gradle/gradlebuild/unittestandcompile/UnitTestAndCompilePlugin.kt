@@ -115,8 +115,8 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         plugins.withType<IdeaPlugin> {
             configure<IdeaModel> {
                 module {
-                    resourceDirs = resourceDirs + gradlebuildJava.generatedResourcesDir
-                    testResourceDirs = testResourceDirs + gradlebuildJava.generatedTestResourcesDir
+                    sourceDirs = sourceDirs + gradlebuildJava.generatedResourcesDir
+                    testSourceDirs = testSourceDirs + gradlebuildJava.generatedTestResourcesDir
                 }
             }
         }
