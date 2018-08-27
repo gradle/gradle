@@ -53,7 +53,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
         then:
         def e = thrown(InvocationTargetException)
-        e.cause instanceof UnsupportedOperationException
+        e.cause.cause instanceof UnsupportedOperationException
     }
 
     def "should not remove protected method"() {
@@ -78,7 +78,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
         then:
         def e = thrown(InvocationTargetException)
-        e.cause instanceof UnsupportedOperationException
+        e.cause.cause instanceof UnsupportedOperationException
 
     }
 
@@ -209,7 +209,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
         then:
         def e = thrown(InvocationTargetException)
-        e.cause instanceof UnsupportedOperationException
+        e.cause.cause instanceof UnsupportedOperationException
 
         when:
         extractedA.STATIC_IN_A()
@@ -330,7 +330,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
         then:
         def e = thrown(InvocationTargetException)
-        e.cause instanceof UnsupportedOperationException
+        e.cause.cause instanceof UnsupportedOperationException
     }
 
     def "should not remove protected field"() {
@@ -355,7 +355,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
         then:
         def e = thrown(InvocationTargetException)
-        e.cause instanceof UnsupportedOperationException
+        e.cause.cause instanceof UnsupportedOperationException
     }
 
     def "should remove private field"() {

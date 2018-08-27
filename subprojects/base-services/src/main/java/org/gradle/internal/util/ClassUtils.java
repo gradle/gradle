@@ -26,7 +26,7 @@ public class ClassUtils {
      */
     public static <T> T newInstance(Class<T> c) {
         try {
-            Constructor<T> constructor = c.getConstructor();
+            Constructor<T> constructor = c.getDeclaredConstructor();
             constructor.setAccessible(true);
             return constructor.newInstance();
         } catch (Throwable e) {

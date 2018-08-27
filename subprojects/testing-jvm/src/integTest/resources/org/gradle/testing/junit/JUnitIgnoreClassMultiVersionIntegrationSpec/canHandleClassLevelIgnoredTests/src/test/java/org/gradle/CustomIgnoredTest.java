@@ -58,7 +58,7 @@ public class CustomIgnoredTest {
 
         private org.gradle.CustomIgnoredTest reflectMeATestContainingInstance(Class<? extends org.gradle.CustomIgnoredTest> testClass) {
             try {
-                return ClassUtils.newInstance(testClass);
+                return testClass.getConstructor().newInstance();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

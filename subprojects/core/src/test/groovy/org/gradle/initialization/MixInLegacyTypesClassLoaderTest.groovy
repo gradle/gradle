@@ -25,8 +25,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import javax.tools.Diagnostic
-import javax.tools.DiagnosticListener
 import javax.tools.ToolProvider
 
 class MixInLegacyTypesClassLoaderTest extends Specification {
