@@ -405,10 +405,8 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         then:
         skippedTasks.empty
         [
-            "taskClass",
-            "classLoaderHash",
-            "actionType",
-            "actionClassLoaderHash",
+            "taskImplementation",
+            "actionImplementation",
             "inputValuePropertyHash for 'options.fork'",
             "inputFilePropertyHash for 'classpath'",
             "outputPropertyName",

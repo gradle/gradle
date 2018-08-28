@@ -44,7 +44,6 @@ import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.EmptyHistoricalFileCollectionFingerprint;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -305,9 +304,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
         ImmutableList.Builder<ImplementationSnapshot> actionImplementations = ImmutableList.builder();
         for (ContextAwareTaskAction taskAction : taskActions) {
-            String typeName = taskAction.getActionClassName();
-            HashCode classLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(taskAction.getClassLoader());
-            actionImplementations.add(ImplementationSnapshot.of(typeName, classLoaderHash));
+            actionImplementations.add(taskAction.getActionImplementation(classLoaderHierarchyHasher));
         }
         return actionImplementations.build();
     }

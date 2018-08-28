@@ -18,17 +18,15 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 
-public interface ClassLoaderAwareTaskAction extends Action<Task> {
-    /**
-     * Returns the classloader used to load the action. This can be the classloader
-     * of the implementing class, or the classloader of some delegate action.
-     */
-    ClassLoader getClassLoader();
+public interface ImplementationAwareTaskAction extends Action<Task> {
 
     /**
-     * Returns the name of the action class. This can be the
-     * implementing class itself, or the type of some delegate action.
+     * Returns the implementation snapshot for the action.
+     *
+     * This can be the implementation of the implementing class, or of some delegate action.
      */
-    String getActionClassName();
+    ImplementationSnapshot getActionImplementation(ClassLoaderHierarchyHasher hasher);
 }
