@@ -1,5 +1,6 @@
 import groovy.lang.GroovyObject
 
+import org.jetbrains.gradle.ext.CopyrightConfiguration
 import org.jetbrains.gradle.ext.ProjectSettings
 
 import java.time.LocalDate
@@ -14,7 +15,7 @@ buildscript {
 plugins {
     base
     kotlin("jvm") apply false
-    id("org.jetbrains.gradle.plugin.idea-ext") version "0.1"
+    id("org.jetbrains.gradle.plugin.idea-ext") version "0.4.2"
 }
 
 allprojects {
@@ -111,8 +112,9 @@ idea {
     project {
         (this as ExtensionAware)
         configure<ProjectSettings> {
+            (this as ExtensionAware)
             doNotDetectFrameworks("android", "web")
-            copyright {
+            configure<CopyrightConfiguration> {
                 useDefault = "ASL2"
                 profiles {
                     create("ASL2") {
