@@ -115,11 +115,9 @@ include::sample[dir="userguide/ant/hello/groovy",files="build.gradle"]
 include::sample[dir="userguide/ant/hello/kotlin",files="build.gradle.kts"]
 ====
 
-[source,xml]
-.build.xml
-----
-include::{samplesPath}/userguide/ant/hello/groovy/build.xml[]
-----
+====
+include::sample[dir="userguide/ant/hello/groovy",files="build.xml"]
+====
 
 .Output of `gradle hello`
 ----
@@ -163,11 +161,9 @@ include::sample[dir="userguide/ant/dependsOnTask/groovy",files="build.gradle"]
 include::sample[dir="userguide/ant/dependsOnTask/kotlin",files="build.gradle.kts"]
 ====
 
-[source,xml]
-.build.xml
-----
-include::{samplesPath}/userguide/ant/dependsOnTask/groovy/build.xml[]
-----
+====
+include::sample[dir="userguide/ant/dependsOnTask/groovy",files="build.xml"]
+====
 
 .Output of `gradle hello`
 ----
@@ -183,11 +179,9 @@ include::sample[dir="userguide/ant/renameTask/groovy",files="build.gradle"]
 include::sample[dir="userguide/ant/renameTask/kotlin",files="build.gradle.kts"]
 ====
 
-[source,xml]
-.build.xml
-----
-include::{samplesPath}/userguide/ant/renameTask/groovy/build.xml[]
-----
+====
+include::sample[dir="userguide/ant/renameTask/groovy",files="build.xml"]
+====
 
 .Output of `gradle a-hello`
 ----
