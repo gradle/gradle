@@ -5,7 +5,7 @@ plugins {
 repositories {
     mavenCentral()
     maven {
-        setUrl("https://repo.spring.io/snapshot/")
+        url = uri("https://repo.spring.io/snapshot/")
     }
 }
 
@@ -19,7 +19,7 @@ configurations.all {
 }
 // end::changing-module-cache-control[]
 
-tasks.create<Copy>("copyLibs") {
+task("copyLibs", Copy::class) {
     from(configurations.compileClasspath)
     into("$buildDir/libs")
 }

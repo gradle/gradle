@@ -16,7 +16,7 @@ configurations.all {
 }
 // end::dynamic-version-cache-control[]
 
-tasks.create<Copy>("copyLibs") {
+task("copyLibs", Copy::class) {
     from (configurations.compileClasspath)
     into("$buildDir/libs")
 }
