@@ -62,19 +62,19 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
     public void startArtifacts(RootGraphNode root) {
         RootConfigurationMetadata metadata = root.getMetadata();
         dependencyLockingState = metadata.getDependencyLockingState();
-        if (dependencyLockingState.mustValidateLockState()) {
-            Set<ModuleComponentIdentifier> lockedModules = dependencyLockingState.getLockedDependencies();
+
+        Set<ModuleComponentIdentifier> lockedModules = dependencyLockingState.getLockedDependencies();
+        if (lockedModules != null) {
             modulesToBeLocked = Maps.newHashMapWithExpectedSize(lockedModules.size());
             for (ModuleComponentIdentifier lockedModule : lockedModules) {
                 modulesToBeLocked.put(lockedModule.getModuleIdentifier(), lockedModule);
             }
-            allResolvedModules = Sets.newHashSetWithExpectedSize(this.modulesToBeLocked.size());
-            extraModules = Sets.newHashSet();
-            incorrectModules = Sets.newHashSet();
         } else {
-            modulesToBeLocked = Collections.emptyMap();
-            allResolvedModules = Sets.newHashSet();
+            modulesToBeLocked = Maps.newHashMap();
         }
+        allResolvedModules = Sets.newHashSetWithExpectedSize(this.modulesToBeLocked.size());
+        extraModules = Sets.newHashSet();
+        incorrectModules = Sets.newHashSet();
     }
 
     @Override
@@ -95,14 +95,12 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
                     if (changing) {
                         addChangingModule(id);
                     }
-                    if (dependencyLockingState.mustValidateLockState()) {
-                        ModuleComponentIdentifier lockedId = modulesToBeLocked.remove(id.getModuleIdentifier());
-                        if (lockedId == null) {
-                            extraModules.add(id);
-                        } else if (!lockedId.getVersion().equals(id.getVersion())) {
-                            node.getIncomingEdges();
-                            incorrectModules.add(lockedId);
-                        }
+                    ModuleComponentIdentifier lockedId = modulesToBeLocked.remove(id.getModuleIdentifier());
+                    if (lockedId == null) {
+                        extraModules.add(id);
+                    } else if (!lockedId.getVersion().equals(id.getVersion())) {
+                        node.getIncomingEdges();
+                        incorrectModules.add(lockedId);
                     }
                 }
             }

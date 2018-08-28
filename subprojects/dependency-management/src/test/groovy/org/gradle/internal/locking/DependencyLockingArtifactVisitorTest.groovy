@@ -53,8 +53,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         then:
         1 * rootNode.metadata >> metadata
         1 * metadata.dependencyLockingState >> lockState
-        1 * lockState.mustValidateLockState() >> true
-        1 * lockState.lockedDependencies >> Collections.emptySet()
+        1 * lockState.lockedDependencies >> emptySet()
         0 * _
     }
 
@@ -65,7 +64,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         then:
         1 * rootNode.metadata >> metadata
         1 * metadata.dependencyLockingState >> lockState
-        1 * lockState.mustValidateLockState() >> false
+        1 * lockState.getLockedDependencies() >> emptySet()
         0 * _
     }
 
@@ -113,7 +112,6 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         DependencyGraphComponent component = Mock()
         ComponentIdentifier identifier = Mock()
 
-
         when:
         visitor.visitNode(node)
 
@@ -128,6 +126,8 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         given:
         def id = newId(mid, '1.1')
         startWithState([id])
+
+        and:
         addVisitedNode(id)
 
         when:
@@ -140,6 +140,8 @@ class DependencyLockingArtifactVisitorTest extends Specification {
     def 'throws when extra modules visited'() {
         given:
         startWithState([])
+
+        and:
         addVisitedNode(newId(mid, '1.0'))
 
         when:
@@ -166,6 +168,8 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         given:
         def identifier = newId(mid, '1.1')
         startWithoutLockState()
+
+        and:
         addVisitedNode(identifier)
 
         when:
@@ -180,6 +184,8 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         given:
         def identifier = newId(mid, '1.1')
         startWithoutLockState()
+
+        and:
         addVisitedChangingNode(identifier)
 
         when:
