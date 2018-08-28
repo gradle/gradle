@@ -177,21 +177,7 @@ class SkipCachedTaskExecuterTest extends Specification {
         0 * _
     }
 
-    def "does not cache results when cache key is invalid"() {
-        when:
-        executer.execute(task, taskState, taskContext)
-
-        then:
-        interaction { cachingDisabled() }
-        1 * taskContext.taskProperties >> taskProperties
-        1 * taskContext.buildCacheKey >> cacheKey
-
-        then:
-        1 * delegate.execute(task, taskState, taskContext)
-        0 * _
-    }
-
-    def "executes task and does not cache results when cacheIf is false"() {
+    def "executes task and does not cache results when caching was disabled"() {
         when:
         executer.execute(task, taskState, taskContext)
 

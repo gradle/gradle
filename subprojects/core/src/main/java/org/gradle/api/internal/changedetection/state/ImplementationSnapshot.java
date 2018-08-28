@@ -92,7 +92,7 @@ public class ImplementationSnapshot implements ValueSnapshot {
             return "was loaded with an unknown classloader";
         }
         if (lambda) {
-            return "was implemented by a Java 8 lambda";
+            return "was implemented by a Java lambda";
         }
         return null;
     }

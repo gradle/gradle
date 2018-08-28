@@ -26,9 +26,9 @@ import spock.lang.Issue
 class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     def "implementation of nested property in Groovy build script is tracked"() {
-        setupTaskClassWithNestedAction()
+        setupTaskClassWithActionProperty()
         buildFile << """
-            task myTask(type: TaskWithNestedAction) {
+            task myTask(type: TaskWithActionProperty) {
                 action = ${originalImplementation}
             }
         """
@@ -47,7 +47,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
 
         when:
         buildFile.text = """
-            task myTask(type: TaskWithNestedAction) {
+            task myTask(type: TaskWithActionProperty) {
                 action = ${changedImplementation}
             }
         """
@@ -75,15 +75,15 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
 
     @Issue("https://github.com/gradle/gradle/issues/5510")
     @Requires(TestPrecondition.JDK8_OR_LATER)
-    def "task with nested property defined by Java 8 lambda is never up-to-date"() {
-        setupTaskClassWithNestedAction()
+    def "task with nested property defined by Java lambda is never up-to-date"() {
+        setupTaskClassWithActionProperty()
         def originalClassName = "LambdaActionOriginal"
         def changedClassName = "LambdaActionChanged"
         file("buildSrc/src/main/java/${originalClassName}.java") << classWithLambda(originalClassName, lambdaWritingFile("ACTION", "original"))
         file("buildSrc/src/main/java/${changedClassName}.java") << classWithLambda(changedClassName, lambdaWritingFile("ACTION", "changed"))
         buildFile << """
-            task myTask(type: TaskWithNestedAction) {
-                action = ${originalClassName}.ACTION
+            task myTask(type: TaskWithActionProperty) {
+                action = project.hasProperty("changed") ? ${changedClassName}.ACTION : ${originalClassName}.ACTION
             }
         """
 
@@ -101,12 +101,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
         output.contains("Implementation of input property 'action' has changed for task ':myTask'")
 
         when:
-        buildFile.text = """
-            task myTask(type: TaskWithNestedAction) {
-                action = ${changedClassName}.ACTION
-            }
-        """
-        run 'myTask', '--info'
+        run 'myTask', '-Pchanged', '--info'
         then:
         executedAndNotSkipped(':myTask')
         file('build/tmp/myTask/output.txt').text == "changed"
@@ -115,11 +110,11 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
 
     @Issue("https://github.com/gradle/gradle/issues/5510")
     @Requires(TestPrecondition.JDK8_OR_LATER)
-    def "caching is disabled for task with nested property defined by Java 8 lambda"() {
-        setupTaskClassWithNestedAction()
+    def "caching is disabled for task with nested property defined by Java lambda"() {
+        setupTaskClassWithActionProperty()
         file("buildSrc/src/main/java/LambdaAction.java") << classWithLambda("LambdaAction", lambdaWritingFile("ACTION", "original"))
         buildFile << """
-            task myTask(type: TaskWithNestedAction) {
+            task myTask(type: TaskWithActionProperty) {
                 action = LambdaAction.ACTION
                 outputs.cacheIf { true }
             }
@@ -140,8 +135,8 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
         assertInvalidBuildCacheKeyGenerated(':myTask')
     }
 
-    private TestFile setupTaskClassWithNestedAction() {
-        file("buildSrc/src/main/java/TaskWithNestedAction.java") << """
+    private TestFile setupTaskClassWithActionProperty() {
+        file("buildSrc/src/main/java/TaskWithActionProperty.java") << """
             import org.gradle.api.Action;
             import org.gradle.api.DefaultTask;
             import org.gradle.api.NonNullApi;
@@ -152,7 +147,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
             import java.io.File;
             
             @NonNullApi
-            public class TaskWithNestedAction extends DefaultTask {
+            public class TaskWithActionProperty extends DefaultTask {
                 private File outputFile = new File(getTemporaryDir(), "output.txt");
                 private Action<File> action;
             
@@ -184,7 +179,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
 
     @Issue("https://github.com/gradle/gradle/issues/5510")
     @Requires(TestPrecondition.JDK8_OR_LATER)
-    def "task with Java 8 Lambda actions is never up-to-date"() {
+    def "task with Java lambda actions is never up-to-date"() {
         file("buildSrc/src/main/java/LambdaActionOriginal.java") << classWithLambda("LambdaActionOriginal", lambdaPrintingString("ACTION", "From Lambda: original"))
         file("buildSrc/src/main/java/LambdaActionChanged.java") << classWithLambda("LambdaActionChanged", lambdaPrintingString("ACTION", "From Lambda: changed"))
 
@@ -196,7 +191,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
 
         buildFile << script <<
         """            
-            myTask.doLast(LambdaActionOriginal.ACTION)
+            myTask.doLast(project.hasProperty("changed") ? LambdaActionChanged.ACTION : LambdaActionOriginal.ACTION)
         """
 
         when:
@@ -208,22 +203,18 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
         run "myTask", "--info"
         then:
         executedAndNotSkipped(":myTask")
-        output.contains("Task ':myTask' has an additional action that was implemented by a Java 8 lambda")
+        output.contains("Task ':myTask' has an additional action that was implemented by a Java lambda")
 
         when:
-        buildFile.text = script
-        buildFile << """
-            myTask.doLast(LambdaActionChanged.ACTION)
-        """
-        run "myTask", "--info"
+        run "myTask", "-Pchanged", "--info"
         then:
         executedAndNotSkipped(":myTask")
-        output.contains("Task ':myTask' has an additional action that was implemented by a Java 8 lambda")
+        output.contains("Task ':myTask' has an additional action that was implemented by a Java lambda")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5510")
     @Requires(TestPrecondition.JDK8_OR_LATER)
-    def "caching is disabled for task with Java 8 Lambda action"() {
+    def "caching is disabled for task with Java lambda action"() {
         file("buildSrc/src/main/java/LambdaAction.java") << classWithLambda("LambdaAction", lambdaPrintingString("ACTION", "From Lambda: original"))
 
         setupCustomTask()
@@ -300,7 +291,6 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
             import java.io.File;
             import java.io.IOException;
             import java.nio.file.Files;
-            import java.lang.System;
             
             public class ${className} {
 ${classBody}
