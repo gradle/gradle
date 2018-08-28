@@ -70,6 +70,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
     resolver = KotlinBuildScriptDependenciesResolver::class,
     scriptFilePattern = "^(settings|.+\\.settings)\\.gradle\\.kts$")
 @ScriptTemplateAdditionalCompilerArguments([
+    "-jvm-target", "1.8",
     "-Xjsr305=strict",
     "-XXLanguage:+NewInference",
     "-XXLanguage:+SamConversionForKotlinFunctions"
@@ -87,14 +88,6 @@ abstract class KotlinSettingsScript(
 
     override val fileOperations: DefaultFileOperations
         get() = host.operations
-
-    /**
-     * Applies zero or more plugins or scripts.
-     *
-     * @param configuration the block to configure an {@link ObjectConfigurationAction} with before “executing” it
-     */
-    override fun apply(configuration: ObjectConfigurationAction.() -> Unit) =
-        host.applyObjectConfigurationAction(Action { it.configuration() })
 
     override fun apply(action: Action<in ObjectConfigurationAction>) =
         host.applyObjectConfigurationAction(action)
@@ -419,14 +412,6 @@ abstract class SettingsScriptApi(settings: Settings) : Settings by settings {
     @Suppress("unused")
     open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit): Unit =
         internalError()
-
-    /**
-     * Applies zero or more plugins or scripts.
-     *
-     * @param configuration the block to configure an {@link ObjectConfigurationAction} with before “executing” it
-     */
-    open fun apply(configuration: ObjectConfigurationAction.() -> Unit) =
-        settings.apply(configuration)
 }
 
 

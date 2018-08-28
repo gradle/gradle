@@ -51,6 +51,11 @@ class TypeAccessibilityProviderTest : TestWithClassPath() {
             assertTrue(leafs.isEmpty())
         }
 
+        classNamesFromTypeString("org.gradle.api.NamedDomainObjectContainer<Extension>").apply {
+            assertThat(all, hasItems("org.gradle.api.NamedDomainObjectContainer", "Extension"))
+            assertThat(leafs, hasItems("Extension"))
+        }
+
         classNamesFromTypeString("java.lang.String").apply {
             assertThat(all, hasItems("java.lang.String"))
             assertThat(leafs, hasItems("java.lang.String"))

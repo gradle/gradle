@@ -7,11 +7,9 @@ import org.gradle.util.TextUtil.normaliseFileSeparators
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
-import org.junit.Ignore
 import org.junit.Test
 
 
-@Ignore
 class SourceDistributionResolverIntegrationTest : AbstractIntegrationTest() {
 
     @Test

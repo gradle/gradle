@@ -18,19 +18,11 @@ pluginBundles.forEach {
     evaluationDependsOn(it)
 }
 
-val futurePluginVersionsTasks =
-    pluginBundles.map {
-        project(it).tasks["writeFuturePluginVersions"] as WriteProperties
-    }
+tasks {
 
-val prepareIntegrationTestFixtures by rootProject.tasks
-val customInstallation by rootProject.tasks
-
-tasks.apply {
-
-    val testEnvironment = register("testEnvironment") {
-        dependsOn(prepareIntegrationTestFixtures)
-        dependsOn(customInstallation)
+    val testEnvironment by registering {
+        dependsOn(":prepareIntegrationTestFixtures")
+        dependsOn(":customInstallation")
         pluginBundles.forEach {
             dependsOn(":$it:publishPluginsToTestRepository")
         }
@@ -40,16 +32,21 @@ tasks.apply {
         dependsOn(testEnvironment)
     }
 
-    val processTestResources by getting(ProcessResources::class)
+    val processTestResources by existing(ProcessResources::class)
 
-    val writeFuturePluginVersions by creating {
+    val writeFuturePluginVersions by registering {
 
         group = "build"
         description = "Merges all future plugin bundle versions so they can all be tested at once"
 
+        val futurePluginVersionsTasks =
+            pluginBundles.map {
+                project(it).tasks["writeFuturePluginVersions"] as WriteProperties
+            }
+
         dependsOn(futurePluginVersionsTasks)
         inputs.files(futurePluginVersionsTasks.map { it.outputFile })
-        outputs.file(processTestResources.futurePluginVersionsFile)
+        outputs.file(processTestResources.get().futurePluginVersionsFile)
 
         doLast {
             outputs.files.singleFile.bufferedWriter().use { writer ->
@@ -60,7 +57,9 @@ tasks.apply {
         }
     }
 
-    processTestResources.dependsOn(writeFuturePluginVersions)
+    processTestResources {
+        dependsOn(writeFuturePluginVersions)
+    }
 }
 
 withParallelTests()

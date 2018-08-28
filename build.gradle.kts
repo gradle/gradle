@@ -1,5 +1,6 @@
 import groovy.lang.GroovyObject
 
+import org.jetbrains.gradle.ext.CopyrightConfiguration
 import org.jetbrains.gradle.ext.ProjectSettings
 
 import java.time.LocalDate
@@ -14,7 +15,7 @@ buildscript {
 plugins {
     base
     kotlin("jvm") apply false
-    id("org.jetbrains.gradle.plugin.idea-ext") version "0.1"
+    id("org.jetbrains.gradle.plugin.idea-ext") version "0.4.2"
 }
 
 allprojects {
@@ -22,8 +23,8 @@ allprojects {
     version = "1.0-SNAPSHOT"
 }
 
-val publishedPluginsVersion by extra { "1.0-rc-3" }
-val futurePluginsVersion = "1.0-rc-4"
+val publishedPluginsVersion by extra { "1.0-rc-5" }
+val futurePluginsVersion = "1.0-rc-6"
 project(":plugins") {
     group = "org.gradle.kotlin"
     version = futurePluginsVersion
@@ -111,8 +112,9 @@ idea {
     project {
         (this as ExtensionAware)
         configure<ProjectSettings> {
+            (this as ExtensionAware)
             doNotDetectFrameworks("android", "web")
-            copyright {
+            configure<CopyrightConfiguration> {
                 useDefault = "ASL2"
                 profiles {
                     create("ASL2") {
@@ -142,4 +144,4 @@ idea {
 
 // --- Utility functions -----------------------------------------------
 inline fun <reified T : Task> task(noinline configuration: T.() -> Unit) =
-    tasks.creating(T::class, configuration)
+    tasks.registering(T::class, configuration)
