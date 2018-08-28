@@ -14,22 +14,28 @@
  * limitations under the License.
  */
 
-// tag::application-configuration[]
-apply plugin: "application"
-apply plugin: "jacoco"
+package org.gradle;
 
-mainClassName = "org.gradle.MyMain"
+import org.junit.Test;
+import org.junit.Before;
 
-jacoco {
-    applyTo run
-}
+import static org.junit.Assert.assertEquals;
 
-task applicationCodeCoverageReport(type:JacocoReport){
-    executionData run
-    sourceSets sourceSets.main
-}
-// end::application-configuration[]
+public class PersonTest{
 
-repositories {
-    mavenCentral()
+    Person person;
+    @Before public void setup(){
+        person = new Person();
+    }
+
+    @Test public void testAge() {
+        person.setAge(30);
+        assertEquals(30, person.getAge());
+    }
+
+
+    @Test public void testSurname() {
+        person.setSurname("Duke");
+        assertEquals("Duke", person.getSurname());
+    }
 }
