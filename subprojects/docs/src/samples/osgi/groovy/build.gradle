@@ -1,9 +1,13 @@
 group = 'gradle_tooling'
 version = '1.0'
 
-apply plugin: 'groovy'
 // tag::use-plugin[]
-apply plugin: 'osgi'
+plugins {
+    // end::use-plugin[]
+    id 'groovy'
+    // tag::use-plugin[]
+    id 'osgi'
+}
 // end::use-plugin[]
 
 repositories {
