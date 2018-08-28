@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.util.ToBeImplemented
 import spock.lang.Unroll
+import spock.lang.Issue
 
 class DependencyLockingIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -892,6 +893,7 @@ configurations {
         lockfileFixture.verifyLockfile('lockedConf', [])
     }
 
+    @Issue("gradle/gradle#6472")
     def 'update with selective modules allow extra modules to remain in the lockfile'() {
         mavenRepo.module('org', 'bar', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.0').publish()
@@ -925,6 +927,7 @@ dependencies {
         lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.0'])
     }
 
+    @Issue("gradle/gradle#6472")
     def 'write-locks removes any extra modules in the lockfile'() {
         mavenRepo.module('org', 'bar', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.0').publish()
