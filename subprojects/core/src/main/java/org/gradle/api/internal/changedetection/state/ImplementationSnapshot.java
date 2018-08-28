@@ -38,12 +38,12 @@ public class ImplementationSnapshot implements ValueSnapshot {
         return of(className, classLoaderHasher.getClassLoaderHash(type.getClassLoader()), type.isSynthetic() && isLambdaClassName(className));
     }
 
-    public static ImplementationSnapshot of(String typeName, @Nullable HashCode classLoaderHash, boolean lambda) {
-        return new ImplementationSnapshot(typeName, classLoaderHash, lambda);
-    }
-
     public static ImplementationSnapshot of(String className, @Nullable HashCode classLoaderHash) {
         return of(className, classLoaderHash, isLambdaClassName(className));
+    }
+
+    public static ImplementationSnapshot of(String typeName, @Nullable HashCode classLoaderHash, boolean lambda) {
+        return new ImplementationSnapshot(typeName, classLoaderHash, lambda);
     }
 
     private static boolean isLambdaClassName(String className) {
@@ -73,17 +73,17 @@ public class ImplementationSnapshot implements ValueSnapshot {
 
     @Override
     public void appendToHasher(BuildCacheHasher hasher) {
-        if (isKnown()) {
+        if (isUnknown()) {
+            hasher.markAsInvalid();
+        } else {
             hasher.putString(ImplementationSnapshot.class.getName());
             hasher.putString(typeName);
             hasher.putHash(classLoaderHash);
-        } else {
-            hasher.markAsInvalid();
         }
     }
 
-    public boolean isKnown() {
-        return getUnknownImplementationMessage() == null;
+    public boolean isUnknown() {
+        return getUnknownImplementationMessage() != null;
     }
 
     @Nullable
@@ -128,7 +128,7 @@ public class ImplementationSnapshot implements ValueSnapshot {
             return false;
         }
         ImplementationSnapshot that = (ImplementationSnapshot) o;
-        if (!isKnown() || !that.isKnown()) {
+        if (isUnknown() || that.isUnknown()) {
             return false;
         }
         if (this == o) {

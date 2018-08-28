@@ -27,7 +27,7 @@ class ImplementationSnapshotTest extends Specification {
         HashCode classloaderHash = HashCode.fromInt(1234)
 
         expect:
-        ImplementationSnapshot.of(className, classloaderHash).known == !lambda
+        ImplementationSnapshot.of(className, classloaderHash).unknown == lambda
 
         where:
         className                                    | lambda
