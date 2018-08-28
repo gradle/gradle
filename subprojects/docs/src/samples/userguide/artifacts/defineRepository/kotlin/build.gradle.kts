@@ -34,7 +34,7 @@ repositories {
 repositories {
     maven {
         url = uri("s3://myCompanyBucket/maven2")
-        credentials(AwsCredentials::class.java) {
+        credentials(AwsCredentials::class) {
             accessKey = "someKey"
             secretKey = "someSecret"
             // optional
@@ -44,7 +44,7 @@ repositories {
 
     ivy {
         url = uri("s3://myCompanyBucket/ivyrepo")
-        credentials(AwsCredentials::class.java) {
+        credentials(AwsCredentials::class) {
             accessKey = "someKey"
             secretKey = "someSecret"
             // optional
@@ -144,7 +144,7 @@ repositories {
 repositories {
     maven {
         url = uri("http://repo.mycompany.com/maven2")
-        credentials(HttpHeaderCredentials::class.java) {
+        credentials(HttpHeaderCredentials::class) {
             name = "Private-Token"
             value = "TOKEN"
         }
@@ -265,7 +265,7 @@ repositories {
 }
 // end::authenticated-ivy-repo[]
 
-tasks.create("lookup") {
+task("lookup") {
     doLast {
         repositories.forEach { require(it?.name != null) }
         require(repositories[0]?.name != null)

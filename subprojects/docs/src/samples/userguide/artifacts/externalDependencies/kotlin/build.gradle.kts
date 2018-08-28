@@ -12,7 +12,7 @@ dependencies {
 // end::define-dependency[]
 
 // tag::use-configuration[]
-tasks.create("listJars") {
+task("listJars") {
     doLast {
         configurations["compile"].forEach { file: File -> println(file.name) }
     }
@@ -24,10 +24,10 @@ dependencies {
     runtime(group = "org.springframework", name = "spring-core", version = "2.5")
     runtime("org.springframework:spring-aop:2.5")
     runtime("org.hibernate:hibernate:3.0.5") {
-        setTransitive(true)
+        isTransitive = true
     }
     runtime(group = "org.hibernate", name = "hibernate", version = "3.0.5") {
-        setTransitive(true)
+        isTransitive = true
     }
 }
 // end::module-dependencies[]
@@ -35,6 +35,6 @@ dependencies {
 // tag::file-dependencies[]
 dependencies {
     runtime(files("libs/a.jar", "libs/b.jar"))
-    runtime(fileTree("dir" to "libs", "include" to "*.jar"))
+    runtime(fileTree("libs") { include("*.jar") })
 }
 // end::file-dependencies[]
