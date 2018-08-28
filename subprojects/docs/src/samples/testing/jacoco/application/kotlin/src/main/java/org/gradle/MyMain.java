@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-// tag::application-configuration[]
-apply plugin: "application"
-apply plugin: "jacoco"
+package org.gradle;
 
-mainClassName = "org.gradle.MyMain"
+import java.lang.String;
 
-jacoco {
-    applyTo run
-}
+public class MyMain{
 
-task applicationCodeCoverageReport(type:JacocoReport){
-    executionData run
-    sourceSets sourceSets.main
-}
-// end::application-configuration[]
+    public static void main(String... args){
+        new MyMain().someMethod();
+    }
 
-repositories {
-    mavenCentral()
+    private void someMethod(){
+        System.out.println("Some output from 'MyMain'");
+    }
 }
