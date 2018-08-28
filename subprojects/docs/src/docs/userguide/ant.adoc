@@ -277,13 +277,11 @@ To help with this, Gradle allows the user to fine tune the Ant logging and contr
 
 For example, the following changes the mapping such that Ant _INFO_ priority messages are exposed at the `LIFECYCLE` log level.
 
-=== Example: Fine tuning Ant logging
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/ant/antLogging/build.gradle[]
-----
+.Fine tuning Ant logging
+====
+include::sample[dir="userguide/ant/antLogging/groovy",files="build.gradle"]
+include::sample[dir="userguide/ant/antLogging/kotlin",files="build.gradle.kts"]
+====
 
 .Output of `gradle hello`
 ----
