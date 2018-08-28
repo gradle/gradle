@@ -19,15 +19,11 @@ package org.gradle.api.internal.provider;
 import com.google.common.base.Objects;
 import com.google.common.collect.Iterables;
 import org.gradle.api.provider.Provider;
-import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
 
 public class Collectors {
-    public static final IdentityValueCollector IDENTITY_VALUE_COLLECTOR = new IdentityValueCollector();
-    public static final StringValueCollector STRING_VALUE_COLLECTOR = new StringValueCollector();
-
     public interface ProvidedCollector<T> extends Collector<T> {
         boolean isProvidedBy(Provider<?> provider);
     }
@@ -322,7 +318,7 @@ public class Collectors {
         public TypedCollector(@Nullable Class<? extends T> type, Collector<T> delegate) {
             this.type = type;
             this.delegate = delegate;
-            this.valueCollector = (ValueCollector<T>) (type == String.class ? STRING_VALUE_COLLECTOR : IDENTITY_VALUE_COLLECTOR);
+            this.valueCollector = ValueSanitizers.collectorFor(type);
         }
 
         @Nullable
@@ -379,33 +375,6 @@ public class Collectors {
         @Override
         public int hashCode() {
             return Objects.hashCode(type, delegate);
-        }
-    }
-
-    public static class IdentityValueCollector implements ValueCollector<Object> {
-        @Override
-        public void add(@Nullable Object value, Collection<Object> dest) {
-            dest.add(value);
-        }
-
-        @Override
-        public void addAll(Iterable<?> values, Collection<Object> dest) {
-            CollectionUtils.addAll(dest, values);
-        }
-    }
-
-    public static class StringValueCollector implements ValueCollector<Object> {
-        @Override
-        public void add(@Nullable Object value, Collection<Object> dest) {
-            // Make sure we convert GStrings to Strings
-            dest.add(value == null ? null : value.toString());
-        }
-
-        @Override
-        public void addAll(Iterable<?> values, Collection<Object> dest) {
-            for (Object value : values) {
-                add(value, dest);
-            }
         }
     }
 }

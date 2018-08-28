@@ -25,10 +25,12 @@ import javax.annotation.Nullable;
 
 public class DefaultPropertyState<T> implements PropertyInternal<T>, Property<T>, ProviderInternal<T> {
     private final Class<T> type;
+    private final ValueSanitizer<T> sanitizer;
     private Provider<? extends T> provider = Providers.notDefined();
 
     public DefaultPropertyState(Class<T> type) {
         this.type = type;
+        this.sanitizer = ValueSanitizers.forType(type);
     }
 
     @Nullable
@@ -52,6 +54,7 @@ public class DefaultPropertyState<T> implements PropertyInternal<T>, Property<T>
             this.provider = Providers.notDefined();
             return;
         }
+        value = sanitizer.sanitize(value);
         if (!type.isInstance(value)) {
             throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using an instance of type %s.", type.getName(), value.getClass().getName()));
         }
@@ -74,6 +77,7 @@ public class DefaultPropertyState<T> implements PropertyInternal<T>, Property<T>
             p = p.map(new Transformer<T, T>() {
                 @Override
                 public T transform(T t) {
+                    t = sanitizer.sanitize(t);
                     if (type.isInstance(t)) {
                         return t;
                     }

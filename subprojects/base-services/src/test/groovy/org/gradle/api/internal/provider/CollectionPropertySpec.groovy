@@ -125,7 +125,8 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
     }
 
     def "can set untyped from provider"() {
-        def provider = Stub(Provider)
+        def provider = Stub(ProviderInternal)
+        provider.type >> null
         provider.get() >>> [["1"], ["2"]]
 
         expect:
@@ -155,6 +156,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prov
 
     def "queries underlying provider for every call to get()"() {
         def provider = Stub(ProviderInternal)
+        provider.type >> List
         provider.get() >>> [["123"], ["abc"]]
         provider.present >> true
 

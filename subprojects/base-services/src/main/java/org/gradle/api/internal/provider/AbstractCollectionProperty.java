@@ -18,8 +18,15 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.provider.Collectors.*;
+import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
+import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
+import org.gradle.api.internal.provider.Collectors.ElementsFromCollection;
+import org.gradle.api.internal.provider.Collectors.ElementsFromCollectionProvider;
+import org.gradle.api.internal.provider.Collectors.EmptyCollection;
+import org.gradle.api.internal.provider.Collectors.NoValueCollector;
+import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -27,14 +34,11 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import static org.gradle.api.internal.provider.Collectors.IDENTITY_VALUE_COLLECTOR;
-import static org.gradle.api.internal.provider.Collectors.STRING_VALUE_COLLECTOR;
-
 public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractProvider<C> implements CollectionPropertyInternal<T, C> {
     private static final EmptyCollection EMPTY_COLLECTION = new EmptyCollection();
     private static final NoValueCollector NO_VALUE_COLLECTOR = new NoValueCollector();
     private final Class<? extends Collection> collectionType;
-    private final Class elementType;
+    private final Class<T> elementType;
     private final ValueCollector<T> valueCollector;
     private Collector<T> value = (Collector<T>) EMPTY_COLLECTION;
     private List<Collector<T>> collectors = new LinkedList<Collector<T>>();
@@ -42,7 +46,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     AbstractCollectionProperty(Class<? extends Collection> collectionType, Class<T> elementType) {
         this.collectionType = collectionType;
         this.elementType = elementType;
-        valueCollector = (ValueCollector<T>) (elementType == String.class ? STRING_VALUE_COLLECTOR : IDENTITY_VALUE_COLLECTOR);
+        valueCollector = new ValidatingValueCollector<T>(collectionType, elementType, ValueSanitizers.forType(elementType));
     }
 
     /**
@@ -79,7 +83,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Nullable
     @Override
     public Class<C> getType() {
-        return null;
+        return (Class<C>) collectionType;
+    }
+
+    @Override
+    public Class<T> getElementType() {
+        return elementType;
     }
 
     @Override
@@ -147,6 +156,16 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (provider == null) {
             throw new IllegalArgumentException("Cannot set the value of a property using a null provider.");
         }
+        ProviderInternal<T> p = Cast.uncheckedCast(provider);
+        if (p.getType() != null && !Iterable.class.isAssignableFrom(p.getType())) {
+            throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using a provider of type %s.", collectionType.getName(), p.getType().getName()));
+        }
+        if (p instanceof CollectionPropertyInternal) {
+            CollectionPropertyInternal<T, C> collectionProp = (CollectionPropertyInternal<T, C>) p;
+            if (!elementType.isAssignableFrom(collectionProp.getElementType())) {
+                throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s with element type %s using a provider with element type %s.", collectionType.getName(), elementType.getName(), collectionProp.getElementType().getName()));
+            }
+        }
         collectors.clear();
         value = new ElementsFromCollectionProvider<T>(provider);
     }
@@ -167,5 +186,33 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Override
     public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super C> transformer) {
         return new TransformBackedProvider<S, C>(transformer, this);
+    }
+
+    private static class ValidatingValueCollector<T> implements ValueCollector<T> {
+        private final Class<?> collectionType;
+        private final Class<T> elementType;
+        private final ValueSanitizer<T> sanitizer;
+
+        ValidatingValueCollector(Class<?> collectionType, Class<T> elementType, ValueSanitizer<T> sanitizer) {
+            this.collectionType = collectionType;
+            this.elementType = elementType;
+            this.sanitizer = sanitizer;
+        }
+
+        @Override
+        public void add(T value, Collection<T> dest) {
+            T sanitized = sanitizer.sanitize(value);
+            if (!elementType.isInstance(sanitized)) {
+                throw new IllegalArgumentException(String.format("Cannot get the value of a property of type %s with element type %s as the source value contains an element of type %s.", collectionType.getName(), elementType.getName(), value.getClass().getName()));
+            }
+            dest.add(sanitized);
+        }
+
+        @Override
+        public void addAll(Iterable<? extends T> values, Collection<T> dest) {
+            for (T value : values) {
+                add(value, dest);
+            }
+        }
     }
 }
