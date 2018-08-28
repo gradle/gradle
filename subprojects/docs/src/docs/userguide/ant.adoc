@@ -129,13 +129,11 @@ include::{samplesPath}/userguide/ant/hello/antHello.out[]
 
 You can add a task which depends on an Ant target:
 
-=== Example: Task that depends on Ant target
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/ant/dependsOnAntTarget/build.gradle[]
-----
+.Task that depends on Ant target
+====
+include::sample[dir="userguide/ant/dependsOnAntTarget/groovy",files="build.gradle"]
+include::sample[dir="userguide/ant/dependsOnAntTarget/kotlin",files="build.gradle.kts"]
+====
 
 .Output of `gradle intro`
 ----
