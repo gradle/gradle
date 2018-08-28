@@ -3,10 +3,10 @@ version = '1.0'
 
 // tag::use-plugin[]
 plugins {
-  // end::use-plugin[]
-  id 'groovy'
-  // tag::use-plugin[]
-  id 'osgi'
+    // end::use-plugin[]
+    id 'groovy'
+    // tag::use-plugin[]
+    id 'osgi'
 }
 // end::use-plugin[]
 
