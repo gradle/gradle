@@ -1,4 +1,4 @@
-val compile by configurations.creating
+val compile = configurations.create("compile")
 
 // tag::generated-file-dependencies[]
 dependencies {
@@ -7,18 +7,16 @@ dependencies {
     })
 }
 
-tasks {
-    create("compile") {
-        doLast {
-            println("compiling classes")
-        }
+task("compile") {
+    doLast {
+        println("compiling classes")
     }
+}
 
-    create("list") {
-        dependsOn(configurations["compile"])
-        doLast {
-            println("classpath = ${configurations["compile"].map { file: File -> file.name }}")
-        }
+task("list") {
+    dependsOn(configurations["compile"])
+    doLast {
+        println("classpath = ${configurations["compile"].map { file: File -> file.name }}")
     }
 }
 // end::generated-file-dependencies[]

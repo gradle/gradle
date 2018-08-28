@@ -62,9 +62,8 @@ include::sample[dir="userguide/artifacts/generatedFileDependencies/groovy",files
 include::sample[dir="userguide/artifacts/generatedFileDependencies/kotlin",files="build.gradle.kts[tags=generated-file-dependencies]"]
 ====
 
-.Output of **`gradle -q list`**
 ----
-> gradle -q list
+$ gradle -q list
 include::{samplesPath}/userguide/artifacts/generatedFileDependencies/generatedFileDependencies.out[]
 ----
 
