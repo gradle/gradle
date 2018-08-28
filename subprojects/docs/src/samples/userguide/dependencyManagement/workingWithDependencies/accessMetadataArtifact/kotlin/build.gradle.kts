@@ -19,17 +19,17 @@ task("printGuavaMetadata") {
     doLast {
         val query: ArtifactResolutionQuery = dependencies.createArtifactResolutionQuery()
             .forModule("com.google.guava", "guava", "18.0")
-            .withArtifacts(MavenModule::class.java, MavenPomArtifact::class.java)
+            .withArtifacts(MavenModule::class, MavenPomArtifact::class)
         val result: ArtifactResolutionResult = query.execute()
 
         result.resolvedComponents.forEach { component ->
-            val mavenPomArtifacts: Set<ArtifactResult> = component.getArtifacts(MavenPomArtifact::class.java)
+            val mavenPomArtifacts: Set<ArtifactResult> = component.getArtifacts(MavenPomArtifact::class)
             val guavaPomArtifact =
                 mavenPomArtifacts.find { it is ResolvedArtifactResult && it.file.name == "guava-18.0.pom" } as ResolvedArtifactResult
             val xml = XmlSlurper().parse(guavaPomArtifact.file)
-            // println(guavaPomArtifact.file)
+            println(guavaPomArtifact.file.name)
             println(xml.getProperty("name"))
-            println(xml.getProperty("description").toString().trimIndent().trim())
+            println(xml.getProperty("description"))
         }
     }
 }

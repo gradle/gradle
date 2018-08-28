@@ -24,9 +24,9 @@ task printGuavaMetadata {
             Set<ArtifactResult> mavenPomArtifacts = component.getArtifacts(MavenPomArtifact)
             ArtifactResult guavaPomArtifact = mavenPomArtifacts.find { it.file.name == 'guava-18.0.pom' }
             def xml = new XmlSlurper().parse(guavaPomArtifact.file)
-            // println guavaPomArtifact.file
+            println guavaPomArtifact.file.name
             println xml.name
-            println xml.description.toString().stripIndent().trim()
+            println xml.description
         }
     }
 }
