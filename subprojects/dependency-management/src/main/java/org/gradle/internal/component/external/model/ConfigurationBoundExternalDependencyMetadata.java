@@ -155,7 +155,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
 
     @Override
     public boolean isConstraint() {
-        return dependencyDescriptor.isOptional();
+        return dependencyDescriptor.isConstraint() || dependencyDescriptor.isOptional();
     }
 
     @Override

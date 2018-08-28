@@ -304,6 +304,12 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
     def "rule is applied only once"() {
         given:
         withDefaultVariantToTest()
+        int invalidCount = 2
+        if (GradleMetadataResolveRunner.useMaven() && !GradleMetadataResolveRunner.gradleMetadataEnabled) {
+            // for Maven with experimental, we use variant aware matching which will (today) involve another round
+            // of execution of the rule
+            invalidCount++
+        }
         buildFile << """
             int cpt
             dependencies {
@@ -311,8 +317,8 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                     withModule('org.test:moduleB') {
                         withVariant("$variantToTest") { 
                             attributes {
-                                if (++cpt == 2) {
-                                    throw new IllegalStateException("rule should only be applied once")
+                                if (++cpt == $invalidCount) {
+                                    throw new IllegalStateException("rule should only be applied once on variant $variantToTest")
                                 }
                             }
                         }

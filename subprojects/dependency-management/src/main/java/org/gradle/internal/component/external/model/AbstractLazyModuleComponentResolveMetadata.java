@@ -108,15 +108,16 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
 
     @Override
     public synchronized ConfigurationMetadata getConfiguration(final String name) {
-        return populateConfigurationFromDescriptor(name, configurationDefinitions, configurations);
-    }
-
-    private ConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions, Map<String, ConfigurationMetadata> configurations) {
         ConfigurationMetadata populated = configurations.get(name);
         if (populated != null) {
             return populated;
         }
+        ConfigurationMetadata md = populateConfigurationFromDescriptor(name, configurationDefinitions, configurations);
+        configurations.put(name, md);
+        return md;
+    }
 
+    protected ConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions, Map<String, ConfigurationMetadata> configurations) {
         Configuration descriptorConfiguration = configurationDefinitions.get(name);
         if (descriptorConfiguration == null) {
             return null;
@@ -125,9 +126,7 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
         ImmutableList<String> hierarchy = constructHierarchy(descriptorConfiguration);
         boolean transitive = descriptorConfiguration.isTransitive();
         boolean visible = descriptorConfiguration.isVisible();
-        populated = createConfiguration(getId(), name, transitive, visible, hierarchy, variantMetadataRules);
-        configurations.put(name, populated);
-        return populated;
+        return createConfiguration(getId(), name, transitive, visible, hierarchy, variantMetadataRules);
     }
 
     private ImmutableList<String> constructHierarchy(Configuration descriptorConfiguration) {

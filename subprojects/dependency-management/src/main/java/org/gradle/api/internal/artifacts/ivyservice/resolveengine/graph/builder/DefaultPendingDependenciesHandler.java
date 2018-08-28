@@ -44,11 +44,9 @@ class DefaultPendingDependenciesHandler implements PendingDependenciesHandler {
 
         public boolean maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState) {
             ModuleIdentifier key = dependencyState.getModuleIdentifier();
-            boolean isOptionalDependency = dependencyState.getDependency().isConstraint();
-            if (!isOptionalDependency) {
-                PendingDependencies currentPending = pendingDependencies.getPendingDependencies(key);
-                markNoLongerPending(currentPending);
-                currentPending.addHardEdge();
+            boolean isConstraint = dependencyState.getDependency().isConstraint();
+            if (!isConstraint) {
+                markNotPending(key);
                 return false;
             }
 
@@ -78,6 +76,7 @@ class DefaultPendingDependenciesHandler implements PendingDependenciesHandler {
                 }
                 noLongerPending.add(pendingDependencies);
             }
+            pendingDependencies.addHardEdge();
         }
 
         public void complete() {

@@ -18,6 +18,8 @@ package org.gradle.integtests.resolve.alignment
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
+import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
+import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.Unroll
 
 class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
@@ -101,11 +103,11 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                 ['core', 'databind', 'annotations', 'kotlin', 'platform'].each { mod ->
                     module(mod) {
                         ['2.7.9', '2.9.4', '2.9.4.1'].each { v ->
-                           version(v) {
-                               // Not interested in the actual interactions, especially with
-                               // the complexity introduced by permutation testing
-                               allowAll()
-                           }
+                            version(v) {
+                                // Not interested in the actual interactions, especially with
+                                // the complexity introduced by permutation testing
+                                allowAll()
+                            }
                         }
                     }
                 }
@@ -148,7 +150,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         ].permutations()*.join("\n")
     }
 
-    @Unroll
+    @Unroll("can force a virtual platform version by forcing the platform itself via a constraint")
     def "can force a virtual platform version by forcing the platform itself via a constraint"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -226,9 +228,10 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
     }
 
 
-    @Unroll
+    @Unroll("can force a published platform version by forcing the platform itself via a dependency")
     @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
+        @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "true")
     ])
     def "can force a published platform version by forcing the platform itself via a dependency"() {
         repository {
@@ -238,15 +241,12 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                 path "kotlin:$v -> core:$v"
                 path "kotlin:$v -> annotations:$v"
 
-                "org:platform:$v" {
-                    variant("enforced-platform") {
-                        attribute('org.gradle.component.category', 'enforced-platform')
-                        constraint("org:core:$v")
-                        constraint("org:databind:$v")
-                        constraint("org:kotlin:$v")
-                        constraint("org:annotations:$v")
-                    }
-                }
+                platform("org", "platform", v, [
+                    "org:core:$v",
+                    "org:databind:$v",
+                    "org:kotlin:$v",
+                    "org:annotations:$v",
+                ])
             }
         }
 
@@ -294,7 +294,8 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
                 }
-                module('org:platform:2.7.9:enforced-platform') {
+                String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataEnabled()?'enforced-platform':'enforced-platform-runtime'
+                module("org:platform:2.7.9:$expectedVariant") {
                     module('org:core:2.7.9')
                     module('org:databind:2.7.9')
                     module('org:annotations:2.7.9')
@@ -314,7 +315,8 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
 
     @Unroll
     @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
+        @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "true")
     ])
     def "can force a published platform version by forcing the platform itself via a constraint"() {
         repository {
@@ -324,15 +326,12 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                 path "kotlin:$v -> core:$v"
                 path "kotlin:$v -> annotations:$v"
 
-                "org:platform:$v" {
-                    variant("enforced-platform") {
-                        attribute('org.gradle.component.category', 'enforced-platform')
-                        constraint("org:core:$v")
-                        constraint("org:databind:$v")
-                        constraint("org:kotlin:$v")
-                        constraint("org:annotations:$v")
-                    }
-                }
+                platform("org", "platform", v, [
+                    "org:core:$v",
+                    "org:databind:$v",
+                    "org:kotlin:$v",
+                    "org:annotations:$v",
+                ])
             }
         }
 
@@ -402,5 +401,42 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         ].permutations()*.join("\n")
     }
 
+    def setup() {
+        repoSpec.metaClass.platform = this.&platform.curry(repoSpec)
+    }
+
+    /**
+     * Generates a BOM, or Gradle metadata
+     * @param repo
+     * @param platformGroup
+     * @param platformName
+     * @param platformVersion
+     * @param members
+     */
+    void platform(RemoteRepositorySpec repo, String platformGroup, String platformName, String platformVersion, List<String> members) {
+        ['platform', 'enforced-platform'].each { kind ->
+            repo.group(platformGroup) {
+                module(platformName) {
+                    version(platformVersion) {
+                        variant(kind) {
+                            attribute('org.gradle.component.category', kind)
+                            members.each { member ->
+                                constraint(member)
+                            }
+                        }
+                        // this is used only in BOMs
+                        members.each { member ->
+                            constraint(member)
+                        }
+
+                        withModule(MavenHttpModule) {
+                            // make it a BOM
+                            hasPackaging('pom')
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 }
