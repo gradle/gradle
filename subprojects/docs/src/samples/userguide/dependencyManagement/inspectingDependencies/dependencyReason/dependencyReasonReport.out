@@ -1,7 +1,8 @@
 org.ow2.asm:asm:6.0
    variant "compile" [
-      org.gradle.status = release (not requested)
-      org.gradle.usage  = java-api
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - Was requested : we require a JDK 9 compatible bytecode generator
