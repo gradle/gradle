@@ -3,7 +3,7 @@ repositories {
 }
 
 // tag::define-classpath[]
-val pmd by configurations.creating
+val pmd = configurations.create("pmd")
 
 dependencies {
     pmd(group = "pmd", name = "pmd", version = "4.2.5")
@@ -11,7 +11,7 @@ dependencies {
 // end::define-classpath[]
 
 // tag::use-classpath[]
-tasks.create("check") {
+task("check") {
     doLast {
         ant.withGroovyBuilder {
             "taskdef"("name" to "pmd",

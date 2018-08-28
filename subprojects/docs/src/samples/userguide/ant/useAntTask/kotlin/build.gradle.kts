@@ -1,4 +1,4 @@
-tasks.create("hello") {
+task("hello") {
     doLast {
         val greeting = "hello from Ant"
         ant.withGroovyBuilder {

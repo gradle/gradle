@@ -1,6 +1,6 @@
 import org.apache.tools.ant.types.Path
 
-tasks.create("list") {
+task("list") {
     doLast {
         val path = ant.withGroovyBuilder {
             "path" {

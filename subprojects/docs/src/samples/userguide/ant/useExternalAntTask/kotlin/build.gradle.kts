@@ -1,4 +1,4 @@
-tasks.create("check") {
+task("check") {
     doLast {
         ant.withGroovyBuilder {
             "taskdef"("resource" to "checkstyletask.properties") {
