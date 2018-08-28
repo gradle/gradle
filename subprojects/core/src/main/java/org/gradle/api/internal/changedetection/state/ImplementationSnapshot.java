@@ -100,6 +100,7 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
             hasher.putHash(classLoaderHash);
         }
 
+        @Override
         protected boolean isSameSnapshot(Object o) {
             if (this == o) {
                 return true;
@@ -116,14 +117,17 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
             return classLoaderHash.equals(that.classLoaderHash);
         }
 
+        @Override
         public HashCode getClassLoaderHash() {
             return classLoaderHash;
         }
 
+        @Override
         public boolean isUnknown() {
             return false;
         }
 
+        @Override
         @Nullable
         public String getUnknownReason() {
             return null;
@@ -173,6 +177,7 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
             hasher.markAsInvalid();
         }
 
+        @Override
         protected boolean isSameSnapshot(Object o) {
             if (this == o) {
                 return true;
@@ -189,14 +194,17 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
             return classLoaderHash.equals(that.classLoaderHash);
         }
 
+        @Override
         public HashCode getClassLoaderHash() {
             return classLoaderHash;
         }
 
+        @Override
         public boolean isUnknown() {
             return true;
         }
 
+        @Override
         @Nullable
         public String getUnknownReason() {
             return "was implemented by a Java lambda";
@@ -231,6 +239,7 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
             hasher.markAsInvalid();
         }
 
+        @Override
         protected boolean isSameSnapshot(Object o) {
             if (this == o) {
                 return true;
@@ -244,14 +253,17 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
             return getTypeName().equals(that.getTypeName());
         }
 
+        @Override
         public HashCode getClassLoaderHash() {
             return null;
         }
 
+        @Override
         public boolean isUnknown() {
             return true;
         }
 
+        @Override
         @Nullable
         public String getUnknownReason() {
             return "was loaded with an unknown classloader";
@@ -274,7 +286,8 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
     }
 
     public static class SerializerImpl implements Serializer<ImplementationSnapshot> {
-        private enum ImplementationType {
+        
+        private enum ImplementationSnapshotSerializer implements Serializer<ImplementationSnapshot> {
             DEFAULT {
                 @Override
                 protected ImplementationSnapshot doRead(String typeName, Decoder decoder) throws Exception {
@@ -310,11 +323,13 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
                 }
             };
 
+            @Override
             public void write(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
                 encoder.writeString(implementationSnapshot.getTypeName());
                 doWrite(encoder, implementationSnapshot);
             }
 
+            @Override
             public ImplementationSnapshot read(Decoder decoder) throws Exception {
                 String typeName = decoder.readString();
                 return doRead(typeName, decoder);
@@ -329,26 +344,26 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
 
         @Override
         public ImplementationSnapshot read(Decoder decoder) throws Exception {
-            ImplementationType implementationType = ImplementationType.values()[decoder.readSmallInt()];
-            return implementationType.read(decoder);
+            ImplementationSnapshotSerializer serializer = ImplementationSnapshotSerializer.values()[decoder.readSmallInt()];
+            return serializer.read(decoder);
         }
 
         @Override
         public void write(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
-            ImplementationType implementationType = determineType(implementationSnapshot);
-            encoder.writeSmallInt(implementationType.ordinal());
-            implementationType.write(encoder, implementationSnapshot);
+            ImplementationSnapshotSerializer serializer = determineSerializer(implementationSnapshot);
+            encoder.writeSmallInt(serializer.ordinal());
+            serializer.write(encoder, implementationSnapshot);
         }
 
-        private ImplementationType determineType(ImplementationSnapshot implementationSnapshot) {
+        private ImplementationSnapshotSerializer determineSerializer(ImplementationSnapshot implementationSnapshot) {
             if (implementationSnapshot instanceof DefaultImplementationSnapshot) {
-                return ImplementationType.DEFAULT;
+                return ImplementationSnapshotSerializer.DEFAULT;
             }
             if (implementationSnapshot instanceof UnknownClassloaderImplementationSnapshot) {
-                return ImplementationType.UNKNOWN_CLASSLOADER;
+                return ImplementationSnapshotSerializer.UNKNOWN_CLASSLOADER;
             }
             if (implementationSnapshot instanceof LambdaImplementationSnapshot) {
-                return ImplementationType.LAMBDA;
+                return ImplementationSnapshotSerializer.LAMBDA;
             }
             throw new IllegalArgumentException("Unknown implementation snapshot type: " + implementationSnapshot.getClass().getName());
         }
