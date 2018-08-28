@@ -71,7 +71,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     private Integer fileMode;
     private Boolean caseSensitive;
     private Boolean includeEmptyDirs;
-    private DuplicatesStrategy duplicatesStrategy;
+    private DuplicatesStrategy duplicatesStrategy = DuplicatesStrategy.INHERIT;
     private String filteringCharset;
     private final List<CopySpecListener> listeners = Lists.newLinkedList();
 
@@ -265,7 +265,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
-    public void setDuplicatesStrategy(@Nullable DuplicatesStrategy strategy) {
+    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
         this.duplicatesStrategy = strategy;
     }
 
@@ -617,7 +617,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
         @Override
         public DuplicatesStrategy getDuplicatesStrategy() {
-            if (duplicatesStrategy != null) {
+            if (duplicatesStrategy != DuplicatesStrategy.INHERIT) {
                 return duplicatesStrategy;
             }
             if (parentResolver != null) {

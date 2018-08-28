@@ -76,7 +76,7 @@ public class CopySpecWrapper implements CopySpec {
     }
 
     @Override
-    public void setDuplicatesStrategy(@Nullable DuplicatesStrategy strategy) {
+    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
         delegate.setDuplicatesStrategy(strategy);
     }
 

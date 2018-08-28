@@ -147,6 +147,11 @@ The previously deprecated support for Play Framework 2.2 has been removed.
 
 See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
 
+### `CopySpec.duplicatesStrategy` is no longer nullable
+
+For better compatibility with the Kotlin DSL, the property setter no longer accepts `null` as a way
+to reset the property back to its default value. Use `DuplicatesStrategy.INHERIT` instead.
+
 ### Changes to previously deprecated APIs
 
 - The `org.gradle.plugins.signing.Signature` methods `getToSignArtifact()` and `setFile(File)` are removed.

@@ -63,7 +63,7 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
-    public void setDuplicatesStrategy(@Nullable DuplicatesStrategy strategy) {
+    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
         getDelegateCopySpec().setDuplicatesStrategy(strategy);
     }
 
