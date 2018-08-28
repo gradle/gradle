@@ -55,9 +55,7 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
     @Override
     public void appendTaskImplementation(ImplementationSnapshot taskImplementation) {
         this.taskClass = taskImplementation.getTypeName();
-        if (!taskImplementation.hasUnknownClassLoader()) {
-            this.classLoaderHash = taskImplementation.getClassLoaderHash();
-        }
+        this.classLoaderHash = taskImplementation.getClassLoaderHash();
         taskImplementation.appendToHasher(hasher);
     }
 
@@ -67,7 +65,7 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
         List<HashCode> actionClassLoaderHashes = Lists.newArrayListWithCapacity(taskActionImplementations.size());
         for (ImplementationSnapshot actionImpl : taskActionImplementations) {
             actionTypes.add(actionImpl.getTypeName());
-            actionClassLoaderHashes.add(actionImpl.hasUnknownClassLoader() ? null : actionImpl.getClassLoaderHash());
+            actionClassLoaderHashes.add(actionImpl.getClassLoaderHash());
             
             actionImpl.appendToHasher(hasher);
         }

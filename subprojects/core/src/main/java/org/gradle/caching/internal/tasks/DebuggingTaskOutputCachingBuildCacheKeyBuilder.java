@@ -38,18 +38,14 @@ public class DebuggingTaskOutputCachingBuildCacheKeyBuilder implements TaskOutpu
 
     @Override
     public void appendTaskImplementation(ImplementationSnapshot taskImplementation) {
-        log("taskClass", taskImplementation.getTypeName());
-        if (!taskImplementation.hasUnknownClassLoader()) {
-            log("classLoaderHash", taskImplementation.getClassLoaderHash());
-        }
+        log("taskImplementation", taskImplementation);
         delegate.appendTaskImplementation(taskImplementation);
     }
 
     @Override
     public void appendTaskActionImplementations(Collection<ImplementationSnapshot> taskActionImplementations) {
         for (ImplementationSnapshot actionImpl : taskActionImplementations) {
-            log("actionType", actionImpl.getTypeName());
-            log("actionClassLoaderHash", actionImpl.hasUnknownClassLoader() ? null : actionImpl.getClassLoaderHash());
+            log("actionImplementation", actionImpl);
         }
         delegate.appendTaskActionImplementations(taskActionImplementations);
     }

@@ -43,10 +43,10 @@ class TaskTypeTaskStateChanges implements TaskStateChanges {
                 task.getIdentityPath(), prevImplementation.getTypeName(), taskImplementation.getTypeName()));
         }
         if (taskImplementation.isUnknown()) {
-            return visitor.visitChange(new DescriptiveChange("Task '%s' %s", task.getIdentityPath(), taskImplementation.getUnknownImplementationMessage()));
+            return visitor.visitChange(new DescriptiveChange("Task '%s' %s", task.getIdentityPath(), taskImplementation.getUnknownReason()));
         }
         if (prevImplementation.isUnknown()) {
-            return visitor.visitChange(new DescriptiveChange("Task '%s' %s during the previous execution", task.getIdentityPath(), prevImplementation.getUnknownImplementationMessage()));
+            return visitor.visitChange(new DescriptiveChange("Task '%s' %s during the previous execution", task.getIdentityPath(), prevImplementation.getUnknownReason()));
         }
         if (!taskImplementation.getClassLoaderHash().equals(prevImplementation.getClassLoaderHash())) {
             return visitor.visitChange(new DescriptiveChange("Task '%s' class path has changed from %s to %s.", task.getIdentityPath(), prevImplementation.getClassLoaderHash(), taskImplementation.getClassLoaderHash()));
@@ -55,11 +55,11 @@ class TaskTypeTaskStateChanges implements TaskStateChanges {
         ImmutableList<ImplementationSnapshot> taskActionImplementations = currentExecution.getTaskActionImplementations();
         ImplementationSnapshot unknownImplementation = findUnknownImplementation(taskActionImplementations);
         if (unknownImplementation != null) {
-            return visitor.visitChange(new DescriptiveChange("Task '%s' has an additional action that %s", task.getIdentityPath(), unknownImplementation.getUnknownImplementationMessage()));
+            return visitor.visitChange(new DescriptiveChange("Task '%s' has an additional action that %s", task.getIdentityPath(), unknownImplementation.getUnknownReason()));
         }
         ImplementationSnapshot previousUnknownImplementation = findUnknownImplementation(previousExecution.getTaskActionImplementations());
         if (previousUnknownImplementation != null) {
-            return visitor.visitChange(new DescriptiveChange("Task '%s' had an additional action that %s during the previous execution", task.getIdentityPath(), previousUnknownImplementation.getUnknownImplementationMessage()));
+            return visitor.visitChange(new DescriptiveChange("Task '%s' had an additional action that %s during the previous execution", task.getIdentityPath(), previousUnknownImplementation.getUnknownReason()));
         }
         if (!taskActionImplementations.equals(previousExecution.getTaskActionImplementations())) {
             return visitor.visitChange(new DescriptiveChange("Task '%s' has additional actions that have changed", task.getIdentityPath()));
