@@ -49,7 +49,7 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
             return new UnknownClassloaderImplementationSnapshot(typeName);
         }
         if (lambda) {
-            return new LambdaImplementationSnapshot(typeName, classLoaderHash);
+            return new LambdaImplementationSnapshot(typeName);
         }
         return new DefaultImplementationSnapshot(typeName, classLoaderHash);
     }
@@ -165,12 +165,9 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
 
     private static class LambdaImplementationSnapshot extends ImplementationSnapshot {
 
-        public LambdaImplementationSnapshot(String typeName, HashCode classLoaderHash) {
+        public LambdaImplementationSnapshot(String typeName) {
             super(typeName);
-            this.classLoaderHash = classLoaderHash;
         }
-
-        private final HashCode classLoaderHash;
 
         @Override
         public void appendToHasher(BuildCacheHasher hasher) {
@@ -188,15 +185,12 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
 
             LambdaImplementationSnapshot that = (LambdaImplementationSnapshot) o;
 
-            if (!getTypeName().equals(that.getTypeName())) {
-                return false;
-            }
-            return classLoaderHash.equals(that.classLoaderHash);
+            return getTypeName().equals(that.getTypeName());
         }
 
         @Override
         public HashCode getClassLoaderHash() {
-            return classLoaderHash;
+            return null;
         }
 
         @Override
@@ -217,14 +211,12 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
 
         @Override
         public int hashCode() {
-            int result = getTypeName().hashCode();
-            result = 31 * result + classLoaderHash.hashCode();
-            return result;
+            return getTypeName().hashCode();
         }
 
         @Override
         public String toString() {
-            return getTypeName() + "@" + classLoaderHash;
+            return getTypeName();
         }
     }
 
@@ -296,7 +288,7 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
                 }
 
                 @Override
-                public void doWrite(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
+                public void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
                     hashCodeSerializer.write(encoder, implementationSnapshot.getClassLoaderHash());
                 }
             },
@@ -305,28 +297,18 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
                 protected ImplementationSnapshot doRead(String typeName, Decoder decoder) {
                     return new UnknownClassloaderImplementationSnapshot(typeName);
                 }
-
-                @Override
-                protected void doWrite(Encoder encoder, ImplementationSnapshot implementationSnapshot) {
-                }
             },
             LAMBDA {
                 @Override
-                protected ImplementationSnapshot doRead(String typeName, Decoder decoder) throws Exception {
-                    HashCode classLoaderHash = hashCodeSerializer.read(decoder);
-                    return new LambdaImplementationSnapshot(typeName, classLoaderHash);
-                }
-
-                @Override
-                protected void doWrite(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
-                    hashCodeSerializer.write(encoder, implementationSnapshot.getClassLoaderHash());
+                protected ImplementationSnapshot doRead(String typeName, Decoder decoder) {
+                    return new LambdaImplementationSnapshot(typeName);
                 }
             };
 
             @Override
             public void write(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
                 encoder.writeString(implementationSnapshot.getTypeName());
-                doWrite(encoder, implementationSnapshot);
+                writeAdditionalData(encoder, implementationSnapshot);
             }
 
             @Override
@@ -339,7 +321,8 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
 
             protected abstract ImplementationSnapshot doRead(String typeName, Decoder decoder) throws Exception;
 
-            protected abstract void doWrite(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception;
+            protected void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
+            }
         }
 
         @Override

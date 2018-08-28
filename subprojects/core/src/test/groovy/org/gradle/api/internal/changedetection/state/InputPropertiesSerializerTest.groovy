@@ -191,9 +191,10 @@ class InputPropertiesSerializerTest extends Specification {
 
         expect:
         ImplementationSnapshot copy = written.a
-        original.typeName == copy.typeName
+        copy.typeName == original.typeName
         copy.classLoaderHash == null
         copy.unknown
+        copy.unknownReason.contains("unknown classloader")
     }
 
     def "serializes implementation properties with lambda"() {
@@ -203,8 +204,8 @@ class InputPropertiesSerializerTest extends Specification {
 
         expect:
         ImplementationSnapshot copy = written.a
-        original.typeName == copy.typeName
-        original.classLoaderHash == copy.classLoaderHash
+        copy.typeName == original.typeName
+        copy.classLoaderHash == null
         copy.isUnknown()
         copy.unknownReason.contains("lambda")
     }
