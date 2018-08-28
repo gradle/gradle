@@ -157,18 +157,16 @@ include::{samplesPath}/userguide/ant/addBehaviourToAntTarget/addBehaviourToAntTa
 
 It is also possible for an Ant target to depend on a Gradle task:
 
-=== Example: Ant target that depends on Gradle task
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/ant/dependsOnTask/build.gradle[]
-----
+.Ant target that depends on Gradle task
+====
+include::sample[dir="userguide/ant/dependsOnTask/groovy",files="build.gradle"]
+include::sample[dir="userguide/ant/dependsOnTask/kotlin",files="build.gradle.kts"]
+====
 
 [source,xml]
 .build.xml
 ----
-include::{samplesPath}/userguide/ant/dependsOnTask/build.xml[]
+include::{samplesPath}/userguide/ant/dependsOnTask/groovy/build.xml[]
 ----
 
 .Output of `gradle hello`
