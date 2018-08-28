@@ -11,8 +11,8 @@ dependencies {
 }
 
 // tag::walk-task[]
-tasks.create<DependencyGraphWalk>("walkDependencyGraph") {
-    dependsOn(configurations.getByName("scm"))
+task("walkDependencyGraph", DependencyGraphWalk::class) {
+    dependsOn(configurations["scm"])
 }
 
 open class DependencyGraphWalk: DefaultTask() {
@@ -29,8 +29,8 @@ open class DependencyGraphWalk: DefaultTask() {
         results.forEach { result ->
             if (result is ResolvedDependencyResult) {
                 val componentResult: ResolvedComponentResult = result.selected
-                    val componentIdentifier: ComponentIdentifier = componentResult.id
-                    val node: String = "${calculateIndentation(level)}- ${componentIdentifier.displayName} (${componentResult.selectionReason})"
+                val componentIdentifier: ComponentIdentifier = componentResult.id
+                val node: String = "${calculateIndentation(level)}- ${componentIdentifier.displayName} (${componentResult.selectionReason})"
                 logger.quiet(node)
                 traverseDependencies(level + 1, componentResult.dependencies)
             } else if (result is UnresolvedDependencyResult) {

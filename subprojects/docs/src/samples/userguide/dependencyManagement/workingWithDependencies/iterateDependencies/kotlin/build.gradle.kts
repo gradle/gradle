@@ -10,9 +10,9 @@ dependencies {
 }
 
 // tag::iteration-task[]
-tasks.create("iterateDeclaredDependencies") {
+task("iterateDeclaredDependencies") {
     doLast {
-        val dependencySet = configurations.getByName("scm").dependencies
+        val dependencySet = configurations["scm"].dependencies
 
         dependencySet.forEach {
             logger.quiet("${it.group}:${it.name}:${it.version}")
