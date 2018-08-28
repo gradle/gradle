@@ -1,6 +1,3 @@
-group = 'gradle_tooling'
-version = '1.0'
-
 // tag::use-plugin[]
 plugins {
     // end::use-plugin[]
@@ -9,6 +6,9 @@ plugins {
     id 'osgi'
 }
 // end::use-plugin[]
+
+group = 'gradle_tooling'
+version = '1.0'
 
 repositories {
     mavenCentral()
