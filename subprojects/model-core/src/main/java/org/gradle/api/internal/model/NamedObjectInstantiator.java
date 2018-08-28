@@ -191,7 +191,7 @@ public class NamedObjectInstantiator {
         visitor.visitEnd();
         Class<Object> factoryClass = generator.define();
         try {
-            return (ClassGeneratingLoader) (factoryClass.newInstance());
+            return (ClassGeneratingLoader) factoryClass.getConstructor().newInstance();
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

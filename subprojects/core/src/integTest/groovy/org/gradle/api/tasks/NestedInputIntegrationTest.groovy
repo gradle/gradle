@@ -942,7 +942,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             '''
 
             task customTask(type: TaskWithNestedProperty) {
-                bean = NestedBean.newInstance()
+                bean = NestedBean.getConstructor().newInstance()
                 bean.input = file("input.txt")
                 bean.output = file("build/output.txt")
             }
