@@ -42,7 +42,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
     private final String reason;
     private final boolean force;
 
-    private GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, String reason, boolean force) {
+    public GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, String reason, boolean force) {
         this.selector = selector;
         this.excludes = excludes;
         this.reason = reason;
@@ -129,6 +129,6 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
 
     @Override
     public ForcingDependencyMetadata forced() {
-        return new GradleDependencyMetadata(selector, excludes, pending, reason, true);
+        return new GradleDependencyMetadata(selector, excludes, constraint, reason, true);
     }
 }

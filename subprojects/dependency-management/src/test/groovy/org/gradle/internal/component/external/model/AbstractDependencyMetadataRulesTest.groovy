@@ -80,7 +80,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
     abstract void doAddDependencyMetadataRule(MutableModuleComponentResolveMetadata metadataImplementation, String variantName = null, Action<? super DependenciesMetadata> action)
 
     boolean supportedInMetadata(String metadata) {
-        !addAllDependenciesAsConstraints() || metadata != "ivy" //ivy does not support dependency constraints or optional dependencies
+        !addAllDependenciesAsConstraints() || metadata == "gradle"
     }
 
     private ivyComponentMetadata(String[] deps) {

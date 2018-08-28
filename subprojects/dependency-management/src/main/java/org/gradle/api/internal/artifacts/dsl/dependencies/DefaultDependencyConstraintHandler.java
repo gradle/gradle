@@ -67,7 +67,9 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
 
     @Override
     public DependencyConstraint platform(Object notation) {
-        return create(notation);
+        DependencyConstraint dependencyConstraint = create(notation);
+        PlatformSupport.addPlatformAttribute(dependencyConstraint, PlatformSupport.REGULAR_PLATFORM);
+        return dependencyConstraint;
     }
 
     @Override

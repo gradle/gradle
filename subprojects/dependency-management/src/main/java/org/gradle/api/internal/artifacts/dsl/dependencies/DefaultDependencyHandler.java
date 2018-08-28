@@ -30,6 +30,7 @@ import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.internal.Factory;
@@ -213,7 +214,11 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
 
     @Override
     public Dependency platform(Object notation) {
-        return create(notation);
+        Dependency dependency = create(notation);
+        if (dependency instanceof HasConfigurableAttributes) {
+            PlatformSupport.addPlatformAttribute((HasConfigurableAttributes<Object>) dependency, PlatformSupport.REGULAR_PLATFORM);
+        }
+        return dependency;
     }
 
     @Override
