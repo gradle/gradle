@@ -17,29 +17,26 @@ file("src2/dir1").mkdirs()
 file("src2/dir2").mkdirs()
 
 // tag::closure[]
-tasks.create("list") {
+task("list") {
     doLast {
         var srcDir: File? = null
 
-        // Create a file collection using a closure
-        // TODO fix this, but how?
-        // once fixed, add expected-output-file: fileCollectionsWithClosure.out in fileCollectionsWithClosure.sample.conf
-        /*
-        val collection = layout.files({ srcDir.listFiles() })
-        srcDir = file("src")
+        val collection = layout.files(provider {
+            srcDir?.listFiles()
+        })
 
+        srcDir = file("src")
         println("Contents of ${srcDir.name}")
         collection.map { relativePath(it) }.sorted().forEach { println(it) }
 
         srcDir = file("src2")
         println("Contents of ${srcDir.name}")
         collection.map { relativePath(it) }.sorted().forEach { println(it) }
-        */
     }
 }
 // end::closure[]
 
-tasks.create("usage") {
+task("usage") {
     doLast {
         val collection = layout.files("src/file1.txt")
 
@@ -63,7 +60,7 @@ tasks.create("usage") {
     }
 }
 
-tasks.create("filterTextFiles") {
+task("filterTextFiles") {
     doLast {
         // tag::filtering-file-collections[]
         val textFiles: FileCollection = collection.filter { f: File ->

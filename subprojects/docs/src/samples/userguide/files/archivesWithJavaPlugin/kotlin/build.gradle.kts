@@ -10,10 +10,10 @@ repositories {
 }
 
 dependencies {
-    "implementation"("commons-io:commons-io:2.6")
+    implementation("commons-io:commons-io:2.6")
 }
 
-tasks.create<Jar>("uberJar") {
+task<Jar>("uberJar") {
     appendix = "uber"
 
     from(sourceSets["main"].output)

@@ -3,7 +3,7 @@ plugins {
 }
 
 version = "1.0"
-project.setProperty("archivesBaseName", "gradle")
+base.archivesBaseName = "gradle"
 
 val myZip by tasks.creating(Zip::class) {
     from("somedir")
@@ -15,7 +15,7 @@ val myOtherZip by tasks.creating(Zip::class) {
     from("somedir")
 }
 
-tasks.create("echoNames") {
+task("echoNames") {
     doLast {
         println("Project name: ${project.name}")
         println(myZip.archiveName)

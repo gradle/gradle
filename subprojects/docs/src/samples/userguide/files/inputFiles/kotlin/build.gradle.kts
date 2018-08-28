@@ -1,5 +1,5 @@
 // tag::set-input-files[]
-tasks.create<JavaCompile>("compile") {
+task<JavaCompile>("compile") {
     // Use a File object to specify the source directory
     source = fileTree(file("src/main/java"))
 

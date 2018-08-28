@@ -2,20 +2,20 @@ version = "1.1"
 
 // tag::copy-single-file-example[]
 task copyReport(type: Copy) {
-    from file("${buildDir}/reports/my-report.pdf")
-    into file("${buildDir}/toArchive")
+    from file("$buildDir/reports/my-report.pdf")
+    into file("$buildDir/toArchive")
 }
 // end::copy-single-file-example[]
 
 // tag::copy-single-file-example-without-file-method[]
 task copyReport2(type: Copy) {
-    from "${buildDir}/reports/my-report.pdf"
-    into "${buildDir}/toArchive"
+    from "$buildDir/reports/my-report.pdf"
+    into "$buildDir/toArchive"
 }
 // end::copy-single-file-example-without-file-method[]
 
 task myReportTask {
-    ext.outputFile = file("${buildDir}/reports/my-report.pdf")
+    ext.outputFile = file("$buildDir/reports/my-report.pdf")
 
     outputs.files outputFile
     doLast {
@@ -24,7 +24,7 @@ task myReportTask {
 }
 
 task archiveReportsTask {
-    ext.dirToArchive = file("${buildDir}/toArchive")
+    ext.dirToArchive = file("$buildDir/toArchive")
     inputs.dir dirToArchive
 }
 
@@ -37,56 +37,56 @@ task copyReport3(type: Copy) {
 
 // tag::copy-multiple-files-example[]
 task copyReportsForArchiving(type: Copy) {
-    from "${buildDir}/reports/my-report.pdf", "src/docs/manual.pdf"
-    into "${buildDir}/toArchive"
+    from "$buildDir/reports/my-report.pdf", "src/docs/manual.pdf"
+    into "$buildDir/toArchive"
 }
 // end::copy-multiple-files-example[]
 
 // tag::copy-multiple-files-with-flat-filter-example[]
 task copyPdfReportsForArchiving(type: Copy) {
-    from "${buildDir}/reports"
+    from "$buildDir/reports"
     include "*.pdf"
-    into "${buildDir}/toArchive"
+    into "$buildDir/toArchive"
 }
 // end::copy-multiple-files-with-flat-filter-example[]
 
 // tag::copy-multiple-files-with-deep-filter-example[]
 task copyAllPdfReportsForArchiving(type: Copy) {
-    from "${buildDir}/reports"
+    from "$buildDir/reports"
     include "**/*.pdf"
-    into "${buildDir}/toArchive"
+    into "$buildDir/toArchive"
 }
 // end::copy-multiple-files-with-deep-filter-example[]
 
 // tag::copy-directory-example[]
 task copyReportsDirForArchiving(type: Copy) {
-    from "${buildDir}/reports"
-    into "${buildDir}/toArchive"
+    from "$buildDir/reports"
+    into "$buildDir/toArchive"
 }
 // end::copy-directory-example[]
 
 // tag::copy-directory-including-itself-example[]
 task copyReportsDirForArchiving2(type: Copy) {
-    from("${buildDir}") {
+    from("$buildDir") {
         include "reports/**"
     }
-    into "${buildDir}/toArchive"
+    into "$buildDir/toArchive"
 }
 // end::copy-directory-including-itself-example[]
 
 // tag::create-archive-example[]
 task packageDistribution(type: Zip) {
     archiveName = "my-distribution.zip"
-    destinationDir = file("${buildDir}/dist")
+    destinationDir = file("$buildDir/dist")
 
-    from "${buildDir}/toArchive"
+    from "$buildDir/toArchive"
 }
 // end::create-archive-example[]
 
 // tag::rename-on-copy-example[]
 task copyFromStaging(type: Copy) {
     from "src/main/webapp"
-    into "${buildDir}/explodedWar"
+    into "$buildDir/explodedWar"
 
     rename '(.+)-staging(.+)', '$1$2'
 }
@@ -94,14 +94,14 @@ task copyFromStaging(type: Copy) {
 
 // tag::truncate-names-example[]
 task copyWithTruncate(type: Copy) {
-    from "${buildDir}/reports"
+    from "$buildDir/reports"
     rename { String filename ->
         if (filename.size() > 10) {
             return filename[0..7] + "~" + filename.size()
         }
         else return filename
     }
-    into "${buildDir}/toArchive"
+    into "$buildDir/toArchive"
 }
 // end::truncate-names-example[]
 
@@ -114,14 +114,14 @@ task copyWithTruncate(type: Copy) {
 // tag::copy-task[]
 task copyTask(type: Copy) {
     from 'src/main/webapp'
-    into "${buildDir}/explodedWar"
+    into "$buildDir/explodedWar"
 }
 // end::copy-task[]
 
 // tag::copy-task-with-patterns[]
 task copyTaskWithPatterns(type: Copy) {
     from 'src/main/webapp'
-    into "${buildDir}/explodedWar"
+    into "$buildDir/explodedWar"
     include '**/*.html'
     include '**/*.jsp'
     exclude { FileTreeElement details ->
@@ -157,7 +157,7 @@ task copyMethod {
     doLast {
         copy {
             from 'src/main/webapp'
-            into "${buildDir}/explodedWar"
+            into "$buildDir/explodedWar"
             include '**/*.html'
             include '**/*.jsp'
         }
@@ -185,7 +185,7 @@ configurations { runtime }
 // tag::rename-files[]
 task rename(type: Copy) {
     from 'src/main/webapp'
-    into "${buildDir}/explodedWar"
+    into "$buildDir/explodedWar"
     // Use a closure to convert all file names to upper case
     rename { String fileName ->
         fileName.toUpperCase()
@@ -202,7 +202,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 
 task filter(type: Copy) {
     from 'src/main/webapp'
-    into "${buildDir}/explodedWar"
+    into "$buildDir/explodedWar"
     // Substitute property tokens in files
     expand(copyright: '2009', version: '2.3.1')
     expand(project.properties)
@@ -237,13 +237,13 @@ CopySpec webAssetsSpec = copySpec {
 }
 
 task copyAssets(type: Copy) {
-    into "${buildDir}/inPlaceApp"
+    into "$buildDir/inPlaceApp"
     with webAssetsSpec
 }
 
 task distApp(type: Zip) {
     archiveName = 'my-app-dist.zip'
-    destinationDir = file("${buildDir}/dists")
+    destinationDir = file("$buildDir/dists")
 
     from appClasses
     with webAssetsSpec
@@ -256,13 +256,13 @@ def webAssetPatterns = {
 }
 
 task copyAppAssets(type: Copy) {
-    into "${buildDir}/inPlaceApp"
+    into "$buildDir/inPlaceApp"
     from 'src/main/webapp', webAssetPatterns
 }
 
 task archiveDistAssets(type: Zip) {
     archiveName = 'distribution-assets.zip'
-    destinationDir = file("${buildDir}/dists")
+    destinationDir = file("$buildDir/dists")
 
     from 'distResources', webAssetPatterns
 }
@@ -270,7 +270,7 @@ task archiveDistAssets(type: Zip) {
 
 // tag::change-default-exclusions[]
 task forcedCopy(type: Copy) {
-    into "${buildDir}/inPlaceApp"
+    into "$buildDir/inPlaceApp"
     from 'src/main/webapp'
 
     doFirst {

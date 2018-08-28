@@ -3,13 +3,14 @@
 plugins {
     id 'java'
 }
+
 // end::tar[]
 // end::zip[]
 
 // tag::unpack-archive-example[]
 task unpackFiles(type: Copy) {
     from zipTree("src/resources/thirdPartyResources.zip")
-    into "${buildDir}/resources"
+    into "$buildDir/resources"
 }
 // end::unpack-archive-example[]
 

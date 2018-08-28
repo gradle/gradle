@@ -5,12 +5,12 @@ plugins {
 
 version = "1.0.0"
 
-tasks.create<Zip>("packageDistribution") {
-    from("${buildDir}/toArchive") {
+task<Zip>("packageDistribution") {
+    from("$buildDir/toArchive") {
         exclude("**/*.pdf")
     }
 
-    from("${buildDir}/toArchive") {
+    from("$buildDir/toArchive") {
         include("**/*.pdf")
         into("docs")
     }

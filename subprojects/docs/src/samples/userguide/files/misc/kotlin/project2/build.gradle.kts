@@ -2,7 +2,7 @@
 val configFile = file("${rootDir}/shared/config.xml")
 // end::using-root-dir-property[]
 
-tasks.create("checkConfigFile") {
+task("checkConfigFile") {
     doLast {
         require(configFile.exists())
     }
