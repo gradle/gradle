@@ -1,4 +1,6 @@
-apply plugin: 'application'
+plugins {
+    id 'application'
+}
 
 def toolingApiVersion = gradle.gradleVersion
 
@@ -8,7 +10,7 @@ repositories {
 }
 
 dependencies {
-    implementation "org.gradle:gradle-tooling-api:${toolingApiVersion}"
+    implementation "org.gradle:gradle-tooling-api:$toolingApiVersion"
     // The tooling API need an SLF4J implementation available at runtime, replace this with any other implementation
     runtimeOnly 'org.slf4j:slf4j-simple:1.7.10'
 }
