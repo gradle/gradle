@@ -109,7 +109,7 @@ open class AvailableJavaInstallations(private val project: Project, private val 
 
     private
     fun validateForRemoteCache(): Map<String, Boolean> =
-        mapOf("Must use Oracle JDK 8/9 to perform this build. Is currently ${currentJavaInstallation.vendorAndMajorVersion} at ${currentJavaInstallation.javaHome}." to
+        mapOf("Remote cache is enabled, which requires Oracle JDK 8/9 to perform this build. It's currently ${currentJavaInstallation.vendorAndMajorVersion} at ${currentJavaInstallation.javaHome}." to
             (currentJavaInstallation.vendorAndMajorVersion != oracleJdk8 && currentJavaInstallation.vendorAndMajorVersion != oracleJdk9))
 
     private
@@ -124,7 +124,7 @@ open class AvailableJavaInstallations(private val project: Project, private val 
     fun validateCompilationJdks(): Map<String, Boolean> =
         mapOf(
             "Must use JDK 9+ to perform compilation in this build. It's currently ${javaInstallationForCompilation.vendorAndMajorVersion} at ${javaInstallationForCompilation.javaHome}. " +
-                "You can set a project or system property '$java9HomePropertyName' to an Java9-compatible JDK home path" to
+                "You can either run the build on JDK 9+ or set a project or system property '$java9HomePropertyName' to a Java9-compatible JDK home path" to
                 !javaInstallationForCompilation.javaVersion.isJava9Compatible
         )
 
