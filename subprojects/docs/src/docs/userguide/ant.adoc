@@ -143,13 +143,11 @@ include::{samplesPath}/userguide/ant/dependsOnAntTarget/dependsOnAntTarget.out[]
 
 Or, you can add behaviour to an Ant target:
 
-=== Example: Adding behaviour to an Ant target
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/ant/addBehaviourToAntTarget/build.gradle[]
-----
+.Adding behaviour to an Ant target
+====
+include::sample[dir="userguide/ant/addBehaviourToAntTarget/groovy",files="build.gradle"]
+include::sample[dir="userguide/ant/addBehaviourToAntTarget/kotlin",files="build.gradle.kts"]
+====
 
 .Output of `gradle hello`
 ----
