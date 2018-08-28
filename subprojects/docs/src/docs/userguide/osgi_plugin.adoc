@@ -31,6 +31,7 @@ To use the OSGi plugin, include the following in your build script:
 .Using the OSGi plugin
 ====
 include::sample[dir="osgi/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="osgi/kotlin",files="build.gradle.kts[tags=use-plugin]"]
 ====
 
 [[sec:osgi_implicitly_applied_plugins]]
@@ -84,6 +85,7 @@ The classes in the classes dir are analyzed regarding their package dependencies
 .Configuration of OSGi MANIFEST.MF file
 ====
 include::sample[dir="userguide/tutorial/osgi/groovy",files="build.gradle[tags=configure-jar]"]
+include::sample[dir="userguide/tutorial/osgi/kotlin",files="build.gradle.kts[tags=configure-jar]"]
 ====
 
 The first argument of the instruction call is the key of the property. The other arguments form the value. To learn more about the available instructions have a look at the http://bnd.bndtools.org/[BND tool].
