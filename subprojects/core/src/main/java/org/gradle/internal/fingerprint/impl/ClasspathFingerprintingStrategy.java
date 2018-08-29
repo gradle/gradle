@@ -24,13 +24,14 @@ import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -77,7 +78,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         this.cacheService = cacheService;
         this.stringInterner = stringInterner;
         this.jarHasher = new JarHasher(classpathResourceHasher, classpathResourceFilter);
-        DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
+        Hasher hasher = Hashing.md5().newHasher();
         jarHasher.appendConfigurationToHasher(hasher);
         this.jarHasherConfigurationHash = hasher.hash();
     }

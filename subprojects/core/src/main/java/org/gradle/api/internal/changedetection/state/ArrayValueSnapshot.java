@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.api.internal.changedetection.state.isolation.IsolationException;
-import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.hash.Hasher;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -36,7 +36,7 @@ public class ArrayValueSnapshot implements ValueSnapshot, Isolatable<Object[]> {
     }
 
     @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
+    public void appendToHasher(Hasher hasher) {
         hasher.putString("Array");
         hasher.putInt(elements.length);
         for (ValueSnapshot element : elements) {

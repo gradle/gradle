@@ -17,9 +17,8 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 
@@ -54,7 +53,7 @@ public class DefaultResourceSnapshotterCacheService implements ResourceSnapshott
     }
 
     private static HashCode resourceHashCacheKey(HashCode contentHash, HashCode configurationHash) {
-        BuildCacheHasher hasher = new DefaultBuildCacheHasher();
+        Hasher hasher = Hashing.md5().newHasher();
         hasher.putHash(configurationHash);
         hasher.putHash(contentHash);
         return hasher.hash();

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.hash;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import org.gradle.internal.io.BufferCaster;
 
@@ -60,21 +61,26 @@ public class Hashing {
         }
 
         @Override
-        public Hasher newHasher() {
+        public PrimitiveHasher newPrimitiveHasher() {
             MessageDigest digest = createDigest();
             return new MessageDigestHasher(digest);
         }
 
         @Override
+        public Hasher newHasher() {
+            return new DefaultHasher(newPrimitiveHasher());
+        }
+
+        @Override
         public HashCode hashBytes(byte[] bytes) {
-            Hasher hasher = newHasher();
+            PrimitiveHasher hasher = newPrimitiveHasher();
             hasher.putBytes(bytes);
             return hasher.hash();
         }
 
         @Override
         public HashCode hashString(CharSequence string) {
-            Hasher hasher = newHasher();
+            PrimitiveHasher hasher = newPrimitiveHasher();
             hasher.putString(string);
             return hasher.hash();
         }
@@ -116,7 +122,7 @@ public class Hashing {
         }
     }
 
-    private static class MessageDigestHasher implements Hasher {
+    private static class MessageDigestHasher implements PrimitiveHasher {
         private final MessageDigest digest;
         private final ByteBuffer buffer = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN);
         private boolean done;
@@ -194,6 +200,93 @@ public class Hashing {
         @Override
         public void putHash(HashCode hashCode) {
             putBytes(hashCode.getBytes());
+        }
+    }
+
+    @VisibleForTesting
+    static class DefaultHasher implements Hasher {
+        private final PrimitiveHasher hasher;
+        private boolean valid = true;
+
+        public DefaultHasher(PrimitiveHasher unsafeHasher) {
+            this.hasher = unsafeHasher;
+        }
+
+        @Override
+        public void putByte(byte value) {
+            hasher.putInt(1);
+            hasher.putByte(value);
+        }
+
+        @Override
+        public void putBytes(byte[] bytes) {
+            hasher.putInt(bytes.length);
+            hasher.putBytes(bytes);
+        }
+
+        @Override
+        public void putBytes(byte[] bytes, int off, int len) {
+            hasher.putInt(len);
+            hasher.putBytes(bytes, off, len);
+        }
+
+        @Override
+        public void putHash(HashCode hashCode) {
+            hasher.putInt(hashCode.length());
+            hasher.putHash(hashCode);
+        }
+
+        @Override
+        public void putInt(int value) {
+            hasher.putInt(4);
+            hasher.putInt(value);
+        }
+
+        @Override
+        public void putLong(long value) {
+            hasher.putInt(8);
+            hasher.putLong(value);
+        }
+
+        @Override
+        public void putDouble(double value) {
+            hasher.putInt(8);
+            hasher.putDouble(value);
+        }
+
+        @Override
+        public void putBoolean(boolean value) {
+            hasher.putInt(1);
+            hasher.putBoolean(value);
+        }
+
+        @Override
+        public void putString(CharSequence value) {
+            hasher.putInt(value.length());
+            hasher.putString(value);
+        }
+
+        @Override
+        public void putNull() {
+            this.putInt(0);
+        }
+
+        @Override
+        public void markAsInvalid() {
+            this.valid = false;
+        }
+
+        @Override
+        public boolean isValid() {
+            return valid;
+        }
+
+        @Override
+        public HashCode hash() {
+            if (!valid) {
+                throw new IllegalStateException("Build cache hash is not valid");
+            }
+            return hasher.hash();
         }
     }
 }

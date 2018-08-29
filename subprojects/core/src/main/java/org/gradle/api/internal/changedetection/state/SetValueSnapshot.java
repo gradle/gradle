@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.api.internal.changedetection.state.isolation.IsolationException;
-import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.hash.Hasher;
 
 import javax.annotation.Nullable;
 import java.util.LinkedHashSet;
@@ -37,7 +37,7 @@ public class SetValueSnapshot implements ValueSnapshot, Isolatable<Set> {
     }
 
     @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
+    public void appendToHasher(Hasher hasher) {
         hasher.putString("Set");
         hasher.putInt(elements.size());
         for (ValueSnapshot element : elements) {

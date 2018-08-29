@@ -16,10 +16,10 @@
 
 package org.gradle.internal.fingerprint.impl;
 
-import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
 
 public abstract class AbstractFileSystemLocationFingerprint implements FileSystemLocationFingerprint {
     private final FileType type;
@@ -31,7 +31,7 @@ public abstract class AbstractFileSystemLocationFingerprint implements FileSyste
     }
 
     @Override
-    public final void appendToHasher(BuildCacheHasher hasher) {
+    public final void appendToHasher(Hasher hasher) {
         hasher.putString(getNormalizedPath());
         hasher.putHash(getNormalizedContentHash());
     }

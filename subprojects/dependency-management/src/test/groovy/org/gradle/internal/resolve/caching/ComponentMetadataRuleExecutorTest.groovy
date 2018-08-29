@@ -37,12 +37,12 @@ import org.gradle.cache.CacheDecorator
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
-import org.gradle.caching.internal.DefaultBuildCacheHasher
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.hash.HashValue
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.util.BuildCommencedTimeProvider
@@ -103,7 +103,7 @@ class ComponentMetadataRuleExecutorTest extends Specification {
         def hashValue = Mock(HashValue)
         def key = Mock(ModuleComponentResolveMetadata)
         def inputsSnapshot = new StringValueSnapshot("1")
-        def hasher = new DefaultBuildCacheHasher()
+        def hasher = Hashing.md5().newHasher()
         inputsSnapshot.appendToHasher(hasher)
         def keyHash = hasher.hash()
         def cachedResult = Mock(ModuleComponentResolveMetadata)

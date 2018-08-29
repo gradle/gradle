@@ -25,9 +25,10 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.type.ModelType;
 
@@ -43,7 +44,7 @@ class UserCodeBackedTransformer implements VariantTransformRegistry.Registration
     private final TransformArtifactsAction transformer;
 
     public static UserCodeBackedTransformer create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransform> implementation, Object[] params, TransformedFileCache transformedFileCache, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, Instantiator instantiator) {
-        DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
+        Hasher hasher = Hashing.md5().newHasher();
         hasher.putString(implementation.getName());
         hasher.putHash(classLoaderHierarchyHasher.getClassLoaderHash(implementation.getClassLoader()));
 

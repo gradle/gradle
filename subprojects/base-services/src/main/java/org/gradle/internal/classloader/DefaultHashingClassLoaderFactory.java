@@ -92,7 +92,6 @@ public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory 
         String[] sortedItems = items.toArray(new String[count]);
         Arrays.sort(sortedItems);
         for (String item : sortedItems) {
-            hasher.putInt(0);
             hasher.putString(item);
         }
     }

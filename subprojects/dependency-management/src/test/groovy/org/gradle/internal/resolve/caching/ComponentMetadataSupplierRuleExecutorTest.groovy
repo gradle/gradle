@@ -36,10 +36,10 @@ import org.gradle.cache.CacheDecorator
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
-import org.gradle.caching.internal.DefaultBuildCacheHasher
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.util.BuildCommencedTimeProvider
@@ -97,7 +97,7 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
     def "expires entry when cache policy tells us to"() {
         def id = DefaultModuleVersionIdentifier.newId('org', 'foo', '1.0')
         def inputsSnapshot = new StringValueSnapshot("1")
-        def hasher = new DefaultBuildCacheHasher()
+        def hasher = Hashing.md5().newHasher()
         inputsSnapshot.appendToHasher(hasher)
         def keyHash = hasher.hash()
         def cachedResult = Mock(ComponentMetadata)

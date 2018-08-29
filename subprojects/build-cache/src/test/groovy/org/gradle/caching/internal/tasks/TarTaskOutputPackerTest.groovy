@@ -54,7 +54,7 @@ class TarTaskOutputPackerTest extends Specification {
     def writeOrigin = Stub(TaskOutputOriginWriter)
 
     def fileSystem = Mock(FileSystem)
-    def streamHasher = new DefaultStreamHasher({ Hashing.md5().newHasher() })
+    def streamHasher = new DefaultStreamHasher({ Hashing.md5().newPrimitiveHasher() })
     def stringInterner = new StringInterner()
     def packer = new TarTaskOutputPacker(fileSystem, streamHasher, stringInterner)
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))

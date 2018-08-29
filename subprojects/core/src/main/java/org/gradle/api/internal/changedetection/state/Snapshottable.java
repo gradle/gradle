@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.internal.hash.Hashable;
+
 public interface Snapshottable<T extends Hashable> {
     T snapshot();
 }

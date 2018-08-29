@@ -32,12 +32,13 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Cast;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.action.ConfigurableRule;
 import org.gradle.internal.action.ConfigurableRules;
 import org.gradle.internal.action.InstantiatingAction;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.BaseSerializerFactory;
@@ -157,7 +158,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
             toBeSnapshotted.add(ruleClass);
             toBeSnapshotted.add(ruleParams);
         }
-        DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
+        Hasher hasher = Hashing.md5().newHasher();
         snapshotter.snapshot(toBeSnapshotted).appendToHasher(hasher);
         return hasher.hash();
     }
