@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
+import org.gradle.internal.snapshot.WellKnownFileLocations;
 
 import java.io.File;
 import java.util.List;

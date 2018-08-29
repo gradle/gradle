@@ -13,13 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+@NonNullApi
 package org.gradle.api.internal.changedetection.state;
 
-/**
- * This service can tell whether a file is in a location controlled by Gradle,
- * which usually allows for more optimization than user-provided files.
- */
-public interface WellKnownFileLocations {
-    boolean isImmutable(String path);
-}
+import org.gradle.api.NonNullApi;

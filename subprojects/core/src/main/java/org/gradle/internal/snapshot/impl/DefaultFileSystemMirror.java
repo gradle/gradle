@@ -16,12 +16,10 @@
 
 package org.gradle.internal.snapshot.impl;
 
-import org.gradle.api.internal.changedetection.state.WellKnownFileLocations;
-import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
-import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemMirror;
+import org.gradle.internal.snapshot.WellKnownFileLocations;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -30,7 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * See {@link DefaultFileSystemSnapshotter} for some more details
  */
-public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChangesListener, RootBuildLifecycleListener {
+public class DefaultFileSystemMirror implements FileSystemMirror {
     // Maps from interned absolute path for a file to metadata for the file.
     private final Map<String, FileMetadataSnapshot> metadata = new ConcurrentHashMap<String, FileMetadataSnapshot>();
     private final Map<String, FileMetadataSnapshot> cacheMetadata = new ConcurrentHashMap<String, FileMetadataSnapshot>();
@@ -82,7 +80,6 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
         }
     }
 
-    @Override
     public void beforeTaskOutputChanged() {
         // When the task outputs are generated, throw away all state for files that do not live in an append-only cache.
         // This is intentionally very simple, to be improved later
@@ -90,12 +87,7 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
         files.clear();
     }
 
-    @Override
-    public void afterStart() {
-    }
-
-    @Override
-    public void beforeComplete() {
+    public void beforeBuildFinished() {
         // We throw away all state between builds
         metadata.clear();
         cacheMetadata.clear();
