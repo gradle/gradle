@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-apply plugin: 'java'
+plugins {
+    id 'java'
+}
 
 repositories {
     mavenCentral()
