@@ -21,7 +21,6 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  */
 plugins {
     id 'java-library'
-    id 'gradlebuild.strict-compile'
     id 'gradlebuild.classycle'
 }
 
@@ -51,10 +50,6 @@ gradlebuildJava {
 testFixtures {
     from(':core')
     from(':diagnostics', 'testFixtures')
-}
-
-strictCompile {
-    ignoreDeprecations = true
 }
 
 classycle {

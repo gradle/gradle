@@ -23,13 +23,11 @@ The Java Library plugin expands the capabilities of the Java plugin by providing
 
 To use the Java Library plugin, include the following in your build script:
 
-=== Example: Using the Java Library plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/java-library/quickstart/build.gradle[tag=use-plugin]
-----
+.Using the Java Library plugin
+====
+include::sample[dir="java-library/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="java-library/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+====
 
 
 [[sec:java_library_separation]]
@@ -39,13 +37,12 @@ The key difference between the standard Java plugin and the Java Library plugin 
 
 The plugin exposes two <<managing_dependency_configurations.adoc#managing_dependency_configurations,configurations>> that can be used to declare dependencies: `api` and `implementation`. The `api` configuration should be used to declare dependencies which are exported by the library API, whereas the `implementation` configuration should be used to declare dependencies which are internal to the component.
 
-=== Example: Declaring API and implementation dependencies
+.Declaring API and implementation dependencies
+====
+include::sample[dir="java-library/quickstart/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="java-library/quickstart/kotlin",files="build.gradle.kts[tags=dependencies]"]
+====
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/java-library/quickstart/build.gradle[tag=dependencies]
-----
 
 Dependencies appearing in the `api` configurations will be transitively exposed to consumers of the library, and as such will appear on the compile classpath of consumers. Dependencies found in the `implementation` configuration will, on the other hand, not be exposed to consumers, and therefore not leak into the consumers' compile classpath. This comes with several benefits:
 
@@ -94,10 +91,10 @@ The following class makes use of a couple of third-party libraries, one of which
 
 === Example: Making the difference between API and implementation
 
-[source.multi-language-sample,groovy]
+[source.multi-language-sample,java]
 .src/main/java/org/gradle/HttpClientWrapper.java
 ----
-include::{samplesPath}/java-library/quickstart/src/main/java/org/gradle/HttpClientWrapper.java[tag=sample]
+include::{samplesPath}/java-library/quickstart/groovy/src/main/java/org/gradle/HttpClientWrapper.java[tag=sample]
 ----
 
 The _public_ constructor of `HttpClientWrapper` uses `HttpClient` as a parameter, so it is exposed to consumers and therefore belongs to the API. Note that `GetMethod` is used in the signature of a _private_ method, and so it doesn't count towards making HttpClient an API dependency.
@@ -106,13 +103,11 @@ On the other hand, the `ExceptionUtils` type, coming from the `commons-lang` lib
 
 Therefore, we can deduce that `commons-httpclient` is an API dependency, whereas `commons-lang` is an implementation dependency. This conclusion translates into the following declaration in the build script:
 
-=== Example: Declaring API and implementation dependencies
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/java-library/quickstart/build.gradle[tag=dependencies]
-----
+.Declaring API and implementation dependencies
+====
+include::sample[dir="java-library/quickstart/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="java-library/quickstart/kotlin",files="build.gradle.kts[tags=dependencies]"]
+====
 
 
 [[sec:java_library_configurations_graph]]
@@ -244,13 +239,11 @@ The role of each configuration is described in the following tables:
 
 At the moment the Java Library plugin is only wired to behave correctly with the `java` plugin. Other plugins, such as the Groovy plugin, may not behave correctly. In particular, if the Groovy plugin is used in addition to the `java-library` plugin, then consumers may not get the Groovy classes when they consume the library. To workaround this, you need to explicitly wire the Groovy compile dependency, like this:
 
-=== Example: Configuring the Groovy plugin to work with Java Library
-
-[source.multi-language-sample,groovy]
-.a/build.gradle
-----
-include::{samplesPath}/java-library/with-groovy/a/build.gradle[tag=configure-groovy]
-----
+.Configuring the Groovy plugin to work with Java Library
+====
+include::sample[dir="java-library/with-groovy/groovy",files="a/build.gradle[tags=configure-groovy]"]
+include::sample[dir="java-library/with-groovy/kotlin",files="a/build.gradle.kts[tags=configure-groovy]"]
+====
 
 
 [[sec:java_library_known_issues_memory]]

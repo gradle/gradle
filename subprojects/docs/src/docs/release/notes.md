@@ -147,6 +147,11 @@ The previously deprecated support for Play Framework 2.2 has been removed.
 
 See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
 
+### `CopySpec.duplicatesStrategy` is no longer nullable
+
+For better compatibility with the Kotlin DSL, the property setter no longer accepts `null` as a way
+to reset the property back to its default value. Use `DuplicatesStrategy.INHERIT` instead.
+
 ### Changes to previously deprecated APIs
 
 - The `org.gradle.plugins.signing.Signature` methods `getToSignArtifact()` and `setFile(File)` are removed.
@@ -187,9 +192,11 @@ We would like to thank the following community members for making contributions 
 - [Ben McCann](https://github.com/benmccann) - Remove Play 2.2 support (gradle/gradle#3353)
 - [Björn Kautler](https://github.com/Vampire) - No Deprecated Configurations in Build Init (gradle/gradle#6208)
 - [Georg Friedrich](https://github.com/GFriedrich) - Base Java Library Distribution Plugin on Java Library Plugin (gradle/gradle#5695)
-- [Stefan M.](https://github.com/StefMa) — Include Kotlin DSL samples in Gradle wrapper and Java Gradle Plugin user manual chapters (gradle/gradle#5923 and gradle/gradle#6485)
-- [Jean-Baptiste Nizet](https://github.com/jnizet) — Include Kotlin DSL samples in Gradle Base Plugin user manual chapter (gradle/gradle#6488)
+- [Stefan M.](https://github.com/StefMa) — Include Kotlin DSL samples in Gradle Wrapper, Java Gradle Plugin, and OSGI Plugin user manual chapters (gradle/gradle#5923, gradle/gradle#6485, gradle/gradle#6539)
+- [Jean-Baptiste Nizet](https://github.com/jnizet) — Include Kotlin DSL samples in Announcements, Base, Java Library Plugins, and JaCoCo Plugins, Building Java Projects, Dependency Locking, Dependency Types, Java Library, and Java Testing user manual chapters (gradle/gradle#6488, gradle/gradle#6500, gradle/gradle#6514, gradle/gradle#6518, gradle/gradle#6521, gradle/gradle#6540)
+- [Jean-Baptiste Nizet](https://github.com/jnizet) — Use proper subtype for useTestNG() (gradle/gradle#6520)
 - [Xiang Li](https://github.com/lixiangconan) and [Theodore Ni](https://github.com/tjni) - Make FileUtils#calculateRoots more efficient (gradle/gradle#6455)
+- [James Justinic](https://github.com/jjustinic) Include Kotlin DSL samples in Ant, Code Quality, and WAR Plugin user manual chapters (gradle/gradle#6492, gradle/gradle#6510, gradle/gradle#6522)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

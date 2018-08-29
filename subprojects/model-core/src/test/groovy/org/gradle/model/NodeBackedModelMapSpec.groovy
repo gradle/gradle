@@ -18,9 +18,15 @@ package org.gradle.model
 
 import org.gradle.api.Action
 import org.gradle.api.Named
-import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.internal.BiAction
-import org.gradle.model.internal.core.*
+import org.gradle.model.internal.core.DeferredModelAction
+import org.gradle.model.internal.core.ModelActionRole
+import org.gradle.model.internal.core.ModelNode
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.ModelRuleExecutionException
+import org.gradle.model.internal.core.MutableModelNode
+import org.gradle.model.internal.core.NodeBackedModelMap
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
@@ -28,6 +34,7 @@ import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.registry.UnboundModelRulesException
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
+import org.gradle.util.ClosureBackedAction
 
 import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
 import static org.gradle.util.TextUtil.normaliseLineSeparators

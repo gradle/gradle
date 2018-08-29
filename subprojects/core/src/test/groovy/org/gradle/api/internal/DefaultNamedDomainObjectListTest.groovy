@@ -29,9 +29,9 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
     final DefaultNamedDomainObjectList<CharSequence> list = new DefaultNamedDomainObjectList<CharSequence>(CharSequence, DirectInstantiator.INSTANCE, toStringNamer)
 
     final DefaultNamedDomainObjectList<String> container = list
-    final String a = "a"
-    final String b = "b"
-    final String c = "c"
+    final StringBuffer a = new StringBuffer("a")
+    final StringBuffer b = new StringBuffer("b")
+    final StringBuffer c = new StringBuffer("c")
     final StringBuilder d = new StringBuilder("d")
     final boolean externalProviderAllowed = true
 

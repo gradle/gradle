@@ -47,7 +47,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         def classloader = new URLClassLoader([jar.toURL()] as URL[], getClass().classLoader)
-        def action = classloader.loadClass("ActionImpl").newInstance()
+        def action = classloader.loadClass("ActionImpl").getConstructor().newInstance()
         withConnection { ProjectConnection connection ->
             connection.action(action).run()
         }

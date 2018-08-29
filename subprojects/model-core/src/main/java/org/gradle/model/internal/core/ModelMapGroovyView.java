@@ -20,8 +20,8 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.model.ModelMap;
+import org.gradle.util.ClosureBackedAction;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
