@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.quality;
 
+import org.gradle.api.reporting.CustomizableHtmlReport;
 import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.Internal;
@@ -42,7 +43,7 @@ public interface FindBugsReports extends ReportContainer<SingleFileReport> {
      * @return The findbugs HTML report
      */
     @Internal
-    SingleFileReport getHtml();
+    CustomizableHtmlReport getHtml();
 
     /**
      * The findbugs Text report
