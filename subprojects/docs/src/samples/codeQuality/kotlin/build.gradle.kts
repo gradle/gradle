@@ -49,9 +49,7 @@ tasks.withType<Checkstyle>() {
     reports {
         xml.isEnabled = false
         html.isEnabled = true
-        (html as CustomizableHtmlReport).apply {
-            stylesheet = resources.text.fromFile("config/xsl/checkstyle-custom.xsl")
-        }
+        html.stylesheet = resources.text.fromFile("config/xsl/checkstyle-custom.xsl")
     }
 }
 // end::customize-checkstyle-report[]
@@ -61,9 +59,7 @@ tasks.withType<FindBugs>() {
     reports {
         xml.setEnabled(false)
         html.setEnabled(true)
-        (html as CustomizableHtmlReport).apply {
-            stylesheet = resources.text.fromFile("config/xsl/findbugs-custom.xsl")
-        }
+        html.stylesheet = resources.text.fromFile("config/xsl/findbugs-custom.xsl")
     }
 }
 // end::customize-findbugs-report[]
