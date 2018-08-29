@@ -178,16 +178,6 @@ Joe!""")
         nonSkippedTasks == [":javadoc"]
     }
 
-    def "ensure javadoc task does not change its inputs"() {
-        executer.withArgument("-Dorg.gradle.tasks.verifyinputs=true")
-        buildFile << """
-            apply plugin: 'java'
-        """
-        writeSourceFile()
-        expect:
-        succeeds("javadoc")
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/1456")
     def "can use custom JavadocOptionFileOption type"() {
         buildFile << """

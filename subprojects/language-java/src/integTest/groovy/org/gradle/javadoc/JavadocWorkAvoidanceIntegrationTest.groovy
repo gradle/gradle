@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 @IgnoreIf({GradleContextualExecuter.parallel})
 class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
@@ -224,5 +225,30 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksNotSkipped(":a:javadoc")
         result.assertTasksSkipped(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar",
             ":a:compileJava", ":a:processResources", ":a:classes")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/6168")
+    def "removes stale outputs from last execution"() {
+        def aaJava = file('a/src/main/java/AA.java')
+        aaJava << '''
+            public class AA {
+                public void foo() {
+                }
+            }
+        '''
+
+        when:
+        succeeds(":a:javadoc")
+        then:
+        file("a/build/docs/javadoc/A.html").isFile()
+        file("a/build/docs/javadoc/AA.html").isFile()
+
+        when:
+        assert aaJava.delete()
+        succeeds(":a:javadoc")
+        then:
+        executedAndNotSkipped(":a:javadoc")
+        file("a/build/docs/javadoc/A.html").isFile()
+        !file("a/build/docs/javadoc/AA.html").isFile()
     }
 }

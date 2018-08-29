@@ -103,7 +103,8 @@ public class Javadoc extends SourceTask {
 
     @TaskAction
     protected void generate() {
-        final File destinationDir = getDestinationDir();
+        File destinationDir = getDestinationDir();
+        getProject().delete(destinationDir);
 
         StandardJavadocDocletOptions options = new StandardJavadocDocletOptions((StandardJavadocDocletOptions) getOptions());
 
