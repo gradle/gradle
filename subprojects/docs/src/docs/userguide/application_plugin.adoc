@@ -27,23 +27,19 @@ Applying the Application plugin also implicitly applies the <<distribution_plugi
 
 To use the application plugin, include the following in your build script:
 
-=== Example: Using the application plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/application/build.gradle[tag=use-plugin]
-----
+.Using the application plugin
+====
+include::sample[dir="application/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="application/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+====
 
 The only mandatory configuration for the plugin is the specification of the main class (i.e. entry point) of the application.
 
-=== Example: Configure the application main class
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/application/build.gradle[tag=mainClassName-conf]
-----
+.Configure the application main class
+====
+include::sample[dir="application/groovy",files="build.gradle[tags=mainClassName-conf]"]
+include::sample[dir="application/kotlin",files="build.gradle.kts[tags=mainClassName-conf]"]
+====
 
 You can run the application by executing the `run` task (type: link:{javadocPath}/org.gradle.api.tasks.JavaExec.html[JavaExec]). This will compile the main source set, and launch a new JVM with its classes (along with all runtime dependencies) as the classpath and using the specified main class. You can launch the application in debug mode with `gradle run --debug-jvm` (see link:{javadocPath}/org/gradle/api/tasks/JavaExec.html#setDebug-boolean-[JavaExec.setDebug(boolean)]).
 
@@ -51,23 +47,19 @@ Since Gradle 4.9, the command line arguments can be passed with `--args`. For ex
 
 If your application requires a specific set of JVM settings or system properties, you can configure the `applicationDefaultJvmArgs` property. These JVM arguments are applied to the `run` task and also considered in the generated start scripts of your distribution.
 
-=== Example: Configure default JVM settings
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/application/build.gradle[tag=application-defaultjvmargs]
-----
+.Configure default JVM settings
+====
+include::sample[dir="application/groovy",files="build.gradle[tags=application-defaultjvmargs]"]
+include::sample[dir="application/kotlin",files="build.gradle.kts[tags=application-defaultjvmargs]"]
+====
 
 If your application's start scripts should be in a different directory than `bin`, you can configure the `executableDir` property.
 
-=== Example: Configure custom directory for start scripts
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/application/build.gradle[tag=executableDir-conf]
-----
+.Configure custom directory for start scripts
+====
+include::sample[dir="application/groovy",files="build.gradle[tags=executableDir-conf]"]
+include::sample[dir="application/kotlin",files="build.gradle.kts[tags=executableDir-conf]"]
+====
 
 [[sec:the_distribution]]
 === The distribution
@@ -91,13 +83,11 @@ A distribution of the application can be created, by way of the <<distribution_p
 
 Static files to be added to the distribution can be simply added to `src/dist`. More advanced customization can be done by configuring the link:{javadocPath}/org.gradle.api.file.file.CopySpec.html[CopySpec] exposed by the main distribution.
 
-=== Example: Include output from other tasks in the application distribution
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/application/build.gradle[tag=distribution-spec]
-----
+.Include output from other tasks in the application distribution
+====
+include::sample[dir="application/groovy",files="build.gradle[tags=distribution-spec]"]
+include::sample[dir="application/kotlin",files="build.gradle.kts[tags=distribution-spec]"]
+====
 
 By specifying that the distribution should include the task's output files (see <<more_about_tasks.adoc#sec:task_inputs_outputs, more about tasks>>), Gradle knows that the task that produces the files must be invoked before the distribution can be assembled and will take care of this for you.
 
