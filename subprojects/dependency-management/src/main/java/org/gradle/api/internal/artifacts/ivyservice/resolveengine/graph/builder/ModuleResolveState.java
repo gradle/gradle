@@ -62,6 +62,7 @@ class ModuleResolveState implements CandidateModule {
     private ImmutableAttributes mergedAttributes = ImmutableAttributes.EMPTY;
     private AttributeMergingException attributeMergingError;
     private VirtualPlatformState platformState;
+    private boolean replaced = false;
 
     ModuleResolveState(IdGenerator<Long> idGenerator,
                        ModuleIdentifier id,
@@ -139,6 +140,7 @@ class ModuleResolveState implements CandidateModule {
     public void select(ComponentState selected) {
         assert this.selected == null;
         this.selected = selected;
+        this.replaced = false;
 
         selectComponentAndEvictOthers(selected);
     }
@@ -153,7 +155,7 @@ class ModuleResolveState implements CandidateModule {
     /**
      * Changes the selected target component for this module.
      */
-    public void changeSelection(ComponentState newSelection) {
+    private void changeSelection(ComponentState newSelection) {
         assert this.selected != null;
         assert newSelection != null;
         assert this.selected != newSelection;
@@ -163,6 +165,7 @@ class ModuleResolveState implements CandidateModule {
         selected.removeOutgoingEdges();
 
         this.selected = newSelection;
+        this.replaced = false;
 
         doRestart(newSelection);
     }
@@ -183,12 +186,13 @@ class ModuleResolveState implements CandidateModule {
         }
 
         selected = null;
+        replaced = false;
     }
 
     /**
      * Overrides the component selection for this module, when this module has been replaced by another.
      */
-    public void restart(ComponentState selected) {
+    public void replaceBy(ComponentState selected) {
         if (this.selected != null) {
             clearSelection();
         }
@@ -197,8 +201,14 @@ class ModuleResolveState implements CandidateModule {
         assert selected != null;
 
         this.selected = selected;
+        this.replaced = computeReplaced(selected);
 
         doRestart(selected);
+    }
+
+    private boolean computeReplaced(ComponentState selected) {
+        // This module might be resolved to a different module, through replacedBy
+        return !selected.getId().getModule().equals(getId());
     }
 
     private void doRestart(ComponentState selected) {
@@ -251,9 +261,13 @@ class ModuleResolveState implements CandidateModule {
 
     void removeSelector(SelectorState selector) {
         selectors.remove(selector);
+        selector.markForReuse();
         mergedAttributes = ImmutableAttributes.EMPTY;
         for (SelectorState selectorState : selectors) {
             mergedAttributes = appendAttributes(mergedAttributes, selectorState);
+        }
+        if (!selectors.isEmpty()) {
+            maybeUpdateSelection();
         }
     }
 
@@ -300,15 +314,16 @@ class ModuleResolveState implements CandidateModule {
         return platformState;
     }
 
-    public boolean maybeUpdateSelection() {
+    public void maybeUpdateSelection() {
+        if (replaced) {
+            // Never update selection for a replaced module
+            return;
+        }
         ComponentState newSelected = selectorStateResolver.selectBest(getId(), getSelectors());
         if (selected == null) {
             select(newSelected);
-            return true;
         } else if (newSelected != selected) {
             changeSelection(newSelected);
-            return true;
         }
-        return false;
     }
 }
