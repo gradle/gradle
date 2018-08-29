@@ -23,10 +23,10 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
-import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -37,7 +37,7 @@ import java.util.List;
 @NonNullApi
 public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputCachingBuildCacheKeyBuilder {
 
-    private final BuildCacheHasher hasher = new DefaultBuildCacheHasher();
+    private final Hasher hasher = Hashing.md5().newHasher();
     private final Path taskPath;
     private String taskClass;
     private HashCode classLoaderHash;

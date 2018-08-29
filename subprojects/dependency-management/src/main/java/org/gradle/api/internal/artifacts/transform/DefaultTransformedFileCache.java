@@ -31,12 +31,13 @@ import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.FileAccessTracker;
@@ -199,7 +200,7 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
         }
 
         public HashCode getPersistentCacheKey() {
-            DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
+            Hasher hasher = Hashing.md5().newHasher();
             hasher.putHash(inputHash);
             hasher.putString(absolutePath);
             hasher.putHash(fileContentHash);

@@ -49,7 +49,7 @@ public class DefaultStreamHasher implements StreamHasher {
     private HashCode doHash(InputStream inputStream, OutputStream outputStream) throws IOException {
         byte[] buffer = takeBuffer();
         try {
-            Hasher hasher = hasherFactory.create();
+            PrimitiveHasher hasher = hasherFactory.create();
             while (true) {
                 int nread = inputStream.read(buffer);
                 if (nread < 0) {

@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
-
-import org.gradle.caching.internal.BuildCacheHasher;
+package org.gradle.internal.hash;
 
 /**
  * A snapshot of the state of some thing.
@@ -25,5 +23,5 @@ public interface Hashable {
     /**
      * Appends the snapshot to the given hasher.
      */
-    void appendToHasher(BuildCacheHasher hasher);
+    void appendToHasher(Hasher hasher);
 }

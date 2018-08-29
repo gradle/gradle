@@ -16,9 +16,8 @@
 
 package org.gradle.internal.snapshot;
 
-import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 
 import javax.annotation.Nullable;
@@ -89,7 +88,7 @@ public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotVisitor
         if (sortingRequired) {
             Collections.sort(children, FileSystemLocationSnapshot.BY_NAME);
         }
-        BuildCacheHasher hasher = new DefaultBuildCacheHasher();
+        Hasher hasher = Hashing.md5().newHasher();
         hasher.putHash(DIR_SIGNATURE);
         for (FileSystemLocationSnapshot child : children) {
             hasher.putString(child.getName());

@@ -30,10 +30,10 @@ import org.gradle.cache.CacheDecorator
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
-import org.gradle.caching.internal.DefaultBuildCacheHasher
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.service.ServiceRegistry
@@ -148,7 +148,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
         then:
         1 * valueSnapshotter.snapshot(_) >> {
             def snapshot = new StringValueSnapshot(it.toString())
-            def hasher = new DefaultBuildCacheHasher()
+            def hasher = Hashing.md5().newHasher()
             snapshot.appendToHasher(hasher)
             def keyHash = hasher.hash()
             1 * store.put(keyHash, _)
@@ -191,7 +191,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
         then:
         1 * valueSnapshotter.snapshot(_) >> {
             snapshot = new StringValueSnapshot(it.toString())
-            def hasher = new DefaultBuildCacheHasher()
+            def hasher = Hashing.md5().newHasher()
             snapshot.appendToHasher(hasher)
             keyHash = hasher.hash()
             snapshot

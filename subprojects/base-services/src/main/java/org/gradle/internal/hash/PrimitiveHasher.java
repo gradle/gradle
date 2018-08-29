@@ -17,11 +17,10 @@
 package org.gradle.internal.hash;
 
 /**
- * A safe hasher that can be marked as invalid.
- *
- * In order to avoid collisions we prepend the length of the next bytes to the underlying hasher (see this <a href="http://crypto.stackexchange.com/a/10065">answer</a> on stackexchange).
+ * Hasher abstraction that can be fed different kinds of primitives that it then forwards directly to the hash function.
+ * Inspired by the Google Guava project – https://github.com/google/guava.
  */
-public interface Hasher {
+public interface PrimitiveHasher {
     /**
      * Feed a bunch of bytes into the hasher.
      */
@@ -68,27 +67,7 @@ public interface Hasher {
     void putHash(HashCode hashCode);
 
     /**
-     * Feed a {@code null} value into the hasher.
-     */
-    void putNull();
-
-    /**
-     * Marks this hash code as invalid. Further values fed into the hasher will be ignored,
-     * {@link #isValid()} will return {@code false}, and {@link #hash()} will throw an exception.
-     */
-    void markAsInvalid();
-
-    /**
-     * Whether the build cache hash is valid.
-     */
-    boolean isValid();
-
-    /**
      * Returns the combined hash.
-     *
-     * If the build cache hash is invalid, an exception is thrown.
-     *
-     * @throws IllegalStateException if the hasher state is invalid.
      */
     HashCode hash();
 }

@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.hash.Hasher;
 
 /**
  * An immutable, usable representation of metadata sources.
@@ -24,5 +24,5 @@ import org.gradle.caching.internal.BuildCacheHasher;
 public interface ImmutableMetadataSources {
     ImmutableList<MetadataSource<?>> sources();
 
-    void appendId(BuildCacheHasher hasher);
+    void appendId(Hasher hasher);
 }
