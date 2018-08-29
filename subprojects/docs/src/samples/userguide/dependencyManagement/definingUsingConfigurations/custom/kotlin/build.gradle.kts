@@ -12,12 +12,12 @@ dependencies {
 task("preCompileJsps") {
     doLast {
         ant.withGroovyBuilder {
-            "taskdef"(mapOf("classname" to "org.apache.jasper.JspC",
-                            "name" to "jasper",
-                            "classpath" to jasper.asPath))
-            "jasper"(mapOf("validateXml" to false,
-                           "uriroot" to file("src/main/webapp"),
-                           "outputDir" to file("$buildDir/compiled-jsps")))
+            "taskdef"("classname" to "org.apache.jasper.JspC",
+                      "name" to "jasper",
+                      "classpath" to jasper.asPath)
+            "jasper"("validateXml" to false,
+                     "uriroot" to file("src/main/webapp"),
+                     "outputDir" to file("$buildDir/compiled-jsps"))
         }
     }
 }
