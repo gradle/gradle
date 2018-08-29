@@ -31,7 +31,7 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuil
 
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
         param("env.ANDROID_HOME", "/opt/android/sdk")
-        param("env.JAVA_HOME", "/opt/jdk/oracle-jdk-8-latest")
+        param("env.JAVA_HOME", "%linux.java9.oracle.64bit%")
         param("env.PATH", "%env.PATH%:/opt/swift/latest/usr/bin")
     }
 

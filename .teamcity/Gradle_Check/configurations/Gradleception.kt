@@ -13,7 +13,7 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(mod
     description = "Builds Gradle with the version of Gradle which is currently under development (twice)"
 
     params {
-        param("env.JAVA_HOME", "%linux.java8.oracle.64bit%")
+        param("env.JAVA_HOME", "%linux.java9.oracle.64bit%")
     }
 
     val buildScanTagForType = buildScanTag("Gradleception")

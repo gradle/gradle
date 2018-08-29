@@ -12,7 +12,7 @@ class SmokeTests(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model,
 
     params {
         param("env.ANDROID_HOME", "/opt/android/sdk")
-        param("env.JAVA_HOME", "%linux.java8.oracle.64bit%")
+        param("env.JAVA_HOME", "%linux.java9.oracle.64bit%")
     }
 
     applyDefaults(

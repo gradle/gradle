@@ -193,7 +193,7 @@ data class Stage(val name: String, val description: String, val specificBuilds: 
     val id = name.replace(" ", "").replace("-", "")
 }
 
-data class TestCoverage(val testType: TestType, val os: OS, val testJvmVersion: JvmVersion, val buildJvmVersion: JvmVersion = JvmVersion.java8, val vendor: JvmVendor = JvmVendor.oracle) {
+data class TestCoverage(val testType: TestType, val os: OS, val testJvmVersion: JvmVersion, val buildJvmVersion: JvmVersion = JvmVersion.java9, val vendor: JvmVendor = JvmVendor.oracle) {
     fun asId(model : CIBuildModel): String {
         if(buildJvmVersion != JvmVersion.java8 && testType == TestType.quickFeedbackCrossVersion) {
             // This is a hack for the limitation on long configuration name
@@ -218,7 +218,7 @@ data class TestCoverage(val testType: TestType, val os: OS, val testJvmVersion: 
     }
 
     fun suffix(): String {
-        return if(buildJvmVersion != JvmVersion.java8) "_${buildJvmVersion.name.capitalize()}" else ""
+        return ""
     }
 }
 
