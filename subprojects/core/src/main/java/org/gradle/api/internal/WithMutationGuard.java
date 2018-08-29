@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.project;
+package org.gradle.api.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.Project;
-
-public interface CrossProjectConfigurator {
-
-    Project project(Project project, Action<? super Project> configureAction);
-
-    void subprojects(Iterable<Project> projects, Action<? super Project> configureAction);
-
-    void allprojects(Iterable<Project> projects, Action<? super Project> configureAction);
-
-    Project rootProject(Project project, Action<Project> buildOperationExecutor);
-
+/**
+ * @see MutationGuard
+ * @see MutationGuards#of(Object)
+ */
+public interface WithMutationGuard {
+    MutationGuard getMutationGuard();
 }

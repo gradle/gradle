@@ -29,6 +29,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
+import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
@@ -701,7 +702,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         @Override
         protected Action<? super I> wrap(Action action) {
-            return crossProjectConfigurator.withProjectMutationDisabled(action);
+            return MutationGuards.of(crossProjectConfigurator).withMutationDisabled(action);
         }
 
         @Override
