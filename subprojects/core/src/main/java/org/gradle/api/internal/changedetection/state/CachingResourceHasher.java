@@ -39,7 +39,7 @@ public class CachingResourceHasher implements ResourceHasher {
     public CachingResourceHasher(ResourceHasher delegate, ResourceSnapshotterCacheService resourceSnapshotterCacheService) {
         this.delegate = delegate;
         this.resourceSnapshotterCacheService = resourceSnapshotterCacheService;
-        Hasher hasher = Hashing.md5().newHasher();
+        Hasher hasher = Hashing.newHasher();
         delegate.appendConfigurationToHasher(hasher);
         this.delegateConfigurationHash = hasher.hash();
     }

@@ -54,7 +54,7 @@ class BuildScriptTransformerSpec extends Specification {
 
     private CompiledScript<Script, BuildScriptData> parse(String script) {
         def source = new StringScriptSource("test script", script)
-        def sourceHashCode = Hashing.md5().hashString(script)
+        def sourceHashCode = Hashing.hashString(script)
         def target = Mock(ScriptTarget) {
             getClasspathBlockName() >> "buildscript"
         }

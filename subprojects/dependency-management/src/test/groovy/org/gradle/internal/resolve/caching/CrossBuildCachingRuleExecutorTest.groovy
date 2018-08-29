@@ -148,7 +148,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
         then:
         1 * valueSnapshotter.snapshot(_) >> {
             def snapshot = new StringValueSnapshot(it.toString())
-            def hasher = Hashing.md5().newHasher()
+            def hasher = Hashing.newHasher()
             snapshot.appendToHasher(hasher)
             def keyHash = hasher.hash()
             1 * store.put(keyHash, _)
@@ -191,7 +191,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
         then:
         1 * valueSnapshotter.snapshot(_) >> {
             snapshot = new StringValueSnapshot(it.toString())
-            def hasher = Hashing.md5().newHasher()
+            def hasher = Hashing.newHasher()
             snapshot.appendToHasher(hasher)
             keyHash = hasher.hash()
             snapshot

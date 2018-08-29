@@ -97,7 +97,7 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
     def "expires entry when cache policy tells us to"() {
         def id = DefaultModuleVersionIdentifier.newId('org', 'foo', '1.0')
         def inputsSnapshot = new StringValueSnapshot("1")
-        def hasher = Hashing.md5().newHasher()
+        def hasher = Hashing.newHasher()
         inputsSnapshot.appendToHasher(hasher)
         def keyHash = hasher.hash()
         def cachedResult = Mock(ComponentMetadata)

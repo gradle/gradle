@@ -516,6 +516,6 @@ Outer.Inner.Deeper weMustGoDeeper = null
     }
 
     private static HashCode hashFor(String scriptText) {
-        Hashing.md5().hashString(scriptText)
+        Hashing.hashString(scriptText)
     }
 }

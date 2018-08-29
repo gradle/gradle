@@ -78,7 +78,7 @@ public class ClasspathFingerprintingStrategy implements FingerprintingStrategy {
         this.cacheService = cacheService;
         this.stringInterner = stringInterner;
         this.jarHasher = new JarHasher(classpathResourceHasher, classpathResourceFilter);
-        Hasher hasher = Hashing.md5().newHasher();
+        Hasher hasher = Hashing.newHasher();
         jarHasher.appendConfigurationToHasher(hasher);
         this.jarHasherConfigurationHash = hasher.hash();
     }

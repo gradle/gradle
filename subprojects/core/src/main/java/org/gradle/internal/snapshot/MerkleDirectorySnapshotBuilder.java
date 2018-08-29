@@ -28,7 +28,7 @@ import java.util.Deque;
 import java.util.List;
 
 public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotVisitor {
-    private static final HashCode DIR_SIGNATURE = Hashing.md5().hashString("DIR");
+    private static final HashCode DIR_SIGNATURE = Hashing.signature("DIR");
 
     private final RelativePathSegmentsTracker relativePathSegmentsTracker = new RelativePathSegmentsTracker();
     private final Deque<List<FileSystemLocationSnapshot>> levelHolder = new ArrayDeque<List<FileSystemLocationSnapshot>>();
@@ -88,7 +88,7 @@ public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotVisitor
         if (sortingRequired) {
             Collections.sort(children, FileSystemLocationSnapshot.BY_NAME);
         }
-        Hasher hasher = Hashing.md5().newHasher();
+        Hasher hasher = Hashing.newHasher();
         hasher.putHash(DIR_SIGNATURE);
         for (FileSystemLocationSnapshot child : children) {
             hasher.putString(child.getName());

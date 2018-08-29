@@ -24,7 +24,7 @@ import org.gradle.internal.hash.Hashing;
  * A snapshot of a missing file.
  */
 public class MissingFileSnapshot extends AbstractFileSystemLocationSnapshot {
-    private static final HashCode SIGNATURE = Hashing.md5().hashString(MissingFileSnapshot.class.getName());
+    private static final HashCode SIGNATURE = Hashing.signature(MissingFileSnapshot.class);
 
     public MissingFileSnapshot(String absolutePath, String name) {
         super(absolutePath, name);

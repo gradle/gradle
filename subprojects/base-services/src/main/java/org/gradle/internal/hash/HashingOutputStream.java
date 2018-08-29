@@ -27,11 +27,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Inspired by the Google Guava project.
  */
 public final class HashingOutputStream extends FilterOutputStream {
-    private final Hasher hasher;
+    private final PrimitiveHasher hasher;
 
     public HashingOutputStream(HashFunction hashFunction, OutputStream out) {
         super(checkNotNull(out));
-        this.hasher = checkNotNull(hashFunction.newHasher());
+        this.hasher = checkNotNull(hashFunction.newPrimitiveHasher());
     }
 
     @Override

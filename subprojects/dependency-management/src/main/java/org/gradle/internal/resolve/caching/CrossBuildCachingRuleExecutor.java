@@ -158,7 +158,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
             toBeSnapshotted.add(ruleClass);
             toBeSnapshotted.add(ruleParams);
         }
-        Hasher hasher = Hashing.md5().newHasher();
+        Hasher hasher = Hashing.newHasher();
         snapshotter.snapshot(toBeSnapshotted).appendToHasher(hasher);
         return hasher.hash();
     }

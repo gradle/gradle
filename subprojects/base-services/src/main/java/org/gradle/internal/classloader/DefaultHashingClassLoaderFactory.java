@@ -72,7 +72,7 @@ public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory 
     }
 
     private static HashCode calculateFilterSpecHash(FilteringClassLoader.Spec spec) {
-        Hasher hasher = Hashing.md5().newHasher();
+        Hasher hasher = Hashing.newHasher();
         addToHash(hasher, spec.getClassNames());
         addToHash(hasher, spec.getPackageNames());
         addToHash(hasher, spec.getPackagePrefixes());
