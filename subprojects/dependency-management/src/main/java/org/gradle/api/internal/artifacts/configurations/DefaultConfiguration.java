@@ -184,7 +184,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private final Object observationLock = new Object();
     private InternalState observedState = UNRESOLVED;
-    private final Object resolutionLock = new Object();
+    //private final Object resolutionLock = new Object();
     private InternalState resolvedState = UNRESOLVED;
     private boolean insideBeforeResolve;
 
@@ -274,16 +274,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public State getState() {
-        synchronized (resolutionLock) {
-            if (resolvedState == ARTIFACTS_RESOLVED || resolvedState == GRAPH_RESOLVED) {
-                if (cachedResolverResults.hasError()) {
-                    return State.RESOLVED_WITH_FAILURES;
-                } else {
-                    return State.RESOLVED;
-                }
+        if (resolvedState == ARTIFACTS_RESOLVED || resolvedState == GRAPH_RESOLVED) {
+            if (cachedResolverResults.hasError()) {
+                return State.RESOLVED_WITH_FAILURES;
             } else {
-                return State.UNRESOLVED;
+                return State.RESOLVED;
             }
+        } else {
+            return State.UNRESOLVED;
         }
     }
 
@@ -504,13 +502,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void resolveToStateOrLater(InternalState requestedState) {
         assertResolvingAllowed();
-        synchronized (resolutionLock) {
-            if (requestedState == GRAPH_RESOLVED || requestedState == ARTIFACTS_RESOLVED) {
-                resolveGraphIfRequired(requestedState);
-            }
-            if (requestedState == ARTIFACTS_RESOLVED) {
-                resolveArtifactsIfRequired();
-            }
+        if (requestedState == GRAPH_RESOLVED || requestedState == ARTIFACTS_RESOLVED) {
+            resolveGraphIfRequired(requestedState);
+        }
+        if (requestedState == ARTIFACTS_RESOLVED) {
+            resolveArtifactsIfRequired();
         }
     }
 
@@ -1508,36 +1504,34 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public void visitDependencies(final TaskDependencyResolveContext context) {
-            synchronized (resolutionLock) {
-                if (getResolutionStrategy().resolveGraphToDetermineTaskDependencies()) {
-                    // Force graph resolution as this is required to calculate build dependencies
-                    resolveToStateOrLater(GRAPH_RESOLVED);
+            if (getResolutionStrategy().resolveGraphToDetermineTaskDependencies()) {
+                // Force graph resolution as this is required to calculate build dependencies
+                resolveToStateOrLater(GRAPH_RESOLVED);
+            }
+            ResolverResults results;
+            if (getState() == State.UNRESOLVED) {
+                // Traverse graph
+                results = new DefaultResolverResults();
+                resolver.resolveBuildDependencies(DefaultConfiguration.this, results);
+            } else {
+                // Otherwise, already have a result, so reuse it
+                results = cachedResolverResults;
+            }
+            SelectedArtifactSet selected = results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec, allowNoMatchingVariants);
+            final Set<Throwable> failures = new LinkedHashSet<Throwable>();
+            selected.collectBuildDependencies(new BuildDependenciesVisitor() {
+                @Override
+                public void visitFailure(Throwable failure) {
+                    failures.add(failure);
                 }
-                ResolverResults results;
-                if (getState() == State.UNRESOLVED) {
-                    // Traverse graph
-                    results = new DefaultResolverResults();
-                    resolver.resolveBuildDependencies(DefaultConfiguration.this, results);
-                } else {
-                    // Otherwise, already have a result, so reuse it
-                    results = cachedResolverResults;
-                }
-                SelectedArtifactSet selected = results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec, allowNoMatchingVariants);
-                final Set<Throwable> failures = new LinkedHashSet<Throwable>();
-                selected.collectBuildDependencies(new BuildDependenciesVisitor() {
-                    @Override
-                    public void visitFailure(Throwable failure) {
-                        failures.add(failure);
-                    }
 
-                    @Override
-                    public void visitDependency(Object dep) {
-                        context.add(dep);
-                    }
-                });
-                if (!lenient) {
-                    rethrowFailure("task dependencies", failures);
+                @Override
+                public void visitDependency(Object dep) {
+                    context.add(dep);
                 }
+            });
+            if (!lenient) {
+                rethrowFailure("task dependencies", failures);
             }
         }
     }
