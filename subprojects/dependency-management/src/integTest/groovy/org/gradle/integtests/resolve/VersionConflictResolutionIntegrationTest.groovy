@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.resolve
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
@@ -1491,10 +1490,10 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @NotYetImplemented
     def "evicted hard dependency shouldn't add constraint on range"() {
         given:
-        4.times { mavenRepo.module("org", "a", "${it+1}").publish() }
+        4.times { mavenRepo.module("org", "e", "${it+1}").publish() }
+        4.times { mavenRepo.module("org", "a", "${it+1}").dependsOn('org', 'e', "${it+1}").publish() }
         mavenRepo.module("org", "b", "1").dependsOn('org', 'a', '4').publish() // this will be evicted
         mavenRepo.module('org', 'c', '1').dependsOn('org', 'd', '1').publish()
         mavenRepo.module('org', 'd', '1').dependsOn('org', 'b', '2').publish()
@@ -1513,7 +1512,7 @@ task checkDeps(dependsOn: configurations.compile) {
             task checkDeps {
                 doLast {
                     def files = configurations.conf*.name.sort()
-                    assert files == ['a-3.jar', 'b-2.jar', 'c-1.jar', 'd-1.jar']
+                    assert files == ['a-3.jar', 'b-2.jar', 'c-1.jar', 'd-1.jar', 'e-3.jar']
                 }
             }
         """
@@ -1525,7 +1524,6 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    @NotYetImplemented
     def "doesn't include evicted version from branch which has been deselected"() {
         given:
         mavenRepo.module('org', 'a', '1').dependsOn('org', 'b', '2').publish()
