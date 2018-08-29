@@ -1,28 +1,19 @@
 // tag::set-input-files[]
-task compile(type: JavaCompile)
+task compile(type: JavaCompile) {
 
-// Use a File object to specify the source directory
-compile {
+    // Use a File object to specify the source directory
     source = file('src/main/java')
-}
 
-// Use a String path to specify the source directory
-compile {
+    // Use a String path to specify the source directory
     source = 'src/main/java'
-}
 
-// Use a collection to specify multiple source directories
-compile {
+    // Use a collection to specify multiple source directories
     source = ['src/main/java', '../shared/java']
-}
 
-// Use a FileCollection (or FileTree in this case) to specify the source files
-compile {
+    // Use a FileCollection (or FileTree in this case) to specify the source files
     source = fileTree(dir: 'src/main/java').matching { include 'org/gradle/api/**' }
-}
 
-// Using a closure to specify the source files.
-compile {
+    // Using a closure to specify the source files.
     source = {
         // Use the contents of each zip file in the src dir
         file('src').listFiles().findAll {it.name.endsWith('.zip')}.collect { zipTree(it) }

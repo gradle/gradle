@@ -10,7 +10,7 @@ task("ensureDirectory") {
 task("moveReports") {
     doLast {
         ant.withGroovyBuilder {
-            "move"(mapOf("file" to "${buildDir}/reports", "todir" to "${buildDir}/toArchive"))
+            "move"("file" to "${buildDir}/reports", "todir" to "${buildDir}/toArchive")
         }
     }
 }

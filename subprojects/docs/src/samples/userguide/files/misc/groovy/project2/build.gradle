@@ -1,5 +1,5 @@
 // tag::using-root-dir-property[]
-File configFile = file("${rootDir}/shared/config.xml")
+File configFile = file("$rootDir/shared/config.xml")
 // end::using-root-dir-property[]
 
 task checkConfigFile {

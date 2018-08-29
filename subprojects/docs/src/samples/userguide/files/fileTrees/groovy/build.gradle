@@ -1,13 +1,10 @@
 // tag::define[]
 // Create a file tree with a base directory
-FileTree tree = fileTree(dir: 'src/main')
+ConfigurableFileTree tree = fileTree(dir: 'src/main')
 
 // Add include and exclude patterns to the tree
 tree.include '**/*.java'
 tree.exclude '**/Abstract*'
-
-// Create a tree using path
-tree = fileTree('src').include('**/*.java')
 
 // Create a tree using closure
 tree = fileTree('src') {

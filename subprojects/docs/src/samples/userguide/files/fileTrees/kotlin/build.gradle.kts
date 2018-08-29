@@ -8,18 +8,15 @@ var tree: ConfigurableFileTree = fileTree("src/main")
 tree.include("**/*.java")
 tree.exclude("**/Abstract*")
 
-// Create a tree using path
-tree = fileTree("src").include("**/*.java") as ConfigurableFileTree
-
 // Create a tree using closure
 tree = fileTree("src") {
     include("**/*.java")
 }
 
 // Create a tree using a map
-tree = fileTree(mapOf("dir" to "src", "include" to "**/*.java"))
-tree = fileTree(mapOf("dir" to "src", "includes" to listOf("**/*.java", "**/*.xml")))
-tree = fileTree(mapOf("dir" to "src", "include" to "**/*.java", "exclude" to "**/*test*/**"))
+tree = fileTree("dir" to "src", "include" to "**/*.java")
+tree = fileTree("dir" to "src", "includes" to listOf("**/*.java", "**/*.xml"))
+tree = fileTree("dir" to "src", "include" to "**/*.java", "exclude" to "**/*test*/**")
 // end::define[]
 
 // tag::use[]

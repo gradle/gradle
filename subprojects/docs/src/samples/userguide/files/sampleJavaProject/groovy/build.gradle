@@ -14,7 +14,7 @@ dependencies {
 
 // tag::link-task-properties[]
 ext {
-    archivesDirPath = "${buildDir}/archives"
+    archivesDirPath = "$buildDir/archives"
 }
 
 task packageClasses(type: Zip) {
@@ -27,7 +27,7 @@ task packageClasses(type: Zip) {
 
 // tag::nested-specs[]
 task nestedSpecs(type: Copy) {
-    into "${buildDir}/explodedWar"
+    into "$buildDir/explodedWar"
     exclude '**/*staging*'
     from('src/dist') {
         include '**/*.html', '**/*.png', '**/*.jpg'

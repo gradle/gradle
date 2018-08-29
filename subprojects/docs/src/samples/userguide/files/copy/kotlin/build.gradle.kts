@@ -119,12 +119,10 @@ task<Copy>("copyWithTruncate") {
 
 
 
-// tag::copy-task[]
 val copyTask by tasks.creating(Copy::class) {
     from("src/main/webapp")
     into("$buildDir/explodedWar")
 }
-// end::copy-task[]
 
 // tag::copy-task-with-patterns[]
 task<Copy>("copyTaskWithPatterns") {
