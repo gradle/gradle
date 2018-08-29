@@ -64,7 +64,8 @@ When using `@OutputFiles` or `@OutputDirectories` with an `Iterable` type, Gradl
 
 > Declares multiple output files for the single output property 'outputFiles' via @OutputFiles, @OutputDirectories or TaskOutputs.files()
 
-This is no longer the case, and using such properties doesn't prevent the task from being cached. The only remaining reason to disable caching for the task is if the output contains filtered or non-directory based file trees.
+This is no longer the case, and using such properties doesn't prevent the task from being cached.
+The only remaining reason to disable caching for the task is if the output contains file trees.
 
 ## Promoted features
 
