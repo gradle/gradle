@@ -329,7 +329,7 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     private List<JUnitTestSuite> fetchTestResults(buildData) {
-        def unzippedJUnitXmls = []
+        def junitTestSuites = []
         def artifactsUri = buildData?.artifacts?.@href?.text()
         if (artifactsUri) {
             def resultArtifacts = client.get(path: "${artifactsUri}/results/${project.name}/build/")
@@ -342,12 +342,12 @@ class DistributedPerformanceTest extends PerformanceTest {
                     def contentUri = fileNode.content.@href.text()
                     client.get(path: contentUri, contentType: ContentType.BINARY) {
                         resp, inputStream ->
-                            unzippedJUnitXmls = parseXmlsInZip(inputStream)
+                            junitTestSuites = parseXmlsInZip(inputStream)
                     }
                 }
             }
         }
-        unzippedJUnitXmls
+        junitTestSuites
     }
 
     List<JUnitTestSuite> parseXmlsInZip(InputStream inputStream) {

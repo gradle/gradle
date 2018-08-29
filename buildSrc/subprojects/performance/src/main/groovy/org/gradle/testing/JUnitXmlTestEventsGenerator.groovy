@@ -16,7 +16,6 @@
 
 package org.gradle.testing
 
-import groovy.util.slurpersupport.GPathResult
 import groovy.util.slurpersupport.NodeChildren
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor
@@ -73,7 +72,7 @@ class JUnitXmlTestEventsGenerator {
                 testListener.beforeTest(testCaseDescriptor)
                 publishAdditionalMetadata(testCaseDescriptor, build)
                 try {
-                    String systemErr = testSuite.systemOut
+                    String systemErr = testSuite.systemErr
                     if (systemErr) {
                         testOutputListener.onOutput(testCaseDescriptor, new DefaultTestOutputEvent(TestOutputEvent.Destination.StdErr, systemErr))
                     }
@@ -82,7 +81,7 @@ class JUnitXmlTestEventsGenerator {
                 }
                 String failureText = failures.collect { it.message } .join('\n')
                 failureText = failureText.replace("java.lang.AssertionError: ", "")
-                testListener.afterTest(testCaseDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime, 1, 0, 1, [new AssertionError(failureText as Object)] as List<Throwable>))
+                testListener.afterTest(testCaseDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime, 1, 0, 1, [assertionError(failureText)]))
             } else if (notSkipped(testCase)) {
                 testListener.beforeTest(testCaseDescriptor)
                 publishAdditionalMetadata(testCaseDescriptor, build)
@@ -94,8 +93,13 @@ class JUnitXmlTestEventsGenerator {
         testListener.afterSuite(testSuiteDescriptor.parent.parent, new DefaultTestResult(TestResult.ResultType.SUCCESS, 0, 0, 0, 0, 0, []))
     }
 
+    @groovy.transform.CompileStatic
+    // workaround for class org.codehaus.groovy.reflection.CachedConstructor cannot access a member of class java.lang.AssertionError (in module java.base) with modifiers "private"
+    // using Jigsaw
+    private AssertionError assertionError(/*must be Object*/Object failureText) { new AssertionError(failureText) }
+
     private boolean notSkipped(JUnitTestCase testCase) {
-        return testCase.skipped?.toString() == null
+        return testCase.skipped == null
     }
 
     private void publishAdditionalMetadata(DecoratingTestDescriptor testCaseDescriptor, Object build) {
