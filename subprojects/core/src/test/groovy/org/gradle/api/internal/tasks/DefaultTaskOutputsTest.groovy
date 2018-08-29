@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
+import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder
 import org.gradle.util.UsesNativeServices
 import spock.lang.Issue
 import spock.lang.Specification
@@ -40,6 +41,8 @@ import static OutputType.FILE
 
 @UsesNativeServices
 class DefaultTaskOutputsTest extends Specification {
+
+    def validBuildCacheKey = new DefaultTaskOutputCachingBuildCacheKeyBuilder().build()
 
     def taskStatusNagger = Stub(TaskMutator) {
         mutate(_, _) >> { String method, def action ->
@@ -236,7 +239,7 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.cacheIf("Exception is thrown") { throw new RuntimeException() }
 
         when:
-        outputs.getCachingState(taskPropertiesWithOutput)
+        outputs.getCachingState(taskPropertiesWithOutput, validBuildCacheKey)
 
         then:
         GradleException e = thrown()
@@ -248,7 +251,7 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.doNotCacheIf("Exception is thrown") { throw new RuntimeException() }
 
         when:
-        outputs.getCachingState(taskPropertiesWithOutput)
+        outputs.getCachingState(taskPropertiesWithOutput, validBuildCacheKey)
 
         then:
         GradleException e = thrown()
@@ -328,56 +331,56 @@ class DefaultTaskOutputsTest extends Specification {
 
     def "can turn caching on via cacheIf()"() {
         expect:
-        !outputs.getCachingState(taskPropertiesWithOutput).enabled
+        !outputs.getCachingState(taskPropertiesWithOutput, validBuildCacheKey).enabled
 
         when:
         outputs.cacheIf { true }
         then:
-        outputs.getCachingState(taskPropertiesWithOutput).enabled
+        outputs.getCachingState(taskPropertiesWithOutput, validBuildCacheKey).enabled
     }
 
     def "can turn caching off via cacheIf()"() {
         expect:
-        !outputs.getCachingState(taskPropertiesWithOutput).enabled
+        !outputs.getCachingState(taskPropertiesWithOutput, validBuildCacheKey).enabled
 
         when:
         outputs.cacheIf { true }
         then:
-        outputs.getCachingState(taskPropertiesWithOutput).enabled
+        outputs.getCachingState(taskPropertiesWithOutput, validBuildCacheKey).enabled
 
         when:
         outputs.cacheIf { false }
         then:
-        !outputs.getCachingState(taskPropertiesWithOutput).enabled
+        !outputs.getCachingState(taskPropertiesWithOutput, validBuildCacheKey).enabled
 
         when:
         outputs.cacheIf { true }
         then:
-        !outputs.getCachingState(taskPropertiesWithOutput).enabled
+        !outputs.getCachingState(taskPropertiesWithOutput, validBuildCacheKey).enabled
     }
 
     def "can turn caching off via doNotCacheIf()"() {
         expect:
-        !outputs.getCachingState(taskPropertiesWithOutput).enabled
+        !outputs.getCachingState(taskPropertiesWithOutput, validBuildCacheKey).enabled
 
         when:
         outputs.doNotCacheIf("test") { false }
         then:
-        !outputs.getCachingState(taskPropertiesWithOutput).enabled
+        !outputs.getCachingState(taskPropertiesWithOutput, validBuildCacheKey).enabled
 
         when:
         outputs.cacheIf { true }
         then:
-        outputs.getCachingState(taskPropertiesWithOutput).enabled
+        outputs.getCachingState(taskPropertiesWithOutput, validBuildCacheKey).enabled
 
         when:
         outputs.doNotCacheIf("test") { true }
         then:
-        !outputs.getCachingState(taskPropertiesWithOutput).enabled
+        !outputs.getCachingState(taskPropertiesWithOutput, validBuildCacheKey).enabled
     }
 
     def "first reason for not caching is reported"() {
-        def cachingState = outputs.getCachingState(taskPropertiesWithNoOutputs)
+        def cachingState = outputs.getCachingState(taskPropertiesWithNoOutputs, validBuildCacheKey)
 
         expect:
         !cachingState.enabled
@@ -386,7 +389,7 @@ class DefaultTaskOutputsTest extends Specification {
 
         when:
         outputs.cacheIf { true }
-        cachingState = outputs.getCachingState(taskPropertiesWithNoOutputs)
+        cachingState = outputs.getCachingState(taskPropertiesWithNoOutputs, validBuildCacheKey)
 
         then:
         !cachingState.enabled
@@ -394,15 +397,26 @@ class DefaultTaskOutputsTest extends Specification {
         cachingState.disabledReasonCategory == TaskOutputCachingDisabledReasonCategory.NO_OUTPUTS_DECLARED
 
         when:
-        cachingState = outputs.getCachingState(taskPropertiesWithOutput)
+        cachingState = outputs.getCachingState(taskPropertiesWithOutput, validBuildCacheKey)
         then:
         cachingState.enabled
+
+        def builder = new DefaultTaskOutputCachingBuildCacheKeyBuilder()
+        builder.inputPropertyImplementationUnknown("someProperty")
+        def invalidBuildCacheKey = builder.build()
+        when:
+        cachingState = outputs.getCachingState(taskPropertiesWithOutput, invalidBuildCacheKey)
+
+        then:
+        !cachingState.enabled
+        cachingState.disabledReason == "Invalid build cache key was generated"
+        cachingState.disabledReasonCategory == TaskOutputCachingDisabledReasonCategory.INVALID_BUILD_CACHE_KEY
 
         when:
         def taskHistory = Mock(TaskExecutionHistory)
         outputs.setHistory(taskHistory)
         taskHistory.getOverlappingOutputs() >> new OverlappingOutputs("someProperty", "path/to/outputFile")
-        cachingState = outputs.getCachingState(taskPropertiesWithOutput)
+        cachingState = outputs.getCachingState(taskPropertiesWithOutput, validBuildCacheKey)
         then:
         project.relativePath(_) >> 'relative/path/to/outputFile'
         !cachingState.enabled
@@ -412,7 +426,7 @@ class DefaultTaskOutputsTest extends Specification {
         when:
         outputs.setHistory(null)
         outputs.doNotCacheIf("Caching manually disabled") { true }
-        cachingState = outputs.getCachingState(taskPropertiesWithOutput)
+        cachingState = outputs.getCachingState(taskPropertiesWithOutput, validBuildCacheKey)
 
         then:
         !cachingState.enabled
@@ -421,7 +435,7 @@ class DefaultTaskOutputsTest extends Specification {
 
         when:
         outputs.cacheIf("on CI") { false }
-        cachingState = outputs.getCachingState(taskPropertiesWithOutput)
+        cachingState = outputs.getCachingState(taskPropertiesWithOutput, validBuildCacheKey)
 
         then:
         !cachingState.enabled
@@ -432,7 +446,7 @@ class DefaultTaskOutputsTest extends Specification {
     def "report no reason if the task is cacheable"() {
         when:
         outputs.cacheIf { true }
-        def cachingState = outputs.getCachingState(taskPropertiesWithOutput)
+        def cachingState = outputs.getCachingState(taskPropertiesWithOutput, validBuildCacheKey)
 
         then:
         cachingState.enabled
@@ -443,7 +457,7 @@ class DefaultTaskOutputsTest extends Specification {
     def "disabling caching for plural file outputs is reported"() {
         when:
         outputs.cacheIf { true }
-        def cachingState = outputs.getCachingState(taskPropertiesWithPluralOutput)
+        def cachingState = outputs.getCachingState(taskPropertiesWithPluralOutput, validBuildCacheKey)
 
         then:
         !cachingState.enabled

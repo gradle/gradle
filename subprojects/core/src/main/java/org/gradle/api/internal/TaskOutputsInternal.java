@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.tasks.TaskOutputs;
+import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -46,6 +47,6 @@ public interface TaskOutputsInternal extends TaskOutputs {
     /**
      * Yields information about the cacheability of the outputs.
      */
-    TaskOutputCachingState getCachingState(TaskProperties taskProperties);
+    TaskOutputCachingState getCachingState(TaskProperties taskProperties, TaskOutputCachingBuildCacheKey buildCacheKey);
 
 }
