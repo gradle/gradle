@@ -30,6 +30,7 @@ To declare JCenter as repository, add this code to your build script:
 .Declaring JCenter repository as source for resolving dependencies
 ====
 include::sample[dir="/userguide/dependencyManagement/declaringRepositories/publicRepository/groovy",files="build.gradle[tags=public-repository]"]
+include::sample[dir="/userguide/dependencyManagement/declaringRepositories/publicRepository/kotlin",files="build.gradle.kts[tags=public-repository]"]
 ====
 
 Under the covers Gradle resolves dependencies from the respective URL of the public repository defined by the shortcut method. All shortcut methods are available via the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API. Alternatively, you can <<#sec:declaring_custom_repository,spell out the URL of the repository>> for more fine-grained control.
@@ -44,6 +45,7 @@ Add the following code to declare an in-house repository for your build reachabl
 .Declaring a custom repository by URL
 ====
 include::sample[dir="/userguide/dependencyManagement/declaringRepositories/customRepository/groovy",files="build.gradle[tags=custom-repository]"]
+include::sample[dir="/userguide/dependencyManagement/declaringRepositories/customRepository/kotlin",files="build.gradle.kts[tags=custom-repository]"]
 ====
 
 Repositories with custom URLs can be specified as Maven or Ivy repositories by calling the corresponding methods available on the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API. Gradle supports other protocols than `http` or `https` as part of the custom URL e.g. `file`, `sftp` or `s3`. For a full coverage see the <<repository_types.adoc#sub:supported_transport_protocols,reference manual on supported transport protocols>>.
@@ -60,6 +62,7 @@ This example demonstrates how to declare various shortcut and custom URL reposit
 .Declaring multiple repositories
 ====
 include::sample[dir="/userguide/dependencyManagement/declaringRepositories/multipleRepositories/groovy",files="build.gradle[tags=multiple-repositories]"]
+include::sample[dir="/userguide/dependencyManagement/declaringRepositories/multipleRepositories/kotlin",files="build.gradle.kts[tags=multiple-repositories]"]
 ====
 
 [NOTE]
