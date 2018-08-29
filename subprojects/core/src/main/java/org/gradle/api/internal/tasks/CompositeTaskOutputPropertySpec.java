@@ -95,11 +95,9 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
 
                 @Override
                 public void visitDirectoryTree(DirectoryFileTree directoryTree) {
-                    if (directoryTree.getPatternSet().isEmpty()) {
-                        roots.add(directoryTree.getDir());
-                    } else {
-                        nonFileRoot.set(true);
-                    }
+                    // We could support an unfiltered DirectoryFileTree here as a cacheable root,
+                    // but because @OutputDirectory also doesn't support it we choose not to.
+                    nonFileRoot.set(true);
                 }
             });
 

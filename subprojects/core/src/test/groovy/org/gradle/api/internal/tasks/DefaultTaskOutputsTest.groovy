@@ -464,8 +464,8 @@ class DefaultTaskOutputsTest extends Specification {
 
         then:
         !cachingState.enabled
-        cachingState.disabledReason == "Declares complex output for the output property 'prop'"
-        cachingState.disabledReasonCategory == TaskOutputCachingDisabledReasonCategory.PLURAL_OUTPUTS
+        cachingState.disabledReason == "Output property 'prop' contains a file tree"
+        cachingState.disabledReasonCategory == TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TREE_OUTPUT
     }
 
     void getPreviousFilesDelegatesToTaskHistory() {
