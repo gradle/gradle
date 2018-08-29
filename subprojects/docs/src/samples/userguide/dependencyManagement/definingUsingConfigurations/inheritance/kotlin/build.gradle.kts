@@ -8,7 +8,7 @@ repositories {
 
 // tag::configuration-definition[]
 val smokeTest by configurations.creating {
-    extendsFrom(configurations["testImplementation"])
+    extendsFrom(configurations.testImplementation)
 }
 
 dependencies {
@@ -17,7 +17,7 @@ dependencies {
 }
 // end::configuration-definition[]
 
-task("copyLibs", Copy::class) {
+task<Copy>("copyLibs") {
     from(smokeTest)
     into("$buildDir/libs")
 }
