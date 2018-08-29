@@ -147,6 +147,11 @@ The previously deprecated support for Play Framework 2.2 has been removed.
 
 See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
 
+### Javadoc and Groovydoc delete destination dir
+
+The [`Javadoc`](dsl/org.gradle.api.tasks.javadoc.Javadoc.html) and [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) tasks now delete the destination dir for the documentation before executing.
+This has been added to remove stale output files from the last task execution.
+
 ### `CopySpec.duplicatesStrategy` is no longer nullable
 
 For better compatibility with the Kotlin DSL, the property setter no longer accepts `null` as a way
