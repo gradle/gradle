@@ -200,7 +200,7 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
         }
 
         public HashCode getPersistentCacheKey() {
-            Hasher hasher = Hashing.md5().newHasher();
+            Hasher hasher = Hashing.newHasher();
             hasher.putHash(inputHash);
             hasher.putString(absolutePath);
             hasher.putHash(fileContentHash);

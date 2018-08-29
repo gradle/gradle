@@ -454,7 +454,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                         byte[] contents = Files.toByteArray(file);
                         ClassReader cr = new ClassReader(contents);
                         String originalClassName = cr.getClassName();
-                        String contentHash = Hashing.md5().hashBytes(contents).toString();
+                        String contentHash = Hashing.hashBytes(contents).toString();
                         BuildScriptRemapper remapper = new BuildScriptRemapper(cv, origin, originalClassName, contentHash);
                         cr.accept(remapper, 0);
                         Files.write(cv.toByteArray(), new File(relocalizedDir, renamed));

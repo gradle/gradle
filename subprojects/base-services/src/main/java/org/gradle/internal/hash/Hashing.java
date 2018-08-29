@@ -19,7 +19,9 @@ package org.gradle.internal.hash;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import org.gradle.internal.io.BufferCaster;
+import org.gradle.internal.io.NullOutputStream;
 
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.MessageDigest;
@@ -36,10 +38,84 @@ public class Hashing {
 
     private static final HashFunction SHA1 = MessageDigestHashFunction.of("SHA-1");
 
+    private static final HashFunction DEFAULT = MD5;
+
+    /**
+     * Returns a new {@link Hasher} based on the default hashing implementation.
+     */
+    public static Hasher newHasher() {
+        return DEFAULT.newHasher();
+    }
+
+    /**
+     * Returns a new {@link PrimitiveHasher} based on the default hashing implementation.
+     */
+    public static PrimitiveHasher newPrimitiveHasher() {
+        return DEFAULT.newPrimitiveHasher();
+    }
+
+    /**
+     * Returns a hash code to use as a signature for a given type.
+     */
+    public static HashCode signature(Class<?> type) {
+        return signature("CLASS:" + type.getName());
+    }
+
+    /**
+     * Returns a hash code to use as a signature for a given thing.
+     */
+    public static HashCode signature(String thing) {
+        Hasher hasher = DEFAULT.newHasher();
+        hasher.putString("SIGNATURE");
+        hasher.putString(thing);
+        return hasher.hash();
+    }
+
+    /**
+     * Hash the given bytes with the default hash function.
+     */
+    public static HashCode hashBytes(byte[] bytes) {
+        return DEFAULT.hashBytes(bytes);
+    }
+
+    /**
+     * Hash the given string with the default hash function.
+     */
+    public static HashCode hashString(CharSequence string) {
+        return DEFAULT.hashString(string);
+    }
+
+    /**
+     * Creates a {@link HashingOutputStream} with the default hash function.
+     */
+    public static HashingOutputStream primitiveStreamHasher() {
+        return primitiveStreamHasher(NullOutputStream.INSTANCE);
+    }
+
+    /**
+     * Creates a {@link HashingOutputStream} with the default hash function.
+     */
+    public static HashingOutputStream primitiveStreamHasher(OutputStream output) {
+        return new HashingOutputStream(DEFAULT, output);
+    }
+
+    /**
+     * The default hashing function.
+     */
+    public static HashFunction defaultFunction() {
+        return DEFAULT;
+    }
+
+    /**
+     * MD5 hashing function.
+     */
     public static HashFunction md5() {
         return MD5;
     }
 
+    /**
+     * SHA1 hashing function.
+     */
     public static HashFunction sha1() {
         return SHA1;
     }

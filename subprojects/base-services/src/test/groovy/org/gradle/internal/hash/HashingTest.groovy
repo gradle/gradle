@@ -18,13 +18,11 @@ package org.gradle.internal.hash
 
 import spock.lang.Specification
 
-import static org.gradle.internal.hash.Hashing.DefaultHasher
-
 class HashingTest extends Specification {
 
     def 'null does not collide with other values'() {
         expect:
-        def hasher = new DefaultHasher()
+        def hasher = Hashing.newHasher()
         hasher.putNull()
         def hash = hasher.hash()
         hash != hashKey("abc")
@@ -43,19 +41,19 @@ class HashingTest extends Specification {
     }
 
     def hashKey(String value) {
-        def hasher = new DefaultHasher()
+        def hasher = Hashing.newHasher()
         hasher.putString(value)
         return hasher.hash()
     }
 
     def hashStrings(List<String> strings) {
-        def hasher = new DefaultHasher()
+        def hasher = Hashing.newHasher()
         strings.each { hasher.putString(it) }
         hasher.hash()
     }
 
     def hashKey(List<List<Integer>> bytes) {
-        def hasher = new DefaultHasher()
+        def hasher = Hashing.newHasher()
         bytes.each {
             if (it.size() == 1) {
                 hasher.putByte(it[0] as byte)

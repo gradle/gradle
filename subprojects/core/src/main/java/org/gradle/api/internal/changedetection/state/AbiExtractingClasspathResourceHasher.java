@@ -47,7 +47,9 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
         if (extractor.shouldExtractApiClassFrom(reader)) {
             byte[] signature = extractor.extractApiClassFrom(reader);
             if (signature != null) {
-                return Hashing.md5().hashBytes(signature);
+                Hasher hasher = Hashing.newHasher();
+                hasher.putBytes(signature);
+                return hasher.hash();
             }
         }
         return null;

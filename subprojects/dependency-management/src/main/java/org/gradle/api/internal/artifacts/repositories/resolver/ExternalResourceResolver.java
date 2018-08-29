@@ -499,7 +499,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     private String generateId(ExternalResourceResolver resolver) {
-        Hasher cacheHasher = Hashing.md5().newHasher();
+        Hasher cacheHasher = Hashing.newHasher();
         cacheHasher.putString(getClass().getName());
         cacheHasher.putInt(resolver.ivyPatterns.size());
         for (ResourcePattern ivyPattern : ivyPatterns) {

@@ -37,7 +37,7 @@ import java.util.List;
 @NonNullApi
 public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputCachingBuildCacheKeyBuilder {
 
-    private final Hasher hasher = Hashing.md5().newHasher();
+    private final Hasher hasher = Hashing.newHasher();
     private final Path taskPath;
     private String taskClass;
     private HashCode classLoaderHash;

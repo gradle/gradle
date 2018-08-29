@@ -96,7 +96,7 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     @Override
     public HashCode getHash() {
         if (hash == null) {
-            Hasher hasher = Hashing.md5().newHasher();
+            Hasher hasher = Hashing.newHasher();
             compareStrategy.appendToHasher(hasher, fingerprints);
             hash = hasher.hash();
         }

@@ -23,7 +23,7 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 public class DefaultResourceSnapshotterCacheService implements ResourceSnapshotterCacheService {
-    private static final HashCode NO_HASH = Hashing.md5().hashString(CachingResourceHasher.class.getName() + " : no hash");
+    private static final HashCode NO_HASH = Hashing.signature(CachingResourceHasher.class.getName() + " : no hash");
     private final PersistentIndexedCache<HashCode, HashCode> persistentCache;
 
     public DefaultResourceSnapshotterCacheService(PersistentIndexedCache<HashCode, HashCode> persistentCache) {
@@ -53,7 +53,7 @@ public class DefaultResourceSnapshotterCacheService implements ResourceSnapshott
     }
 
     private static HashCode resourceHashCacheKey(HashCode contentHash, HashCode configurationHash) {
-        Hasher hasher = Hashing.md5().newHasher();
+        Hasher hasher = Hashing.newHasher();
         hasher.putHash(configurationHash);
         hasher.putHash(contentHash);
         return hasher.hash();

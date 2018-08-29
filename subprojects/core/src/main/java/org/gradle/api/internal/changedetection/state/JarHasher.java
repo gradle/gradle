@@ -70,7 +70,7 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
             if (fingerprints.isEmpty()) {
                 return null;
             }
-            Hasher hasher = Hashing.md5().newHasher();
+            Hasher hasher = Hashing.newHasher();
             NormalizedPathFingerprintCompareStrategy.appendSortedToHasher(hasher, fingerprints);
             return hasher.hash();
         } catch (Exception e) {

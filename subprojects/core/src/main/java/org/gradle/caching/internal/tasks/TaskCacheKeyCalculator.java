@@ -46,7 +46,7 @@ public class TaskCacheKeyCalculator {
 
         SortedMap<String, ValueSnapshot> inputProperties = execution.getInputProperties();
         for (Map.Entry<String, ValueSnapshot> entry : inputProperties.entrySet()) {
-            Hasher newHasher = Hashing.md5().newHasher();
+            Hasher newHasher = Hashing.newHasher();
             entry.getValue().appendToHasher(newHasher);
             if (newHasher.isValid()) {
                 HashCode hash = newHasher.hash();

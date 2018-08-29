@@ -26,7 +26,7 @@ import org.gradle.internal.hash.Hashing
 class FileClasspathHasher implements ClasspathHasher {
     @Override
     HashCode hash(ClassPath classpath) {
-        def hasher = Hashing.md5().newHasher()
+        def hasher = Hashing.newHasher()
         classpath.asFiles*.path.each { String path ->
             hasher.putString(path)
         }

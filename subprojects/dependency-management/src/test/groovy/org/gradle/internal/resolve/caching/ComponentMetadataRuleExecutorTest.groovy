@@ -103,7 +103,7 @@ class ComponentMetadataRuleExecutorTest extends Specification {
         def hashValue = Mock(HashValue)
         def key = Mock(ModuleComponentResolveMetadata)
         def inputsSnapshot = new StringValueSnapshot("1")
-        def hasher = Hashing.md5().newHasher()
+        def hasher = Hashing.newHasher()
         inputsSnapshot.appendToHasher(hasher)
         def keyHash = hasher.hash()
         def cachedResult = Mock(ModuleComponentResolveMetadata)
