@@ -19,12 +19,12 @@ import org.apache.http.auth.AuthScope
 import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.ssl.SSLContexts
 import org.gradle.api.artifacts.repositories.PasswordCredentials
-import org.gradle.internal.credentials.DefaultHttpHeaderCredentials
 import org.gradle.internal.authentication.AllSchemesAuthentication
+import org.gradle.internal.credentials.DefaultHttpHeaderCredentials
 import org.gradle.internal.resource.UriTextResource
 import spock.lang.Specification
 
-public class HttpClientConfigurerTest extends Specification {
+class HttpClientConfigurerTest extends Specification {
     HttpClientBuilder httpClientBuilder = HttpClientBuilder.create()
 
     PasswordCredentials credentials = Mock()
@@ -151,5 +151,6 @@ public class HttpClientConfigurerTest extends Specification {
         2 * timeoutSettings.socketTimeoutMs >> 30000
         httpClientBuilder.defaultRequestConfig.connectTimeout == 10000
         httpClientBuilder.defaultRequestConfig.socketTimeout == 30000
+        httpClientBuilder.defaultSocketConfig.soKeepAlive
     }
 }
