@@ -39,6 +39,8 @@ import java.util.zip.ZipInputStream
 import org.gradle.api.Action
 import org.gradle.process.JavaExecSpec
 import groovy.transform.CompileStatic
+import org.openmbee.junit.model.JUnitTestSuite
+import org.openmbee.junit.JUnitMarshalling
 
 /**
  * Runs each performance test scenario in a dedicated TeamCity job.
@@ -91,7 +93,7 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     private List<Object> finishedBuilds = Lists.newArrayList()
 
-    private Map<String, List<File>> testResultFilesForBuild = [:]
+    private Map<String, List<JUnitTestSuite>> testResultFilesForBuild = [:]
     private File workerTestResultsTempDir
 
     private final JUnitXmlTestEventsGenerator testEventsGenerator
@@ -282,7 +284,7 @@ class DistributedPerformanceTest extends PerformanceTest {
         finishedBuilds += response.data
 
         try {
-            def results = fetchTestResults(jobId, response.data)
+            List<JUnitTestSuite> results = fetchTestResults(response.data)
             testResultFilesForBuild.put(jobId, results)
             fireTestListener(results, response.data)
         } catch (e) {
@@ -319,16 +321,15 @@ class DistributedPerformanceTest extends PerformanceTest {
         )
     }
 
-    private void fireTestListener(List<File> results, Object build) {
-        def xmlFiles = results.findAll { it.name.endsWith('.xml') }
-        xmlFiles.each {
-            testEventsGenerator.processXmlFile(it, build)
+    private void fireTestListener(List<JUnitTestSuite> results, Object build) {
+        results.each {
+            testEventsGenerator.processTestSuite(it, build)
         }
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private def fetchTestResults(String jobId, buildData) {
-        def unzippedFiles = []
+    private List<JUnitTestSuite> fetchTestResults(buildData) {
+        def unzippedJUnitXmls = []
         def artifactsUri = buildData?.artifacts?.@href?.text()
         if (artifactsUri) {
             def resultArtifacts = client.get(path: "${artifactsUri}/results/${project.name}/build/")
@@ -338,35 +339,35 @@ class DistributedPerformanceTest extends PerformanceTest {
                     it.@name.text() == zipName
                 }
                 if (fileNode) {
-                    def resultsDirectory = new File(workerTestResultsTempDir, jobId)
                     def contentUri = fileNode.content.@href.text()
                     client.get(path: contentUri, contentType: ContentType.BINARY) {
                         resp, inputStream ->
-                            unzippedFiles = unzipToDirectory(inputStream, resultsDirectory)
+                            unzippedJUnitXmls = parseXmlsInZip(inputStream)
                     }
                 }
             }
         }
-        unzippedFiles
+        unzippedJUnitXmls
     }
 
-    @TypeChecked(TypeCheckingMode.SKIP)
-    def unzipToDirectory(inputStream, destination) {
-        def unzippedFiles = []
+    List<JUnitTestSuite> parseXmlsInZip(InputStream inputStream) {
+        List<JUnitTestSuite> parsedXmls = []
         new ZipInputStream(inputStream).withStream { zipInput ->
             def entry
             while (entry = zipInput.nextEntry) {
-                if (!entry.isDirectory()) {
-                    def file = new File(destination, entry.name)
-                    file.parentFile?.mkdirs()
-                    new FileOutputStream(file).withStream {
-                        it << zipInput
+                if (!entry.isDirectory() && entry.name.endsWith('.xml')) {
+                    PipedOutputStream os = new PipedOutputStream()
+                    PipedInputStream is = new PipedInputStream(os)
+                    Thread.start {
+                        os.withStream {
+                            it << zipInput
+                        }
                     }
-                    unzippedFiles << file
+                    parsedXmls.add(JUnitMarshalling.unmarshalTestSuite(is))
                 }
             }
         }
-        unzippedFiles
+        parsedXmls
     }
 
     private void writeScenarioReport() {
