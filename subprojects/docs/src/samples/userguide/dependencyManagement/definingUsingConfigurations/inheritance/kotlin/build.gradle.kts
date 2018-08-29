@@ -7,7 +7,7 @@ repositories {
 }
 
 // tag::configuration-definition[]
-val smokeTest by configurations.creating {
+val smokeTest = configurations.create("smokeTest") {
     extendsFrom(configurations.testImplementation)
 }
 
