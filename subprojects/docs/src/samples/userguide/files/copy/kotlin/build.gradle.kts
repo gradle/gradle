@@ -253,7 +253,7 @@ task<Zip>("distApp") {
 
 // tag::shared-copy-patterns[]
 val webAssetPatterns = Action<CopySpec> {
-    include("**/*.html', '**/*.png', '**/*.jpg")
+    include("**/*.html", "**/*.png", "**/*.jpg")
 }
 
 task<Copy>("copyAppAssets") {
