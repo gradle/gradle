@@ -28,15 +28,15 @@ configure<FooExtension> {
     someFiles.from(project.layout.configurableFiles(someDirectory, someFile))
 }
 
-tasks.create("print") {
+task("print") {
     doLast {
         val foo = project.the<FooExtension>()
         val someDirectory = foo.someDirectory.get().asFile
-        logger.quiet("foo.someDirectory = $someDirectory")
+        logger.quiet("foo.someDirectory = " + someDirectory)
         logger.quiet("foo.someFiles contains someDirectory? " + foo.someFiles.contains(someDirectory))
 
-        val someFile = project.the<FooExtension>().someFile.get().asFile
-        logger.quiet("foo.someFile = ${someFile}")
+        val someFile = foo.someFile.get().asFile
+        logger.quiet("foo.someFile = " + someFile)
         logger.quiet("foo.someFiles contains someFile? " + foo.someFiles.contains(someFile))
     }
 }
