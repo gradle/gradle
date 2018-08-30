@@ -114,7 +114,10 @@ open class IntTestImagePlugin : Plugin<Project> {
                     }
 
                     into("samples") {
-                        from(Callable { (project(":docs").extra.get("outputs") as Map<String, FileCollection>)["samples"] })
+                        from(Callable {
+                            val outputs: Map<String, FileCollection> by project(":docs").extra
+                            outputs["samples"]
+                        })
                     }
 
                     doLast {
