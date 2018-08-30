@@ -64,7 +64,7 @@ open class TestFixturesPlugin : Plugin<Project> {
     fun Project.configureAsProducer() {
 
         configurations {
-            create("outputDirs") {}
+            create("outputDirs")
 
             create("testFixturesCompile") { extendsFrom(configurations["compile"]) }
             create("testFixturesImplementation") { extendsFrom(configurations["implementation"]) }
