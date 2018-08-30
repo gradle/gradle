@@ -8,10 +8,10 @@ dependencies {
         // Xerces on the runtime classpath is breaking some of our doc tasks
         exclude(group = "xerces")
     }
-}
-
-tasks.withType<Test>().configureEach {
     if (JavaVersion.current().isJava9Compatible) {
-        jvmArgs("--add-modules", "java.xml.bind")
+        // Java 9 throws ClassNotFoundException
+        implementation("javax.activation:activation:1.1.1")
+        // only high version of lombok supports Java 9
+        implementation("org.projectlombok:lombok:1.18.2")
     }
 }

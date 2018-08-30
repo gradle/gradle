@@ -34,6 +34,7 @@ import org.openmbee.junit.model.JUnitFailure
 import org.openmbee.junit.model.JUnitTestCase
 
 import javax.xml.datatype.DatatypeFactory
+import groovy.transform.CompileStatic
 
 /**
  * This class is responsible for publishing events to {@link TestListener} and {@link TestOutputListener}
@@ -53,6 +54,7 @@ class JUnitXmlTestEventsGenerator {
         this.testListenerBroadcast = testListenerBroadcast
     }
 
+    @CompileStatic
     void processTestSuite(JUnitTestSuite testSuite, Object build) {
         String suiteName = testSuite.name
         DecoratingTestDescriptor testSuiteDescriptor = new DecoratingTestDescriptor(new DefaultTestClassDescriptor(0, suiteName), createWorkerSuite())
@@ -81,7 +83,7 @@ class JUnitXmlTestEventsGenerator {
                 }
                 String failureText = failures.collect { it.message } .join('\n')
                 failureText = failureText.replace("java.lang.AssertionError: ", "")
-                testListener.afterTest(testCaseDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime, 1, 0, 1, [assertionError(failureText)]))
+                testListener.afterTest(testCaseDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime, 1, 0, 1, [assertionError(failureText) as Throwable]))
             } else if (notSkipped(testCase)) {
                 testListener.beforeTest(testCaseDescriptor)
                 publishAdditionalMetadata(testCaseDescriptor, build)
@@ -93,7 +95,7 @@ class JUnitXmlTestEventsGenerator {
         testListener.afterSuite(testSuiteDescriptor.parent.parent, new DefaultTestResult(TestResult.ResultType.SUCCESS, 0, 0, 0, 0, 0, []))
     }
 
-    @groovy.transform.CompileStatic
+    @CompileStatic
     // workaround for class org.codehaus.groovy.reflection.CachedConstructor cannot access a member of class java.lang.AssertionError (in module java.base) with modifiers "private"
     // using Jigsaw
     private AssertionError assertionError(/*must be Object*/Object failureText) { new AssertionError(failureText) }

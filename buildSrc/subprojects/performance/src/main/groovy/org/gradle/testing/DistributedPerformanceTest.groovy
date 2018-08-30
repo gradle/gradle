@@ -41,6 +41,7 @@ import org.gradle.process.JavaExecSpec
 import groovy.transform.CompileStatic
 import org.openmbee.junit.model.JUnitTestSuite
 import org.openmbee.junit.JUnitMarshalling
+import org.apache.commons.io.input.CloseShieldInputStream
 
 /**
  * Runs each performance test scenario in a dedicated TeamCity job.
@@ -356,14 +357,7 @@ class DistributedPerformanceTest extends PerformanceTest {
             def entry
             while (entry = zipInput.nextEntry) {
                 if (!entry.isDirectory() && entry.name.endsWith('.xml')) {
-                    PipedOutputStream os = new PipedOutputStream()
-                    PipedInputStream is = new PipedInputStream(os)
-                    Thread.start {
-                        os.withStream {
-                            it << zipInput
-                        }
-                    }
-                    parsedXmls.add(JUnitMarshalling.unmarshalTestSuite(is))
+                    parsedXmls.add(JUnitMarshalling.unmarshalTestSuite(new CloseShieldInputStream(zipInput)))
                 }
             }
         }
