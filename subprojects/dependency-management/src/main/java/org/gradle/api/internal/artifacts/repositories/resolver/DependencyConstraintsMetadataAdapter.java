@@ -39,7 +39,7 @@ public class DependencyConstraintsMetadataAdapter extends AbstractDependenciesMe
     }
 
     @Override
-    protected boolean isPending() {
+    protected boolean isConstraint() {
         return true;
     }
 }

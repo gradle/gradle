@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.external.descriptor;
+package org.gradle.internal.component.external.model.maven;
 
 /**
- * A "scope" taken from a Maven POM. Note that the order of this enum is important for the module metadata cache.
+ * The context for a dependency parsed from a Maven POM. Note that the order of this enum is important for the module metadata cache.
  */
-public enum MavenScope {
-    Compile("compile"),
-    Runtime("runtime"),
-    Provided("provided"),
-    Test("test"),
-    System("system");
+public enum MavenDependencyType {
+    DEPENDENCY(false),
+    RELOCATION(false),
+    OPTIONAL_DEPENDENCY(true),
+    DEPENDENCY_MANAGEMENT(true);
 
-    private final String lowerName;
+    public final boolean optional;
 
-    MavenScope(String lowerName) {
-        this.lowerName = lowerName;
-    }
-
-    public String getLowerName() {
-        return lowerName;
+    MavenDependencyType(boolean optional) {
+        this.optional = optional;
     }
 }

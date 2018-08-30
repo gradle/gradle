@@ -64,7 +64,7 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     }
 
     @Override
-    public boolean isPending() {
+    public boolean isConstraint() {
         return false;
     }
 
