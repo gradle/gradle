@@ -218,8 +218,8 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
              */
             inline fun DependencyHandler.`$kotlinIdentifier`(
                 dependencyNotation: String,
-                dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
-                add("$stringLiteral", dependencyNotation, dependencyConfiguration)
+                dependencyConfiguration: ExternalModuleDependency.() -> Unit
+            ): ExternalModuleDependency = add("$stringLiteral", dependencyNotation, dependencyConfiguration)
 
             /**
              * Adds a dependency to the '$original' configuration.
@@ -240,8 +240,10 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
                 version: String? = null,
                 configuration: String? = null,
                 classifier: String? = null,
-                ext: String? = null): ExternalModuleDependency =
-                create(group, name, version, configuration, classifier, ext).apply { add("$stringLiteral", this) }
+                ext: String? = null
+            ): ExternalModuleDependency = create(group, name, version, configuration, classifier, ext).also {
+                add("$stringLiteral", it)
+            }
 
             /**
              * Adds a dependency to the '$original' configuration.
@@ -265,8 +267,10 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
                 configuration: String? = null,
                 classifier: String? = null,
                 ext: String? = null,
-                dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
-                add("$stringLiteral", create(group, name, version, configuration, classifier, ext), dependencyConfiguration)
+                dependencyConfiguration: ExternalModuleDependency.() -> Unit
+            ): ExternalModuleDependency = create(group, name, version, configuration, classifier, ext).also {
+                add("$stringLiteral", it, dependencyConfiguration)
+            }
 
             /**
              * Adds a dependency to the '$original' configuration.
@@ -277,8 +281,10 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
              *
              * @see [DependencyHandler.add]
              */
-            inline fun <T : ModuleDependency> DependencyHandler.`$kotlinIdentifier`(dependency: T, dependencyConfiguration: T.() -> Unit): T =
-                add("$stringLiteral", dependency, dependencyConfiguration)
+            inline fun <T : ModuleDependency> DependencyHandler.`$kotlinIdentifier`(
+                dependency: T,
+                dependencyConfiguration: T.() -> Unit
+            ): T = add("$stringLiteral", dependency, dependencyConfiguration)
 
         """
     }
