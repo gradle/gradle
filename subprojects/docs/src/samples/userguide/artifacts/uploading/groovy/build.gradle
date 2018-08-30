@@ -1,4 +1,6 @@
-apply plugin: 'java'
+plugins {
+    id 'java'
+}
 
 // tag::archive-artifact[]
 task myJar(type: Jar)
@@ -9,7 +11,7 @@ artifacts {
 // end::archive-artifact[]
 
 // tag::file-artifact[]
-def someFile = file('build/somefile.txt')
+def someFile = file("$buildDir/somefile.txt")
 
 artifacts {
     archives someFile
@@ -18,7 +20,7 @@ artifacts {
 
 // tag::customized-file-artifact[]
 task myTask(type:  MyTaskType) {
-    destFile = file('build/somefile.txt')
+    destFile = file("$buildDir/somefile.txt")
 }
 
 artifacts {
@@ -32,7 +34,7 @@ artifacts {
 
 // tag::map-file-artifact[]
 task generate(type:  MyTaskType) {
-    destFile = file('build/somefile.txt')
+    destFile = file("$buildDir/somefile.txt")
 }
 
 artifacts {

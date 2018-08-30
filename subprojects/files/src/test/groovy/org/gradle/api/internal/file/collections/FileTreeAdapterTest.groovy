@@ -18,7 +18,7 @@ package org.gradle.api.internal.file.collections
 import org.gradle.api.Buildable
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
-import org.gradle.api.internal.file.FileCollectionVisitor
+import org.gradle.api.internal.file.FileCollectionLeafVisitor
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.util.UsesNativeServices
@@ -147,13 +147,13 @@ class FileTreeAdapterTest extends Specification {
     }
 
     def visitsBackingDirectoryTree() {
-        def visitor = Mock(FileCollectionVisitor)
+        def visitor = Mock(FileCollectionLeafVisitor)
         def directoryFileTreeFactory = new DefaultDirectoryFileTreeFactory()
         def tree = directoryFileTreeFactory.create(new File("dir"))
         def adapter = new FileTreeAdapter(tree)
 
         when:
-        adapter.visitRootElements(visitor)
+        adapter.visitLeafCollections(visitor)
 
         then:
         1 * visitor.visitDirectoryTree(tree)
@@ -161,15 +161,15 @@ class FileTreeAdapterTest extends Specification {
     }
 
     def visitsSelfWhenBackingTreeIsNotDirectoryTree() {
-        def visitor = Mock(FileCollectionVisitor)
+        def visitor = Mock(FileCollectionLeafVisitor)
         def tree = Mock(MinimalFileTree)
         def adapter = new FileTreeAdapter(tree)
 
         when:
-        adapter.visitRootElements(visitor)
+        adapter.visitLeafCollections(visitor)
 
         then:
-        1 * visitor.visitTree(adapter)
+        1 * visitor.visitGenericFileTree(adapter)
         0 * visitor._
     }
 

@@ -51,7 +51,7 @@ import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCateg
 import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.CACHE_IF_SPEC_NOT_SATISFIED;
 import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.DO_NOT_CACHE_IF_SPEC_SATISFIED;
 import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.INVALID_BUILD_CACHE_KEY;
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.PLURAL_OUTPUTS;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TREE_OUTPUT;
 
 @NonNullApi
 public class DefaultTaskOutputs implements TaskOutputsInternal {
@@ -127,13 +127,13 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
                     relativePath, overlappingOutputs.getPropertyName()));
         }
 
-        for (TaskPropertySpec spec : taskProperties.getOutputFileProperties()) {
-            if (spec instanceof NonCacheableTaskOutputPropertySpec) {
+        for (TaskOutputFilePropertySpec spec : taskProperties.getOutputFileProperties()) {
+            if (!(spec instanceof CacheableTaskOutputFilePropertySpec)) {
                 return DefaultTaskOutputCachingState.disabled(
-                    PLURAL_OUTPUTS,
-                    "Declares multiple output files for the single output property '"
-                        + ((NonCacheableTaskOutputPropertySpec) spec).getOriginalPropertyName()
-                        + "' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
+                    NON_CACHEABLE_TREE_OUTPUT,
+                    "Output property '"
+                        + spec.getPropertyName()
+                        + "' contains a file tree"
                 );
             }
         }
