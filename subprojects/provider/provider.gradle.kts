@@ -55,6 +55,13 @@ tasks {
         delete(apiExtensionsOutputDir)
     }
 
+    "compileTestJava"(JavaCompile::class) {
+        // `kotlin-compiler-embeddable` brings the `javaslang.match.PatternsProcessor`
+        // annotation processor to the classpath which causes Gradle to emit a deprecation warning.
+        // `-proc:none` disables annotation processing and gets rid of the warning.
+        options.compilerArgs.add("-proc:none")
+    }
+
 // -- Version manifest properties --------------------------------------
     val versionsManifestOutputDir = file("$buildDir/versionsManifest")
     val writeVersionsManifest by registering(WriteProperties::class) {
