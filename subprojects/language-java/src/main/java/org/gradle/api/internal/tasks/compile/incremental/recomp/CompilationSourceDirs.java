@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionVisitor;
+import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.logging.Logging;
@@ -56,13 +56,13 @@ public class CompilationSourceDirs {
     private SourceRoots resolveRoots() {
         if (sourceRoots == null) {
             SourceRoots visitor = new SourceRoots();
-            sources.visitRootElements(visitor);
+            sources.visitLeafCollections(visitor);
             sourceRoots = visitor;
         }
         return sourceRoots;
     }
 
-    private static class SourceRoots implements FileCollectionVisitor {
+    private static class SourceRoots implements FileCollectionLeafVisitor {
         private boolean canInferSourceRoots = true;
         private List<File> sourceRoots = Lists.newArrayList();
 
@@ -72,7 +72,7 @@ public class CompilationSourceDirs {
         }
 
         @Override
-        public void visitTree(FileTreeInternal fileTree) {
+        public void visitGenericFileTree(FileTreeInternal fileTree) {
             cannotInferSourceRoots(fileTree);
         }
 

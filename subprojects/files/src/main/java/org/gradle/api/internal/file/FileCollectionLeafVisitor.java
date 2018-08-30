@@ -18,10 +18,23 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 
-public interface FileCollectionVisitor {
+/**
+ * Used with {@link FileCollectionInternal#visitLeafCollections(FileCollectionLeafVisitor)} this visitor
+ * gets called for each element in a file collection that represents a root of a file tree.
+ */
+public interface FileCollectionLeafVisitor {
+    /**
+     * Visits a {@link FileCollectionInternal} element that cannot be visited in further detail.
+     */
     void visitCollection(FileCollectionInternal fileCollection);
 
-    void visitTree(FileTreeInternal fileTree);
+    /**
+     * Visits a {@link FileTreeInternal} that does not represents a directory in the file system.
+     */
+    void visitGenericFileTree(FileTreeInternal fileTree);
 
+    /**
+     * Visits a {@link DirectoryFileTree} that represents the (potentially filtered) contents of a directory on the file system.
+     */
     void visitDirectoryTree(DirectoryFileTree directoryTree);
 }
