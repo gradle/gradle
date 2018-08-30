@@ -697,43 +697,35 @@ The `jar` task creates a JAR file containing the class files and resources of th
 
 Each jar or war object has a `manifest` property with a separate instance of link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest]. When the archive is generated, a corresponding `MANIFEST.MF` file is written into the archive.
 
-=== Example: Customization of MANIFEST.MF
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tutorial/manifest/build.gradle[tag=add-to-manifest]
-----
+.Customization of MANIFEST.MF
+====
+include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=add-to-manifest]"]
+include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=add-to-manifest]"]
+====
 
 You can create stand-alone instances of a `Manifest`. You can use that for example, to share manifest information between jars.
 
-=== Example: Creating a manifest object.
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tutorial/manifest/build.gradle[tag=custom-manifest]
-----
+.Creating a manifest object.
+====
+include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=custom-manifest]"]
+include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=custom-manifest]"]
+====
 
 You can merge other manifests into any `Manifest` object. The other manifests might be either described by a file path or, like in the example above, by a reference to another `Manifest` object.
 
-=== Example: Separate MANIFEST.MF for a particular archive
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tutorial/manifest/build.gradle[tag=merge]
-----
+.Separate MANIFEST.MF for a particular archive
+====
+include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=merge]"]
+include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=merge]"]
+====
 
 Manifests are merged in the order they are declared by the `from` statement. If the base manifest and the merged manifest both define values for the same key, the merged manifest wins by default. You can fully customize the merge behavior by adding `eachEntry` actions in which you have access to a link:{javadocPath}/org/gradle/api/java/archives/ManifestMergeDetails.html[ManifestMergeDetails] instance for each entry of the resulting manifest. The merge is not immediately triggered by the from statement. It is done lazily, either when generating the jar, or by calling `writeTo` or `effectiveManifest`
 
 You can easily write a manifest to disk.
 
-=== Example: Saving a MANIFEST.MF to disk
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tutorial/manifest/build.gradle[tag=write]
-----
+.Saving a MANIFEST.MF to disk
+====
+include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=write]"]
+include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=write]"]
+====
 
