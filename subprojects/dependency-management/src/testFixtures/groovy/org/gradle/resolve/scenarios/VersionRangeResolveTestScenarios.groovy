@@ -50,6 +50,7 @@ class VersionRangeResolveTestScenarios {
     public static final RANGE_10_14 = range(10, 14)
     public static final RANGE_10_16 = range(10, 16)
     public static final RANGE_11_12 = range(11, 12)
+    public static final RANGE_11_13 = range(11, 13)
     public static final RANGE_12_14 = range(12, 14)
     public static final RANGE_13_14 = range(13, 14)
     public static final RANGE_14_16 = range(14, 16)
@@ -125,6 +126,9 @@ class VersionRangeResolveTestScenarios {
         expected: "12",
         expectedStrict: [IGNORE, IGNORE, "12"]
     ).and(
+        versions: [PREFER_11, RANGE_10_11, PREFER_13, RANGE_10_14],
+        expected: "13"
+    ).and(
         versions: [PREFER_11, PREFER_13, RANGE_10_12],
         expected: "11",
         expectedStrict: [IGNORE, IGNORE, "11"]
@@ -184,6 +188,10 @@ class VersionRangeResolveTestScenarios {
         versions: [RANGE_10_14, RANGE_10_16],
         expected: "13",
         expectedStrict: ["13", "13"]
+    ).and(
+        versions: [RANGE_10_12, RANGE_11_13], // Intersecting ranges
+        expected: "12",
+        expectedStrict: ["12", "12"]
     ).and(
         versions: [DYNAMIC_PLUS, FIXED_11],
         expected: "13",
@@ -257,6 +265,15 @@ class VersionRangeResolveTestScenarios {
         versions: [FIXED_10, RANGE_11_12, RANGE_10_14],
         expected: "12",
         expectedStrict: [REJECTED, "12", "12"],
+        conflicts: true
+    ).and(
+        versions: [FIXED_11, RANGE_10_12, RANGE_11_13], // Intersecting ranges with shared fixed version
+        expected: "11",
+        expectedStrict: ["11", "11", "11"]
+    ).and(
+        versions: [FIXED_11, RANGE_10_11, FIXED_13, RANGE_10_14],
+        expected: "13",
+        expectedStrict: [REJECTED, REJECTED, "13", "13"],
         conflicts: true
     ).and(
         versions: [RANGE_10_11, RANGE_10_12, RANGE_10_14],
