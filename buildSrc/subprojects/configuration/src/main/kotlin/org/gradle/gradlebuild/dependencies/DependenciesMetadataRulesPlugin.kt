@@ -72,6 +72,7 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
         val extra = gradle.rootProject.extra
         val capabilities: List<CapabilitySpec>
         if (extra.has("capabilities")) {
+            @Suppress("unchecked_cast")
             capabilities = extra.get("capabilities") as List<CapabilitySpec>
         } else {
             val capabilitiesFile = gradle.rootProject.file("gradle/dependency-management/capabilities.json")
