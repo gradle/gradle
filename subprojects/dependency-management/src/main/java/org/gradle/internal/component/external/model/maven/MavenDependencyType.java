@@ -16,8 +16,14 @@
 
 package org.gradle.internal.component.external.model.maven;
 
+/**
+ * The context for a dependency parsed from a Maven POM. Note that the order of this enum is important for the module metadata cache.
+ */
 public enum MavenDependencyType {
-    DEPENDENCY(false), RELOCATION(false), OPTIONAL_DEPENDENCY(true), DEPENDENCY_MANAGEMENT(true);
+    DEPENDENCY(false),
+    RELOCATION(false),
+    OPTIONAL_DEPENDENCY(true),
+    DEPENDENCY_MANAGEMENT(true);
 
     public final boolean optional;
 
