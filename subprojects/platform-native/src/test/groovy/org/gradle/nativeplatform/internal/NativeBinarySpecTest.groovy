@@ -16,10 +16,15 @@
 
 package org.gradle.nativeplatform.internal
 
-import org.gradle.api.internal.project.taskfactory.ITaskFactory
+
 import org.gradle.language.nativeplatform.DependentSourceSet
 import org.gradle.model.internal.core.MutableModelNode
-import org.gradle.nativeplatform.*
+import org.gradle.nativeplatform.BuildType
+import org.gradle.nativeplatform.Flavor
+import org.gradle.nativeplatform.NativeBinarySpec
+import org.gradle.nativeplatform.NativeDependencySet
+import org.gradle.nativeplatform.NativeLibraryBinary
+import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
@@ -141,7 +146,7 @@ class NativeBinarySpecTest extends Specification {
 
     def testBinary(MutableModelNode componentNode, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
         TestNativeBinariesFactory.create(
-            NativeBinarySpec, TestNativeBinarySpec, "test", Mock(ITaskFactory), componentNode,
+            NativeBinarySpec, TestNativeBinarySpec, "test", componentNode,
             DefaultBinaryNamingScheme.component("baseName"), resolver, platform1, buildType1, flavor
         )
     }

@@ -19,7 +19,6 @@ package org.gradle.nativeplatform.internal
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.NativeLibrarySpec
@@ -48,7 +47,7 @@ class DefaultStaticLibraryBinarySpecTest extends Specification {
     def buildType = Stub(BuildType)
     final resolver = Stub(NativeDependencyResolver)
     final outputFile = Mock(File)
-    def tasks = new DefaultStaticLibraryBinarySpec.DefaultTasksCollection(new DefaultBinaryTasksCollection(null, Mock(ITaskFactory)))
+    def tasks = new DefaultStaticLibraryBinarySpec.DefaultTasksCollection(new DefaultBinaryTasksCollection(null, null))
 
     def "has useful string representation"() {
         expect:
@@ -56,7 +55,7 @@ class DefaultStaticLibraryBinarySpecTest extends Specification {
     }
 
     def getStaticLibrary() {
-        TestNativeBinariesFactory.create(StaticLibraryBinarySpec, DefaultStaticLibraryBinarySpec, "test", Mock(ITaskFactory), library, namingScheme, resolver, platform,
+        TestNativeBinariesFactory.create(StaticLibraryBinarySpec, DefaultStaticLibraryBinarySpec, "test", library, namingScheme, resolver, platform,
             buildType, new DefaultFlavor("flavorOne"))
     }
 

@@ -16,7 +16,7 @@
 
 package org.gradle.platform.base.binary
 
-import org.gradle.api.internal.project.taskfactory.ITaskFactory
+
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.model.internal.core.ModelRuleExecutionException
@@ -97,7 +97,7 @@ class BaseBinarySpecTest extends PlatformBaseSpecification {
     }
 
     private <T extends BinarySpec, I extends BaseBinarySpec> T create(Class<T> type, Class<I> implType, String name, MutableModelNode componentNode = null) {
-        BaseBinaryFixtures.create(type, implType, name, componentNode, Mock(ITaskFactory))
+        BaseBinaryFixtures.create(type, implType, name, componentNode)
     }
 
     interface SampleComponent extends ComponentSpec {}

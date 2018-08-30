@@ -20,12 +20,15 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.c.CSourceSet;
 import org.gradle.language.c.plugins.CLangPlugin;
-import org.gradle.model.*;
+import org.gradle.model.Each;
+import org.gradle.model.ModelMap;
+import org.gradle.model.Mutate;
+import org.gradle.model.Path;
+import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteBinary;
@@ -109,8 +112,7 @@ public class CUnitPlugin implements Plugin<Project> {
         public void createCUnitTestBinaries(ModelMap<CUnitTestSuiteBinarySpec> binaries,
                                             CUnitTestSuiteSpec testSuite,
                                             @Path("buildDir") final File buildDir,
-                                            final ServiceRegistry serviceRegistry,
-                                            final ITaskFactory taskFactory) {
+                                            final ServiceRegistry serviceRegistry) {
             createNativeTestSuiteBinaries(binaries, testSuite, CUnitTestSuiteBinarySpec.class, "CUnitExe", buildDir, serviceRegistry);
         }
     }

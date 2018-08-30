@@ -50,11 +50,6 @@ public class TaskFactory implements ITaskFactory {
     }
 
     @Override
-    public <S extends Task> S create(String name, Class<S> type) {
-        return create(TaskIdentity.create(name, type, project), NO_ARGS);
-    }
-
-    @Override
     public <S extends Task> S create(final TaskIdentity<S> identity, final Object... args) {
         if (!Task.class.isAssignableFrom(identity.type)) {
             throw new InvalidUserDataException(String.format(
@@ -70,7 +65,6 @@ public class TaskFactory implements ITaskFactory {
         } else {
             generatedType = generator.generate(identity.type);
         }
-
 
         return AbstractTask.injectIntoNewInstance(project, identity, new Callable<S>() {
             public S call() {
