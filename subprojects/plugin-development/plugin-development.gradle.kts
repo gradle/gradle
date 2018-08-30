@@ -32,6 +32,7 @@ dependencies {
     testRuntime(project(":toolingApi"))
     testRuntime(project(":launcher"))
     testRuntime(project(":testKit"))
+    integTestRuntime(library("kotlin"))
     integTestRuntime(project(":toolingApiBuilders"))
 }
 

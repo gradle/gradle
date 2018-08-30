@@ -29,6 +29,8 @@ dependencies {
     api(project(":coreApi"))
     api(library("groovy"))
 
+    implementation(library("kotlin"))
+
     implementation(project(":baseServicesGroovy"))
     implementation(library("slf4j_api"))
     implementation(library("guava"))

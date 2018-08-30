@@ -29,6 +29,10 @@ dependencies {
     api project(':baseServices')
     api project(':core')
     api libraries.commons_httpclient.coordinates
+    api project(':coreApi')
+    api libraries.groovy.coordinates
+
+    implementation libraries.kotlin.coordinates
 
     implementation libraries.slf4j_api.coordinates
     implementation libraries.jcl_to_slf4j.coordinates

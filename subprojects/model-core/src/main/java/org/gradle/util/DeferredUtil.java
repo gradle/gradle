@@ -42,13 +42,17 @@ public class DeferredUtil {
         if (value instanceof Factory) {
             return ((Factory<?>) value).create();
         }
+        if (value instanceof kotlin.jvm.functions.Function0) {
+            return ((kotlin.jvm.functions.Function0) value).invoke();
+        }
         return value;
     }
 
     public static boolean isDeferred(Object value) {
         return value instanceof Callable
             || value instanceof Provider
-            || value instanceof Factory;
+            || value instanceof Factory
+            || value instanceof kotlin.jvm.functions.Function0;
     }
 
     @Nullable
