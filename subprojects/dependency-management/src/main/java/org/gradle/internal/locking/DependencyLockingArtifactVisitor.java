@@ -135,23 +135,20 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
      * This will transform any lock out of date result into an {@link UnresolvedDependency} in order to plug into lenient resolution.
      * This happens only if there are no previous failures as otherwise lock state can't be asserted.
      *
-     * @param failures
-     *
      * @return the existing failures augmented with any locking related one
      */
-    public Set<UnresolvedDependency> collectLockingFailures(Set<UnresolvedDependency> failures) {
+    public Set<UnresolvedDependency> collectLockingFailures() {
         if (dependencyLockingState.mustValidateLockState()) {
             if (!modulesToBeLocked.isEmpty() || !extraModules.isEmpty()) {
                 lockOutOfDate = true;
-                return createLockingFailures(failures, modulesToBeLocked, extraModules);
+                return createLockingFailures(modulesToBeLocked, extraModules);
             }
         }
         return Collections.emptySet();
     }
 
-    public static Set<UnresolvedDependency> createLockingFailures(Set<UnresolvedDependency> extraFailures, Map<ModuleIdentifier, ModuleComponentIdentifier> modulesToBeLocked, Set<ModuleComponentIdentifier> extraModules) {
-        Set<UnresolvedDependency> completedFailures = Sets.newHashSetWithExpectedSize(extraFailures.size() + modulesToBeLocked.values().size() + extraModules.size());
-        completedFailures.addAll(extraFailures);
+    private static Set<UnresolvedDependency> createLockingFailures(Map<ModuleIdentifier, ModuleComponentIdentifier> modulesToBeLocked, Set<ModuleComponentIdentifier> extraModules) {
+        Set<UnresolvedDependency> completedFailures = Sets.newHashSetWithExpectedSize(modulesToBeLocked.values().size() + extraModules.size());
         for (ModuleComponentIdentifier presentInLock : modulesToBeLocked.values()) {
             completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(presentInLock.getModuleIdentifier(), presentInLock.getVersion()),
                                   new LockOutOfDateException("Did not resolve '" + presentInLock.getDisplayName() + "' which is part of the dependency lock state")));

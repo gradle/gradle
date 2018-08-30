@@ -143,7 +143,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         addVisitedNode(newId(mid, '1.0'))
 
         when:
-        def failures = visitor.collectLockingFailures(emptySet())
+        def failures = visitor.collectLockingFailures()
 
         then:
         failures.size() == 1
@@ -158,7 +158,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         startWithState([newId(mid, '1.1')])
 
         when:
-        def failures = visitor.collectLockingFailures(emptySet())
+        def failures = visitor.collectLockingFailures()
 
         then:
         failures.size() == 1

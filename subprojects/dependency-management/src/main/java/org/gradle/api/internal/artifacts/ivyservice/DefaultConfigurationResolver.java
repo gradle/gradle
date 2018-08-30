@@ -173,10 +173,9 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ResolvedGraphResults graphResults = oldModelBuilder.complete();
 
         // Append to failures for locking and fail on version conflict
-        Set<UnresolvedDependency> extraFailures = Collections.emptySet();
-        if (lockingVisitor != null) {
-            extraFailures = lockingVisitor.collectLockingFailures(extraFailures);
-        }
+        Set<UnresolvedDependency> extraFailures = lockingVisitor == null
+            ? Collections.<UnresolvedDependency>emptySet()
+            : lockingVisitor.collectLockingFailures();
         Set<UnresolvedDependency> failures = failureCollector.complete(extraFailures);
         results.graphResolved(newModelBuilder.complete(extraFailures), localComponentsVisitor, new BuildDependenciesOnlyVisitedArtifactSet(failures, artifactsResults, artifactTransforms));
 
