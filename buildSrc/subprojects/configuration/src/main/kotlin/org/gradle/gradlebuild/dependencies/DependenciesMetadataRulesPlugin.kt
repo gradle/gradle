@@ -73,7 +73,7 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
         val capabilities: List<CapabilitySpec>
         if (extra.has("capabilities")) {
             @Suppress("unchecked_cast")
-            capabilities = extra.get("capabilities") as List<CapabilitySpec>
+            capabilities = extra["capabilities"] as List<CapabilitySpec>
         } else {
             val capabilitiesFile = gradle.rootProject.file("gradle/dependency-management/capabilities.json")
             if (capabilitiesFile.exists()) {
@@ -81,7 +81,7 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
             } else {
                 capabilities = emptyList()
             }
-            extra.set("capabilities", capabilities)
+            extra["capabilities"] = capabilities
         }
         capabilities.forEach {
             it.configure(dependencies.components, configurations)
