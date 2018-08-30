@@ -45,4 +45,10 @@ public class DeferredUtil {
         }
         return null;
     }
+
+    public static boolean isDeferred(Object value) {
+        return value instanceof Callable
+            || value instanceof Provider
+            || value instanceof Factory;
+    }
 }
