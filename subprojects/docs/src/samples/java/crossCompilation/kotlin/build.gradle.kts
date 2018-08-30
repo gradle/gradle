@@ -53,8 +53,7 @@ tasks.withType<Test> {
 task("checkJavadocOutput") {
     dependsOn(tasks["javadoc"])
     doLast {
-        val docsDir: File by project
-        require(File(docsDir, "javadoc/org/gradle/Person.html").readText().contains("<p>Represents a person.</p>"))
+        require(File(the<JavaPluginConvention>().docsDir, "javadoc/org/gradle/Person.html").readText().contains("<p>Represents a person.</p>"))
     }
 }
 
