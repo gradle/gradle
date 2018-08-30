@@ -659,14 +659,11 @@ Some of the types of changes that do not affect the public API and are ignored:
 
 Compile-avoidance is deactivated if annotation processors are found on the compile classpath, because for annotation processors the implementation details matter. Annotation processors should be declared on the annotation processor path instead. Gradle 5.0 will ignore processors on the compile classpath.
 
-=== Example: Declaring annotation processors
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/java/apt/build.gradle[tag=annotation-processing]
-----
-
+.Declaring annotation processors
+====
+include::sample[dir="java/apt/groovy", files="build.gradle[tags=annotation-processing]"]
+include::sample[dir="java/apt/kotlin", files="build.gradle.kts[tags=annotation-processing]"]
+====
 
 [[sec:java_test]]
 == Test
