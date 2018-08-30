@@ -16,7 +16,12 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.ModuleDependency
+
 import org.gradle.api.artifacts.dsl.DependencyHandler
 
 import org.gradle.api.initialization.dsl.ScriptHandler
@@ -36,8 +41,98 @@ class ScriptHandlerScope(scriptHandler: ScriptHandler) : ScriptHandler by script
     val dependencies by unsafeLazy { DependencyHandlerScope(scriptHandler.dependencies) }
 
     /**
+     * The script classpath configuration.
+     */
+    val ConfigurationContainer.classpath: Configuration
+        get() = getByName(CLASSPATH_CONFIGURATION)
+
+    /**
      * Adds a dependency to the script classpath.
+     *
+     * @param dependencyNotation notation for the dependency to be added.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.add]
      */
     fun DependencyHandler.classpath(dependencyNotation: Any): Dependency? =
         add(CLASSPATH_CONFIGURATION, dependencyNotation)
+
+    /**
+     * Adds a dependency to the script classpath.
+     *
+     * @param dependencyNotation notation for the dependency to be added.
+     * @param dependencyConfiguration expression to use to configure the dependency.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.add]
+     */
+    inline fun DependencyHandler.classpath(
+        dependencyNotation: String,
+        dependencyConfiguration: ExternalModuleDependency.() -> Unit
+    ): ExternalModuleDependency = add(CLASSPATH_CONFIGURATION, dependencyNotation, dependencyConfiguration)
+
+    /**
+     * Adds a dependency to the script classpath.
+     *
+     * @param group the group of the module to be added as a dependency.
+     * @param name the name of the module to be added as a dependency.
+     * @param version the optional version of the module to be added as a dependency.
+     * @param configuration the optional configuration of the module to be added as a dependency.
+     * @param classifier the optional classifier of the module artifact to be added as a dependency.
+     * @param ext the optional extension of the module artifact to be added as a dependency.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.add]
+     */
+    fun DependencyHandler.classpath(
+        group: String,
+        name: String,
+        version: String? = null,
+        configuration: String? = null,
+        classifier: String? = null,
+        ext: String? = null
+    ): ExternalModuleDependency = create(group, name, version, configuration, classifier, ext).also {
+        add(CLASSPATH_CONFIGURATION, it)
+    }
+
+    /**
+     * Adds a dependency to the script classpath.
+     *
+     * @param group the group of the module to be added as a dependency.
+     * @param name the name of the module to be added as a dependency.
+     * @param version the optional version of the module to be added as a dependency.
+     * @param configuration the optional configuration of the module to be added as a dependency.
+     * @param classifier the optional classifier of the module artifact to be added as a dependency.
+     * @param ext the optional extension of the module artifact to be added as a dependency.
+     * @param dependencyConfiguration expression to use to configure the dependency.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.create]
+     * @see [DependencyHandler.add]
+     */
+    inline fun DependencyHandler.classpath(
+        group: String,
+        name: String,
+        version: String? = null,
+        configuration: String? = null,
+        classifier: String? = null,
+        ext: String? = null,
+        dependencyConfiguration: ExternalModuleDependency.() -> Unit
+    ): ExternalModuleDependency = create(group, name, version, configuration, classifier, ext).also {
+        add(CLASSPATH_CONFIGURATION, it, dependencyConfiguration)
+    }
+
+    /**
+     * Adds a dependency to the script classpath.
+     *
+     * @param dependency dependency to be added.
+     * @param dependencyConfiguration expression to use to configure the dependency.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.add]
+     */
+    inline fun <T : ModuleDependency> DependencyHandler.classpath(
+        dependency: T,
+        dependencyConfiguration: T.() -> Unit
+    ): T = add(CLASSPATH_CONFIGURATION, dependency, dependencyConfiguration)
 }
