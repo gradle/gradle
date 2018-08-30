@@ -139,33 +139,27 @@ See the <<java_testing.adoc#sec:configuring_java_integration_tests,integration t
 
 Adding a JAR containing the classes of a source set:
 
-=== Example: Assembling a JAR for a source set
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/java/sourceSets/build.gradle[tag=jar]
-----
+.Assembling a JAR for a source set
+====
+include::sample[dir="userguide/java/sourceSets/groovy", files="build.gradle[tags=jar]"]
+include::sample[dir="userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=jar]"]
+====
 
 Generating Javadoc for a source set:
 
-=== Example: Generating the Javadoc for a source set
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/java/sourceSets/build.gradle[tag=javadoc]
-----
+.Generating the Javadoc for a source set
+====
+include::sample[dir="userguide/java/sourceSets/groovy", files="build.gradle[tags=javadoc]"]
+include::sample[dir="userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=javadoc]"]
+====
 
 Adding a test suite to run the tests in a source set:
 
-=== Example: Running tests in a source set
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/java/sourceSets/build.gradle[tag=test]
-----
+.Running tests in a source set
+====
+include::sample[dir="userguide/java/sourceSets/groovy", files="build.gradle[tags=test]"]
+include::sample[dir="userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=test]"]
+====
 
 [[sec:java_tasks]]
 == Tasks

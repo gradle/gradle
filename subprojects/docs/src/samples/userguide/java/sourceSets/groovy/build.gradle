@@ -1,0 +1,34 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+sourceSets {
+    intTest
+}
+
+dependencies {
+    intTestImplementation 'junit:junit:4.12'
+    intTestRuntimeOnly 'org.ow2.asm:asm-all:4.0'
+}
+
+// tag::jar[]
+task intTestJar(type: Jar) {
+    from sourceSets.intTest.output
+}
+// end::jar[]
+
+// tag::javadoc[]
+task intTestJavadoc(type: Javadoc) {
+    source sourceSets.intTest.allJava
+}
+// end::javadoc[]
+
+// tag::test[]
+task intTest(type: Test) {
+    testClassesDirs = sourceSets.intTest.output.classesDirs
+    classpath = sourceSets.intTest.runtimeClasspath
+}
+// end::test[]
