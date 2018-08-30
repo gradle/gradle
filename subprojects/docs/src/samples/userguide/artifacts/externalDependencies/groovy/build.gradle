@@ -40,29 +40,9 @@ dependencies {
 }
 // end::module-dependencies[]
 
-// tag::dependency-configurations[]
-dependencies {
-    runtime group: 'org.somegroup', name: 'somedependency', version: '1.0', configuration: 'someConfiguration'
-}
-// end::dependency-configurations[]
-
-// tag::client-modules[]
-dependencies {
-    runtime module("org.codehaus.groovy:groovy:2.4.15") {
-        dependency("commons-cli:commons-cli:1.0") {
-            transitive = false
-        }
-        module(group: 'org.apache.ant', name: 'ant', version: '1.9.9') {
-            dependencies "org.apache.ant:ant-launcher:1.9.9@jar",
-                         "org.apache.ant:ant-junit:1.9.9"
-        }
-    }
-}
-// end::client-modules[]
-
 // tag::file-dependencies[]
 dependencies {
     runtime files('libs/a.jar', 'libs/b.jar')
-    runtime fileTree(dir: 'libs', include: '*.jar')
+    runtime fileTree('libs') { include '*.jar' }
 }
 // end::file-dependencies[]
