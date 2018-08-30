@@ -55,7 +55,7 @@ public class ProcessBootstrap {
 
         try {
             Class<?> mainClass = runtimeClassLoader.loadClass(mainClassName);
-            Object entryPoint = mainClass.newInstance();
+            Object entryPoint = mainClass.getConstructor().newInstance();
             Method mainMethod = mainClass.getMethod("run", String[].class);
             mainMethod.invoke(entryPoint, new Object[]{args});
         } finally {

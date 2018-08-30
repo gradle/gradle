@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.manage.projection
 
-import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.model.ReadOnlyModelViewException
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
@@ -26,6 +25,7 @@ import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.manage.schema.ManagedImplSchema
 import org.gradle.model.internal.manage.schema.StructSchema
 import org.gradle.model.internal.type.ModelType
+import org.gradle.util.ClosureBackedAction
 
 import static org.gradle.model.internal.core.NodeInitializerContext.forType
 

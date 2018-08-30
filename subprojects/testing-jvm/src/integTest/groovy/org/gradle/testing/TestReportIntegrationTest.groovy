@@ -72,7 +72,7 @@ public class LoggingTest {
         result.testClass("LoggingTest").assertStderr(equalTo("stderr.\n"))
     }
 
-    @UsesSample("testing/testReport")
+    @UsesSample("testing/testReport/groovy")
     def "can generate report for subprojects"() {
         given:
         sample sample

@@ -44,7 +44,6 @@ import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.EmptyHistoricalFileCollectionFingerprint;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -135,7 +134,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     private CurrentTaskExecution createExecution(TaskInternal task, TaskProperties taskProperties, @Nullable HistoricalTaskExecution previousExecution, InputNormalizationStrategy normalizationStrategy) {
         Class<? extends TaskInternal> taskClass = task.getClass();
         List<ContextAwareTaskAction> taskActions = task.getTaskActions();
-        ImplementationSnapshot taskImplementation = new ImplementationSnapshot(taskClass.getName(), classLoaderHierarchyHasher.getClassLoaderHash(taskClass.getClassLoader()));
+        ImplementationSnapshot taskImplementation = ImplementationSnapshot.of(taskClass, classLoaderHierarchyHasher);
         ImmutableList<ImplementationSnapshot> taskActionImplementations = collectActionImplementations(taskActions, classLoaderHierarchyHasher);
 
         if (LOGGER.isDebugEnabled()) {
@@ -305,9 +304,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
         ImmutableList.Builder<ImplementationSnapshot> actionImplementations = ImmutableList.builder();
         for (ContextAwareTaskAction taskAction : taskActions) {
-            String typeName = taskAction.getActionClassName();
-            HashCode classLoaderHash = classLoaderHierarchyHasher.getClassLoaderHash(taskAction.getClassLoader());
-            actionImplementations.add(new ImplementationSnapshot(typeName, classLoaderHash));
+            actionImplementations.add(taskAction.getActionImplementation(classLoaderHierarchyHasher));
         }
         return actionImplementations.build();
     }

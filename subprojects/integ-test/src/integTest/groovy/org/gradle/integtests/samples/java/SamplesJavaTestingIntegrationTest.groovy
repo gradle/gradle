@@ -30,7 +30,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     Sample sample = new Sample(testDirectoryProvider)
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
-    @UsesSample("userguide/java/basic")
+    @UsesSample("userguide/java/basic/groovy")
     def "can execute simple Java tests"() {
         given:
         executer.inDirectory(sample.dir)
@@ -46,7 +46,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         assertTestsRunCount(xmlResults, 1)
     }
 
-    @UsesSample("testing/filtering")
+    @UsesSample("testing/filtering/groovy")
     def "can execute a subset of tests with filtering"() {
         given:
         executer.inDirectory(sample.dir)
@@ -68,7 +68,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
-    @UsesSample("userguide/java/customDirs")
+    @UsesSample("userguide/java/customDirs/groovy")
     def "can change the destination for test results and reports"() {
         given:
         executer.inDirectory(sample.dir)
@@ -88,7 +88,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         getStandardTestReportDir("", "").assertDoesNotExist()
     }
 
-    @UsesSample("testing/testReport")
+    @UsesSample("testing/testReport/groovy")
     def "can create a custom TestReport task"() {
         given:
         executer.inDirectory(sample.dir)
@@ -108,7 +108,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         getStandardTestReportDir("util", "").file("index.html").assertDoesNotExist()
     }
 
-    @UsesSample("testing/junit/categories")
+    @UsesSample("testing/junit/categories/groovy")
     def "can filter tests by JUnit category"() {
         given:
         executer.inDirectory(sample.dir)
@@ -126,7 +126,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
-    @UsesSample("testing/junitplatform/tagging")
+    @UsesSample("testing/junitplatform/tagging/groovy")
     def "can filter tests by JUnit Platform tag"() {
         given:
         executer.inDirectory(sample.dir)
@@ -143,7 +143,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         assertTestRun(xmlResults, "fastTest()")
     }
 
-    @UsesSample("testing/testng/groups")
+    @UsesSample("testing/testng/groups/groovy")
     def "can filter tests by TestNG group"() {
         given:
         executer.inDirectory(sample.dir)
@@ -163,7 +163,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
-    @UsesSample("testing/junitplatform/jupiter")
+    @UsesSample("testing/junitplatform/jupiter/groovy")
     def "can run tests using JUnit Jupiter"() {
         given:
         executer.inDirectory(sample.dir)
@@ -181,7 +181,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
-    @UsesSample("testing/junitplatform/mix")
+    @UsesSample("testing/junitplatform/mix/groovy")
     def "can run older JUnit tests with JUnit Jupiter"() {
         given:
         executer.inDirectory(sample.dir)
@@ -205,7 +205,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
-    @UsesSample("testing/junitplatform/engine")
+    @UsesSample("testing/junitplatform/engine/groovy")
     def "can run JUnit Platform tests with a subset of engines"() {
         given:
         executer.inDirectory(sample.dir)
@@ -223,7 +223,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
             1)
     }
 
-    @UsesSample("testing/testng/preserveorder")
+    @UsesSample("testing/testng/preserveorder/groovy")
     def "can use the preserveOrder option with TestNG tests"() {
         given:
         executer.inDirectory(sample.dir)
@@ -246,7 +246,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
             2)
     }
 
-    @UsesSample("testing/testng/groupbyinstances")
+    @UsesSample("testing/testng/groupbyinstances/groovy")
     def "can use the groupByInstances option with TestNG tests"() {
         given:
         executer.inDirectory(sample.dir)
@@ -264,7 +264,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
-    @UsesSample("userguide/java/basic")
+    @UsesSample("userguide/java/basic/groovy")
     def "can run simple Java integration tests"() {
         given:
         executer.inDirectory(sample.dir)
@@ -284,7 +284,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
-    @UsesSample("userguide/java/basic")
+    @UsesSample("userguide/java/basic/groovy")
     def "can skip the tests with an `onlyIf` condition"() {
         given:
         executer.inDirectory(sample.dir).withArgument("-PmySkipTests")

@@ -53,7 +53,7 @@ public class ActionImpl implements ${BuildAction.name}<java.io.File> {
         builder.buildJar(implJar)
 
         def cl1 = new URLClassLoader([implJar.toURI().toURL()] as URL[], getClass().classLoader)
-        def action1 = cl1.loadClass("ActionImpl").newInstance()
+        def action1 = cl1.loadClass("ActionImpl").getConstructor().newInstance()
 
         when:
         File actualJar1 = withConnection { ProjectConnection connection ->
@@ -76,7 +76,7 @@ public class ActionImpl implements ${BuildAction.name}<String> {
 """
         builder.buildJar(implJar)
         def cl2 = new URLClassLoader([implJar.toURI().toURL()] as URL[], getClass().classLoader)
-        def action2 = cl2.loadClass("ActionImpl").newInstance()
+        def action2 = cl2.loadClass("ActionImpl").getConstructor().newInstance()
 
         String result2 = withConnection { ProjectConnection connection ->
             connection.action(action2).run()

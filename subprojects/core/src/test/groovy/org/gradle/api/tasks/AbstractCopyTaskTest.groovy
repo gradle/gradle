@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.copy.CopyAction
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec
 import org.gradle.api.internal.tasks.execution.TaskProperties
+import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder
 import org.gradle.internal.Actions
 import org.gradle.internal.Transformers
 import org.gradle.test.fixtures.file.TestFile
@@ -67,7 +68,7 @@ class AbstractCopyTaskTest extends WorkspaceTest {
         method(task)
 
         then:
-        def cachingState = task.outputs.getCachingState(taskPropertiesWithOutput)
+        def cachingState = task.outputs.getCachingState(taskPropertiesWithOutput, new DefaultTaskOutputCachingBuildCacheKeyBuilder().build())
         !cachingState.enabled
 
         where:
