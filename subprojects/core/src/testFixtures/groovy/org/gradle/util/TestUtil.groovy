@@ -31,7 +31,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.model.DefaultObjectFactory
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.taskfactory.ITaskFactory
+import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
@@ -149,7 +149,7 @@ class TestUtil {
     }
 
     static <T extends Task> T createTask(Class<T> type, ProjectInternal project, String name) {
-        return project.services.get(ITaskFactory).create(name, type)
+        return project.services.get(TaskInstantiator).create(name, type)
     }
 
     static ProjectBuilder builder(File rootDir) {
