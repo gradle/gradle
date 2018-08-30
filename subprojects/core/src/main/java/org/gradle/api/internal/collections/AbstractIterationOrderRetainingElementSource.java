@@ -131,6 +131,16 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         }
     }
 
+    @Override
+    public void realizePending(ProviderInternal<?> provider) {
+        for (Element<T> element : inserted) {
+            if (!element.isRealized() && element.isProvidedBy(provider)) {
+                modCount++;
+                element.realize();
+            }
+        }
+    }
+
     protected void clearCachedElement(Element<T> element) {
         modCount++;
         element.clearCache();
@@ -186,8 +196,10 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     @Override
-    public void onRealize(final Action<T> action) {
+    public Action<T> onRealize(final Action<T> action) {
+        Action<T> result = this.realizeAction;
         this.realizeAction = action;
+        return result;
     }
 
     protected class RealizedElementCollectionIterator implements Iterator<T> {

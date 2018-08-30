@@ -66,10 +66,10 @@ abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomain
 
     @Unroll
     def "disallow mutating when named(String).configure(#factoryClass.configurationType.simpleName) for added element provider calls #description"() {
-        containerAllowsExternalProviders()
+        containerAllowsExternalProviders() // Because the test use addLater
         def factory = factoryClass.newInstance()
         if (factory.isUseExternalProviders()) {
-            containerAllowsExternalProviders()
+            containerAllowsExternalProviders() // Because a fixture use addLater
         }
         def provider = Mock(NamedProviderInternal)
 

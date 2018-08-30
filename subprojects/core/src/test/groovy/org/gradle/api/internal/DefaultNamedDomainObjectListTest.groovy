@@ -17,6 +17,7 @@ package org.gradle.api.internal
 
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.NamedDomainObjectList
 import org.gradle.api.Namer
 import org.gradle.internal.reflect.DirectInstantiator
 
@@ -30,7 +31,9 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
     }
     final DefaultNamedDomainObjectList<CharSequence> list = new DefaultNamedDomainObjectList<CharSequence>(CharSequence, DirectInstantiator.INSTANCE, toStringNamer)
 
-    final DefaultNamedDomainObjectList<String> container = list
+    final NamedDomainObjectList<String> getContainer() {
+        return list
+    }
     final StringBuffer a = new StringBuffer("a")
     final StringBuffer b = new StringBuffer("b")
     final StringBuffer c = new StringBuffer("c")
