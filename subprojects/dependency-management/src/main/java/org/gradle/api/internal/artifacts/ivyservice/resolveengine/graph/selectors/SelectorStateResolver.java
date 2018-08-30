@@ -170,7 +170,6 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
     private void resolveAndRegisterSelector(SelectorStateResolverResults results, ResolvableSelectorState selector, VersionSelector allRejects, boolean primary) {
         // Check already resolved results for a compatible version, and use it for this dependency rather than re-resolving.
         if (results.alreadyHaveResolutionForSelector(selector)) {
-            selector.markResolved();
             return;
         }
 

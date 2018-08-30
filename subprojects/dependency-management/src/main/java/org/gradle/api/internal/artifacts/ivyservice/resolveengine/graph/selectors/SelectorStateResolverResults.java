@@ -37,10 +37,6 @@ class SelectorStateResolverResults {
         ModuleVersionResolveException failure = null;
         List<T> resolved = null;
         for (Registration entry : results) {
-            if (entry.superceded) {
-                continue;
-            }
-
             ResolvableSelectorState selectorState = entry.selector;
             ComponentIdResolveResult idResolveResult = entry.result;
 
@@ -91,6 +87,7 @@ class SelectorStateResolverResults {
             ComponentIdResolveResult discovered = registration.result;
             if (included(selector, discovered)) {
                 register(selector, discovered);
+                selector.markResolved();
                 return true;
             }
         }
@@ -141,9 +138,7 @@ class SelectorStateResolverResults {
 
     private static class Registration {
         private final ResolvableSelectorState selector;
-        public boolean superceded = false;
         private ComponentIdResolveResult result;
-        public boolean preferred = false;
 
         private Registration(ResolvableSelectorState selector, ComponentIdResolveResult result) {
             this.selector = selector;
