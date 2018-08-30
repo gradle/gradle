@@ -231,19 +231,17 @@ To use Java 6 or Java 7, the following tasks need to be configured:
 
 The following sample shows how the `build.gradle` needs to be adjusted. In order to be able to make the build machine-independent, the location of the old Java home and target version should be configured in `GRADLE_USER_HOME/gradle.properties` footnote:[For more details on `gradle.properties` see <<build_environment.adoc#sec:gradle_configuration_properties,Gradle configuration properties>> ] in the user's home directory on each developer machine, as shown in the example.
 
-==== Example: Configure Java 7 build
-
+=== Example: Configure Java 7 build
 [source,properties]
 .gradle.properties
 ----
-include::{samplesPath}/java/crossCompilation/gradle.properties[]
+include::{samplesPath}/java/crossCompilation/groovy/gradle.properties[]
 ----
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/java/crossCompilation/build.gradle[tag=java-cross-compilation]
-----
+====
+include::sample[dir="java/crossCompilation/groovy",files="build.gradle[tags=java-cross-compilation]"]
+include::sample[dir="java/crossCompilation/kotlin",files="build.gradle.kts[tags=java-cross-compilation]"]
+====
 
 [[sec:custom_java_source_sets]]
 === Compiling independent sources separately

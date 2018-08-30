@@ -8,15 +8,17 @@ repositories {
 
 dependencies {
     // We should use a legacy version to support running on jdk6
-    compile group: 'commons-lang', name: 'commons-lang', version: '2.6'
-    testCompile group: 'junit', name: 'junit', version: '4.+'
+    implementation 'commons-lang:commons-lang:2.6'
+    testImplementation 'junit:junit:4.+'
 }
 
 // tag::java-cross-compilation[]
 assert hasProperty('javaHome'): "Set the property 'javaHome' in your your gradle.properties pointing to a Java 6 or 7 installation"
 assert hasProperty('targetJavaVersion'): "Set the property 'targetJavaVersion' in your your gradle.properties to '1.6' or '1.7'"
 
-sourceCompatibility = targetJavaVersion
+java {
+    sourceCompatibility = JavaVersion.toVersion(targetJavaVersion)
+}
 
 def javaExecutablesPath = new File(javaHome, 'bin')
 def javaExecutables = [:].withDefault { execName ->
