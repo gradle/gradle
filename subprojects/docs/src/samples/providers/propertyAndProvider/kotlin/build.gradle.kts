@@ -21,7 +21,7 @@ open class Greeting : DefaultTask() {
 
     // Read-only property calculated from the message
     @get:Internal
-    val fullMessage: Provider<String> = message.map { "$it from Gradle" }
+    val fullMessage: Provider<String> = message.map { it + " from Gradle" }
 
     @TaskAction
     fun printMessage() {
@@ -29,6 +29,6 @@ open class Greeting : DefaultTask() {
     }
 }
 
-tasks.create<Greeting>("greeting") {
+task<Greeting>("greeting") {
     message.set("Hi")
 }
