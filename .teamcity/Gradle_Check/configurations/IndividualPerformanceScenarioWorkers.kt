@@ -31,7 +31,7 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuil
 
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
         param("env.ANDROID_HOME", "/opt/android/sdk")
-        param("env.JAVA_HOME", "%linux.java9.oracle.64bit%")
+        param("env.JAVA_HOME", buildJavaHome)
         param("env.PATH", "%env.PATH%:/opt/swift/latest/usr/bin")
     }
 
@@ -42,7 +42,7 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuil
             gradleParams = (
                     gradleParameters(daemon = false)
                     + listOf("""clean %templates% fullPerformanceTests --scenarios "%scenario%" --baselines %baselines% --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% -x prepareSamples -x performanceReport -Porg.gradle.performance.db.url=%performance.db.url% -Porg.gradle.performance.db.username=%performance.db.username% -Porg.gradle.performance.db.password=%performance.db.password.tcagent% -PtimestampedVersion""",
-                            buildScanTag("IndividualPerformanceScenarioWorkers"))
+                            buildScanTag("IndividualPerformanceScenarioWorkers"), "-PtestJavaHome=${individualPerformanceTestJavaHome}")
                             + model.parentBuildCache.gradleParameters(OS.linux)
                     ).joinToString(separator = " ")
         }
