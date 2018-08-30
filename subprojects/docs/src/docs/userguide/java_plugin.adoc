@@ -22,13 +22,11 @@ The Java plugin adds Java compilation along with testing and bundling capabiliti
 
 To use the Java plugin, include the following in your build script:
 
-=== Example: Using the Java plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/java/quickstart/groovy/build.gradle[tag=use-plugin]
-----
+.Using the Java plugin
+====
+include::sample[dir="java/quickstart/groovy", files="build.gradle[tags=use-plugin]"]
+include::sample[dir="java/quickstart/kotlin", files="build.gradle.kts[tags=use-plugin]"]
+====
 
 
 [[sec:java_project_layout]]

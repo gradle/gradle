@@ -1,9 +1,24 @@
 // tag::use-plugin[]
-apply(plugin = "java")
+// tag::use-eclipse-plugin[]
+plugins {
+    // end::use-eclipse-plugin[]
+// end::use-plugin[]
+// tag::use-plugin[]
+    java
 // end::use-plugin[]
 // tag::use-eclipse-plugin[]
-apply(plugin = "eclipse")
+    eclipse
 // end::use-eclipse-plugin[]
+// tag::use-plugin[]
+// tag::use-eclipse-plugin[]
+}
+// end::use-eclipse-plugin[]
+// end::use-plugin[]
+
+
+// tag::use-plugin-legacy[]
+apply(plugin = "java")
+// end::use-plugin-legacy[]
 
 // tag::customization[]
 version = "1.0"
@@ -24,8 +39,8 @@ repositories {
 
 // tag::dependencies[]
 dependencies {
-    "compile"(group = "commons-collections", name = "commons-collections", version = "3.2.2")
-    "testCompile"(group = "junit", name = "junit", version = "4.+")
+    "implementation"(group = "commons-collections", name = "commons-collections", version = "3.2.2")
+    "testImplementation"(group = "junit", name = "junit", version = "4.+")
 }
 // end::dependencies[]
 
