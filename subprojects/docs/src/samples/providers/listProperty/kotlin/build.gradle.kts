@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-tasks.create("print") {
+task("print") {
     doLast {
         val list: ListProperty<String> = project.objects.listProperty()
 
