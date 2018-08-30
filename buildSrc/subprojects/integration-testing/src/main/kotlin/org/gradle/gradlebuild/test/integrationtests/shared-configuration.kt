@@ -74,8 +74,8 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
 
 
 internal
-fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType, extraConfig: Action<IntegrationTest>): TaskProvider<IntegrationTest> {
-    return tasks.register(name, IntegrationTest::class.java) {
+fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType, extraConfig: Action<IntegrationTest>): TaskProvider<IntegrationTest> =
+    tasks.register(name, IntegrationTest::class) {
         description = "Runs ${testType.prefix} with $executer executer"
         systemProperties["org.gradle.integtest.executer"] = executer
         addDebugProperties()
@@ -84,7 +84,6 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
         libsRepository.required = testType.libRepoRequired
         extraConfig.execute(this)
     }
-}
 
 
 private
