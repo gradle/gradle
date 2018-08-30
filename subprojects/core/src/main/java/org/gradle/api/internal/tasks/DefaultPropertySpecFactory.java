@@ -96,6 +96,12 @@ public class DefaultPropertySpecFactory implements PropertySpecFactory {
             return fileTree;
         }
 
+        @Nullable
+        @Override
+        public Object getContainerValue() {
+            return fileTree;
+        }
+
         @Override
         public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
             delegate.validate(propertyName, optional, valueValidator, context);

@@ -71,6 +71,12 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
 
         @Nullable
         @Override
+        public Object getContainerValue() {
+            return null;
+        }
+
+        @Nullable
+        @Override
         public Object call() {
             return null;
         }
@@ -85,6 +91,12 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         @Nullable
         @Override
         public Object call() {
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public Object getContainerValue() {
             return null;
         }
 

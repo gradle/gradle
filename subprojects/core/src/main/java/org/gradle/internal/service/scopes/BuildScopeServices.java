@@ -59,6 +59,7 @@ import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.internal.project.taskfactory.PropertyAssociationTaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.tasks.TaskStatistics;
@@ -265,12 +266,14 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultTaskClassInfoStore();
     }
 
-    protected ITaskFactory createITaskFactory(TaskClassInfoStore taskClassInfoStore) {
+    protected ITaskFactory createITaskFactory(TaskClassInfoStore taskClassInfoStore, PropertyWalker propertyWalker, ClassGenerator classGenerator) {
         return new AnnotationProcessingTaskFactory(
             taskClassInfoStore,
-            new TaskFactory(
-                get(ClassGenerator.class))
-        );
+            new PropertyAssociationTaskFactory(
+                new TaskFactory(
+                    classGenerator),
+                propertyWalker
+            ));
     }
 
     protected ScriptCompilerFactory createScriptCompileFactory(ListenerManager listenerManager,

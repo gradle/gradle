@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.ConfigureUtil;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.util.Queue;
@@ -87,6 +88,12 @@ class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
         @Override
         public Object call() {
             return beanClass;
+        }
+
+        @Nullable
+        @Override
+        public Object getContainerValue() {
+            return call();
         }
 
         @Override

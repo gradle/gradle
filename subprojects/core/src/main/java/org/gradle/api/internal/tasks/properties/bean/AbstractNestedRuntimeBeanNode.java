@@ -75,7 +75,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
             @Override
             @Nullable
             public Object get() {
-                Object value = DeprecationLogger.whileDisabled(new Factory<Object>() {
+                return DeprecationLogger.whileDisabled(new Factory<Object>() {
                     public Object create() {
                         try {
                             return method.invoke(bean);
@@ -86,13 +86,6 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
                         }
                     }
                 });
-                // Replace absent Provider with null.
-                // This is required for allowing optional provider properties - all code which unpacks providers calls Provider.get() and would fail if an optional provider is passed.
-                // Returning null from a Callable is ignored, and PropertyValue is a callable.
-                if (value instanceof Provider && !((Provider<?>) value).isPresent()) {
-                    return null;
-                }
-                return value;
             }
         });
 
@@ -132,8 +125,25 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
 
         @Nullable
         @Override
+        public Object getContainerValue() {
+            if (Provider.class.isAssignableFrom(method.getReturnType())) {
+                return valueSupplier.get();
+            } else {
+                return null;
+            }
+        }
+
+        @Nullable
+        @Override
         public Object getValue() {
-            return valueSupplier.get();
+            Object value = valueSupplier.get();
+            // Replace absent Provider with null.
+            // This is required for allowing optional provider properties - all code which unpacks providers calls Provider.get() and would fail if an optional provider is passed.
+            // Returning null from a Callable is ignored, and PropertyValue is a callable.
+            if (value instanceof Provider && !((Provider<?>) value).isPresent()) {
+                return null;
+            }
+            return value;
         }
 
         @Nullable
