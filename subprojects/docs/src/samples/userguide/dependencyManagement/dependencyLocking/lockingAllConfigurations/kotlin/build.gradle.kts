@@ -1,4 +1,6 @@
-apply plugin: 'java'
+plugins {
+    java
+}
 
 // tag::locking-all[]
 dependencyLocking {
@@ -7,15 +9,15 @@ dependencyLocking {
 // end::locking-all[]
 
 // tag::resolve-all[]
-task resolveAndLockAll {
+tasks.create("resolveAndLockAll") {
     doFirst {
-        assert gradle.startParameter.writeDependencyLocks
+        require(gradle.startParameter.isWriteDependencyLocks)
     }
     doLast {
-        configurations.findAll {
+        configurations.filter {
             // Add any custom filtering on the configurations to be resolved
-            it.canBeResolved
-        }.each { it.resolve() }
+            it.isCanBeResolved
+        }.forEach { it.resolve() }
     }
 }
 // end::resolve-all[]
