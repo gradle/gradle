@@ -2,6 +2,6 @@ plugins {
     java
 }
 
-tasks.withType(JavaCompile::class) {
+tasks.withType<JavaCompile> {
     options.compilerArgs = listOf("-Xdoclint:none", "-Xlint:none", "-nowarn")
 }

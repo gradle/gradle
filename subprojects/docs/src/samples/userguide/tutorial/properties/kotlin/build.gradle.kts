@@ -8,6 +8,6 @@ task("printProps") {
         println(commandLineProjectProp)
         println(gradlePropertiesProp)
         println(systemProjectProp)
-        println(System.getProperties()["system"])
+        println(System.getProperty("system"))
     }
 }
