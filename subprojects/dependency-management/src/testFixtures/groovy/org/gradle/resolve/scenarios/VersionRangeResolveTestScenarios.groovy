@@ -129,6 +129,11 @@ class VersionRangeResolveTestScenarios {
         versions: [PREFER_11, RANGE_10_11, PREFER_13, RANGE_10_14],
         expected: "13"
     ).and(
+        ignore: true, // Resolution is order-dependent
+        versions: [FIXED_11, PREFER_12, RANGE_10_14],
+        expected: "11",
+        expectedStrict: ["11", IGNORE, "11"]
+    ).and(
         versions: [PREFER_11, PREFER_13, RANGE_10_12],
         expected: "11",
         expectedStrict: [IGNORE, IGNORE, "11"]
@@ -270,6 +275,12 @@ class VersionRangeResolveTestScenarios {
         versions: [FIXED_11, RANGE_10_12, RANGE_11_13], // Intersecting ranges with shared fixed version
         expected: "11",
         expectedStrict: ["11", "11", "11"]
+    ).and(
+        ignore: true,
+        versions: [FIXED_11, RANGE_10_12, RANGE_12_14], // Intersecting ranges with unshared fixed version
+        expected: "12",
+        expectedStrict: [REJECTED, "12", "13"],
+        conflicts: true
     ).and(
         versions: [FIXED_11, RANGE_10_11, FIXED_13, RANGE_10_14],
         expected: "13",
