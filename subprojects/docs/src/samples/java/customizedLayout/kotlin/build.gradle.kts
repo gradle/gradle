@@ -1,30 +1,32 @@
-apply plugin: 'java'
+plugins {
+    java
+}
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    testCompile 'junit:junit:4.12'
+    testImplementation("junit:junit:4.12")
 }
 
 // tag::define-main[]
 sourceSets {
-    main {
+    getByName("main") {
         java {
-            srcDirs = ['src/java']
+            setSrcDirs(listOf("src/java"))
         }
         resources {
-            srcDirs = ['src/resources']
+            setSrcDirs(listOf("src/resources"))
         }
     }
 // end::define-main[]
-    test {
+    getByName("test") {
         java {
-            srcDir 'test/java'
+            srcDir("test/java")
         }
         resources {
-            srcDir 'test/resources'
+            srcDir("test/resources")
         }
     }
 // tag::define-main[]

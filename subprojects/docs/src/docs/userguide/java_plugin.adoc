@@ -46,13 +46,11 @@ include::javaProjectGenericLayout.adoc[]
 
 You configure the project layout by configuring the appropriate source set. This is discussed in more detail in the following sections. Here is a brief example which changes the main Java and resource source directories.
 
-=== Example: Custom Java source layout
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/java/customizedLayout/build.gradle[tag=define-main]
-----
+.Custom Java source layout
+====
+include::sample[dir="java/customizedLayout/groovy", files="build.gradle[tags=define-main]"]
+include::sample[dir="java/customizedLayout/kotlin", files="build.gradle.kts[tags=define-main]"]
+====
 
 == Source sets
 
