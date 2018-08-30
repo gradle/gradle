@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.util.ToBeImplemented
 import spock.lang.Unroll
+import spock.lang.Issue
 
 class DependencyLockingIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -149,7 +150,7 @@ dependencies {
    Constraint path ':depLock:unspecified' --> 'org:foo' strictly '1.0' because of the following reason: dependency was locked to version '1.0'"""
     }
 
-    def 'fails when lock file contains entry that is not in resolution result'() {
+    def 'succeeds when lock file contains entry that is not in resolution result'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
 
@@ -176,10 +177,15 @@ dependencies {
         lockfileFixture.createLockfile('lockedConf',['org:bar:1.0', 'org:foo:1.0'])
 
         when:
-        fails 'checkDeps'
+        succeeds 'checkDeps'
 
         then:
-        failure.assertHasCause("Dependency lock state for configuration 'lockedConf' is out of date: Did not resolve 'org:bar:1.0' which is part of the lock state")
+        resolve.expectGraph {
+            root(":", ":depLock:") {
+                edge("org:foo:1.+", "org:foo:1.0")
+                edge("org:foo:1.0", "org:foo:1.0")
+            }
+        }
     }
 
     def 'fails when lock file does not contain entry for module in resolution result'() {
@@ -885,5 +891,73 @@ configurations {
 
         then:
         lockfileFixture.verifyLockfile('lockedConf', [])
+    }
+
+    @Issue("gradle/gradle#6472")
+    def 'update with selective modules allow extra modules to remain in the lockfile'() {
+        mavenRepo.module('org', 'bar', '1.0').publish()
+        mavenRepo.module('org', 'foo', '1.0').publish()
+
+        lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.0'])
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:bar:1.0'
+}
+"""
+
+        when:
+        succeeds 'dependencies', '--update-locks', 'org:bar'
+
+        then:
+        lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.0'])
+    }
+
+    @Issue("gradle/gradle#6472")
+    def 'write-locks removes any extra modules in the lockfile'() {
+        mavenRepo.module('org', 'bar', '1.0').publish()
+        mavenRepo.module('org', 'foo', '1.0').publish()
+
+        lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.0'])
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:bar:1.0'
+}
+"""
+
+        when:
+        succeeds 'dependencies', '--write-locks'
+
+        then:
+        lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0'])
     }
 }

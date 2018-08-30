@@ -53,8 +53,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         then:
         1 * rootNode.metadata >> metadata
         1 * metadata.dependencyLockingState >> lockState
-        1 * lockState.mustValidateLockState() >> true
-        1 * lockState.lockedDependencies >> Collections.emptySet()
+        1 * lockState.lockedDependencies >> emptySet()
         0 * _
     }
 
@@ -65,7 +64,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         then:
         1 * rootNode.metadata >> metadata
         1 * metadata.dependencyLockingState >> lockState
-        1 * lockState.mustValidateLockState() >> false
+        1 * lockState.getLockedDependencies() >> emptySet()
         0 * _
     }
 
@@ -113,7 +112,6 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         DependencyGraphComponent component = Mock()
         ComponentIdentifier identifier = Mock()
 
-
         when:
         visitor.visitNode(node)
 
@@ -128,6 +126,8 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         given:
         def id = newId(mid, '1.1')
         startWithState([id])
+
+        and:
         addVisitedNode(id)
 
         when:
@@ -140,6 +140,8 @@ class DependencyLockingArtifactVisitorTest extends Specification {
     def 'throws when extra modules visited'() {
         given:
         startWithState([])
+
+        and:
         addVisitedNode(newId(mid, '1.0'))
 
         when:
@@ -150,7 +152,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         ex.message.contains("Resolved 'org:foo:1.0' which is not part of the lock state")
     }
 
-    def 'throws when module not visited'() {
+    def 'finishes without error module not visited'() {
         given:
         startWithState([newId(mid, '1.1')])
 
@@ -158,14 +160,15 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         visitor.complete()
 
         then:
-        def ex = thrown(LockOutOfDateException)
-        ex.message.contains("Did not resolve 'org:foo:1.1' which is part of the lock state")
+        notThrown(LockOutOfDateException)
     }
 
     def 'invokes locking provider on complete with visited modules'() {
         given:
         def identifier = newId(mid, '1.1')
         startWithoutLockState()
+
+        and:
         addVisitedNode(identifier)
 
         when:
@@ -180,6 +183,8 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         given:
         def identifier = newId(mid, '1.1')
         startWithoutLockState()
+
+        and:
         addVisitedChangingNode(identifier)
 
         when:
@@ -190,6 +195,18 @@ class DependencyLockingArtifactVisitorTest extends Specification {
 
     }
 
+    def 'invokes locking provider on complete with visited modules and any extra modules from starting state'() {
+        given:
+        def identifier = newId(mid, '1.1')
+        startWithState([identifier])
+
+        when: 'No modules are visited/resolved'
+        visitor.complete()
+
+        then:
+        1 * dependencyLockingProvider.persistResolvedDependencies(configuration, singleton(identifier), emptySet())
+
+    }
 
     private void addVisitedNode(ModuleComponentIdentifier module) {
         DependencyGraphNode node = Mock()

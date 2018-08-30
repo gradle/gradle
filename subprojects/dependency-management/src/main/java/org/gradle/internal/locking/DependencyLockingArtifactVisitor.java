@@ -34,6 +34,8 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.RootConfigurationMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.util.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -43,6 +45,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisitor {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DependencyLockingArtifactVisitor.class);
 
     private final DependencyLockingProvider dependencyLockingProvider;
     private final String configurationName;
@@ -62,19 +66,19 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
     public void startArtifacts(RootGraphNode root) {
         RootConfigurationMetadata metadata = root.getMetadata();
         dependencyLockingState = metadata.getDependencyLockingState();
-        if (dependencyLockingState.mustValidateLockState()) {
-            Set<ModuleComponentIdentifier> lockedModules = dependencyLockingState.getLockedDependencies();
+
+        Set<ModuleComponentIdentifier> lockedModules = dependencyLockingState.getLockedDependencies();
+        if (lockedModules != null) {
             modulesToBeLocked = Maps.newHashMapWithExpectedSize(lockedModules.size());
             for (ModuleComponentIdentifier lockedModule : lockedModules) {
                 modulesToBeLocked.put(lockedModule.getModuleIdentifier(), lockedModule);
             }
-            allResolvedModules = Sets.newHashSetWithExpectedSize(this.modulesToBeLocked.size());
-            extraModules = Sets.newHashSet();
-            incorrectModules = Sets.newHashSet();
         } else {
-            modulesToBeLocked = Collections.emptyMap();
-            allResolvedModules = Sets.newHashSet();
+            modulesToBeLocked = Maps.newHashMap();
         }
+        allResolvedModules = Sets.newHashSetWithExpectedSize(this.modulesToBeLocked.size());
+        extraModules = Sets.newHashSet();
+        incorrectModules = Sets.newHashSet();
     }
 
     @Override
@@ -95,14 +99,12 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
                     if (changing) {
                         addChangingModule(id);
                     }
-                    if (dependencyLockingState.mustValidateLockState()) {
-                        ModuleComponentIdentifier lockedId = modulesToBeLocked.remove(id.getModuleIdentifier());
-                        if (lockedId == null) {
-                            extraModules.add(id);
-                        } else if (!lockedId.getVersion().equals(id.getVersion())) {
-                            node.getIncomingEdges();
-                            incorrectModules.add(lockedId);
-                        }
+                    ModuleComponentIdentifier lockedId = modulesToBeLocked.remove(id.getModuleIdentifier());
+                    if (lockedId == null) {
+                        extraModules.add(id);
+                    } else if (!lockedId.getVersion().equals(id.getVersion())) {
+                        node.getIncomingEdges();
+                        incorrectModules.add(lockedId);
                     }
                 }
             }
@@ -139,11 +141,8 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
         });
     }
 
-    private void throwLockOutOfDateException(Collection<String> notResolvedConstraints, Collection<String> extraModules, Collection<String> incorrectModules) {
-        List<String> errors = Lists.newArrayListWithCapacity(notResolvedConstraints.size() + extraModules.size() + incorrectModules.size());
-        for (String notResolvedConstraint : notResolvedConstraints) {
-            errors.add("Did not resolve '" + notResolvedConstraint + "' which is part of the lock state");
-        }
+    private void throwLockOutOfDateException(Collection<String> extraModules, Collection<String> incorrectModules) {
+        List<String> errors = Lists.newArrayListWithCapacity(extraModules.size() + incorrectModules.size());
         for (String extraModule : extraModules) {
             errors.add("Resolved '" + extraModule + "' which is not part of the lock state");
         }
@@ -153,13 +152,32 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
         throw LockOutOfDateException.createLockOutOfDateException(configurationName, errors);
     }
 
+    private void logUnresolvedModulesWarning(Collection<String> notResolvedConstraints) {
+        List<String> warnings = Lists.newArrayListWithCapacity(notResolvedConstraints.size());
+        for (String notResolvedConstraint : notResolvedConstraints) {
+            warnings.add("\t> Did not resolve '" + notResolvedConstraint + "' which is part of the lock state");
+        }
+        LOGGER.warn("\nConfiguration '{}' lock state contains extra dependencies\n{}\n",
+            configurationName, String.join("\n", warnings));
+    }
+
+    public Set<ModuleComponentIdentifier> getModulesToPersist() {
+        Set<ModuleComponentIdentifier> modulesToPersist = Sets.newHashSetWithExpectedSize(allResolvedModules.size() + modulesToBeLocked.size());
+        modulesToPersist.addAll(allResolvedModules);
+        modulesToPersist.addAll(modulesToBeLocked.values());
+        return modulesToPersist;
+    }
+
     public void complete() {
         if (dependencyLockingState.mustValidateLockState()) {
-            if (!modulesToBeLocked.isEmpty() || !extraModules.isEmpty() || !incorrectModules.isEmpty()) {
-                throwLockOutOfDateException(getSortedDisplayNames(modulesToBeLocked.values()), getSortedDisplayNames(extraModules), getSortedDisplayNames(incorrectModules));
+            if (!extraModules.isEmpty() || !incorrectModules.isEmpty()) {
+                throwLockOutOfDateException(getSortedDisplayNames(extraModules), getSortedDisplayNames(incorrectModules));
+            }
+            if (!modulesToBeLocked.isEmpty()) {
+                logUnresolvedModulesWarning(getSortedDisplayNames(modulesToBeLocked.values()));
             }
         }
         Set<ModuleComponentIdentifier> changingModules = this.changingResolvedModules == null ? Collections.<ModuleComponentIdentifier>emptySet() : this.changingResolvedModules;
-        dependencyLockingProvider.persistResolvedDependencies(configurationName, allResolvedModules, changingModules);
+        dependencyLockingProvider.persistResolvedDependencies(configurationName, getModulesToPersist(), changingModules);
     }
 }
