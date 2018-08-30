@@ -76,7 +76,7 @@ fun Project.addValidateTask() =
         // This block gets called twice for the core project as core applies the base as well as the library plugin. That is why we need to check
         // whether the task already exists.
         if (tasks.findByName(validateTaskName) == null) {
-            val validateTask = tasks.register(validateTaskName, ValidateTaskProperties::class.java) {
+            val validateTask = tasks.register(validateTaskName, ValidateTaskProperties::class) {
                 val main by java.sourceSets
                 dependsOn(main.output)
                 classes = main.output.classesDirs
@@ -88,7 +88,7 @@ fun Project.addValidateTask() =
             tasks.named("codeQuality").configure {
                 dependsOn(validateTask)
             }
-            tasks.withType(Test::class.java).configureEach {
+            tasks.withType(Test::class).configureEach {
                 shouldRunAfter(validateTask)
             }
         }
