@@ -40,8 +40,8 @@ open class Consumer : DefaultTask() {
     }
 }
 
-val producer = tasks.create<Producer>("producer")
-val consumer = tasks.create<Consumer>("consumer")
+val producer by tasks.creating(Producer::class)
+val consumer by tasks.creating(Consumer::class)
 
 // Wire property from producer to consumer task
 consumer.inputFile.set(producer.outputFile)
