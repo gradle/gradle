@@ -548,7 +548,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     gradlePluginPortal()
                 }
                 dependencies {
-                    classpath "com.gradle:build-scan-plugin:1.8"
+                    classpath "com.gradle:build-scan-plugin:1.16"
                 }
             }
             rootProject {

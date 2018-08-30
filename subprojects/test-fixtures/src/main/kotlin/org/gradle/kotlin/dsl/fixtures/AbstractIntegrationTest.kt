@@ -7,6 +7,7 @@ import org.gradle.kotlin.dsl.support.zipTo
 
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.TaskOutcome
 
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
@@ -154,8 +155,8 @@ open class AbstractIntegrationTest {
             .build()
 
     protected
-    fun BuildResult.outcomeOf(taskPath: String) =
-        task(taskPath)!!.outcome!!
+    fun BuildResult.outcomeOf(taskPath: String): TaskOutcome? =
+        task(taskPath)?.outcome
 
     protected
     fun buildFailureOutput(vararg arguments: String): String =

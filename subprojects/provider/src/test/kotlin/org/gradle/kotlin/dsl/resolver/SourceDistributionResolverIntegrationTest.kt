@@ -52,6 +52,7 @@ class SourceDistributionResolverIntegrationTest : AbstractIntegrationTest() {
         "diagnostics/src/main/java", "diagnostics/src/main/resources",
         "docs/src/main/resources",
         "ear/src/main/java", "ear/src/main/resources",
+        "files/src/main/java",
         "ide/src/main/java", "ide/src/main/resources",
         "ide-native/src/main/groovy", "ide-native/src/main/java", "ide-native/src/main/resources",
         "ide-play/src/main/java", "ide-play/src/main/resources", "installation-beacon/src/main/java",
