@@ -250,7 +250,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
     }
 
-    private <I extends T> boolean doAddRealized(I toAdd, Action<? super I> notification) {
+    protected <I extends T> boolean doAddRealized(I toAdd, Action<? super I> notification) {
         if (getStore().addRealized(toAdd)) {
             didAdd(toAdd);
             notification.execute(toAdd);
@@ -266,7 +266,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         ProviderInternal<? extends T> providerInternal = Cast.uncheckedCast(provider);
         store.addPending(providerInternal);
         if (eventRegister.isSubscribed(providerInternal.getType())) {
-            doAddRealized(provider.get(), eventRegister.getAddActions());
+            doRealize(providerInternal);
         }
     }
 
@@ -276,10 +276,12 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         CollectionProviderInternal<T, ? extends Iterable<T>> providerInternal = Cast.uncheckedCast(provider);
         store.addPendingCollection(providerInternal);
         if (eventRegister.isSubscribed(providerInternal.getElementType())) {
-            for (T value : provider.get()) {
-                doAddRealized(value, eventRegister.getAddActions());
-            }
+            doRealize(providerInternal);
         }
+    }
+
+    protected void doRealize(ProviderInternal<?> provider) {
+        store.realizePending(provider);
     }
 
     protected void didAdd(T toAdd) {

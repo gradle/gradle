@@ -25,6 +25,8 @@ public interface PendingSource<T> {
 
     void realizePending(Class<?> type);
 
+    void realizePending(ProviderInternal<?> provider);
+
     boolean addPending(ProviderInternal<? extends T> provider);
 
     boolean removePending(ProviderInternal<? extends T> provider);
@@ -35,7 +37,7 @@ public interface PendingSource<T> {
 
     void realizeExternal(ProviderInternal<? extends T> provider);
 
-    void onRealize(Action<T> action);
+    Action<T> onRealize(Action<T> action);
 
     boolean isEmpty();
 

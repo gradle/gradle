@@ -319,6 +319,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         1 * action.execute(b)
         _ * provider2.elementType >> type
         1 * provider2.get() >> [a, b]
+        _ * provider2.size() >> 2
         0 * _
     }
 
@@ -570,6 +571,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         _ * provider2.elementType >> type
         1 * provider2.get() >> [a, b]
+        _ * provider2.size() >> 2
         1 * action.execute(a)
         1 * action.execute(b)
         0 * _
