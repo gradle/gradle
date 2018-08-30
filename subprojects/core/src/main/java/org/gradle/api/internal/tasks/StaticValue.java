@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.util.DeferredUtil;
 
+import javax.annotation.Nullable;
+
 public class StaticValue implements ValidatingValue {
     private final Object value;
 
@@ -25,6 +27,13 @@ public class StaticValue implements ValidatingValue {
         this.value = value;
     }
 
+    @Nullable
+    @Override
+    public Object getContainerValue() {
+        return value;
+    }
+
+    @Nullable
     @Override
     public Object call() {
         return value;

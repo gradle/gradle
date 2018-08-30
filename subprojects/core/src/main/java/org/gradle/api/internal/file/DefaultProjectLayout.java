@@ -93,12 +93,16 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
     @Override
     public DirectoryProperty newOutputDirectory(Task producer) {
-        return new BuildableDirectoryVar(projectDir.fileResolver, producer);
+        DefaultDirectoryVar property = new DefaultDirectoryVar(projectDir.fileResolver);
+        property.attachProducer(producer);
+        return property;
     }
 
     @Override
     public RegularFileProperty newOutputFile(Task producer) {
-        return new BuildableRegularFileVar(projectDir.fileResolver, producer);
+        DefaultRegularFileVar property = new DefaultRegularFileVar(projectDir.fileResolver);
+        property.attachProducer(producer);
+        return property;
     }
 
     @Override
@@ -245,7 +249,8 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         }
     }
 
-    private static class DefaultRegularFileVar extends DefaultPropertyState<RegularFile> implements RegularFileProperty, TaskDependencyContainer {
+    private static class DefaultRegularFileVar extends DefaultPropertyState<RegularFile> implements RegularFileProperty, TaskDependencyContainer, ProducerAwareProperty {
+        private Task producer;
         private final PathToFileResolver fileResolver;
 
         DefaultRegularFileVar(PathToFileResolver fileResolver) {
@@ -254,8 +259,18 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         }
 
         @Override
+        public void attachProducer(Task task) {
+            if (this.producer != null && this.producer != task) {
+                throw new IllegalStateException("This property already has a producer task associated with it.");
+            }
+            this.producer = task;
+        }
+
+        @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            if (getProvider() instanceof TaskDependencyContainer) {
+            if (producer != null) {
+                context.add(producer);
+            } else if (getProvider() instanceof TaskDependencyContainer) {
                 context.add(getProvider());
             }
         }
@@ -277,20 +292,6 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         @Override
         public void set(File file) {
             set(new FixedFile(fileResolver.resolve(file)));
-        }
-    }
-
-    private static class BuildableRegularFileVar extends DefaultRegularFileVar {
-        private final Task producer;
-
-        BuildableRegularFileVar(PathToFileResolver fileResolver, Task producer) {
-            super(fileResolver);
-            this.producer = producer;
-        }
-
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            context.add(producer);
         }
     }
 
@@ -334,8 +335,9 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         }
     }
 
-    private static class DefaultDirectoryVar extends DefaultPropertyState<Directory> implements DirectoryProperty, TaskDependencyContainer {
+    private static class DefaultDirectoryVar extends DefaultPropertyState<Directory> implements DirectoryProperty, TaskDependencyContainer, ProducerAwareProperty {
         private final FileResolver resolver;
+        private Task producer;
 
         DefaultDirectoryVar(FileResolver resolver) {
             super(Directory.class);
@@ -346,6 +348,14 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
             super(Directory.class);
             this.resolver = resolver;
             resolveAndSet(value);
+        }
+
+        @Override
+        public void attachProducer(Task producer) {
+            if (this.producer != null && this.producer != producer) {
+                throw new IllegalStateException("This property already has a producer task associated with it.");
+            }
+            this.producer = producer;
         }
 
         @Override
@@ -360,7 +370,9 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            if (getProvider() instanceof TaskDependencyContainer) {
+            if (producer != null) {
+                context.add(producer);
+            } else if (getProvider() instanceof TaskDependencyContainer) {
                 context.add(getProvider());
             }
         }
@@ -424,25 +436,6 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
                     return b.file(v.toString());
                 }
             };
-        }
-    }
-
-    private static class BuildableDirectoryVar extends DefaultDirectoryVar {
-        private final Task producer;
-
-        BuildableDirectoryVar(FileResolver resolver, Task producer) {
-            super(resolver);
-            this.producer = producer;
-        }
-
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            context.add(producer);
-        }
-
-        @Override
-        public String toString() {
-            return String.format("buildable(%s, %s)", producer.getPath(), super.toString());
         }
     }
 

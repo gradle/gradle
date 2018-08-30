@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.TaskInternal;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -54,5 +55,10 @@ public class ResolvedTaskOutputFilePropertySpec extends AbstractTaskOutputProper
     @Override
     public FileCollection getPropertyFiles() {
         throw new UnsupportedOperationException("not implemented");
+    }
+
+    @Override
+    public void attachProducer(TaskInternal producer) {
+        // Ignore
     }
 }
