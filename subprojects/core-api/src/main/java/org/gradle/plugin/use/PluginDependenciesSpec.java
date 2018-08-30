@@ -16,8 +16,6 @@
 
 package org.gradle.plugin.use;
 
-import org.gradle.api.Incubating;
-
 /**
  * The DSL for declaring plugins to use in a script.
  * <p>
@@ -30,7 +28,6 @@ import org.gradle.api.Incubating;
  * that can be used to apply a plugin directly to a {@code Project} object or similar.
  * A key difference is that plugins applied via the <code>plugins {}</code> block are conceptually applied to the script, and by extension the script target.
  * At this time there is no observable practical difference between the two approaches with regard to the end result.
- * The <code>plugins {}</code> block is a new, incubating, Gradle feature that will evolve to offer benefits over the {@code apply()} approach.
  * </p>
  * <h3>Strict Syntax</h3>
  * <p>
@@ -84,7 +81,6 @@ import org.gradle.api.Incubating;
  * To use a community plugin, the fully qualified id must be specified along with a version.
  * </p>
  */
-@Incubating
 public interface PluginDependenciesSpec {
 
     /**
