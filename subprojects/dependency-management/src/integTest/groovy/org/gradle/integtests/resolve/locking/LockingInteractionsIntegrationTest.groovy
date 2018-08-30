@@ -217,7 +217,7 @@ dependencies {
 
         then:
         lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0-SNAPSHOT'])
-        outputContains('Dependency lock state for configuration \'lockedConf\' contains changing modules: [org:bar:1.0-SNAPSHOT]. This means that dependencies content may still change over time.')
+        outputContains('Dependency lock state for configuration \':lockedConf\' contains changing modules: [org:bar:1.0-SNAPSHOT]. This means that dependencies content may still change over time.')
 
         when:
         mavenRepo.module('org', 'bar', '1.0-SNAPSHOT').publish()

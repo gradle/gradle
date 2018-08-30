@@ -17,12 +17,12 @@
 package org.gradle.api.tasks.outputorigin
 
 import org.gradle.api.Action
-import org.gradle.api.internal.ClosureBackedAction
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ScopeIdsFixture
 import org.gradle.integtests.fixtures.TaskOutputOriginFixture
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.id.UniqueId
-import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
+import org.gradle.util.ClosureBackedAction
 import org.junit.Rule
 
 class ContinuousIncrementalBuildOutputOriginIntegrationTest extends AbstractContinuousIntegrationTest {

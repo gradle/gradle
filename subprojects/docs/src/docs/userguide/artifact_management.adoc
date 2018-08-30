@@ -41,13 +41,11 @@ Execution of these tasks will build or upload the artifacts belonging to the res
 
 You can use an archive task to define an artifact:
 
-=== Example: Defining an artifact using an archive task
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/artifacts/uploading/build.gradle[tag=archive-artifact]
-----
+.Defining an artifact using an archive task
+====
+include::sample[dir="userguide/artifacts/uploading/groovy",files="build.gradle[tags=archive-artifact]"]
+include::sample[dir="userguide/artifacts/uploading/kotlin",files="build.gradle.kts[tags=archive-artifact]"]
+====
 
 It is important to note that the custom archives you are creating as part of your build are not automatically assigned to any configuration. You have to explicitly do this assignment.
 
@@ -56,33 +54,27 @@ It is important to note that the custom archives you are creating as part of you
 
 You can also use a file to define an artifact:
 
-=== Example: Defining an artifact using a file
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/artifacts/uploading/build.gradle[tag=file-artifact]
-----
+.Defining an artifact using a file
+====
+include::sample[dir="userguide/artifacts/uploading/groovy",files="build.gradle[tags=file-artifact]"]
+include::sample[dir="userguide/artifacts/uploading/kotlin",files="build.gradle.kts[tags=file-artifact]"]
+====
 
 Gradle will figure out the properties of the artifact based on the name of the file. You can customize these properties:
 
-=== Example: Customizing an artifact
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/artifacts/uploading/build.gradle[tag=customized-file-artifact]
-----
+.Customizing an artifact
+====
+include::sample[dir="userguide/artifacts/uploading/groovy",files="build.gradle[tags=customized-file-artifact]"]
+include::sample[dir="userguide/artifacts/uploading/kotlin",files="build.gradle.kts[tags=customized-file-artifact]"]
+====
 
 There is a map-based syntax for defining an artifact using a file. The map must include a `file` entry that defines the file. The map may include other artifact properties:
 
-=== Example: Map syntax for defining an artifact using a file
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/artifacts/uploading/build.gradle[tag=map-file-artifact]
-----
+.Map syntax for defining an artifact using a file
+====
+include::sample[dir="userguide/artifacts/uploading/groovy",files="build.gradle[tags=map-file-artifact]"]
+include::sample[dir="userguide/artifacts/uploading/kotlin",files="build.gradle.kts[tags=map-file-artifact]"]
+====
 
 
 [[sec:publishing_artifacts]]
@@ -90,13 +82,11 @@ include::{samplesPath}/userguide/artifacts/uploading/build.gradle[tag=map-file-a
 
 We have said that there is a specific upload task for each configuration. Before you can do an upload, you have to configure the upload task and define where to publish the artifacts to. The repositories you have defined (as described in <<declaring_repositories.adoc#declaring_repositories,Declaring Repositories>>) are not automatically used for uploading. In fact, some of those repositories only allow downloading artifacts, not uploading. Here is an example of how you can configure the upload task of a configuration:
 
-=== Example: Configuration of the upload task
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/artifacts/uploading/build.gradle[tag=uploading]
-----
+.Configuration of the upload task
+====
+include::sample[dir="userguide/artifacts/uploading/groovy",files="build.gradle[tags=uploading]"]
+include::sample[dir="userguide/artifacts/uploading/kotlin",files="build.gradle.kts[tags=uploading]"]
+====
 
 As you can see, you can either use a reference to an existing repository or create a new repository.
 

@@ -24,10 +24,6 @@ import org.gradle.gradlebuild.ProjectGroups.javaProjects
 import org.gradle.gradlebuild.ProjectGroups.pluginProjects
 import org.gradle.gradlebuild.ProjectGroups.publishedProjects
 
-buildscript {
-    project.apply(from = "$rootDir/gradle/shared-with-buildSrc/mirrors.gradle.kts")
-}
-
 plugins {
     `java-base`
     id("gradlebuild.build-types")
@@ -138,17 +134,18 @@ buildTypes {
     }
 }
 
-var kotlinDevMirrorUrl = (project.rootProject.extensions.extraProperties.get("repositoryMirrors") as Map<String, String>).get("kotlindev")
-
 allprojects {
     group = "org.gradle"
 
     repositories {
-        maven(url = "https://repo.gradle.org/gradle/libs-releases")
-        maven(url = "https://repo.gradle.org/gradle/libs")
-        maven(url = "https://repo.gradle.org/gradle/libs-milestones")
-        maven(url = "https://repo.gradle.org/gradle/libs-snapshots")
-        maven(url = kotlinDevMirrorUrl ?: "https://dl.bintray.com/kotlin/kotlin-dev")
+        maven {
+            name = "Gradle libs"
+            url = uri("https://repo.gradle.org/gradle/libs")
+        }
+        maven {
+            name = "kotlin-dev"
+            url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
+        }
     }
 
     // patchExternalModules lives in the root project - we need to activate normalization there, too.
@@ -303,24 +300,6 @@ tasks.register<Install>("installAll") {
 
 fun distributionImage(named: String) =
     project(":distributions").property(named) as CopySpec
-
-val validateBuildCacheConfiguration = tasks.register("validateBuildCacheConfiguration") {
-    enabled = gradle.startParameter.isBuildCacheEnabled
-    doLast {
-        if (rootProject.buildCacheConfiguration().remote?.isEnabled == true) {
-            rootProject.availableJavaInstallations.validateForRemoteBuildCacheUsage()
-        }
-    }
-}
-
-subprojects {
-    tasks.withType<AbstractCompile>().configureEach {
-        dependsOn(validateBuildCacheConfiguration)
-    }
-}
-
-fun Project.buildCacheConfiguration() =
-    (gradle as GradleInternal).settings.buildCache
 
 fun Configuration.usage(named: String) =
     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(named))

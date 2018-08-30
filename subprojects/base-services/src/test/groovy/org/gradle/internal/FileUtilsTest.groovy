@@ -70,6 +70,8 @@ class FileUtilsTest extends Specification {
         toRoots(files("a/a", "a/a")) == files("a/a")
         toRoots(files("a", "b", "c")) == files("a", "b", "c")
         toRoots(files("a/a", "a/a/a", "a/b/a")) == files("a/a", "a/b/a")
+        toRoots(files("a/a/a", "a/a", "a/b/a")) == files("a/a", "a/b/a")
+        toRoots(files("a/a", "a/a-1", "a/a/a")) == files("a/a", "a/a-1")
         toRoots(files("a/a", "a/a/a", "b/a/a")) == files("a/a", "b/a/a")
         toRoots(files("a/a/a/a/a/a/a/a/a", "a/b")) == files("a/a/a/a/a/a/a/a/a", "a/b")
         toRoots(files("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a")) == files("a/a/a/a/a/a/a/a/a", "a/b", "b/a/a/a/a/a/a/a/a/a/a/a")

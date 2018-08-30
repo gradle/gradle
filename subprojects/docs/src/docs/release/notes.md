@@ -58,6 +58,15 @@ In this way, stale execution data, which would cause non-repeatable task outputs
 Since Gradle now takes care of removing the execution data, the `JacocoPluginExtension.append` property has been deprecated.
 The JaCoCo agent is always configured with `append = true`, so it can be used when running tests in parallel. 
 
+### Plural task output properties don't disable caching anymore
+
+When using `@OutputFiles` or `@OutputDirectories` with an `Iterable` type, Gradle used to disable caching for the task with the following message:
+
+> Declares multiple output files for the single output property 'outputFiles' via @OutputFiles, @OutputDirectories or TaskOutputs.files()
+
+This is no longer the case, and using such properties doesn't prevent the task from being cached.
+The only remaining reason to disable caching for the task is if the output contains file trees.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -147,6 +156,11 @@ The previously deprecated support for Play Framework 2.2 has been removed.
 
 See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
 
+### `CopySpec.duplicatesStrategy` is no longer nullable
+
+For better compatibility with the Kotlin DSL, the property setter no longer accepts `null` as a way
+to reset the property back to its default value. Use `DuplicatesStrategy.INHERIT` instead.
+
 ### Changes to previously deprecated APIs
 
 - The `org.gradle.plugins.signing.Signature` methods `getToSignArtifact()` and `setFile(File)` are removed.
@@ -187,8 +201,11 @@ We would like to thank the following community members for making contributions 
 - [Ben McCann](https://github.com/benmccann) - Remove Play 2.2 support (gradle/gradle#3353)
 - [Björn Kautler](https://github.com/Vampire) - No Deprecated Configurations in Build Init (gradle/gradle#6208)
 - [Georg Friedrich](https://github.com/GFriedrich) - Base Java Library Distribution Plugin on Java Library Plugin (gradle/gradle#5695)
-- [Stefan M.](https://github.com/StefMa) — Include Kotlin DSL samples in Gradle wrapper and Java Gradle Plugin user manual chapters (gradle/gradle#5923 and gradle/gradle#6485)
-- [Jean-Baptiste Nizet](https://github.com/jnizet) — Include Kotlin DSL samples in Gradle Base Plugin user manual chapter (gradle/gradle#6488)
+- [Stefan M.](https://github.com/StefMa) — Include Kotlin DSL samples in Gradle Wrapper, Java Gradle Plugin, and OSGI Plugin user manual chapters (gradle/gradle#5923, gradle/gradle#6485, gradle/gradle#6539)
+- [Jean-Baptiste Nizet](https://github.com/jnizet) — Include Kotlin DSL samples in Announcements, Base, Java Library Plugins, JaCoCo Plugins, Building Java Projects, Declaring Repositories, Dependency Locking, Dependency Types, Java Library, Java Testing, Artifact Management, IDEA Plugin and Application Plugin user manual chapters (gradle/gradle#6488, gradle/gradle#6500, gradle/gradle#6514, gradle/gradle#6518, gradle/gradle#6521, gradle/gradle#6540, gradle/gradle#6560, gradle/gradle#6559, gradle/gradle#6569, gradle/gradle#6556)
+- [Jean-Baptiste Nizet](https://github.com/jnizet) — Use proper subtype for useTestNG() (gradle/gradle#6520)
+- [Xiang Li](https://github.com/lixiangconan) and [Theodore Ni](https://github.com/tjni) - Make FileUtils#calculateRoots more efficient (gradle/gradle#6455)
+- [James Justinic](https://github.com/jjustinic) Include Kotlin DSL samples in Ant, Code Quality, and WAR Plugin user manual chapters (gradle/gradle#6492, gradle/gradle#6510, gradle/gradle#6522)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

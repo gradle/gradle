@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.tasks.api.internal
 
+import org.gradle.internal.reflect.JavaReflectionUtil
 import spock.lang.Unroll
 
 class ApiClassExtractorTestSupportTest extends ApiClassExtractorTestSupport {
@@ -67,7 +68,7 @@ class ApiClassExtractorTestSupportTest extends ApiClassExtractorTestSupport {
         b.name == 'com.acme.B'
 
         when:
-        def aa = a.newInstance()
+        def aa = JavaReflectionUtil.newInstance(a)
 
         then:
         aa.id == 'id'

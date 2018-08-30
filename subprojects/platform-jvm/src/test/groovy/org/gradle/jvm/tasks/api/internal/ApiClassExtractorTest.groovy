@@ -17,6 +17,7 @@
 package org.gradle.jvm.tasks.api.internal
 
 import org.gradle.internal.classanalysis.AsmConstants
+import org.gradle.internal.reflect.JavaReflectionUtil
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Label
@@ -46,12 +47,12 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasMethod(extracted, 'foo')
 
         when:
-        def o = extracted.newInstance()
+        def o = JavaReflectionUtil.newInstance(extracted)
         o.foo()
 
         then:
-        thrown(UnsupportedOperationException)
-
+        def e = thrown(Exception)
+        e.cause.cause instanceof UnsupportedOperationException
     }
 
     def "should not remove protected method"() {
@@ -72,10 +73,11 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasMethod(extracted, 'foo')
 
         when:
-        extracted.newInstance()
+        JavaReflectionUtil.newInstance(extracted)
 
         then:
-        thrown(UnsupportedOperationException)
+        def e = thrown(Exception)
+        e.cause.cause instanceof UnsupportedOperationException
 
     }
 
@@ -202,10 +204,11 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasMethod(extractedB, 'foo').modifiers == Opcodes.ACC_PUBLIC
 
         when:
-        extractedB.newInstance()
+        JavaReflectionUtil.newInstance(extractedB)
 
         then:
-        thrown(UnsupportedOperationException)
+        def e = thrown(Exception)
+        e.cause.cause instanceof UnsupportedOperationException
 
         when:
         extractedA.STATIC_IN_A()
@@ -321,12 +324,12 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasField(extracted, 'foo', String)
 
         when:
-        def o = extracted.newInstance()
+        def o = JavaReflectionUtil.newInstance(extracted)
         o.foo()
 
         then:
-        thrown(UnsupportedOperationException)
-
+        def e = thrown(Exception)
+        e.cause.cause instanceof UnsupportedOperationException
     }
 
     def "should not remove protected field"() {
@@ -347,11 +350,11 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasField(extracted, 'foo', String)
 
         when:
-        extracted.newInstance()
+        JavaReflectionUtil.newInstance(extracted)
 
         then:
-        thrown(UnsupportedOperationException)
-
+        def e = thrown(Exception)
+        e.cause.cause instanceof UnsupportedOperationException
     }
 
     def "should remove private field"() {

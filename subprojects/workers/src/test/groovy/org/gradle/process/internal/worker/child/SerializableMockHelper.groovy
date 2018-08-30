@@ -25,6 +25,7 @@ import org.codehaus.groovy.control.CompilationUnit
 import org.codehaus.groovy.control.CompilationUnit.ClassgenCallback
 import org.codehaus.groovy.control.Phases
 import org.gradle.api.Action
+import org.gradle.internal.reflect.JavaReflectionUtil
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -53,7 +54,7 @@ class TestAction implements ${Action.class.name}, ${Serializable.class.name}
         unit.setClassgenCallback(collector);
         unit.compile(Phases.CLASS_GENERATION);
 
-        Object instance = collector.generated.newInstance()
+        Object instance = JavaReflectionUtil.newInstance(collector.generated)
         instance.key = counter.getAndIncrement()
         ACTIONS[instance.key] = action
         return instance

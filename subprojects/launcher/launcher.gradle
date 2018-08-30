@@ -26,12 +26,23 @@ dependencies {
     compile libraries.slf4j_api.coordinates
 
     integTestCompile project(':internalIntegTesting')
-    // Needed for testing debug command line option (JDWPUtil)
-    integTestCompile files(rootProject.availableJavaInstallations.jdkForCompilation(JavaVersion.VERSION_1_7).toolsJar ?: [])
     integTestRuntime project(':plugins')
     integTestRuntime project(':languageNative')
 
     testFixturesCompile project(':internalIntegTesting')
+}
+// Needed for testing debug command line option (JDWPUtil)
+if (!rootProject.availableJavaInstallations.javaInstallationForTest.javaVersion.java9Compatible) {
+    dependencies {
+        integTestRuntime files(rootProject.availableJavaInstallations.javaInstallationForTest.toolsJar)
+    }
+}
+
+if(rootProject.availableJavaInstallations.currentJavaInstallation.javaVersion.java8) {
+    // If running on Java 8 but compiling with Java 9, Groovy code would still be compiled by Java 8, so here we need the tools.jar
+    dependencies {
+        integTestCompileOnly files(rootProject.availableJavaInstallations.currentJavaInstallation.toolsJar)
+    }
 }
 
 gradlebuildJava {

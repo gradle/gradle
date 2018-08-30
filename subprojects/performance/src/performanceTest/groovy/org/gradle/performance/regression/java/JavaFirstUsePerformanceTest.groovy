@@ -104,7 +104,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['tasks']
         runner.useDaemon = false
-        runner.targetVersions = ["4.10-20180807192046+0000"]
+        runner.targetVersions = ["5.0-20180828000144+0000"]
 
         when:
         def result = runner.run()

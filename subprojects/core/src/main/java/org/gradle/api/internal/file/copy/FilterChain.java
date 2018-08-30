@@ -22,7 +22,6 @@ import org.apache.tools.ant.util.ReaderInputStream;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.FilterReader;
