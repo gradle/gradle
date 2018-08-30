@@ -44,7 +44,7 @@ open class EmptyDirectoryCheck @Inject constructor(objects: ObjectFactory) : Def
     val reportFile: RegularFileProperty = newOutputFile()
 
     @get:Input
-    val policy: Property<WhenNotEmpty> = objects.property(WhenNotEmpty::class)
+    val policy: Property<WhenNotEmpty> = objects.property()
 
     @TaskAction
     fun ensureDirectoryEmpty() {

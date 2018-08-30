@@ -22,5 +22,5 @@ import org.gradle.kotlin.dsl.*
 
 
 open class TestFileCleanUpExtension(objects: ObjectFactory) {
-    val policy: Property<WhenNotEmpty> = objects.property(WhenNotEmpty::class)
+    val policy: Property<WhenNotEmpty> = objects.property()
 }

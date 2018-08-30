@@ -52,7 +52,7 @@ open class IntTestImagePlugin : Plugin<Project> {
 
         val partialDistribution by configurations.creating {
             attributes {
-                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class, Usage.JAVA_RUNTIME))
+                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
             }
             isCanBeResolved = true
             isCanBeConsumed = false
@@ -79,7 +79,7 @@ open class IntTestImagePlugin : Plugin<Project> {
         } else {
             val selfRuntime by configurations.creating {
                 attributes {
-                    attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class, Usage.JAVA_RUNTIME))
+                    attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
                 }
                 isCanBeResolved = true
                 isCanBeConsumed = false

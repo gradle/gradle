@@ -113,7 +113,7 @@ open class ShadedJarPlugin : Plugin<Project> {
         }
 
         return configurations.create(configurationName) {
-            attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class, Usage.JAVA_RUNTIME))
+            attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
             isCanBeResolved = true
             isCanBeConsumed = false
         }
