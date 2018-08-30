@@ -231,32 +231,40 @@ object RequestQueue {
 
 private
 fun Report.exceptions(scriptFile: File?, exceptions: List<Exception>) =
-    exceptions.mapNotNull { inferLineNumberAndMessageOrNull(scriptFile, it) }.forEach { (lineNumber, message) ->
-        error(message, Position(lineNumber - 1, 1))
-    }
+    scriptFile?.canonicalFile?.let { canonicalScriptFile ->
+        exceptions
+            .mapNotNull { lineNumberAndMessageOrNullFrom(it, canonicalScriptFile) }
+            .forEach { (lineNumber, message) ->
+                error(message, Position(lineNumber - 1, 1))
+            }
+        }
 
 
 private
-tailrec fun inferLineNumberAndMessageOrNull(scriptFile: File?, ex: Throwable): Pair<Int, String>? {
+tailrec fun lineNumberAndMessageOrNullFrom(ex: Throwable, scriptFile: File): Pair<Int, String>? {
     if (ex.isReportedLocationAwareException && ex.appliesTo(scriptFile)) {
         ex.locationAwareLineNumber?.let { lineNumber ->
             return Pair(lineNumber, ex.locationAwareMessage)
         }
     }
     val cause = ex.cause ?: return null
-    return inferLineNumberAndMessageOrNull(scriptFile, cause)
+    return lineNumberAndMessageOrNullFrom(cause, scriptFile)
 }
 
 
 private
 val Throwable.isReportedLocationAwareException
-    get() = this::class.java.name == LocationAwareException::class.java.name
-        && this.cause?.let { cause -> cause::class.java.name != ScriptCompilationException::class.java.name } ?: true
+    get() = isNamed<LocationAwareException>() && cause?.isNamed<ScriptCompilationException>() != true
 
 
 private
-fun Throwable.appliesTo(scriptFile: File?): Boolean =
-    scriptFile != null && message?.contains(scriptFile.canonicalPath) == true
+inline fun <reified T> Throwable.isNamed() =
+    this::class.java.name == T::class.java.name
+
+
+private
+fun Throwable.appliesTo(scriptFile: File): Boolean =
+    message?.contains(scriptFile.path) == true
 
 
 private
