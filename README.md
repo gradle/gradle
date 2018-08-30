@@ -14,6 +14,9 @@ Getting Started
 ---------------
 
 The fastest way to get up and running with a Kotlin-based Gradle build is to work with one of the [samples](samples). You'll find complete instructions in the README there.
+
+The guide [Migrating build logic from Groovy to Kotlin](https://guides.gradle.org/migrating-build-logic-from-groovy-to-kotlin/) is an excellent read if you already have knowledge concerning *Groovy-based Gradle build scripts*.
+
 There are also some helpful [getting started](doc/getting-started) notes for when your build logic gets more complicated.
 
 
@@ -39,4 +42,4 @@ Like the rest of Gradle, the _Gradle Kotlin DSL_ is released under version 2.0 o
 Contributing
 ------------
 
-Please see [CONTRIBUTING.md](.github/CONTRIBUTING.md) for details of how to build and contribute to _Gradle Kotlin DSL_. 
+Please see [CONTRIBUTING.md](.github/CONTRIBUTING.md) for details of how to build and contribute to _Gradle Kotlin DSL_.
