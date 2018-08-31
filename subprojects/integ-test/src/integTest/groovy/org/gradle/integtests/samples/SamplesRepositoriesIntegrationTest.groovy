@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Unroll
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
@@ -34,6 +35,7 @@ class SamplesRepositoriesIntegrationTest extends AbstractIntegrationSpec {
         requireOwnGradleUserHomeDir() // Isolate Kotlin DSL extensions API jar
     }
 
+    @Unroll
     @UsesSample("userguide/artifacts/defineRepository")
     def "can use repositories notation with #dsl dsl"() {
         // This test is not very strong. Its main purpose is to the for the correct syntax as we use many
