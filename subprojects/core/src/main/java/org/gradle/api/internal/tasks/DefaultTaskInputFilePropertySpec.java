@@ -31,17 +31,17 @@ public class DefaultTaskInputFilePropertySpec implements DeclaredTaskInputFilePr
 
     private final ValidatingValue value;
     private final ValidationAction validationAction;
-    private final FileCollection files;
+    private final TaskPropertyFileCollection files;
     private String propertyName;
     private boolean skipWhenEmpty;
     private boolean optional;
     private Class<? extends FileNormalizer> normalizer = AbsolutePathInputNormalizer.class;
     private LifecycleAwareTaskProperty lifecycleAware;
 
-    public DefaultTaskInputFilePropertySpec(String taskName, FileResolver resolver, ValidatingValue path, ValidationAction validationAction) {
-        this.value = path;
+    public DefaultTaskInputFilePropertySpec(String taskName, FileResolver resolver, ValidatingValue paths, ValidationAction validationAction) {
+        this.value = paths;
         this.validationAction = validationAction;
-        this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, path);
+        this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, paths);
     }
 
     @Override

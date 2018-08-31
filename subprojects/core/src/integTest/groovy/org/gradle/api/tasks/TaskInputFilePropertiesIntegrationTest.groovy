@@ -129,9 +129,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
 
             task foo {
                 outputs.file "foo.txt"
-                doFirst {
-                    file("foo.txt").createNewFile()
-                }
+                doFirst {}
             }
 
             task bar {
