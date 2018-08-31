@@ -15,10 +15,10 @@ configurations {
 // tag::dependencies[]
 // tag::project-dependencies[]
 dependencies {
-    compile project(':shared')
+    implementation project(':shared')
 // end::project-dependencies[]
 // end::dependencies[]
-    compile module("org.apache.commons:commons-lang3:3.7") {
+    implementation module("org.apache.commons:commons-lang3:3.7") {
         dependency("commons-io:commons-io:2.6")
     }
 // tag::dependencies[]
@@ -46,7 +46,7 @@ task dist(type: Zip) {
     from 'src/dist'
     into('libs') {
         from spiJar.archivePath
-        from configurations.runtime
+        from configurations.runtimeClasspath
     }
 }
 
@@ -66,7 +66,7 @@ task checkProjectDependency(dependsOn: project(':shared').jar) {
             from project(':shared').jar.archivePath
             into cachedSharedJarDir
         }
-        File sharedJar = configurations.compile.find { File file -> file.name.startsWith('shared') }
+        File sharedJar = configurations.compileClasspath.find { File file -> file.name.startsWith('shared') }
         assert sharedJar.absolutePath == project(':shared').jar.archivePath.absolutePath
     }
 }
