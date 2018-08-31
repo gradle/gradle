@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.io.ByteStreams;
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.os.OperatingSystem;
@@ -68,13 +69,17 @@ interface ClassPathMerger {
 
         private File jar(String manifestContent) throws IOException {
             File jar = Files.createTempFile("classpath.jar", null).toFile();
+            ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(jar));
 
-            try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(jar))) {
+            try {
                 ZipEntry entry = new ZipEntry("META-INF/MANIFEST.MF");
                 zipOutputStream.putNextEntry(entry);
                 ByteStreams.copy(new ByteArrayInputStream(manifestContent.getBytes()), zipOutputStream);
                 zipOutputStream.closeEntry();
+            } finally {
+                IOUtils.closeQuietly(zipOutputStream);
             }
+
             return jar;
         }
 
