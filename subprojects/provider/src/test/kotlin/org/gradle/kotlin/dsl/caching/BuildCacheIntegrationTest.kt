@@ -59,63 +59,69 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
     @Test
     fun `build cache integration is enabled via system property`() {
 
-        val buildCacheDir =
-            existing("build-cache")
-
-        val settingsFile =
-            withLocalBuildCacheSettings(buildCacheDir)
+        val buildCacheDir = existing("build-cache")
 
         val expectedOutput = "***42***"
 
-        val buildFile =
-            withBuildScript("""
-                println("$expectedOutput")
-            """)
+        fun cloneProject(): Pair<File, File> {
 
-        val cachedSettingsFile =
-            cachedSettingsFile(settingsFile, hasBody = true)
+            val settingsFile =
+                withLocalBuildCacheSettings(buildCacheDir)
 
-        val cachedBuildFile =
-            cachedBuildFile(buildFile, hasBody = true)
+            val buildFile =
+                withBuildScript("""println("$expectedOutput")""")
 
-        // Cache miss with a fresh Gradle home, script cache will be pushed to build cache
-        buildWithUniqueGradleHome("--build-cache", withBuildCacheIntegration).apply {
-
-            compilationCache {
-                misses(cachedSettingsFile)
-                misses(cachedBuildFile)
-            }
-
-            assertThat(output, containsString(expectedOutput))
+            return settingsFile to buildFile
         }
 
-        // Cache hit from build cache (enabled via gradle.properties file)
-        withUniqueGradleHome { gradleHome ->
+        withProjectRoot(newDir("clone-a")) {
 
-            File(gradleHome, "gradle.properties").writeText(
-                "systemProp.$kotlinDslBuildCacheEnabled"
-            )
+            val (settingsFile, buildFile) = cloneProject()
 
-            buildWithGradleHome(gradleHome, "--build-cache").apply {
+            // Cache miss with a fresh Gradle home, script cache will be pushed to build cache
+            buildWithUniqueGradleHome("--build-cache", withBuildCacheIntegration).apply {
 
                 compilationCache {
-                    misses(cachedSettingsFile)
-                    hits(cachedBuildFile)
+                    misses(cachedSettingsFile(settingsFile, hasBody = true))
+                    misses(cachedBuildFile(buildFile, hasBody = true))
                 }
 
                 assertThat(output, containsString(expectedOutput))
             }
         }
 
-        // Cache miss without build cache integration
-        buildWithUniqueGradleHome("--build-cache").apply {
+        withProjectRoot(newDir("clone-b")) {
 
-            compilationCache {
-                misses(cachedSettingsFile)
-                misses(cachedBuildFile)
+            val (settingsFile, buildFile) = cloneProject()
+
+            // Cache hit from build cache (enabled via gradle.properties file)
+            withUniqueGradleHome { gradleHome ->
+
+                File(gradleHome, "gradle.properties").writeText(
+                    "systemProp.$kotlinDslBuildCacheEnabled"
+                )
+
+                buildWithGradleHome(gradleHome, "--build-cache").apply {
+
+                    compilationCache {
+                        misses(cachedSettingsFile(settingsFile, hasBody = true))
+                        hits(cachedBuildFile(buildFile, hasBody = true))
+                    }
+
+                    assertThat(output, containsString(expectedOutput))
+                }
             }
 
-            assertThat(output, containsString(expectedOutput))
+            // Cache miss without build cache integration
+            buildWithUniqueGradleHome("--build-cache").apply {
+
+                compilationCache {
+                    misses(cachedSettingsFile(settingsFile, hasBody = true))
+                    misses(cachedBuildFile(buildFile, hasBody = true))
+                }
+
+                assertThat(output, containsString(expectedOutput))
+            }
         }
     }
 
