@@ -32,13 +32,11 @@ image::dependency-management-dependencies-to-modules.png[]
 
 A typical example for such a library in a Java project is the link:https://projects.spring.io/spring-framework/[Spring framework]. The following code snippet declares a compile-time dependency on the Spring web module by its coordinates: `org.springframework:spring-web:5.0.2.RELEASE`. Gradle resolves the module including its transitive dependencies from the link:https://search.maven.org/[Maven Central repository] and uses it to compile Java source code. The version attribute of the dependency coordinates points to a _concrete version_ indicating that the underlying artifacts do not change over time. The use of concrete versions ensure reproducibility for the aspect of dependency resolution.
 
-=== Example: Declaring a dependency with a concrete version
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/declaringDependencies/concreteVersion/build.gradle[tag=dependencies]
-----
+.Declaring a dependency with a concrete version
+====
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/concreteVersion/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/concreteVersion/kotlin",files="build.gradle.kts[tags=dependencies]"]
+====
 
 A Gradle project can define other types of repositories hosting modules. You can learn more about the syntax and API in the section on <<declaring_repositories.adoc#declaring_repositories,declaring repositories>>. Refer to <<java_plugin.adoc#java_plugin, the chapter on the Java Plugin>> for a deep dive on declaring dependencies for a Java project. The resolution behavior for dependencies is <<customizing_dependency_resolution_behavior.adoc#customizing_dependency_resolution_behavior,highly customizable>>.
 

@@ -20,8 +20,13 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Unroll
 
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
+
+@Requires(KOTLIN_SCRIPT)
 class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrationTest {
 
     private static final String COPY_LIBS_TASK_NAME = 'copyLibs'
@@ -29,15 +34,20 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/declaringDependencies/concreteVersion")
-    def "can use declare and resolve dependency with concrete version"() {
-        executer.inDirectory(sample.dir)
+    def "can use declare and resolve dependency with concrete version with #dsl dsl"() {
+        TestFile dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        sample.dir.file('build/libs/spring-web-5.0.2.RELEASE.jar').isFile()
+        dslDir.file('build/libs/spring-web-5.0.2.RELEASE.jar').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     @UsesSample("userguide/dependencyManagement/declaringDependencies/withoutVersion")
