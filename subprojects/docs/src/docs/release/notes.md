@@ -161,6 +161,10 @@ See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-exec
 For better compatibility with the Kotlin DSL, the property setter no longer accepts `null` as a way
 to reset the property back to its default value. Use `DuplicatesStrategy.INHERIT` instead.
 
+### `CheckstyleReports` and `FindbugsReports` `html` property now return `CustomizableHtmlReport`
+
+For easier configurability from statically compiled languages such as Java or Kotlin.
+
 ### Changes to previously deprecated APIs
 
 - The `org.gradle.plugins.signing.Signature` methods `getToSignArtifact()` and `setFile(File)` are removed.
