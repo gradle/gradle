@@ -76,7 +76,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -202,8 +201,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
                 JavaExecHandleBuilder builder = TestFiles.execFactory().newJavaExec();
                 builder.workingDir(getWorkingDir());
                 builder.setExecutable(new File(getJavaHome(), "bin/java"));
-                Collection<File> classpath = cleanup(GLOBAL_SERVICES.get(ModuleRegistry.class).getAdditionalClassPath().getAsFiles());
-                builder.classpath(classpath);
+                builder.classpath(getClassPath());
                 builder.jvmArgs(invocation.launcherJvmArgs);
                 builder.environment(invocation.environmentVars);
 
@@ -216,7 +214,12 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         };
     }
 
-    private Collection<File> cleanup(List<File> files) {
+    private List<File> getClassPath() {
+        List<File> classPath = GLOBAL_SERVICES.get(ModuleRegistry.class).getAdditionalClassPath().getAsFiles();
+        return ClassPathMerger.INSTANCE.mergeClassPathIfNecessary(cleanup(classPath));
+    }
+
+    private List<File> cleanup(List<File> files) {
         List<File> result = new LinkedList<File>();
         String prefix = Jvm.current().getJavaHome().getPath() + File.separator;
         for (File file : files) {
