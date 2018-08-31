@@ -44,7 +44,7 @@ import java.util.zip.ZipOutputStream;
 interface ClassPathMerger {
     ClassPathMerger INSTANCE = OperatingSystem.current().isWindows() ? new WindowsClassPathMerger() : new DoNothingClassPathMerger();
     // Actually 32KB, let's leave some margin
-    int WINDOWS_CLASSPATH_LENGTH_LIMITATION = 1000;
+    int WINDOWS_CLASSPATH_LENGTH_LIMITATION = 30000;
 
     List<File> mergeClassPathIfNecessary(List<File> classPath);
 
