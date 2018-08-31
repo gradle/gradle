@@ -30,6 +30,10 @@ class SamplesRepositoriesIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
+    def setup() {
+        requireOwnGradleUserHomeDir() // Isolate Kotlin DSL extensions API jar
+    }
+
     @UsesSample("userguide/artifacts/defineRepository")
     def "can use repositories notation with #dsl dsl"() {
         // This test is not very strong. Its main purpose is to the for the correct syntax as we use many
