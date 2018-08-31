@@ -33,6 +33,13 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+/**
+ * On Windows, sometimes we hit `The filename or extension is too long` error when starting a new process. This is because of Windows command's 32KB limitation.
+ * In this situation, we merged all classpath entries into one empty `classpath.jar` with `Class-Path:` entry containing all original entries.
+ *
+ * See <a href="https://docs.oracle.com/javase/tutorial/deployment/jar/downman.html">Adding Classes to the JAR File's Classpath</>
+ * And <a href="https://github.com/bazelbuild/bazel/commit/d9a7d3a789be559bd6972208af21adae871d7a44">A similar implementation in Bazel</>
+ */
 interface ClassPathMerger {
     ClassPathMerger INSTANCE = OperatingSystem.current().isWindows() ? new WindowsClassPathMerger() : new DoNothingClassPathMerger();
     // Actually 32KB, let's leave some margin
@@ -72,7 +79,7 @@ interface ClassPathMerger {
         }
 
         /**
-         * Build the entry for classpath in jar MANIFEST.MF file, spaces in path should be escaped since
+         * Generate the content of jar MANIFEST.MF file, spaces in path should be escaped since
          * it's the delimiter.
          */
         private String generateManifestContent(List<File> classPath) throws IOException {
@@ -86,6 +93,10 @@ interface ClassPathMerger {
             return make72Safe("Class-Path: " + CollectionUtils.join(" ", uri) + "\r\n");
         }
 
+        /*
+         * This method is coped from https://github.com/bazelbuild/bazel/commit/d9a7d3a789be559bd6972208af21adae871d7a44
+         * If it works for Bazel, it also works for us.
+         */
         private String make72Safe(String line) {
             StringBuilder result = new StringBuilder();
             int length = line.length();
