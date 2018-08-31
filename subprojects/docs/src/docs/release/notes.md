@@ -161,6 +161,10 @@ See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-exec
 For better compatibility with the Kotlin DSL, the property setter no longer accepts `null` as a way
 to reset the property back to its default value. Use `DuplicatesStrategy.INHERIT` instead.
 
+### `CheckstyleReports` and `FindbugsReports` `html` property now return `CustomizableHtmlReport`
+
+For easier configurability from statically compiled languages such as Java or Kotlin.
+
 ### Changes to previously deprecated APIs
 
 - The `org.gradle.plugins.signing.Signature` methods `getToSignArtifact()` and `setFile(File)` are removed.
@@ -206,6 +210,7 @@ We would like to thank the following community members for making contributions 
 - [Jean-Baptiste Nizet](https://github.com/jnizet) — Use proper subtype for useTestNG() (gradle/gradle#6520)
 - [Xiang Li](https://github.com/lixiangconan) and [Theodore Ni](https://github.com/tjni) - Make FileUtils#calculateRoots more efficient (gradle/gradle#6455)
 - [James Justinic](https://github.com/jjustinic) Include Kotlin DSL samples in Ant, Code Quality, and WAR Plugin user manual chapters (gradle/gradle#6492, gradle/gradle#6510, gradle/gradle#6522)
+- [James Justinic](https://github.com/jjustinic) Support type-safe configuration for Checkstyle/FindBugs HTML report stylesheet
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
