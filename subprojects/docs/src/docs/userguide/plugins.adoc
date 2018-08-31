@@ -233,11 +233,6 @@ include::sample[dir="plugins/dslWithBuildSrc/kotlin", files="build.gradle.kts[ta
 ==== Plugin Management
 
 
-[NOTE]
-====
-The `pluginManagement {}` DSL is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
-====
-
 The `pluginManagement {}` block may only appear in either the `settings.gradle` file, where it must be the first block in the file, or in an <<init_scripts.adoc#init_scripts,Initialization Script>>.
 
 .Configuring pluginManagement per-project and globally
