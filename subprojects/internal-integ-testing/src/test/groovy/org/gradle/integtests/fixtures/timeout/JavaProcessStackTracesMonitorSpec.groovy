@@ -19,6 +19,7 @@ package org.gradle.integtests.fixtures.timeout
 import org.gradle.testing.internal.util.Specification
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class JavaProcessStackTracesMonitorSpec extends Specification {
@@ -113,6 +114,7 @@ cmd /c C:\\tcagent1\\work\\668602365d1521fc\\gradlew.bat --init-script C:\\tcage
         IntegrationTestTimeoutInterceptor.getAllStackTracesInCurrentJVM().contains("Thread ${Thread.currentThread().getId()}: ${Thread.currentThread().getName()}")
     }
 
+    @Ignore
     def 'can print all threads of all running JVM by jstack'() {
         when:
         String stacktraces = JavaProcessStackTracesMonitor.getAllStackTracesByJstack()

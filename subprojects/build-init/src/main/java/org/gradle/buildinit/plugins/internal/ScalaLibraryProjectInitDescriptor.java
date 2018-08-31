@@ -18,51 +18,59 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+
+import java.util.Collections;
+import java.util.Set;
 
 public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
 
     private final DocumentationRegistry documentationRegistry;
 
-    public ScalaLibraryProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
-                                             TemplateLibraryVersionProvider libraryVersionProvider, ProjectInitDescriptor globalSettingsDescriptor, DocumentationRegistry documentationRegistry) {
-        super("scala", templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor);
+    public ScalaLibraryProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
+                                             TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+        super("scala", scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
         this.documentationRegistry = documentationRegistry;
     }
 
     @Override
-    public void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
-        globalSettingsDescriptor.generate(dsl, testFramework);
+    public String getId() {
+        return "scala-library";
+    }
 
+    @Override
+    protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         String scalaVersion = libraryVersionProvider.getVersion("scala");
         String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
         String scalaTestVersion = libraryVersionProvider.getVersion("scalatest");
         String junitVersion = libraryVersionProvider.getVersion("junit");
         String scalaXmlVersion = libraryVersionProvider.getVersion("scala-xml");
 
-        BuildScriptBuilder buildScriptBuilder = new BuildScriptBuilder(dsl, fileResolver, "build")
+        buildScriptBuilder
             .fileComment("This generated file contains a sample Scala library project to get you started.")
             .fileComment("For more details take a look at the Scala plugin chapter in the Gradle")
             .fileComment("user guide available at " + documentationRegistry.getDocumentationFor("scala_plugin"))
             .plugin("Apply the scala plugin to add support for Scala", "scala")
-            .compileDependency("Use Scala " + scalaVersion + " in our library project",
+            .implementationDependency("Use Scala " + scalaVersion + " in our library project",
                 "org.scala-lang:scala-library:" + scalaLibraryVersion)
-            .testCompileDependency("Use Scalatest for testing our library",
+            .testImplementationDependency("Use Scalatest for testing our library",
                 "junit:junit:" + junitVersion,
                 "org.scalatest:scalatest_" + scalaVersion + ":" + scalaTestVersion)
-            .testRuntimeDependency("Need scala-xml at test runtime",
+            .testRuntimeOnlyDependency("Need scala-xml at test runtime",
                 "org.scala-lang.modules:scala-xml_" + scalaVersion + ":" + scalaXmlVersion);
 
-        buildScriptBuilder.create().generate();
-
-        TemplateOperation scalaLibTemplateOperation = fromClazzTemplate("scalalibrary/Library.scala.template", "main");
-        TemplateOperation scalaTestTemplateOperation = fromClazzTemplate("scalalibrary/LibrarySuite.scala.template", "test");
+        TemplateOperation scalaLibTemplateOperation = fromClazzTemplate("scalalibrary/Library.scala.template", settings, "main");
+        TemplateOperation scalaTestTemplateOperation = fromClazzTemplate("scalalibrary/LibrarySuite.scala.template", settings, "test");
         whenNoSourcesAvailable(scalaLibTemplateOperation, scalaTestTemplateOperation).generate();
     }
 
     @Override
-    public boolean supports(BuildInitTestFramework testFramework) {
-        return false;
+    public BuildInitTestFramework getDefaultTestFramework() {
+        return BuildInitTestFramework.SCALATEST;
+    }
+
+    @Override
+    public Set<BuildInitTestFramework> getTestFrameworks() {
+        return Collections.singleton(BuildInitTestFramework.SCALATEST);
     }
 }

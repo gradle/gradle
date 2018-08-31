@@ -199,7 +199,7 @@ class ExecCancellationIntegrationTest extends DaemonIntegrationSpec implements D
 
     private void waitForDaemonLog(String output) {
         String daemonLogSinceLastCheckpoint = ''
-        ConcurrentTestUtil.poll(60, {
+        ConcurrentTestUtil.poll(120, {
             daemonLogSinceLastCheckpoint = daemons.daemon.log.substring(daemonLogCheckpoint)
             assert daemonLogSinceLastCheckpoint.contains(output)
         })

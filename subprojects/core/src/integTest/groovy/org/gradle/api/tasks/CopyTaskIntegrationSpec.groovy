@@ -1256,23 +1256,23 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         "filteringCharset"   | "'iso8859-1'"                | "'utf-8'"
     }
 
-    def "null action is deprecated for from and into"() {
+    @Unroll
+    def "null action is forbidden for #method"() {
         given:
-        buildScript '''
+        buildScript """
             task copy(type: Copy) {
                 into "out"
-                from 'src', null
-                into 'dest', null
+                from 'src'
+                ${method} 'dest', null
             }
-        '''.stripIndent()
+        """
 
-        when:
-        executer.expectDeprecationWarnings(2)
-        executer.withFullDeprecationStackTraceDisabled()
-        run 'copy'
-        then:
-        output.contains "Gradle does not allow passing null for the configuration action for CopySpec.from(). This behaviour has been deprecated and is scheduled to be removed in Gradle 5.0"
-        output.contains "Gradle does not allow passing null for the configuration action for CopySpec.into(). This behaviour has been deprecated and is scheduled to be removed in Gradle 5.0"
+        expect:
+        fails 'copy'
+        failure.assertHasCause("Gradle does not allow passing null for the configuration action for CopySpec.${method}().")
+
+        where:
+        method << ["from", "into"]
     }
 
 }

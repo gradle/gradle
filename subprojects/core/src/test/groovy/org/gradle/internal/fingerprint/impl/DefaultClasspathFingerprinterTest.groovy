@@ -17,16 +17,16 @@
 package org.gradle.internal.fingerprint.impl
 
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
-import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.DefaultResourceSnapshotterCacheService
 import org.gradle.api.internal.changedetection.state.WellKnownFileLocations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
-import org.gradle.internal.fingerprint.NormalizedFileSnapshot
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.serialize.HashCodeSerializer
+import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
+import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
 import org.gradle.normalization.internal.InputNormalizationStrategy
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
@@ -210,8 +210,8 @@ class DefaultClasspathFingerprinterTest extends Specification {
     def fingerprint(TestFile... classpath) {
         fileSystemMirror.beforeTaskOutputChanged()
         def fileCollectionFingerprint = fingerprinter.fingerprint(files(classpath), InputNormalizationStrategy.NO_NORMALIZATION)
-        return fileCollectionFingerprint.snapshots.collect { String path, NormalizedFileSnapshot normalizedFileSnapshot ->
-            [new File(path).getName(), normalizedFileSnapshot.normalizedPath, normalizedFileSnapshot.normalizedContentHash.toString()]
+        return fileCollectionFingerprint.fingerprints.collect { String path, FileSystemLocationFingerprint fingerprint ->
+            [new File(path).getName(), fingerprint.normalizedPath, fingerprint.normalizedContentHash.toString()]
         }
     }
 

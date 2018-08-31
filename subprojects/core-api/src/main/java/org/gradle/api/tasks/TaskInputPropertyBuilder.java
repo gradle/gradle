@@ -16,11 +16,6 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.file.FileCollection;
-
-import javax.annotation.Nullable;
-import java.util.Map;
-
 /**
  * Describes an input property of a task.
  *
@@ -32,94 +27,4 @@ public interface TaskInputPropertyBuilder extends TaskPropertyBuilder, TaskInput
      * specified for the property, but any value specified must meet the validation constraints for the property.
      */
     TaskInputPropertyBuilder optional(boolean optional);
-
-    /**
-     * Throws {@link UnsupportedOperationException}.
-     *
-     * @deprecated Use {@link TaskInputs#getHasInputs()} directly instead.
-     */
-    @Deprecated
-    @Override
-    boolean getHasInputs();
-
-    /**
-     * Throws {@link UnsupportedOperationException}.
-     *
-     * @deprecated Use {@link TaskInputs#getFiles()} directly instead.
-     */
-    @Deprecated
-    @Override
-    FileCollection getFiles();
-
-    /**
-     * Throws {@link UnsupportedOperationException}.
-     *
-     * @deprecated Use {@link TaskInputs#files(Object...)} directly instead.
-     */
-    @Deprecated
-    @Override
-    TaskInputFilePropertyBuilder files(Object... paths);
-
-    /**
-     * Throws {@link UnsupportedOperationException}.
-     *
-     * @deprecated Use {@link TaskInputs#file(Object)} directly instead.
-     */
-    @Deprecated
-    @Override
-    TaskInputFilePropertyBuilder file(Object path);
-
-    /**
-     * Throws {@link UnsupportedOperationException}.
-     *
-     * @deprecated Use {@link TaskInputs#dir(Object)} directly instead.
-     */
-    @Deprecated
-    @Override
-    TaskInputFilePropertyBuilder dir(Object dirPath);
-
-    /**
-     * Throws {@link UnsupportedOperationException}.
-     *
-     * @deprecated Use {@link TaskInputs#getProperties()} directly instead.
-     */
-    @Deprecated
-    @Override
-    Map<String, Object> getProperties();
-
-    /**
-     * Throws {@link UnsupportedOperationException}.
-     *
-     * @deprecated Use {@link TaskInputs#property(String, Object)} directly instead.
-     */
-    @Deprecated
-    @Override
-    TaskInputPropertyBuilder property(String name, @Nullable Object value);
-
-    /**
-     * Throws {@link UnsupportedOperationException}.
-     *
-     * @deprecated Use {@link TaskInputs#properties(Map)} directly instead.
-     */
-    @Deprecated
-    @Override
-    TaskInputs properties(Map<String, ?> properties);
-
-    /**
-     * Throws {@link UnsupportedOperationException}.
-     *
-     * @deprecated Use {@link TaskInputs#getHasSourceFiles()} directly instead.
-     */
-    @Deprecated
-    @Override
-    boolean getHasSourceFiles();
-
-    /**
-     * Throws {@link UnsupportedOperationException}.
-     *
-     * @deprecated Use {@link TaskInputs#getSourceFiles()} directly instead.
-     */
-    @Deprecated
-    @Override
-    FileCollection getSourceFiles();
 }

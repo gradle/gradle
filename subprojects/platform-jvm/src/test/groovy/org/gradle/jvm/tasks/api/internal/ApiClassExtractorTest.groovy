@@ -16,6 +16,8 @@
 
 package org.gradle.jvm.tasks.api.internal
 
+import org.gradle.internal.classanalysis.AsmConstants
+import org.gradle.internal.reflect.JavaReflectionUtil
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Label
@@ -45,12 +47,12 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasMethod(extracted, 'foo')
 
         when:
-        def o = extracted.newInstance()
+        def o = JavaReflectionUtil.newInstance(extracted)
         o.foo()
 
         then:
-        thrown(UnsupportedOperationException)
-
+        def e = thrown(Exception)
+        e.cause.cause instanceof UnsupportedOperationException
     }
 
     def "should not remove protected method"() {
@@ -71,10 +73,11 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasMethod(extracted, 'foo')
 
         when:
-        extracted.newInstance()
+        JavaReflectionUtil.newInstance(extracted)
 
         then:
-        thrown(UnsupportedOperationException)
+        def e = thrown(Exception)
+        e.cause.cause instanceof UnsupportedOperationException
 
     }
 
@@ -201,10 +204,11 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasMethod(extractedB, 'foo').modifiers == Opcodes.ACC_PUBLIC
 
         when:
-        extractedB.newInstance()
+        JavaReflectionUtil.newInstance(extractedB)
 
         then:
-        thrown(UnsupportedOperationException)
+        def e = thrown(Exception)
+        e.cause.cause instanceof UnsupportedOperationException
 
         when:
         extractedA.STATIC_IN_A()
@@ -286,7 +290,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         when:
         def cr = new ClassReader(api.extractApiClassFrom(api.classes.A))
         def stubVersion = 0
-        cr.accept(new ClassVisitor(Opcodes.ASM6) {
+        cr.accept(new ClassVisitor(AsmConstants.ASM_LEVEL) {
             @Override
             void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 stubVersion = version
@@ -320,12 +324,12 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasField(extracted, 'foo', String)
 
         when:
-        def o = extracted.newInstance()
+        def o = JavaReflectionUtil.newInstance(extracted)
         o.foo()
 
         then:
-        thrown(UnsupportedOperationException)
-
+        def e = thrown(Exception)
+        e.cause.cause instanceof UnsupportedOperationException
     }
 
     def "should not remove protected field"() {
@@ -346,11 +350,11 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         hasField(extracted, 'foo', String)
 
         when:
-        extracted.newInstance()
+        JavaReflectionUtil.newInstance(extracted)
 
         then:
-        thrown(UnsupportedOperationException)
-
+        def e = thrown(Exception)
+        e.cause.cause instanceof UnsupportedOperationException
     }
 
     def "should remove private field"() {
@@ -455,7 +459,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         when:
         def apiClassBytes = api.extractApiClassFrom(api.classes['com.acme.A'])
         def cr = new ClassReader(apiClassBytes)
-        cr.accept(new ClassVisitor(Opcodes.ASM6) {
+        cr.accept(new ClassVisitor(AsmConstants.ASM_LEVEL) {
             @Override
             void visitSource(String source, String debug) {
                 super.visitSource(source, debug)
@@ -469,7 +473,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
             @Override
             MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-                new MethodVisitor(Opcodes.ASM6) {
+                new MethodVisitor(AsmConstants.ASM_LEVEL) {
                     @Override
                     void visitLineNumber(int line, Label start) {
                         throw new AssertionError("Should not produce any line number information but " +

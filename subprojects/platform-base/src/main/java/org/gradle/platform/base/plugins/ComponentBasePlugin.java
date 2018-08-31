@@ -19,9 +19,9 @@ package org.gradle.platform.base.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.model.Model;
@@ -61,8 +61,8 @@ public class ComponentBasePlugin implements Plugin<Project> {
 
         @Hidden
         @Model
-        ComponentSpecFactory componentSpecFactory(ProjectIdentifier projectIdentifier, Instantiator instantiator, ITaskFactory taskFactory, SourceDirectorySetFactory sourceDirectorySetFactory) {
-            return new ComponentSpecFactory(projectIdentifier, instantiator, taskFactory, sourceDirectorySetFactory);
+        ComponentSpecFactory componentSpecFactory(ProjectIdentifier projectIdentifier, Instantiator instantiator, ITaskFactory taskFactory, ObjectFactory objectFactory) {
+            return new ComponentSpecFactory(projectIdentifier, instantiator, taskFactory, objectFactory);
         }
 
         @ComponentType

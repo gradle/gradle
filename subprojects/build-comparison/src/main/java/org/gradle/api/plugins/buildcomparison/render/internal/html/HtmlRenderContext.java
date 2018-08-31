@@ -20,7 +20,7 @@ import groovy.lang.Closure;
 import groovy.xml.MarkupBuilder;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.util.ClosureBackedAction;
 
 import java.io.File;
 

@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.Collector;
 import org.gradle.api.internal.provider.Collectors.*;
@@ -28,6 +29,7 @@ import org.gradle.api.specs.Spec;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -38,6 +40,8 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     private final List<Element<T>> inserted = new ArrayList<Element<T>>();
 
     private Action<T> realizeAction;
+
+    protected int modCount;
 
     List<Element<T>> getInserted() {
         return inserted;
@@ -89,6 +93,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             T value = iterator.next();
             if (value.equals(o)) {
                 iterator.remove();
+                modCount++;
                 return true;
             }
         }
@@ -97,6 +102,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
     @Override
     public void clear() {
+        modCount++;
         inserted.clear();
     }
 
@@ -109,6 +115,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     public void realizePending() {
         for (Element<T> element : inserted) {
             if (!element.isRealized()) {
+                modCount++;
                 element.realize();
             }
         }
@@ -118,17 +125,41 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     public void realizePending(Class<?> type) {
         for (Element<T> element : inserted) {
             if (!element.isRealized() && (element.getType() == null || type.isAssignableFrom(element.getType()))) {
+                modCount++;
                 element.realize();
             }
         }
     }
 
+    protected void clearCachedElement(Element<T> element) {
+        modCount++;
+        element.clearCache();
+    }
+
     Element<T> cachingElement(ProviderInternal<? extends T> provider) {
-        return new Element<T>(provider.getType(), new ElementFromProvider<T>(provider), realizeAction);
+        final Element<T> element = new Element<T>(provider.getType(), new ElementFromProvider<T>(provider), realizeAction);
+        if (provider instanceof ChangingValue) {
+            ((ChangingValue<T>) provider).onValueChange(new Action<T>() {
+                @Override
+                public void execute(T previousValue) {
+                    clearCachedElement(element);
+                }
+            });
+        }
+        return element;
     }
 
     Element<T> cachingElement(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
-        return new Element<T>(provider.getElementType(), new ElementsFromCollectionProvider<T>(provider), realizeAction);
+        final Element<T> element = new Element<T>(provider.getElementType(), new ElementsFromCollectionProvider<T>(provider), realizeAction);
+        if (provider instanceof ChangingValue) {
+            ((ChangingValue<Iterable<T>>)provider).onValueChange(new Action<Iterable<T>>() {
+                @Override
+                public void execute(Iterable<T> previousValues) {
+                    clearCachedElement(element);
+                }
+            });
+        }
+        return element;
     }
 
     @Override
@@ -140,7 +171,8 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         Iterator<Element<T>> iterator = inserted.iterator();
         while (iterator.hasNext()) {
             Element<T> next = iterator.next();
-            if (next.isProvidedBy(provider)) {
+            if (!next.isRealized() && next.isProvidedBy(provider)) {
+                modCount++;
                 iterator.remove();
                 return true;
             }
@@ -158,8 +190,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         this.realizeAction = action;
     }
 
-    // TODO Check for comodification with the ElementSource
-    protected static class RealizedElementCollectionIterator<T> implements Iterator<T> {
+    protected class RealizedElementCollectionIterator implements Iterator<T> {
         final List<Element<T>> backingList;
         final Spec<ValuePointer<T>> acceptanceSpec;
         int nextIndex = -1;
@@ -167,6 +198,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         int previousIndex = -1;
         int previousSubIndex = -1;
         T next;
+        int expectedModCount = modCount;
 
         RealizedElementCollectionIterator(List<Element<T>> backingList, Spec<ValuePointer<T>> acceptanceSpec) {
             this.backingList = backingList;
@@ -210,6 +242,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
         @Override
         public T next() {
+            checkForComodification();
             if (next == null) {
                 throw new NoSuchElementException();
             }
@@ -223,6 +256,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         @Override
         public void remove() {
             if (previousIndex > -1) {
+                checkForComodification();
                 Element<T> element = backingList.get(previousIndex);
                 List<T> collected = element.getValues();
                 if (collected.size() > 1) {
@@ -238,11 +272,18 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
                 throw new IllegalStateException();
             }
         }
+
+        final void checkForComodification() {
+            if (modCount != expectedModCount) {
+                throw new ConcurrentModificationException();
+            }
+        }
     }
 
     protected static class Element<T> extends TypedCollector<T> {
         private List<T> cache;
-        private final List<T> removed = Lists.newArrayList();
+        private final List<T> removedValues = Lists.newArrayList();
+        private final List<T> realizedValues = Lists.newArrayList();
         private final List<Integer> duplicates = Lists.newArrayList();
         private boolean realized;
         private final Action<T> realizeAction;
@@ -266,11 +307,14 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             if (cache == null) {
                 cache = new ArrayList<T>(delegate.size());
                 super.collectInto(cache);
-                cache.removeAll(removed);
+                cache.removeAll(removedValues);
                 realized = true;
                 if (realizeAction != null) {
-                    for (T element : cache) {
-                        realizeAction.execute(element);
+                    for (T value : cache) {
+                        if (!realizedValues.contains(value)) {
+                            realizeAction.execute(value);
+                            realizedValues.add(value);
+                        }
                     }
                 }
             }
@@ -298,19 +342,25 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         }
 
         public boolean remove(T value) {
-            removed.add(value);
+            removedValues.add(value);
             if (cache != null) {
                 return cache.remove(value);
             }
             return true;
         }
 
-        public boolean isDuplicate(int index) {
+        boolean isDuplicate(int index) {
             return duplicates.contains(index);
         }
 
-        public void setDuplicate(int index) {
+        void setDuplicate(int index) {
             duplicates.add(index);
+        }
+
+        void clearCache() {
+            cache = null;
+            realized = false;
+            duplicates.clear();
         }
 
         @Override

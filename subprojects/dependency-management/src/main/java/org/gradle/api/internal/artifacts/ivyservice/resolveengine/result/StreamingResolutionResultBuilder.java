@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
@@ -41,7 +42,6 @@ import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -216,11 +216,13 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                         case DEPENDENCY:
                             Long fromId = decoder.readSmallLong();
                             int size = decoder.readSmallInt();
-                            List<DependencyResult> deps = new ArrayList<DependencyResult>(size);
-                            for (int i = 0; i < size; i++) {
-                                deps.add(dependencyResultSerializer.read(decoder, selectors, failures));
+                            if (size > 0) {
+                                List<DependencyResult> deps = Lists.newArrayListWithExpectedSize(size);
+                                for (int i = 0; i < size; i++) {
+                                    deps.add(dependencyResultSerializer.read(decoder, selectors, failures));
+                                }
+                                builder.visitOutgoingEdges(fromId, deps);
                             }
-                            builder.visitOutgoingEdges(fromId, deps);
                             break;
                         default:
                             throw new IOException("Unknown value type read from stream: " + type);

@@ -16,6 +16,7 @@
 package org.gradle.buildinit.plugins.internal.modifiers
 
 import org.gradle.api.GradleException
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 class BuildInitBuildScriptDslTest extends Specification {
@@ -42,7 +43,9 @@ class BuildInitBuildScriptDslTest extends Specification {
 
         then:
         GradleException e = thrown()
-        e.message == "The requested build script DSL 'unknown' is not supported."
+        e.message == TextUtil.toPlatformLineSeparators("""The requested build script DSL 'unknown' is not supported. Supported DSLs:
+  - 'groovy'
+  - 'kotlin'""")
     }
 
     def "should list all supported build script DSLs"() {

@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -560,6 +561,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
+        executer.expectDeprecationWarning()
         succeeds "help"
 
         result.output.count("Create :myTask") == 1
@@ -586,6 +588,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
+        executer.expectDeprecationWarning()
         succeeds "help"
 
         result.output.count("Create :myTask") == 1
@@ -611,6 +614,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
+        executer.expectDeprecationWarning()
         succeeds "help"
 
         result.output.count("Create :myTask") == 2
@@ -636,6 +640,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
+        executer.expectDeprecationWarning()
         succeeds "help"
 
         result.output.count("Create :myTask") == 2
@@ -832,6 +837,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
+        executer.expectDeprecationWarning()
         fails "foo"
 
         and:
@@ -891,16 +897,36 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private static final def INVALID_CALL_FROM_LAZY_CONFIGURATION = [
-        ["Project#afterEvaluate(Closure)"  , "afterEvaluate {}"],
-        ["Project#afterEvaluate(Action)"   , "afterEvaluate new Action<Project>() { void execute(Project p) {} }"],
-        ["Project#beforeEvaluate(Closure)" , "beforeEvaluate {}"],
-        ["Project#beforeEvaluate(Action)"  , "beforeEvaluate new Action<Project>() { void execute(Project p) {} }"],
+        ["Project#afterEvaluate(Closure)"   , "afterEvaluate {}"],
+        ["Project#afterEvaluate(Action)"    , "afterEvaluate new Action<Project>() { void execute(Project p) {} }"],
+        ["Project#beforeEvaluate(Closure)"  , "beforeEvaluate {}"],
+        ["Project#beforeEvaluate(Action)"   , "beforeEvaluate new Action<Project>() { void execute(Project p) {} }"],
+        ["Gradle#beforeProject(Closure)"    , "gradle.beforeProject {}"],
+        ["Gradle#beforeProject(Action)"     , "gradle.beforeProject new Action<Project>() { void execute(Project p) {} }"],
+        ["Gradle#afterProject(Closure)"     , "gradle.afterProject {}"],
+        ["Gradle#afterProject(Action)"      , "gradle.afterProject new Action<Project>() { void execute(Project p) {} }"],
+        ["Gradle#projectsLoaded(Closure)"   , "gradle.projectsLoaded {}"],
+        ["Gradle#projectsLoaded(Action)"    , "gradle.projectsLoaded new Action<Gradle>() { void execute(Gradle g) {} }"],
+        ["Gradle#projectsEvaluated(Closure)", "gradle.projectsEvaluated {}"],
+        ["Gradle#projectsEvaluated(Action)" , "gradle.projectsEvaluated new Action<Gradle>() { void execute(Gradle g) {} }"]
     ]
+
+    String mutationExceptionFor(description) {
+        def target
+        if (description.startsWith("Project")) {
+            target = "root project 'root'"
+        } else if (description.startsWith("Gradle")) {
+            target = "build 'root'"
+        } else {
+            throw new IllegalArgumentException("Can't determine the exception text for '${description}'")
+        }
+
+        return "$description on ${target} cannot be executed in the current context."
+    }
 
     @Unroll
     def "cannot execute #description during lazy task creation action execution"() {
         settingsFile << "include 'nested'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             tasks.register("foo") {
                 ${code}
@@ -910,7 +936,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "foo"
         failure.assertHasCause("Could not create task ':foo'.")
-        failure.assertHasCause("$description on root project 'root' cannot be executed in the current context.")
+        failure.assertHasCause(mutationExceptionFor(description))
 
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
@@ -919,7 +945,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "can execute #description during task creation action execution"() {
         settingsFile << "include 'nested'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             tasks.create("foo") {
                 ${code}
@@ -936,7 +961,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "cannot execute #description during lazy task configuration action execution"() {
         settingsFile << "include 'nested'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             tasks.register("foo").configure {
                 ${code}
@@ -946,7 +970,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "foo"
         failure.assertHasCause("Could not create task ':foo'.")
-        failure.assertHasCause("$description on root project 'root' cannot be executed in the current context.")
+        failure.assertHasCause(mutationExceptionFor(description))
 
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
@@ -955,7 +979,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "can execute #description during task configuration action execution"() {
         settingsFile << "include 'nested'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             tasks.create("foo")
             tasks.getByName("foo") {
@@ -973,7 +996,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "cannot execute #description on another project during lazy task creation action execution"() {
         settingsFile << "include 'nested', 'other'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             project(":other") {
                 tasks.register("foo") {
@@ -985,7 +1007,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "foo"
         failure.assertHasCause("Could not create task ':other:foo'.")
-        failure.assertHasCause("$description on root project 'root' cannot be executed in the current context.")
+        failure.assertHasCause(mutationExceptionFor(description))
 
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
@@ -994,7 +1016,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "can execute #description on another project during task creation action execution"() {
         settingsFile << "include 'nested', 'other'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             project(":other") {
                 tasks.create("foo") {
@@ -1013,7 +1034,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "cannot execute #description on another project during lazy task configuration action execution"() {
         settingsFile << "include 'nested', 'other'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             project(":other") {
                 tasks.register("foo").configure {
@@ -1025,7 +1045,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "foo"
         failure.assertHasCause("Could not create task ':other:foo'.")
-        failure.assertHasCause("$description on root project 'root' cannot be executed in the current context.")
+        failure.assertHasCause(mutationExceptionFor(description))
 
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
@@ -1034,7 +1054,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "can execute #description on another project during task configuration action execution"() {
         settingsFile << "include 'nested', 'other'"
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << """
             project(":other") {
                 tasks.create("foo")
@@ -1088,5 +1107,60 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         executed ":foo", ":baz", ":fizz", ":fuzz", ":some"
+    }
+
+    def "can lookup task created by rules"() {
+        buildFile << """
+            tasks.addRule("create some tasks") { taskName ->
+                if (taskName == "bar") {
+                    tasks.register("bar")
+                } else if (taskName == "baz") {
+                    tasks.create("baz")
+                } else if (taskName == "notByRule") {
+                    tasks.register("notByRule") {
+                        throw new Exception("This should not be called")
+                    }
+                }
+            }
+            tasks.register("notByRule")
+            
+            task foo {
+                dependsOn tasks.named("bar")
+                dependsOn tasks.named("baz")
+                dependsOn "notByRule"
+            }
+            
+        """
+        expect:
+        succeeds("foo")
+        result.assertTasksExecuted(":notByRule", ":bar", ":baz", ":foo")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/6319")
+    def "can use getTasksByName from a lazy configuration action"() {
+        settingsFile << """
+            include "sub"
+        """
+        buildFile << """
+            plugins {
+                id 'base'
+            }
+            tasks.whenTaskAdded {
+                // force realization of all tasks
+            }
+            tasks.register("foo") {
+                dependsOn(project.getTasksByName("clean", true))
+            }
+        """
+        file("sub/build.gradle") << """
+            plugins {
+                id 'base'
+            }
+            afterEvaluate {
+                tasks.register("foo")
+            }
+        """
+        expect:
+        succeeds("help")
     }
 }

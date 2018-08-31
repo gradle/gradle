@@ -69,23 +69,18 @@ When configured, Gradle will use a maximum of the given number of workers. Defau
 
 The following example demonstrates usage of various properties.
 
-=== Example: Setting properties with a gradle.properties file
+.Setting properties with a gradle.properties file
+====
+include::sample[dir="userguide/tutorial/properties/groovy",files="gradle.properties[]"]
+====
 
-[source,properties]
-.gradle.properties
-----
-include::{samplesPath}/userguide/tutorial/properties/gradle.properties[]
-----
+====
+include::sample[dir="userguide/tutorial/properties/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/properties/kotlin",files="build.gradle.kts[]"]
+====
 
-[source.multi-language-sample,groovy]
-.build.gradle
 ----
-include::{samplesPath}/userguide/tutorial/properties/build.gradle[]
-----
-
-.Output of `gradle -q -PcommandLineProjectProp=commandLineProjectPropValue -Dorg.gradle.project.systemProjectProp=systemPropertyValue printProps`
-----
-> gradle -q -PcommandLineProjectProp=commandLineProjectPropValue -Dorg.gradle.project.systemProjectProp=systemPropertyValue printProps
+$ gradle -q -PcommandLineProjectProp=commandLineProjectPropValue -Dorg.gradle.project.systemProjectProp=systemPropertyValue printProps
 include::{samplesPath}/userguide/tutorial/properties/properties.out[]
 ----
 
@@ -96,9 +91,7 @@ Using the `-D` command-line option, you can pass a system property to the JVM wh
 
 You can also set system properties in `gradle.properties` files with the prefix `systemProp.`
 
-=== Example: Specifying system properties in `gradle.properties`
-
-[source,properties]
+.Specifying system properties in `gradle.properties`
 ----
 systemProp.gradle.wrapperUser=myuser
 systemProp.gradle.wrapperPassword=mypassword
@@ -134,15 +127,12 @@ You can add properties directly to your link:{groovyDslPath}/org.gradle.api.Proj
 
 Gradle can also set project properties when it sees specially-named system properties or environment variables. If the environment variable name looks like `ORG_GRADLE_PROJECT___prop__=somevalue`, then Gradle will set a `prop` property on your project object, with the value of `somevalue`. Gradle also supports this for system properties, but with a different naming pattern, which looks like `org.gradle.project.__prop__`. Both of the following will set the `foo` property on your Project object to `"bar"`.
 
-=== Example: Setting a project property via gradle.properties
-
-[source,properties]
+.Setting a project property via gradle.properties
 ----
 org.gradle.project.foo=bar
 ----
 
-=== Example: Setting a project property via environment variable
-[source,properties]
+.Setting a project property via environment variable
 ----
 ORG_GRADLE_PROJECT_foo=bar
 ----
@@ -172,16 +162,14 @@ You can adjust JVM options for Gradle in the following ways:
 
 The `JAVA_OPTS` environment variable is used for the Gradle client, but not forked JVMs.
 
-=== Example: Changing JVM settings for Gradle client JVM
-[source,properties]
+.Changing JVM settings for Gradle client JVM
 ----
 JAVA_OPTS="-Xmx2g -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
 ----
 
 You need to use the `org.gradle.jvmargs` Gradle property to configure JVM settings for the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>>.
 
-=== Example: Changing JVM settings for forked Gradle JVMs
-[source,properties]
+.Changing JVM settings for forked Gradle JVMs
 ----
 org.gradle.jvmargs=-Xmx2g -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
 ----
@@ -195,17 +183,11 @@ When running with the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>>, a JVM
 
 Certain tasks in Gradle also fork additional JVM processes, like the `test` task when using link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#setMaxParallelForks-int-[Test.setMaxParallelForks(int)] for JUnit or TestNG tests. You must configure these through the tasks themselves.
 
-=== Example: Set Java compile options for link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile] tasks
-
-[source,groovy]
-.build.gradle
-----
-apply plugin: "java"
-
-tasks.withType(JavaCompile) {
-    options.compilerArgs += ["-Xdoclint:none", "-Xlint:none", "-nowarn"]
-}
-----
+.Set Java compile options for link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile] tasks
+====
+include::sample[dir="userguide/buildEnvironment/javaCompileOptions/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/buildEnvironment/javaCompileOptions/kotlin",files="build.gradle.kts[]"]
+====
 
 See other examples in the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] API documentation and <<java_testing.adoc#sec:test_execution, test execution in the Java plugin reference>>.
 
@@ -221,17 +203,14 @@ It's possible to change the behavior of a task based on project properties speci
 
 Suppose you'd like to ensure release builds are only triggered by CI. A simple way to handle this is through an `isCI` project property.
 
-=== Example: Prevent releasing outside of CI
+.Prevent releasing outside of CI
+====
+include::sample[dir="userguide/tutorial/configureTaskUsingProjectProperty/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/configureTaskUsingProjectProperty/kotlin",files="build.gradle.kts[]"]
+====
 
-[source.multi-language-sample,groovy]
-.build.gradle
 ----
-include::{samplesPath}/userguide/tutorial/configureTaskUsingProjectProperty/build.gradle[]
-----
-
-.Output of **`gradle performRelease -PisCI=true --quiet`**
-----
-> gradle performRelease -PisCI=true --quiet
+$ gradle performRelease -PisCI=true --quiet
 include::{samplesPath}/userguide/tutorial/configureTaskUsingProjectProperty/configureTaskUsingProjectProperty.out[]
 ----
 
@@ -240,7 +219,6 @@ include::{samplesPath}/userguide/tutorial/configureTaskUsingProjectProperty/conf
 
 Configuring an HTTP or HTTPS proxy (for downloading dependencies, for example) is done via standard JVM system properties. These properties can be set directly in the build script; for example, setting the HTTP proxy host would be done with `System.setProperty('http.proxyHost', 'www.somehost.org')`. Alternatively, the properties can be <<#sec:gradle_configuration_properties,specified in gradle.properties>>.
 
-[source,properties]
 .Configuring an HTTP proxy using `gradle.properties`
 ----
 systemProp.http.proxyHost=www.somehost.org
@@ -252,7 +230,6 @@ systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost
 
 There are separate settings for HTTPS.
 
-[source,properties]
 .Configuring an HTTPS proxy using `gradle.properties`
 ----
 systemProp.https.proxyHost=www.somehost.org

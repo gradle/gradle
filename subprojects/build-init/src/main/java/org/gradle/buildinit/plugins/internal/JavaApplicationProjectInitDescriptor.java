@@ -18,39 +18,45 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 public class JavaApplicationProjectInitDescriptor extends JavaProjectInitDescriptor {
-    public JavaApplicationProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, ProjectInitDescriptor projectInitDescriptor, DocumentationRegistry documentationRegistry) {
-        super(templateOperationFactory, fileResolver, libraryVersionProvider, projectInitDescriptor, documentationRegistry);
+    public JavaApplicationProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+        super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider, documentationRegistry);
     }
 
     @Override
-    protected void configureBuildScript(BuildScriptBuilder buildScriptBuilder) {
-        super.configureBuildScript(buildScriptBuilder);
+    public String getId() {
+        return "java-application";
+    }
+
+    @Override
+    protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+        super.configureBuildScript(settings, buildScriptBuilder);
         buildScriptBuilder
             .plugin(
                 "Apply the application plugin to add support for building an application",
                 "application")
             .conventionPropertyAssignment(
                 "Define the main class for the application",
-                "application", "mainClassName", "App");
+                "application", "mainClassName", withPackage(settings, "App"));
     }
 
     @Override
-    protected TemplateOperation sourceTemplateOperation() {
-        return fromClazzTemplate("javaapp/App.java.template", "main");
+    protected TemplateOperation sourceTemplateOperation(InitSettings settings) {
+        return fromClazzTemplate("javaapp/App.java.template", settings, "main");
     }
 
     @Override
-    protected TemplateOperation testTemplateOperation(BuildInitTestFramework testFramework) {
-        switch (testFramework) {
+    protected TemplateOperation testTemplateOperation(InitSettings settings) {
+        switch (settings.getTestFramework()) {
             case SPOCK:
-                return fromClazzTemplate("javaapp/AppTest.groovy.template", "test", "groovy");
+                return fromClazzTemplate("groovyapp/AppTest.groovy.template", settings, "test", "groovy");
             case TESTNG:
-                return fromClazzTemplate("javaapp/AppTestNG.java.template", "test", "java", "AppTest.java");
+                return fromClazzTemplate("javaapp/testng/AppTest.java.template", settings, "test", "java");
+            case JUNIT:
+                return fromClazzTemplate("javaapp/AppTest.java.template", settings, "test");
             default:
-                return fromClazzTemplate("javaapp/AppTest.java.template", "test");
+                throw new IllegalArgumentException();
         }
     }
 }

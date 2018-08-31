@@ -23,9 +23,10 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
-import org.gradle.api.tasks.StopExecutionException
+import org.gradle.api.model.ObjectFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -35,31 +36,32 @@ import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTy
 import static org.hamcrest.Matchers.equalTo
 
 @UsesNativeServices
-public class DefaultSourceDirectorySetTest extends Specification {
+class DefaultSourceDirectorySetTest extends Specification {
     @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     private final TestFile testDir = tmpDir.testDirectory
     private FileResolver resolver = TestFiles.resolver(testDir)
     private DirectoryFileTreeFactory directoryFileTreeFactory = TestFiles.directoryFileTreeFactory()
+    private ObjectFactory objectFactory = TestUtil.objectFactory()
     private DefaultSourceDirectorySet set
 
-    public void setup() {
-        set = new DefaultSourceDirectorySet('<display-name>', resolver, directoryFileTreeFactory)
+    void setup() {
+        set = new DefaultSourceDirectorySet('files', '<display-name>', resolver, directoryFileTreeFactory, objectFactory)
     }
 
-    public void hasUsefulToString() {
+    void hasUsefulToString() {
         expect:
         set.displayName == '<display-name>'
         set.toString() == '<display-name>'
     }
 
-    public void viewsHaveSameDisplayNameAsSet() {
+    void viewsHaveSameDisplayNameAsSet() {
         expect:
         set.sourceDirectories.toString() == '<display-name>'
         set.asFileTree.toString() == '<display-name>'
         set.matching {}.toString() == '<display-name>'
     }
 
-    public void isEmptyWhenNoSourceDirectoriesSpecified() {
+    void isEmptyWhenNoSourceDirectoriesSpecified() {
         expect:
         set.empty
         set.files.empty
@@ -68,7 +70,7 @@ public class DefaultSourceDirectorySetTest extends Specification {
         set.srcDirTrees.empty
     }
 
-    public void addsResolvedSourceDirectory() {
+    void addsResolvedSourceDirectory() {
         when:
         set.srcDir 'dir1'
 
@@ -76,7 +78,7 @@ public class DefaultSourceDirectorySetTest extends Specification {
         set.srcDirs equalTo([new File(testDir, 'dir1')] as Set)
     }
 
-    public void addsResolvedSourceDirectories() {
+    void addsResolvedSourceDirectories() {
         when:
         set.srcDir {-> ['dir1', 'dir2'] }
 
@@ -84,8 +86,8 @@ public class DefaultSourceDirectorySetTest extends Specification {
         set.srcDirs equalTo([new File(testDir, 'dir1'), new File(testDir, 'dir2')] as Set)
     }
 
-    public void addsContentsOfAnotherSourceDirectorySet() {
-        SourceDirectorySet nested = new DefaultSourceDirectorySet('<nested>', resolver, directoryFileTreeFactory)
+    void addsContentsOfAnotherSourceDirectorySet() {
+        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver, directoryFileTreeFactory, objectFactory)
         nested.srcDir 'dir1'
 
         when:
@@ -101,8 +103,8 @@ public class DefaultSourceDirectorySetTest extends Specification {
         set.srcDirs == [testDir.file('dir1'), testDir.file('dir2')] as Set
     }
 
-    public void addsSourceDirectoriesOfAnotherSourceDirectorySet() {
-        SourceDirectorySet nested = new DefaultSourceDirectorySet('<nested>', resolver, directoryFileTreeFactory)
+    void addsSourceDirectoriesOfAnotherSourceDirectorySet() {
+        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver, directoryFileTreeFactory, objectFactory)
         nested.srcDir 'dir1'
 
         when:
@@ -118,8 +120,8 @@ public class DefaultSourceDirectorySetTest extends Specification {
         set.srcDirs == [testDir.file('dir1'), testDir.file('dir2')] as Set
     }
 
-    public void settingSourceDirsReplacesExistingContent() {
-        SourceDirectorySet nested = new DefaultSourceDirectorySet('<nested>', resolver, directoryFileTreeFactory)
+    void settingSourceDirsReplacesExistingContent() {
+        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver, directoryFileTreeFactory, objectFactory)
         nested.srcDir 'ignore me'
         set.srcDir 'ignore me as well'
         set.source nested
@@ -131,7 +133,7 @@ public class DefaultSourceDirectorySetTest extends Specification {
         set.srcDirs equalTo([new File(testDir, 'dir1'), new File(testDir, 'dir2')] as Set)
     }
 
-    public void canViewSourceDirectoriesAsLiveFileCollection() {
+    void canViewSourceDirectoriesAsLiveFileCollection() {
         when:
         def dirs = set.sourceDirectories
         set.srcDir 'dir1'
@@ -152,7 +154,7 @@ public class DefaultSourceDirectorySetTest extends Specification {
         dirs.files.empty
     }
 
-    public void containsFilesFromEachSourceDirectory() {
+    void containsFilesFromEachSourceDirectory() {
         File srcDir1 = new File(testDir, 'dir1')
         touch(new File(srcDir1, 'subdir/file1.txt'))
         touch(new File(srcDir1, 'subdir/file2.txt'))
@@ -167,7 +169,7 @@ public class DefaultSourceDirectorySetTest extends Specification {
         assertSetContainsForAllTypes(set, 'subdir/file1.txt', 'subdir/file2.txt', 'subdir2/file1.txt')
     }
 
-    public void convertsSourceDirectoriesToDirectoryTrees() {
+    void convertsSourceDirectoriesToDirectoryTrees() {
         when:
         set.srcDir 'dir1'
         set.srcDir 'dir2'
@@ -185,8 +187,8 @@ public class DefaultSourceDirectorySetTest extends Specification {
         trees[1].patterns.excludes as List == ['excludes']
     }
 
-    public void convertsNestedDirectorySetsToDirectoryTrees() {
-        SourceDirectorySet nested = new DefaultSourceDirectorySet('<nested>', resolver, directoryFileTreeFactory)
+    void convertsNestedDirectorySetsToDirectoryTrees() {
+        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver, directoryFileTreeFactory, objectFactory)
         nested.srcDirs 'dir1', 'dir2'
 
         when:
@@ -199,8 +201,8 @@ public class DefaultSourceDirectorySetTest extends Specification {
         trees[1].dir == testDir.file('dir2')
     }
 
-    public void removesDuplicateDirectoryTrees() {
-        SourceDirectorySet nested = new DefaultSourceDirectorySet('<nested>', resolver, directoryFileTreeFactory)
+    void removesDuplicateDirectoryTrees() {
+        SourceDirectorySet nested = new DefaultSourceDirectorySet('nested', '<nested>', resolver, directoryFileTreeFactory, objectFactory)
         nested.srcDirs 'dir1', 'dir2'
 
         when:
@@ -214,7 +216,7 @@ public class DefaultSourceDirectorySetTest extends Specification {
         trees[1].dir == testDir.file('dir2')
     }
 
-    public void canUsePatternsToFilterCertainFiles() {
+    void canUsePatternsToFilterCertainFiles() {
         File srcDir1 = new File(testDir, 'dir1')
         touch(new File(srcDir1, 'subdir/file1.txt'))
         touch(new File(srcDir1, 'subdir/file2.txt'))
@@ -234,7 +236,7 @@ public class DefaultSourceDirectorySetTest extends Specification {
         assertSetContainsForAllTypes(set, 'subdir/file1.txt', 'subdir2/file1.txt')
     }
 
-    public void canUseFilterPatternsToFilterCertainFiles() {
+    void canUseFilterPatternsToFilterCertainFiles() {
         File srcDir1 = new File(testDir, 'dir1')
         touch(new File(srcDir1, 'subdir/file1.txt'))
         touch(new File(srcDir1, 'subdir/file2.txt'))
@@ -254,7 +256,7 @@ public class DefaultSourceDirectorySetTest extends Specification {
         assertSetContainsForAllTypes(set, 'subdir/file1.txt', 'subdir2/file1.txt')
     }
 
-    public void ignoresSourceDirectoriesWhichDoNotExist() {
+    void ignoresSourceDirectoriesWhichDoNotExist() {
         File srcDir1 = new File(testDir, 'dir1')
         touch(new File(srcDir1, 'subdir/file1.txt'))
 
@@ -266,7 +268,7 @@ public class DefaultSourceDirectorySetTest extends Specification {
         assertSetContainsForAllTypes(set, 'subdir/file1.txt')
     }
 
-    public void failsWhenSourceDirectoryIsNotADirectory() {
+    void failsWhenSourceDirectoryIsNotADirectory() {
         File srcDir = new File(testDir, 'dir1')
         touch(srcDir)
 
@@ -279,19 +281,19 @@ public class DefaultSourceDirectorySetTest extends Specification {
         e.message == "Source directory '$srcDir' is not a directory."
     }
 
-    public void hasNoDependenciesWhenNoSourceDirectoriesSpecified() {
+    void hasNoDependenciesWhenNoSourceDirectoriesSpecified() {
         expect:
         dependencies(set).empty
     }
 
-    public void viewsHaveNoDependenciesWhenNoSourceDirectoriesSpecified() {
+    void viewsHaveNoDependenciesWhenNoSourceDirectoriesSpecified() {
         expect:
         dependencies(set.sourceDirectories).empty
         dependencies(set.asFileTree).empty
         dependencies(set.matching {}).empty
     }
 
-    public void setAndItsViewsHaveDependenciesOfAllSourceDirectories() {
+    void setAndItsViewsHaveDependenciesOfAllSourceDirectories() {
         given:
         def task1 = Stub(Task)
         def task2 = Stub(Task)
@@ -305,10 +307,10 @@ public class DefaultSourceDirectorySetTest extends Specification {
         dependencies(set.matching {}) == [task1, task2] as Set
     }
 
-    public void setAndItsViewsHaveDependenciesOfAllSourceDirectorySets() {
+    void setAndItsViewsHaveDependenciesOfAllSourceDirectorySets() {
         given:
-        def nested1 = new DefaultSourceDirectorySet('<nested-1>', resolver, directoryFileTreeFactory)
-        def nested2 = new DefaultSourceDirectorySet('<nested-2>', resolver, directoryFileTreeFactory)
+        def nested1 = new DefaultSourceDirectorySet('nested-1', '<nested-1>', resolver, directoryFileTreeFactory, objectFactory)
+        def nested2 = new DefaultSourceDirectorySet('nested-2', '<nested-2>', resolver, directoryFileTreeFactory, objectFactory)
         def task1 = Stub(Task)
         def task2 = Stub(Task)
         nested1.srcDir dir("dir1", task1)
@@ -324,41 +326,7 @@ public class DefaultSourceDirectorySetTest extends Specification {
         dependencies(set.matching {}) == [task1, task2] as Set
     }
 
-    public void throwsStopExceptionWhenNoSourceDirectoriesExist() {
-        when:
-        set.srcDir 'dir1'
-        set.srcDir 'dir2'
-        set.stopExecutionIfEmpty()
-
-        then:
-        StopExecutionException e = thrown()
-        e.message == '<display-name> does not contain any files.'
-    }
-
-    public void throwsStopExceptionWhenNoSourceDirectoryHasMatches() {
-        when:
-        set.srcDir 'dir1'
-        File srcDir = new File(testDir, 'dir1')
-        srcDir.mkdirs()
-        set.stopExecutionIfEmpty()
-
-        then:
-        StopExecutionException e = thrown()
-        e.message == '<display-name> does not contain any files.'
-    }
-
-    public void doesNotThrowStopExceptionWhenSomeSourceDirectoriesAreNotEmpty() {
-        when:
-        set.srcDir 'dir1'
-        touch(new File(testDir, 'dir1/file1.txt'))
-        set.srcDir 'dir2'
-        set.stopExecutionIfEmpty()
-
-        then:
-        notThrown(Throwable)
-    }
-
-    public void canUseMatchingMethodToFilterCertainFiles() {
+    void canUseMatchingMethodToFilterCertainFiles() {
         File srcDir1 = new File(testDir, 'dir1')
         touch(new File(srcDir1, 'subdir/file1.txt'))
         touch(new File(srcDir1, 'subdir/file2.txt'))
@@ -375,7 +343,7 @@ public class DefaultSourceDirectorySetTest extends Specification {
         assertSetContainsForAllTypes(filteredSet, 'subdir/file1.txt')
     }
 
-    public void canUsePatternsAndFilterPatternsAndMatchingMethodToFilterSourceFiles() {
+    void canUsePatternsAndFilterPatternsAndMatchingMethodToFilterSourceFiles() {
         File srcDir1 = new File(testDir, 'dir1')
         touch(new File(srcDir1, 'subdir/file1.txt'))
         touch(new File(srcDir1, 'subdir/file1.other'))
@@ -396,7 +364,7 @@ public class DefaultSourceDirectorySetTest extends Specification {
         assertSetContainsForAllTypes(filteredSet, 'subdir/file1.txt')
     }
 
-    public void filteredSetIsLive() {
+    void filteredSetIsLive() {
         File srcDir1 = new File(testDir, 'dir1')
         touch(new File(srcDir1, 'subdir/file1.txt'))
         touch(new File(srcDir1, 'subdir/file2.txt'))

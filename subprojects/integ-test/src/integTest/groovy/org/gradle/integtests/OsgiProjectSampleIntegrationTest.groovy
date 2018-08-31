@@ -28,7 +28,7 @@ import java.util.jar.Manifest
 @TestReproducibleArchives
 class OsgiProjectSampleIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'osgi')
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'osgi/groovy')
 
     def setup() {
         useRepositoryMirrors()

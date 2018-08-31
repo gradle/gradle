@@ -98,7 +98,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         }
     }
 
-    def "a bom can declare excludes"() {
+    def "a bom dependencyManagement entry can declare excludes which are applied unconditionally to module"() {
         given:
         moduleA.dependsOn(mavenHttpRepo.module("group", "moduleC", "1.0").allowAll().publish()).publish()
         bomDependency('moduleA', [[group: 'group', module: 'moduleC']])
@@ -106,9 +106,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
         buildFile << """
             dependencies {
-                compile("group:moduleA") {
-                    exclude(group: 'group')
-                }
+                compile "group:moduleA"
                 compile "group:bom:1.0"
             }
         """
@@ -126,19 +124,41 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                 edge("group:moduleA", "group:moduleA:2.0")
             }
         }
+    }
+
+    def "exclusions from multiple bom dependencyManagement entries are additive"() {
+        given:
+        moduleA
+            .dependsOn(mavenHttpRepo.module("group", "moduleC", "1.0").allowAll().publish())
+            .dependsOn(mavenHttpRepo.module("group", "moduleD", "1.0").allowAll().publish())
+            .publish()
+
+        bom.dependencyConstraint(moduleA, exclusions: [[group: 'group', module: 'moduleC']]).publish()
+
+        def bom2 = mavenHttpRepo.module('group', 'bom2', '1.0').hasType("pom").allowAll()
+        bom2.dependencyConstraint(moduleA, exclusions: [[group: 'group', module: 'moduleD']]).publish()
+
+
+        buildFile << """
+            dependencies {
+                compile "group:moduleA"
+                compile "group:bom:1.0"
+                compile "group:bom2:1.0"
+            }
+        """
 
         when:
-        //we remove the exclude in the build script: the excludes are merged and the one in the bom has no effect anymore
-        buildFile.text = buildFile.text.replace("exclude(group: 'group')", "")
         succeeds 'checkDep'
 
         then:
         resolve.expectGraph {
             root(':', ':testproject:') {
                 module("group:bom:1.0") {
-                    module("group:moduleA:2.0") {
-                        module("group:moduleC:1.0")
-                    }
+                    module("group:moduleA:2.0")
+                    noArtifacts()
+                }
+                module("group:bom2:1.0") {
+                    module("group:moduleA:2.0")
                     noArtifacts()
                 }
                 edge("group:moduleA", "group:moduleA:2.0")

@@ -178,23 +178,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         outputs.deletedClasses("ServiceRegistry")
     }
 
-    def "processors can't read resources"() {
-        given:
-        withProcessor(new NonIncrementalProcessorFixture().readingResources().withDeclaredType(IncrementalAnnotationProcessorType.AGGREGATING))
-        def a = java "@Thing class A {}"
-        outputs.snapshot { succeeds "compileJava" }
-
-        when:
-        a.text = "@Thing class A { void foo() {} }"
-
-        then:
-        succeeds "compileJava", "--info"
-
-        and:
-        outputContains("Full recompilation is required because incremental annotation processors are not allowed to read resources.")
-    }
-
-    def "processors can't write resources"() {
+    def "writing resources triggers a full recompilation"() {
         given:
         withProcessor(new NonIncrementalProcessorFixture().writingResources().withDeclaredType(IncrementalAnnotationProcessorType.AGGREGATING))
         def a = java "@Thing class A {}"
@@ -207,7 +191,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         succeeds "compileJava", "--info"
 
         and:
-        outputContains("Full recompilation is required because incremental annotation processors are not allowed to create resources.")
+        outputContains("Full recompilation is required because an annotation processor generated a resource.")
     }
 
     def "an isolating processor is also a valid aggregating processor"() {

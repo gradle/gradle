@@ -65,6 +65,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static org.gradle.api.internal.artifacts.repositories.resolver.VirtualComponentHelper.makeVirtual;
+
 public class DefaultComponentMetadataProcessor implements ComponentMetadataProcessor {
 
     private static final Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext> DETAILS_TO_RESULT = new Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext>() {
@@ -312,7 +314,16 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
 
         @Override
         public void belongsTo(Object notation) {
-            owners.add(componentIdentifierNotationParser.parseNotation(notation));
+            belongsTo(notation, true);
+        }
+
+        @Override
+        public void belongsTo(Object notation, boolean virtual) {
+            ComponentIdentifier id = componentIdentifierNotationParser.parseNotation(notation);
+            if (virtual) {
+                id = makeVirtual(id);
+            }
+            owners.add(id);
         }
 
         @Override

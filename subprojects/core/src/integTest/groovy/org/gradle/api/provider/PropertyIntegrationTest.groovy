@@ -17,96 +17,9 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
-
-import static PropertyStateProjectUnderTest.Language
-import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class PropertyIntegrationTest extends AbstractIntegrationSpec {
-
-    private final PropertyStateProjectUnderTest projectUnderTest = new PropertyStateProjectUnderTest(testDirectory)
-
-    @Unroll
-    def "receives deprecation warning when using #expr"() {
-        given:
-        buildFile << """
-PropertyState<String> p = $expr
-p.set("123")
-p.get()
-"""
-
-        when:
-        executer.expectDeprecationWarning()
-        run()
-
-        then:
-        output.contains("The property(Class) method has been deprecated. This is scheduled to be removed in Gradle 5.0. Please use the ObjectFactory.property(Class) method instead.")
-
-        where:
-        expr                         | _
-        "providers.property(String)" | _
-        "project.property(String)"   | _
-        "property(String)"           | _
-    }
-
-    @Unroll
-    def "can create and use property state by custom task written as #language class"() {
-        given:
-        projectUnderTest.writeCustomTaskTypeToBuildSrc(language)
-        buildFile << """
-            task myTask(type: MyTask)
-        """
-
-        when:
-        succeeds('myTask')
-
-        then:
-        projectUnderTest.assertDefaultOutputFileDoesNotExist()
-
-        when:
-        buildFile << """
-             myTask {
-                enabled = true
-                outputFiles = files("${normaliseFileSeparators(projectUnderTest.customOutputFile.canonicalPath)}")
-            }
-        """
-        succeeds('myTask')
-
-        then:
-        projectUnderTest.assertDefaultOutputFileDoesNotExist()
-        projectUnderTest.assertCustomOutputFileContent()
-
-        where:
-        language << [Language.GROOVY, Language.JAVA]
-    }
-
-    def "can lazily map extension property state to task property with convention mapping"() {
-        given:
-        projectUnderTest.writeCustomGroovyBasedTaskTypeToBuildSrc()
-        projectUnderTest.writePluginWithExtensionMappingUsingConventionMapping()
-
-        when:
-        succeeds('myTask')
-
-        then:
-        projectUnderTest.assertDefaultOutputFileDoesNotExist()
-        projectUnderTest.assertCustomOutputFileContent()
-    }
-
-    def "can lazily map extension property state to task property with property state"() {
-        given:
-        projectUnderTest.writeCustomGroovyBasedTaskTypeToBuildSrc()
-        projectUnderTest.writePluginWithExtensionMappingUsingPropertyState()
-
-        when:
-        succeeds('myTask')
-
-        then:
-        projectUnderTest.assertDefaultOutputFileDoesNotExist()
-        projectUnderTest.assertCustomOutputFileContent()
-    }
-
-    def "can use property state as task input"() {
+    def "can use property as task input"() {
         given:
         buildFile << """
 class SomeTask extends DefaultTask {
@@ -195,6 +108,33 @@ assert tasks.t.prop.get() == "changed"
         succeeds()
     }
 
+    def "can set String property value from DSL using a GString"() {
+        given:
+        buildFile << """
+class SomeExtension {
+    final Property<String> prop
+    
+    @javax.inject.Inject
+    SomeExtension(ObjectFactory objects) {
+        prop = objects.property(String)
+    }
+}
+
+extensions.create('custom', SomeExtension, objects)
+custom.prop = "\${'some value'.substring(5)}"
+assert custom.prop.get() == "value"
+
+custom.prop = providers.provider { "\${'some new value'.substring(5)}" }
+assert custom.prop.get() == "new value"
+
+custom.prop.set("\${'some other value'.substring(5)}")
+assert custom.prop.get() == "other value"
+"""
+
+        expect:
+        succeeds()
+    }
+
     def "reports failure to set property value using incompatible type"() {
         given:
         buildFile << """
@@ -209,15 +149,27 @@ class SomeExtension {
 
 extensions.create('custom', SomeExtension, objects)
 
-task wrongValueType {
+task wrongValueTypeDsl {
     doLast {
         custom.prop = 123
     }
 }
 
-task wrongPropertyType {
+task wrongValueTypeApi {
+    doLast {
+        custom.prop.set(123)
+    }
+}
+
+task wrongPropertyTypeDsl {
     doLast {
         custom.prop = objects.property(Integer)
+    }
+}
+
+task wrongPropertyTypeApi {
+    doLast {
+        custom.prop.set(objects.property(Integer))
     }
 }
 
@@ -230,17 +182,31 @@ task wrongRuntimeType {
 """
 
         when:
-        fails("wrongValueType")
+        fails("wrongValueTypeDsl")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongValueType'.")
+        failure.assertHasDescription("Execution failed for task ':wrongValueTypeDsl'.")
         failure.assertHasCause("Cannot set the value of a property of type java.lang.String using an instance of type java.lang.Integer.")
 
         when:
-        fails("wrongPropertyType")
+        fails("wrongValueTypeApi")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyType'.")
+        failure.assertHasDescription("Execution failed for task ':wrongValueTypeApi'.")
+        failure.assertHasCause("Cannot set the value of a property of type java.lang.String using an instance of type java.lang.Integer.")
+
+        when:
+        fails("wrongPropertyTypeDsl")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeDsl'.")
+        failure.assertHasCause("Cannot set the value of a property of type java.lang.String using a provider of type java.lang.Integer.")
+
+        when:
+        fails("wrongPropertyTypeApi")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeApi'.")
         failure.assertHasCause("Cannot set the value of a property of type java.lang.String using a provider of type java.lang.Integer.")
 
         when:

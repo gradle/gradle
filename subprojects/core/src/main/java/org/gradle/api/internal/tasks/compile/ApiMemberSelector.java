@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
@@ -26,7 +27,12 @@ import java.util.Set;
 import java.util.SortedSet;
 
 import static com.google.common.collect.Sets.newTreeSet;
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.ACC_FINAL;
+import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
+import static org.objectweb.asm.Opcodes.ACC_PROTECTED;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.ACC_STATIC;
+import static org.objectweb.asm.Opcodes.ACC_SUPER;
 
 /**
  * Visits each {@link Member} of a given class and selects only those members that should
@@ -49,7 +55,7 @@ public class ApiMemberSelector extends ClassVisitor {
     private boolean thisClassIsPrivateInnerClass;
 
     public ApiMemberSelector(String className, ClassVisitor apiMemberAdapter, boolean apiIncludesPackagePrivateMembers) {
-        super(ASM6);
+        super(AsmConstants.ASM_LEVEL);
         this.className = className;
         this.apiMemberAdapter = apiMemberAdapter;
         this.apiIncludesPackagePrivateMembers = apiIncludesPackagePrivateMembers;
@@ -172,7 +178,7 @@ public class ApiMemberSelector extends ClassVisitor {
         if (isCandidateApiMember(access, apiIncludesPackagePrivateMembers) || ("<init>".equals(name) && isInnerClass)) {
             final MethodMember methodMember = new MethodMember(access, name, desc, signature, exceptions);
             methods.add(methodMember);
-            return new MethodVisitor(ASM6) {
+            return new MethodVisitor(AsmConstants.ASM_LEVEL) {
                 @Override
                 public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                     AnnotationMember ann = new AnnotationMember(desc, visible);
@@ -197,7 +203,7 @@ public class ApiMemberSelector extends ClassVisitor {
             Object keepValue = (access & ACC_STATIC) == ACC_STATIC && ((access & ACC_FINAL) == ACC_FINAL) ? value : null;
             final FieldMember fieldMember = new FieldMember(access, name, signature, desc, keepValue);
             fields.add(fieldMember);
-            return new FieldVisitor(ASM6) {
+            return new FieldVisitor(AsmConstants.ASM_LEVEL) {
                 @Override
                 public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                     AnnotationMember ann = new AnnotationMember(desc, visible);

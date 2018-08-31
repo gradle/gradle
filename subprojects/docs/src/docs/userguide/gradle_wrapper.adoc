@@ -40,11 +40,9 @@ Generating the Wrapper files requires an installed version of the Gradle runtime
 
 Every vanilla Gradle build comes with a built-in task called `wrapper`. You’ll be able to find the task listed under the group "Build Setup tasks" when <<command_line_interface.adoc#sec:listing_tasks,listing the tasks>>. Executing the `wrapper` task generates the necessary Wrapper files in the project directory.
 
-=== Example: Running the Wrapper task
-
-.Output of **`gradle wrapper`**
+.Running the Wrapper task
 ----
-> gradle wrapper
+$ gradle wrapper
 include::{samplesPath}/userguide/wrapper/simple/wrapperCommandLine.out[]
 ----
 
@@ -61,10 +59,10 @@ The generated Wrapper properties file, `gradle/wrapper/gradle-wrapper.properties
 
 
 .Example: The generated distribution URL
-[source,properties]
+[source,properties,subs=+attributes]
 .`gradle/wrapper/gradle-wrapper.properties`
 ----
-distributionUrl=https\://services.gradle.org/distributions/gradle-4.3.1-bin.zip
+distributionUrl=https\://services.gradle.org/distributions/gradle-{gradleVersion}-bin.zip
 ----
 
 All of those aspects are configurable at the time of generating the Wrapper files with the help of the following command line options.
@@ -81,23 +79,21 @@ The full URL pointing to Gradle distribution ZIP file. Using this option makes `
 `--gradle-distribution-sha256-sum`::
 The SHA256 hash sum used for <<#sec:verification,verifying the downloaded Gradle distribution>>.
 
-Let’s assume the following use case to illustrate the use of the command line options. You would like to generate the Wrapper with version 4.0 and use the `-all` distribution to enable your IDE to enable code-completion and being able to navigate to the Gradle source code. Those requirements are captured by the following command line execution:
+Let’s assume the following use case to illustrate the use of the command line options. You would like to generate the Wrapper with version {gradleVersion} and use the `-all` distribution to enable your IDE to enable code-completion and being able to navigate to the Gradle source code. Those requirements are captured by the following command line execution:
 
-=== Example: Providing options to Wrapper task
-
-.Output of **`gradle wrapper --gradle-version 4.0 --distribution-type all`**
+.Providing options to Wrapper task
+[listing,subs=+attributes]
 ----
-> gradle wrapper --gradle-version 4.0 --distribution-type all
+$ gradle wrapper --gradle-version {gradleVersion} --distribution-type all
 include::{samplesPath}/userguide/wrapper/simple/wrapperCommandLine.out[]
 ----
 
 As a result you can find the desired information in the Wrapper properties file.
 
+[source,properties,subs=+attributes]
 .Example: The generated distribution URL
-[source,properties]
-.`gradle/wrapper/gradle-wrapper.properties`
 ----
-distributionUrl=https\://services.gradle.org/distributions/gradle-4.0-all.zip
+distributionUrl=https\://services.gradle.org/distributions/gradle-{gradleVersion}-all.zip
 ----
 
 Let’s have a look at the following project layout to illustrate the expected Wrapper files:
@@ -133,12 +129,9 @@ You can go ahead and <<#sec:using_wrapper,execute the build with the Wrapper>> w
 
 It is recommended to always execute a build with the Wrapper to ensure a reliable, controlled and standardized execution of the build. Using the Wrapper looks almost exactly like running the build with a Gradle installation. Depending on the operating system you either run `gradlew` or `gradlew.bat` instead of the `gradle` command. The following console output demonstrate the use of the Wrapper on a Windows machine for a Java-based project.
 
-=== Example: Executing the build with the Wrapper batch file
-
-[listing]
-.Output of `gradlew.bat build`
+.Executing the build with the Wrapper batch file
 ----
-> gradlew.bat build
+$ gradlew.bat build
 include::{samplesPath}/userguide/wrapper/wrapperBatchFileExecution.out[]
 ----
 
@@ -156,21 +149,17 @@ Projects will typically want to keep up with the times and upgrade their Gradle 
 
 Use the Gradle `wrapper` task to generate the wrapper, specifying a version. The default is the current version, which you can check by executing `./gradlew --version`.
 
-=== Example: Upgrading the Wrapper version
-
-[listing]
-.Output of `./gradlew wrapper --gradle-version 4.2.1`
+.Example: Upgrading the Wrapper version
+[listing,subs=+attributes]
 ----
-> ./gradlew wrapper --gradle-version 4.2.1
+$ ./gradlew wrapper --gradle-version {gradleVersion}
 include::{samplesPath}/userguide/wrapper/wrapperGradleVersionUpgrade.out[]
 ----
 
-=== Example: Checking the Wrapper version after upgrading
-
-[listing]
-.Output of `./gradlew -v`
+.Checking the Wrapper version after upgrading
+[listing,subs=+attributes]
 ----
-> ./gradlew -v
+$ ./gradlew -v
 include::{samplesPath}/userguide/wrapper/wrapperGradleVersionAfterUpgrade.out[]
 ----
 
@@ -181,21 +170,18 @@ Most users of Gradle are happy with the default runtime behavior of the Wrapper.
 
 Let’s assume you grew tired of defining the `-all` distribution type on the command line every time you upgrade the Wrapper. You can save yourself some keyboard strokes by re-configuring the `wrapper` task.
 
-=== Example: Customizing the Wrapper task
+.Customizing the Wrapper task
+====
+include::sample[dir="userguide/wrapper/customized-task/groovy",files="build.gradle[tags=customized-wrapper-task]"]
+include::sample[dir="userguide/wrapper/customized-task/kotlin",files="build.gradle.kts[tags=customized-wrapper-task]"]
+====
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/wrapper/customized-task/build.gradle[tag=customized-wrapper-task]
-----
+With the configuration in place running `./gradlew wrapper --gradle-version {gradleVersion}` is enough to produce a `distributionUrl` value in the Wrapper properties file that will request the `-all` distribution.
 
-With the configuration in place running `./gradlew wrapper --gradle-version 4.1` is enough to produce a `distributionUrl` value in the Wrapper properties file that will request the `-all` distribution.
-
+[listing,subs=+attributes]
 .The generated distribution URL
-[listing]
-.`gradle/wrapper/gradle-wrapper.properties`
 ----
-distributionUrl=https\://services.gradle.org/distributions/gradle-4.1-all.zip
+distributionUrl=https\://services.gradle.org/distributions/gradle-{gradleVersion}-all.zip
 ----
 
 Check out the API documentation for more detail descriptions of the available configuration options. You can also find various samples for configuring the Wrapper in the Gradle distribution.
@@ -213,9 +199,8 @@ HTTP Basic Authentication should only be used with `HTTPS` URLs and not plain `H
 
 Using system properties can be done in the `.gradle/gradle.properties` file in the user's home directory, or by other means, see <<build_environment.adoc#sec:gradle_configuration_properties,Gradle Configuration Properties>>.
 
-.Specifying the HTTP Basic Authentication credentials using system properties
 [source,properties]
-.`gradle.properties`
+.Specifying the HTTP Basic Authentication credentials using system properties
 ----
 systemProp.gradle.wrapperUser=username
 systemProp.gradle.wrapperPassword=password
@@ -223,9 +208,8 @@ systemProp.gradle.wrapperPassword=password
 
 Embedding credentials in the `distributionUrl` in the `gradle/wrapper/gradle-wrapper.properties` file also works. Please note that this file is to be committed into your source control system. Shared credentials embedded in `distributionUrl` should only be used in a controlled environment.
 
-.Specifying the HTTP Basic Authentication credentials in `distributionUrl`
 [listing]
-.`gradle/wrapper/gradle-wrapper.properties`
+.Specifying the HTTP Basic Authentication credentials in `distributionUrl`
 ----
 distributionUrl=https://username:password@somehost/path/to/gradle-distribution.zip
 ----
@@ -247,9 +231,8 @@ You can download the `.sha256` file from the link:https://services.gradle.org/di
 
 Add the downloaded hash sum to `gradle-wrapper.properties` using the `distributionSha256Sum` property or use `--gradle-distribution-sha256-sum` on the command-line.
 
-.Configuring SHA-256 checksum verification
 [source,properties]
-.`gradle/wrapper/gradle-wrapper.properties`
+.Configuring SHA-256 checksum verification
 ----
 distributionSha256Sum=371cb9fbebbe9880d147f59bab36d61eee122854ef8c9ee1ecf12b82368bcf10
 ----

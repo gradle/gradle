@@ -16,12 +16,13 @@
 package org.gradle.api.internal
 
 class DefaultDomainObjectSetTest extends AbstractDomainObjectCollectionSpec<CharSequence> {
-    DefaultDomainObjectSet<CharSequence> set = new DefaultDomainObjectSet<CharSequence>(String)
+    DefaultDomainObjectSet<CharSequence> set = new DefaultDomainObjectSet<CharSequence>(CharSequence)
     DefaultDomainObjectSet<CharSequence> container = set
-    String a = "a"
-    String b = "b"
-    String c = "c"
+    StringBuffer a = new StringBuffer("a")
+    StringBuffer b = new StringBuffer("b")
+    StringBuffer c = new StringBuffer("c")
     StringBuilder d = new StringBuilder("d")
+    boolean externalProviderAllowed = true
 
     def "findAll() filters elements and retains iteration order"() {
         set.add("a")

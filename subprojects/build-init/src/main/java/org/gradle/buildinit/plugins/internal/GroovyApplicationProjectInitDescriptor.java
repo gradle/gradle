@@ -18,31 +18,35 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 public class GroovyApplicationProjectInitDescriptor extends GroovyProjectInitDescriptor {
-    public GroovyApplicationProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, ProjectInitDescriptor projectInitDescriptor, DocumentationRegistry documentationRegistry) {
-        super(templateOperationFactory, fileResolver, libraryVersionProvider, projectInitDescriptor, documentationRegistry);
+    public GroovyApplicationProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+        super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider, documentationRegistry);
     }
 
     @Override
-    protected void configureBuildScript(BuildScriptBuilder buildScriptBuilder) {
+    public String getId() {
+        return "groovy-application";
+    }
+
+    @Override
+    protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder
             .plugin(
                 "Apply the application plugin to add support for building an application",
                 "application")
             .conventionPropertyAssignment(
                 "Define the main class for the application",
-                "application", "mainClassName", "App");
+                "application", "mainClassName", withPackage(settings, "App"));
     }
 
     @Override
-    protected TemplateOperation sourceTemplateOperation() {
-        return fromClazzTemplate("groovyapp/App.groovy.template", "main");
+    protected TemplateOperation sourceTemplateOperation(InitSettings settings) {
+        return fromClazzTemplate("groovyapp/App.groovy.template", settings, "main");
     }
 
     @Override
-    protected TemplateOperation testTemplateOperation(BuildInitTestFramework testFramework) {
-        return fromClazzTemplate("groovyapp/AppTest.groovy.template", "test");
+    protected TemplateOperation testTemplateOperation(InitSettings settings) {
+        return fromClazzTemplate("groovyapp/AppTest.groovy.template", settings, "test");
     }
 }

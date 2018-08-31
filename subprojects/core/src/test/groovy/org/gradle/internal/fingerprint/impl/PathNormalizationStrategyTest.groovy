@@ -17,13 +17,13 @@
 package org.gradle.internal.fingerprint.impl
 
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.state.DefaultFileSystemMirror
-import org.gradle.api.internal.changedetection.state.DefaultFileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
-import org.gradle.api.internal.changedetection.state.mirror.FileSystemSnapshot
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.hash.TestFileHasher
+import org.gradle.internal.snapshot.FileSystemSnapshot
+import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
+import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 
@@ -136,11 +136,10 @@ class PathNormalizationStrategyTest extends AbstractProjectBuilderSpec {
     }
 
     protected def collectFingerprints(FingerprintingStrategy strategy) {
-        strategy.collectSnapshots(roots)
         Map<File, String> fingerprints = [:]
-        strategy.collectSnapshots(roots).each { path, normalizedFingerprint ->
+        strategy.collectFingerprints(roots).each { path, normalizedFingerprint ->
             String normalizedPath
-            if (normalizedFingerprint instanceof IgnoredPathFingerprint) {
+            if (normalizedFingerprint instanceof IgnoredPathFileSystemLocationFingerprint) {
                 normalizedPath = IGNORED
             } else {
                 normalizedPath = normalizedFingerprint.normalizedPath

@@ -20,7 +20,7 @@ val css by configurations.creating {
     // define a configuration that, when resolved, will look in
     // the producer for a publication that exposes CSS resources
     attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, (project.objects.named(Usage::class.java, "css-resources")))
+        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named("css-resources"))
     }
     isCanBeResolved = true
     isCanBeConsumed = false
@@ -53,7 +53,7 @@ testFixtures {
     from(":core")
 }
 
-tasks.named("processResources").configureAs<Copy> {
+tasks.named<Copy>("processResources") {
     from(css) {
         into("org/gradle/api/plugins/buildcomparison/render/internal/html")
         include("base.css")

@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.tasks.testing.junit;
 
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.api.internal.tasks.testing.detection.TestClassVisitor;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 
 class JUnitTestClassDetector extends TestClassVisitor {
     JUnitTestClassDetector(final TestFrameworkDetector detector) {
@@ -43,7 +43,7 @@ class JUnitTestClassDetector extends TestClassVisitor {
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         if (!isTest()) {
-            return new MethodVisitor(Opcodes.ASM6) {
+            return new MethodVisitor(AsmConstants.ASM_LEVEL) {
                 @Override
                 public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                     if ("Lorg/junit/Test;".equals(desc)) {

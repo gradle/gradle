@@ -17,6 +17,7 @@
 package org.gradle.internal.locking;
 
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -41,8 +42,10 @@ public class LockFileReaderWriter {
                                                  "# This file is expected to be part of source control.\n";
 
     private final Path lockFilesRoot;
+    private final DomainObjectContext context;
 
-    public LockFileReaderWriter(FileResolver fileResolver) {
+    public LockFileReaderWriter(FileResolver fileResolver, DomainObjectContext context) {
+        this.context = context;
         Path resolve = null;
         if (fileResolver.canResolveRelativePath()) {
             resolve = fileResolver.resolve(DEPENDENCY_LOCKING_FOLDER).toPath();
@@ -66,7 +69,7 @@ public class LockFileReaderWriter {
             builder.append(module).append("\n");
         }
         try {
-            Files.write(lockFilesRoot.resolve(configurationName + FILE_SUFFIX), builder.toString().getBytes(CHARSET));
+            Files.write(lockFilesRoot.resolve(decorate(configurationName) + FILE_SUFFIX), builder.toString().getBytes(CHARSET));
         } catch (IOException e) {
             throw new RuntimeException("Unable to write lock file", e);
         }
@@ -76,7 +79,7 @@ public class LockFileReaderWriter {
         checkValidRoot(configurationName);
 
         try {
-            Path lockFile = lockFilesRoot.resolve(configurationName + FILE_SUFFIX);
+            Path lockFile = lockFilesRoot.resolve(decorate(configurationName) + FILE_SUFFIX);
             if (Files.exists(lockFile)) {
                 List<String> lines = Files.readAllLines(lockFile, CHARSET);
                 filterNonModuleLines(lines);
@@ -90,9 +93,17 @@ public class LockFileReaderWriter {
 
     }
 
+    private String decorate(String configurationName) {
+        if (context.isScript()) {
+            return "buildscript-" + configurationName;
+        } else {
+            return configurationName;
+        }
+    }
+
     private void checkValidRoot(String configurationName) {
         if (lockFilesRoot == null) {
-            throw new IllegalStateException("Dependency locking cannot be used for configuration '" + configurationName + "'." +
+            throw new IllegalStateException("Dependency locking cannot be used for configuration '" + context.identityPath(configurationName) + "'." +
                 " See limitations in the documentation (" + DOC_REG.getDocumentationFor("dependency_locking", "locking_limitations") +").");
         }
     }

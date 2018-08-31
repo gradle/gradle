@@ -40,6 +40,7 @@ dependencies {
     api project(":persistentCache")
     api project(":buildCache")
     api project(":coreApi")
+    api project(":files")
 
     api project(":processServices")
     api project(":jvmServices")
@@ -81,6 +82,7 @@ dependencies {
     integTestImplementation project(":plugins")
 
     integTestRuntimeOnly project(':maven')
+    integTestRuntimeOnly project(':apiMetadata')
 }
 
 gradlebuildJava {

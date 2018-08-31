@@ -37,23 +37,22 @@ import org.gradle.build.ClasspathManifest
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.BuildEnvironment.agentNum
 import org.gradle.gradlebuild.java.AvailableJavaInstallations
-import org.gradle.internal.jvm.Jvm
 import org.gradle.kotlin.dsl.*
 import org.gradle.process.CommandLineArgumentProvider
+import java.util.concurrent.Callable
 import testLibraries
 import testLibrary
 import java.util.jar.Attributes
 
 
-enum class ModuleType(val source: JavaVersion, val target: JavaVersion, val requiredCompiler: JavaVersion) {
-    UNDEFINED(JavaVersion.VERSION_1_1, JavaVersion.VERSION_1_1, JavaVersion.VERSION_1_1),
-    ENTRY_POINT(JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6),
-    WORKER(JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6),
-    CORE(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
-    PLUGIN(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
-    INTERNAL(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
-    REQUIRES_JAVA_8(JavaVersion.VERSION_1_8, JavaVersion.VERSION_1_8, JavaVersion.VERSION_1_8),
-    REQUIRES_JAVA_9_COMPILER(JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_9);
+enum class ModuleType(val compatibility: JavaVersion) {
+    UNDEFINED(JavaVersion.VERSION_1_1),
+    ENTRY_POINT(JavaVersion.VERSION_1_6),
+    WORKER(JavaVersion.VERSION_1_6),
+    CORE(JavaVersion.VERSION_1_7),
+    PLUGIN(JavaVersion.VERSION_1_7),
+    INTERNAL(JavaVersion.VERSION_1_7),
+    REQUIRES_JAVA_8(JavaVersion.VERSION_1_8)
 }
 
 
@@ -66,47 +65,48 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         base.archivesBaseName = "gradle-${name.replace(Regex("\\p{Upper}")) { "-${it.value.toLowerCase()}" }}"
         addDependencies()
         addGeneratedResources(extension)
-        configureCompile(extension)
+        configureCompile()
         configureJarTasks()
         configureTests()
     }
 
     private
-    fun Project.configureCompile(extension: UnitTestAndCompileExtension) {
+    fun Project.configureCompile() {
         afterEvaluate {
             val availableJavaInstallations = rootProject.the<AvailableJavaInstallations>()
 
             tasks.withType<JavaCompile>().configureEach {
                 options.isIncremental = true
-                configureCompileTask(this, options, availableJavaInstallations, extension.moduleType.requiredCompiler)
+                configureCompileTask(this, options, availableJavaInstallations)
             }
             tasks.withType<GroovyCompile>().configureEach {
                 groovyOptions.encoding = "utf-8"
-                configureCompileTask(this, options, availableJavaInstallations, extension.moduleType.requiredCompiler)
+                configureCompileTask(this, options, availableJavaInstallations)
             }
         }
         addCompileAllTask()
     }
 
     private
-    fun configureCompileTask(compileTask: AbstractCompile, options: CompileOptions, availableJavaInstallations: AvailableJavaInstallations, requiredCompilerVersion: JavaVersion) {
+    fun configureCompileTask(compileTask: AbstractCompile, options: CompileOptions, availableJavaInstallations: AvailableJavaInstallations) {
         options.isFork = true
         options.encoding = "utf-8"
         options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
-        val compilerJdkVersion = maxOf(requiredCompilerVersion, JavaVersion.VERSION_1_7)
-        val jdkForCompilation = availableJavaInstallations.jdkForCompilation(compilerJdkVersion)
+        val jdkForCompilation = availableJavaInstallations.javaInstallationForCompilation
         if (!jdkForCompilation.current) {
             options.forkOptions.javaHome = jdkForCompilation.javaHome
         }
-        compileTask.inputs.property("javaInstallation", when (compileTask) {
-            is JavaCompile -> jdkForCompilation
-            else -> availableJavaInstallations.currentJavaInstallation
-        }.displayName)
+        compileTask.inputs.property("javaInstallation", Callable {
+            when (compileTask) {
+                is JavaCompile -> jdkForCompilation
+                else -> availableJavaInstallations.currentJavaInstallation
+            }.vendorAndMajorVersion
+        })
     }
 
     private
     fun Project.addGeneratedResources(gradlebuildJava: UnitTestAndCompileExtension) {
-        val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class.java)
+        val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class)
         java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), gradlebuildJava.generatedResourcesDir)
     }
 
@@ -152,7 +152,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         tasks.withType<Test>().configureEach {
             maxParallelForks = project.maxParallelForks
             jvmArgumentProviders.add(createCiEnvironmentProvider(this))
-            executable = Jvm.forHome(javaInstallationForTest.javaHome).javaExecutable.absolutePath
+            executable = javaInstallationForTest.jvm.javaExecutable.absolutePath
             environment["JAVA_HOME"] = javaInstallationForTest.javaHome.absolutePath
             if (javaInstallationForTest.javaVersion.isJava7) {
                 // enable class unloading
@@ -163,7 +163,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
                 jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
             }
             // Includes JVM vendor and major version
-            inputs.property("javaInstallation", javaInstallationForTest.displayName)
+            inputs.property("javaInstallation", Callable { javaInstallationForTest.vendorAndMajorVersion })
             doFirst {
                 if (BuildEnvironment.isCiServer) {
                     logger.lifecycle("maxParallelForks for '$path' is $maxParallelForks")
@@ -214,8 +214,8 @@ open class UnitTestAndCompileExtension(val project: Project) {
     var moduleType: ModuleType = ModuleType.UNDEFINED
         set(value) {
             field = value
-            project.java.targetCompatibility = moduleType.target
-            project.java.sourceCompatibility = moduleType.source
+            project.java.targetCompatibility = moduleType.compatibility
+            project.java.sourceCompatibility = moduleType.compatibility
         }
 
     init {

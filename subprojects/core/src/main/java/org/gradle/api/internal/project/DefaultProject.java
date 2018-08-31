@@ -45,7 +45,6 @@ import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.DynamicPropertyNamer;
 import org.gradle.api.internal.ExtensibleDynamicObject;
@@ -58,7 +57,6 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
@@ -71,7 +69,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
@@ -114,6 +111,7 @@ import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
+import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.Configurable;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
@@ -259,8 +257,8 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @SuppressWarnings("unused")
     static class BasicServicesRules extends RuleSource {
         @Hidden @Model
-        SourceDirectorySetFactory sourceDirectorySetFactory(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(SourceDirectorySetFactory.class);
+        ObjectFactory objectFactory(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ObjectFactory.class);
         }
 
         @Hidden @Model
@@ -926,11 +924,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
-    public <T> PropertyState<T> property(Class<T> clazz) {
-        return getProviders().property(clazz);
-    }
-
-    @Override
     public ResourceHandler getResources() {
         return getFileOperations().getResources();
     }
@@ -1141,17 +1134,17 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void subprojects(Closure configureClosure) {
-        getProjectConfigurator().subprojects(getSubprojects(), configureClosure);
+        getProjectConfigurator().subprojects(getSubprojects(), ConfigureUtil.<Project>configureUsing(configureClosure));
     }
 
     @Override
     public void allprojects(Closure configureClosure) {
-        getProjectConfigurator().allprojects(getAllprojects(), configureClosure);
+        getProjectConfigurator().allprojects(getAllprojects(), ConfigureUtil.<Project>configureUsing(configureClosure));
     }
 
     @Override
     public Project project(String path, Closure configureClosure) {
-        return getProjectConfigurator().project(project(path), configureClosure);
+        return getProjectConfigurator().project(project(path), ConfigureUtil.<Project>configureUsing(configureClosure));
     }
 
     @Override
@@ -1209,6 +1202,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     public Task task(Object task) {
         return taskContainer.create(task.toString());
+    }
+
+    @Override
+    public Task task(String task, Action<? super Task> configureAction) {
+        return taskContainer.create(task, configureAction);
     }
 
     @Override
@@ -1420,7 +1418,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     private void assertMutatingMethodAllowed(String methodName) {
-        getProjectConfigurator().assertCrossProjectConfigurationAllowed(methodName, this);
+        getProjectConfigurator().assertProjectMutationAllowed(methodName, this);
     }
 
     // These are here just so that ProjectInternal can implement FileOperations to work around https://github.com/gradle/gradle/issues/6027

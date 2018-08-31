@@ -58,7 +58,7 @@ public class SwiftcMetadataProvider extends AbstractMetadataProvider<SwiftcMetad
     }
 
     @Override
-    protected SwiftcMetadata parseCompilerOutput(String stdout, String stderr, File swiftc) {
+    protected SwiftcMetadata parseCompilerOutput(String stdout, String stderr, File swiftc, List<File> path) {
         BufferedReader reader = new BufferedReader(new StringReader(stdout));
         try {
             String line;

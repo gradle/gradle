@@ -60,7 +60,7 @@ class DefaultClassLoaderFactoryTest extends Specification {
 
         when:
         Thread.currentThread().contextClassLoader = cl
-        c.newInstance().doStuff()
+        c.getConstructor().newInstance().doStuff()
 
         then:
         notThrown()

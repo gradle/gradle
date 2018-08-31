@@ -50,6 +50,7 @@ class GradleDistribution {
         staticContent.exclude 'samples/**'
         staticContent.exclude 'src/**'
         staticContent.exclude 'docs/**'
+        staticContent.exclude 'getting-started.html'
         libs = project.fileTree(gradleHomeDir.dir('lib'))
         libs.include('*.jar')
         libs.exclude('plugins/**')

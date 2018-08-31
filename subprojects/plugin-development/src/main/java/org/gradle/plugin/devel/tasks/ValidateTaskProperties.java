@@ -35,6 +35,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -343,7 +344,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
         private final Collection<String> classNames;
 
         public TaskNameCollectorVisitor(Collection<String> classNames) {
-            super(Opcodes.ASM6);
+            super(AsmConstants.ASM_LEVEL);
             this.classNames = classNames;
         }
 

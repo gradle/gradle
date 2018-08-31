@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.changes;
 
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.OverlappingOutputs;
@@ -134,7 +133,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             ImmutableCollection<HistoricalFileCollectionFingerprint> outputFingerprints = previousExecution.getOutputFingerprints().values();
             Set<File> outputs = new HashSet<File>();
             for (FileCollectionFingerprint fileCollectionFingerprint : outputFingerprints) {
-                for (String absolutePath : fileCollectionFingerprint.getSnapshots().keySet()) {
+                for (String absolutePath : fileCollectionFingerprint.getFingerprints().keySet()) {
                     outputs.add(new File(absolutePath));
                 }
             }
@@ -187,8 +186,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             if (failure == null || getStates().hasAnyOutputFileChanges()) {
                 history.getCurrentExecution().setOriginExecutionMetadata(originMetadata);
                 history.persist();
-                ImmutableSet<String> outputFilePaths = history.getCurrentExecution().getDeclaredOutputFilePaths();
-                taskOutputFilesRepository.recordOutputs(outputFilePaths);
+                taskOutputFilesRepository.recordOutputs(history.getCurrentExecution().getOutputFingerprints().values());
             }
         }
 

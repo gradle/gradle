@@ -221,7 +221,7 @@ Alternatively, if your plugin is published to the plugin portal, you can use the
 [source.multi-language-sample,groovy]
 .build.gradle
 ----
-include::{samplesPath}/plugins/dsl/build.gradle[tag=use-community-plugin]
+include::{samplesPath}/plugins/dsl/groovy/build.gradle[tag=use-community-plugin]
 ----
 
 

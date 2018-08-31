@@ -18,20 +18,19 @@ package org.gradle.internal.logging.console;
 
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.PromptOutputEvent;
-import org.gradle.internal.time.Clock;
 
 public class UserInputStandardOutputRenderer extends AbstractUserInputRenderer {
-
-    private final Clock clock;
-
-    public UserInputStandardOutputRenderer(OutputEventListener delegate, Clock clock) {
+    public UserInputStandardOutputRenderer(OutputEventListener delegate) {
         super(delegate);
-        this.clock = clock;
     }
 
     @Override
-    void startInput(String prompt) {
-        delegate.onOutput(new PromptOutputEvent(clock.getCurrentTime(), prompt));
+    void startInput() {
+    }
+
+    @Override
+    void handlePrompt(PromptOutputEvent event) {
+        delegate.onOutput(event);
     }
 
     @Override

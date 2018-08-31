@@ -16,12 +16,15 @@
 
 package org.gradle.api.internal.plugins
 
+import org.gradle.api.internal.AsmBackedClassGenerator
+import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.TestPluginConvention1
 import org.gradle.api.plugins.TestPluginConvention2
 import org.gradle.api.reflect.TypeOf
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.junit.Before
 import org.junit.Test
@@ -159,17 +162,9 @@ class DefaultConventionTest {
     }
 
     @Test void createWillExposeGivenTypeAsTheSchemaTypeEvenWhenInstantiatorReturnsDecoratedType() {
-        def convention = new DefaultConvention(new Instantiator() {
-            @Override
-            <T> T newInstance(Class<? extends T> type, Object... parameters) {
-                (T) new DecoratedFooExtension()
-            }
-        })
-        assert convention.create("foo", FooExtension) instanceof DecoratedFooExtension
+        def convention = new DefaultConvention(new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE))
+        assert convention.create("foo", FooExtension).class != FooExtension
         assert convention.schema["foo"] == typeOf(FooExtension)
-    }
-
-    static class DecoratedFooExtension extends FooExtension {
     }
 
     interface PublicExtensionType {

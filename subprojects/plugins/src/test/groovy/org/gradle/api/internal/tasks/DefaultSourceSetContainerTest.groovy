@@ -22,6 +22,7 @@ import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.util.NameValidator
 import org.gradle.util.SingleMessageLogger
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -30,7 +31,7 @@ class DefaultSourceSetContainerTest extends Specification {
     static forbiddenLeadingAndTrailingCharacter = NameValidator.FORBIDDEN_LEADING_AND_TRAILING_CHARACTER
     static invalidNames = forbiddenCharacters.collect { "a${it}b"} + ["${forbiddenLeadingAndTrailingCharacter}ab", "ab${forbiddenLeadingAndTrailingCharacter}", '']
 
-    private final DefaultSourceSetContainer container = new DefaultSourceSetContainer(TestFiles.resolver(), null, DirectInstantiator.INSTANCE, TestFiles.sourceDirectorySetFactory())
+    private final DefaultSourceSetContainer container = new DefaultSourceSetContainer(TestFiles.resolver(), null, DirectInstantiator.INSTANCE, TestUtil.objectFactory())
 
     def "can create a source set"() {
         when:
@@ -62,13 +63,13 @@ class DefaultSourceSetContainerTest extends Specification {
         name << invalidNames
     }
 
-    void assertForbidden(name, message) {
+    void assertForbidden(String name, String message) {
         if (name == '') {
-            assert message == "The name is empty. This has been deprecated and is scheduled to be removed in Gradle 5.0."
+            assert message.contains("The name is empty. This has been deprecated")
         } else if (name.contains("" + forbiddenLeadingAndTrailingCharacter)) {
-            assert message == """The name '${name}' starts or ends with a '.'. This has been deprecated and is scheduled to be removed in Gradle 5.0."""
+            assert message.contains("""The name '${name}' starts or ends with a '.'. This has been deprecated""")
         } else {
-            assert message == """The name '${name}' contains at least one of the following characters: [ , /, \\, :, <, >, ", ?, *, |]. This has been deprecated and is scheduled to be removed in Gradle 5.0."""
+            assert message.contains("""The name '${name}' contains at least one of the following characters: [ , /, \\, :, <, >, ", ?, *, |]. This has been deprecated""")
         }
     }
 }

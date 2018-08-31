@@ -301,24 +301,27 @@ class DefaultExecutorFactoryTest extends ConcurrentSpec {
     }
 
     def stopScheduledExecutorThrowsExceptionOnTimeout() {
-        def latch = new CountDownLatch(1)
+        def stopLatch = new CountDownLatch(1)
+        def stoppedLatch = new CountDownLatch(1)
         def action = {
-            latch.countDown()
-            thread.block()
+            stopLatch.countDown()
+            // Make sure we block the executor until it has been stopped
+            stoppedLatch.await()
         }
 
         when:
         def executor = factory.createScheduled('<display-name>', 1)
         executor.schedule(action, 0, TimeUnit.SECONDS)
         operation.stop {
-            latch.await()
-            executor.stop(200, TimeUnit.MILLISECONDS)
+            stopLatch.await()
+            try {
+                executor.stop(50, TimeUnit.MILLISECONDS)
+            } finally {
+                stoppedLatch.countDown()
+            }
         }
 
         then:
-        operation.stop.duration in approx(200)
-
-        and:
         IllegalStateException e = thrown()
         e.message == 'Timeout waiting for concurrent jobs to complete.'
     }

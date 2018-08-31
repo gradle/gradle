@@ -33,24 +33,28 @@ public class DefaultPropertySpecFactory implements PropertySpecFactory {
     }
 
     @Override
-    public DeclaredTaskInputFileProperty createInputFileSpec(ValidatingValue path, ValidationAction validator) {
-        return new DefaultTaskInputFilePropertySpec(task.getName(), resolver, path, validator);
+    public DeclaredTaskInputFileProperty createInputFileSpec(ValidatingValue paths) {
+        return createInputFilesSpec(paths, ValidationActions.INPUT_FILE_VALIDATOR);
     }
 
     @Override
-    public DeclaredTaskInputFileProperty createInputFilesSpec(ValidatingValue paths, ValidationAction validator) {
-        FileTreeInternal fileTree = resolver.resolveFilesAsTree(paths);
-        return createInputFileSpec(new FileTreeValue(paths, fileTree), validator);
+    public DeclaredTaskInputFileProperty createInputFilesSpec(ValidatingValue paths) {
+        return createInputFilesSpec(paths, ValidationActions.NO_OP);
     }
 
     @Override
-    public DeclaredTaskInputFileProperty createInputDirSpec(ValidatingValue dirPath, ValidationAction validator) {
-        return createInputFilesSpec(dirPath, validator);
+    public DeclaredTaskInputFileProperty createInputDirSpec(ValidatingValue dirPath) {
+        FileTreeInternal fileTree = resolver.resolveFilesAsTree(dirPath);
+        return createInputFilesSpec(new FileTreeValue(dirPath, fileTree), ValidationActions.INPUT_DIRECTORY_VALIDATOR);
+    }
+
+    private DeclaredTaskInputFileProperty createInputFilesSpec(ValidatingValue paths, ValidationAction validationAction) {
+        return new DefaultTaskInputFilePropertySpec(task.getName(), resolver, paths, validationAction);
     }
 
     @Override
     public DefaultTaskInputPropertySpec createInputPropertySpec(String name, ValidatingValue value) {
-        return new DefaultTaskInputPropertySpec(task.getInputs(), name, value);
+        return new DefaultTaskInputPropertySpec(name, value);
     }
 
     @Override

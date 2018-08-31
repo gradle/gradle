@@ -134,8 +134,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new BaseDirFileResolver(get(FileSystem.class), project.getProjectDir(), patternSetFactory);
     }
 
-    protected SourceDirectorySetFactory createSourceDirectorySetFactory(FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        return new DefaultSourceDirectorySetFactory(fileResolver, directoryFileTreeFactory);
+    protected SourceDirectorySetFactory createSourceDirectorySetFactory(ObjectFactory objectFactory) {
+        return new DefaultSourceDirectorySetFactory(objectFactory);
     }
 
     protected LoggingManagerInternal createLoggingManager() {
@@ -293,9 +293,9 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return ConfigurationTargetIdentifier.of(project);
     }
 
-    protected ObjectFactory createObjectFactory(final InstantiatorFactory instantiatorFactory) {
+    protected ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
         Instantiator instantiator = instantiatorFactory.injectAndDecorate(ProjectScopeServices.this);
-        return new DefaultObjectFactory(instantiator, NamedObjectInstantiator.INSTANCE);
+        return new DefaultObjectFactory(instantiator, NamedObjectInstantiator.INSTANCE, fileResolver, directoryFileTreeFactory);
     }
 
 }

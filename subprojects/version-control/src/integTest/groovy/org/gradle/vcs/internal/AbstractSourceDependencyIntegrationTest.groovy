@@ -178,9 +178,6 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
                     }
                 }
             """
-            file("src/main/resources/META-INF/gradle-plugins/com.example.MyPlugin.properties") << """
-                implementation-class=MyPlugin
-            """
             file("src/main/groovy/MyPlugin.groovy") << """
                 import org.gradle.api.*
                 import org.gradle.api.initialization.*

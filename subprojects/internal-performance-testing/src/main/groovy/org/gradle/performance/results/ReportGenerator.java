@@ -30,7 +30,7 @@ public class ReportGenerator {
     public static void main(String... args) throws Exception {
         Class<?> resultStoreClass = Class.forName(args[0]);
         File outputDirectory = new File(args[1]);
-        ResultsStore resultStore = (ResultsStore) resultStoreClass.newInstance();
+        ResultsStore resultStore = (ResultsStore) resultStoreClass.getConstructor().newInstance();
         try {
             new ReportGenerator().generate(resultStore, outputDirectory);
         } finally {

@@ -25,12 +25,12 @@ import org.gradle.util.TestUtil
 class JavaLibraryDistributionPluginTest extends AbstractProjectBuilderSpec {
     private final Project project = TestUtil.builder(temporaryFolder).withName("test-project").build()
 
-    def "applies JavaPlugin and adds convention object with default values"() {
+    def "applies JavaLibraryPlugin and adds convention object with default values"() {
         when:
         project.pluginManager.apply(JavaLibraryDistributionPlugin)
 
         then:
-        project.plugins.hasPlugin(JavaPlugin.class)
+        project.plugins.hasPlugin(JavaLibraryPlugin.class)
         project.extensions.getByType(DistributionContainer.class) != null
         project.plugins.hasPlugin(DistributionPlugin.class)
         project.distributions.main.baseName == project.name

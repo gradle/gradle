@@ -34,8 +34,8 @@ Contributors must follow the Code of Conduct outlined at [https://gradle.org/con
 In order to make changes to Gradle, you'll need:
 
 * A text editor or IDE. We use and recommend [IntelliJ IDEA CE](http://www.jetbrains.com/idea/).
-* A [Java Development Kit](http://www.oracle.com/technetwork/java/javase/downloads/index.html) (JDK) version 1.7 or higher
-* [git](https://git-scm.com/) and a [GitHub account](https://github.com/join)
+* A [Java Development Kit](http://www.oracle.com/technetwork/java/javase/downloads/index.html) (JDK) version 9 or 10.
+* [git](https://git-scm.com/) and a [GitHub account](https://github.com/join).
 
 Gradle uses pull requests for contributions. Fork [gradle/gradle](https://github.com/gradle/gradle) and clone your fork. Configure your Git username and email with
 

@@ -149,10 +149,12 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     void assertPrintsForbiddenCharacterDeprecationMessage(String nameDescription, String deprecatedName, String suggestion = '') {
-        assert output.contains("The $nameDescription '$deprecatedName' contains at least one of the following characters: [ , /, \\, :, <, >, \", ?, *, |]. This has been deprecated and is scheduled to be removed in Gradle 5.0.$suggestion")
+        outputContains("The $nameDescription '$deprecatedName' contains at least one of the following characters: [ , /, \\, :, <, >, \", ?, *, |].")
+        outputContains(suggestion)
     }
 
     void assertPrintsForbiddenStartOrEndCharacterDeprecationMessage(String nameDescription, String deprecatedName, String suggestion = '') {
-        assert output.contains("The $nameDescription '$deprecatedName' starts or ends with a '.'. This has been deprecated and is scheduled to be removed in Gradle 5.0.$suggestion")
+        outputContains("The $nameDescription '$deprecatedName' starts or ends with a '.'.")
+        outputContains(suggestion)
     }
 }

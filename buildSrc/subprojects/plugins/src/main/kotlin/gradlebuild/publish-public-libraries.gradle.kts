@@ -72,7 +72,7 @@ fun Project.configureUploadArchivesTask(generatePom: TaskProvider<GeneratePom>) 
 
         repositories {
             ivy {
-                artifactPattern(createArtifactPattern(rootProject.extra.get("isSnapshot") as Boolean, project.group.toString(), base.archivesBaseName))
+                artifactPattern(createArtifactPattern(rootProject.extra["isSnapshot"] as Boolean, project.group.toString(), base.archivesBaseName))
                 credentials {
                     username = artifactoryUserName
                     password = artifactoryUserPassword
