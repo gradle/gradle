@@ -15,7 +15,9 @@
  */
 package org.gradle.internal;
 
+import javax.annotation.Nullable;
 import java.lang.ref.SoftReference;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class Factories {
@@ -24,6 +26,20 @@ public abstract class Factories {
             public T create() {
                 runnable.run();
                 return null;
+            }
+        };
+    }
+
+    public static <T> Factory<T> toFactory(final Callable<T> callable) {
+        return new Factory<T>() {
+            @Nullable
+            @Override
+            public T create() {
+                try {
+                    return callable.call();
+                } catch (Exception e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
             }
         };
     }

@@ -258,6 +258,6 @@ configurations.conf.incoming.beforeResolve {
         fails "checkDefault"
 
         and:
-        failure.assertHasCause "org.gradle.api.InvalidUserDataException: Cannot change dependencies of configuration ':conf' after it has been included in dependency resolution."
+        failure.assertHasCause "Cannot change dependencies of configuration ':conf' after it has been included in dependency resolution."
     }
 }

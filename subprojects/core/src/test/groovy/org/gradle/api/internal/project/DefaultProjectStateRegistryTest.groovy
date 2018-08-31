@@ -102,8 +102,8 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         def state1 = registry.stateFor(project1)
         def state2 = registry.stateFor(project2)
 
-        def projectLock1 = workerLeaseService.getProjectLock(project1.getIdentityPath())
-        def projectLock2 = workerLeaseService.getProjectLock(project2.getIdentityPath())
+        def projectLock1 = workerLeaseService.getProjectLock(build.getIdentityPath(), project1.getIdentityPath())
+        def projectLock2 = workerLeaseService.getProjectLock(build.getIdentityPath(), project2.getIdentityPath())
 
         expect:
         async {
