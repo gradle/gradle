@@ -16,28 +16,21 @@
 
 package org.gradle.integtests.fixtures.executer
 
-import org.gradle.integtests.fixtures.executer.ClassPathMerger.WindowsClassPathMerger
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Specification
-import spock.lang.Subject
 
 import java.util.zip.ZipFile
 
-@Requires(TestPrecondition.WINDOWS)
-class WindowsClassPathMergerTest extends Specification {
-    @Subject
-    WindowsClassPathMerger windowsClassPathMerger = new WindowsClassPathMerger()
-
+class ClassPathMergerTest extends Specification {
     def 'can merge long classpath list into one jar'() {
         when:
         List<File> classPath = generateLongClassPath()
-        List<File> mergedClassPath = windowsClassPathMerger.mergeClassPathIfNecessary(classPath)
+        List<File> mergedClassPath = ClassPathMerger.INSTANCE.mergeClassPathIfNecessary(classPath)
         ZipFile zipFile = new ZipFile(mergedClassPath[0])
         String manifest = zipFile.entries().findAll { !it.directory }.collect { zipFile.getInputStream(it).text }.first()
 
         then:
-        manifest.length() > WindowsClassPathMerger.WINDOWS_CLASSPATH_LENGTH_LIMITATION
+        mergedClassPath.size() == 1
+        manifest.length() > ClassPathMerger.INSTANCE.CLASSPATH_LENGTH_LIMITATION
         manifest.startsWith('Class-Path:')
         (manifest - 'Class-Path: ').replaceAll(/\r\n /, '').split(' ').every { it.startsWith('file:') }
     }
@@ -48,7 +41,7 @@ class WindowsClassPathMergerTest extends Specification {
         int fileCounter = 0
         List<File> files = []
 
-        while (totalLength < WindowsClassPathMerger.WINDOWS_CLASSPATH_LENGTH_LIMITATION) {
+        while (totalLength < ClassPathMerger.INSTANCE.CLASSPATH_LENGTH_LIMITATION) {
             File file = new File(userDir, fileCounter.toString())
             files.add(file)
 
@@ -56,5 +49,14 @@ class WindowsClassPathMergerTest extends Specification {
             totalLength += (file.absolutePath.length() + 1)
         }
         return files
+    }
+
+    def "do nothing if classpath doesn't hti the limitation"() {
+        when:
+        File userDir = new File(System.getProperty('user.dir'))
+        List<File> shortClassPath = [new File(userDir, 'foo'), new File(userDir, 'bar')]
+
+        then:
+        ClassPathMerger.INSTANCE.mergeClassPathIfNecessary(shortClassPath) == shortClassPath
     }
 }

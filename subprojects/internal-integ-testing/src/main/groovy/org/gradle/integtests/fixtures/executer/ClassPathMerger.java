@@ -41,82 +41,75 @@ import java.util.zip.ZipOutputStream;
  * See <a href="https://docs.oracle.com/javase/tutorial/deployment/jar/downman.html">Adding Classes to the JAR File's Classpath</>
  * And <a href="https://github.com/bazelbuild/bazel/commit/d9a7d3a789be559bd6972208af21adae871d7a44">A similar implementation in Bazel</>
  */
-interface ClassPathMerger {
-    ClassPathMerger INSTANCE = OperatingSystem.current().isWindows() ? new WindowsClassPathMerger() : new DoNothingClassPathMerger();
+enum ClassPathMerger {
+    INSTANCE;
     // Actually 32KB, let's leave some margin
-    int WINDOWS_CLASSPATH_LENGTH_LIMITATION = 30000;
+    static final int WINDOWS_CLASSPATH_LENGTH_LIMITATION = 30000;
+    // Actually 128KB, let's leave some margin
+    static final int UNIX_CLASSPATH_LENGTH_LIMITATION = 120000;
 
-    List<File> mergeClassPathIfNecessary(List<File> classPath);
+    static final int CLASSPATH_LENGTH_LIMITATION = OperatingSystem.current().isWindows() ? WINDOWS_CLASSPATH_LENGTH_LIMITATION : UNIX_CLASSPATH_LENGTH_LIMITATION;
 
-    class WindowsClassPathMerger implements ClassPathMerger {
-        @Override
-        public List<File> mergeClassPathIfNecessary(List<File> classPath) {
-            if (CollectionUtils.join(File.pathSeparator, classPath).length() < WINDOWS_CLASSPATH_LENGTH_LIMITATION) {
-                return classPath;
-            }
-            return mergedClassPath(classPath);
-        }
-
-        private List<File> mergedClassPath(List<File> classPath) {
-            try {
-                String maneifestContent = generateManifestContent(classPath);
-                File jar = jar(maneifestContent);
-                return Collections.singletonList(jar);
-            } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
-
-        private File jar(String manifestContent) throws IOException {
-            File jar = Files.createTempFile("classpath.jar", null).toFile();
-            ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(jar));
-
-            try {
-                ZipEntry entry = new ZipEntry("META-INF/MANIFEST.MF");
-                zipOutputStream.putNextEntry(entry);
-                ByteStreams.copy(new ByteArrayInputStream(manifestContent.getBytes()), zipOutputStream);
-                zipOutputStream.closeEntry();
-            } finally {
-                IOUtils.closeQuietly(zipOutputStream);
-            }
-
-            return jar;
-        }
-
-        /**
-         * Generate the content of jar MANIFEST.MF file, spaces in path should be escaped since
-         * it's the delimiter.
-         */
-        private String generateManifestContent(List<File> classPath) throws IOException {
-            List<URI> uri = CollectionUtils.collect(classPath, new Transformer<URI, File>() {
-                @Override
-                public URI transform(File file) {
-                    return file.toURI();
-                }
-            });
-
-            return make72Safe("Class-Path: " + CollectionUtils.join(" ", uri) + "\r\n");
-        }
-
-        /*
-         * This method is coped from https://github.com/bazelbuild/bazel/commit/d9a7d3a789be559bd6972208af21adae871d7a44
-         * If it works for Bazel, it also works for us.
-         */
-        private String make72Safe(String line) {
-            StringBuilder result = new StringBuilder();
-            int length = line.length();
-            for (int i = 0; i < length; i += 69) {
-                result.append(line, i, Math.min(i + 69, length));
-                result.append("\r\n ");
-            }
-            return result.toString();
+    List<File> mergeClassPathIfNecessary(List<File> classPath) {
+        if (CollectionUtils.join(File.pathSeparator, classPath).length() < CLASSPATH_LENGTH_LIMITATION) {
+            return classPath;
+        } else {
+            return Collections.singletonList(mergedClassPath(classPath));
         }
     }
 
-    class DoNothingClassPathMerger implements ClassPathMerger {
-        @Override
-        public List<File> mergeClassPathIfNecessary(List<File> classPath) {
-            return classPath;
+    private File mergedClassPath(List<File> classPath) {
+        try {
+            String maneifestContent = generateManifestContent(classPath);
+            File jar = jar(maneifestContent);
+            return jar;
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    private File jar(String manifestContent) throws IOException {
+        File jar = Files.createTempFile("classpath.jar", null).toFile();
+        ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(jar));
+
+        try {
+            ZipEntry entry = new ZipEntry("META-INF/MANIFEST.MF");
+            zipOutputStream.putNextEntry(entry);
+            ByteStreams.copy(new ByteArrayInputStream(manifestContent.getBytes()), zipOutputStream);
+            zipOutputStream.closeEntry();
+        } finally {
+            IOUtils.closeQuietly(zipOutputStream);
+        }
+
+        return jar;
+    }
+
+    /**
+     * Generate the content of jar MANIFEST.MF file, spaces in path should be escaped since
+     * it's the delimiter.
+     */
+    private String generateManifestContent(List<File> classPath) {
+        List<URI> uri = CollectionUtils.collect(classPath, new Transformer<URI, File>() {
+            @Override
+            public URI transform(File file) {
+                return file.toURI();
+            }
+        });
+
+        return make72Safe("Class-Path: " + CollectionUtils.join(" ", uri) + "\r\n");
+    }
+
+    /*
+     * This method is coped from https://github.com/bazelbuild/bazel/commit/d9a7d3a789be559bd6972208af21adae871d7a44
+     * Adds line breaks to enforce a maximum 72 bytes per line.
+     */
+    private String make72Safe(String line) {
+        StringBuilder result = new StringBuilder();
+        int length = line.length();
+        for (int i = 0; i < length; i += 69) {
+            result.append(line, i, Math.min(i + 69, length));
+            result.append("\r\n ");
+        }
+        return result.toString();
     }
 }
