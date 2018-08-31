@@ -117,13 +117,11 @@ Enforcing a version of a dependency requires a conscious decision. Changing the 
 
 Let's say a project uses the link:https://hc.apache.org/httpcomponents-client-ga/[HttpClient library] for performing HTTP calls. HttpClient pulls in link:https://commons.apache.org/proper/commons-codec/[Commons Codec] as transitive dependency with version 1.10. However, the production source code of the project requires an API from Commons Codec 1.9 which is not available in 1.10 anymore. A dependency version can be enforced by declaring it in the build script and setting link:{javadocPath}/org/gradle/api/artifacts/ExternalDependency.html#setForce-boolean-[ExternalDependency.setForce(boolean)] to `true`.
 
-=== Example: Enforcing a dependency version
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/managingTransitiveDependencies/forceForDependency/build.gradle[tag=force-per-dependency]
-----
+.Enforcing a dependency version
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/forceForDependency/groovy",files="build.gradle[tags=force-per-dependency]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/forceForDependency/kotlin",files="build.gradle.kts[tags=force-per-dependency]"]
+====
 
 If the project requires a specific version of a dependency on a configuration-level then it can be achieved by calling the method link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html#org.gradle.api.artifacts.ResolutionStrategy:force(java.lang.Object++[]++)[ResolutionStrategy.force(java.lang.Object++[]++)].
 

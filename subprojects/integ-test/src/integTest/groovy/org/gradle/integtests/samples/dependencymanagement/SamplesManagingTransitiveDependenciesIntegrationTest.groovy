@@ -132,17 +132,22 @@ Searched in the following locations:
         libs.any { it.name == 'log4j-1.2.15.jar' || it.name == 'mail-1.4.jar' || it.name == 'activation-1.1.jar' }
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/forceForDependency")
-    def "can force a dependency version"() {
-        executer.inDirectory(sample.dir)
+    def "can force a dependency version for #dsl dsl"() {
+        TestFile dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        def libs = listFilesInBuildLibsDir(sample.dir)
+        def libs = listFilesInBuildLibsDir(dslDir)
         libs.any { it.name == 'commons-codec-1.9.jar' }
         !libs.any { it.name == 'commons-codec-1.10.jar' }
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/forceForConfiguration")
