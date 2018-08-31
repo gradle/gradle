@@ -200,16 +200,21 @@ Searched in the following locations:
         dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/constraintsFromBOM")
-    def "can import dependency versions from a bom"() {
-        executer.inDirectory(sample.dir)
+    def "can import dependency versions from a bom for #dsl dsl"() {
+        TestFile dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        def libs = listFilesInBuildLibsDir(sample.dir)
+        def libs = listFilesInBuildLibsDir(dslDir)
         libs.findAll { it.name == 'gson-2.8.2.jar' || it.name == 'dom4j-1.6.1.jar' || it.name == 'xml-apis-1.4.01.jar'}.size() == 3
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     private TestFile[] listFilesInBuildLibsDir(TestFile dslDir) {
