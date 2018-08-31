@@ -407,6 +407,7 @@ class NodeState implements DependencyGraphNode {
             for (EdgeState outgoingDependency : outgoingEdges) {
                 outgoingDependency.removeFromTargetConfigurations();
                 outgoingDependency.getSelector().release();
+                resolveState.getPendingDependenciesHandler().removeHardEdge(outgoingDependency);
             }
         }
         outgoingEdges.clear();
