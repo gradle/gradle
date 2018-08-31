@@ -18,8 +18,12 @@ package org.gradle.api.internal.project;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.Project;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
@@ -27,14 +31,16 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 public class DefaultProjectStateRegistry implements ProjectStateRegistry {
+    private static Logger logger = Logging.getLogger(DefaultProjectStateRegistry.class);
+
     private final WorkerLeaseService workerLeaseService;
     private final Object lock = new Object();
     private final Map<Path, ProjectStateImpl> projectsByPath = Maps.newLinkedHashMap();
@@ -50,7 +56,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             for (DefaultProjectDescriptor descriptor : owner.getLoadedSettings().getProjectRegistry().getAllProjects()) {
                 Path identityPath = owner.getIdentityPathForProject(descriptor.path());
                 ProjectComponentIdentifier projectIdentifier = owner.getIdentifierForProject(descriptor.path());
-                ProjectStateImpl projectState = new ProjectStateImpl(owner, identityPath, descriptor.getName(), projectIdentifier);
+                ProjectStateImpl projectState = new ProjectStateImpl(owner, identityPath, descriptor.getName(), projectIdentifier, owner.getIdentityPath());
                 projectsByPath.put(identityPath, projectState);
                 projectsById.put(projectIdentifier, projectState);
                 projectsByCompId.put(Pair.of(owner.getBuildIdentifier(), descriptor.path()), projectState);
@@ -63,7 +69,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         synchronized (lock) {
             Path identityPath = project.getIdentityPath();
             ProjectComponentIdentifier projectIdentifier = owner.getIdentifierForProject(project.getProjectPath());
-            ProjectStateImpl projectState = new ProjectStateImpl(owner, identityPath, project.getName(), projectIdentifier);
+            ProjectStateImpl projectState = new ProjectStateImpl(owner, identityPath, project.getName(), projectIdentifier, owner.getIdentityPath());
             projectsByPath.put(projectState.projectIdentityPath, projectState);
             projectsById.put(projectState.identifier, projectState);
             projectsByCompId.put(Pair.of(owner.getBuildIdentifier(), project.getProjectPath()), projectState);
@@ -117,12 +123,12 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         private final Path projectIdentityPath;
         private final ResourceLock projectLock;
 
-        ProjectStateImpl(BuildState owner, Path projectIdentityPath, String projectName, ProjectComponentIdentifier identifier) {
+        ProjectStateImpl(BuildState owner, Path projectIdentityPath, String projectName, ProjectComponentIdentifier identifier, Path gradleIdentityPath) {
             this.owner = owner;
             this.projectIdentityPath = projectIdentityPath;
             this.projectName = projectName;
             this.identifier = identifier;
-            this.projectLock = workerLeaseService.getProjectLock(projectIdentityPath);
+            this.projectLock = workerLeaseService.getProjectLock(gradleIdentityPath, projectIdentityPath);
         }
 
         @Override
@@ -162,29 +168,36 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             if (currentLocks.contains(projectLock)) {
                 currentLocks = Lists.newArrayList(currentLocks);
                 currentLocks.remove(projectLock);
-                return workerLeaseService.withoutLocks(currentLocks, new Callable<T>() {
-                    @Override
-                    public T call() throws Exception {
-                        return action.create();
-                    }
-                });
+                if (!currentLocks.isEmpty()) {
+                    return workerLeaseService.withoutLocks(currentLocks, action);
+                } else {
+                    return action.create();
+                }
             } else {
-                return workerLeaseService.withoutLocks(currentLocks, new Callable<T>() {
-                    @Override
-                    public T call() throws Exception {
-                        return withProjectLock(projectLock, action);
+                if (!currentLocks.isEmpty()) {
+                    if (logger.isEnabled(LogLevel.DEBUG)) {
+                        logger.debug("Releasing project locks " + CollectionUtils.join(", ", CollectionUtils.collect(currentLocks, new Transformer<String, ResourceLock>() {
+                            @Override
+                            public String transform(ResourceLock resourceLock) {
+                                return resourceLock.getDisplayName();
+                            }
+                        })) + " to acquire " + projectLock.getDisplayName());
                     }
-                });
+                    return workerLeaseService.withoutLocks(currentLocks, new Factory<T>() {
+                        @Nullable
+                        @Override
+                        public T create() {
+                            return withProjectLock(projectLock, action);
+                        }
+                    });
+                } else {
+                    return withProjectLock(projectLock, action);
+                }
             }
         }
 
         private <T> T withProjectLock(ResourceLock projectLock, final Factory<? extends T> action) {
-            return workerLeaseService.withLocks(Lists.newArrayList(projectLock), new Callable<T>() {
-                @Override
-                public T call() throws Exception {
-                    return action.create();
-                }
-            });
+            return workerLeaseService.withLocks(Lists.newArrayList(projectLock), action);
         }
     }
 }

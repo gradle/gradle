@@ -23,6 +23,8 @@ import org.gradle.api.Describable;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.concurrent.ParallelismConfiguration;
+import org.gradle.internal.Factories;
+import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ParallelismConfigurationListener;
@@ -138,11 +140,6 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
     }
 
     @Override
-    public ResourceLock getProjectLock(Path projectIdentityPath) {
-        return projectLockRegistry.getResourceLock(projectIdentityPath);
-    }
-
-    @Override
     public Collection<? extends ResourceLock> getCurrentProjectLocks() {
         return projectLockRegistry.getResourceLocksByCurrentThread();
     }
@@ -161,25 +158,36 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
 
     @Override
     public <T> T withLocks(Iterable<? extends ResourceLock> locks, Callable<T> action) {
-        Iterable<? extends ResourceLock> locksNotHeld = locksNotHeld(locks);
-        coordinationService.withStateLock(lock(locksNotHeld));
+        return withLocks(locks, Factories.toFactory(action));
+    }
+
+    @Override
+    public <T> T withLocks(Iterable<? extends ResourceLock> locks, Factory<T> factory) {
+        Iterable<? extends ResourceLock> locksToAcquire = locksNotHeld(locks);
+        if (!Iterables.isEmpty(locksToAcquire)) {
+            coordinationService.withStateLock(lock(locksToAcquire));
+        }
         try {
-            return action.call();
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            return factory.create();
         } finally {
-            coordinationService.withStateLock(unlock(locksNotHeld));
+            if (!Iterables.isEmpty(locksToAcquire)) {
+                coordinationService.withStateLock(unlock(locksToAcquire));
+            }
         }
     }
 
     @Override
     public void withLocks(Iterable<? extends ResourceLock> locks, Runnable action) {
-        Iterable<? extends ResourceLock> locksNotHeld = locksNotHeld(locks);
-        coordinationService.withStateLock(lock(locksNotHeld));
+        Iterable<? extends ResourceLock> locksToAcquire = locksNotHeld(locks);
+        if (!Iterables.isEmpty(locksToAcquire)) {
+            coordinationService.withStateLock(lock(locksToAcquire));
+        }
         try {
             action.run();
         } finally {
-            coordinationService.withStateLock(unlock(locksNotHeld));
+            if (!Iterables.isEmpty(locksToAcquire)) {
+                coordinationService.withStateLock(unlock(locksToAcquire));
+            }
         }
     }
 
@@ -203,13 +211,18 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
 
     @Override
     public <T> T withoutLocks(Iterable<? extends ResourceLock> locks, Callable<T> action) {
+        return withoutLocks(locks, Factories.toFactory(action));
+    }
+
+    @Override
+    public <T> T withoutLocks(Iterable<? extends ResourceLock> locks, Factory<T> factory) {
         if (!allLockedByCurrentThread(locks)) {
             throw new IllegalStateException("Not all of the locks specified are currently held by the current thread.  This could lead to orphaned locks.");
         }
 
         coordinationService.withStateLock(unlock(locks));
         try {
-            return action.call();
+            return factory.create();
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {

@@ -32,14 +32,6 @@ public interface ProjectLeaseRegistry {
     ResourceLock getProjectLock(Path gradleIdentityPath, Path projectIdentityPath);
 
     /**
-     * Get a lock for the specified project.
-     *
-     * @param projectIdentityPath
-     * @return the requested {@link ResourceLock}
-     */
-    ResourceLock getProjectLock(Path projectIdentityPath);
-
-    /**
      * Releases all project locks held by the current thread and executes the {@link Callable}.  Upon completion of the
      * {@link Callable}, if a lock was held at the time the method was called, then it will be reacquired.  If no locks were held at the
      * time the method was called, then no attempt will be made to reacquire a lock on completion.  While blocking to reacquire the project

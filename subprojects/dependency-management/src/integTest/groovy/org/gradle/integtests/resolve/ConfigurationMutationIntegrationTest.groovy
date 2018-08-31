@@ -174,7 +174,7 @@ configurations.compile.withDependencies {
         resolve.prepare()
         fails ":checkDeps"
 
-        failure.assertHasCause("java.lang.RuntimeException: Bad user code")
+        failure.assertHasCause("Bad user code")
     }
 
     def "cannot add withDependencies rule after configuration has been used"() {
