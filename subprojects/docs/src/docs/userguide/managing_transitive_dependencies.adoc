@@ -149,13 +149,11 @@ Disabling transitive dependency resolution will likely require you to declare th
 
 A project can decide to disable transitive dependency resolution completely. You either don't want to rely on the metadata published to the consumed repositories or you want to gain full control over the dependencies in your graph. For more information, see link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#setTransitive-boolean-[Configuration.setTransitive(boolean)].
 
-=== Example: Disabling transitive dependency resolution on the configuration-level
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/managingTransitiveDependencies/disableForConfiguration/build.gradle[tag=transitive-per-configuration]
-----
+.Disabling transitive dependency resolution on the configuration-level
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/disableForConfiguration/groovy",files="build.gradle[tags=transitive-per-configuration]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/disableForConfiguration/kotlin",files="build.gradle.kts[tags=transitive-per-configuration]"]
+====
 
 [[sec:bom_import]]
 == Importing version recommendations from a Maven BOM
