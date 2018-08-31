@@ -150,17 +150,22 @@ Searched in the following locations:
         dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/forceForConfiguration")
-    def "can force a dependency version for particular configuration"() {
-        executer.inDirectory(sample.dir)
+    def "can force a dependency version for particular configuration for #dsl dsl"() {
+        TestFile dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        def libs = listFilesInBuildLibsDir(sample.dir)
+        def libs = listFilesInBuildLibsDir(dslDir)
         libs.any { it.name == 'commons-codec-1.9.jar' }
         !libs.any { it.name == 'commons-codec-1.10.jar' }
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/disableForDependency")

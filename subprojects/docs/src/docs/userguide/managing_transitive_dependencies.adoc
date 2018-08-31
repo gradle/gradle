@@ -125,13 +125,11 @@ include::sample[dir="userguide/dependencyManagement/managingTransitiveDependenci
 
 If the project requires a specific version of a dependency on a configuration-level then it can be achieved by calling the method link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html#org.gradle.api.artifacts.ResolutionStrategy:force(java.lang.Object++[]++)[ResolutionStrategy.force(java.lang.Object++[]++)].
 
-=== Example: Enforcing a dependency version on the configuration-level
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/managingTransitiveDependencies/forceForConfiguration/build.gradle[tag=force-per-configuration]
-----
+.Enforcing a dependency version on the configuration-level
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/forceForConfiguration/groovy",files="build.gradle[tags=force-per-configuration]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/forceForConfiguration/kotlin",files="build.gradle.kts[tags=force-per-configuration]"]
+====
 
 [[sub:disabling_resolution_transitive_dependencies]]
 == Disabling resolution of transitive dependencies
