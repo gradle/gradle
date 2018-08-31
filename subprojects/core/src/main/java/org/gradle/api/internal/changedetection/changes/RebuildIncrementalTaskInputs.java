@@ -19,9 +19,6 @@ package org.gradle.api.internal.changedetection.changes;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.changedetection.state.CurrentTaskExecution;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.slf4j.Logger;
@@ -44,25 +41,10 @@ public class RebuildIncrementalTaskInputs extends StatefulIncrementalTaskInputs 
     }
 
     public void doOutOfDate(final Action<? super InputFileDetails> outOfDateAction) {
-        PhysicalSnapshotVisitor visitor = new PhysicalSnapshotVisitor() {
-            @Override
-            public boolean preVisitDirectory(PhysicalDirectorySnapshot snapshot) {
-                return true;
-            }
-
-            @Override
-            public void visit(PhysicalSnapshot snapshot) {
-                outOfDateAction.execute(new RebuildInputFile(new File(snapshot.getAbsolutePath())));
-            }
-
-            @Override
-            public void postVisitDirectory(PhysicalDirectorySnapshot snapshot) {
-                // No-op
-            }
-        };
-
         for (CurrentFileCollectionFingerprint fingerprint : execution.getInputFingerprints().values()) {
-            fingerprint.visitRoots(visitor);
+            for (String path : fingerprint.getFingerprints().keySet()) {
+                outOfDateAction.execute(new RebuildInputFile(new File(path)));
+            }
         }
     }
 

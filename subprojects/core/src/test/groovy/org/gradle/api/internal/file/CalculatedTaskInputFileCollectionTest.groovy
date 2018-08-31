@@ -22,22 +22,22 @@ import spock.lang.Specification
 
 
 class CalculatedTaskInputFileCollectionTest extends Specification {
-    def "querying value before task has started executing does not cache"() {
-        def calculated = Mock(MinimalFileSet)
+    def "cannot query value before task has started executing"() {
+        def calculated = Stub(MinimalFileSet)
         def fileCollection = new CalculatedTaskInputFileCollection(":task", calculated)
 
         calculated.displayName >> "<files>"
 
         when:
         fileCollection.files
-        fileCollection.files
 
         then:
-        2 * calculated.files
+        def e = thrown(IllegalStateException)
+        e.message == 'Can only query <files> while task :task is running'
     }
 
-    def "querying value after task has completed executing does not cache"() {
-        def calculated = Mock(MinimalFileSet)
+    def "cannot query value after task has completed executing"() {
+        def calculated = Stub(MinimalFileSet)
         def fileCollection = new CalculatedTaskInputFileCollection(":task", calculated)
 
         calculated.displayName >> "<files>"
@@ -49,10 +49,10 @@ class CalculatedTaskInputFileCollectionTest extends Specification {
 
         when:
         fileCollection.files
-        fileCollection.files
 
         then:
-        2 * calculated.files
+        def e = thrown(IllegalStateException)
+        e.message == 'Can only query <files> while task :task is running'
     }
 
     def "caches the result during task execution"() {
