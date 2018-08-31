@@ -1,10 +1,21 @@
-apply plugin: 'war'
 // tag::use-eclipse-plugin[]
-apply plugin: 'eclipse'
+// tag::use-eclipse-wtp-plugin[]
+plugins {
+    // end::use-eclipse-plugin[]
+// end::use-eclipse-wtp-plugin[]
+    id 'war'
+// tag::use-eclipse-plugin[]
+    id 'eclipse'
 // end::use-eclipse-plugin[]
 // tag::use-eclipse-wtp-plugin[]
-apply plugin: 'eclipse-wtp'
+    id 'eclipse-wtp'
 // end::use-eclipse-wtp-plugin[]
+// tag::use-eclipse-plugin[]
+// tag::use-eclipse-wtp-plugin[]
+}
+// end::use-eclipse-plugin[]
+// end::use-eclipse-wtp-plugin[]
+
 // tag::module-before-merged[]
 // tag::module-when-merged[]
 eclipse.classpath.file {
@@ -29,8 +40,6 @@ eclipse.project.file.beforeMerged { project ->
 // end::project-before-merged[]
 
 // tag::wtp-with-xml[]
-apply plugin: 'eclipse-wtp'
-
 eclipse.wtp.facet.file.withXml { provider ->
     provider.asNode().fixed.find { it.@facet == 'jst.java' }.@facet = 'jst2.java'
 }
