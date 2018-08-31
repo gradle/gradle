@@ -43,6 +43,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor;
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor;
+import org.gradle.internal.component.external.model.maven.MavenDependencyType;
 import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
@@ -300,7 +301,7 @@ public class ModuleMetadataSerializer {
             writeNullableArtifact(mavenDependency.getDependencyArtifact());
             writeMavenExcludeRules(mavenDependency.getAllExcludes());
             encoder.writeSmallInt(mavenDependency.getScope().ordinal());
-            encoder.writeBoolean(mavenDependency.isOptional());
+            encoder.writeSmallInt(mavenDependency.getType().ordinal());
         }
 
         private void writeNullableArtifact(IvyArtifactName artifact) throws IOException {
@@ -647,8 +648,8 @@ public class ModuleMetadataSerializer {
             IvyArtifactName artifactName = readNullableArtifact();
             List<ExcludeMetadata> mavenExcludes = readMavenDependencyExcludes();
             MavenScope scope = MavenScope.values()[decoder.readSmallInt()];
-            boolean optional = decoder.readBoolean();
-            return new MavenDependencyDescriptor(scope, optional, requested, artifactName, mavenExcludes);
+            MavenDependencyType type = MavenDependencyType.values()[decoder.readSmallInt()];
+            return new MavenDependencyDescriptor(scope, type, requested, artifactName, mavenExcludes);
         }
 
         private List<ExcludeMetadata> readMavenDependencyExcludes() throws IOException {

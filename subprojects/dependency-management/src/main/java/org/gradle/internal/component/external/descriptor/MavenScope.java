@@ -16,6 +16,9 @@
 
 package org.gradle.internal.component.external.descriptor;
 
+/**
+ * A "scope" taken from a Maven POM. Note that the order of this enum is important for the module metadata cache.
+ */
 public enum MavenScope {
     Compile("compile"),
     Runtime("runtime"),

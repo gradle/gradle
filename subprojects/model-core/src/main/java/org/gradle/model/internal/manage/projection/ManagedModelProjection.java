@@ -18,7 +18,6 @@ package org.gradle.model.internal.manage.projection;
 
 import com.google.common.base.Optional;
 import groovy.lang.Closure;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.Cast;
 import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.model.internal.core.DefaultModelViewState;
@@ -38,6 +37,7 @@ import org.gradle.model.internal.manage.schema.ScalarCollectionSchema;
 import org.gradle.model.internal.manage.schema.StructSchema;
 import org.gradle.model.internal.manage.schema.extract.ScalarCollectionModelView;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.util.ClosureBackedAction;
 
 import java.util.Collection;
 import java.util.HashMap;

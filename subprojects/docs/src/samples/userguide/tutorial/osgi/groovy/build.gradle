@@ -1,0 +1,23 @@
+plugins {
+    id 'osgi'
+    id 'java'
+}
+
+// tag::configure-jar[]
+jar {
+    manifest { // the manifest of the default jar is of type OsgiManifest
+        name = 'overwrittenSpecialOsgiName'
+        instruction 'Private-Package',
+            'org.mycomp.package1',
+            'org.mycomp.package2'
+        instruction 'Bundle-Vendor', 'MyCompany'
+        instruction 'Bundle-Description', 'Platform2: Metrics 2 Measures Framework'
+        instruction 'Bundle-DocURL', 'http://www.mycompany.com'
+    }
+}
+task fooJar(type: Jar) {
+    manifest = osgiManifest {
+        instruction 'Bundle-Vendor', 'MyCompany'
+    }
+}
+// end::configure-jar[]

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.resources
 
 import org.gradle.api.internal.file.TemporaryFileProvider
-import org.gradle.api.internal.tasks.TaskDependencies
+import org.gradle.api.internal.tasks.TaskDependencyInternal
 import org.gradle.internal.resource.TextResource
 import org.gradle.internal.resource.TextResourceLoader
 
@@ -61,7 +61,7 @@ class ApiTextResourceAdapterTest extends AbstractTextResourceTest {
 
     def "get build dependencies"() {
         expect:
-        resource.getBuildDependencies() == TaskDependencies.EMPTY
+        resource.getBuildDependencies() == TaskDependencyInternal.EMPTY
     }
 
     def "get input Files"() {

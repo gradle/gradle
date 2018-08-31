@@ -1009,4 +1009,45 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
     }
 
+    @RequiredFeatures([
+        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    ])
+    def "virtual platform constraints shouldn't be transitive"() {
+        repository {
+            "org:member1:1.1" {
+                dependsOn(group: "other", artifact:"transitive", version:"1.0")
+            }
+            "org:member2:1.1" {
+                dependsOn(group:'org', artifact:'member1', version:'1.1', exclusions: [[module: 'transitive']])
+            }
+            "other:transitive:1.0"()
+        }
+
+        given:
+        buildFile << """
+            dependencies {
+                conf 'org:member2:1.1'
+            }
+        """
+        and:
+        "align the 'org' group only"()
+
+        when:
+        expectAlignment {
+            module('member1') alignsTo('1.1') byVirtualPlatform()
+            module('member2') alignsTo('1.1') byVirtualPlatform()
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:member2:1.1") {
+                    module("org:member1:1.1")
+                }
+            }
+        }
+
+    }
+
 }

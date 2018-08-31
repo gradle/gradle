@@ -19,6 +19,8 @@ package org.gradle.api.internal.tasks;
 import groovy.util.ObservableList;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 
 import java.beans.PropertyChangeEvent;
 import java.util.concurrent.Callable;
@@ -121,13 +123,8 @@ public class TaskMutator {
         }
 
         @Override
-        public ClassLoader getClassLoader() {
-            return action.getClassLoader();
-        }
-
-        @Override
-        public String getActionClassName() {
-            return action.getActionClassName();
+        public ImplementationSnapshot getActionImplementation(ClassLoaderHierarchyHasher hasher) {
+            return action.getActionImplementation(hasher);
         }
 
         @Override

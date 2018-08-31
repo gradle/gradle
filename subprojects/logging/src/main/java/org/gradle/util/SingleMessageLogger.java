@@ -253,7 +253,7 @@ public class SingleMessageLogger {
         }
     }
 
-    public static void nagUserWith(String summary, String removalDetails, String advice, String contextualAdvice) {
+    public static void nagUserWith(String summary, String removalDetails, @Nullable String advice, @Nullable String contextualAdvice) {
         if (isEnabled()) {
             nagUserWith(deprecatedFeatureHandler, new DeprecatedFeatureUsage(summary, removalDetails, advice, contextualAdvice, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, SingleMessageLogger.class));
         }

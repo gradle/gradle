@@ -37,9 +37,6 @@ class TaskTypeTaskStateChangesTest extends Specification {
     def task = Stub(TaskInternal) {
         getIdentityPath() >> Path.path(":test")
     }
-    def hasher = Mock(ClassLoaderHierarchyHasher) {
-        getClassLoaderHash(taskLoader) >> taskLoaderHash
-    }
 
     TaskExecution mockExecution(ImplementationSnapshot impl, ImplementationSnapshot... actions) {
         return Mock(TaskExecution) {
@@ -174,7 +171,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
     }
 
     private static ImplementationSnapshot impl(Class<?> type, HashCode classLoaderHash) {
-        new ImplementationSnapshot(type.getName(), classLoaderHash)
+        ImplementationSnapshot.of(type.getName(), classLoaderHash)
     }
 
     private class SimpleTask extends DefaultTask {}
@@ -186,18 +183,6 @@ class TaskTypeTaskStateChangesTest extends Specification {
     }
 
     private static class TestAction implements ContextAwareTaskAction {
-        final ClassLoader classLoader
-        final String actionClassName
-
-        TestAction() {
-            this(TestAction, TestAction.classLoader)
-        }
-
-        TestAction(Class<?> actionType, ClassLoader classLoader) {
-            this.actionClassName = actionType.name
-            this.classLoader = classLoader
-        }
-
         @Override
         void contextualise(TaskExecutionContext context) {
         }
@@ -213,6 +198,11 @@ class TaskTypeTaskStateChangesTest extends Specification {
         @Override
         String getDisplayName() {
             return "Execute test action"
+        }
+
+        @Override
+        ImplementationSnapshot getActionImplementation(ClassLoaderHierarchyHasher hasher) {
+            return ImplementationSnapshot.of(getClass(), hasher)
         }
     }
 }

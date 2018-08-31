@@ -21,6 +21,7 @@ import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
+import org.gradle.internal.serialize.Serializer;
 
 import java.util.Map;
 
@@ -46,6 +47,7 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
     private static final int DEFAULT_SNAPSHOT = 18;
 
     private final HashCodeSerializer serializer = new HashCodeSerializer();
+    private final Serializer<ImplementationSnapshot> implementationSnapshotSerializer = new ImplementationSnapshot.SerializerImpl();
 
     @Override
     public ValueSnapshot read(Decoder decoder) throws Exception {
@@ -108,7 +110,7 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
             case MANAGED_NAMED_SNAPSHOT:
                 return new ManagedNamedTypeSnapshot(decoder.readString(), decoder.readString());
             case IMPLEMENTATION_SNAPSHOT:
-                return new ImplementationSnapshot(decoder.readString(), decoder.readBoolean() ? null : serializer.read(decoder));
+                return implementationSnapshotSerializer.read(decoder);
             case DEFAULT_SNAPSHOT:
                 return new SerializedValueSnapshot(decoder.readBoolean() ? serializer.read(decoder) : null, decoder.readBinary());
             default:
@@ -170,11 +172,7 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
         } else if (snapshot instanceof ImplementationSnapshot) {
             ImplementationSnapshot implementationSnapshot = (ImplementationSnapshot) snapshot;
             encoder.writeSmallInt(IMPLEMENTATION_SNAPSHOT);
-            encoder.writeString(implementationSnapshot.getTypeName());
-            encoder.writeBoolean(implementationSnapshot.hasUnknownClassLoader());
-            if (!implementationSnapshot.hasUnknownClassLoader()) {
-                serializer.write(encoder, implementationSnapshot.getClassLoaderHash());
-            }
+            implementationSnapshotSerializer.write(encoder, implementationSnapshot);
         } else if (snapshot instanceof SerializedValueSnapshot) {
             SerializedValueSnapshot valueSnapshot = (SerializedValueSnapshot) snapshot;
             encoder.writeSmallInt(DEFAULT_SNAPSHOT);

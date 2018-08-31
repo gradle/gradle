@@ -41,7 +41,7 @@ import java.util.concurrent.Callable
 open class IntTestImagePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        val intTestImage = tasks.register("intTestImage", Sync::class.java) {
+        val intTestImage = tasks.register("intTestImage", Sync::class) {
             group = "Verification"
             into(file("$buildDir/integ test"))
         }
@@ -52,7 +52,7 @@ open class IntTestImagePlugin : Plugin<Project> {
 
         val partialDistribution by configurations.creating {
             attributes {
-                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
             }
             isCanBeResolved = true
             isCanBeConsumed = false
@@ -61,7 +61,7 @@ open class IntTestImagePlugin : Plugin<Project> {
         if (useAllDistribution) {
             val unpackedPath = layout.buildDirectory.dir("tmp/unpacked-all-distribution")
 
-            val unpackAllDistribution = tasks.register("unpackAllDistribution", Sync::class.java) {
+            val unpackAllDistribution = tasks.register("unpackAllDistribution", Sync::class) {
                 dependsOn(":distributions:allZip")
                 // TODO: This should be modelled as a publication
                 from(Callable {
@@ -79,7 +79,7 @@ open class IntTestImagePlugin : Plugin<Project> {
         } else {
             val selfRuntime by configurations.creating {
                 attributes {
-                    attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+                    attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
                 }
                 isCanBeResolved = true
                 isCanBeConsumed = false
@@ -114,7 +114,10 @@ open class IntTestImagePlugin : Plugin<Project> {
                     }
 
                     into("samples") {
-                        from(Callable { (project(":docs").extra.get("outputs") as Map<String, FileCollection>)["samples"] })
+                        from(Callable {
+                            val outputs: Map<String, FileCollection> by project(":docs").extra
+                            outputs["samples"]
+                        })
                     }
 
                     doLast {

@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy.internal.artifact;
 
 import com.google.common.io.Files;
-import org.gradle.api.internal.tasks.TaskDependencies;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 
@@ -61,7 +60,7 @@ public class FileBasedIvyArtifact extends AbstractIvyArtifact {
 
     @Override
     protected TaskDependencyInternal getDefaultBuildDependencies() {
-        return TaskDependencies.EMPTY;
+        return TaskDependencyInternal.EMPTY;
     }
 
     @Override

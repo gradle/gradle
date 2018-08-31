@@ -48,7 +48,7 @@ class WrapperPlugin : Plugin<Project> {
         val wrapperTaskName = "${name}Wrapper"
         val configureWrapperTaskName = "configure${wrapperTaskName.capitalize()}"
 
-        val wrapperTask = tasks.register(wrapperTaskName, Wrapper::class.java) {
+        val wrapperTask = tasks.register(wrapperTaskName, Wrapper::class) {
             dependsOn(configureWrapperTaskName)
             group = "wrapper"
         }

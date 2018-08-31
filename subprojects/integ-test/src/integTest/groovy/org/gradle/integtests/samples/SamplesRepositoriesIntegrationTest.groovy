@@ -19,20 +19,31 @@ package org.gradle.integtests.samples
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.util.Requires
 import org.junit.Rule
 
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
+
+@Requires(KOTLIN_SCRIPT)
 class SamplesRepositoriesIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
+    def setup() {
+        requireOwnGradleUserHomeDir() // Isolate Kotlin DSL extensions API jar
+    }
+
     @UsesSample("userguide/artifacts/defineRepository")
-    def "can use repositories notation"() {
+    def "can use repositories notation with #dsl dsl"() {
         // This test is not very strong. Its main purpose is to the for the correct syntax as we use many
         // code snippets from this build script in the user's guide.
-        executer.inDirectory(sample.dir)
+        executer.inDirectory(sample.dir.file(dsl))
 
         expect:
         succeeds('lookup')
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 }

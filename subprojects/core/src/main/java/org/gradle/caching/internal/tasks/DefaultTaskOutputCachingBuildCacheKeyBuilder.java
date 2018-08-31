@@ -43,7 +43,6 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
     private HashCode classLoaderHash;
     private List<HashCode> actionClassLoaderHashes;
     private ImmutableList<String> actionTypes;
-    private boolean valid = true;
     private final ImmutableSortedMap.Builder<String, HashCode> inputValueHashes = ImmutableSortedMap.naturalOrder();
     private final ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> inputFiles = ImmutableSortedMap.naturalOrder();
     private final ImmutableSortedSet.Builder<String> inputPropertiesLoadedByUnknownClassLoader = ImmutableSortedSet.naturalOrder();
@@ -56,15 +55,8 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
     @Override
     public void appendTaskImplementation(ImplementationSnapshot taskImplementation) {
         this.taskClass = taskImplementation.getTypeName();
-        hasher.putString(taskClass);
-
-        if (taskImplementation.hasUnknownClassLoader()) {
-            valid = false;
-        } else {
-            HashCode hashCode = taskImplementation.getClassLoaderHash();
-            this.classLoaderHash = hashCode;
-            hasher.putHash(hashCode);
-        }
+        this.classLoaderHash = taskImplementation.getClassLoaderHash();
+        taskImplementation.appendToHasher(hasher);
     }
 
     @Override
@@ -72,19 +64,10 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
         ImmutableList.Builder<String> actionTypes = ImmutableList.builder();
         List<HashCode> actionClassLoaderHashes = Lists.newArrayListWithCapacity(taskActionImplementations.size());
         for (ImplementationSnapshot actionImpl : taskActionImplementations) {
-            String actionType = actionImpl.getTypeName();
-            actionTypes.add(actionType);
-            hasher.putString(actionType);
-
-            HashCode hashCode;
-            if (actionImpl.hasUnknownClassLoader()) {
-                hashCode = null;
-                valid = false;
-            } else {
-                hashCode = actionImpl.getClassLoaderHash();
-                hasher.putHash(hashCode);
-            }
-            actionClassLoaderHashes.add(hashCode);
+            actionTypes.add(actionImpl.getTypeName());
+            actionClassLoaderHashes.add(actionImpl.getClassLoaderHash());
+            
+            actionImpl.appendToHasher(hasher);
         }
 
         this.actionTypes = actionTypes.build();
@@ -106,8 +89,8 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
     }
 
     @Override
-    public void inputPropertyLoadedByUnknownClassLoader(String propertyName) {
-        valid = false;
+    public void inputPropertyImplementationUnknown(String propertyName) {
+        hasher.markAsInvalid();
         inputPropertiesLoadedByUnknownClassLoader.add(propertyName);
     }
 
@@ -121,7 +104,7 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
     public TaskOutputCachingBuildCacheKey build() {
         BuildCacheKeyInputs inputs = new BuildCacheKeyInputs(taskClass, classLoaderHash, actionClassLoaderHashes, actionTypes, inputValueHashes.build(), inputFiles.build(), inputPropertiesLoadedByUnknownClassLoader.build(), outputPropertyNames.build());
         HashCode hash;
-        if (!valid) {
+        if (!hasher.isValid()) {
             hash = null;
         } else {
             hash = hasher.hash();

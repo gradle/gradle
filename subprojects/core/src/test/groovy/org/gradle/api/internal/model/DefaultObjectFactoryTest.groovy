@@ -43,7 +43,7 @@ class DefaultObjectFactoryTest extends Specification {
     }
 
     @Unroll
-    def "properties wih boolean and numbers provide default value for #type"() {
+    def "properties with wrapper type #type provide default value"() {
         given:
         def property = factory.property(type)
 
@@ -60,6 +60,27 @@ class DefaultObjectFactoryTest extends Specification {
         Float     | 0.0f
         Double    | 0.0d
         Character | '\u0000'
+    }
+
+    @Unroll
+    def "properties wih primitive type #type provide default value"() {
+        given:
+        def property = factory.property(type)
+
+        expect:
+        property.get() == defaultValue
+        property.type == boxedType
+
+        where:
+        type           | boxedType | defaultValue
+        Boolean.TYPE   | Boolean   | false
+        Byte.TYPE      | Byte      | 0
+        Short.TYPE     | Short     | 0
+        Integer.TYPE   | Integer   | 0
+        Long.TYPE      | Long      | 0L
+        Float.TYPE     | Float     | 0.0f
+        Double.TYPE    | Double    | 0.0d
+        Character.TYPE | Character | '\u0000'
     }
 
     def "creating property type for reference type throws exception upon retrieval of value"() {
