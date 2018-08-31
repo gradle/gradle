@@ -21,8 +21,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileResolver;
@@ -122,7 +122,7 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
     }
 
     @Override
-    public void attachProducer(TaskInternal producer) {
+    public void attachProducer(Task producer) {
         // Ignore for now
     }
 

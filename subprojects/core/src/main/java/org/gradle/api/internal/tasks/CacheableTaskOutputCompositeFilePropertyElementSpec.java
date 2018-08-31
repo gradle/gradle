@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.OutputNormalizer;
@@ -63,7 +63,7 @@ class CacheableTaskOutputCompositeFilePropertyElementSpec implements CacheableTa
     }
 
     @Override
-    public void attachProducer(TaskInternal producer) {
+    public void attachProducer(Task producer) {
         // Ignore
     }
 

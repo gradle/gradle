@@ -39,6 +39,9 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
 
     @Override
     public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
+        if (!visitor.visitNested()) {
+            return;
+        }
         Object nested;
         try {
             nested = unpackProvider(propertyValue.getValue());

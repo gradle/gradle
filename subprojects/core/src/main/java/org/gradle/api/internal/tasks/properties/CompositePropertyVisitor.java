@@ -30,6 +30,16 @@ public class CompositePropertyVisitor implements PropertyVisitor {
     }
 
     @Override
+    public boolean visitNested() {
+        for (PropertyVisitor visitor : visitors) {
+            if (visitor.visitNested()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
         for (PropertyVisitor visitor : visitors) {
             visitor.visitInputFileProperty(inputFileProperty);

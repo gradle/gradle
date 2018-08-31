@@ -42,12 +42,25 @@ public class PropertyAssociationTaskFactory implements ITaskFactory {
     @Override
     public <S extends Task> S create(TaskIdentity<S> taskIdentity, Object... args) {
         final S task = delegate.create(taskIdentity, args);
-        TaskPropertyUtils.visitProperties(propertyWalker, (TaskInternal) task, new PropertyVisitor.Adapter(){
-            @Override
-            public void visitOutputFileProperty(TaskOutputFilePropertySpec property) {
-                property.attachProducer((TaskInternal) task);
-            }
-        });
+        TaskPropertyUtils.visitProperties(propertyWalker, (TaskInternal) task, new Listener(task));
         return task;
+    }
+
+    private static class Listener extends PropertyVisitor.Adapter {
+        private final Task task;
+
+        public Listener(Task task) {
+            this.task = task;
+        }
+
+        @Override
+        public boolean visitNested() {
+            return false;
+        }
+
+        @Override
+        public void visitOutputFileProperty(TaskOutputFilePropertySpec property) {
+            property.attachProducer(task);
+        }
     }
 }
