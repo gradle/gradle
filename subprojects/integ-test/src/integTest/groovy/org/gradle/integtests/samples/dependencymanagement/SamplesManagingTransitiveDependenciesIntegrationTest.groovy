@@ -21,8 +21,13 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Unroll
 
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
+
+@Requires(KOTLIN_SCRIPT)
 class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String COPY_LIBS_TASK_NAME = 'copyLibs'
@@ -34,16 +39,21 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         useRepositoryMirrors()
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/versionsWithConstraints")
-    def "respects dependency constraints for direct and transitive dependencies"() {
-        executer.inDirectory(sample.dir)
+    def "respects dependency constraints for direct and transitive dependencies with #dsl dsl"() {
+        TestFile dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        sample.dir.file('build/libs/httpclient-4.5.3.jar').isFile()
-        sample.dir.file('build/libs/commons-codec-1.11.jar').isFile()
+        dslDir.file('build/libs/httpclient-4.5.3.jar').isFile()
+        dslDir.file('build/libs/commons-codec-1.11.jar').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/unresolved")
