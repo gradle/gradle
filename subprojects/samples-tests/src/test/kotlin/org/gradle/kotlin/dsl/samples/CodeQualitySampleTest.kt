@@ -23,9 +23,8 @@ class CodeQualitySampleTest : AbstractSampleTest("code-quality") {
             ":pmdMain",
             ":pmdTest",
             ":jdependMain",
-            ":jdependTest"
-// TODO: investigate why result.outcomeOf("jacocoTestCoverageVerification") returns null below
-//            ":jacocoTestCoverageVerification"
+            ":jdependTest",
+            ":jacocoTestCoverageVerification"
         )
 
         successfulTasks.forEach { taskName ->
