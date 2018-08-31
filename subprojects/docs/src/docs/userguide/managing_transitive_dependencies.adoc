@@ -84,13 +84,11 @@ The situation can be fixed by adding a repository containing those dependencies.
 
 Exclusions need to spelled out as a key/value pair via the attributes `group` and/or `module`. For more information, refer to link:{javadocPath}/org/gradle/api/artifacts/ModuleDependency.html#exclude-java.util.Map-[ModuleDependency.exclude(java.util.Map)].
 
-=== Example: Excluding transitive dependency for a particular dependency declaration
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/managingTransitiveDependencies/excludeForDependency/build.gradle[tag=exclude-transitive-dependencies]
-----
+.Excluding transitive dependency for a particular dependency declaration
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/excludeForDependency/groovy",files="build.gradle[tags=exclude-transitive-dependencies]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/excludeForDependency/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies]"]
+====
 
 You may find that other dependencies will want to pull in the same transitive dependency that misses the artifacts. Alternatively, you can exclude the transitive dependencies for a particular configuration by calling the method link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:exclude(java.util.Map)[Configuration.exclude(java.util.Map)].
 

@@ -80,18 +80,23 @@ Searched in the following locations:
         dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/excludeForDependency")
-    def "can exclude transitive dependencies for declared dependency"() {
-        executer.inDirectory(sample.dir)
+    def "can exclude transitive dependencies for declared dependency for #dsl dsl"() {
+        TestFile dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds('compileJava', COPY_LIBS_TASK_NAME)
 
         then:
-        sample.dir.file('build/classes/java/main/Main.class').isFile()
-        def libs = listFilesInBuildLibsDir()
+        dslDir.file('build/classes/java/main/Main.class').isFile()
+        def libs = listFilesInBuildLibsDir(dslDir)
         libs.size() == 3
         libs.any { it.name == 'log4j-1.2.15.jar' || it.name == 'mail-1.4.jar' || it.name == 'activation-1.1.jar' }
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/excludeForConfiguration")
@@ -103,7 +108,7 @@ Searched in the following locations:
 
         then:
         sample.dir.file('build/classes/java/main/Main.class').isFile()
-        def libs = listFilesInBuildLibsDir()
+        def libs = listFilesInBuildLibsDir(sample.dir)
         libs.size() == 3
         libs.any { it.name == 'log4j-1.2.15.jar' || it.name == 'mail-1.4.jar' || it.name == 'activation-1.1.jar' }
     }
@@ -117,7 +122,7 @@ Searched in the following locations:
 
         then:
         sample.dir.file('build/classes/java/main/Main.class').isFile()
-        def libs = listFilesInBuildLibsDir()
+        def libs = listFilesInBuildLibsDir(sample.dir)
         libs.size() == 3
         libs.any { it.name == 'log4j-1.2.15.jar' || it.name == 'mail-1.4.jar' || it.name == 'activation-1.1.jar' }
     }
@@ -130,7 +135,7 @@ Searched in the following locations:
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        def libs = listFilesInBuildLibsDir()
+        def libs = listFilesInBuildLibsDir(sample.dir)
         libs.any { it.name == 'commons-codec-1.9.jar' }
         !libs.any { it.name == 'commons-codec-1.10.jar' }
     }
@@ -143,7 +148,7 @@ Searched in the following locations:
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        def libs = listFilesInBuildLibsDir()
+        def libs = listFilesInBuildLibsDir(sample.dir)
         libs.any { it.name == 'commons-codec-1.9.jar' }
         !libs.any { it.name == 'commons-codec-1.10.jar' }
     }
@@ -156,7 +161,7 @@ Searched in the following locations:
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        assertSingleLib('guava-23.0.jar')
+        assertSingleLib(sample.dir, 'guava-23.0.jar')
     }
 
     @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/disableForConfiguration")
@@ -167,7 +172,7 @@ Searched in the following locations:
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        assertSingleLib('guava-23.0.jar')
+        assertSingleLib(sample.dir, 'guava-23.0.jar')
     }
 
     @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/constraintsFromBOM")
@@ -178,16 +183,16 @@ Searched in the following locations:
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        def libs = listFilesInBuildLibsDir()
+        def libs = listFilesInBuildLibsDir(sample.dir)
         libs.findAll { it.name == 'gson-2.8.2.jar' || it.name == 'dom4j-1.6.1.jar' || it.name == 'xml-apis-1.4.01.jar'}.size() == 3
     }
 
-    private TestFile[] listFilesInBuildLibsDir() {
-        sample.dir.file('build/libs').listFiles()
+    private TestFile[] listFilesInBuildLibsDir(TestFile dslDir) {
+        dslDir.file('build/libs').listFiles()
     }
 
-    private void assertSingleLib(String filename) {
-        def libs = listFilesInBuildLibsDir()
+    private void assertSingleLib(TestFile dslDir, String filename) {
+        def libs = listFilesInBuildLibsDir(dslDir)
         assert libs.size() == 1
         assert libs[0].name == filename
     }
