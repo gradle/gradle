@@ -99,18 +99,23 @@ Searched in the following locations:
         dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/excludeForConfiguration")
     def "can exclude transitive dependencies for particular configuration"() {
-        executer.inDirectory(sample.dir)
+        TestFile dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds('compileJava', COPY_LIBS_TASK_NAME)
 
         then:
-        sample.dir.file('build/classes/java/main/Main.class').isFile()
-        def libs = listFilesInBuildLibsDir(sample.dir)
+        dslDir.file('build/classes/java/main/Main.class').isFile()
+        def libs = listFilesInBuildLibsDir(dslDir)
         libs.size() == 3
         libs.any { it.name == 'log4j-1.2.15.jar' || it.name == 'mail-1.4.jar' || it.name == 'activation-1.1.jar' }
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/excludeForAllConfigurations")

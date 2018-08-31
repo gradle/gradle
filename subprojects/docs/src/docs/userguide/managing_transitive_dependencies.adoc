@@ -92,13 +92,11 @@ include::sample[dir="userguide/dependencyManagement/managingTransitiveDependenci
 
 You may find that other dependencies will want to pull in the same transitive dependency that misses the artifacts. Alternatively, you can exclude the transitive dependencies for a particular configuration by calling the method link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:exclude(java.util.Map)[Configuration.exclude(java.util.Map)].
 
-=== Example: Excluding transitive dependency for a particular configuration
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/managingTransitiveDependencies/excludeForConfiguration/build.gradle[tag=exclude-transitive-dependencies]
-----
+.Excluding transitive dependency for a particular configuration
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/excludeForConfiguration/groovy",files="build.gradle[tags=exclude-transitive-dependencies]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/excludeForConfiguration/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies]"]
+====
 
 [NOTE]
 ====
