@@ -447,7 +447,7 @@ ext.added = ['file3.txt', 'file4.txt']
 
     def executesWithRebuildContext(String fileChanges = "") {
         buildFile << """
-    ext.changed = ['file0.txt', 'file1.txt', 'file2.txt']
+    ext.changed = ['file0.txt', 'file1.txt', 'file2.txt', 'inputs']
     ext.incrementalExecution = false
 """
         buildFile << fileChanges

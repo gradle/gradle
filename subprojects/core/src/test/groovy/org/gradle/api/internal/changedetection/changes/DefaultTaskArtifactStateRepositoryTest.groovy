@@ -66,7 +66,6 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.gradle.util.TestUtil
-import org.gradle.util.ToBeImplemented
 
 class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec {
     def gradle
@@ -259,7 +258,6 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputsOutOfDate(task).withModifiedFiles(inputFile)
     }
 
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/2463")
     def "artifacts are not up to date when any input file has changed type"() {
         given:
         execute(task)
@@ -269,9 +267,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputFile.createDir()
 
         then:
-        def changes = inputsOutOfDate(task)
-        changes.modified == [inputFile] as List // TODO empty directories should not appear in changes
-        changes.removed == [inputFile.parentFile] as List
+        inputsOutOfDate(task).withModifiedFiles(inputFile)
     }
 
     def "artifacts are not up to date when any input file no longer exists"() {
@@ -282,7 +278,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputFile.delete()
 
         then:
-        inputsOutOfDate(task).withRemovedFiles(inputFile.parentFile, inputFile)
+        inputsOutOfDate(task).withModifiedFiles(inputFile)
     }
 
     def "artifacts are not up to date when any input file did not exist and now does"() {
@@ -294,7 +290,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         inputFile.createNewFile()
 
         then:
-        inputsOutOfDate(task).withAddedFiles(inputFile.parentFile, inputFile)
+        inputsOutOfDate(task).withModifiedFiles(inputFile)
     }
 
     def "artifacts are not up to date when any file created in input dir"() {

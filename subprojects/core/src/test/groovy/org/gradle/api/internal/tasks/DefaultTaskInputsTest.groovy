@@ -93,19 +93,19 @@ class DefaultTaskInputsTest extends Specification {
 
     def "can register input files"() {
         when:
-        inputs.files("a")
+        inputs.files("a", "b")
         then:
-        inputFiles() == [treeFile]
+        inputFiles() == [new File("a"), new File("b")]
         inputFileProperties().propertyName == ['$1']
-        inputFileProperties().propertyFiles*.files.flatten() == [treeFile]
+        inputFileProperties().propertyFiles*.files.flatten() == [new File("a"), new File("b")]
     }
 
     def "can register input files with property name"() {
         when: inputs.files("a", "b").withPropertyName("prop")
         then:
-        inputFiles() == [treeFile]
+        inputFiles() == [new File("a"), new File("b")]
         inputFileProperties().propertyName == ['prop']
-        inputFileProperties().propertyFiles*.files.flatten() == [treeFile]
+        inputFileProperties().propertyFiles*.files.flatten() == [new File("a"), new File("b")]
     }
 
     def "can register input dir"() {
@@ -202,10 +202,10 @@ class DefaultTaskInputsTest extends Specification {
         when: inputs.files(["s1", "s2"]).skipWhenEmpty()
         then:
         inputs.hasSourceFiles
-        inputFiles() == [treeFile, treeFile]
-        inputs.sourceFiles.files == [treeFile] as Set
+        inputFiles() == [new File("a"), new File("b"), new File("s1"), new File("s2")]
+        inputs.sourceFiles.files.toList() == [new File("s1"), new File("s2")]
         inputFileProperties().propertyName == ['$1', 'prop']
-        inputFileProperties().propertyFiles*.files.flatten() == [treeFile, treeFile]
+        inputFileProperties().propertyFiles*.toList() == [[new File("s1"), new File("s2")], [new File("a"), new File("b")]]
     }
 
     def canRegisterSourceFile() {
@@ -221,7 +221,7 @@ class DefaultTaskInputsTest extends Specification {
         inputs.files('file', 'file2').skipWhenEmpty()
 
         then:
-        inputs.sourceFiles.files == [treeFile] as Set
+        inputs.sourceFiles.files == ([new File('file'), new File('file2')] as Set)
     }
 
     def canRegisterSourceDir() {

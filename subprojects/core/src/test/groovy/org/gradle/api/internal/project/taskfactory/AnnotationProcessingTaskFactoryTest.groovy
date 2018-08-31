@@ -563,14 +563,13 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         TaskWithOutputDir  | 'outputs' | 'missingDir'
     }
 
-    def "registers and processes specified list of inputs on TaskWithInputFiles"() {
+    def "registers specified list of inputs on TaskWithInputFiles"() {
         given:
         def values = ['testDir', 'missingFile'].collect({ this[it] })
-        def processed = ['existingFile'].collect({ this[it] })
         def task = expectTaskCreated(TaskWithInputFiles, values as List)
 
         expect:
-        task.inputs.files.files == processed as Set
+        task.inputs.files.files == values as Set
     }
 
     @Unroll
