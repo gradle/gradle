@@ -18,7 +18,9 @@ package org.gradle.api.java.archives.internal
 
 import org.apache.tools.ant.taskdefs.Manifest
 import org.apache.tools.ant.taskdefs.Manifest.Attribute
+import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.java.archives.ManifestMergeSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -118,10 +120,21 @@ class DefaultManifestTest extends Specification {
                 }
             }
         }
-        gradleManifest.from(new DefaultManifest(fileResolver).attributes(key4: 'value4'))
+        gradleManifest.from(new DefaultManifest(fileResolver).attributes(key4: 'value4', key5: 'value5'), new Action<ManifestMergeSpec>() {
+            @Override
+            void execute(ManifestMergeSpec spec) {
+                spec.eachEntry { details ->
+                    if (details.key == 'key5') {
+                        details.exclude()
+                    }
+
+                }
+            }
+        })
+        gradleManifest.from(new DefaultManifest(fileResolver).attributes(key6: 'value6'))
 
         expect:
-        gradleManifest.effectiveManifest.getAttributes() == [key1: 'value1', key2: 'value2', key4: 'value4'] + MANIFEST_VERSION_MAP
+        gradleManifest.effectiveManifest.getAttributes() == [key1: 'value1', key2: 'value2', key4: 'value4', key6: 'value6'] + MANIFEST_VERSION_MAP
     }
 
     def writeWithPath() {

@@ -23,9 +23,10 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.ManifestMergeSpec;
+import org.gradle.internal.Actions;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.ClosureBackedAction;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -160,16 +161,20 @@ public class DefaultManifest implements ManifestInternal {
 
     @Override
     public DefaultManifest from(Object... mergePaths) {
-        from(mergePaths, null);
-        return this;
+        return from(mergePaths, Actions.<ManifestMergeSpec>doNothing());
     }
 
     @Override
     public DefaultManifest from(Object mergePaths, Closure<?> closure) {
+        return from(mergePaths, ClosureBackedAction.<ManifestMergeSpec>of(closure));
+    }
+
+    @Override
+    public DefaultManifest from(Object mergePath, Action<ManifestMergeSpec> action) {
         DefaultManifestMergeSpec mergeSpec = new DefaultManifestMergeSpec();
-        mergeSpec.from(mergePaths);
+        mergeSpec.from(mergePath);
         manifestMergeSpecs.add(mergeSpec);
-        ConfigureUtil.configure(closure, mergeSpec);
+        action.execute(mergeSpec);
         return this;
     }
 
