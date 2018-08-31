@@ -80,13 +80,11 @@ A team might decide to implement a series of features before releasing a new ver
 
 In Maven repositories, changing versions are commonly referred to as link:https://maven.apache.org/guides/getting-started/index.html#What_is_a_SNAPSHOT_version[snapshot versions]. Snapshot versions contain the suffix `-SNAPSHOT`. The following example demonstrates how to declare a snapshot version on the Spring dependency.
 
-=== Example: Declaring a dependency with a changing version
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/declaringDependencies/changingVersion/build.gradle[tag=dependencies]
-----
+.Declaring a dependency with a changing version
+====
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/changingVersion/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/changingVersion/kotlin",files="build.gradle.kts[tags=dependencies]"]
+====
 
 By default, Gradle caches changing versions of dependencies for 24 hours. Within this time frame, Gradle does not try to resolve newer versions from the declared repositories. The <<troubleshooting_dependency_resolution.adoc#sub:dynamic_versions_and_changing_modules,threshold can be configured>> as needed for example if you want to resolve new snapshot versions earlier.
 
@@ -102,13 +100,11 @@ image::dependency-management-file-dependencies.png[]
 
 The following example resolves file dependencies from the directories `ant`, `libs` and `tools`.
 
-=== Example: Declaring multiple file dependencies
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/declaringDependencies/fileDependencies/build.gradle[tag=file-dependencies]
-----
+.Declaring multiple file dependencies
+====
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/fileDependencies/groovy",files="build.gradle[tags=file-dependencies]"]
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/fileDependencies/kotlin",files="build.gradle.kts[tags=file-dependencies]"]
+====
 
 As you can see in the code example, every dependency has to define its exact location in the file system.
 The most prominent methods for creating a file reference are
@@ -130,13 +126,11 @@ image::dependency-management-project-dependencies.png[]
 
 The following example declares the dependencies on the `utils` and `api` project from the `web-service` project. The method link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:project(java.lang.String)[Project.project(java.lang.String)] creates a reference to a specific subproject by path.
 
-=== Example: Declaring project dependencies
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/declaringDependencies/projectDependencies/build.gradle[tag=project-dependencies]
-----
+.Declaring project dependencies
+====
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/projectDependencies/groovy",files="build.gradle[tags=project-dependencies]"]
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/projectDependencies/kotlin",files="build.gradle.kts[tags=project-dependencies]"]
+====
 
 [[sub:resolve_specific_artifacts_from_dependency]]
 == Resolving specific artifacts from a module dependency
@@ -151,13 +145,11 @@ Gradle is a polyglot build tool and not limited to just resolving Java libraries
 
 link:https://developers.google.com/speed/libraries/[Google Hosted Libraries] is a distribution platform for popular, open-source JavaScript libraries. With the help of the artifact-only notation you can download a JavaScript library file e.g. JQuery. The `@` character separates the dependency's coordinates from the artifact's file extension.
 
-=== Example: Resolving a JavaScript artifact for a declared dependency
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/declaringDependencies/artifactOnly/build.gradle[tag=artifact-only-dependency-declaration]
-----
+.Resolving a JavaScript artifact for a declared dependency
+====
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/artifactOnly/groovy",files="build.gradle[tags=artifact-only-dependency-declaration]"]
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/artifactOnly/kotlin",files="build.gradle.kts[tags=artifact-only-dependency-declaration]"]
+====
 
 Some modules ship different "flavors" of the same artifact or they publish multiple artifacts that belong to a specific module version but have a different purpose. It's common for a Java library to publish the artifact with the compiled class files, another one with just the source code in it and a third one containing the Javadocs.
 
@@ -165,10 +157,9 @@ In JavaScript, a library may exist as uncompressed or minified artifact. In Grad
 
 Let's say we wanted to download the minified artifact of the JQuery library instead of the uncompressed file. You can provide the classifier `min` as part of the dependency declaration.
 
-=== Example: Resolving a JavaScript artifact with classifier for a declared dependency
+.Resolving a JavaScript artifact with classifier for a declared dependency
+====
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/artifactOnlyWithClassifier/groovy",files="build.gradle[tags=artifact-only-dependency-declaration]"]
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/artifactOnlyWithClassifier/kotlin",files="build.gradle.kts[tags=artifact-only-dependency-declaration]"]
+====
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/declaringDependencies/artifactOnlyWithClassifier/build.gradle[tag=artifact-only-dependency-declaration]
-----
