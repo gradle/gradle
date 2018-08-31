@@ -104,7 +104,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
     private
     fun Project.createRebaselineTask(performanceTestSourceSet: SourceSet) {
-        project.tasks.register("rebaselinePerformanceTests", RebaselinePerformanceTests::class.java) {
+        project.tasks.register("rebaselinePerformanceTests", RebaselinePerformanceTests::class) {
             source(performanceTestSourceSet.allSource)
         }
     }
@@ -211,7 +211,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
     private
     fun Project.createCleanSamplesTask() =
-        tasks.register("cleanSamples", Delete::class.java) {
+        tasks.register("cleanSamples", Delete::class) {
             delete(deferred { tasks.withType<ProjectGeneratorTask>().map { it.outputs } })
             delete(deferred { tasks.withType<RemoteProject>().map { it.outputDirectory } })
             delete(deferred { tasks.withType<JavaExecProjectGeneratorTask>().map { it.outputs } })
@@ -306,7 +306,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         prepareSamplesTask: TaskProvider<Task>
     ): TaskProvider<DistributedPerformanceTest> {
 
-        val result = tasks.register(name, DistributedPerformanceTest::class.java) {
+        val result = tasks.register(name, DistributedPerformanceTest::class) {
             configureReportProperties()
             configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask)
             scenarioList = buildDir / Config.performanceTestScenarioListFileName
@@ -338,7 +338,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         prepareSamplesTask: TaskProvider<Task>
     ): TaskProvider<PerformanceTest> {
 
-        val performanceTest = tasks.register(name, PerformanceTest::class.java) {
+        val performanceTest = tasks.register(name, PerformanceTest::class) {
             configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask)
 
             if (project.hasProperty(PropertyNames.performanceTestVerbose)) {
@@ -362,8 +362,8 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.testResultsZipTaskFor(performanceTest: TaskProvider<PerformanceTest>, name: String): TaskProvider<Zip> {
-        return tasks.register("${name}ResultsZip", Zip::class.java) {
+    fun Project.testResultsZipTaskFor(performanceTest: TaskProvider<PerformanceTest>, name: String): TaskProvider<Zip> =
+        tasks.register("${name}ResultsZip", Zip::class) {
             val junitXmlDir = performanceTest.get().reports.junitXml.destination
             from(junitXmlDir) {
                 include("**/TEST-*.xml")
@@ -383,7 +383,6 @@ class PerformanceTestPlugin : Plugin<Project> {
             destinationDir = buildDir
             archiveName = "test-results-${junitXmlDir.name}.zip"
         }
-    }
 
     private
     fun Project.configureForAnyPerformanceTestTask(

@@ -20,13 +20,11 @@
 
 Module dependencies are the most common dependencies. They refer to a module in a repository.
 
-=== Example: Module dependencies
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/artifacts/externalDependencies/build.gradle[tag=module-dependencies]
-----
+.Module dependencies
+====
+include::sample[dir="userguide/artifacts/externalDependencies/groovy",files="build.gradle[tags=module-dependencies]"]
+include::sample[dir="userguide/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=module-dependencies]"]
+====
 
 See the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html[DependencyHandler] class in the API documentation for more examples and a complete reference.
 
@@ -44,13 +42,11 @@ File dependencies allow you to directly add a set of files to a configuration, w
 
 To add some files as a dependency for a configuration, you simply pass a <<working_with_files.adoc#sec:file_collections,file collection>> as a dependency:
 
-=== Example: File dependencies
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/artifacts/externalDependencies/build.gradle[tag=file-dependencies]
-----
+.File dependencies
+====
+include::sample[dir="userguide/artifacts/externalDependencies/groovy",files="build.gradle[tags=file-dependencies]"]
+include::sample[dir="userguide/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=file-dependencies]"]
+====
 
 File dependencies are not included in the published dependency descriptor for your project. However, file dependencies are included in transitive project dependencies within the same build. This means they cannot be used outside the current build, but they can be used with the same build.
 

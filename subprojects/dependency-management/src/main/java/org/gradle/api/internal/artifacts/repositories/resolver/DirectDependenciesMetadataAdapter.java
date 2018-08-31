@@ -38,7 +38,7 @@ public class DirectDependenciesMetadataAdapter extends AbstractDependenciesMetad
     }
 
     @Override
-    protected boolean isPending() {
+    protected boolean isConstraint() {
         return false;
     }
 }
