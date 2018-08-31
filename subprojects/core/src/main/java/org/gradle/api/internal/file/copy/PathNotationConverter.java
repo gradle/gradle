@@ -58,9 +58,6 @@ public class PathNotationConverter implements NotationConverter<Object, String> 
             final Callable callableNotation = (Callable) notation;
             final Object called = uncheckedCall(callableNotation);
             convert(called, result);
-            if (!result.hasResult()) {
-                throw new TypeConversionException("Couldn't convert " + notation);
-            }
         }
     }
 }
