@@ -42,15 +42,13 @@ A Gradle project can define other types of repositories hosting modules. You can
 
 === Declaring a dependency without version
 
-A recommended practice for larger projects is to declare dependencies without versions and use <<managing_transitive_dependencies.adoc#sec:dependency_constraints,dependency constraints>> for version declaration. The advantage is that dependency constrains allow you to manage versions of all dependencies, including transitive ones, in one place.
+A recommended practice for larger projects is to declare dependencies without versions and use <<managing_transitive_dependencies.adoc#sec:dependency_constraints,dependency constraints>> for version declaration. The advantage is that dependency constraints allow you to manage versions of all dependencies, including transitive ones, in one place.
 
-=== Example: Declaring a dependency without version
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/declaringDependencies/withoutVersion/build.gradle[tag=dependencies-without-version]
-----
+.Declaring a dependency without version
+====
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/withoutVersion/groovy",files="build.gradle[tags=dependencies-without-version]"]
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/withoutVersion/kotlin",files="build.gradle.kts[tags=dependencies-without-version]"]
+====
 
 [[sub:declaring_dependency_with_dynamic_version]]
 === Declaring a dynamic version
