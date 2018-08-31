@@ -66,15 +66,20 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
         dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/declaringDependencies/dynamicVersion")
-    def "can use declare and resolve dependency with dynamic version"() {
-        executer.inDirectory(sample.dir)
+    def "can use declare and resolve dependency with dynamic version with #dsl dsl"() {
+        TestFile dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds('copyLibs')
 
         then:
-        sample.dir.file('build/libs').listFiles().any { it.name.startsWith('spring-web-5.') }
+        dslDir.file('build/libs').listFiles().any { it.name.startsWith('spring-web-5.') }
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     @UsesSample("userguide/dependencyManagement/declaringDependencies/changingVersion")

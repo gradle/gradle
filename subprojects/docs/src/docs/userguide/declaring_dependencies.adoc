@@ -60,13 +60,11 @@ Projects might adopt a more aggressive approach for consuming dependencies to mo
 Using dynamic versions in a build bears the risk of potentially breaking it. As soon as a new version of the dependency is released that contains an incompatible API change your source code might stop compiling.
 ====
 
-=== Example: Declaring a dependency with a dynamic version
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/declaringDependencies/dynamicVersion/build.gradle[tag=dependencies]
-----
+.Declaring a dependency with a dynamic version
+====
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/dynamicVersion/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/dynamicVersion/kotlin",files="build.gradle.kts[tags=dependencies]"]
+====
 
 A link:https://scans.gradle.com/[build scan] can effectively visualize dynamic dependency versions and their respective, selected versions.
 
