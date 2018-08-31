@@ -30,4 +30,4 @@ import org.gradle.plugin.use.PluginDependencySpec
  * You can also use e.g. `` `build-scan` version "1.8" `` to request a different version.
  */
 val PluginDependenciesSpec.`build-scan`: PluginDependencySpec
-    get() = id(AutoAppliedBuildScanPlugin.ID.id) version AutoAppliedBuildScanPlugin.VERSION
+    get() = AutoAppliedBuildScanPlugin.addBuildScanPluginDependencySpecTo(this)
