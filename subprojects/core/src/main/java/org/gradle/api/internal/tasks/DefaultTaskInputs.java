@@ -87,7 +87,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             @Override
             public TaskInputFilePropertyBuilderInternal call() {
                 StaticValue value = new StaticValue(unpackVarargs(paths));
-                DeclaredTaskInputFileProperty fileSpec = specFactory.createInputFilesSpec(value, RUNTIME_INPUT_FILES_VALIDATOR);
+                DeclaredTaskInputFileProperty fileSpec = specFactory.createInputFilesSpec(value);
                 registeredFileProperties.add(fileSpec);
                 return fileSpec;
             }
