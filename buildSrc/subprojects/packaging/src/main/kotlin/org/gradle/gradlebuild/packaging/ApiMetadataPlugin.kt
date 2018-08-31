@@ -66,17 +66,17 @@ open class ApiMetadataPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
 
         val extension =
-            extensions.create("apiMetadata", ApiMetadataExtension::class, project)
+            extensions.create("apiMetadata", ApiMetadataExtension::class.java, project)
 
         val apiDeclarationTask =
-            tasks.register("apiDeclarationResource", WriteProperties::class) {
+            tasks.register("apiDeclarationResource", WriteProperties::class.java) {
                 property("includes", extension.includes.get().joinToString(":"))
                 property("excludes", extension.excludes.get().joinToString(":"))
                 outputFile = generatedPropertiesFileFor(apiDeclarationFilename).get().asFile
             }
 
         val apiParameterNamesTask =
-            tasks.register("apiParameterNamesResource", ParameterNamesResourceTask::class) {
+            tasks.register("apiParameterNamesResource", ParameterNamesResourceTask::class.java) {
                 sources.from(extension.sources.asFileTree.matching {
                     include(extension.includes.get())
                     exclude(extension.excludes.get())

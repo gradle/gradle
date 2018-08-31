@@ -106,7 +106,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 
     private
     fun Project.addGeneratedResources(gradlebuildJava: UnitTestAndCompileExtension) {
-        val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class)
+        val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class.java)
         java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), gradlebuildJava.generatedResourcesDir)
     }
 

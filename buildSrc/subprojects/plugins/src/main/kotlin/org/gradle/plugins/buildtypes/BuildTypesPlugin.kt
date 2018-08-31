@@ -10,7 +10,7 @@ import org.gradle.kotlin.dsl.*
 class BuildTypesPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        val buildTypes = container(BuildType::class)
+        val buildTypes = container(BuildType::class.java)
         extensions.add("buildTypes", buildTypes)
         buildTypes.all {
             register(this)
