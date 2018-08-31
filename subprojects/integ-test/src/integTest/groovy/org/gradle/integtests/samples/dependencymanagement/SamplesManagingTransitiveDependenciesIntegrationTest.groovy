@@ -168,15 +168,20 @@ Searched in the following locations:
         dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/disableForDependency")
-    def "can disable transitive dependency resolution for dependency"() {
-        executer.inDirectory(sample.dir)
+    def "can disable transitive dependency resolution for dependency for #dsl dsl"() {
+        TestFile dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        assertSingleLib(sample.dir, 'guava-23.0.jar')
+        assertSingleLib(dslDir, 'guava-23.0.jar')
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/disableForConfiguration")
