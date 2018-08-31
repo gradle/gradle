@@ -210,7 +210,7 @@ We would like to thank the following community members for making contributions 
 - [Jean-Baptiste Nizet](https://github.com/jnizet) — Use proper subtype for useTestNG() (gradle/gradle#6520)
 - [Xiang Li](https://github.com/lixiangconan) and [Theodore Ni](https://github.com/tjni) - Make FileUtils#calculateRoots more efficient (gradle/gradle#6455)
 - [James Justinic](https://github.com/jjustinic) Include Kotlin DSL samples in Ant, Code Quality, and WAR Plugin user manual chapters (gradle/gradle#6492, gradle/gradle#6510, gradle/gradle#6522)
-- [James Justinic](https://github.com/jjustinic) Support type-safe configuration for Checkstyle/FindBugs HTML report stylesheet
+- [James Justinic](https://github.com/jjustinic) Support type-safe configuration for Checkstyle/FindBugs HTML report stylesheet (gradle/gradle#6551)
 - [Mike Kobit](https://github.com/mkobit) Include Kotlin DSL samples in Lazy Configuration user manual chapter (gradle/gradle#6528)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
