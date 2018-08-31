@@ -47,7 +47,8 @@ import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.AbstractFileCollection;
-import org.gradle.api.internal.tasks.TaskDependencies;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.DisplayName;
@@ -158,7 +159,10 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         if (!failures.isEmpty()) {
             throw new ResolveException(getDisplayName(), failures);
         }
-        return TaskDependencies.of(taskDependencies);
+        if (taskDependencies.isEmpty()) {
+            return TaskDependencyInternal.EMPTY;
+        }
+        return new DefaultTaskDependency().add(taskDependencies);
     }
 
     private void ensureResolved(boolean failFast) {

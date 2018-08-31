@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven.internal.artifact;
 
-import org.gradle.api.internal.tasks.TaskDependencies;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.Factory;
@@ -51,6 +50,6 @@ public class DerivedMavenArtifact extends AbstractMavenArtifact {
 
     @Override
     protected TaskDependencyInternal getDefaultBuildDependencies() {
-        return TaskDependencies.EMPTY;
+        return TaskDependencyInternal.EMPTY;
     }
 }

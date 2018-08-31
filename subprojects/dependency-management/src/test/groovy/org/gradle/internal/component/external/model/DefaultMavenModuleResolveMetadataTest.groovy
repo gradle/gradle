@@ -31,6 +31,7 @@ import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.maven.DefaultMutableMavenModuleResolveMetadata
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
+import org.gradle.internal.component.external.model.maven.MavenDependencyType
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.util.TestUtil
 import spock.lang.Unroll
@@ -178,7 +179,7 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentR
 
     def dependency(String org, String module, String version, String scope) {
         def selector = newSelector(DefaultModuleIdentifier.newId(org, module), new DefaultMutableVersionConstraint(version))
-        dependencies.add(new MavenDependencyDescriptor(MavenScope.valueOf(scope), false, selector, null, []))
+        dependencies.add(new MavenDependencyDescriptor(MavenScope.valueOf(scope), MavenDependencyType.DEPENDENCY, selector, null, []))
     }
 
     private void assertHasOnlyStatusAttribute(AttributeContainer attributes) {

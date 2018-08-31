@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.model.dsl.internal.inputs.PotentialInput;
@@ -35,6 +34,7 @@ import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.util.ClosureBackedAction;
 
 import javax.annotation.Nullable;
 import java.net.URI;
