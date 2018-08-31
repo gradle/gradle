@@ -35,6 +35,15 @@ class NestedBeanAnnotationHandlerTest extends Specification {
     def specFactory = new DefaultPropertySpecFactory(task, resolver)
     def context = Mock(BeanPropertyContext)
 
+    def "does nothing if visitor is not interested in nested properties"() {
+        when:
+        new NestedBeanAnnotationHandler().visitPropertyValue(propertyValue, propertyVisitor, specFactory, context)
+
+        then:
+        1 * propertyVisitor.visitNested() >> false
+        0 * _
+    }
+
     def "absent nested property is reported as error"() {
         ValidatingTaskPropertySpec taskInputPropertySpec = null
         def validationContext = Mock(TaskValidationContext)
@@ -43,6 +52,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         new NestedBeanAnnotationHandler().visitPropertyValue(propertyValue, propertyVisitor, specFactory, context)
 
         then:
+        1 * propertyVisitor.visitNested() >> true
         1 * propertyValue.value >> null
         1 * propertyValue.propertyName >> "name"
         1 * propertyValue.optional >> false
@@ -65,6 +75,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         new NestedBeanAnnotationHandler().visitPropertyValue(propertyValue, propertyVisitor, specFactory, context)
 
         then:
+        1 * propertyVisitor.visitNested() >> true
         1 * propertyValue.value >> null
         1 * propertyValue.optional >> true
         0 * _
@@ -79,6 +90,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         new NestedBeanAnnotationHandler().visitPropertyValue(propertyValue, propertyVisitor, specFactory, context)
 
         then:
+        1 * propertyVisitor.visitNested() >> true
         1 * propertyValue.value >> {
             throw exception
         }
@@ -105,6 +117,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         new NestedBeanAnnotationHandler().visitPropertyValue(propertyValue, propertyVisitor, specFactory, context)
 
         then:
+        1 * propertyVisitor.visitNested() >> true
         1 * propertyValue.value >> nestedBean
         1 * propertyValue.getPropertyName() >> nestedPropertyName
         1 * context.addNested(nestedPropertyName, nestedBean)

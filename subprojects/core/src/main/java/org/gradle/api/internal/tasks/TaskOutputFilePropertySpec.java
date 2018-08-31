@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.Task;
 
 public interface TaskOutputFilePropertySpec extends TaskFilePropertySpec {
     OutputType getOutputType();
@@ -24,5 +24,5 @@ public interface TaskOutputFilePropertySpec extends TaskFilePropertySpec {
     /**
      * Associates this property with the task that produces it.
      */
-    void attachProducer(TaskInternal producer);
+    void attachProducer(Task producer);
 }
