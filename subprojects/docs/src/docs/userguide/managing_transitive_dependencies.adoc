@@ -55,13 +55,11 @@ Declared dependencies in a build script can pull in a lot of transitive dependen
 
 Transitive dependencies can be excluded on the level of a declared dependency or a configuration. Let's demonstrate both use cases. In the following two examples the build script declares a dependency on Log4J, a popular logging framework in the Java world. The metadata of the particular version of Log4J also defines transitive dependencies.
 
-=== Example: Unresolved artifacts for transitive dependencies
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/managingTransitiveDependencies/unresolved/build.gradle[tag=unresolved-transitive-dependencies]
-----
+.Unresolved artifacts for transitive dependencies
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/unresolved/groovy",files="build.gradle[tags=unresolved-transitive-dependencies]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/unresolved/kotlin",files="build.gradle.kts[tags=unresolved-transitive-dependencies]"]
+====
 
 If resolved from Maven Central some of the transitive dependencies provide metadata but not the corresponding binary artifact. As a result any task requiring the binary files will fail e.g. a compilation task.
 

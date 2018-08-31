@@ -56,9 +56,10 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/unresolved")
-    def "reports an error for unresolved transitive dependency artifacts"() {
-        executer.inDirectory(sample.dir)
+    def "reports an error for unresolved transitive dependency artifacts with #dsl dsl"() {
+        executer.inDirectory(sample.dir.file(dsl))
 
         when:
         fails('compileJava')
@@ -74,6 +75,9 @@ Searched in the following locations:
         failure.assertHasCause("""Could not find jmxri.jar (com.sun.jmx:jmxri:1.2.1).
 Searched in the following locations:
     ${RepoScriptBlockUtil.mavenCentralRepositoryMirrorUrl()}com/sun/jmx/jmxri/1.2.1/jmxri-1.2.1.jar""")
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/excludeForDependency")
