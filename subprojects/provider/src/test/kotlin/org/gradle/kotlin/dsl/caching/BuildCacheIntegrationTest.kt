@@ -34,8 +34,7 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
     @Test
     fun `can publish build scan`() {
 
-        val buildCacheDir =
-            existing("build-cache")
+        val buildCacheDir = existing("build-cache")
 
         withLocalBuildCacheSettings(buildCacheDir)
 
@@ -63,7 +62,7 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
         val expectedOutput = "***42***"
 
-        fun cloneProject(): Pair<File, File> {
+        fun cloneProject(): Pair<CachedScript.WholeFile, CachedScript.WholeFile> {
 
             val settingsFile =
                 withLocalBuildCacheSettings(buildCacheDir)
@@ -71,7 +70,7 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
             val buildFile =
                 withBuildScript("""println("$expectedOutput")""")
 
-            return settingsFile to buildFile
+            return cachedSettingsFile(settingsFile, hasBody = true) to cachedBuildFile(buildFile, hasBody = true)
         }
 
         withProjectRoot(newDir("clone-a")) {
@@ -82,8 +81,8 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
             buildWithUniqueGradleHome("--build-cache", withBuildCacheIntegration).apply {
 
                 compilationCache {
-                    misses(cachedSettingsFile(settingsFile, hasBody = true))
-                    misses(cachedBuildFile(buildFile, hasBody = true))
+                    misses(settingsFile)
+                    misses(buildFile)
                 }
 
                 assertThat(output, containsString(expectedOutput))
@@ -104,8 +103,8 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
                 buildWithGradleHome(gradleHome, "--build-cache").apply {
 
                     compilationCache {
-                        misses(cachedSettingsFile(settingsFile, hasBody = true))
-                        hits(cachedBuildFile(buildFile, hasBody = true))
+                        misses(settingsFile)
+                        hits(buildFile)
                     }
 
                     assertThat(output, containsString(expectedOutput))
@@ -116,8 +115,8 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
             buildWithUniqueGradleHome("--build-cache").apply {
 
                 compilationCache {
-                    misses(cachedSettingsFile(settingsFile, hasBody = true))
-                    misses(cachedBuildFile(buildFile, hasBody = true))
+                    misses(settingsFile)
+                    misses(buildFile)
                 }
 
                 assertThat(output, containsString(expectedOutput))
