@@ -15,7 +15,7 @@
 [[inspecting_dependencies]]
 = Inspecting Dependencies
 
-Gradle provides sufficient tooling to navigate large dependency graphs and mitigate situations that can lead to link:https://en.wikipedia.org/wiki/Dependency_hell[dependency hell]. Users can chose to render the full graph of dependencies as well as identify the selection reason and origin for a dependency. The origin of a dependency can be a declared dependency in the build script or a transitive dependency in graph plus their corresponding configuration. Gradle offers both capabilities through visual representation via build scans and as command line tooling.
+Gradle provides sufficient tooling to navigate large dependency graphs and mitigate situations that can lead to link:https://en.wikipedia.org/wiki/Dependency_hell[dependency hell]. Users can choose to render the full graph of dependencies as well as identify the selection reason and origin for a dependency. The origin of a dependency can be a declared dependency in the build script or a transitive dependency in graph plus their corresponding configuration. Gradle offers both capabilities through visual representation via build scans and as command line tooling.
 
 [[sec:listing_dependencies]]
 == Listing dependencies in a project
@@ -26,13 +26,11 @@ Rendering the dependency tree is particularly useful if you'd like to identify w
 
 Let's say you'd want to create tasks for your project that use the link:https://www.eclipse.org/jgit/[JGit library] to execute SCM operations e.g. to model a release process. You can declare dependencies for any external tooling with the help of a <<managing_dependency_configurations.adoc#managing_dependency_configurations,custom configuration>> so that it doesn't doesn't pollute other contexts like the compilation classpath for your production source code.
 
-=== Example: Declaring the JGit dependency with a custom configuration
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/inspectingDependencies/dependenciesReport/build.gradle[tag=dependency-declaration]
-----
+.Declaring the JGit dependency with a custom configuration
+====
+include::sample[dir="userguide/dependencyManagement/inspectingDependencies/dependenciesReport/groovy",files="build.gradle[tags=dependency-declaration]"]
+include::sample[dir="userguide/dependencyManagement/inspectingDependencies/dependenciesReport/kotlin",files="build.gradle.kts[tags=dependency-declaration]"]
+====
 
 A link:https://scans.gradle.com/[build scan] can visualize dependencies as a navigable, searchable tree. Additional context information can be rendered by clicking on a specific dependency in the graph.
 
@@ -58,13 +56,11 @@ Large software projects inevitably deal with an increased number of dependencies
 
 Let's have a look at a concrete example. A project may request two different versions of the same dependency either as direct or transitive dependency. Gradle applies version conflict resolution to ensure that only one version of the dependency exists in the dependency graph. In this example the conflicting dependency is represented by `commons-codec:commons-codec`.
 
-=== Example: Declaring the JGit dependency and a conflicting dependency
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/inspectingDependencies/dependencyInsightReport/build.gradle[tag=dependency-declaration]
-----
+.Declaring the JGit dependency and a conflicting dependency
+====
+include::sample[dir="userguide/dependencyManagement/inspectingDependencies/dependencyInsightReport/groovy",files="build.gradle[tags=dependency-declaration]"]
+include::sample[dir="userguide/dependencyManagement/inspectingDependencies/dependencyInsightReport/kotlin",files="build.gradle.kts[tags=dependency-declaration]"]
+====
 
 The dependency tree in a link:https://scans.gradle.com/[build scan] renders the selection reason (conflict resolution) as well as the origin of a dependency if you click on a dependency and select the "Required By" tab.
 
@@ -86,13 +82,11 @@ include::{samplesPath}/userguide/dependencyManagement/inspectingDependencies/dep
 
 When you declare a <<declaring_dependencies.adoc#declaring_dependencies,dependency>> or a <<managing_transitive_dependencies.adoc#sec:dependency_constraints,dependency constraint>>, you can provide a custom reason for the declaration. This makes the dependency declarations in your build script and the dependency insight report easier to interpret.
 
-=== Example: Giving a reason for choosing a certain module version in a dependency declaration
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/inspectingDependencies/dependencyReason/build.gradle[tag=dependency-reason]
-----
+.Giving a reason for choosing a certain module version in a dependency declaration
+====
+include::sample[dir="userguide/dependencyManagement/inspectingDependencies/dependencyReason/groovy",files="build.gradle[tags=dependency-reason]"]
+include::sample[dir="userguide/dependencyManagement/inspectingDependencies/dependencyReason/kotlin",files="build.gradle.kts[tags=dependency-reason]"]
+====
 
 === Example: Using the dependency insight report with custom reasons
 
