@@ -39,13 +39,11 @@ A build depending on both `module-a` and `module-b` will obtain different versio
 
 Dependency resolve rules give you the power to enforce releasable units in your build. Imagine a releasable unit defined by all libraries that have `org.gradle` group. We can force all of these libraries to use a consistent version:
 
-==== Example: Forcing a consistent version for a group of libraries
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/resolutionStrategy/build.gradle[tag=releasable-unit]
-----
+.Forcing a consistent version for a group of libraries
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/groovy",files="build.gradle[tags=releasable-unit]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/kotlin",files="build.gradle.kts[tags=releasable-unit]"]
+====
 
 [[sec:custom_versioning_scheme]]
 === Implementing a custom versioning scheme
@@ -57,13 +55,11 @@ In some corporate environments, the list of module versions that can be declared
 
 This rule implementation can be neatly encapsulated in a corporate plugin, and shared across all builds within the organisation.
 
-==== Example: Using a custom versioning scheme
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/resolutionStrategy/build.gradle[tag=custom-versioning-scheme]
-----
+.Using a custom versioning scheme
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/groovy",files="build.gradle[tags=custom-versioning-scheme]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/kotlin",files="build.gradle.kts[tags=custom-versioning-scheme]"]
+====
 
 [[sec:blacklisting_version]]
 === Blacklisting a particular version with a replacement
@@ -72,26 +68,22 @@ Dependency resolve rules provide a mechanism for blacklisting a particular versi
 
 In example below, imagine that version `1.2.1` contains important fixes and should always be used in preference to `1.2`. The rule provided will enforce just this: any time version `1.2` is encountered it will be replaced with `1.2.1`. Note that this is different from a forced version as described above, in that any other versions of this module would not be affected. This means that the 'newest' conflict resolution strategy would still select version `1.3` if this version was also pulled transitively.
 
-==== Example: Blacklisting a version with a replacement
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/resolutionStrategy/build.gradle[tag=blacklisting_version]
-----
+.Example: Blacklisting a version with a replacement
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/groovy",files="build.gradle[tags=blacklisting_version]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/kotlin",files="build.gradle.kts[tags=blacklisting_version]"]
+====
 
 [[sec:module_substitution]]
 === Substituting a dependency module with a compatible replacement
 
 At times a completely different module can serve as a replacement for a requested module dependency. Examples include using `groovy` in place of `groovy-all`, or using `log4j-over-slf4j` instead of `log4j`. You can perform these substitutions using dependency resolve rules:
 
-==== Example: Changing dependency group and/or name during resolution
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/resolutionStrategy/build.gradle[tag=module_substitution]
-----
+.Changing dependency group and/or name during resolution
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/groovy",files="build.gradle[tags=module_substitution]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/kotlin",files="build.gradle.kts[tags=module_substitution]"]
+====
 
 [[sec:dependency_substitution_rules]]
 == Using dependency substitution rules
