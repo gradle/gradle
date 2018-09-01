@@ -16,7 +16,7 @@
 
 package org.gradle.api.distribution.plugins;
 
-import org.codehaus.groovy.runtime.StringGroovyMethods;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
@@ -77,7 +77,7 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
         DistributionContainer distributions = project.getExtensions().create(DistributionContainer.class, "distributions", DefaultDistributionContainer.class, Distribution.class, instantiator, fileOperations);
 
         // TODO - refactor this action out so it can be unit tested
-        distributions.configureEach(new Action<Distribution>() {
+        distributions.all(new Action<Distribution>() {
             @Override
             public void execute(final Distribution dist) {
                 ((IConventionAware) dist).getConventionMapping().map("baseName", new Callable<Object>() {
@@ -142,7 +142,7 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
     private void addInstallTask(final Project project, final Distribution distribution) {
         String taskName = TASK_INSTALL_NAME;
         if (!MAIN_DISTRIBUTION_NAME.equals(distribution.getName())) {
-            taskName = "install" + StringGroovyMethods.capitalize((CharSequence) distribution.getName()) + "Dist";
+            taskName = "install" + StringUtils.capitalize(distribution.getName()) + "Dist";
         }
 
         project.getTasks().register(taskName, Sync.class, new Action<Sync>() {
@@ -164,7 +164,7 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
     private void addAssembleTask(Project project, final Distribution distribution, final TaskProvider<?>... tasks) {
         String taskName = TASK_ASSEMBLE_NAME;
         if (!MAIN_DISTRIBUTION_NAME.equals(distribution.getName())) {
-            taskName = "assemble" + StringGroovyMethods.capitalize((CharSequence) distribution.getName()) + "Dist";
+            taskName = "assemble" + StringUtils.capitalize(distribution.getName()) + "Dist";
         }
 
         project.getTasks().register(taskName, DefaultTask.class, new Action<DefaultTask>() {
