@@ -225,35 +225,29 @@ Rules are configured via the link:{groovyDslPath}/org.gradle.api.artifacts.Compo
 
 The following example shows a rule that disallows a particular version of a module but allows the dynamic version to choose the next best candidate.
 
-=== Example: Component selection rule
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/selectionRule/build.gradle[tag=reject-version-1-1]
-----
+.Component selection rule
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/selectionRule/groovy",files="build.gradle[tags=reject-version-1-1]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/selectionRule/kotlin",files="build.gradle.kts[tags=reject-version-1-1]"]
+====
 
 Note that version selection is applied starting with the highest version first. The version selected will be the first version found that all component selection rules accept. A version is considered accepted if no rule explicitly rejects it.
 
 Similarly, rules can be targeted at specific modules. Modules must be specified in the form of `group:module`.
 
-=== Example: Component selection rule with module target
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/selectionRule/build.gradle[tag=targeted-component-selection]
-----
+.Component selection rule with module target
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/selectionRule/groovy",files="build.gradle[tags=targeted-component-selection]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/selectionRule/kotlin",files="build.gradle.kts[tags=targeted-component-selection]"]
+====
 
 Component selection rules can also consider component metadata when selecting a version. Possible metadata arguments that can be considered are link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadata.html[ComponentMetadata] and link:{javadocPath}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor].
 
-=== Example: Component selection rule with metadata
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/selectionRule/build.gradle[tag=component-selection-with-metadata]
-----
+.Component selection rule with metadata
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/selectionRule/groovy",files="build.gradle[tags=component-selection-with-metadata]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/selectionRule/kotlin",files="build.gradle.kts[tags=component-selection-with-metadata]"]
+====
 
 Note that a link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection] argument is _always_ required as the first parameter when declaring a component selection rule with additional Ivy metadata parameters, but the metadata parameters can be declared in any order.
 
@@ -265,14 +259,11 @@ This method:
 * must have link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection] as the first argument.
 * may have additional parameters of type link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadata.html[ComponentMetadata] and/or link:{javadocPath}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor].
 
-=== Example: Component selection rule using a rule source object
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/selectionRule/build.gradle[tag=api-component-selection]
-----
-
+.Component selection rule using a rule source object
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/selectionRule/groovy",files="build.gradle[tags=api-component-selection]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/selectionRule/kotlin",files="build.gradle.kts[tags=api-component-selection]"]
+====
 
 [[sec:module_replacement]]
 == Using module replacement rules
