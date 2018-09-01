@@ -155,13 +155,11 @@ One piece of module metadata that Gradle understands is a module's _status schem
 
 A module's status and status scheme are taken into consideration when a `latest` version selector is resolved. Specifically, `latest.someStatus` will resolve to the highest module version that has status `someStatus` or a more mature status. For example, with the default status scheme in place, `latest.integration` will select the highest module version regardless of its status (because `integration` is the least mature status), whereas `latest.release` will select the highest module version with status `release`. Here is what this looks like in code:
 
-=== Example: 'Latest' version selector
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/metadataRule/build.gradle[tag=latest-selector]
-----
+.'Latest' version selector
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=latest-selector]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=latest-selector]"]
+====
 
 .Output of **`gradle -q listConfigs`**
 ----
@@ -171,34 +169,28 @@ include::{samplesPath}/userguide/dependencyManagement/customizingResolution/meta
 
 The next example demonstrates `latest` selectors based on a custom status scheme declared in a component metadata rule that applies to all modules:
 
-=== Example: Custom status scheme
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/metadataRule/build.gradle[tag=custom-status-scheme]
-----
+.Custom status scheme
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=custom-status-scheme]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=custom-status-scheme]"]
+====
 
 Component metadata rules can be applied to a specified module. Modules must be specified in the form of `group:module`.
 
-=== Example: Custom status scheme by module
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/metadataRule/build.gradle[tag=custom-status-scheme-module]
-----
+.Custom status scheme by module
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=custom-status-scheme-module]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=custom-status-scheme-module]"]
+====
 
 Gradle can also provide to component metadata rules the Ivy-specific metadata for modules resolved from an Ivy repository.
 Values from the Ivy descriptor are made available via the link:{javadocPath}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor] interface.
 
-=== Example: Ivy component metadata rule
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/metadataRule/build.gradle[tag=ivy-component-metadata-rule]
-----
+.Ivy component metadata rule
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=ivy-component-metadata-rule]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=ivy-component-metadata-rule]"]
+====
 
 Note that while any rule can request the link:{javadocPath}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor], only components sourced from an Ivy repository will have a non-null value for it.
 
@@ -206,13 +198,11 @@ As can be seen in the examples above, component metadata rules are defined by im
 
 The next example shows how you can configure the `ComponentMetadataRule` through an link:{javadocPath}/org/gradle/api/ActionConfiguration.html[ActionConfiguration].
 
-=== Example: Configuration of ComponentMetadataRule
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/metadataRule/build.gradle[tag=config-component-metadata-rule]
-----
+.Configuration of ComponentMetadataRule
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=config-component-metadata-rule]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=config-component-metadata-rule]"]
+====
 
 This happens by having a constructor in your implementation of `ComponentMetadataRule` accepting the parameters that were configured and the services that need injecting.
 

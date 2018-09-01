@@ -1,0 +1,9 @@
+<ivy-module version="2.0">
+    <info organisation="org.sample"
+          module="api"
+          revision="1.9"
+          status="gold"/>
+    <publications>
+        <artifact />
+    </publications>
+</ivy-module>
