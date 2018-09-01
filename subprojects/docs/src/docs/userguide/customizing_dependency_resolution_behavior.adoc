@@ -309,10 +309,8 @@ Gradle's Ivy repository implementations support the equivalent to Ivy's dynamic 
 
 To enable dynamic resolve mode, you need to set the appropriate option on the repository definition. A couple of examples are shown below. Note that dynamic resolve mode is only available for Gradle's Ivy repositories. It is not available for Maven repositories, or custom Ivy `DependencyResolver` implementations.
 
-=== Example: Enabling dynamic resolve mode
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/ivyDynamicMode/build.gradle[tag=ivy-repo-dynamic-mode]
-----
+.Enabling dynamic resolve mode
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/ivyDynamicMode/groovy",files="build.gradle[tags=ivy-repo-dynamic-mode]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/ivyDynamicMode/kotlin",files="build.gradle.kts[tags=ivy-repo-dynamic-mode]"]
+====
