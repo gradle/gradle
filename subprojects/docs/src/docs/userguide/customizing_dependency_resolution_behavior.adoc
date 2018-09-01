@@ -279,13 +279,11 @@ To explain the impact on conflict resolution, let's consider the `google-collect
 
 Traditional approaches work but they are not general enough. For example, an organisation wants to resolve the `google-collections` -&gt; `guava` conflict resolution problem in all projects. Starting from Gradle 2.2 it is possible to declare that certain module was replaced by other. This enables organisations to include the information about module replacement in the corporate plugin suite and resolve the problem holistically for all Gradle-powered projects in the enterprise.
 
-=== Example: Declaring a module replacement
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/replacementRule/build.gradle[tag=module_replacement_declaration]
-----
+.Declaring a module replacement
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/replacementRule/groovy",files="build.gradle[tags=module_replacement_declaration]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/replacementRule/kotlin",files="build.gradle.kts[tags=module_replacement_declaration]"]
+====
 
 For more examples and detailed API, refer to the DSL reference for link:{javadocPath}/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html[ComponentMetadataHandler].
 
