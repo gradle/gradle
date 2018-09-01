@@ -108,13 +108,11 @@ One use case for dependency substitution is to use a locally developed version o
 
 The module to be replaced can be declared with or without a version specified.
 
-==== Example: Substituting a module with a project
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/substitutionRule/build.gradle[tag=module_to_project_substitution]
-----
+.Substituting a module with a project
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/substitutionRule/groovy",files="build.gradle[tags=module_to_project_substitution]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/substitutionRule/kotlin",files="build.gradle.kts[tags=module_to_project_substitution]"]
+====
 
 Note that a project that is substituted must be included in the multi-project build (via `settings.gradle`). Dependency substitution rules take care of replacing the module dependency with the project dependency and wiring up any task dependencies, but do not implicitly include the project in the build.
 
@@ -125,13 +123,11 @@ Another way to use substitution rules is to replace a project dependency with a 
 
 The module to be used as a replacement must be declared with a version specified.
 
-==== Example: Substituting a project with a module
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/substitutionRule/build.gradle[tag=project_to_module_substitution]
-----
+.Substituting a project with a module
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/substitutionRule/groovy",files="build.gradle[tags=project_to_module_substitution]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/substitutionRule/kotlin",files="build.gradle.kts[tags=project_to_module_substitution]"]
+====
 
 When a project dependency has been replaced with a module dependency, that project is still included in the overall multi-project build. However, tasks to build the replaced dependency will not be executed in order to build the resolve the depending `Configuration`.
 
