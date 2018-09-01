@@ -63,7 +63,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
     }
 
     params {
-        param("env.JAVA_HOME", "%linux.java8.oracle.64bit%")
+        param("env.JAVA_HOME", buildJavaHome)
     }
 
     steps {

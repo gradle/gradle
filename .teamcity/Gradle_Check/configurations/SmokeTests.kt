@@ -12,7 +12,7 @@ class SmokeTests(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model,
 
     params {
         param("env.ANDROID_HOME", "/opt/android/sdk")
-        param("env.JAVA_HOME", "%linux.java8.oracle.64bit%")
+        param("env.JAVA_HOME", buildJavaHome)
     }
 
     applyDefaults(
@@ -20,6 +20,6 @@ class SmokeTests(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model,
             this,
             "smokeTest:smokeTest",
             notQuick = true,
-            extraParameters = buildScanTag("SmokeTests")
+            extraParameters = buildScanTag("SmokeTests") + " -PtestJavaHome=${smokeTestJavaHome}"
     )
 })

@@ -12,7 +12,7 @@ class SanityCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model
 
     params {
         param("system.java9Home", "%linux.java9.oracle.64bit%")
-        param("env.JAVA_HOME", "%linux.java8.oracle.64bit%")
+        param("env.JAVA_HOME", buildJavaHome)
     }
 
     if (model.publishStatusToGitHub) {

@@ -18,6 +18,6 @@ class BuildDistributions(model: CIBuildModel, stage: Stage) : BaseGradleBuildTyp
     """.trimIndent()
 
     params {
-        param("env.JAVA_HOME", "%linux.java8.oracle.64bit%")
+        param("env.JAVA_HOME", buildJavaHome)
     }
 })
