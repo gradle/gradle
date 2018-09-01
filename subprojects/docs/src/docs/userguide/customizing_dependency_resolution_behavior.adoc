@@ -138,13 +138,11 @@ A common use case for dependency substitution is to allow more flexible assembly
 
 The following example uses a dependency substitution rule to replace any module dependency with the group `org.example`, but only if a local project matching the dependency name can be located.
 
-==== Example: Conditionally substituting a dependency
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule/build.gradle[tag=project_substitution]
-----
+.Conditionally substituting a dependency
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule/groovy",files="build.gradle[tags=project_substitution]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule/kotlin",files="build.gradle.kts[tags=project_substitution]"]
+====
 
 Note that a project that is substituted must be included in the multi-project build (via `settings.gradle`). Dependency substitution rules take care of replacing the module dependency with the project dependency, but do not implicitly include the project in the build
 

@@ -19,17 +19,23 @@ package org.gradle.integtests.samples.dependencymanagement
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.util.Requires
 import org.gradle.util.TextUtil
 import org.junit.Rule
+import spock.lang.Unroll
 
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
+
+@Requires(KOTLIN_SCRIPT)
 class SamplesDependencySubstitutionIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule")
-    def "can run sample with all external dependencies" () {
-        executer.inDirectory(sample.dir)
+    def "can run sample with all external dependencies with #dsl dsl" () {
+        executer.inDirectory(sample.dir.file(dsl))
 
         when:
         succeeds "showJarFiles"
@@ -41,11 +47,15 @@ class SamplesDependencySubstitutionIntegrationTest extends AbstractIntegrationSp
         TextUtil.normaliseFileSeparators(output).contains("repo/org.example/project2/1.0/project2-1.0.jar")
         output.contains("project project3 is external to this build")
         TextUtil.normaliseFileSeparators(output).contains("repo/org.example/project3/1.0/project3-1.0.jar")
+
+        where:
+        dsl <<  ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule")
-    def "can run sample with some internal projects" () {
-        executer.inDirectory(sample.dir)
+    def "can run sample with some internal projects with #dsl dsl" () {
+        executer.inDirectory(sample.dir.file(dsl))
 
         when:
         args("-DuseLocal=project1,project2")
@@ -58,5 +68,8 @@ class SamplesDependencySubstitutionIntegrationTest extends AbstractIntegrationSp
         TextUtil.normaliseFileSeparators(output).contains("project2/build/libs/project2-1.0.jar")
         output.contains("project project3 is external to this build")
         TextUtil.normaliseFileSeparators(output).contains("repo/org.example/project3/1.0/project3-1.0.jar")
+
+        where:
+        dsl <<  ['groovy', 'kotlin']
     }
 }
