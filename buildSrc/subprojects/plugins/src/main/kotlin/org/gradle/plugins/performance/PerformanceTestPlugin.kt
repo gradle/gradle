@@ -6,6 +6,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.TaskProvider
@@ -318,6 +319,9 @@ class PerformanceTestPlugin : Plugin<Project> {
         val result = tasks.register(name, DistributedPerformanceTest::class) {
             configureReportProperties()
             configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask)
+            configureSampleGenerators {
+                this@register.dependsOn(this)
+            }
             scenarioList = buildDir / Config.performanceTestScenarioListFileName
             scenarioReport = buildDir / Config.performanceTestScenarioReportFileName
             buildTypeId = stringPropertyOrNull(PropertyNames.buildTypeId)
@@ -434,8 +438,11 @@ class PerformanceTestPlugin : Plugin<Project> {
     private
     fun PerformanceTest.registerTemplateInputsToPerformanceTest() {
         val registerInputs: (Task) -> Unit = { prepareSampleTask ->
-            val prepareSampleTaskInputs = prepareSampleTask.inputs.properties.mapKeys { entry -> "${prepareSampleTask.name}_${entry.key}" }
-            inputs.properties(prepareSampleTaskInputs)
+            inputs.files(deferred {
+                prepareSampleTask.outputs.files.files
+            })
+                .withPropertyName("${prepareSampleTask.name}Outputs")
+                .withPathSensitivity(PathSensitivity.RELATIVE)
         }
         project.configureSampleGenerators {
             configureEach(registerInputs)
