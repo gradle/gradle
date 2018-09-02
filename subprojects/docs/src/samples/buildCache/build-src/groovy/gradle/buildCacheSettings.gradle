@@ -15,7 +15,7 @@
  */
 
 // tag::configure-build-src-build-cache[]
-ext.isCiServer = System.getenv().containsKey("CI")
+boolean isCiServer = System.getenv().containsKey("CI")
 
 buildCache {
     local {

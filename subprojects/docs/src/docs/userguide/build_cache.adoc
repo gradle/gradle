@@ -274,27 +274,10 @@ include::sample[dir="buildCache/developer-ci-setup/kotlin",files="settings.gradl
 If you use a `buildSrc` directory, you should make sure that it uses the same build cache configuration as the main build.
 This can be achieved by applying the same script to `buildSrc/settings.gradle` and `settings.gradle` as shown in the following example.
 
-=== Example: Consistent setup for buildSrc and main build
-
-[.multi-language-sample,groovy]
+.Consistent setup for buildSrc and main build
 ====
-.settings.gradle
-[source,groovy]
-----
-include::{samplesPath}/buildCache/build-src/settings.gradle[tag=configure-build-src-build-cache]
-----
-
-.gradle/buildCacheSettings.gradle
-[source,groovy]
-----
-include::{samplesPath}/buildCache/build-src/gradle/buildCacheSettings.gradle[tag=configure-build-src-build-cache]
-----
-
-.buildSrc/settings.gradle
-[source,groovy]
-----
-include::{samplesPath}/buildCache/build-src/buildSrc/settings.gradle[tag=configure-build-src-build-cache]
-----
+include::sample[dir="buildCache/build-src/groovy",files="settings.gradle[tags=configure-build-src-build-cache];gradle/buildCacheSettings.gradle[tags=configure-build-src-build-cache];buildSrc/settings.gradle[tags=configure-build-src-build-cache]"]
+include::sample[dir="buildCache/build-src/kotlin",files="settings.gradle.kts[tags=configure-build-src-build-cache];gradle/buildCacheSettings.gradle.kts[tags=configure-build-src-build-cache];buildSrc/settings.gradle.kts[tags=configure-build-src-build-cache]"]
 ====
 
 It is also possible to configure the build cache from an <<init_scripts.adoc#sec:using_an_init_script,init script>>, which can be used from the command line, added to your Gradle user home or be a part of your custom Gradle distribution.
