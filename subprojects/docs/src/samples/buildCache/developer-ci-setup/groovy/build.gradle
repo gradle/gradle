@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,6 @@
  * limitations under the License.
  */
 
-// tag::developer-ci-setup[]
-ext.isCiServer = System.getenv().containsKey("CI")
-
-buildCache {
-    local {
-        enabled = !isCiServer
-    }
-    remote(HttpBuildCache) {
-        url = 'https://example.com:8123/cache/'
-        push = isCiServer
-    }
+plugins {
+    id 'java'
 }
-// end::developer-ci-setup[]

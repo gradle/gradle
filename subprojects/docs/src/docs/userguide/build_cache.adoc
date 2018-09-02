@@ -265,13 +265,11 @@ include::sample[dir="buildCache/http-build-cache/kotlin",files="settings.gradle.
 The recommended use case for the build cache is that your continuous integration server populates the remote build cache from clean builds while developers load from the remote build cache and store in the local build cache.
 The configuration would then look as follows.
 
-=== Example: Recommended setup for CI push use case
-
-[source.multi-language-sample,groovy]
-.settings.gradle
-----
-include::{samplesPath}/buildCache/developer-ci-setup/settings.gradle[tag=developer-ci-setup]
-----
+.Recommended setup for CI push use case
+====
+include::sample[dir="buildCache/developer-ci-setup/groovy",files="settings.gradle[tags=developer-ci-setup]"]
+include::sample[dir="buildCache/developer-ci-setup/kotlin",files="settings.gradle.kts[tags=developer-ci-setup]"]
+====
 
 If you use a `buildSrc` directory, you should make sure that it uses the same build cache configuration as the main build.
 This can be achieved by applying the same script to `buildSrc/settings.gradle` and `settings.gradle` as shown in the following example.
