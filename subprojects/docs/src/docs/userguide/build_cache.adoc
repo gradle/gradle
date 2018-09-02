@@ -230,13 +230,11 @@ Gradle has built-in support for connecting to a remote build cache backend via H
 For more details on what the protocol looks like see link:{groovyDslPath}/org.gradle.caching.http.HttpBuildCache.html[HttpBuildCache].
 Note that by using the following configuration the local build cache will be used for storing build outputs while the local and the remote build cache will be used for retrieving build outputs.
 
-=== Example: Load from HttpBuildCache
-
-[source.multi-language-sample,groovy]
-.settings.gradle
-----
-include::{samplesPath}/buildCache/http-build-cache/settings.gradle[tag=http-build-cache]
-----
+.Load from HttpBuildCache
+====
+include::sample[dir="buildCache/http-build-cache/groovy",files="settings.gradle[tags=http-build-cache]"]
+include::sample[dir="buildCache/http-build-cache/kotlin",files="settings.gradle.kts[tags=http-build-cache]"]
+====
 
 You can configure the credentials the link:{groovyDslPath}/org.gradle.caching.http.HttpBuildCache.html[HttpBuildCache] uses to access the build cache server as shown in the following example.
 
@@ -250,15 +248,15 @@ include::sample[dir="buildCache/configure-built-in-caches/kotlin",files="setting
 ====
 You may encounter problems with an untrusted SSL certificate when you try to use a build cache backend with an HTTPS URL.
 The ideal solution is for someone to add a valid SSL certificate to the build cache backend, but we recognize that you may not be able to do that.
-In that case, set link:{groovyDslPath}/org.gradle.caching.http.HttpBuildCache.html#org.gradle.caching.http.HttpBuildCache:allowUntrustedServer[HttpBuildCache.isAllowUntrustedServer()] to `true`:
-
-[source.multi-language-sample,groovy]
-.settings.gradle
-----
-include::{samplesPath}/buildCache/http-build-cache/settings.gradle[tag=allow-untrusted-server]
-----
+In that case, set link:{groovyDslPath}/org.gradle.caching.http.HttpBuildCache.html#org.gradle.caching.http.HttpBuildCache:allowUntrustedServer[HttpBuildCache.isAllowUntrustedServer()] to `true`.
 
 This is a convenient workaround, but you shouldn’t use it as a long-term solution.
+====
+
+.Allow untrusted cache server
+====
+include::sample[dir="buildCache/http-build-cache/groovy",files="settings.gradle[tags=allow-untrusted-server]"]
+include::sample[dir="buildCache/http-build-cache/kotlin",files="settings.gradle.kts[tags=allow-untrusted-server]"]
 ====
 
 [[sec:build_cache_configure_use_cases]]
