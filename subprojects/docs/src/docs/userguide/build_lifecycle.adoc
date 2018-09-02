@@ -190,13 +190,11 @@ You can receive a notification immediately after a task is added to a project. T
 
 The following example sets the `srcDir` property of each task as it is created.
 
-=== Example: Setting of certain property to all tasks
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/buildlifecycle/taskCreationEvents/build.gradle[]
-----
+.Setting of certain property to all tasks
+====
+include::sample[dir="userguide/buildlifecycle/taskCreationEvents/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/buildlifecycle/taskCreationEvents/kotlin",files="build.gradle.kts[]"]
+====
 
 .Output of **`gradle -q a`**
 ----
