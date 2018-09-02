@@ -435,7 +435,9 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun PerformanceTest.registerTemplateInputsToPerformanceTest() {
         val registerInputs: (Task) -> Unit = { prepareSampleTask ->
             val prepareSampleTaskInputs = prepareSampleTask.inputs.properties.mapKeys { entry -> "${prepareSampleTask.name}_${entry.key}" }
-            inputs.properties(prepareSampleTaskInputs)
+            prepareSampleTaskInputs.forEach { key, value ->
+                inputs.property(key, value).optional(true)
+            }
         }
         project.configureSampleGenerators {
             configureEach(registerInputs)
