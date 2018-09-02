@@ -218,15 +218,13 @@ You can receive a notification immediately before and after any task is executed
 
 The following example logs the start and end of each task execution. Notice that the `afterTask` notification is received regardless of whether the task completes successfully or fails with an exception.
 
-=== Example: Logging of start and end of each task execution
+.Logging of start and end of each task execution
+====
+include::sample[dir="userguide/buildlifecycle/taskExecutionEvents/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/buildlifecycle/taskExecutionEvents/kotlin",files="build.gradle.kts[]"]
+====
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/buildlifecycle/taskExecutionEvents/build.gradle[]
-----
-
-.Output of **`gradle -q broken`**
+.Output of **`gradle -q broken`** (partial)
 ----
 > gradle -q broken
 include::{samplesPath}/userguide/buildlifecycle/taskExecutionEvents/taskExecutionEvents.out[]
