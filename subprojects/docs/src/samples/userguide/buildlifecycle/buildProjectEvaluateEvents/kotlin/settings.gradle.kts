@@ -1,0 +1,5 @@
+rootProject.name = "buildProjectEvaluateEvents"
+
+include("projectA", "projectB")
+
+project(":projectB").buildFileName = "../projectB.gradle.kts"

@@ -169,15 +169,13 @@ This example uses method `Project.afterEvaluate()` to add a closure which is exe
 
 It is also possible to receive notifications when any project is evaluated. This example performs some custom logging of project evaluation. Notice that the `afterProject` notification is received regardless of whether the project evaluates successfully or fails with an exception.
 
-=== Example: Notifications
+.Notifications
+====
+include::sample[dir="userguide/buildlifecycle/buildProjectEvaluateEvents/groovy",files="build.gradle[tags=evaluate-events]"]
+include::sample[dir="userguide/buildlifecycle/buildProjectEvaluateEvents/kotlin",files="build.gradle.kts[tags=evaluate-events]"]
+====
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/buildlifecycle/buildProjectEvaluateEvents/build.gradle[tag=evaluate-events]
-----
-
-.Output of **`gradle -q test`**
+.Output of **`gradle -q test`** (partial)
 ----
 > gradle -q test
 include::{samplesPath}/userguide/buildlifecycle/buildProjectEvaluateEvents/buildProjectEvaluateEvents.out[]
