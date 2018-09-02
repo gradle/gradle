@@ -153,21 +153,10 @@ You can receive a notification immediately before and after a project is evaluat
 
 Below is an example which adds a `test` task to each project which has a `hasTests` property value of true.
 
-=== Example: Adding of test task to each project which has certain property set
-
-[.multi-language-sample,groovy]
+.Adding of test task to each project which has certain property set
 ====
-.build.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/buildlifecycle/projectEvaluateEvents/build.gradle[tag=after-evaluate]
-----
-
-.projectA.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/buildlifecycle/projectEvaluateEvents/projectA.gradle[]
-----
+include::sample[dir="userguide/buildlifecycle/projectEvaluateEvents/groovy",files="build.gradle[tags=after-evaluate];projectA.gradle[]"]
+include::sample[dir="userguide/buildlifecycle/projectEvaluateEvents/kotlin",files="build.gradle.kts[tags=after-evaluate];projectA.gradle.kts[]"]
 ====
 
 .Output of `gradle -q test`

@@ -1,0 +1,1 @@
+setProperty("hasTests", true)
