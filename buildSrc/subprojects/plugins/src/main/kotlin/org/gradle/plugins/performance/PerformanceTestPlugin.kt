@@ -86,11 +86,11 @@ class PerformanceTestPlugin : Plugin<Project> {
         createCheckNoIdenticalBuildFilesTask()
         configureGeneratorTasks()
 
-        val prepareSamplesTask = createPrepareSamplesTask()
+        createPrepareSamplesTask()
         createCleanSamplesTask()
 
-        createLocalPerformanceTestTasks(performanceTestSourceSet, prepareSamplesTask)
-        createDistributedPerformanceTestTasks(performanceTestSourceSet, prepareSamplesTask)
+        createLocalPerformanceTestTasks(performanceTestSourceSet)
+        createDistributedPerformanceTestTasks(performanceTestSourceSet)
 
         createRebaselineTask(performanceTestSourceSet)
 
@@ -230,12 +230,11 @@ class PerformanceTestPlugin : Plugin<Project> {
 
     private
     fun Project.createLocalPerformanceTestTasks(
-        performanceSourceSet: SourceSet,
-        prepareSamplesTask: TaskProvider<Task>
+        performanceSourceSet: SourceSet
     ) {
 
         fun create(name: String, configure: PerformanceTest.() -> Unit = {}) {
-            createLocalPerformanceTestTask(name, performanceSourceSet, prepareSamplesTask).configure(configure)
+            createLocalPerformanceTestTask(name, performanceSourceSet).configure(configure)
         }
 
         create("performanceTest") {
@@ -257,12 +256,11 @@ class PerformanceTestPlugin : Plugin<Project> {
 
     private
     fun Project.createDistributedPerformanceTestTasks(
-        performanceSourceSet: SourceSet,
-        prepareSamplesTask: TaskProvider<Task>
+        performanceSourceSet: SourceSet
     ) {
 
         fun create(name: String, configure: PerformanceTest.() -> Unit = {}) {
-            createDistributedPerformanceTestTask(name, performanceSourceSet, prepareSamplesTask).configure(configure)
+            createDistributedPerformanceTestTask(name, performanceSourceSet).configure(configure)
         }
 
         create("distributedPerformanceTest") {
@@ -312,13 +310,12 @@ class PerformanceTestPlugin : Plugin<Project> {
     private
     fun Project.createDistributedPerformanceTestTask(
         name: String,
-        performanceSourceSet: SourceSet,
-        prepareSamplesTask: TaskProvider<Task>
+        performanceSourceSet: SourceSet
     ): TaskProvider<DistributedPerformanceTest> {
 
         val result = tasks.register(name, DistributedPerformanceTest::class) {
             configureReportProperties()
-            configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask)
+            configureForAnyPerformanceTestTask(this, performanceSourceSet)
             configureSampleGenerators {
                 this@register.dependsOn(this)
             }
@@ -347,12 +344,11 @@ class PerformanceTestPlugin : Plugin<Project> {
     private
     fun Project.createLocalPerformanceTestTask(
         name: String,
-        performanceSourceSet: SourceSet,
-        prepareSamplesTask: TaskProvider<Task>
+        performanceSourceSet: SourceSet
     ): TaskProvider<PerformanceTest> {
 
         val performanceTest = tasks.register(name, PerformanceTest::class) {
-            configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask)
+            configureForAnyPerformanceTestTask(this, performanceSourceSet)
 
             if (project.hasProperty(PropertyNames.performanceTestVerbose)) {
                 testLogging.showStandardStreams = true
@@ -400,8 +396,7 @@ class PerformanceTestPlugin : Plugin<Project> {
     private
     fun Project.configureForAnyPerformanceTestTask(
         task: PerformanceTest,
-        performanceSourceSet: SourceSet,
-        prepareSamplesTask: TaskProvider<Task>
+        performanceSourceSet: SourceSet
     ) {
 
         task.apply {
@@ -419,8 +414,6 @@ class PerformanceTestPlugin : Plugin<Project> {
             }
 
             jvmArgs("-Xmx3g", "-XX:+HeapDumpOnOutOfMemoryError")
-
-            dependsOn(prepareSamplesTask)
 
             registerTemplateInputsToPerformanceTest()
 
