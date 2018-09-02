@@ -39,21 +39,10 @@ Beside the build script files, Gradle defines a settings file. The settings file
 
 The settings file is executed during the initialization phase. A multi-project build must have a `settings.gradle` file in the root project of the multi-project hierarchy. It is required because the settings file defines which projects are taking part in the multi-project build (see <<multi_project_builds.adoc#multi_project_builds,Authoring Multi-Project Builds>>). For a single-project build, a settings file is optional. Besides defining the included projects, you might need it to add libraries to your build script classpath (see <<organizing_gradle_projects.adoc#organizing_gradle_projects,Organizing Gradle Projects>>). Let's first do some introspection with a single project build:
 
-=== Example: Single project build
-
-[.multi-language-sample,groovy]
+.Single project build
 ====
-.settings.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/buildlifecycle/basic/settings.gradle[]
-----
-
-.build.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/buildlifecycle/basic/build.gradle[]
-----
+include::sample[dir="userguide/buildlifecycle/basic/groovy",files="settings.gradle[];build.gradle[]"]
+include::sample[dir="userguide/buildlifecycle/basic/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
 ====
 
 .Output of `gradle test testBoth`
