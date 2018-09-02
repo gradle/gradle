@@ -369,7 +369,6 @@ tasks.register("springBootApp", RemoteProject) {
 tasks.register("largeNativeBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-native-large'
     branch = 'master'
-    finalizedBy 'largeNativeBuildPrebuilt'
 }
 
 tasks.register("largeNativeBuildPrebuilt", GradleBuild) {
