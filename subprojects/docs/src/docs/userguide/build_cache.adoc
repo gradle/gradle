@@ -282,13 +282,11 @@ include::sample[dir="buildCache/build-src/kotlin",files="settings.gradle.kts[tag
 
 It is also possible to configure the build cache from an <<init_scripts.adoc#sec:using_an_init_script,init script>>, which can be used from the command line, added to your Gradle user home or be a part of your custom Gradle distribution.
 
-=== Example: Init script to configure the build cache
-
-[source.multi-language-sample,groovy]
-.init.gradle
-----
-include::{samplesPath}/buildCache/configure-by-init-script/init.gradle[]
-----
+.Init script to configure the build cache
+====
+include::sample[dir="buildCache/configure-by-init-script/groovy",files="init.gradle[]"]
+include::sample[dir="buildCache/configure-by-init-script/kotlin",files="init.gradle.kts[]"]
+====
 
 [[sec:build_cache_composite]]
 === Build cache and composite builds
