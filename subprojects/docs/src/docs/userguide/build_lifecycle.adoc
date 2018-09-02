@@ -100,23 +100,19 @@ The `includeFlat` method takes directory names as an argument. These directories
 
 The multi-project tree created in the settings file is made up of so called _project descriptors_. You can modify these descriptors in the settings file at any time. To access a descriptor you can do:
 
-=== Example: Lookup of elements of the project tree
-
-[source.multi-language-sample,groovy]
-.settings.gradle
-----
-include::{samplesPath}/userguide/multiproject/customLayout/settings.gradle[tag=lookup-project]
-----
+.Lookup of elements of the project tree
+====
+include::sample[dir="userguide/multiproject/customLayout/groovy",files="settings.gradle[tags=lookup-project]"]
+include::sample[dir="userguide/multiproject/customLayout/kotlin",files="settings.gradle.kts[tags=lookup-project]"]
+====
 
 Using this descriptor you can change the name, project directory and build file of a project.
 
-=== Example: Modification of elements of the project tree
-
-[source.multi-language-sample,groovy]
-.settings.gradle
-----
-include::{samplesPath}/userguide/multiproject/customLayout/settings.gradle[tag=change-project]
-----
+.Modification of elements of the project tree
+====
+include::sample[dir="userguide/multiproject/customLayout/groovy",files="settings.gradle[tags=change-project]"]
+include::sample[dir="userguide/multiproject/customLayout/kotlin",files="settings.gradle.kts[tags=change-project]"]
+====
 
 Look at the link:{javadocPath}/org/gradle/api/initialization/ProjectDescriptor.html[ProjectDescriptor] class in the API documentation for more information.
 
