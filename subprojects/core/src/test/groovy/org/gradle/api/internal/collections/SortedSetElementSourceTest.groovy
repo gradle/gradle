@@ -16,19 +16,32 @@
 
 package org.gradle.api.internal.collections
 
+
 import org.gradle.api.Action
 
-
 class SortedSetElementSourceTest extends AbstractElementSourceTest {
-    ElementSource source = new SortedSetElementSource<CharSequence>()
+    final ElementSource source = new SortedSetElementSource<CharSequence>()
 
-    def setup() {
-        source.onRealize(new Action<CharSequence>() {
-            @Override
-            void execute(CharSequence t) {
-                source.addRealized(t)
-            }
-        })
+    final Action<CharSequence> realizeAction = new Action<CharSequence>() {
+        @Override
+        void execute(CharSequence t) {
+            realize.execute(t.toString())
+            source.addRealized(t.toString())
+        }
+    }
+
+    def "cannot realize pending elements when realize action is not set"() {
+        given:
+        source.onRealize(null)
+
+        when:
+        source.addPending(provider("provider1"))
+        source.addPending(provider("provider2"))
+        source.addPending(provider("provider3"))
+        source.realizePending()
+
+        then:
+        thrown(IllegalStateException)
     }
 
     def "can remove elements using iteratorNoFlush"() {

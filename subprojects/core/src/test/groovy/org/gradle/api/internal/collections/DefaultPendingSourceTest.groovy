@@ -16,114 +16,76 @@
 
 package org.gradle.api.internal.collections
 
-import org.gradle.api.Action
-import org.gradle.api.internal.provider.ProviderInternal
-import spock.lang.Specification
+class DefaultPendingSourceTest extends AbstractPendingSourceSpec {
+    final PendingSource<CharSequence> source = new DefaultPendingSource()//pending
 
-class DefaultPendingSourceTest extends Specification {
-    def pending = new DefaultPendingSource()
-    def provider1 = Mock(ProviderInternal)
-    def provider2 = Mock(ProviderInternal)
-    def provider3 = Mock(ProviderInternal)
-    def realize = Mock(Action)
-
-    def setup() {
-        pending.onRealize(realize)
-        _ * provider1.get() >> "provider1"
-        _ * provider2.get() >> "provider2"
-        _ * provider3.get() >> "provider3"
-    }
-
-    def "realizes pending elements on flush"() {
+    def "realized pending elements are removed from source"() {
         when:
-        pending.addPending(provider1)
-        pending.addPending(provider2)
-        pending.addPending(provider3)
-        pending.realizePending()
+        source.addPending(provider("provider1"))
+        source.addPending(provider("provider2"))
+        source.addPending(provider("provider3"))
 
         then:
-        1 * realize.execute("provider1")
-        1 * realize.execute("provider2")
-        1 * realize.execute("provider3")
-
-        and:
-        pending.isEmpty()
-    }
-
-    def "realizes only pending elements with a given type"() {
-        _ * provider1.getType() >> SomeType.class
-        _ * provider2.getType() >> SomeOtherType.class
-        _ * provider3.getType() >> SomeType.class
+        source.size() == 3
+        !source.isEmpty()
 
         when:
-        pending.addPending(provider1)
-        pending.addPending(provider2)
-        pending.addPending(provider3)
-        pending.realizePending(SomeType.class)
+        source.realizePending()
 
         then:
-        1 * realize.execute("provider1")
-        0 * realize.execute("provider2")
-        1 * realize.execute("provider3")
+        source.size() == 0
+        source.isEmpty()
+    }
 
-        and:
-        pending.size() == 1
+    def "realized pending elements with a given type are removed from source"() {
+        when:
+        source.addPending(provider("provider1"))
+        source.addPending(provider(new StringBuffer("provider2")))
+        source.addPending(provider("provider3"))
+
+        then:
+        source.size() == 3
+        !source.isEmpty()
+
+        when:
+        source.realizePending(String.class)
+
+        then:
+        source.size() == 1
+        !source.isEmpty()
+    }
+
+    def "realized specified pending element are removed from source"() {
+        def provider1 = provider("provider1")
+
+        when:
+        source.addPending(provider1)
+        source.addPending(provider(new StringBuffer("provider2")))
+        source.addPending(provider("provider3"))
+
+        then:
+        source.size() == 3
+        !source.isEmpty()
+
+        when:
+        source.realizePending(provider1)
+
+        then:
+        source.size() == 2
+        !source.isEmpty()
     }
 
     def "cannot realize pending elements when realize action is not set"() {
         given:
-        pending.onRealize(null)
+        source.onRealize(null)
 
         when:
-        pending.addPending(provider1)
-        pending.addPending(provider2)
-        pending.addPending(provider3)
-        pending.realizePending()
+        source.addPending(provider("provider1"))
+        source.addPending(provider("provider2"))
+        source.addPending(provider("provider3"))
+        source.realizePending()
 
         then:
         thrown(IllegalStateException)
     }
-
-    def "can remove pending elements"() {
-        when:
-        pending.addPending(provider1)
-        pending.addPending(provider2)
-        pending.addPending(provider3)
-        pending.removePending(provider1)
-
-        then:
-        pending.size() == 2
-
-        when:
-        pending.realizePending()
-
-        then:
-        0 * realize.execute("provider1")
-        1 * realize.execute("provider2")
-        1 * realize.execute("provider3")
-
-        and:
-        pending.isEmpty()
-    }
-
-    def "can clear pending elements"() {
-        when:
-        pending.addPending(provider1)
-        pending.addPending(provider2)
-        pending.addPending(provider3)
-        pending.clear()
-
-        then:
-        pending.isEmpty()
-
-        when:
-        pending.realizePending()
-
-        then:
-        0 * realize.execute()
-    }
-
-    class BaseType {}
-    class SomeType extends BaseType {}
-    class SomeOtherType extends BaseType {}
 }

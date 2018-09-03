@@ -21,7 +21,7 @@ import org.gradle.api.internal.provider.CollectionProviderInternal
 
 
 class ListElementSourceTest extends AbstractIterationOrderRetainingElementSourceTest {
-    ListElementSource<CharSequence> source = new ListElementSource<>()
+    final ElementSource<CharSequence> source = new ListElementSource<>()
 
     def "can add the same provider twice"() {
         def provider = provider("foo")
