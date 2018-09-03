@@ -87,15 +87,13 @@ include::{samplesPath}/userguide/tasks/customTaskWithProperty/customTaskWithProp
 
 Now we will move our task to a standalone project, so we can publish it and share it with others. This project is simply a Groovy project that produces a JAR containing the task class. Here is a simple build script for the project. It applies the Groovy plugin, and adds the Gradle API as a compile-time dependency.
 
-=== Example: A build for a custom task
+.A build for a custom task
+====
+include::sample[dir="customPlugin/groovy/plugin",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="customPlugin/kotlin/plugin",files="build.gradle.kts[tags=use-plugin]"]
+====
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/customPlugin/plugin/build.gradle[tag=use-plugin]
-----
-
-NOTE: The code for this example can be found at **`samples/customPlugin/plugin`** in the ‘-all’ distribution of Gradle.
+NOTE: The code for this example can be found at **`samples/customPlugin`** in the ‘-all’ distribution of Gradle.
 
 We just follow the convention for where the source for the task class should go.
 
@@ -104,23 +102,19 @@ We just follow the convention for where the source for the task class should go.
 [source.multi-language-sample,groovy]
 .src/main/groovy/org/gradle/GreetingTask.groovy
 ----
-include::{samplesPath}/customPlugin/plugin/src/main/groovy/org/gradle/GreetingTask.groovy[]
+include::{samplesPath}/customPlugin/groovy/plugin/src/main/groovy/org/gradle/GreetingTask.groovy[]
 ----
-
 
 [[sec:using_your_task_class_in_another_project]]
 === Using your task class in another project
 
 To use a task class in a build script, you need to add the class to the build script's classpath. To do this, you use a `buildscript { }` block, as described in <<tutorial_using_tasks.adoc#sec:build_script_external_dependencies,External dependencies for the build script>>. The following example shows how you might do this when the JAR containing the task class has been published to a local repository:
 
-=== Example: Using a custom task in another project
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/customPlugin/consumer/build.gradle[tag=use-task]
-----
-
+.Using a custom task in another project
+====
+include::sample[dir="customPlugin/groovy/consumer",files="build.gradle[tags=use-task]"]
+include::sample[dir="customPlugin/kotlin/consumer",files="build.gradle.kts[tags=use-task]"]
+====
 
 [[sec:writing_tests_for_your_task_class]]
 === Writing tests for your task class
@@ -132,9 +126,8 @@ You can use the link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[P
 [source.multi-language-sample,groovy]
 .src/test/groovy/org/gradle/GreetingTaskTest.groovy
 ----
-include::{samplesPath}/customPlugin/plugin/src/test/groovy/org/gradle/GreetingTaskTest.groovy[tag=test-task]
+include::{samplesPath}/customPlugin/groovy/plugin/src/test/groovy/org/gradle/GreetingTaskTest.groovy[tag=test-task]
 ----
-
 
 [[incremental_tasks]]
 == Incremental tasks

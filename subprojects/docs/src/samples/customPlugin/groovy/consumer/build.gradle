@@ -3,18 +3,17 @@
 buildscript {
     repositories {
         maven {
-// END SNIPPET use-plugin
-// END SNIPPET use-task
+// end::use-task[]
+// end::use-plugin[]
             def producerName = findProperty('producerName') ?: 'plugin'
             def repoLocation = "../$producerName/build/repo"
-// START SNIPPET use-plugin
-// START SNIPPET use-task
+// tag::use-plugin[]
+// tag::use-task[]
             url = uri(repoLocation)
         }
     }
     dependencies {
-        classpath group: 'org.gradle', name: 'customPlugin',
-				  version: '1.0-SNAPSHOT'
+        classpath 'org.gradle:customPlugin:1.0-SNAPSHOT'
     }
 }
 // end::use-task[]

@@ -1,8 +1,8 @@
 // tag::use-plugin[]
 plugins {
-    id 'groovy'
+    groovy
 // end::use-plugin[]
-    id 'maven-publish'
+    `maven-publish`
 // tag::use-plugin[]
 }
 
@@ -10,10 +10,10 @@ plugins {
 // tag::local-groovy-dependencies[]
 dependencies {
 // end::local-groovy-dependencies[]
-    compile gradleApi()
+    implementation(gradleApi())
 // end::gradle-api-dependencies[]
 // tag::local-groovy-dependencies[]
-    compile localGroovy()
+    implementation(localGroovy())
 // tag::gradle-api-dependencies[]
 }
 // end::gradle-api-dependencies[]
@@ -25,11 +25,11 @@ repositories {
 }
 
 dependencies {
-    testCompile 'junit:junit:4.12'
+    testCompile("junit:junit:4.12")
 }
 
-group = 'org.gradle'
-version = '1.0-SNAPSHOT'
+group = "org.gradle"
+version = "1.0-SNAPSHOT"
 
 publishing {
     repositories {
@@ -38,8 +38,8 @@ publishing {
         }
     }
     publications {
-        maven(MavenPublication) {
-            from components.java
+        create<MavenPublication>("maven") {
+            from(components["java"])
         }
     }
 }
