@@ -97,6 +97,10 @@ class DefaultPropertyMetadataStoreTest extends Specification {
             SearchPath
         }
 
+        @Override
+        boolean shouldVisit(PropertyVisitor visitor) {
+            return true
+        }
 
         @Override
         void visitPropertyValue(PropertyValue propertyInfo, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {

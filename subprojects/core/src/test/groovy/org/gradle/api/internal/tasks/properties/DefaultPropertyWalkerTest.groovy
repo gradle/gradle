@@ -49,7 +49,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         visitProperties(task)
 
         then:
-        _ * visitor.visitNested() >> true
+        _ * visitor.visitOutputFilePropertiesOnly() >> false
         1 * visitor.visitInputProperty({ it.propertyName == 'myProperty' && it.value == 'myValue' })
         1 * visitor.visitInputFileProperty({ it.propertyName == 'inputFile' })
         1 * visitor.visitInputFileProperty({ it.propertyName == 'inputFiles' })
@@ -190,7 +190,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         visitProperties(task)
 
         then:
-        _ * visitor.visitNested() >> true
+        _ * visitor.visitOutputFilePropertiesOnly() >> false
         1 * visitor.visitInputProperty({ it.propertyName == "nested" })
         1 * visitor.visitInputProperty({ it.propertyName == "nested.nestedInput" })
         1 * visitor.visitInputFileProperty({ it.propertyName == "nested.inputDir" })

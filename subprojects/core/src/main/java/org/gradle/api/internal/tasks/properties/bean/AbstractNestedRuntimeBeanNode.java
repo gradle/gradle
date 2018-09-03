@@ -50,7 +50,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
         TypeMetadata typeMetadata = getTypeMetadata();
         for (final PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
             PropertyValueVisitor propertyValueVisitor = propertyMetadata.getPropertyValueVisitor();
-            if (propertyValueVisitor == null) {
+            if (propertyValueVisitor == null || !propertyValueVisitor.shouldVisit(visitor)) {
                 continue;
             }
             String propertyName = getQualifiedPropertyName(propertyMetadata.getFieldName());

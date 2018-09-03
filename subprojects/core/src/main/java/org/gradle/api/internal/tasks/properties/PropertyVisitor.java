@@ -27,12 +27,15 @@ import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
  */
 public interface PropertyVisitor {
     /**
-     * Should the nested properties of the bean be visited?
+     * Should only output file properties be visited?
      *
      * This is here as a temporary work around to allow a listener avoid broken `@Nested` properties whose getters fail when called just after the bean has been created.
-     * Later, this can be improved and this method removed.
+     *
+     * It is also here to avoid the cost of visiting input and other properties on creation when these are not used at this point.
+     *
+     * Later, these issues can be improved and this method removed.
      */
-    boolean visitNested();
+    boolean visitOutputFilePropertiesOnly();
 
     void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty);
 
@@ -46,8 +49,8 @@ public interface PropertyVisitor {
 
     class Adapter implements PropertyVisitor {
         @Override
-        public boolean visitNested() {
-            return true;
+        public boolean visitOutputFilePropertiesOnly() {
+            return false;
         }
 
         @Override

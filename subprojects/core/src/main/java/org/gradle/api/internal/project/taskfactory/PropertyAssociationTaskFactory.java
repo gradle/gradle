@@ -19,6 +19,10 @@ package org.gradle.api.internal.project.taskfactory;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskDestroyablePropertySpec;
+import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskInputPropertySpec;
+import org.gradle.api.internal.tasks.TaskLocalStatePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
@@ -46,7 +50,7 @@ public class PropertyAssociationTaskFactory implements ITaskFactory {
         return task;
     }
 
-    private static class Listener extends PropertyVisitor.Adapter {
+    private static class Listener implements PropertyVisitor {
         private final Task task;
 
         public Listener(Task task) {
@@ -54,8 +58,28 @@ public class PropertyAssociationTaskFactory implements ITaskFactory {
         }
 
         @Override
-        public boolean visitNested() {
-            return false;
+        public boolean visitOutputFilePropertiesOnly() {
+            return true;
+        }
+
+        @Override
+        public void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void visitInputProperty(TaskInputPropertySpec inputProperty) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void visitDestroyableProperty(TaskDestroyablePropertySpec destroyableProperty) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void visitLocalStateProperty(TaskLocalStatePropertySpec localStateProperty) {
+            throw new UnsupportedOperationException();
         }
 
         @Override
