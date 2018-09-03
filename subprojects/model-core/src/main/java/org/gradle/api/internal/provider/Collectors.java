@@ -198,26 +198,26 @@ public class Collectors {
     }
 
     public static class ElementsFromCollectionProvider<T> implements ProvidedCollector<T> {
-        private final Provider<? extends Iterable<? extends T>> provider;
+        private final Provider<? extends Iterable<? extends T>> providerOfElements;
 
-        public ElementsFromCollectionProvider(Provider<? extends Iterable<? extends T>> provider) {
-            this.provider = provider;
+        public ElementsFromCollectionProvider(Provider<? extends Iterable<? extends T>> providerOfElements) {
+            this.providerOfElements = providerOfElements;
         }
 
         @Override
         public boolean present() {
-            return provider.isPresent();
+            return providerOfElements.isPresent();
         }
 
         @Override
         public void collectInto(ValueCollector<T> collector, Collection<T> collection) {
-            Iterable<? extends T> value = provider.get();
+            Iterable<? extends T> value = providerOfElements.get();
             collector.addAll(value, collection);
         }
 
         @Override
         public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> collection) {
-            Iterable<? extends T> value = provider.getOrNull();
+            Iterable<? extends T> value = providerOfElements.getOrNull();
             if (value == null) {
                 return false;
             }
@@ -227,7 +227,7 @@ public class Collectors {
 
         @Override
         public boolean isProvidedBy(Provider<?> provider) {
-            return Objects.equal(provider, provider);
+            return Objects.equal(provider, providerOfElements);
         }
 
         @Override
@@ -239,18 +239,18 @@ public class Collectors {
                 return false;
             }
             ElementsFromCollectionProvider<?> that = (ElementsFromCollectionProvider<?>) o;
-            return Objects.equal(provider, that.provider);
+            return Objects.equal(providerOfElements, that.providerOfElements);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(provider);
+            return Objects.hashCode(providerOfElements);
         }
 
         @Override
         public int size() {
-            if (provider instanceof CollectionProviderInternal) {
-                return ((CollectionProviderInternal)provider).size();
+            if (providerOfElements instanceof CollectionProviderInternal) {
+                return ((CollectionProviderInternal)providerOfElements).size();
             } else {
                 throw new UnsupportedOperationException();
             }
