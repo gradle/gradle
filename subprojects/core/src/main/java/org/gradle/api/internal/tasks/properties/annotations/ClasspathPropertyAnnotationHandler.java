@@ -46,6 +46,11 @@ public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnn
     }
 
     @Override
+    public boolean shouldVisit(PropertyVisitor visitor) {
+        return !visitor.visitOutputFilePropertiesOnly();
+    }
+
+    @Override
     public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
         DeclaredTaskInputFileProperty fileSpec = specFactory.createInputFilesSpec(propertyValue);
         fileSpec

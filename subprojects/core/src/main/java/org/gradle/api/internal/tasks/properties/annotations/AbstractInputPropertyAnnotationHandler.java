@@ -29,6 +29,10 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import java.io.File;
 
 public abstract class AbstractInputPropertyAnnotationHandler implements PropertyAnnotationHandler {
+    @Override
+    public boolean shouldVisit(PropertyVisitor visitor) {
+        return !visitor.visitOutputFilePropertiesOnly();
+    }
 
     @Override
     public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {

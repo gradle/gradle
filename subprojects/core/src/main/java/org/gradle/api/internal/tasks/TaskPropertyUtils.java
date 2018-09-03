@@ -37,8 +37,13 @@ public class TaskPropertyUtils {
     public static void visitProperties(PropertyWalker propertyWalker, final TaskInternal task, PropertyVisitor visitor) {
         final PropertySpecFactory specFactory = new DefaultPropertySpecFactory(task, ((ProjectInternal) task.getProject()).getFileResolver());
         propertyWalker.visitProperties(specFactory, visitor, task);
-        task.getInputs().visitRegisteredProperties(visitor);
+        if (!visitor.visitOutputFilePropertiesOnly()) {
+            task.getInputs().visitRegisteredProperties(visitor);
+        }
         task.getOutputs().visitRegisteredProperties(visitor);
+        if (visitor.visitOutputFilePropertiesOnly()) {
+            return;
+        }
         int destroyableCount = 0;
         for (Object path : ((TaskDestroyablesInternal) task.getDestroyables()).getRegisteredPaths()) {
             visitor.visitDestroyableProperty(new DefaultTaskDestroyablePropertySpec("$" + ++destroyableCount, path));
