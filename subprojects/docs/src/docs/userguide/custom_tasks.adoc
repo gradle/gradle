@@ -443,14 +443,11 @@ Note that Gradle will only begin running other independent tasks in parallel whe
 
 ====
 
-=== Example: Waiting for asynchronous work to complete
-
-[source.multi-language-sample,groovy,indent=0]
-.build.gradle
-----
-include::{samplesPath}/workerApi/waitForCompletion/build.gradle[tag=wait-for-completion]
-----
-
+.Waiting for asynchronous work to complete
+====
+include::sample[dir="workerApi/waitForCompletion/groovy",files="build.gradle[tags=wait-for-completion]"]
+include::sample[dir="workerApi/waitForCompletion/kotlin",files="build.gradle.kts[tags=wait-for-completion]"]
+====
 
 [[isolation-modes]]
 === Isolation Modes
