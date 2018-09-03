@@ -175,10 +175,16 @@ include::sample[dir="userguide/buildlifecycle/buildProjectEvaluateEvents/groovy"
 include::sample[dir="userguide/buildlifecycle/buildProjectEvaluateEvents/kotlin",files="build.gradle.kts[tags=evaluate-events]"]
 ====
 
-.Output of **`gradle -q test`** (partial)
+==== Output of **`gradle -q test`**
+[source.multi-language-sample,groovy]
 ----
 > gradle -q test
-include::{samplesPath}/userguide/buildlifecycle/buildProjectEvaluateEvents/buildProjectEvaluateEvents.out[]
+include::{samplesPath}/userguide/buildlifecycle/buildProjectEvaluateEvents/buildProjectEvaluateEvents.groovy.out[]
+----
+[source.multi-language-sample,kotlin]
+----
+> gradle -q test
+include::{samplesPath}/userguide/buildlifecycle/buildProjectEvaluateEvents/buildProjectEvaluateEvents.kotlin.out[]
 ----
 
 You can also add a link:{javadocPath}/org/gradle/api/ProjectEvaluationListener.html[ProjectEvaluationListener] to the link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[Gradle] to receive these events.
@@ -224,10 +230,16 @@ include::sample[dir="userguide/buildlifecycle/taskExecutionEvents/groovy",files=
 include::sample[dir="userguide/buildlifecycle/taskExecutionEvents/kotlin",files="build.gradle.kts[]"]
 ====
 
-.Output of **`gradle -q broken`** (partial)
+==== Output of **`gradle -q broken`**
+[source.multi-language-sample,groovy]
 ----
 > gradle -q broken
-include::{samplesPath}/userguide/buildlifecycle/taskExecutionEvents/taskExecutionEvents.out[]
+include::{samplesPath}/userguide/buildlifecycle/taskExecutionEvents/taskExecutionEvents.groovy.out[]
+----
+[source.multi-language-sample,kotlin]
+----
+> gradle -q broken
+include::{samplesPath}/userguide/buildlifecycle/taskExecutionEvents/taskExecutionEvents.kotlin.out[]
 ----
 
 You can also use a link:{javadocPath}/org/gradle/api/execution/TaskExecutionListener.html[TaskExecutionListener] to the link:{javadocPath}/org/gradle/api/execution/TaskExecutionGraph.html[TaskExecutionGraph] to receive these events.
