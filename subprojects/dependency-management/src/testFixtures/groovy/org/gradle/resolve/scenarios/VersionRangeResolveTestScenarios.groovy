@@ -131,11 +131,9 @@ class VersionRangeResolveTestScenarios {
         expected: "12",
         expectedStrict: [IGNORE, IGNORE, "12"]
     ).and(
-        ignore: "Currently gives too much precedence to 'prefer'",
         versions: [PREFER_11, RANGE_10_11, PREFER_13, RANGE_10_14],
         expected: "11"
     ).and(
-        ignore: "Currently gives too much precedence to 'prefer'",
         versions: [FIXED_11, PREFER_12, RANGE_10_14],
         expected: "11",
         expectedStrict: ["11", IGNORE, "11"]
@@ -236,6 +234,10 @@ class VersionRangeResolveTestScenarios {
         expectedStrict: ["11", "11"]
     ).and(
         versions: [RANGE_11_13, RANGE_10_12_EXCLUSIVE],
+        expected: "11",
+        expectedStrict: ["11", "11"]
+    ).and(
+        versions: [RANGE_11_12, RANGE_10_12_EXCLUSIVE],
         expected: "11",
         expectedStrict: ["11", "11"]
     ).and(

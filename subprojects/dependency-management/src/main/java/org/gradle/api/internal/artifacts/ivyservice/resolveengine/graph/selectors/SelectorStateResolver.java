@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.UnionVersionSelector;
@@ -33,7 +34,9 @@ import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 public class SelectorStateResolver<T extends ComponentResolutionState> {
     private final ModuleConflictResolver conflictResolver;
@@ -132,42 +135,11 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         return selector.getVersionConstraint() != null && selector.getVersionConstraint().isPrefer();
     }
 
-    private void processPreferSelectors(SelectorStateResolverResults results, List<ResolvableSelectorState> preferSelectors, VersionSelector allRejects) {
-        if (preferSelectors == null) {
-            return;
-        }
-
-        if (results.isEmpty()) {
-            // All selectors were either empty or prefer, so resolve all of the 'prefer' selectors as primary
-            for (ResolvableSelectorState selector : preferSelectors) {
-                processPrimarySelector(results, selector, allRejects);
-            }
-        } else {
-            // Resolve the 'prefer' selectors as secondary: will disambiguate, but not add new results.
-            for (ResolvableSelectorState selector : preferSelectors) {
-                processSecondarySelector(results, selector, allRejects);
-            }
-        }
-    }
-
     /**
      * Process a selector as 'primary'.
      * A version will be registered for this selector, and it will participate in conflict resolution.
      */
     private void processPrimarySelector(SelectorStateResolverResults results, ResolvableSelectorState selector, VersionSelector allRejects) {
-        resolveAndRegisterSelector(results, selector, allRejects, true);
-    }
-
-    /**
-     * Process a selector as 'secondary'.
-     * This selector will only be used to disambiguate versions for a 'primary' selector.
-     * If no matching primary selector is found, this secondary selector is ignored.
-     */
-    private void processSecondarySelector(SelectorStateResolverResults results, ResolvableSelectorState selector, VersionSelector allRejects) {
-        resolveAndRegisterSelector(results, selector, allRejects, false);
-    }
-
-    private void resolveAndRegisterSelector(SelectorStateResolverResults results, ResolvableSelectorState selector, VersionSelector allRejects, boolean primary) {
         // Check already resolved results for a compatible version, and use it for this dependency rather than re-resolving.
         if (results.alreadyHaveResolutionForSelector(selector)) {
             return;
@@ -181,10 +153,36 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
             return;
         }
 
-        boolean providesBetterResult = results.replaceExistingResolutionsWithBetterResult(result);
+        results.replaceExistingResolutionsWithBetterResult(result);
+        results.register(selector, result);
+    }
 
-        if (providesBetterResult || primary) {
-            results.register(selector, result);
+    private void processPreferSelectors(SelectorStateResolverResults results, List<ResolvableSelectorState> preferSelectors, VersionSelector allRejects) {
+        if (preferSelectors == null) {
+            return;
+        }
+
+        if (results.isEmpty()) {
+            // All selectors were either empty or prefer, so resolve all of the 'prefer' selectors as primary
+            for (ResolvableSelectorState selector : preferSelectors) {
+                processPrimarySelector(results, selector, allRejects);
+            }
+        } else {
+            // Resolve the 'prefer' selectors as secondary: will disambiguate, but not add new results.
+            Set<ComponentIdResolveResult> preferResults = Sets.newTreeSet(new DescendingResolveResultComparator());
+            for (ResolvableSelectorState selector : preferSelectors) {
+                ComponentIdResolveResult resolvedPreference = selector.resolve(allRejects);
+                // Ignore failure resolving a 'prefer' constraint.
+                if (resolvedPreference.getFailure() == null) {
+                    preferResults.add(resolvedPreference);
+                }
+            }
+
+            for (ComponentIdResolveResult preferResult : preferResults) {
+                if (results.replaceExistingResolutionsWithBetterResult(preferResult)) {
+                    break;
+                }
+            }
         }
     }
 
@@ -220,5 +218,12 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
             selected.addCause(desc.withReason(new VersionConflictResolutionDetails(candidates)));
         }
         return selected;
+    }
+
+    private static class DescendingResolveResultComparator implements Comparator<ComponentIdResolveResult> {
+        @Override
+        public int compare(ComponentIdResolveResult o1, ComponentIdResolveResult o2) {
+            return o2.getModuleVersionId().getVersion().compareTo(o1.getModuleVersionId().getVersion());
+        }
     }
 }
