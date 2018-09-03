@@ -24,7 +24,6 @@ import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.util.GFileUtils
 import org.junit.experimental.categories.Category
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
@@ -68,7 +67,6 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
     }
 
     @Unroll
-    @Ignore
     def "clean checkout of #testProject"() {
         given:
         runner.testProject = testProject
