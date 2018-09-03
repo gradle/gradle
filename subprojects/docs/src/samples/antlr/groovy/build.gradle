@@ -1,6 +1,7 @@
-
 // tag::use-plugin[]
-apply plugin: 'antlr'
+plugins {
+    id 'antlr'
+}
 // end::use-plugin[]
 
 // tag::declare-dependency[]
@@ -12,7 +13,7 @@ dependencies {
     antlr "org.antlr:antlr:3.5.2" // use ANTLR version 3
     // antlr "org.antlr:antlr4:4.5" // use ANTLR version 4
 // end::declare-dependency[]
-    testCompile 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
 // tag::declare-dependency[]
 }
 // end::declare-dependency[]
