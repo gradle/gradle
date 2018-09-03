@@ -12,7 +12,7 @@ dependencies {
     implementation("commons-io:commons-io:2.6")
     implementation("org.apache.commons:commons-lang3:3.7@jar")
 // tag::dependency-configurations[]
-    implementation(project("path" to ":api", "configuration" to "spi"))
+    implementation(project(path = ":api", configuration = "spi"))
 // end::dependency-configurations[]
     runtimeOnly(project(":api"))
 // tag::dependency-configurations[]
