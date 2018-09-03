@@ -17,8 +17,11 @@
 package org.gradle.api.internal.model;
 
 import org.gradle.api.Named;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
+import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.provider.DefaultListProperty;
@@ -43,12 +46,14 @@ public class DefaultObjectFactory implements ObjectFactory {
     private final NamedObjectInstantiator namedObjectInstantiator;
     private final FileResolver fileResolver;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
+    private final FilePropertyFactory filePropertyFactory;
 
-    public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory) {
         this.instantiator = instantiator;
         this.namedObjectInstantiator = namedObjectInstantiator;
         this.fileResolver = fileResolver;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
+        this.filePropertyFactory = filePropertyFactory;
     }
 
     @Override
@@ -70,6 +75,16 @@ public class DefaultObjectFactory implements ObjectFactory {
                 return new DefaultSourceDirectorySet(name, displayName, fileResolver, directoryFileTreeFactory, DefaultObjectFactory.this);
             }
         });
+    }
+
+    @Override
+    public DirectoryProperty directoryProperty() {
+        return filePropertyFactory.directoryProperty();
+    }
+
+    @Override
+    public RegularFileProperty fileProperty() {
+        return filePropertyFactory.fileProperty();
     }
 
     @Override

@@ -47,6 +47,10 @@ The `SourceDirectorySet` type is often used by plugins to represent some set of 
 
 In this release of Gradle, the `ObjectFactory` service, which is part of the public API, now includes a method to create `SourceDirectorySet` instances. A plugin can now use this method instead of the internal types.
 
+### Changes to file property construction
+
+TBD - `ObjectFactory` is now used to create file and directory `Property` instances, similar to other `Property` types.
+
 ### JaCoCo plugin now works with the build cache and parallel test execution
 
 The [JaCoCo plugin](userguide/jacoco_plugin.html) plugin now works seamlessly with the build cache.

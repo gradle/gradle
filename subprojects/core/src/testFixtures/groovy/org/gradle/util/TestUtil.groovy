@@ -26,6 +26,7 @@ import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
+import org.gradle.api.internal.file.DefaultFilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.model.DefaultObjectFactory
@@ -78,7 +79,7 @@ class TestUtil {
     private static ObjectFactory objFactory(FileResolver fileResolver) {
         DefaultServiceRegistry services = new DefaultServiceRegistry()
         services.add(ProviderFactory, new DefaultProviderFactory())
-        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services), NamedObjectInstantiator.INSTANCE, fileResolver, TestFiles.directoryFileTreeFactory())
+        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services), NamedObjectInstantiator.INSTANCE, fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver))
     }
 
     static ValueSnapshotter valueSnapshotter() {
