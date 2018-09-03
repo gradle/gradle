@@ -86,22 +86,27 @@ class VersionRangeResolveTestScenarios {
 
     public static final StrictPermutationsProvider SCENARIOS_PREFER = StrictPermutationsProvider.check(
         versions: [PREFER_11, PREFER_12],
-        expected: "12"
+        expected: "12",
+        conflicts: true
     ).and(
         versions: [PREFER_11, PREFER_10_12],
-        expected: "11"
+        expected: "11",
+        conflicts: true
     ).and(
         versions: [PREFER_12, PREFER_10_11],
-        expected: "12"
+        expected: "12",
+        conflicts: true
     ).and(
         versions: [PREFER_11, PREFER_12, PREFER_10_14],
-        expected: "12"
+        expected: "12",
+        conflicts: true
+    ).and(
+        versions: [PREFER_10_11, PREFER_12, PREFER_10_14],
+        expected: "12",
+        conflicts: true
     ).and(
         versions: [PREFER_10_11, PREFER_10_12, PREFER_10_14],
         expected: "11"
-    ).and(
-        versions: [PREFER_10_11, PREFER_12, PREFER_10_14],
-        expected: "12"
     ).and(
         versions: [PREFER_12, FIXED_11],
         expected: "11",
