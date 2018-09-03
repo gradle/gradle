@@ -1,4 +1,7 @@
-apply plugin: 'java'
+plugins {
+    id 'java'
+}
+
 apply from: 'gradle/integration-test.gradle'
 
 repositories {

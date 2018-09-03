@@ -35,8 +35,8 @@ The following source tree contains Java and Kotlin source files. Java source fil
 
 ----
 .
-├── build.gradle
-├── settings.gradle
+├── build.gradle(.kts)
+├── settings.gradle(.kts)
 └── src
     └── main
         ├── java
@@ -56,10 +56,10 @@ The following source tree demonstrates how to separate unit from integration tes
 
 ----
 .
-├── build.gradle
+├── build.gradle(.kts)
 ├── gradle
-│   └── integration-test.gradle
-├── settings.gradle
+│   └── integration-test.gradle(.kts)
+├── settings.gradle(.kts)
 └── src
     ├── integTest
     │   └── java
@@ -77,24 +77,20 @@ The following source tree demonstrates how to separate unit from integration tes
 Gradle models source code directories with the help of the <<building_java_projects.adoc#sec:java_source_sets,source set concept>>.
 By pointing an instance of a source set to one or many source code directories, Gradle will automatically create a corresponding compilation task out-of-the-box.
 
-=== Example: Integration test source set
-
-[source.multi-language-sample,groovy]
-.gradle/integration-test.gradle
-----
-include::{samplesPath}/userguide/organizingGradleProjects/separatedTestTypes/gradle/integration-test.gradle[tag=custom-source-set]
-----
+.Integration test source set
+====
+include::sample[dir="userguide/organizingGradleProjects/separatedTestTypes/groovy",files="gradle/integration-test.gradle[tags=custom-source-set]"]
+include::sample[dir="userguide/organizingGradleProjects/separatedTestTypes/kotlin",files="gradle/integration-test.gradle.kts[tags=custom-source-set]"]
+====
 
 Source sets are only responsible for compiling source code, but do not deal with executing the byte code.
 For the purpose of test execution, a corresponding task of type link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] needs to be established.
 
-=== Example: Integration test task
-
-[source.multi-language-sample,groovy]
-.gradle/integration-test.gradle
-----
-include::{samplesPath}/userguide/organizingGradleProjects/separatedTestTypes/gradle/integration-test.gradle[tag=test-task]
-----
+.Integration test task
+====
+include::sample[dir="userguide/organizingGradleProjects/separatedTestTypes/groovy",files="gradle/integration-test.gradle[tags=test-task]"]
+include::sample[dir="userguide/organizingGradleProjects/separatedTestTypes/kotlin",files="gradle/integration-test.gradle.kts[tags=test-task]"]
+====
 
 [[sec:use_standard_conventions]]
 == Use standard conventions as much as possible
@@ -117,7 +113,7 @@ Gradle tries to locate a `settings.gradle` (Groovy DSL) or a `settings.gradle.kt
 For that purpose, the runtime walks the hierarchy of the directory tree up to the root directory.
 The algorithm stops searching as soon as it finds the settings file.
 
-Always add a `settings.gradle` to the root directory of your build to avoid the initial performance impact.
+Always add a settings file to the root directory of your build to avoid the initial performance impact.
 This recommendation applies to single project builds as well as multi-project builds.
 The file can either be empty or define the desired name of the project.
 
@@ -125,8 +121,8 @@ A typical Gradle project with a settings file look as such:
 
 ----
 .
-├── build.gradle
-└── settings.gradle
+├── build.gradle(.kts)
+└── settings.gradle(.kts)
 ----
 
 [[sec:build_sources]]
@@ -157,9 +153,9 @@ Optionally, the `buildSrc` directory can host a build script if additional confi
 
 ----
 .
-├── build.gradle
+├── build.gradle(.kts)
 ├── buildSrc
-│   ├── build.gradle
+│   ├── build.gradle(.kts)
 │   └── src
 │       ├── main
 │       │   └── java
@@ -172,7 +168,7 @@ Optionally, the `buildSrc` directory can host a build script if additional confi
 │               └── com
 │                   └── enterprise
 │                       └── DeploymentPluginTest.java
-└── settings.gradle
+└── settings.gradle(.kts)
 ----
 
 == Declare properties in `gradle.properties` file
@@ -190,9 +186,9 @@ Alternatively, the file can also live in the `GRADLE_USER_HOME` directory if you
 
 ----
 .
-├── build.gradle
+├── build.gradle(.kts)
 ├── gradle.properties
-└── settings.gradle
+└── settings.gradle(.kts)
 ----
 
 == Avoid overlapping task outputs

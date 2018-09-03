@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
+import spock.lang.Unroll
 
 class SamplesOrganizingGradleProjectsIntegrationTest extends AbstractSampleIntegrationTest {
 
@@ -37,14 +38,18 @@ class SamplesOrganizingGradleProjectsIntegrationTest extends AbstractSampleInteg
         sample.dir.file('build/distributions/mycompany-gradle-4.6-bin.zip').isFile()
     }
 
+    @Unroll
     @UsesSample("userguide/organizingGradleProjects/separatedTestTypes")
     def "can execute different types of tests"() {
-        executer.inDirectory(sample.dir)
+        executer.inDirectory(sample.dir.file(dsl))
 
         when:
         succeeds('build')
 
         then:
         nonSkippedTasks.containsAll([':test', ':integTest'])
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 }
