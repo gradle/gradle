@@ -84,7 +84,7 @@ import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTa
 class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     private AnnotationProcessingTaskFactory factory
     private ITaskFactory delegate
-    private TaskClassInfoStore taskClassInfoStore
+    def taskClassInfoStore = new DefaultTaskClassInfoStore(new TestCrossBuildInMemoryCacheFactory())
     def propertyWalker = new DefaultPropertyWalker(new DefaultPropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory()))
 
     @SuppressWarnings("GroovyUnusedDeclaration")
@@ -98,7 +98,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         delegate = Mock(ITaskFactory)
-        taskClassInfoStore = new DefaultTaskClassInfoStore()
         factory = new AnnotationProcessingTaskFactory(taskClassInfoStore, delegate)
         testDir = temporaryFolder.testDirectory
         existingFile = testDir.file("file.txt").touch()
@@ -174,9 +173,8 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         expectTaskCreated(type)
 
         then:
-        def e = thrown Exception
-        e.cause instanceof GradleException
-        e.cause.message == failureMessage
+        def e = thrown GradleException
+        e.message == failureMessage
 
         where:
         type                               | failureMessage

@@ -62,10 +62,11 @@ public class PropertyValidationAccess {
 
     @SuppressWarnings("unused")
     public static void collectTaskValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems) {
-        DefaultTaskClassInfoStore taskClassInfoStore = new DefaultTaskClassInfoStore();
+        DefaultCrossBuildInMemoryCacheFactory cacheFactory = new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager());
+        DefaultTaskClassInfoStore taskClassInfoStore = new DefaultTaskClassInfoStore(cacheFactory);
         PropertyMetadataStore metadataStore = new DefaultPropertyMetadataStore(ImmutableList.of(
             new ClasspathPropertyAnnotationHandler(), new CompileClasspathPropertyAnnotationHandler()
-        ), new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()));
+        ), cacheFactory);
         Queue<BeanTypeNode<?>> queue = new ArrayDeque<BeanTypeNode<?>>();
         BeanTypeNodeFactory nodeFactory = new BeanTypeNodeFactory(metadataStore);
         queue.add(nodeFactory.createRootNode(TypeToken.of(topLevelBean)));

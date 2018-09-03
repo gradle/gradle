@@ -43,6 +43,8 @@ import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
+import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore;
 import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
@@ -357,6 +359,10 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
 
     PropertyMetadataStore createPropertyMetadataStore(List<PropertyAnnotationHandler> annotationHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
         return new DefaultPropertyMetadataStore(annotationHandlers, cacheFactory);
+    }
+
+    TaskClassInfoStore createTaskClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new DefaultTaskClassInfoStore(cacheFactory);
     }
 
     ContentHasherFactory createHasherFactory() {
