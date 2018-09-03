@@ -50,6 +50,7 @@ import org.gradle.api.internal.DynamicPropertyNamer;
 import org.gradle.api.internal.ExtensibleDynamicObject;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.NoConventionMapping;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.artifacts.Module;
@@ -975,25 +976,25 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public void beforeEvaluate(Action<? super Project> action) {
-        assertMutatingMethodAllowed("Project#beforeEvaluate(Action)");
+        assertMutatingMethodAllowed("beforeEvaluate(Action)");
         evaluationListener.add("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Project.beforeEvaluate", action));
     }
 
     @Override
     public void afterEvaluate(Action<? super Project> action) {
-        assertMutatingMethodAllowed("Project#afterEvaluate(Action)");
+        assertMutatingMethodAllowed("afterEvaluate(Action)");
         evaluationListener.add("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", action));
     }
 
     @Override
     public void beforeEvaluate(Closure closure) {
-        assertMutatingMethodAllowed("Project#beforeEvaluate(Closure)");
+        assertMutatingMethodAllowed("beforeEvaluate(Closure)");
         evaluationListener.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Project.beforeEvaluate", closure)));
     }
 
     @Override
     public void afterEvaluate(Closure closure) {
-        assertMutatingMethodAllowed("Project#afterEvaluate(Closure)");
+        assertMutatingMethodAllowed("afterEvaluate(Closure)");
         evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", closure)));
     }
 
@@ -1419,7 +1420,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     private void assertMutatingMethodAllowed(String methodName) {
-        getProjectConfigurator().assertProjectMutationAllowed(methodName, this);
+        MutationGuards.of(getProjectConfigurator()).assertMutationAllowed(methodName, this, Project.class);
     }
 
     // These are here just so that ProjectInternal can implement FileOperations to work around https://github.com/gradle/gradle/issues/6027
