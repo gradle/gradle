@@ -15,5 +15,5 @@ dependencies {
 }
 
 test {
-    jvmArgs "-javaagent:${configurations.jmockit.singleFile.absolutePath}"
+    jvmArgumentProviders.add({ ["-javaagent:${configurations.jmockit.singleFile.absolutePath}".toString()] } as CommandLineArgumentProvider)
 }

@@ -4,6 +4,6 @@ dependencies { testCompile 'junit:junit:4.12', 'ant:ant:1.6.1', 'ant:ant-launche
 test {
     systemProperties.testSysProperty = 'value'
     systemProperties.projectDir = projectDir
-    systemProperties.expectedClassPath = sourceSets.test.runtimeClasspath.asPath
+    jvmArgumentProviders.add({ ["-DexpectedClassPath=${sourceSets.test.runtimeClasspath.asPath}".toString()] } as CommandLineArgumentProvider)
     environment.TEST_ENV_VAR = 'value'
 }

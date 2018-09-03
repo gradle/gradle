@@ -58,8 +58,11 @@ dependencies {
 }
 
 javadoc {
-    options.docletpath = configurations.asciidoclet.files.toList()
+    dependsOn configurations.asciidoclet
     options.doclet = 'org.asciidoctor.Asciidoclet'
+    doFirst {
+        options.docletpath = configurations.asciidoclet.files.toList()
+    }
 }
 // end::using-custom-doclet[]
 

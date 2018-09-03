@@ -17,10 +17,11 @@ task<Jar>("uberJar") {
     appendix = "uber"
 
     from(sourceSets["main"].output)
-    from(
+    from(provider {
+        // Make it lazy
         configurations.runtimeClasspath
             .filter { it.name.endsWith("jar") }
             .map { zipTree(it) }
-    )
+    })
 }
 // end::create-uber-jar-example[]

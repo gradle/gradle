@@ -60,8 +60,11 @@ dependencies {
 }
 
 tasks.getByName<Javadoc>("javadoc") {
-    options.docletpath = asciidoclet.files.toList()
+    dependsOn(configurations.getByName("asciidoclet"))
     options.doclet = "org.asciidoctor.Asciidoclet"
+    doFirst {
+        options.docletpath = asciidoclet.files.toList()
+    }
 }
 // end::using-custom-doclet[]
 
