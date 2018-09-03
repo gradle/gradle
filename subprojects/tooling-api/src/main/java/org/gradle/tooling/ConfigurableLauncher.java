@@ -18,6 +18,7 @@ package org.gradle.tooling;
 
 import org.gradle.tooling.events.OperationType;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -93,6 +94,12 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher> extends Lo
      */
     @Override
     T setJvmArguments(Iterable<String> jvmArguments);
+
+    /**
+     * {@inheritDoc}
+     * @since 5.0
+     */
+    T addJvmArguments(String jvmArgument, String... moreJvmArguments);
 
     /**
      * {@inheritDoc}

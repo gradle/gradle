@@ -112,11 +112,23 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             this.jvmArguments = jvmArguments;
             return this;
         }
+        public Builder addJvmArguments(List<String> jvmArguments) {
+            if (this.jvmArguments == null) {
+                this.jvmArguments = new ArrayList<String>(jvmArguments);
+            } else {
+                List<String> newJvmArguments = new ArrayList<String>(this.jvmArguments.size() + jvmArguments.size());
+                newJvmArguments.addAll(this.jvmArguments);
+                newJvmArguments.addAll(jvmArguments);
+                this.jvmArguments = newJvmArguments;
+            }
+            return this;
+        }
 
         public Builder setArguments(List<String> arguments) {
             this.arguments = arguments;
             return this;
         }
+
 
         public Builder setEnvironmentVariables(Map<String, String> envVariables) {
             this.envVariables = envVariables;

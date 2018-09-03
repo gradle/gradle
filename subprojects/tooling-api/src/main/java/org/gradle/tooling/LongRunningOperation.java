@@ -112,6 +112,16 @@ public interface LongRunningOperation {
     LongRunningOperation setJvmArguments(@Nullable String... jvmArguments);
 
     /**
+     * Appends one or more Java VM arguments to the already configured list.
+     *
+     * @param jvmArgument the argument to use for the Gradle process
+     * @param moreJvmArguments more arguments to to use for the Gradle process
+     * @return this
+     * @since 5.0
+     */
+    LongRunningOperation addJvmArguments(@Nullable String jvmArgument, @Nullable String... moreJvmArguments);
+
+    /**
      * Specifies the Java VM arguments to use for this operation.
      * <p>
      * {@link org.gradle.tooling.model.build.BuildEnvironment} model contains information such as Java or Gradle environment.

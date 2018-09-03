@@ -29,7 +29,9 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +60,20 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
 
     protected static @Nullable <T> List<T> rationalizeInput(@Nullable Iterable<? extends T> arguments) {
         return arguments != null && arguments.iterator().hasNext() ? CollectionUtils.toList(arguments) : null;
+    }
+
+    // TODO (donat) find a better name for this method
+    protected static <T> List<T> filterNull(@Nullable T argument, @Nullable T... arguments) {
+        List<T> result = new ArrayList<T>(arguments != null ? arguments.length + 1 : 1);
+        if (argument != null) {
+            result.add(argument);
+        }
+        for (T arg : arguments) {
+            if (arg != null) {
+                result.add(arg);
+            }
+        }
+        return result;
     }
 
     @Override
@@ -105,6 +121,11 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
     @Override
     public T setJvmArguments(String... jvmArguments) {
         operationParamsBuilder.setJvmArguments(rationalizeInput(jvmArguments));
+        return getThis();
+    }
+
+    public T addJvmArguments(String jvmArgument, String... moreJvmArguments) {
+        operationParamsBuilder.addJvmArguments(filterNull(jvmArgument, moreJvmArguments));
         return getThis();
     }
 
