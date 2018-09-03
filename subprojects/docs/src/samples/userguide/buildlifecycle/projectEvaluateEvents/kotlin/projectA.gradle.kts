@@ -1,1 +1,1 @@
-setProperty("hasTests", true)
+extra["hasTests"] = true

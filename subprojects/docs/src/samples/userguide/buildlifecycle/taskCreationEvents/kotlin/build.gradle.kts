@@ -4,4 +4,4 @@ tasks.whenTaskAdded {
 
 val a = task("a")
 
-println("source dir is ${a.property("srcDir")}")
+println("source dir is ${a.extra["srcDir"]}")
