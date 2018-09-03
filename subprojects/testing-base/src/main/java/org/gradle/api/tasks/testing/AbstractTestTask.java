@@ -115,7 +115,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         testListenerInternalBroadcaster = listenerManager.createAnonymousBroadcaster(TestListenerInternal.class);
         testOutputListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestOutputListener.class);
         testListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestListener.class);
-        binaryResultsDirectory = newOutputDirectory();
+        binaryResultsDirectory = getProject().getObjects().directoryProperty();
 
         reports = instantiator.newInstance(DefaultTestTaskReports.class, this);
         reports.getJunitXml().setEnabled(true);

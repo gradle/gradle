@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
@@ -50,8 +51,14 @@ import java.util.TreeSet;
  */
 @Incubating
 public class GenerateSwiftPackageManagerManifest extends DefaultTask {
-    private final RegularFileProperty manifestFile = newOutputFile();
-    private final Property<Package> packageProperty = getProject().getObjects().property(Package.class);
+    private final RegularFileProperty manifestFile;
+    private final Property<Package> packageProperty;
+
+    public GenerateSwiftPackageManagerManifest() {
+        ObjectFactory objectFactory = getProject().getObjects();
+        manifestFile = objectFactory.fileProperty();
+        packageProperty = objectFactory.property(Package.class);
+    }
 
     @Input
     public Property<Package> getPackage() {

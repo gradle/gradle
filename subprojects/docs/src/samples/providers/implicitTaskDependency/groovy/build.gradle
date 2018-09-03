@@ -1,7 +1,7 @@
 
 class Producer extends DefaultTask {
     @OutputFile
-    final RegularFileProperty outputFile = newOutputFile()
+    final RegularFileProperty outputFile = project.objects.fileProperty()
 
     @TaskAction
     void produce() {
@@ -14,7 +14,7 @@ class Producer extends DefaultTask {
 
 class Consumer extends DefaultTask {
     @InputFile
-    final RegularFileProperty inputFile = newInputFile()
+    final RegularFileProperty inputFile = project.objects.fileProperty()
 
     @TaskAction
     void consume() {
