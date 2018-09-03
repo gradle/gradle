@@ -490,11 +490,7 @@ configurations {
 
 dependencies {    
     constraints {
-        lockedConf('org:foo') {
-            version {
-                prefer '1.1'
-            }
-        }
+        lockedConf('org:foo:1.1')
     }
     lockedConf 'org:foo:1.+'
 }
@@ -514,7 +510,7 @@ org:foo:1.0 FAILED
       - Could not resolve org:foo:1.0.:
           - Cannot find a version of 'org:foo' that satisfies the version constraints: 
                Dependency path ':insight-test:unspecified' --> 'org:foo:1.+'
-               Constraint path ':insight-test:unspecified' --> 'org:foo' prefers '1.1'
+               Constraint path ':insight-test:unspecified' --> 'org:foo:1.1'
                Constraint path ':insight-test:unspecified' --> 'org:foo' strictly '1.0' because of the following reason: dependency was locked to version '1.0'
 
 org:foo:1.0 FAILED
