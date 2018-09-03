@@ -22,7 +22,7 @@ import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
-import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderFactory;
@@ -34,10 +34,10 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.serialize.ExceptionReplacingObjectInputStream;
 import org.gradle.internal.serialize.ExceptionReplacingObjectOutputStream;
 import org.gradle.util.GUtil;
@@ -172,7 +172,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
         @Override
         public Object call() throws Exception {
             // TODO - reuse these services, either by making the global instances visible or by reusing the worker ClassLoaders and retaining a reference to them
-            DefaultInstantiatorFactory instantiatorFactory = new DefaultInstantiatorFactory(new AsmBackedClassGenerator(), new CrossBuildInMemoryCacheFactory(new DefaultListenerManager()));
+            DefaultInstantiatorFactory instantiatorFactory = new DefaultInstantiatorFactory(new AsmBackedClassGenerator(), new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()));
             WorkerProtocol<ActionExecutionSpec> worker = new DefaultWorkerServer(instantiatorFactory.inject());
             return worker.execute(spec);
         }
