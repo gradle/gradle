@@ -414,23 +414,19 @@ The Worker API provides a mechanism for doing exactly this. It allows for safe, 
 
 In order to submit work to the Worker API, two things must be provided: an implementation of the unit of work, and a configuration for the unit of work. The implementation is simply a class that extends `java.lang.Runnable`. This class should have a constructor that is annotated with `javax.inject.Inject` and accepts parameters that configure the class for a single unit of work. When a unit of work is submitted to the link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor], an instance of this class will be created and the parameters configured for the unit of work will be passed to the constructor.
 
-=== Example: Creating a unit of work implementation
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/workerApi/noIsolation/build.gradle[tag=unit-of-work]
-----
+.Creating a unit of work implementation
+====
+include::sample[dir="workerApi/noIsolation/groovy",files="build.gradle[tags=unit-of-work]"]
+include::sample[dir="workerApi/noIsolation/kotlin",files="build.gradle.kts[tags=unit-of-work]"]
+====
 
 The configuration of the worker is represented by a link:{javadocPath}/org/gradle/workers/WorkerConfiguration.html[WorkerConfiguration] and is set by configuring an instance of this object at the time of submission. However, in order to submit the unit of work, it is necessary to first acquire the link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor]. To do this, a constructor should be provided that is annotated with `javax.inject.Inject` and accepts a link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] parameter. Gradle will inject the instance of link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] at runtime when the task is created.
 
-=== Example: Submitting a unit of work for execution
-
-[source.multi-language-sample,groovy,indent=0]
-.build.gradle
-----
-include::{samplesPath}/workerApi/noIsolation/build.gradle[tag=task-implementation]
-----
+.Submitting a unit of work for execution
+====
+include::sample[dir="workerApi/noIsolation/groovy",files="build.gradle[tags=task-implementation]"]
+include::sample[dir="workerApi/noIsolation/kotlin",files="build.gradle.kts[tags=task-implementation]"]
+====
 
 Note that one element of the link:{javadocPath}/org/gradle/workers/WorkerConfiguration.html[WorkerConfiguration] is the `params` property. These are the parameters passed to the constructor of the unit of work implementation for each item of work submitted. Any parameters provided to the unit of work _must_ be `java.io.Serializable`.
 
