@@ -13,7 +13,7 @@ dependencies {
 
 dependencies {
     constraints {
-        implementation("org.springframework:spring-web:5.0.2.RELEASE")
+        add("implementation", "org.springframework:spring-web:5.0.2.RELEASE")
     }
 }
 // end::dependencies-without-version[]
