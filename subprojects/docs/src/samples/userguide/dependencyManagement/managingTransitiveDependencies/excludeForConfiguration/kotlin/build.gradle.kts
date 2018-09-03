@@ -8,7 +8,7 @@ repositories {
 
 // tag::exclude-transitive-dependencies[]
 configurations {
-    getByName("implementation") {
+    "implementation" {
         exclude(group = "javax.jms", module = "jms")
         exclude(group = "com.sun.jdmk", module = "jmxtools")
         exclude(group = "com.sun.jmx", module = "jmxri")

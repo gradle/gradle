@@ -8,7 +8,7 @@ repositories {
 
 // tag::force-per-configuration[]
 configurations {
-    getByName("compileClasspath") {
+    "compileClasspath" {
         resolutionStrategy.force("commons-codec:commons-codec:1.9")
     }
 }
