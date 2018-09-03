@@ -34,7 +34,7 @@ public class DefaultTask extends AbstractTask {
      * @since 4.4
      */
     @Incubating
-    protected DirectoryProperty newOutputDirectory() {
+    protected final DirectoryProperty newOutputDirectory() {
         return getServices().get(TaskFileVarFactory.class).newOutputDirectory(this);
     }
 
@@ -45,7 +45,7 @@ public class DefaultTask extends AbstractTask {
      * @since 4.4
      */
     @Incubating
-    protected RegularFileProperty newOutputFile() {
+    protected final RegularFileProperty newOutputFile() {
         return getServices().get(TaskFileVarFactory.class).newOutputFile(this);
     }
 
@@ -56,7 +56,7 @@ public class DefaultTask extends AbstractTask {
      * @since 4.4
      */
     @Incubating
-    protected RegularFileProperty newInputFile() {
+    protected final RegularFileProperty newInputFile() {
         return getServices().get(TaskFileVarFactory.class).newInputFile(this);
     }
 
@@ -67,7 +67,7 @@ public class DefaultTask extends AbstractTask {
      * @since 4.4
      */
     @Incubating
-    protected DirectoryProperty newInputDirectory() {
+    protected final DirectoryProperty newInputDirectory() {
         return getServices().get(TaskFileVarFactory.class).newInputDirectory(this);
     }
 }

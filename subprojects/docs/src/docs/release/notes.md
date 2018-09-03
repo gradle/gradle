@@ -83,7 +83,7 @@ The following are the features that have been promoted in this Gradle release.
 ## Deprecations
 
 Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
-in the next major Gradle version (Gradle 5.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+in the next major Gradle version (Gradle 6.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
 
@@ -97,7 +97,7 @@ The `interactive` flag is deprecated and will be removed in Gradle 6.0.
 
 ### Removing tasks from TaskContainer
 
-Removing tasks from the `TaskContainer` using the following methods has been deprecated:
+Removing tasks from the `TaskContainer` using the following methods has been deprecated and will be an error in Gradle 6.0.
 
 - `remove(Object)`
 - `removeAll(Collection)`
@@ -105,13 +105,13 @@ Removing tasks from the `TaskContainer` using the following methods has been dep
 - `clear()`
 - `Iterator#remove()` via `TaskContainer#iterator()`
 
-With the deprecation of every method for removing a task, registering a callback when an object is removed is also deprecated (`whenObjectRemoved(Closure/Action)`).
+With the deprecation of every method for removing a task, registering a callback when an object is removed is also deprecated (`whenObjectRemoved(Closure/Action)`). These methods will be removed in Gradle 6.0
 
 ### Replacing tasks 
 
 It is only safe to replace an unrealized tasks registered with the new Task API because this task has not been used by anything else.
 
-In the future, these behaviors will be treated as errors.
+In Gradle 6.0, these behaviors will be treated as errors.
 
 #### Replacing tasks that may still be used by other tasks 
 
@@ -165,10 +165,13 @@ to reset the property back to its default value. Use `DuplicatesStrategy.INHERIT
 
 For easier configurability from statically compiled languages such as Java or Kotlin.
 
+### Property factory methods on `DefaultTask` are final
+
+The property factory methods such as `newInputFile()` are intended to be called from the constructor of a type that extends `DefaultTask`. These methods are now final to avoid subclasses overriding these methods and using state that is not initialized.
+
 ### Source and test source dirs in `IdeaModule` no longer contain resources
 
 The `IdeaModule` Tooling API model element contains methods to retrieve resources and test resources so those elements were removed from the result of  `IdeaModule#getSourceDirs()` and `IdeaModule#getTestSourceDirs()`.
-
 
 ### Changes to previously deprecated APIs
 
