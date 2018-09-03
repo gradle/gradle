@@ -305,10 +305,10 @@ Let's have a look at an example to illustrate the functionality. The custom task
 
 === Example: Declaring a command line option
 
-[source.multi-language-sample,groovy]
+[source.multi-language-sample,java]
 .UrlVerify.java
 ----
-include::{samplesPath}/userguide/tasks/commandLineOption/stringOption/buildSrc/src/main/java/UrlVerify.java[tag=custom-task-implementation]
+include::{samplesPath}/userguide/tasks/commandLineOption/stringOption/groovy/buildSrc/src/main/java/UrlVerify.java[tag=custom-task-implementation]
 ----
 
 All options declared for a task can be <<#sec:listing_task_options,rendered as console output>> by running the `help` task and the `--task` option.
@@ -324,13 +324,11 @@ Using an option on the command line has to adhere to the following rules:
 
 Getting back to the previous example, the build script creates a task instance of type `UrlVerify` and provides a value from the command line through the exposed option.
 
-=== Example: Using a command line option
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tasks/commandLineOption/stringOption/build.gradle[tag=task]
-----
+.Using a command line option
+====
+include::sample[dir="userguide/tasks/commandLineOption/stringOption/groovy",files="build.gradle[tags=task]"]
+include::sample[dir="userguide/tasks/commandLineOption/stringOption/kotlin",files="build.gradle.kts[tags=task]"]
+====
 
 .Output of **`gradle -q verifyUrl --url=http://www.google.com/`**
 ----
