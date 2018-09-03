@@ -1,3 +1,3 @@
 dependencies {
-    "compile"("org.example:project2:1.0")
+    compile("org.example:project2:1.0")
 }
