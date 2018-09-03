@@ -45,7 +45,7 @@ dependencies {
 }
 
 // tag::customize-checkstyle-report[]
-tasks.withType<Checkstyle>() {
+tasks.withType<Checkstyle> {
     reports {
         xml.isEnabled = false
         html.isEnabled = true
@@ -55,10 +55,10 @@ tasks.withType<Checkstyle>() {
 // end::customize-checkstyle-report[]
 
 // tag::customize-findbugs-report[]
-tasks.withType<FindBugs>() {
+tasks.withType<FindBugs> {
     reports {
-        xml.setEnabled(false)
-        html.setEnabled(true)
+        xml.isEnabled = false
+        html.isEnabled = true
         html.stylesheet = resources.text.fromFile("config/xsl/findbugs-custom.xsl")
     }
 }
