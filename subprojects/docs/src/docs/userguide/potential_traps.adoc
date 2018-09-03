@@ -42,13 +42,11 @@ Variables which are declared with a type modifier are visible within closures bu
 
 It is important to keep in mind that Gradle has a distinct configuration and execution phase (see <<build_lifecycle.adoc#build_lifecycle,Build Lifecycle>>).
 
-=== Example: Distinct configuration and execution phase
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tutorial/mkdirTrap/build.gradle[]
-----
+.Distinct configuration and execution phase
+====
+include::sample[dir="userguide/tutorial/mkdirTrap/groovy", files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/mkdirTrap/kotlin", files="build.gradle.kts[]"]
+====
 
 .Output of **`gradle -q compile`**
 ----
