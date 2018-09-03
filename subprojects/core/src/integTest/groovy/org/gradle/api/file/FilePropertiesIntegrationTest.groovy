@@ -112,7 +112,7 @@ task useFileProviderApi {
 
         then:
         failure.assertHasDescription("Execution failed for task ':useFileTypeDsl'.")
-        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using an instance of type org.gradle.api.internal.file.DefaultProjectLayout\$FixedFile.")
+        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.Directory using an instance of type org.gradle.api.internal.file.DefaultFilePropertyFactory\$FixedFile.")
 
         when:
         fails("useFileProviderDsl")
@@ -282,7 +282,7 @@ task useDirProviderApi {
 
         then:
         failure.assertHasDescription("Execution failed for task ':useDirTypeDsl'.")
-        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.RegularFile using an instance of type org.gradle.api.internal.file.DefaultProjectLayout\$FixedDirectory.")
+        failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.RegularFile using an instance of type org.gradle.api.internal.file.DefaultFilePropertyFactory\$FixedDirectory.")
 
         when:
         fails("useDirProviderDsl")
@@ -373,9 +373,10 @@ task useDirProviderApi {
         file("output/merged.txt").text == 'new-file1,file2'
 
         where:
-        outputFileMethod                | inputFileMethod
-        "newOutputFile()"               | "newInputFile()"
-        "project.layout.fileProperty()" | "project.layout.fileProperty()"
+        outputFileMethod                 | inputFileMethod
+        "newOutputFile()"                | "newInputFile()"
+        "project.layout.fileProperty()"  | "project.layout.fileProperty()"
+        "project.objects.fileProperty()" | "project.objects.fileProperty()"
     }
 
     @Unroll
@@ -451,9 +452,10 @@ task useDirProviderApi {
         file("output/merged.txt").text == 'new-dir1,dir2'
 
         where:
-        outputDirMethod                      | inputDirMethod
-        "newOutputDirectory()"               | "newInputDirectory()"
-        "project.layout.directoryProperty()" | "project.layout.directoryProperty()"
+        outputDirMethod                       | inputDirMethod
+        "newOutputDirectory()"                | "newInputDirectory()"
+        "project.layout.directoryProperty()"  | "project.layout.directoryProperty()"
+        "project.objects.directoryProperty()" | "project.objects.directoryProperty()"
     }
 
     @Unroll

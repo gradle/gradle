@@ -44,14 +44,14 @@ public interface ProjectLayout {
     DirectoryProperty getBuildDirectory();
 
     /**
-     * Creates a new {@link DirectoryProperty} that uses the project directory to resolve paths, if required. The property has no initial value.
+     * Creates a new {@link DirectoryProperty} that uses the project directory to resolve relative paths, if required. The property has no initial value.
      *
      * @since 4.3
      */
     DirectoryProperty directoryProperty();
 
     /**
-     * Creates a new {@link DirectoryProperty} that uses the project directory to resolve paths, if required. The property has the initial provider specified.
+     * Creates a new {@link DirectoryProperty} that uses the project directory to resolve relative paths, if required. The property has the initial provider specified.
      *
      * @param initialProvider initial provider for the property
      * @since 4.4
@@ -59,14 +59,14 @@ public interface ProjectLayout {
     DirectoryProperty directoryProperty(Provider<? extends Directory> initialProvider);
 
     /**
-     * Creates a new {@link RegularFileProperty} that uses the project directory to resolve paths, if required. The property has no initial value.
+     * Creates a new {@link RegularFileProperty} that uses the project directory to resolve relative paths, if required. The property has no initial value.
      *
      * @since 4.3
      */
     RegularFileProperty fileProperty();
 
     /**
-     * Creates a new {@link RegularFileProperty} that uses the project directory to resolve paths, if required. The property has the initial provider specified.
+     * Creates a new {@link RegularFileProperty} that uses the project directory to resolve relative paths, if required. The property has the initial provider specified.
      *
      * @param initialProvider initial provider for the property
      * @since 4.4
