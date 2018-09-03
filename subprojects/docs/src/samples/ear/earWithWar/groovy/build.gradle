@@ -1,5 +1,7 @@
 // tag::use-ear-plugin[]
-apply plugin: 'ear'
+plugins {
+    id 'ear'
+}
 // end::use-ear-plugin[]
 
 repositories {
