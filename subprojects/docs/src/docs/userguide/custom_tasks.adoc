@@ -367,10 +367,10 @@ This example demonstrates the use of multiple options for a single task. The tas
 
 === Example: Declaring available values for an option
 
-[source.multi-language-sample,groovy]
+[source.multi-language-sample,java]
 .UrlProcess.java
 ----
-include::{samplesPath}/userguide/tasks/commandLineOption/optionValues/buildSrc/src/main/java/UrlProcess.java[tag=custom-task-implementation]
+include::{samplesPath}/userguide/tasks/commandLineOption/optionValues/groovy/buildSrc/src/main/java/UrlProcess.java[tag=custom-task-implementation]
 ----
 
 [[sec:listing_task_options]]
