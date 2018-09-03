@@ -468,13 +468,11 @@ This states that the work should be run with a maximum level of isolation by exe
 
 When using `IsolationMode.PROCESS`, gradle will start a long-lived _Worker Daemon_ process that can be reused for future work items.
 
-=== Example: Submitting an item of work to run in a worker daemon
-
-[source.multi-language-sample,groovy,indent=0]
-.build.gradle
-----
-include::{samplesPath}/workerApi/workerDaemon/build.gradle[tag=worker-daemon]
-----
+.Submitting an item of work to run in a worker daemon
+====
+include::sample[dir="workerApi/workerDaemon/groovy",files="build.gradle[tags=worker-daemon]"]
+include::sample[dir="workerApi/workerDaemon/kotlin",files="build.gradle.kts[tags=worker-daemon]"]
+====
 
 When a unit of work for a Worker Daemon is submitted, Gradle will first look to see if a compatible, idle daemon already exists. If so, it will send the unit of work to the idle daemon, marking it as busy. If not, it will start a new daemon. When evaluating compatibility, Gradle looks at a number of criteria, all of which can be controlled through link:{javadocPath}/org/gradle/workers/WorkerConfiguration.html#forkOptions-org.gradle.api.Action-[WorkerConfiguration.forkOptions(org.gradle.api.Action)].
 
