@@ -35,6 +35,7 @@ import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
+import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
@@ -226,6 +227,6 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
 
     private visitProperties(TaskInternal task, PropertyAnnotationHandler... annotationHandlers) {
         def specFactory = new DefaultPropertySpecFactory(task, TestFiles.resolver())
-        new DefaultPropertyWalker(new DefaultPropertyMetadataStore(annotationHandlers as List)).visitProperties(specFactory, visitor, task)
+        new DefaultPropertyWalker(new DefaultPropertyMetadataStore(annotationHandlers as List, new TestCrossBuildInMemoryCacheFactory())).visitProperties(specFactory, visitor, task)
     }
 }

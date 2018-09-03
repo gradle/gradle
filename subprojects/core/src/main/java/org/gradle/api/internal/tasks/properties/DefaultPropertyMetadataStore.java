@@ -19,9 +19,6 @@ package org.gradle.api.internal.tasks.properties;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Iterables;
@@ -32,6 +29,7 @@ import com.google.common.collect.Sets;
 import groovy.lang.GroovyObject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DynamicObjectAware;
@@ -58,6 +56,8 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.options.OptionValues;
+import org.gradle.cache.internal.CrossBuildInMemoryCache;
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.GroovyMethods;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.Types;
@@ -106,16 +106,15 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
     private final Map<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers;
     private final Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides;
     private final Set<Class<? extends Annotation>> relevantAnnotationTypes;
-    private final LoadingCache<Class<?>, TypeMetadata> cache = CacheBuilder.newBuilder()
-        .weakKeys()
-        .build(new CacheLoader<Class<?>, TypeMetadata>() {
-            @Override
-            public TypeMetadata load(@Nonnull Class<?> type) {
-                return createTypeMetadata(type);
-            }
-        });
+    private final CrossBuildInMemoryCache<Class<?>, TypeMetadata> cache;
+    private Transformer<TypeMetadata, Class<?>> typeMetadataFactory = new Transformer<TypeMetadata, Class<?>>() {
+        @Override
+        public TypeMetadata transform(Class<?> type) {
+            return createTypeMetadata(type);
+        }
+    };
 
-    public DefaultPropertyMetadataStore(Iterable<? extends PropertyAnnotationHandler> customAnnotationHandlers) {
+    public DefaultPropertyMetadataStore(Iterable<? extends PropertyAnnotationHandler> customAnnotationHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
         Iterable<PropertyAnnotationHandler> allAnnotationHandlers = Iterables.concat(HANDLERS, customAnnotationHandlers);
         Map<Class<? extends Annotation>, PropertyAnnotationHandler> annotationsHandlers = Maps.uniqueIndex(allAnnotationHandlers, new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
             @Override
@@ -126,6 +125,7 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
         this.annotationHandlers = annotationsHandlers;
         this.annotationOverrides = collectAnnotationOverrides(allAnnotationHandlers);
         this.relevantAnnotationTypes = collectRelevantAnnotationTypes(annotationsHandlers.keySet());
+        cache = cacheFactory.newClassCache();
     }
 
     private static Multimap<Class<? extends Annotation>, Class<? extends Annotation>> collectAnnotationOverrides(Iterable<PropertyAnnotationHandler> allAnnotationHandlers) {
@@ -148,8 +148,8 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
     }
 
     @Override
-    public <T> TypeMetadata getTypeMetadata(Class<T> type) {
-        return cache.getUnchecked(type);
+    public <T> TypeMetadata getTypeMetadata(final Class<T> type) {
+        return cache.get(type, typeMetadataFactory);
     }
 
     private <T> TypeMetadata createTypeMetadata(Class<T> type) {
@@ -276,6 +276,7 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
         }
         return relevantAnnotations;
     }
+
     private static Map<String, Field> getFields(Class<?> type) {
         Map<String, Field> fields = Maps.newHashMap();
         for (Field field : type.getDeclaredFields()) {
