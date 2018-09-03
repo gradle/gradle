@@ -65,11 +65,9 @@ import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsListener;
-import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore;
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker;
 import org.gradle.api.internal.tasks.properties.PropertyMetadataStore;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.userinput.BuildScanUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.DefaultBuildScanUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler;
@@ -252,10 +250,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             new DelayedConfigurationActions()
         );
         return new LifecycleProjectEvaluator(buildOperationExecutor, withActionsEvaluator);
-    }
-
-    protected PropertyMetadataStore createPropertyMetadataStore(List<PropertyAnnotationHandler> annotationHandlers) {
-        return new DefaultPropertyMetadataStore(annotationHandlers);
     }
 
     protected PropertyWalker createPropertyWalker(PropertyMetadataStore propertyMetadataStore) {

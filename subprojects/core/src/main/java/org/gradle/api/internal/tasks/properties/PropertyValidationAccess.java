@@ -34,7 +34,9 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
+import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
+import org.gradle.internal.event.DefaultListenerManager;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -63,7 +65,7 @@ public class PropertyValidationAccess {
         DefaultTaskClassInfoStore taskClassInfoStore = new DefaultTaskClassInfoStore();
         PropertyMetadataStore metadataStore = new DefaultPropertyMetadataStore(ImmutableList.of(
             new ClasspathPropertyAnnotationHandler(), new CompileClasspathPropertyAnnotationHandler()
-        ));
+        ), new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()));
         Queue<BeanTypeNode<?>> queue = new ArrayDeque<BeanTypeNode<?>>();
         BeanTypeNodeFactory nodeFactory = new BeanTypeNodeFactory(metadataStore);
         queue.add(nodeFactory.createRootNode(TypeToken.of(topLevelBean)));

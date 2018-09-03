@@ -29,6 +29,7 @@ import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.api.tasks.TaskValidationException
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
+import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
@@ -84,7 +85,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     private AnnotationProcessingTaskFactory factory
     private ITaskFactory delegate
     private TaskClassInfoStore taskClassInfoStore
-    def propertyWalker = new DefaultPropertyWalker(new DefaultPropertyMetadataStore([]))
+    def propertyWalker = new DefaultPropertyWalker(new DefaultPropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory()))
 
     @SuppressWarnings("GroovyUnusedDeclaration")
     private String inputValue = "value"
