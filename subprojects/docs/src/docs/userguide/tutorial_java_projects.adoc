@@ -154,19 +154,11 @@ Now execute `gradle eclipse` command to generate Eclipse project files. More inf
 
 Here's the complete build file for our sample:
 
-// TODO use the include::sample syntax as above, when it actually supports multiple tags
 .Java example - complete build file
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/java/quickstart/groovy/build.gradle[tags=use-plugin;use-eclipse-plugin;customization;repo;dependencies;task-customization;upload]
-----
-[source.multi-language-sample,kotlin]
-.build.gradle.kts
-----
-include::{samplesPath}/java/quickstart/kotlin/build.gradle.kts[tags=use-plugin;use-eclipse-plugin;customization;repo;dependencies;task-customization;upload]
-----
-
+====
+include::sample[dir="java/quickstart/groovy", files="build.gradle[tags=complete-example]"]
+include::sample[dir="java/quickstart/kotlin", files="build.gradle.kts[tags=complete-example]"]
+====
 
 [[sec:examples]]
 == Multi-project Java build

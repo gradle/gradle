@@ -1,3 +1,4 @@
+// tag::complete-example[]
 // tag::use-plugin[]
 // tag::use-eclipse-plugin[]
 plugins {
@@ -14,12 +15,14 @@ plugins {
 }
 // end::use-eclipse-plugin[]
 // end::use-plugin[]
+// end::complete-example[]
 
 
 // tag::use-plugin-legacy[]
 apply(plugin = "java")
 // end::use-plugin-legacy[]
 
+// tag::complete-example[]
 // tag::customization[]
 version = "1.0"
 tasks.getByName<Jar>("jar") {
@@ -59,3 +62,4 @@ tasks.getByName<Upload>("uploadArchives") {
     }
 }
 // end::upload[]
+// end::complete-example[]
