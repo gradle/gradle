@@ -137,29 +137,35 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         notThrown(LockOutOfDateException)
     }
 
-    def 'throws when extra modules visited'() {
+    def 'generates failures when extra modules visited'() {
         given:
         startWithState([])
         addVisitedNode(newId(mid, '1.0'))
 
         when:
-        visitor.complete()
+        def failures = visitor.collectLockingFailures()
 
         then:
-        def ex = thrown(LockOutOfDateException)
-        ex.message.contains("Resolved 'org:foo:1.0' which is not part of the lock state")
+        failures.size() == 1
+        failures.each {
+            assert it.problem instanceof LockOutOfDateException
+            assert it.problem.message.contains("Resolved 'org:foo:1.0' which is not part of the dependency lock state")
+        }
     }
 
-    def 'throws when module not visited'() {
+    def 'generates failures when module not visited'() {
         given:
         startWithState([newId(mid, '1.1')])
 
         when:
-        visitor.complete()
+        def failures = visitor.collectLockingFailures()
 
         then:
-        def ex = thrown(LockOutOfDateException)
-        ex.message.contains("Did not resolve 'org:foo:1.1' which is part of the lock state")
+        failures.size() == 1
+        failures.each {
+            assert it.problem instanceof LockOutOfDateException
+            assert it.problem.message.contains("Did not resolve 'org:foo:1.1' which is part of the dependency lock state")
+        }
     }
 
     def 'invokes locking provider on complete with visited modules'() {

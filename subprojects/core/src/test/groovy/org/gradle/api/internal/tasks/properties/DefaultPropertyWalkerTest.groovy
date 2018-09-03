@@ -35,6 +35,7 @@ import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
+import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
@@ -48,6 +49,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         visitProperties(task)
 
         then:
+        _ * visitor.visitOutputFilePropertiesOnly() >> false
         1 * visitor.visitInputProperty({ it.propertyName == 'myProperty' && it.value == 'myValue' })
         1 * visitor.visitInputFileProperty({ it.propertyName == 'inputFile' })
         1 * visitor.visitInputFileProperty({ it.propertyName == 'inputFiles' })
@@ -109,6 +111,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         visitProperties(task)
 
         then:
+        _ * visitor.visitNested() >> true
         1 * visitor.visitInputProperty({ it.propertyName == 'bean' && it.value == null })
     }
 
@@ -122,6 +125,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         visitProperties(task)
 
         then:
+        _ * visitor.visitNested() >> true
         IllegalStateException e = thrown(IllegalStateException)
         e.message == "Cycles between nested beans are not allowed. Cycle detected between: 'nested.right.left' and 'nested.right.left.right'."
     }
@@ -134,6 +138,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         visitProperties(task)
 
         then:
+        _ * visitor.visitNested() >> true
         IllegalStateException e = thrown(IllegalStateException)
         e.message == "Cycles between nested beans are not allowed. Cycle detected between: '<root>' and 'nested.left'."
     }
@@ -146,6 +151,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         visitProperties(task)
 
         then:
+        _ * visitor.visitNested() >> true
         noExceptionThrown()
         task.nested.right == task.nested.right.right
     }
@@ -159,6 +165,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         visitProperties(task)
 
         then:
+        _ * visitor.visitNested() >> true
         noExceptionThrown()
     }
 
@@ -170,6 +177,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         visitProperties(task)
 
         then:
+        _ * visitor.visitNested() >> true
         1 * visitor.visitInputProperty({ it.propertyName == 'nested.name$0'})
         1 * visitor.visitInputProperty({ it.propertyName == 'nested.name$1'})
     }
@@ -182,6 +190,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         visitProperties(task)
 
         then:
+        _ * visitor.visitOutputFilePropertiesOnly() >> false
         1 * visitor.visitInputProperty({ it.propertyName == "nested" })
         1 * visitor.visitInputProperty({ it.propertyName == "nested.nestedInput" })
         1 * visitor.visitInputFileProperty({ it.propertyName == "nested.inputDir" })
@@ -218,6 +227,6 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
 
     private visitProperties(TaskInternal task, PropertyAnnotationHandler... annotationHandlers) {
         def specFactory = new DefaultPropertySpecFactory(task, TestFiles.resolver())
-        new DefaultPropertyWalker(new DefaultPropertyMetadataStore(annotationHandlers as List)).visitProperties(specFactory, visitor, task)
+        new DefaultPropertyWalker(new DefaultPropertyMetadataStore(annotationHandlers as List, new TestCrossBuildInMemoryCacheFactory())).visitProperties(specFactory, visitor, task)
     }
 }

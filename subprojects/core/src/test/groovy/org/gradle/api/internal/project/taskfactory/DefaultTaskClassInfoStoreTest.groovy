@@ -18,10 +18,11 @@ package org.gradle.api.internal.project.taskfactory
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import spock.lang.Specification
 
 class DefaultTaskClassInfoStoreTest extends Specification {
-    def taskClassInfoStore = new DefaultTaskClassInfoStore()
+    def taskClassInfoStore = new DefaultTaskClassInfoStore(new TestCrossBuildInMemoryCacheFactory())
 
     @CacheableTask
     private static class MyCacheableTask extends DefaultTask {}

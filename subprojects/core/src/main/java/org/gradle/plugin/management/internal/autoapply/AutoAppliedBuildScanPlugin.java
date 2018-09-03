@@ -16,6 +16,8 @@
 
 package org.gradle.plugin.management.internal.autoapply;
 
+import org.gradle.plugin.use.PluginDependenciesSpec;
+import org.gradle.plugin.use.PluginDependencySpec;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
@@ -24,9 +26,20 @@ import org.gradle.plugin.use.internal.DefaultPluginId;
  *
  * Required by the {@code kotlin-dsl} module.
  */
-public interface AutoAppliedBuildScanPlugin {
-    PluginId ID = new DefaultPluginId("com.gradle.build-scan");
-    String GROUP = "com.gradle";
-    String NAME = "build-scan-plugin";
-    String VERSION = "1.16";
+public final class AutoAppliedBuildScanPlugin {
+
+    public static final PluginId ID = new DefaultPluginId("com.gradle.build-scan");
+    public static final String GROUP = "com.gradle";
+    public static final String NAME = "build-scan-plugin";
+    public static final String VERSION = "1.16";
+
+    /**
+     * Adds the {@code build-scan} plugin spec to the given {@link PluginDependenciesSpec} and returns the
+     * created {@link PluginDependencySpec}.
+     *
+     * @see PluginDependenciesSpec#id(String)
+     */
+    public static PluginDependencySpec addBuildScanPluginDependencySpecTo(PluginDependenciesSpec plugins) {
+        return plugins.id(ID.getId()).version(VERSION);
+    }
 }

@@ -16,8 +16,6 @@
 
 package org.gradle.plugin.management;
 
-import org.gradle.api.Incubating;
-
 import javax.annotation.Nullable;
 
 /**
@@ -26,7 +24,6 @@ import javax.annotation.Nullable;
  *
  * @since 3.5
  */
-@Incubating
 public interface PluginResolveDetails {
 
     /**

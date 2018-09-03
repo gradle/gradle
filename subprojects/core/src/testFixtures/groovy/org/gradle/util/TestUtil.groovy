@@ -31,16 +31,15 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.model.DefaultObjectFactory
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.taskfactory.ITaskFactory
+import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
-import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
+import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.groovy.scripts.DefaultScript
 import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
-import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -65,7 +64,7 @@ class TestUtil {
 
     static InstantiatorFactory instantiatorFactory() {
         def generator = new AsmBackedClassGenerator()
-        return new DefaultInstantiatorFactory(generator, new CrossBuildInMemoryCacheFactory(new DefaultListenerManager()))
+        return new DefaultInstantiatorFactory(generator, new TestCrossBuildInMemoryCacheFactory())
     }
 
     static ObjectFactory objectFactory() {
@@ -149,7 +148,7 @@ class TestUtil {
     }
 
     static <T extends Task> T createTask(Class<T> type, ProjectInternal project, String name) {
-        return project.services.get(ITaskFactory).create(name, type)
+        return project.services.get(TaskInstantiator).create(name, type)
     }
 
     static ProjectBuilder builder(File rootDir) {

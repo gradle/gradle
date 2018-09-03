@@ -21,6 +21,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
@@ -39,16 +40,16 @@ import java.util.Map;
 public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertySpec implements DeclaredTaskOutputFileProperty {
 
     private final OutputType outputType;
-    private final ValidatingValue paths;
+    private final ValidatingValue value;
     private final ValidationAction validationAction;
     private final String taskName;
     private final FileResolver resolver;
 
-    public CompositeTaskOutputPropertySpec(String taskName, FileResolver resolver, OutputType outputType, ValidatingValue paths, ValidationAction validationAction) {
+    public CompositeTaskOutputPropertySpec(String taskName, FileResolver resolver, OutputType outputType, ValidatingValue value, ValidationAction validationAction) {
         this.taskName = taskName;
         this.resolver = resolver;
         this.outputType = outputType;
-        this.paths = paths;
+        this.value = value;
         this.validationAction = validationAction;
     }
 
@@ -57,11 +58,11 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
     }
 
     public Iterator<TaskOutputFilePropertySpec> resolveToOutputProperties() {
-        Object unpackedPaths = DeferredUtil.unpack(paths);
-        if (unpackedPaths == null) {
+        Object unpackedValue = DeferredUtil.unpack(value);
+        if (unpackedValue == null) {
             return Iterators.emptyIterator();
-        } else if (unpackedPaths instanceof Map) {
-            final Iterator<? extends Map.Entry<?, ?>> iterator = ((Map<?, ?>) unpackedPaths).entrySet().iterator();
+        } else if (unpackedValue instanceof Map) {
+            final Iterator<? extends Map.Entry<?, ?>> iterator = ((Map<?, ?>) unpackedValue).entrySet().iterator();
             return new AbstractIterator<TaskOutputFilePropertySpec>() {
                 @Override
                 protected TaskOutputFilePropertySpec computeNext() {
@@ -81,7 +82,7 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
         } else {
             final List<File> roots = Lists.newArrayList();
             final MutableBoolean nonFileRoot = new MutableBoolean();
-            FileCollectionInternal outputFileCollection = resolver.resolveFiles(unpackedPaths);
+            FileCollectionInternal outputFileCollection = resolver.resolveFiles(unpackedValue);
             outputFileCollection.visitLeafCollections(new FileCollectionLeafVisitor() {
                 @Override
                 public void visitCollection(FileCollectionInternal fileCollection) {
@@ -121,12 +122,17 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
     }
 
     @Override
+    public void attachProducer(Task producer) {
+        // Ignore for now
+    }
+
+    @Override
     public void validate(TaskValidationContext context) {
-        paths.validate(getPropertyName(), isOptional(), validationAction, context);
+        value.validate(getPropertyName(), isOptional(), validationAction, context);
     }
 
     @Override
     public FileCollection getPropertyFiles() {
-        return new TaskPropertyFileCollection(taskName, "output", this, resolver, paths);
+        return new TaskPropertyFileCollection(taskName, "output", this, resolver, value);
     }
 }

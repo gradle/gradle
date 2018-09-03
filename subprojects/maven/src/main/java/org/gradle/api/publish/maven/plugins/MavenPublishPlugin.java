@@ -49,6 +49,7 @@ import org.gradle.api.publish.maven.tasks.PublishToMavenRepository;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.publish.tasks.GenerateModuleMetadata;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
@@ -96,9 +97,13 @@ public class MavenPublishPlugin implements Plugin<Project> {
         project.getPluginManager().apply(PublishingPlugin.class);
 
         final TaskContainer tasks = project.getTasks();
-        final Task publishLocalLifecycleTask = tasks.create(PUBLISH_LOCAL_LIFECYCLE_TASK_NAME);
-        publishLocalLifecycleTask.setDescription("Publishes all Maven publications produced by this project to the local Maven cache.");
-        publishLocalLifecycleTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
+        tasks.register(PUBLISH_LOCAL_LIFECYCLE_TASK_NAME, new Action<Task>() {
+            @Override
+            public void execute(Task publish) {
+                publish.setDescription("Publishes all Maven publications produced by this project to the local Maven cache.");
+                publish.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
+            }
+        });
 
         project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
             @Override
@@ -114,8 +119,8 @@ public class MavenPublishPlugin implements Plugin<Project> {
         final TaskContainer tasks = project.getTasks();
         final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
 
-        final Task publishLifecycleTask = tasks.getByName(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME);
-        final Task publishLocalLifecycleTask = tasks.getByName(PUBLISH_LOCAL_LIFECYCLE_TASK_NAME);
+        final TaskProvider<Task> publishLifecycleTask = tasks.named(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME);
+        final TaskProvider<Task> publishLocalLifecycleTask = tasks.named(PUBLISH_LOCAL_LIFECYCLE_TASK_NAME);
 
         mavenPublications.all(new Action<MavenPublicationInternal>() {
             @Override
@@ -128,7 +133,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         });
     }
 
-    private void createPublishTasksForEachMavenRepo(final TaskContainer tasks, PublishingExtension extension, final Task publishLifecycleTask, final MavenPublicationInternal publication) {
+    private void createPublishTasksForEachMavenRepo(final TaskContainer tasks, PublishingExtension extension, final TaskProvider<Task> publishLifecycleTask, final MavenPublicationInternal publication) {
         final String publicationName = publication.getName();
         NamedDomainObjectList<MavenArtifactRepository> repositories = extension.getRepositories().withType(MavenArtifactRepository.class);
         repositories.all(new Action<MavenArtifactRepository>() {
@@ -136,9 +141,9 @@ public class MavenPublishPlugin implements Plugin<Project> {
             public void execute(final MavenArtifactRepository repository) {
                 final String repositoryName = repository.getName();
 
-                String publishTaskName = "publish" + capitalize(publicationName) + "PublicationTo" + capitalize(repositoryName) + "Repository";
+                final String publishTaskName = "publish" + capitalize(publicationName) + "PublicationTo" + capitalize(repositoryName) + "Repository";
 
-                tasks.create(publishTaskName, PublishToMavenRepository.class, new Action<PublishToMavenRepository>() {
+                tasks.register(publishTaskName, PublishToMavenRepository.class, new Action<PublishToMavenRepository>() {
                     public void execute(PublishToMavenRepository publishTask) {
                         publishTask.setPublication(publication);
                         publishTask.setRepository(repository);
@@ -147,29 +152,39 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
                     }
                 });
-                publishLifecycleTask.dependsOn(publishTaskName);
+                publishLifecycleTask.configure(new Action<Task>() {
+                    @Override
+                    public void execute(Task task) {
+                        task.dependsOn(publishTaskName);
+                    }
+                });
             }
         });
     }
 
-    private void createLocalInstallTask(TaskContainer tasks, final Task publishLocalLifecycleTask, final MavenPublicationInternal publication) {
+    private void createLocalInstallTask(TaskContainer tasks, final TaskProvider<Task> publishLocalLifecycleTask, final MavenPublicationInternal publication) {
         final String publicationName = publication.getName();
         final String installTaskName = "publish" + capitalize(publicationName) + "PublicationToMavenLocal";
 
-        tasks.create(installTaskName, PublishToMavenLocal.class, new Action<PublishToMavenLocal>() {
+        tasks.register(installTaskName, PublishToMavenLocal.class, new Action<PublishToMavenLocal>() {
             public void execute(PublishToMavenLocal publishLocalTask) {
                 publishLocalTask.setPublication(publication);
                 publishLocalTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                 publishLocalTask.setDescription("Publishes Maven publication '" + publicationName + "' to the local Maven repository.");
             }
         });
-        publishLocalLifecycleTask.dependsOn(installTaskName);
+        publishLocalLifecycleTask.configure(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.dependsOn(installTaskName);
+            }
+        });
     }
 
     private void createGeneratePomTask(TaskContainer tasks, final MavenPublicationInternal publication, final DirectoryProperty buildDir) {
         final String publicationName = publication.getName();
         String descriptorTaskName = "generatePomFileFor" + capitalize(publicationName) + "Publication";
-        GenerateMavenPom generatorTask = tasks.create(descriptorTaskName, GenerateMavenPom.class, new Action<GenerateMavenPom>() {
+        TaskProvider<GenerateMavenPom> generatorTask = tasks.register(descriptorTaskName, GenerateMavenPom.class, new Action<GenerateMavenPom>() {
             public void execute(final GenerateMavenPom generatePomTask) {
                 generatePomTask.setDescription("Generates the Maven POM file for publication '" + publicationName + "'.");
                 generatePomTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
@@ -179,13 +194,14 @@ public class MavenPublishPlugin implements Plugin<Project> {
                 }
             }
         });
-        publication.setPomGenerator(generatorTask);
+        // TODO: Make lazy
+        publication.setPomGenerator(generatorTask.get());
     }
 
     private void createGenerateMetadataTask(final TaskContainer tasks, final MavenPublicationInternal publication, final Set<? extends MavenPublicationInternal> publications, final DirectoryProperty buildDir) {
         final String publicationName = publication.getName();
         String descriptorTaskName = "generateMetadataFileFor" + capitalize(publicationName) + "Publication";
-        GenerateModuleMetadata generatorTask = tasks.create(descriptorTaskName, GenerateModuleMetadata.class, new Action<GenerateModuleMetadata>() {
+        TaskProvider<GenerateModuleMetadata> generatorTask = tasks.register(descriptorTaskName, GenerateModuleMetadata.class, new Action<GenerateModuleMetadata>() {
             public void execute(final GenerateModuleMetadata generateTask) {
                 generateTask.setDescription("Generates the Gradle metadata file for publication '" + publicationName + "'.");
                 generateTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
@@ -197,7 +213,8 @@ public class MavenPublishPlugin implements Plugin<Project> {
                 }
             }
         });
-        publication.setModuleDescriptorGenerator(generatorTask);
+        // TODO: Make lazy
+        publication.setModuleDescriptorGenerator(generatorTask.get());
     }
 
     private class MavenPublicationFactory implements NamedDomainObjectFactory<MavenPublication> {

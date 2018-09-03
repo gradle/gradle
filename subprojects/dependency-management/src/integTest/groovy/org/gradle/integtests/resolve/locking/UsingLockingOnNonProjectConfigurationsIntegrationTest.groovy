@@ -173,7 +173,7 @@ buildscript {
         fails 'buildEnvironment'
 
         then:
-        failureCauseContains('Dependency lock state for configuration \'classpath\' is out of date')
+        failureCauseContains('Did not resolve \'org.foo:foo-plugin:1.0\' which is part of the dependency lock state')
     }
 
     def 'same name buildscript and project configurations result in different lock files'() {

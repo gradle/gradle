@@ -214,7 +214,7 @@ To use a plugin in a build script, you need to add the plugin classes to the bui
 include::{samplesPath}/customPlugin/consumer/build.gradle[tag=use-plugin]
 ----
 
-Alternatively, if your plugin is published to the plugin portal, you can use the incubating plugins DSL (see <<plugins.adoc#sec:plugins_block,Applying plugins using the plugins DSL>>) to apply the plugin:
+Alternatively, you can use the plugins DSL (see <<plugins.adoc#sec:plugins_block,Applying plugins using the plugins DSL>>) to apply the plugin:
 
 === Example: Applying a community plugin with the plugins DSL
 
