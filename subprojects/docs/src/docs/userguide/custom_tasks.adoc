@@ -69,13 +69,11 @@ include::{samplesPath}/userguide/tasks/customTask/customTaskWithAction.out[]
 
 Let's add a property to the task, so we can customize it. Tasks are simply POGOs, and when you declare a task, you can set the properties or call methods on the task object. Here we add a `greeting` property, and set the value when we declare the `greeting` task.
 
-=== Example: A customizable hello world task
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tasks/customTaskWithProperty/build.gradle[tag=add-property]
-----
+.A customizable hello world task
+====
+include::sample[dir="userguide/tasks/customTaskWithProperty/groovy",files="build.gradle[tags=add-property]"]
+include::sample[dir="userguide/tasks/customTaskWithProperty/kotlin",files="build.gradle.kts[tags=add-property]"]
+====
 
 .Output of **`gradle -q hello greeting`**
 ----
