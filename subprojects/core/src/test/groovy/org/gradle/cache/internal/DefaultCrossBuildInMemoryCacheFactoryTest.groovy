@@ -23,9 +23,9 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.concurrent.CopyOnWriteArrayList
 
-class CrossBuildInMemoryCacheFactoryTest extends ConcurrentSpec {
+class DefaultCrossBuildInMemoryCacheFactoryTest extends ConcurrentSpec {
     def listenerManager = new DefaultListenerManager()
-    def factory = new CrossBuildInMemoryCacheFactory(listenerManager)
+    def factory = new DefaultCrossBuildInMemoryCacheFactory(listenerManager)
 
     def "creates a cache that uses the given transformer to create entries"() {
         def a = new Object()

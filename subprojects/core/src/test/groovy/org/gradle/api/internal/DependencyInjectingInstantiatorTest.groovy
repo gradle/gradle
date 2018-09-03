@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal
 
-import org.gradle.api.Transformer
+
 import org.gradle.api.reflect.ObjectInstantiationException
-import org.gradle.cache.internal.CrossBuildInMemoryCache
+import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.service.ServiceRegistry
 import spock.lang.Specification
 
@@ -27,7 +27,7 @@ import javax.inject.Inject
 class DependencyInjectingInstantiatorTest extends Specification {
     def services = Mock(ServiceRegistry)
     def classGenerator = Mock(ClassGenerator)
-    def instantiator = new DependencyInjectingInstantiator(classGenerator, services, new TestCache())
+    def instantiator = new DependencyInjectingInstantiator(classGenerator, services, new TestCrossBuildInMemoryCacheFactory.TestCache<Class<?>, DependencyInjectingInstantiator.CachedConstructor>())
 
     def "creates instance that has default constructor"() {
         given:
@@ -297,26 +297,6 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         result.message == "injected"
-    }
-
-    static class TestCache implements CrossBuildInMemoryCache<Class<?>, DependencyInjectingInstantiator.CachedConstructor> {
-        @Override
-        DependencyInjectingInstantiator.CachedConstructor get(Class<?> key) {
-            return null;
-        }
-
-        @Override
-        DependencyInjectingInstantiator.CachedConstructor get(Class<?> key, Transformer<DependencyInjectingInstantiator.CachedConstructor, Class<?>> factory) {
-            return factory.transform(key)
-        }
-
-        @Override
-        void put(Class<?> key, DependencyInjectingInstantiator.CachedConstructor value) {
-        }
-
-        @Override
-        void clear() {
-        }
     }
 
     public static class HasDefaultConstructor {
