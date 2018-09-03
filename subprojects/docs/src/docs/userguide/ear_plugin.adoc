@@ -90,13 +90,11 @@ The link:{groovyDslPath}/org.gradle.plugins.ear.Ear.html[Ear] class in the API d
 
 Here is an example with the most important customization options:
 
-=== Example: Customization of ear plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/ear/earCustomized/ear/build.gradle[]
-----
+.Customization of ear plugin
+====
+include::sample[dir="ear/earCustomized/groovy",files="ear/build.gradle[]"]
+include::sample[dir="ear/earCustomized/kotlin",files="ear/build.gradle.kts[]"]
+====
 
 You can also use customization options that the link:{groovyDslPath}/org.gradle.plugins.ear.Ear.html[Ear] task provides, such as `from` and `metaInf`.
 
