@@ -23,13 +23,11 @@ The JDepend plugin performs quality checks on your project's source files using 
 
 To use the JDepend plugin, include the following in your build script:
 
-=== Example: Using the JDepend plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/codeQuality/build.gradle[tag=use-jdepend-plugin]
-----
+.Using the JDepend plugin
+====
+include::sample[dir="codeQuality/groovy",files="build.gradle[tags=use-jdepend-plugin]"]
+include::sample[dir="codeQuality/kotlin",files="build.gradle.kts[tags=use-jdepend-plugin]"]
+====
 
 The plugin adds a number of tasks to the project that perform the quality checks. You can execute the checks by running `gradle check`.
 

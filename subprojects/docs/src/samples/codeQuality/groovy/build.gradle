@@ -1,0 +1,65 @@
+// tag::use-checkstyle-plugin[]
+// tag::use-codenarc-plugin[]
+// tag::use-findbugs-plugin[]
+// tag::use-jdepend-plugin[]
+// tag::use-pmd-plugin[]
+plugins {
+// end::use-checkstyle-plugin[]
+// end::use-codenarc-plugin[]
+// end::use-findbugs-plugin[]
+// end::use-jdepend-plugin[]
+// end::use-pmd-plugin[]
+    id 'groovy'
+// tag::use-checkstyle-plugin[]
+    id 'checkstyle'
+// end::use-checkstyle-plugin[]
+// tag::use-codenarc-plugin[]
+    id 'codenarc'
+// end::use-codenarc-plugin[]
+// tag::use-findbugs-plugin[]
+    id 'findbugs'
+// end::use-findbugs-plugin[]
+// tag::use-jdepend-plugin[]
+    id 'jdepend'
+// end::use-jdepend-plugin[]
+// tag::use-pmd-plugin[]
+    id 'pmd'
+// tag::use-checkstyle-plugin[]
+// tag::use-codenarc-plugin[]
+// tag::use-findbugs-plugin[]
+// tag::use-jdepend-plugin[]
+}
+// end::use-checkstyle-plugin[]
+// end::use-codenarc-plugin[]
+// end::use-findbugs-plugin[]
+// end::use-jdepend-plugin[]
+// end::use-pmd-plugin[]
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation localGroovy()
+    testImplementation 'junit:junit:4.12'
+}
+
+// tag::customize-checkstyle-report[]
+tasks.withType(Checkstyle) {
+    reports {
+        xml.enabled false
+        html.enabled true
+        html.stylesheet resources.text.fromFile('config/xsl/checkstyle-custom.xsl')
+    }
+}
+// end::customize-checkstyle-report[]
+
+// tag::customize-findbugs-report[]
+tasks.withType(FindBugs) {
+    reports {
+        xml.enabled false
+        html.enabled true
+        html.stylesheet resources.text.fromFile('config/xsl/findbugs-custom.xsl')
+    }
+}
+// end::customize-findbugs-report[]
