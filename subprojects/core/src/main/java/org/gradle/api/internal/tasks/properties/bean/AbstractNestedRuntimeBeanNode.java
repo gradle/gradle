@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.properties.bean;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
@@ -40,7 +39,6 @@ import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.List;
 import java.util.Queue;
 
 public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Object> {
@@ -56,7 +54,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
                 continue;
             }
             String propertyName = getQualifiedPropertyName(propertyMetadata.getFieldName());
-            PropertyValue propertyValue = new DefaultPropertyValue(propertyName, propertyMetadata.getAnnotations(), getBean(), propertyMetadata.getMethod());
+            PropertyValue propertyValue = new DefaultPropertyValue(propertyName, propertyMetadata, getBean(), propertyMetadata.getMethod());
             propertyValueVisitor.visitPropertyValue(propertyValue, visitor, specFactory, new BeanPropertyContext() {
                 @Override
                 public void addNested(String propertyName, Object bean) {
@@ -68,7 +66,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
 
     private static class DefaultPropertyValue implements PropertyValue {
         private final String propertyName;
-        private final List<Annotation> annotations;
+        private final PropertyMetadata propertyMetadata;
         private final Object bean;
         private final Method method;
         private final Supplier<Object> valueSupplier = Suppliers.memoize(new Supplier<Object>() {
@@ -89,9 +87,9 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
             }
         });
 
-        public DefaultPropertyValue(String propertyName, List<Annotation> annotations, Object bean, Method method) {
+        public DefaultPropertyValue(String propertyName, PropertyMetadata propertyMetadata, Object bean, Method method) {
             this.propertyName = propertyName;
-            this.annotations = ImmutableList.copyOf(annotations);
+            this.propertyMetadata = propertyMetadata;
             this.bean = bean;
             this.method = method;
             method.setAccessible(true);
@@ -104,18 +102,13 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
 
         @Override
         public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
-            return getAnnotation(annotationType) != null;
+            return propertyMetadata.isAnnotationPresent(annotationType);
         }
 
         @Nullable
         @Override
         public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
-            for (Annotation annotation : annotations) {
-                if (annotationType.equals(annotation.annotationType())) {
-                    return annotationType.cast(annotation);
-                }
-            }
-            return null;
+            return propertyMetadata.getAnnotation(annotationType);
         }
 
         @Override

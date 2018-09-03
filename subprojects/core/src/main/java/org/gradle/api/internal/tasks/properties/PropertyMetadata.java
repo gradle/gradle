@@ -31,8 +31,6 @@ public interface PropertyMetadata {
 
     List<String> getValidationMessages();
 
-    List<Annotation> getAnnotations();
-
     @Nullable
     PropertyValueVisitor getPropertyValueVisitor();
 
