@@ -467,6 +467,14 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         });
     }
 
+    @Override
+    protected void doRealize(ProviderInternal<?> provider) {
+        if ((provider instanceof AbstractDomainObjectCreatingProvider && ((AbstractDomainObjectCreatingProvider) provider).isRealized()) || provider instanceof ExistingNamedDomainObjectProvider) {
+            return;
+        }
+        super.doRealize(provider);
+    }
+
     private static abstract class RuleAdapter implements Rule {
 
         private final String description;
@@ -963,6 +971,10 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         protected RuntimeException domainObjectCreationException(Throwable cause) {
             return new IllegalStateException(String.format("Could not create domain object '%s' (%s)", getName(), getType().getSimpleName()), cause);
+        }
+
+        public boolean isRealized() {
+            return realized;
         }
     }
 
