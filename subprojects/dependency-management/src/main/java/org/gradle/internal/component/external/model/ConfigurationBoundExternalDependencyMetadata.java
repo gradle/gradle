@@ -45,6 +45,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     private final ExternalDependencyDescriptor dependencyDescriptor;
     private final String reason;
     private final boolean isTransitive;
+    private final boolean isConstraint;
 
     private boolean alwaysUseAttributeMatching;
 
@@ -54,6 +55,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         this.dependencyDescriptor = dependencyDescriptor;
         this.reason = reason;
         this.isTransitive = dependencyDescriptor.isTransitive();
+        this.isConstraint = dependencyDescriptor.isConstraint() || dependencyDescriptor.isOptional();
     }
 
     public ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor) {
@@ -155,7 +157,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
 
     @Override
     public boolean isConstraint() {
-        return dependencyDescriptor.isConstraint() || dependencyDescriptor.isOptional();
+        return isConstraint;
     }
 
     @Override
