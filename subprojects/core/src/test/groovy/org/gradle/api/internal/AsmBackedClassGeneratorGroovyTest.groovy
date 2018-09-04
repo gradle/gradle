@@ -23,7 +23,6 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.BiAction
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.typeconversion.TypeConversionException
 import org.gradle.internal.util.BiFunction
 import org.gradle.util.ConfigureUtil
 import spock.lang.Issue
@@ -187,7 +186,7 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
         i.enumProperty "foo"
 
         then:
-        thrown TypeConversionException
+        thrown IllegalArgumentException
 
         when:
         i.enumMethodWithStringOverload("foo")

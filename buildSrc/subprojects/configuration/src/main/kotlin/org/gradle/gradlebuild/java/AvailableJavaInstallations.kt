@@ -3,6 +3,7 @@ package org.gradle.gradlebuild.java
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
+import org.gradle.api.internal.GradleInternal
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmVersionDetector
@@ -47,10 +48,6 @@ class ProbedLocalJavaInstallation(private val javaHome: File) : LocalJavaInstall
 
 
 private
-const val java7HomePropertyName = "java7Home"
-
-
-private
 const val java9HomePropertyName = "java9Home"
 
 
@@ -66,71 +63,83 @@ private
 const val oracleJdk8 = "Oracle JDK 8"
 
 
-private
-const val oracleJdk7 = "Oracle JDK 7"
-
-
-open class AvailableJavaInstallations(project: Project, private val javaInstallationProbe: JavaInstallationProbe, private val jvmVersionDetector: JvmVersionDetector) {
+open class AvailableJavaInstallations(private val project: Project, private val javaInstallationProbe: JavaInstallationProbe, private val jvmVersionDetector: JvmVersionDetector) {
     private
     val logger = LoggerFactory.getLogger(AvailableJavaInstallations::class.java)
-    private
-    val javaInstallations: Map<JavaVersion, JavaInstallation>
 
     val currentJavaInstallation: JavaInstallation
     val javaInstallationForTest: JavaInstallation
+    val javaInstallationForCompilation: JavaInstallation
 
     init {
-        val resolvedJava7Home = resolveJavaHomePath(java7HomePropertyName, project)
-        val resolvedJava9Home = resolveJavaHomePath(java9HomePropertyName, project)
-        require(resolvedJava9Home != null || JavaVersion.current().isJava9Compatible) { "Building gradle on Java 7/8 requires $java9HomePropertyName system property or project property" }
-        val javaHomesForCompilation = listOfNotNull(resolvedJava7Home, resolvedJava9Home)
-        val javaHomeForTest = resolveJavaHomePath(testJavaHomePropertyName, project)
-        javaInstallations = findJavaInstallations(javaHomesForCompilation)
         currentJavaInstallation = JavaInstallation(true, Jvm.current(), JavaVersion.current(), javaInstallationProbe)
-        javaInstallationForTest = when (javaHomeForTest) {
-            null -> currentJavaInstallation
-            else -> detectJavaInstallation(javaHomeForTest)
+        javaInstallationForTest = determineJavaInstallation(testJavaHomePropertyName)
+        javaInstallationForCompilation = determineJavaInstallationForCompilation()
+    }
+
+    private
+    fun determineJavaInstallationForCompilation() = if (JavaVersion.current().isJava9Compatible) currentJavaInstallation else determineJavaInstallation(java9HomePropertyName)
+
+    private
+    fun determineJavaInstallation(propertyName: String): JavaInstallation {
+        val resolvedJavaHome = resolveJavaHomePath(propertyName)
+        when (resolvedJavaHome) {
+            null -> return currentJavaInstallation
+            else -> return detectJavaInstallation(resolvedJavaHome)
         }
     }
 
-    fun jdkForCompilation(javaVersion: JavaVersion) = when {
-        javaVersion == currentJavaInstallation.javaVersion -> currentJavaInstallation
-        javaInstallations.containsKey(javaVersion) -> javaInstallations[javaVersion]!!
-        javaVersion <= currentJavaInstallation.javaVersion -> currentJavaInstallation
-        else -> throw IllegalArgumentException("No Java installation found which supports Java version $javaVersion")
+    fun validateForAllBuilds() {
+        validate(validateBuildJdks())
     }
 
-    fun validateForRemoteBuildCacheUsage() {
-        val validationErrors = validateCompilationJdks()
-        if (validationErrors.isNotEmpty()) {
-            val message = formatValidationError(
-                "In order to have cache hits from the remote build cache, your environment needs to be configured accordingly!",
-                validationErrors
-            )
-            throw GradleException(message)
+    fun validateForCompilation() {
+        if (remoteBuildCacheEnabled()) {
+            validate(validateForRemoteCache())
         }
+        validate(validateCompilationJdks())
     }
 
     fun validateForProductionEnvironment() {
-        val validationErrors = validateCompilationJdks() +
-            mapOf(
-                validationMessage(testJavaHomePropertyName, javaInstallationForTest, oracleJdk8) to (javaInstallationForTest.vendorAndMajorVersion != oracleJdk8)
-            ).filterValues { it }.keys
-        if (validationErrors.isNotEmpty()) {
-            throw GradleException(formatValidationError("JDKs not configured correctly for production build.", validationErrors))
+        validate(validateProductionJdks())
+    }
+
+    private
+    fun remoteBuildCacheEnabled() = (project.gradle as GradleInternal).settings.buildCache.remote?.isEnabled == true
+
+    private
+    fun validateForRemoteCache(): Map<String, Boolean> =
+        mapOf("Remote cache is enabled, which requires Oracle JDK 8/9 to perform this build. It's currently ${currentJavaInstallation.vendorAndMajorVersion} at ${currentJavaInstallation.javaHome}." to
+            (currentJavaInstallation.vendorAndMajorVersion != oracleJdk8 && currentJavaInstallation.vendorAndMajorVersion != oracleJdk9))
+
+    private
+    fun validate(errorMessages: Map<String, Boolean>) {
+        val errors = errorMessages.filterValues { it }.keys
+        if (errors.isNotEmpty()) {
+            throw GradleException(formatValidationError("JDKs not configured correctly for the build.", errors))
         }
     }
 
     private
-    fun validateCompilationJdks(): Collection<String> {
-        val jdkForCompilation = javaInstallations.values.firstOrNull()
-        return mapOf(
-            "Must set project or system property '$java7HomePropertyName' to the path of an $oracleJdk7, is currently unset." to (jdkForCompilation == null),
-            validationMessage(java7HomePropertyName, jdkForCompilation, oracleJdk7) to (jdkForCompilation != null && jdkForCompilation.vendorAndMajorVersion != oracleJdk7),
+    fun validateCompilationJdks(): Map<String, Boolean> =
+        mapOf(
+            "Must use JDK 9+ to perform compilation in this build. It's currently ${javaInstallationForCompilation.vendorAndMajorVersion} at ${javaInstallationForCompilation.javaHome}. " +
+                "You can either run the build on JDK 9+ or set a project or system property '$java9HomePropertyName' to a Java9-compatible JDK home path" to
+                !javaInstallationForCompilation.javaVersion.isJava9Compatible
+        )
+
+    private
+    fun validateBuildJdks(): Map<String, Boolean> =
+        if (!JavaVersion.current().isJava8Compatible)
+            mapOf("Must use JDK 8+ to perform this build. Is currently ${currentJavaInstallation.vendorAndMajorVersion} at ${currentJavaInstallation.javaHome}." to true)
+        else emptyMap()
+
+    private
+    fun validateProductionJdks(): Map<String, Boolean> =
+        mapOf(
             "Must use Oracle JDK 8/9 to perform this build. Is currently ${currentJavaInstallation.vendorAndMajorVersion} at ${currentJavaInstallation.javaHome}." to
                 (currentJavaInstallation.vendorAndMajorVersion != oracleJdk8 && currentJavaInstallation.vendorAndMajorVersion != oracleJdk9)
-        ).filterValues { it }.keys
-    }
+        )
 
     private
     fun formatValidationError(mainMessage: String, validationErrors: Collection<String>): String =
@@ -144,17 +153,13 @@ open class AvailableJavaInstallations(project: Project, private val javaInstalla
         "Must set project or system property '$propertyName' to the path of an $requiredVersion, is currently ${javaInstallation?.vendorAndMajorVersion} at ${javaInstallation?.javaHome}."
 
     private
-    fun findJavaInstallations(javaHomes: List<String>) =
-        javaHomes.map(::detectJavaInstallation).associateBy { it.javaVersion }
-
-    private
     fun detectJavaInstallation(javaHomePath: String) =
         Jvm.forHome(File(javaHomePath)).let {
             JavaInstallation(false, Jvm.forHome(File(javaHomePath)), jvmVersionDetector.getJavaVersion(it), javaInstallationProbe)
         }
 
     private
-    fun resolveJavaHomePath(propertyName: String, project: Project): String? = when {
+    fun resolveJavaHomePath(propertyName: String): String? = when {
         project.hasProperty(propertyName) -> project.property(propertyName) as String
         System.getProperty(propertyName) != null -> System.getProperty(propertyName)
         else -> null

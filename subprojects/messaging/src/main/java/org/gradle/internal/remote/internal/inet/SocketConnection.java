@@ -19,6 +19,7 @@ package org.gradle.internal.remote.internal.inet;
 import com.google.common.base.Objects;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.io.BufferCaster;
 import org.gradle.internal.remote.internal.RecoverableMessageIOException;
 import org.gradle.internal.serialize.FlushableEncoder;
 import org.gradle.internal.serialize.ObjectReader;
@@ -32,7 +33,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.InetSocketAddress;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedSelectorException;
 import java.nio.channels.SelectionKey;
@@ -156,7 +156,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
             selector = Selector.open();
             socket.register(selector, SelectionKey.OP_READ);
             buffer = ByteBuffer.allocateDirect(4096);
-            buffer.limit(0);
+            BufferCaster.cast(buffer).limit(0);
         }
 
         @Override
@@ -184,19 +184,19 @@ public class SocketConnection<T> implements RemoteConnection<T> {
                     return -1;
                 }
 
-                ((Buffer)buffer).clear();
+                BufferCaster.cast(buffer).clear();
                 int nread;
                 try {
                     nread = socket.read(buffer);
                 } catch (IOException e) {
                     if (isEndOfStream(e)) {
-                        buffer.position(0);
-                        buffer.limit(0);
+                        BufferCaster.cast(buffer).position(0);
+                        BufferCaster.cast(buffer).limit(0);
                         return -1;
                     }
                     throw e;
                 }
-                ((Buffer)buffer).flip();
+                BufferCaster.cast(buffer).flip();
 
                 if (nread < 0) {
                     return -1;
@@ -257,7 +257,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
         }
 
         private void writeBufferToChannel() throws IOException {
-            ((Buffer)buffer).flip();
+            BufferCaster.cast(buffer).flip();
             int count = writeWithNonBlockingRetry();
             if (count == 0) {
                 // buffer was still full after non-blocking retries, now block

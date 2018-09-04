@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Describable;
 
-public interface ContextAwareTaskAction extends ClassLoaderAwareTaskAction, Describable {
+public interface ContextAwareTaskAction extends ImplementationAwareTaskAction, Describable {
     void contextualise(TaskExecutionContext context);
     void releaseContext();
 }

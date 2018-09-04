@@ -23,14 +23,11 @@ We will look at Java projects in detail in this chapter, but most of the topics 
 
 The simplest build script for a Java project applies the <<java_plugin.adoc#java_plugin,Java Plugin>> and optionally sets the project version and Java compatibility versions:
 
-=== Example: Applying the Java Plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/java/basic/build.gradle[tag=apply-java-plugin]
-----
-
+.Applying the Java Plugin
+====
+include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=apply-java-plugin]"]
+include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=apply-java-plugin]"]
+====
 
 By applying the Java Plugin, you get a whole host of features:
 
@@ -109,13 +106,11 @@ Specifying the dependencies for your Java project requires just three pieces of 
 
 The first two are specified in a `dependencies {}` block and the third in a `repositories {}` block. For example, to tell Gradle that your project requires version 3.6.7 of http://hibernate.org/[Hibernate] Core to compile and run your production code, and that you want to download the library from the Maven Central repository, you can use the following fragment:
 
-=== Example: Declaring dependencies
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/java/basic/build.gradle[tag=java-dependency-mgmt]
-----
+.Declaring dependencies
+====
+include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=java-dependency-mgmt]"]
+include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=java-dependency-mgmt]"]
+====
 
 The Gradle terminology for the three elements is as follows:
 
@@ -176,23 +171,19 @@ Imagine you have a legacy project that uses an _src_ directory for the productio
 
 Each source set defines where its source code resides, along with the resources and the output directory for the class files. You can override the convention values by using the following syntax:
 
-==== Example: Declaring custom source directories
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/java/customDirs/build.gradle[tag=custom-src-dirs]
-----
+.Declaring custom source directories
+====
+include::sample[dir="userguide/java/customDirs/groovy",files="build.gradle[tags=custom-src-dirs]"]
+include::sample[dir="userguide/java/customDirs/kotlin",files="build.gradle.kts[tags=custom-src-dirs]"]
+====
 
 Now Gradle will only search directly in _src_ and _test_ for the respective source code. What if you don't want to override the convention, but simply want to _add_ an extra source directory, perhaps one that contains some third-party source code you want to keep separate? The syntax is similar:
 
-==== Example: Declaring custom source directories additively
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/java/customDirs/build.gradle[tag=custom-extra-src-dir]
-----
+.Declaring custom source directories additively
+====
+include::sample[dir="userguide/java/customDirs/groovy",files="build.gradle[tags=custom-extra-src-dir]"]
+include::sample[dir="userguide/java/customDirs/kotlin",files="build.gradle.kts[tags=custom-extra-src-dir]"]
+====
 
 Crucially, we're using the _method_ `srcDir()` here to append a directory path, whereas setting the `srcDirs` property replaces any existing values. This is a common convention in Gradle: setting a property replaces values, while the corresponding method appends values.
 
@@ -204,13 +195,11 @@ Most of the compiler options are accessible through the corresponding task, such
 
 For example, if you want to use a separate JVM process for the compiler and prevent compilation failures from failing the build, you can use this configuration:
 
-==== Example: Setting Java compiler options
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/java/basic/build.gradle[tag=java-compiler-options]
-----
+.Setting Java compiler options
+====
+include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=java-compiler-options]"]
+include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=java-compiler-options]"]
+====
 
 That's also how you can change the verbosity of the compiler, disable debug output in the byte code and configure where the compiler can find annotation processors.
 
@@ -242,7 +231,7 @@ To use Java 6 or Java 7, the following tasks need to be configured:
 
 The following sample shows how the `build.gradle` needs to be adjusted. In order to be able to make the build machine-independent, the location of the old Java home and target version should be configured in `GRADLE_USER_HOME/gradle.properties` footnote:[For more details on `gradle.properties` see <<build_environment.adoc#sec:gradle_configuration_properties,Gradle configuration properties>> ] in the user's home directory on each developer machine, as shown in the example.
 
-==== Example: Configure Java 6 build
+==== Example: Configure Java 7 build
 
 [source,properties]
 .gradle.properties
@@ -335,26 +324,22 @@ The one and only packaging feature provided by the Java Plugin directly is a `ja
 
 If you want any other JAR or alternative archive built, you either have to apply an appropriate plugin or create the task manually. For example, if you want a task that generates a 'sources' JAR, define your own `Jar` task like so:
 
-=== Example: Defining a custom task to create a 'sources' JAR
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/java/basic/build.gradle[tag=defining-sources-jar-task]
-----
+.Defining a custom task to create a 'sources' JAR
+====
+include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=defining-sources-jar-task]"]
+include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=defining-sources-jar-task]"]
+====
 
 See link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar] for more details on the configuration options available to you. And note that you need to use `classifier` rather than `appendix` here for correct publication of the JAR.
 
 
 If you instead want to create an 'uber' (AKA 'fat') JAR, then you can use a task definition like this:
 
-=== Example: Creating a Java uber or fat JAR
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/archivesWithJavaPlugin/build.gradle[tag=create-uber-jar-example]
-----
+.Creating a Java uber or fat JAR
+====
+include::sample[dir="userguide/files/archivesWithJavaPlugin/groovy",files="build.gradle[tags=create-uber-jar-example]"]
+include::sample[dir="userguide/files/archivesWithJavaPlugin/kotlin",files="build.gradle.kts[tags=create-uber-jar-example]"]
+====
 
 There are several options for publishing a JAR once it has been created:
 
@@ -418,25 +403,21 @@ The Java Plugin provides a `javadoc` task of type link:{groovyDslPath}/org.gradl
 
 As an example of what you can do, imagine you want to use Asciidoc syntax in your Javadoc comments. To do this, you need to add Asciidoclet to Javadoc's doclet path. Here's an example that does just that:
 
-=== Example: Using a custom doclet with Javadoc
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/java/basic/build.gradle[tag=using-custom-doclet]
-----
+.Using a custom doclet with Javadoc
+====
+include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=using-custom-doclet]"]
+include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=using-custom-doclet]"]
+====
 
 You don't have to create a configuration for this, but it's an elegant way to handle dependencies that are required for a unique purpose.
 
 You might also want to create your own Javadoc tasks, for example to generate API docs for the tests:
 
-=== Example: Defining a custom Javadoc task
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/java/basic/build.gradle[tag=defining-custom-javadoc-task]
-----
+.Defining a custom Javadoc task
+====
+include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=defining-custom-javadoc-task]"]
+include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=defining-custom-javadoc-task]"]
+====
 
 These are just two non-trivial but common customizations that you might come across.
 

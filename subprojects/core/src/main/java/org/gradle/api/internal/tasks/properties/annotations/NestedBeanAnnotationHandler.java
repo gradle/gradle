@@ -38,6 +38,11 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
     }
 
     @Override
+    public boolean shouldVisit(PropertyVisitor visitor) {
+        return !visitor.visitOutputFilePropertiesOnly();
+    }
+
+    @Override
     public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
         Object nested;
         try {
@@ -71,6 +76,12 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
 
         @Nullable
         @Override
+        public Object getContainerValue() {
+            return null;
+        }
+
+        @Nullable
+        @Override
         public Object call() {
             return null;
         }
@@ -85,6 +96,12 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         @Nullable
         @Override
         public Object call() {
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public Object getContainerValue() {
             return null;
         }
 

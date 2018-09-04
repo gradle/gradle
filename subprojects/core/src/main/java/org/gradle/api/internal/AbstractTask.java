@@ -29,11 +29,11 @@ import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
-import org.gradle.api.internal.tasks.ClassLoaderAwareTaskAction;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.DefaultPropertySpecFactory;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -41,6 +41,7 @@ import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskLocalState;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
+import org.gradle.api.internal.tasks.ImplementationAwareTaskAction;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
@@ -61,6 +62,7 @@ import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.internal.Factory;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.logging.compatbridge.LoggingManagerInternalCompatibilityBridge;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
@@ -675,13 +677,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
 
         @Override
-        public ClassLoader getClassLoader() {
-            return closure.getClass().getClassLoader();
-        }
-
-        @Override
-        public String getActionClassName() {
-            return AbstractTask.getActionClassName(closure);
+        public ImplementationSnapshot getActionImplementation(ClassLoaderHierarchyHasher hasher) {
+            return ImplementationSnapshot.of(AbstractTask.getActionClassName(closure), hasher.getClassLoaderHash(closure.getClass().getClassLoader()));
         }
 
         @Override
@@ -730,21 +727,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
 
         @Override
-        public ClassLoader getClassLoader() {
-            if (action instanceof ClassLoaderAwareTaskAction) {
-                return ((ClassLoaderAwareTaskAction) action).getClassLoader();
-            } else {
-                return action.getClass().getClassLoader();
+        public ImplementationSnapshot getActionImplementation(ClassLoaderHierarchyHasher hasher) {
+            if (action instanceof ImplementationAwareTaskAction) {
+                return ((ImplementationAwareTaskAction) action).getActionImplementation(hasher);
             }
-        }
-
-        @Override
-        public String getActionClassName() {
-            if (action instanceof ClassLoaderAwareTaskAction) {
-                return ((ClassLoaderAwareTaskAction) action).getActionClassName();
-            } else {
-                return AbstractTask.getActionClassName(action);
-            }
+            return ImplementationSnapshot.of(AbstractTask.getActionClassName(action), hasher.getClassLoaderHash(action.getClass().getClassLoader()));
         }
 
         @Override

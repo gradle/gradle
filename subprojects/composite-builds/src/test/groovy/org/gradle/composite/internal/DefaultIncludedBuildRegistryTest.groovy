@@ -237,7 +237,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     }
 
     def build(File rootDir) {
-        return BuildDefinition.fromStartParameterForBuild(StartParameter.newInstance(), null, rootDir, DefaultPluginRequests.EMPTY, null)
+        return BuildDefinition.fromStartParameterForBuild(StartParameter.getConstructor().newInstance(), null, rootDir, DefaultPluginRequests.EMPTY, null)
     }
 
     def rootBuild() {

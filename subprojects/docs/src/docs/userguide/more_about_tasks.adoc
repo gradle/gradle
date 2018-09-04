@@ -646,11 +646,13 @@ The `@CompileClasspath` annotation was introduced in Gradle 3.4. To stay compati
 
 | `@link:{javadocPath}/org/gradle/api/tasks/OutputFiles.html[OutputFiles]`
 | `Map&lt;String, File&gt;`+++**+++ or `Iterable&lt;File&gt;`+++*+++
-| An iterable of output files (no directories). The task outputs can only be <<build_cache.adoc#sec:task_output_caching, cached>> if a `Map` is provided.
+| An iterable or map of output files.
+Using a file tree turns <<build_cache.adoc#sec:task_output_caching, caching>> off for the task.
 
 | `@link:{javadocPath}/org/gradle/api/tasks/OutputDirectories.html[OutputDirectories]`
 | `Map&lt;String, File&gt;`+++**+++ or `Iterable&lt;File&gt;`+++*+++
-| An iterable of output directories (no files). The task outputs can only be <<build_cache.adoc#sec:task_output_caching, cached>> if a `Map` is provided.
+| An iterable of output directories.
+Using a file tree turns <<build_cache.adoc#sec:task_output_caching, caching>> off for the task.
 
 | `@link:{javadocPath}/org/gradle/api/tasks/Destroys.html[Destroys]`
 | `File` or `Iterable&lt;File&gt;`+++*+++
@@ -965,17 +967,33 @@ One last benefit of defining task inputs and outputs is that Gradle can use this
 [[sec:how_does_it_work]]
 === How does it work?
 
-Before a task is executed for the first time, Gradle takes a snapshot of the inputs. This snapshot contains the paths of input files and a hash of the contents of each file. Gradle then executes the task. If the task completes successfully, Gradle takes a snapshot of the outputs. This snapshot contains the set of output files and a hash of the contents of each file. Gradle persists both snapshots for the next time the task is executed.
+Before a task is executed for the first time, Gradle takes a fingerprint of the inputs. This fingerprint contains the paths of input files and a hash of the contents of each file. Gradle then executes the task. If the task completes successfully, Gradle takes a fingerprint of the outputs. This fingerprint contains the set of output files and a hash of the contents of each file. Gradle persists both fingerprints for the next time the task is executed.
 
-Each time after that, before the task is executed, Gradle takes a new snapshot of the inputs and outputs. If the new snapshots are the same as the previous snapshots, Gradle assumes that the outputs are up to date and skips the task. If they are not the same, Gradle executes the task. Gradle persists both snapshots for the next time the task is executed.
+Each time after that, before the task is executed, Gradle takes a new fingerprint of the inputs and outputs. If the new fingerprints are the same as the previous fingerprints, Gradle assumes that the outputs are up to date and skips the task. If they are not the same, Gradle executes the task. Gradle persists both fingerprints for the next time the task is executed.
 
 Gradle also considers the _code_ of the task as part of the inputs to the task. When a task, its actions, or its dependencies change between executions, Gradle considers the task as out-of-date.
 
-Gradle understands if a file property (e.g. one holding a Java classpath) is order-sensitive. When comparing the snapshot of such a property, even a change in the order of the files will result in the task becoming out-of-date.
+Gradle understands if a file property (e.g. one holding a Java classpath) is order-sensitive. When comparing the fingerprint of such a property, even a change in the order of the files will result in the task becoming out-of-date.
 
 Note that if a task has an output directory specified, any files added to that directory since the last time it was executed are ignored and will NOT cause the task to be out of date. This is so unrelated tasks may share an output directory without interfering with each other. If this is not the behaviour you want for some reason, consider using link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[TaskOutputs.upToDateWhen(groovy.lang.Closure)]
 
 The inputs for the task are also used to calculate the <<build_cache.adoc#build_cache,build cache>> key used to load task outputs when enabled. For more details see <<build_cache.adoc#sec:task_output_caching,Task output caching>>.
+
+[NOTE]
+====
+For tracking the implementation of tasks, task actions and nested inputs, Gradle uses the class name and an identifier for the classpath which contains the implementation.
+There are some situations when Gradle is not able to track the implementation precisely:
+
+Unknown classloader::
+When the classloader which loaded the implementation has not been created by Gradle, the classpath cannot be determined.
+
+Java lambda::
+Java lambda classes are created at runtime with a non-deterministic classname.
+Therefore, the class name does not identify the implementation of the lambda and changes between different Gradle runs.
+
+When the implementation of a task, task action or a nested input cannot be tracked precisely, Gradle disables any caching for the task.
+That means that the task will never be up-to-date or loaded from the <<build_cache.adoc#sec:task_output_caching,build cache>>.
+====
 
 [[sec:advanced_inc_build]]
 === Advanced techniques
@@ -1143,7 +1161,7 @@ include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced
 include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildUpToDateWhenAgain.out[]
 ----
 
-The `{ false }` closure ensures that `copyResources` will always perform the copy, irrespective of whether there is no change in the inputs or outputs.
+The `{ false }` closure ensures that `alwaysInstrumentClasses` will always be executed, irrespective of whether there is no change in the inputs or outputs.
 
 You can of course put more complex logic into the closure. You could check whether a particular record in a database table exists or has changed for example. Just be aware that up-to-date checks should _save_ you time. Don’t add checks that cost as much or more time than the standard execution of the task. In fact, if a task ends up running frequently anyway, because it’s rarely up to date, then it may not be worth having an up-to-date check at all. Remember that your checks will always run if the task is in the execution task graph.
 

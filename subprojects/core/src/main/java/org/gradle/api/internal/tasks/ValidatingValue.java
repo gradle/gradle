@@ -24,5 +24,8 @@ public interface ValidatingValue extends Callable<Object>  {
     @Override
     Object call();
 
+    @Nullable
+    Object getContainerValue();
+
     void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context);
 }

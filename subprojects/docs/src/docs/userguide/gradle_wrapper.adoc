@@ -170,7 +170,7 @@ Most users of Gradle are happy with the default runtime behavior of the Wrapper.
 
 Let’s assume you grew tired of defining the `-all` distribution type on the command line every time you upgrade the Wrapper. You can save yourself some keyboard strokes by re-configuring the `wrapper` task.
 
-.Example: Customizing the Wrapper task
+.Customizing the Wrapper task
 ====
 include::sample[dir="userguide/wrapper/customized-task/groovy",files="build.gradle[tags=customized-wrapper-task]"]
 include::sample[dir="userguide/wrapper/customized-task/kotlin",files="build.gradle.kts[tags=customized-wrapper-task]"]

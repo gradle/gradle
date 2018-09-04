@@ -22,7 +22,7 @@ import org.junit.Rule
 
 class SamplesAnnounceIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule Sample sample = new Sample(temporaryFolder, "announce")
+    @Rule Sample sample = new Sample(temporaryFolder, "announce/groovy")
 
     def "make some announcements"() {
         // tweak sample to print all messages to standard out

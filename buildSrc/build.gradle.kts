@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_DEFAULT_URL
 import org.gradle.plugins.ide.idea.model.IdeaModel
 
 import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin
@@ -23,11 +22,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 import java.io.File
 import java.util.Properties
-
-
-buildscript {
-    project.apply(from = "$rootDir/../gradle/shared-with-buildSrc/mirrors.gradle.kts")
-}
 
 plugins {
     `kotlin-dsl`
@@ -73,13 +67,18 @@ subprojects {
         }
     }
 }
-var pluginPortalUrl = (project.rootProject.extensions.extraProperties.get("repositoryMirrors") as Map<String, String>).get("gradleplugins")
 
 allprojects {
     repositories {
-        maven(url = "https://repo.gradle.org/gradle/libs-releases")
-        maven(url = "https://repo.gradle.org/gradle/libs-snapshots")
-        maven(url = pluginPortalUrl ?: PLUGIN_PORTAL_DEFAULT_URL)
+        gradlePluginPortal()
+        maven {
+            name = "Gradle libs"
+            url = uri("https://repo.gradle.org/gradle/libs")
+        }
+        maven {
+            name = "kotlin-dev"
+            url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
+        }
     }
 }
 
@@ -198,7 +197,7 @@ fun Project.applyKotlinProjectConventions() {
 
     plugins.withType<KotlinDslPlugin> {
         kotlinDslPluginOptions {
-//            experimentalWarning.set(false)
+            experimentalWarning.set(false)
         }
     }
 }

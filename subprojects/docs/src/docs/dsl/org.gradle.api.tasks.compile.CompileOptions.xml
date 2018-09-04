@@ -70,7 +70,7 @@
             </tr>
             <tr>
                 <td>incremental</td>
-                <td><literal>false</literal></td>
+                <td><literal>true</literal></td>
             </tr>
             <tr>
                 <td>annotationProcessorPath</td>

@@ -17,6 +17,7 @@
 package org.gradle.internal.locking;
 
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -41,10 +42,10 @@ public class LockFileReaderWriter {
                                                  "# This file is expected to be part of source control.\n";
 
     private final Path lockFilesRoot;
-    private final boolean isProjectScope;
+    private final DomainObjectContext context;
 
-    public LockFileReaderWriter(FileResolver fileResolver, boolean isProjectScope) {
-        this.isProjectScope = isProjectScope;
+    public LockFileReaderWriter(FileResolver fileResolver, DomainObjectContext context) {
+        this.context = context;
         Path resolve = null;
         if (fileResolver.canResolveRelativePath()) {
             resolve = fileResolver.resolve(DEPENDENCY_LOCKING_FOLDER).toPath();
@@ -93,16 +94,16 @@ public class LockFileReaderWriter {
     }
 
     private String decorate(String configurationName) {
-        if (isProjectScope) {
-            return configurationName;
-        } else {
+        if (context.isScript()) {
             return "buildscript-" + configurationName;
+        } else {
+            return configurationName;
         }
     }
 
     private void checkValidRoot(String configurationName) {
         if (lockFilesRoot == null) {
-            throw new IllegalStateException("Dependency locking cannot be used for configuration '" + configurationName + "'." +
+            throw new IllegalStateException("Dependency locking cannot be used for configuration '" + context.identityPath(configurationName) + "'." +
                 " See limitations in the documentation (" + DOC_REG.getDocumentationFor("dependency_locking", "locking_limitations") +").");
         }
     }

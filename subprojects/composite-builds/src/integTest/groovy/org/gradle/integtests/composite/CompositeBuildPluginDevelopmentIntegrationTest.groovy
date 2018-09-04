@@ -132,10 +132,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 
         applyPlugin(buildA)
 
-        includeBuild pluginBuild, """
-            // Only substitute version 1.0 with project dependency. This allows this project to build with the published dependency.
-            substitute module("org.test:pluginBuild:1.0") with project(":")
-        """
+        includeBuild pluginBuild
 
         when:
         execute(buildA, "tasks")

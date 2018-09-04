@@ -23,7 +23,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionVisitor;
+import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.specs.Spec;
@@ -121,8 +121,8 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
 
     @Override
     public List<FileSystemSnapshot> snapshot(FileCollectionInternal fileCollection) {
-        FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl();
-        fileCollection.visitRootElements(visitor);
+        FileCollectionLeafVisitorImpl visitor = new FileCollectionLeafVisitorImpl();
+        fileCollection.visitLeafCollections(visitor);
         return visitor.getRoots();
     }
 
@@ -232,7 +232,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         return FileSystemSnapshotFilter.filterSnapshot(spec, snapshot, fileSystem);
     }
 
-    private class FileCollectionVisitorImpl implements FileCollectionVisitor {
+    private class FileCollectionLeafVisitorImpl implements FileCollectionLeafVisitor {
         private final List<FileSystemSnapshot> roots = new ArrayList<FileSystemSnapshot>();
 
         @Override
@@ -243,7 +243,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         }
 
         @Override
-        public void visitTree(FileTreeInternal fileTree) {
+        public void visitGenericFileTree(FileTreeInternal fileTree) {
             roots.add(snapshotFileTree(fileTree));
         }
 

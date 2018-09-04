@@ -30,8 +30,10 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
@@ -74,6 +76,11 @@ public class DefaultObjectFactory implements ObjectFactory {
     public <T> Property<T> property(Class<T> valueType) {
         if (valueType == null) {
             throw new IllegalArgumentException("Class cannot be null");
+        }
+
+        if (valueType.isPrimitive()) {
+            // Kotlin passes these types for its own basic types
+            return Cast.uncheckedCast(property(JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType)));
         }
 
         Property<T> property = new DefaultPropertyState<T>(valueType);

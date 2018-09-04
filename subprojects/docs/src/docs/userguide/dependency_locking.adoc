@@ -46,23 +46,19 @@ Gradle will even emit a warning when persisting lock state and changing dependen
 
 Locking of a configuration happens through the link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy]:
 
-==== Example: Locking a specific configuration
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/build.gradle[tag=locking-one]
-----
+.Locking a specific configuration
+====
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/groovy",files="build.gradle[tags=locking-one]"]
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/kotlin",files="build.gradle.kts[tags=locking-one]"]
+====
 
 Or the following, as a way to lock all configurations:
 
-==== Example: Locking all configurations
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingAllConfigurations/build.gradle[tag=locking-all]
-----
+.Locking all configurations
+====
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingAllConfigurations/groovy",files="build.gradle[tags=locking-all]"]
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingAllConfigurations/kotlin",files="build.gradle.kts[tags=locking-all]"]
+====
 
 [NOTE]
 ====
@@ -75,17 +71,16 @@ Applying locking on non resolvable-configurations is simply a no-op.
 The above will lock all _project_ configurations, but not the _buildscript_ ones.
 ====
 
-==== Example: Locking buildscript classpath configuration
+== Locking buildscript classpath configuration
 
 If you apply plugins to your build, you may want to leverage dependency locking there as well.
 In order to lock the <<plugins.adoc#sec:applying_plugins_buildscript,`classpath` configuration>> used for script plugins, do the following:
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingClasspathConfiguration/build.gradle[tag=locking-classpath]
-----
-
+.Locking buildscript classpath configuration
+====
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingClasspathConfiguration/groovy",files="build.gradle[tags=locking-classpath]"]
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingClasspathConfiguration/kotlin",files="build.gradle.kts[tags=locking-classpath]"]
+====
 
 == Generating and updating dependency locks
 
@@ -104,13 +99,11 @@ This will effectively lock all resolvable configurations that have locking enabl
 Note that in a multi project setup, `dependencies` only is executed on _one_ project, the root one in this case.
 * Declare a custom task that will resolve all configurations
 
-==== Example: Resolving all configurations
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingAllConfigurations/build.gradle[tag=resolve-all]
-----
+.Resolving all configurations
+====
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingAllConfigurations/groovy",files="build.gradle[tags=resolve-all]"]
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingAllConfigurations/kotlin",files="build.gradle.kts[tags=resolve-all]"]
+====
 
 That second option, with proper choosing of configurations, can be the only option in the native world, where not all configurations can be resolved on a single platform.
 
@@ -124,23 +117,20 @@ In that case the configuration name will be prefixed with `buildscript-`.
 The content of the file is a module notation per line, with a header giving some context.
 Module notations are ordered alphabetically, to ease diffs.
 
-==== Example: Lockfile content
-
-[source.multi-language-sample,groovy]
+.Lockfile content
+[listing]
 .gradle/dependency-locks/compileClasspath.lockfile
 ----
-include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/gradle/dependency-locks/compileClasspath.lockfile[]
+include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/groovy/gradle/dependency-locks/compileClasspath.lockfile[]
 ----
 
 which matches the following dependency declaration:
 
-==== Example: Dynamic dependency declaration
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/build.gradle[tag=locking-deps]
-----
+.Dynamic dependency declaration
+====
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/groovy",files="build.gradle[tags=locking-deps]"]
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration/kotlin",files="build.gradle.kts[tags=locking-deps]"]
+====
 
 == Running a build with lock state present
 

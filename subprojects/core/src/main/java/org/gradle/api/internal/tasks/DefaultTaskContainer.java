@@ -29,12 +29,14 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
+import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
+import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
@@ -84,6 +86,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     );
 
     private final ITaskFactory taskFactory;
+    private final NamedEntityInstantiator<Task> taskInstantiator;
     private final ProjectAccessListener projectAccessListener;
     private final BuildOperationExecutor buildOperationExecutor;
 
@@ -94,9 +97,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     private MutableModelNode modelNode;
 
-    public DefaultTaskContainer(ProjectInternal project, Instantiator instantiator, ITaskFactory taskFactory, ProjectAccessListener projectAccessListener, TaskStatistics statistics, BuildOperationExecutor buildOperationExecutor, CrossProjectConfigurator crossProjectConfigurator) {
+    public DefaultTaskContainer(final ProjectInternal project, Instantiator instantiator, final ITaskFactory taskFactory, ProjectAccessListener projectAccessListener, TaskStatistics statistics, BuildOperationExecutor buildOperationExecutor, CrossProjectConfigurator crossProjectConfigurator) {
         super(Task.class, instantiator, project);
         this.taskFactory = taskFactory;
+        taskInstantiator = new TaskInstantiator(taskFactory, project);
         this.projectAccessListener = projectAccessListener;
         this.statistics = statistics;
         this.crossProjectConfigurator = crossProjectConfigurator;
@@ -474,7 +478,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public NamedEntityInstantiator<Task> getEntityInstantiator() {
-        return taskFactory;
+        return taskInstantiator;
     }
 
     public DynamicObject getTasksAsDynamicObject() {
@@ -613,7 +617,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public <S extends Task> TaskCollection<S> withType(Class<S> type) {
         Instantiator instantiator = getInstantiator();
-        return Cast.uncheckedCast(instantiator.newInstance(RealizableTaskCollection.class, type, super.withType(type), modelNode, instantiator));
+        return Cast.uncheckedCast(instantiator.newInstance(DefaultRealizableTaskCollection.class, type, super.withType(type), modelNode, instantiator));
     }
 
     @Override
@@ -701,7 +705,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         @Override
         protected Action<? super I> wrap(Action action) {
-            return crossProjectConfigurator.withProjectMutationDisabled(action);
+            return MutationGuards.of(crossProjectConfigurator).withMutationDisabled(action);
         }
 
         @Override

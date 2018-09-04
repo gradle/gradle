@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import com.google.common.io.Files;
-import org.gradle.api.internal.tasks.TaskDependencies;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 
 import java.io.File;
@@ -48,6 +47,6 @@ public class FileBasedMavenArtifact extends AbstractMavenArtifact {
 
     @Override
     protected TaskDependencyInternal getDefaultBuildDependencies() {
-        return TaskDependencies.EMPTY;
+        return TaskDependencyInternal.EMPTY;
     }
 }

@@ -49,14 +49,16 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
     private final ModuleComponentIdentifier componentId;
     private final ComponentIdentifier platformId; // just for reporting
     private final boolean force;
+    private final boolean transitive;
 
-    LenientPlatformDependencyMetadata(ResolveState resolveState, NodeState from, ModuleComponentSelector cs, ModuleComponentIdentifier componentId, ComponentIdentifier platformId, boolean force) {
+    LenientPlatformDependencyMetadata(ResolveState resolveState, NodeState from, ModuleComponentSelector cs, ModuleComponentIdentifier componentId, ComponentIdentifier platformId, boolean force, boolean transitive) {
         this.resolveState = resolveState;
         this.from = from;
         this.cs = cs;
         this.componentId = componentId;
         this.platformId = platformId;
         this.force = force;
+        this.transitive = transitive;
     }
 
     @Override
@@ -106,11 +108,11 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
 
     @Override
     public boolean isTransitive() {
-        return true;
+        return transitive;
     }
 
     @Override
-    public boolean isPending() {
+    public boolean isConstraint() {
         return true;
     }
 
@@ -159,7 +161,7 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
                         }
                         if (!componentVersion.equals(target)) {
                             // We will only add dependencies to the leaves if there is such a published module
-                            PotentialEdge potentialEdge = PotentialEdge.of(resolveState, from, leafId, leafSelector, platformId, platformState.isForced());
+                            PotentialEdge potentialEdge = PotentialEdge.of(resolveState, from, leafId, leafSelector, platformId, platformState.isForced(), false);
                             if (potentialEdge.metadata != null) {
                                 result = registerPlatformEdge(result, modules, leafId, leafSelector, platformId, platformState.isForced());
                                 break;
@@ -185,7 +187,8 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
                 leafSelector,
                 leafId,
                 platformId,
-                force
+                force,
+                false
             ));
             return result;
         }

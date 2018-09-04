@@ -10,11 +10,6 @@ Add-->
 ### Example new and noteworthy
 -->
 
-### Incremental build uses less memory
-
-Memory usage for up-to-date checking has been improved.
-For the gradle/gradle build, heap usage dropped by 60 MB to 450 MB, that is a 12% reduction.
-
 ### Build init plugin improvements
 
 This release includes a number of improvements to The [Build Init plugin](userguide/build_init_plugin.html).
@@ -51,6 +46,26 @@ While the `init` task does not automatically create a Git repository, the `init`
 The `SourceDirectorySet` type is often used by plugins to represent some set of source directories and files. Previously, it was only possible to create instances of `SourceDirectorySet` using internal types. This is problematic because when a plugin uses internal types it can often break when new versions of Gradle are released because internal types may change in breaking ways between releases.
 
 In this release of Gradle, the `ObjectFactory` service, which is part of the public API, now includes a method to create `SourceDirectorySet` instances. A plugin can now use this method instead of the internal types.
+
+### JaCoCo plugin now works with the build cache and parallel test execution
+
+The [JaCoCo plugin](userguide/jacoco_plugin.html) plugin now works seamlessly with the build cache.
+When applying the plugin with no extra configuration, the test task stays cacheable and parallel test execution can be used.  
+
+In order to make the tasks cacheable when generating execution data with `append = true`, the tasks running with code coverage are configured to delete the execution data just before they starts executing.
+In this way, stale execution data, which would cause non-repeatable task outputs, is removed.
+
+Since Gradle now takes care of removing the execution data, the `JacocoPluginExtension.append` property has been deprecated.
+The JaCoCo agent is always configured with `append = true`, so it can be used when running tests in parallel. 
+
+### Plural task output properties don't disable caching anymore
+
+When using `@OutputFiles` or `@OutputDirectories` with an `Iterable` type, Gradle used to disable caching for the task with the following message:
+
+> Declares multiple output files for the single output property 'outputFiles' via @OutputFiles, @OutputDirectories or TaskOutputs.files()
+
+This is no longer the case, and using such properties doesn't prevent the task from being cached.
+The only remaining reason to disable caching for the task is if the output contains file trees.
 
 ## Promoted features
 
@@ -117,6 +132,10 @@ In the next major release (6.0), removing dependencies from a task will become a
 Gradle will emit a deprecation warning for code such as `foo.dependsOn.remove(bar)`.  Removing dependencies in this way is error-prone and relies on the internal implementation details of how different tasks are wired together.
 At the moment, we are not planning to provide an alternative. In most cases, task dependencies should be expressed via [task inputs](userguide/more_about_tasks.html#sec:task_inputs_outputs) instead of explicit `dependsOn` relationships.
 
+### The property `append` on `JacocoTaskExtension` has been deprecated
+
+See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
+
 ## Potential breaking changes
 
 <!--
@@ -132,6 +151,19 @@ Additionally the created distribution will contain all artifacts of the `runtime
 ### Removed support for Play Framework 2.2
 
 The previously deprecated support for Play Framework 2.2 has been removed.
+
+### JaCoCo plugin deletes execution data on task execution
+
+See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
+
+### `CopySpec.duplicatesStrategy` is no longer nullable
+
+For better compatibility with the Kotlin DSL, the property setter no longer accepts `null` as a way
+to reset the property back to its default value. Use `DuplicatesStrategy.INHERIT` instead.
+
+### `CheckstyleReports` and `FindbugsReports` `html` property now return `CustomizableHtmlReport`
+
+For easier configurability from statically compiled languages such as Java or Kotlin.
 
 ### Changes to previously deprecated APIs
 
@@ -173,8 +205,15 @@ We would like to thank the following community members for making contributions 
 - [Ben McCann](https://github.com/benmccann) - Remove Play 2.2 support (gradle/gradle#3353)
 - [Björn Kautler](https://github.com/Vampire) - No Deprecated Configurations in Build Init (gradle/gradle#6208)
 - [Georg Friedrich](https://github.com/GFriedrich) - Base Java Library Distribution Plugin on Java Library Plugin (gradle/gradle#5695)
-- [Stefan M.](https://github.com/StefMa) — Include Kotlin DSL samples in Gradle wrapper user manual chapter (gradle/gradle#5923)
-- [Jean-Baptiste Nizet](https://github.com/StefMa) — Include Kotlin DSL samples in Gradle Base Plugin user manual chapter (gradle/gradle#6488)
+- [Stefan M.](https://github.com/StefMa) — Include Kotlin DSL samples in Gradle Wrapper, Java Gradle Plugin, and OSGI Plugin user manual chapters (gradle/gradle#5923, gradle/gradle#6485, gradle/gradle#6539)
+- [Stefan M.](https://github.com/StefMa) - Fix incoherent task name in the Authoring Tasks user manual chapter (gradle/gradle#6581)
+- [Jean-Baptiste Nizet](https://github.com/jnizet) — Include Kotlin DSL samples in Announcements, Base, Java Library Plugins, JaCoCo Plugins, Building Java Projects, Declaring Repositories, Dependency Locking, Dependency Types, Java Library, Java Testing, Artifact Management, IDEA Plugin, Application Plugin, Dependency Management for Java Projects, and Working With Files user manual chapters (gradle/gradle#6488, gradle/gradle#6500, gradle/gradle#6514, gradle/gradle#6518, gradle/gradle#6521, gradle/gradle#6540, gradle/gradle#6560, gradle/gradle#6559, gradle/gradle#6569, gradle/gradle#6556, gradle/gradle#6512, gradle/gradle#6501)
+- [Jean-Baptiste Nizet](https://github.com/jnizet) — Use proper subtype for useTestNG() (gradle/gradle#6520)
+- [Xiang Li](https://github.com/lixiangconan) and [Theodore Ni](https://github.com/tjni) - Make FileUtils#calculateRoots more efficient (gradle/gradle#6455)
+- [James Justinic](https://github.com/jjustinic) Include Kotlin DSL samples in Ant, WAR Plugin, Checkstyle plugin, CodeNarc plugin, FindBugs plugin, JDepend plugin, PMD plugin user manual chapters (gradle/gradle#6492, gradle/gradle#6510, gradle/gradle#6522)
+- [James Justinic](https://github.com/jjustinic) Support type-safe configuration for Checkstyle/FindBugs HTML report stylesheet (gradle/gradle#6551)
+- [Mike Kobit](https://github.com/mkobit) - Include Kotlin DSL samples in Lazy Configuration user manual chapter (gradle/gradle#6528)
+- [Kevin Macksamie](https://github.com/k-mack) - Switch distribution plugin to use configuration avoidance APIs (gradle/gradle#6443)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

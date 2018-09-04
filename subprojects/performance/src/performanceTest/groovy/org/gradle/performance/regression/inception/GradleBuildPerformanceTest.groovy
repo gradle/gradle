@@ -95,7 +95,6 @@ class GradleBuildPerformanceTest extends Specification {
     }
 
     def "help on the gradle build comparing the build"() {
-
         given:
         runner.testId = testName.methodName
 

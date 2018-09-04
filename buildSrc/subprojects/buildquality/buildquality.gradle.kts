@@ -21,7 +21,7 @@ gradlePlugin {
     plugins {
         register("addVerifyProductionEnvironmentTask") {
             id = "gradlebuild.add-verify-production-environment-task"
-            implementationClass = "org.gradle.gradlebuild.buildquality.AddVerifyProductionEnvironmentTaskPlugin"
+            implementationClass = "org.gradle.gradlebuild.buildquality.VerifyBuildEnvironmentPlugin"
         }
         register("ciReporting") {
             id = "gradlebuild.ci-reporting"
