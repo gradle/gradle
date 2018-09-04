@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -108,7 +109,7 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
             }
             return new RealisedConfigurationMetadata(
                 moduleComponentIdentifier, name, false, false,
-                ImmutableList.of(name), ImmutableList.<ModuleComponentArtifactMetadata>of(), ImmutableList.<ExcludeMetadata>of(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, dependencies.build()
+                ImmutableSet.of(name), ImmutableList.<ModuleComponentArtifactMetadata>of(), ImmutableList.<ExcludeMetadata>of(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, dependencies.build()
             );
         }
         throw new IllegalArgumentException("Undefined configuration '" + name + "'");
