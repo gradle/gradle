@@ -81,13 +81,11 @@ In this example, `GreetingPluginExtension` is a plain old Groovy object with a p
 
 Oftentimes, you have several related properties you need to specify on a single plugin. Gradle adds a configuration closure block for each extension object, so you can group settings together. The following example shows you how this works.
 
-=== Example: A custom plugin with configuration closure
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/customPlugins/customPluginWithAdvancedConvention/build.gradle[]
-----
+.A custom plugin with configuration closure
+====
+include::sample[dir="userguide/customPlugins/customPluginWithAdvancedConvention/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/customPlugins/customPluginWithAdvancedConvention/kotlin",files="build.gradle.kts[]"]
+====
 
 .Output of **`gradle -q hello`**
 ----
