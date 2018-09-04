@@ -65,13 +65,11 @@ Most plugins need to obtain some configuration from the build script. One method
 
 Let's add a simple extension object to the project. Here we add a `greeting` extension object to the project, which allows you to configure the greeting.
 
-=== Example: A custom plugin extension
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/customPlugins/customPluginWithConvention/build.gradle[]
-----
+.A custom plugin extension
+====
+include::sample[dir="userguide/customPlugins/customPluginWithConvention/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/customPlugins/customPluginWithConvention/kotlin",files="build.gradle.kts[]"]
+====
 
 .Output of **`gradle -q hello`**
 ----
