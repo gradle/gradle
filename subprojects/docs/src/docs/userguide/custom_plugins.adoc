@@ -273,18 +273,22 @@ In this example, the plugin passes the project's `ObjectFactory` to the extensio
 
 Gradle provides some utility classes for maintaining collections of objects, intended to work well with the Gradle DSL.
 
-=== Example: Managing a collection of objects
+.Managing a collection of objects
+====
+include::sample[dir="userguide/customPlugins/customPluginWithDomainObjectContainer/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/customPlugins/customPluginWithDomainObjectContainer/kotlin",files="build.gradle.kts[]"]
+====
 
+==== Output of **`gradle -q books`**
 [source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/customPlugins/customPluginWithDomainObjectContainer/build.gradle[]
-----
-
-.Output of **`gradle -q books`**
 ----
 > gradle -q books
-include::{samplesPath}/userguide/customPlugins/customPluginWithDomainObjectContainer/domainObjectContainer.out[]
+include::{samplesPath}/userguide/customPlugins/customPluginWithDomainObjectContainer/domainObjectContainer.groovy.out[]
+----
+[source.multi-language-sample,kotlin]
+----
+> gradle -q books
+include::{samplesPath}/userguide/customPlugins/customPluginWithDomainObjectContainer/domainObjectContainer.kotlin.out[]
 ----
 
 The link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:container(java.lang.Class)[Project.container(java.lang.Class)] methods create instances of link:{groovyDslPath}/org.gradle.api.NamedDomainObjectContainer.html[NamedDomainObjectContainer], that have many useful methods for managing and configuring the objects. In order to use a type with any of the `project.container` methods, it MUST expose a property named "`name`" as the unique, and constant, name for the object. The `project.container(Class)` variant of the container method creates new instances by attempting to invoke the constructor of the class that takes a single string argument, which is the desired name of the object. See the above link for `project.container` method variants that allow custom instantiation strategies.
