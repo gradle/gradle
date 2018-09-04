@@ -34,7 +34,7 @@ task<Jar>("barJar") {
     manifest {
         attributes("key1" to "value1")
         from(sharedManifest, "src/config/basemanifest.txt")
-        from(listOf("src/config/javabasemanifest.txt", "src/config/libbasemanifest.txt"), closureOf<ManifestMergeSpec> {
+        from(listOf("src/config/javabasemanifest.txt", "src/config/libbasemanifest.txt")) {
             eachEntry(Action<ManifestMergeDetails> {
                 if (baseValue != mergeValue) {
                     value = baseValue
@@ -43,7 +43,7 @@ task<Jar>("barJar") {
                     exclude()
                 }
             })
-        })
+        }
     }
 }
 // end::merge[]
