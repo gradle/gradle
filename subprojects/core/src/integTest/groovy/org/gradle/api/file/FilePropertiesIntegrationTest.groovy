@@ -24,7 +24,7 @@ class FilePropertiesIntegrationTest extends AbstractIntegrationSpec {
     def "can attach a calculated directory to task property"() {
         buildFile << """
             class SomeTask extends DefaultTask {
-                final DirectoryProperty outputDir = project.layout.directoryProperty()
+                final DirectoryProperty outputDir = project.objects.directoryProperty()
                 
                 @TaskAction
                 void go() {
@@ -55,12 +55,12 @@ class SomeExtension {
     final Property<Directory> prop
     
     @javax.inject.Inject
-    SomeExtension(ProjectLayout layout) {
-        prop = layout.directoryProperty()
+    SomeExtension(ObjectFactory objects) {
+        prop = objects.directoryProperty()
     }
 }
 
-extensions.create('custom', SomeExtension, layout)
+extensions.create('custom', SomeExtension, objects)
 
 task useIntTypeDsl {
     doLast {
@@ -132,7 +132,7 @@ task useFileProviderApi {
     def "can attach a calculated file to task property"() {
         buildFile << """
             class SomeTask extends DefaultTask {
-                final RegularFileProperty outputFile = project.layout.fileProperty()
+                final RegularFileProperty outputFile = project.objects.fileProperty()
                 
                 @TaskAction
                 void go() {
@@ -163,12 +163,12 @@ class SomeExtension {
     final DirectoryProperty prop
     
     @javax.inject.Inject
-    SomeExtension(ProjectLayout layout) {
-        prop = layout.directoryProperty()
+    SomeExtension(ObjectFactory objects) {
+        prop = objects.directoryProperty()
     }
 }
 
-extensions.create('custom', SomeExtension, layout)
+extensions.create('custom', SomeExtension, objects)
 custom.prop = layout.projectDir.dir("dir1")
 assert custom.prop.get().asFile == file("dir1")
 
@@ -194,12 +194,12 @@ class SomeExtension {
     final RegularFileProperty prop
     
     @javax.inject.Inject
-    SomeExtension(ProjectLayout layout) {
-        prop = layout.fileProperty()
+    SomeExtension(ObjectFactory objects) {
+        prop = objects.fileProperty()
     }
 }
 
-extensions.create('custom', SomeExtension, layout)
+extensions.create('custom', SomeExtension, objects)
 custom.prop = layout.projectDir.file("file1")
 assert custom.prop.get().asFile == file("file1")
 
@@ -225,12 +225,12 @@ class SomeExtension {
     final Property<RegularFile> prop
     
     @javax.inject.Inject
-    SomeExtension(ProjectLayout layout) {
-        prop = layout.fileProperty()
+    SomeExtension(ObjectFactory objects) {
+        prop = objects.fileProperty()
     }
 }
 
-extensions.create('custom', SomeExtension, layout)
+extensions.create('custom', SomeExtension, objects)
 
 task useIntTypeDsl {
     doLast {
@@ -304,7 +304,7 @@ task useDirProviderApi {
         buildFile << """
             class FileOutputTask extends DefaultTask {
                 @InputFile
-                final RegularFileProperty inputFile = newInputFile()
+                final RegularFileProperty inputFile = project.objects.fileProperty()
                 @OutputFile
                 final RegularFileProperty outputFile = ${outputFileMethod}
                 
@@ -321,7 +321,7 @@ task useDirProviderApi {
                 @InputFiles
                 final ConfigurableFileCollection inputFiles = project.layout.configurableFiles()
                 @OutputFile
-                final RegularFileProperty outputFile = newOutputFile()
+                final RegularFileProperty outputFile = project.objects.fileProperty()
                 
                 @TaskAction
                 void go() {
@@ -350,6 +350,7 @@ task useDirProviderApi {
 """
         file("file1-source.txt").text = "file1"
         file("file2-source.txt").text = "file2"
+        expectDeprecated(deprecated)
 
         when:
         run("merge")
@@ -373,10 +374,10 @@ task useDirProviderApi {
         file("output/merged.txt").text == 'new-file1,file2'
 
         where:
-        outputFileMethod                 | inputFileMethod
-        "newOutputFile()"                | "newInputFile()"
-        "project.layout.fileProperty()"  | "project.layout.fileProperty()"
-        "project.objects.fileProperty()" | "project.objects.fileProperty()"
+        outputFileMethod                 | inputFileMethod                  | deprecated
+        "newOutputFile()"                | "newInputFile()"                 | 2
+        "project.layout.fileProperty()"  | "project.layout.fileProperty()"  | 1
+        "project.objects.fileProperty()" | "project.objects.fileProperty()" | 0
     }
 
     @Unroll
@@ -384,11 +385,11 @@ task useDirProviderApi {
         buildFile << """
             class MergeTask extends DefaultTask {
                 @InputFile
-                final RegularFileProperty inputFile = project.layout.fileProperty()
+                final RegularFileProperty inputFile = project.objects.fileProperty()
                 @InputFiles
                 final ConfigurableFileCollection inputFiles = project.layout.configurableFiles()
                 @OutputFile
-                final RegularFileProperty outputFile = newOutputFile()
+                final RegularFileProperty outputFile = project.objects.fileProperty()
                 
                 @TaskAction
                 void go() {
@@ -427,6 +428,7 @@ task useDirProviderApi {
 """
 
         when:
+        expectDeprecated(deprecated)
         run("merge")
 
         then:
@@ -440,10 +442,10 @@ task useDirProviderApi {
         result.assertTasksNotSkipped()
 
         where:
-        outputFileMethod                 | _
-        "newOutputFile()"                | _
-        "project.layout.fileProperty()"  | _
-        "project.objects.fileProperty()" | _
+        outputFileMethod                 | deprecated
+        "newOutputFile()"                | 1
+        "project.layout.fileProperty()"  | 1
+        "project.objects.fileProperty()" | 0
     }
 
     @Unroll
@@ -451,7 +453,7 @@ task useDirProviderApi {
         buildFile << """
             class DirOutputTask extends DefaultTask {
                 @InputFile
-                final RegularFileProperty inputFile = newInputFile()
+                final RegularFileProperty inputFile = project.objects.fileProperty()
 
                 @OutputDirectory
                 final DirectoryProperty outputDir = ${outputDirMethod}
@@ -469,7 +471,7 @@ task useDirProviderApi {
                 @InputFiles
                 final ConfigurableFileCollection inputFiles = project.files()
                 @OutputFile
-                final RegularFileProperty outputFile = newOutputFile()
+                final RegularFileProperty outputFile = project.objects.fileProperty()
 
                 @TaskAction
                 void go() {
@@ -498,6 +500,7 @@ task useDirProviderApi {
         file("dir2-source.txt").text = "dir2"
 
         when:
+        expectDeprecated(deprecated)
         run("merge")
 
         then:
@@ -519,10 +522,10 @@ task useDirProviderApi {
         file("output/merged.txt").text == 'new-dir1,dir2'
 
         where:
-        outputDirMethod                       | inputDirMethod
-        "newOutputDirectory()"                | "newInputDirectory()"
-        "project.layout.directoryProperty()"  | "project.layout.directoryProperty()"
-        "project.objects.directoryProperty()" | "project.objects.directoryProperty()"
+        outputDirMethod                       | inputDirMethod                        | deprecated
+        "newOutputDirectory()"                | "newInputDirectory()"                 | 2
+        "project.layout.directoryProperty()"  | "project.layout.directoryProperty()"  | 1
+        "project.objects.directoryProperty()" | "project.objects.directoryProperty()" | 0
     }
 
     @Unroll
@@ -534,7 +537,7 @@ task useDirProviderApi {
                 @InputFiles
                 final ConfigurableFileCollection inputFiles = project.files()
                 @OutputFile
-                final RegularFileProperty outputFile = newOutputFile()
+                final RegularFileProperty outputFile = project.objects.fileProperty()
 
                 @TaskAction
                 void go() {
@@ -571,6 +574,7 @@ task useDirProviderApi {
 """
 
         when:
+        expectDeprecated(deprecated)
         run("merge")
 
         then:
@@ -584,10 +588,10 @@ task useDirProviderApi {
         result.assertTasksNotSkipped()
 
         where:
-        outputDirMethod                       | _
-        "newOutputDirectory()"                | _
-        "project.layout.directoryProperty()"  | _
-        "project.objects.directoryProperty()" | _
+        outputDirMethod                       | deprecated
+        "newOutputDirectory()"                | 1
+        "project.layout.directoryProperty()"  | 1
+        "project.objects.directoryProperty()" | 0
     }
 
     @Unroll
@@ -595,7 +599,7 @@ task useDirProviderApi {
         buildFile << """
             class DirOutputTask extends DefaultTask {
                 @InputFile
-                final RegularFileProperty inputFile = newInputFile()
+                final RegularFileProperty inputFile = project.objects.fileProperty()
                 @OutputDirectory
                 final DirectoryProperty outputDir = ${outputDirMethod}
                 
@@ -608,7 +612,7 @@ task useDirProviderApi {
             
             class FileOutputTask extends DefaultTask {
                 @InputFile
-                final RegularFileProperty inputFile = newInputFile()
+                final RegularFileProperty inputFile = project.objects.fileProperty()
                 @OutputFile
                 final RegularFileProperty outputFile = ${outputFileMethod}
                 
@@ -638,19 +642,20 @@ task useDirProviderApi {
         file("file1-source.txt").text = "file1"
 
         when:
+        expectDeprecated(deprecated)
         run("otherTask")
 
         then:
         result.assertTasksExecuted(":createDir", ":createFile1", ":otherTask")
 
         where:
-        fileMethod    | dirMethod    | outputDirMethod                       | outputFileMethod
-        'dependsOn'   | 'dependsOn'  | "newOutputDirectory()"                | "newOutputFile()"
-        'inputs.file' | 'inputs.dir' | "newOutputDirectory()"                | "newOutputFile()"
-        'dependsOn'   | 'dependsOn'  | "project.layout.directoryProperty()"  | "project.layout.fileProperty()"
-        'inputs.file' | 'inputs.dir' | "project.layout.directoryProperty()"  | "project.layout.fileProperty()"
-        'dependsOn'   | 'dependsOn'  | "project.objects.directoryProperty()" | "project.objects.fileProperty()"
-        'inputs.file' | 'inputs.dir' | "project.objects.directoryProperty()" | "project.objects.fileProperty()"
+        fileMethod    | dirMethod    | outputDirMethod                       | outputFileMethod                 | deprecated
+        'dependsOn'   | 'dependsOn'  | "newOutputDirectory()"                | "newOutputFile()"                | 2
+        'inputs.file' | 'inputs.dir' | "newOutputDirectory()"                | "newOutputFile()"                | 2
+        'dependsOn'   | 'dependsOn'  | "project.layout.directoryProperty()"  | "project.layout.fileProperty()"  | 2
+        'inputs.file' | 'inputs.dir' | "project.layout.directoryProperty()"  | "project.layout.fileProperty()"  | 2
+        'dependsOn'   | 'dependsOn'  | "project.objects.directoryProperty()" | "project.objects.fileProperty()" | 0
+        'inputs.file' | 'inputs.dir' | "project.objects.directoryProperty()" | "project.objects.fileProperty()" | 0
     }
 
     def "can use @Optional on properties with type Property"() {
@@ -658,16 +663,16 @@ task useDirProviderApi {
         buildFile << """
 class SomeTask extends DefaultTask {
     @Optional @InputFile
-    Property<RegularFile> inFile = newInputFile()
+    Property<RegularFile> inFile = project.objects.fileProperty()
     
     @Optional @InputDirectory
-    Property<Directory> inDir = newInputDirectory()
+    Property<Directory> inDir = project.objects.directoryProperty()
     
     @Optional @OutputFile
-    Property<RegularFile> outFile = newOutputFile()
+    Property<RegularFile> outFile = project.objects.fileProperty()
     
     @Optional @OutputDirectory
-    Property<Directory> outDir = newOutputDirectory()
+    Property<Directory> outDir = project.objects.directoryProperty()
     
     @TaskAction
     def go() { }
@@ -694,7 +699,7 @@ class SomeTask extends DefaultTask {
         buildFile << """
             class ProducerTask extends DefaultTask {
                 @Optional @OutputFile
-                Property<RegularFile> outFile = newOutputFile()
+                Property<RegularFile> outFile = project.objects.fileProperty()
                 
                 @TaskAction
                 def go() { }
@@ -712,11 +717,11 @@ class SomeTask extends DefaultTask {
             class ConsumerTask extends DefaultTask {
             
                 @Nested
-                NestedBean bean = new NestedBean(project.layout.fileProperty())
+                NestedBean bean = new NestedBean(project.objects.fileProperty())
                 
                 @Optional
                 @OutputFile
-                Property<RegularFile> outputFile = newOutputFile() 
+                Property<RegularFile> outputFile = project.objects.directoryProperty() 
                 
                 @TaskAction
                 def go() { }
@@ -743,7 +748,7 @@ class SomeTask extends DefaultTask {
         buildFile << """
             class ProducerTask extends DefaultTask {
                 @Optional @OutputFile
-                Property<RegularFile> outFile = newOutputFile()
+                Property<RegularFile> outFile = project.objects.fileProperty()
                 
                 @TaskAction
                 def go() { }
@@ -756,7 +761,7 @@ class SomeTask extends DefaultTask {
                 
                 @Optional
                 @OutputFile
-                Property<RegularFile> outputFile = newOutputFile() 
+                Property<RegularFile> outputFile = project.objects.directoryProperty() 
                 
                 @TaskAction
                 def go() { }
@@ -776,5 +781,13 @@ class SomeTask extends DefaultTask {
         failure.assertHasDescription("Failed to capture fingerprint of input files for task ':consumer' property 'inputFiles' during up-to-date check.")
         failure.assertHasCause("No value has been specified for this provider.")
         executedAndNotSkipped(':producer', ':consumer')
+    }
+
+    def expectDeprecated(int count) {
+        if (count > 0) {
+            executer.beforeExecute {
+                expectDeprecationWarnings(count)
+            }
+        }
     }
 }

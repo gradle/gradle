@@ -31,6 +31,7 @@ import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.provider.AbstractMappingProvider;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.provider.Provider;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 
@@ -59,10 +60,22 @@ public class DefaultProjectLayout extends DefaultFilePropertyFactory implements 
     }
 
     @Override
+    public DirectoryProperty directoryProperty() {
+        DeprecationLogger.nagUserOfReplacedMethod("ProjectLayout.directoryProperty()", "ObjectFactory.directoryProperty()");
+        return newDirectoryProperty();
+    }
+
+    @Override
     public DirectoryProperty directoryProperty(Provider<? extends Directory> initialProvider) {
         DirectoryProperty result = directoryProperty();
         result.set(initialProvider);
         return result;
+    }
+
+    @Override
+    public RegularFileProperty fileProperty() {
+        DeprecationLogger.nagUserOfReplacedMethod("ProjectLayout.fileProperty()", "ObjectFactory.fileProperty()");
+        return newFileProperty();
     }
 
     @Override

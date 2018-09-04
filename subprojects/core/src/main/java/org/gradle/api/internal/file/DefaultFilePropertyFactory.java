@@ -43,12 +43,12 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
     }
 
     @Override
-    public DirectoryProperty directoryProperty() {
+    public DirectoryProperty newDirectoryProperty() {
         return new DefaultDirectoryVar(fileResolver);
     }
 
     @Override
-    public RegularFileProperty fileProperty() {
+    public RegularFileProperty newFileProperty() {
         return new DefaultRegularFileVar(fileResolver);
     }
 

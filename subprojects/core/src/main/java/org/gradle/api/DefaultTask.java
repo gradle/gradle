@@ -21,6 +21,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.NoConventionMapping;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.util.DeprecationLogger;
 
 /**
  * {@code DefaultTask} is the standard {@link Task} implementation. You can extend this to implement your own task types.
@@ -32,9 +33,11 @@ public class DefaultTask extends AbstractTask {
      *
      * @return The property.
      * @since 4.4
+     * @deprecated Replaced by {@link ObjectFactory#directoryProperty()}
      */
-    @Incubating
+    @Deprecated
     protected final DirectoryProperty newOutputDirectory() {
+        DeprecationLogger.nagUserOfReplacedMethod("DefaultTask.newOutputDirectory()", "ObjectFactory.directoryProperty()");
         return getServices().get(ObjectFactory.class).directoryProperty();
     }
 
@@ -43,9 +46,11 @@ public class DefaultTask extends AbstractTask {
      *
      * @return The property.
      * @since 4.4
+     * @deprecated Replaced by {@link ObjectFactory#fileProperty()}
      */
-    @Incubating
+    @Deprecated
     protected final RegularFileProperty newOutputFile() {
+        DeprecationLogger.nagUserOfReplacedMethod("DefaultTask.newOutputFile()", "ObjectFactory.fileProperty()");
         return getServices().get(ObjectFactory.class).fileProperty();
     }
 
@@ -54,9 +59,11 @@ public class DefaultTask extends AbstractTask {
      *
      * @return The property.
      * @since 4.4
+     * @deprecated Replaced by {@link ObjectFactory#fileProperty()}
      */
-    @Incubating
+    @Deprecated
     protected final RegularFileProperty newInputFile() {
+        DeprecationLogger.nagUserOfReplacedMethod("DefaultTask.newInputFile()", "ObjectFactory.fileProperty()");
         return getServices().get(ObjectFactory.class).fileProperty();
     }
 
@@ -65,9 +72,11 @@ public class DefaultTask extends AbstractTask {
      *
      * @return The property.
      * @since 4.4
+     * @deprecated Replaced by {@link ObjectFactory#directoryProperty()}
      */
-    @Incubating
+    @Deprecated
     protected final DirectoryProperty newInputDirectory() {
+        DeprecationLogger.nagUserOfReplacedMethod("DefaultTask.newInputDirectory()", "ObjectFactory.directoryProperty()");
         return getServices().get(ObjectFactory.class).directoryProperty();
     }
 }

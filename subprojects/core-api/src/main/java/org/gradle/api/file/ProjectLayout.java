@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 
 import java.io.File;
@@ -47,6 +48,7 @@ public interface ProjectLayout {
      * Creates a new {@link DirectoryProperty} that uses the project directory to resolve relative paths, if required. The property has no initial value.
      *
      * @since 4.3
+     * @deprecated Replaced by {@link ObjectFactory#directoryProperty()}
      */
     DirectoryProperty directoryProperty();
 
@@ -55,6 +57,7 @@ public interface ProjectLayout {
      *
      * @param initialProvider initial provider for the property
      * @since 4.4
+     * @deprecated Replaced by {@link ObjectFactory#directoryProperty()}
      */
     DirectoryProperty directoryProperty(Provider<? extends Directory> initialProvider);
 
@@ -62,6 +65,7 @@ public interface ProjectLayout {
      * Creates a new {@link RegularFileProperty} that uses the project directory to resolve relative paths, if required. The property has no initial value.
      *
      * @since 4.3
+     * @deprecated Replaced by {@link ObjectFactory#fileProperty()}
      */
     RegularFileProperty fileProperty();
 
@@ -70,6 +74,7 @@ public interface ProjectLayout {
      *
      * @param initialProvider initial provider for the property
      * @since 4.4
+     * @deprecated Replaced by {@link ObjectFactory#fileProperty()}
      */
     RegularFileProperty fileProperty(Provider<? extends RegularFile> initialProvider);
 

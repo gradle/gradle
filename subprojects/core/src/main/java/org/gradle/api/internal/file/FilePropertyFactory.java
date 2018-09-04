@@ -20,7 +20,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 
 public interface FilePropertyFactory {
-    DirectoryProperty directoryProperty();
+    DirectoryProperty newDirectoryProperty();
 
-    RegularFileProperty fileProperty();
+    RegularFileProperty newFileProperty();
 }
