@@ -383,7 +383,8 @@ task checkArtifacts {
         buildFile << """
             project(':a') {
                 task classes {
-                    ext.outputDir = newOutputDirectory()
+                    ext.outputDir = objects.directoryProperty()
+                    outputs.dir(outputDir)
                     outputDir.set(layout.buildDirectory.dir("classes"))
                 }
                 artifacts {
