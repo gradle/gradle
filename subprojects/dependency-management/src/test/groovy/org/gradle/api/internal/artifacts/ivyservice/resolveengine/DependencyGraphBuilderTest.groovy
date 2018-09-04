@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.Action
+import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolveException
@@ -117,6 +118,7 @@ class DependencyGraphBuilderTest extends Specification {
     def setup() {
         _ * configuration.name >> 'root'
         _ * configuration.path >> 'root'
+        _ * configuration.allDependencies >> Stub(DependencySet)
         _ * moduleResolver.resolve(_, _) >> { it[1].resolved(root) }
 
         builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, moduleConflictHandler, capabilitiesConflictHandler, Specs.satisfyAll(), attributesSchema, moduleExclusions, buildOperationProcessor, moduleReplacements, dependencySubstitutionApplicator, componentSelectorConverter, TestUtil.attributesFactory(), versionSelectorScheme, Stub(Comparator), new VersionParser())
