@@ -100,13 +100,11 @@ In this example, several settings can be grouped together within the `greeting` 
 
 When developing custom tasks and plugins, it's a good idea to be very flexible when accepting input configuration for file locations. To do this, you can leverage the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method to resolve values to files as late as possible.
 
-=== Example: Evaluating file properties lazily
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tasks/customTaskWithFileProperty/build.gradle[tags="task,config"]
-----
+.Evaluating file properties lazily
+====
+include::sample[dir="userguide/tasks/customTaskWithFileProperty/groovy",files="build.gradle[tags=all]"]
+include::sample[dir="userguide/tasks/customTaskWithFileProperty/kotlin",files="build.gradle.kts[tags=all]"]
+====
 
 .Output of **`gradle -q sayGreeting`**
 ----

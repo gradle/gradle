@@ -1,3 +1,4 @@
+// tag::all[]
 // tag::task[]
 class GreetingToFileTask extends DefaultTask {
 
@@ -29,3 +30,4 @@ task sayGreeting(dependsOn: greet) {
 
 ext.greetingFile = "$buildDir/hello.txt"
 // end::config[]
+// end::all[]
