@@ -459,13 +459,13 @@ task useDirProviderApi {
     }
 
     @Unroll
-    def "can wire the output of a task as a dependency of another task via #fileMethod"() {
+    def "can wire the output of a task created using #outputFileMethod and #outputDirMethod as a dependency of another task via #fileMethod"() {
         buildFile << """
             class DirOutputTask extends DefaultTask {
                 @InputFile
                 final RegularFileProperty inputFile = newInputFile()
                 @OutputDirectory
-                final DirectoryProperty outputDir = newOutputDirectory()
+                final DirectoryProperty outputDir = ${outputDirMethod}
                 
                 @TaskAction
                 void go() {
@@ -478,7 +478,7 @@ task useDirProviderApi {
                 @InputFile
                 final RegularFileProperty inputFile = newInputFile()
                 @OutputFile
-                final RegularFileProperty outputFile = newOutputFile()
+                final RegularFileProperty outputFile = ${outputFileMethod}
                 
                 @TaskAction
                 void go() {
@@ -512,9 +512,13 @@ task useDirProviderApi {
         result.assertTasksExecuted(":createDir", ":createFile1", ":otherTask")
 
         where:
-        fileMethod    | dirMethod
-        'dependsOn'   | 'dependsOn'
-        'inputs.file' | 'inputs.dir'
+        fileMethod    | dirMethod    | outputDirMethod        | outputFileMethod
+        'dependsOn'   | 'dependsOn'  | "newOutputDirectory()" | "newOutputFile()"
+        'inputs.file' | 'inputs.dir' | "newOutputDirectory()" | "newOutputFile()"
+        'dependsOn'   | 'dependsOn'  | "project.layout.directoryProperty()" | "project.layout.fileProperty()"
+        'inputs.file' | 'inputs.dir' | "project.layout.directoryProperty()" | "project.layout.fileProperty()"
+        'dependsOn'   | 'dependsOn'  | "project.objects.directoryProperty()" | "project.objects.fileProperty()"
+        'inputs.file' | 'inputs.dir' | "project.objects.directoryProperty()" | "project.objects.fileProperty()"
     }
 
     def "can use @Optional on properties with type Property"() {
