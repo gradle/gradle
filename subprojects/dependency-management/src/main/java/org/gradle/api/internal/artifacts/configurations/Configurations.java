@@ -15,26 +15,25 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.capabilities.Capability;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class Configurations {
-    public static Set<String> getNames(Collection<Configuration> configurations) {
+    public static ImmutableSet<String> getNames(Collection<Configuration> configurations) {
         if (configurations.isEmpty()) {
-            return Collections.emptySet();
+            return ImmutableSet.of();
         } else if (configurations.size()==1) {
-            return Collections.singleton(configurations.iterator().next().getName());
+            return ImmutableSet.of(configurations.iterator().next().getName());
         }
-        Set<String> names = new LinkedHashSet<String>(configurations.size());
+        ImmutableSet.Builder<String> names = new ImmutableSet.Builder<String>();
         for (Configuration configuration : configurations) {
             names.add(configuration.getName());
         }
-        return names;
+        return names.build();
     }
 
     public static Set<Capability> collectCapabilities(Configuration configuration, Set<Capability> out, Set<Configuration> visited) {

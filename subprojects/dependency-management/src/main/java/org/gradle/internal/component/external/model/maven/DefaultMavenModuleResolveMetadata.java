@@ -19,6 +19,7 @@ package org.gradle.internal.component.external.model.maven;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Usage;
@@ -95,7 +96,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     }
 
     @Override
-    protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> parents, VariantMetadataRules componentMetadataRules) {
+    protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableSet<String> parents, VariantMetadataRules componentMetadataRules) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = getArtifactsForConfiguration(name);
         DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts, componentMetadataRules, ImmutableList.<ExcludeMetadata>of(), getAttributes());
         configuration.setDependencies(filterDependencies(configuration));
@@ -166,13 +167,16 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     }
 
     private ImmutableList<ModuleDependencyMetadata> filterDependencies(DefaultConfigurationMetadata config) {
+        if (dependencies.isEmpty()) {
+            return ImmutableList.of();
+        }
         ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = ImmutableList.builder();
         boolean isOptionalConfiguration = "optional".equals(config.getName());
-
+        ImmutableSet<String> hierarchy = config.getHierarchy();
         for (MavenDependencyDescriptor dependency : dependencies) {
             if (isOptionalConfiguration && includeInOptionalConfiguration(dependency)) {
                 filteredDependencies.add(new OptionalConfigurationDependencyMetadata(config, getId(), dependency));
-            } else if (include(dependency, config.getHierarchy())) {
+            } else if (include(dependency, hierarchy)) {
                 filteredDependencies.add(contextualize(config, getId(), dependency));
             }
         }
@@ -196,11 +200,10 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     }
 
     private boolean include(MavenDependencyDescriptor dependency, Collection<String> hierarchy) {
-        MavenScope dependencyScope = dependency.getScope();
         if (dependency.isOptional() && ignoreOptionalDependencies()) {
             return false;
         }
-        return hierarchy.contains(dependencyScope.getLowerName());
+        return hierarchy.contains(dependency.getScope().getLowerName());
     }
 
     private boolean ignoreOptionalDependencies() {
@@ -293,9 +296,9 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
      * Adapts a MavenDependencyDescriptor to `DependencyMetadata` for the magic "optional" configuration.
      *
      * This configuration has special semantics:
-     *  - Dependencies in the "optional" configuration are _never_ themselves optional (ie not 'pending')
-     *  - Dependencies in the "optional" configuration can have dependency artifacts, even if the dependency is flagged as 'optional'.
-     *    (For a standard configuration, any dependency flagged as 'optional' will have no dependency artifacts).
+     * - Dependencies in the "optional" configuration are _never_ themselves optional (ie not 'pending')
+     * - Dependencies in the "optional" configuration can have dependency artifacts, even if the dependency is flagged as 'optional'.
+     * (For a standard configuration, any dependency flagged as 'optional' will have no dependency artifacts).
      */
     static class OptionalConfigurationDependencyMetadata extends ConfigurationBoundExternalDependencyMetadata {
         private final MavenDependencyDescriptor dependencyDescriptor;

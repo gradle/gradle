@@ -75,7 +75,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         runtime.artifacts.name.name == ["runtime.jar"]
         runtime.excludes.empty
         def defaultConfig = immutable.getConfiguration("default")
-        defaultConfig.hierarchy == ["default", "runtime"]
+        defaultConfig.hierarchy as List == ["default", "runtime"]
         defaultConfig.transitive
         defaultConfig.visible
         defaultConfig.artifacts.name.name == ["api.jar", "runtime.jar"]
