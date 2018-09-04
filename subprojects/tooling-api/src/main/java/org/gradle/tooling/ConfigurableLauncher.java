@@ -48,6 +48,12 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher> extends Lo
 
     /**
      * {@inheritDoc}
+     * @since 5.0
+     */
+    T addArguments(String argument, String... moreArguments);
+
+    /**
+     * {@inheritDoc}
      * @since 1.0-milestone-3
      */
     @Override

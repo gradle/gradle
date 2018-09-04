@@ -184,6 +184,16 @@ public interface LongRunningOperation {
     LongRunningOperation withArguments(@Nullable Iterable<String> arguments);
 
     /**
+     * Specifies one or more new command line argument. Useful mostly for running tasks via {@link BuildLauncher}.
+     *
+     * @param argument Gradle command line arguments
+     * @param moreArguments additional Gradle command line arguments
+     * @return this
+     * @since 5.0
+     */
+    LongRunningOperation addArguments(@Nullable String argument, @Nullable String... moreArguments);
+
+    /**
      * Specifies the environment variables to use for this operation.
      * <p>
      * {@link org.gradle.tooling.model.build.BuildEnvironment} model contains information such as Java or Gradle environment.

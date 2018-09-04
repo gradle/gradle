@@ -26,6 +26,15 @@ class ArgumentPassingCrossVersionTest extends ToolingApiSpecification {
 
     static final String JVM_ARG_1 = '-verbosegc'
     static final String JVM_ARG_2 = '-XX:+PrintGCDetails'
+    static final String ARG_1 = "argument1"
+    static final String ARG_2 = "argument2"
+
+    def setup() {
+        buildFile << """
+            if(hasProperty('$ARG_1')) logger.quiet("$ARG_1")
+            if(hasProperty('$ARG_2')) logger.quiet("$ARG_2")
+        """
+    }
 
     def "Appends additional JVM arguments"() {
         when:
@@ -72,5 +81,52 @@ class ArgumentPassingCrossVersionTest extends ToolingApiSpecification {
         then:
         env.java.jvmArguments.contains(JVM_ARG_1)
         env.java.jvmArguments.contains(JVM_ARG_2)
+    }
+
+    def "Appends additional arguments"() {
+        when:
+        ByteArrayOutputStream output = new ByteArrayOutputStream()
+        withConnection {
+            it.newBuild().setStandardOutput(output).addArguments("-P$ARG_1").run()
+        }
+
+        then:
+        output.toString().contains(ARG_1)
+    }
+
+    def "Appends arguments multiple times"() {
+        when:
+        ByteArrayOutputStream output = new ByteArrayOutputStream()
+        withConnection {
+            it.newBuild().setStandardOutput(output).addArguments("-P$ARG_1").addArguments("-P$ARG_2").run()
+        }
+
+        then:
+        output.toString().contains(ARG_1)
+        output.toString().contains(ARG_2)
+    }
+
+    def "Adds multiple arguments at once"() {
+        when:
+        ByteArrayOutputStream output = new ByteArrayOutputStream()
+        withConnection {
+            it.newBuild().setStandardOutput(output).addArguments("-P$ARG_1", "-P$ARG_2").run()
+        }
+
+        then:
+        output.toString().contains(ARG_1)
+        output.toString().contains(ARG_2)
+    }
+
+    def "Adding argument does not overwrite existing values"() {
+        when:
+        ByteArrayOutputStream output = new ByteArrayOutputStream()
+        withConnection {
+            it.newBuild().setStandardOutput(output).withArguments("-P$ARG_1").addArguments("-P$ARG_2").run()
+        }
+
+        then:
+        output.toString().contains(ARG_1)
+        output.toString().contains(ARG_2)
     }
 }

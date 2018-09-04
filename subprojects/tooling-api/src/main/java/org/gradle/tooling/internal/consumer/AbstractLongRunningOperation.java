@@ -31,7 +31,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -85,6 +84,11 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
     @Override
     public T withArguments(Iterable<String> arguments) {
         operationParamsBuilder.setArguments(rationalizeInput(arguments));
+        return getThis();
+    }
+
+    public T addArguments(String argument, String... moreArguments) {
+        operationParamsBuilder.addArguments(filterNull(argument, moreArguments));
         return getThis();
     }
 

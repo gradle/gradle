@@ -112,16 +112,20 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             this.jvmArguments = jvmArguments;
             return this;
         }
+
         public Builder addJvmArguments(List<String> jvmArguments) {
-            if (this.jvmArguments == null) {
-                this.jvmArguments = new ArrayList<String>(jvmArguments);
-            } else {
-                List<String> newJvmArguments = new ArrayList<String>(this.jvmArguments.size() + jvmArguments.size());
-                newJvmArguments.addAll(this.jvmArguments);
-                newJvmArguments.addAll(jvmArguments);
-                this.jvmArguments = newJvmArguments;
-            }
+            this.jvmArguments = append(this.jvmArguments, jvmArguments);
             return this;
+        }
+
+        private static List<String> append(List<String> nullableFirst, List<String> second) {
+            if (nullableFirst == null) {
+                return new ArrayList<String>(second);
+            }
+            List<String> result = new ArrayList<String>(nullableFirst.size() + second.size());
+            result.addAll(nullableFirst);
+            result.addAll(second);
+            return result;
         }
 
         public Builder setArguments(List<String> arguments) {
@@ -129,6 +133,10 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             return this;
         }
 
+        public Builder addArguments(List<String> arguments) {
+            this.arguments = append(this.arguments, arguments);
+            return this;
+        }
 
         public Builder setEnvironmentVariables(Map<String, String> envVariables) {
             this.envVariables = envVariables;
