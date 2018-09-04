@@ -18,10 +18,12 @@ package org.gradle.api.internal.artifacts
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.DefaultDomainObjectSet
+import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
 import org.gradle.api.tasks.TaskDependency
 import spock.lang.Specification
 
 import static org.gradle.api.internal.file.TestFiles.fileCollectionFactory
+import static org.gradle.util.WrapUtil.toList
 
 class DefaultPublishArtifactSetTest extends Specification {
     final store = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact)
@@ -75,6 +77,33 @@ class DefaultPublishArtifactSetTest extends Specification {
 
         expect:
         set.files.buildDependencies.getDependencies(null) == [task1, task2, task3] as Set
+    }
+
+    def "can eagerly resolve artifact set without affecting artifact publication"() {
+        DefaultArtifactPublicationSet publication = new DefaultArtifactPublicationSet(set)
+        def jar = Mock(PublishArtifact) {
+            getType() >> "jar"
+        }
+        def ear = Mock(PublishArtifact) {
+            getType() >> "ear"
+        }
+
+        given:
+        set.all { println "Realizing eagerly artifact of type '${it.type}'" }
+
+        when:
+        publication.addCandidate(jar)
+
+        then:
+        noExceptionThrown()
+        toList(set) == [jar]
+
+        when:
+        publication.addCandidate(ear)
+
+        then:
+        noExceptionThrown()
+        toList(set) == [ear]
     }
 
     def builtBy(PublishArtifact artifact, Task... tasks) {
