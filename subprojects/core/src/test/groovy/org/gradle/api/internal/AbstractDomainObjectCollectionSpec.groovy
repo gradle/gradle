@@ -18,11 +18,22 @@ package org.gradle.api.internal
 
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectCollection
+import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.internal.provider.CollectionProviderInternal
 import org.gradle.api.internal.provider.ProviderInternal
 import org.junit.Assume
 import spock.lang.Specification
+import spock.lang.Unroll
 
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallAddAllFactory
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallAddAllLaterFactory
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallAddFactory
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallAddLaterFactory
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallClearFactory
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallRemoveAllFactory
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallRemoveFactory
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallRemoveOnIteratorFactory
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallRetainAllFactory
 import static org.gradle.util.WrapUtil.toList
 
 abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
@@ -52,6 +63,10 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
     void containerAllowsExternalProviders() {
         Assume.assumeTrue("the container doesn't allow external provider to be added", isExternalProviderAllowed())
+    }
+
+    Class<? extends DomainObjectCollection<T>> getContainerPublicType() {
+        return new DslObject(container).publicType.concreteClass
     }
 
     def setup() {
@@ -1295,21 +1310,6 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         result == iterationOrder(a)
     }
 
-    def "can mutate the container inside a configureEach action"() {
-        given:
-        container.add(a)
-        container.add(b)
-        container.add(c)
-
-        when:
-        container.configureEach {
-            container.add(d)
-        }
-
-        then:
-        toList(container) == [a, b, c, d]
-    }
-
     def "provider of iterable is queried but elements not configured when lazy action is registered on non-matching filter"() {
         containerAllowsExternalProviders()
         def action = Mock(Action)
@@ -1430,5 +1430,47 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         and:
         1 * action.execute(a)
         0 * action.execute(_)
+    }
+
+    protected def getInvalidCallFromLazyConfiguration() {
+        return [
+            ["add(T)"               , CallAddFactory.AsAction],
+            ["add(T)"               , CallAddFactory.AsClosure],
+            ["addLater(Provider)"   , CallAddLaterFactory.AsAction],
+            ["addLater(Provider)"   , CallAddLaterFactory.AsClosure],
+            ["addAllLater(Provider)", CallAddAllLaterFactory.AsAction],
+            ["addAllLater(Provider)", CallAddAllLaterFactory.AsClosure],
+            ["addAll(Collection)"   , CallAddAllFactory.AsAction],
+            ["addAll(Collection)"   , CallAddAllFactory.AsClosure],
+            ["clear()"              , CallClearFactory.AsAction],
+            ["clear()"              , CallClearFactory.AsClosure],
+            ["remove(Object)"       , CallRemoveFactory.AsAction],
+            ["remove(Object)"       , CallRemoveFactory.AsClosure],
+            ["removeAll(Collection)", CallRemoveAllFactory.AsAction],
+            ["removeAll(Collection)", CallRemoveAllFactory.AsClosure],
+            ["retainAll(Collection)", CallRetainAllFactory.AsAction],
+            ["retainAll(Collection)", CallRetainAllFactory.AsClosure],
+            ["iterator().remove()"  , CallRemoveOnIteratorFactory.AsAction],
+            ["iterator().remove()"  , CallRemoveOnIteratorFactory.AsClosure],
+        ]
+    }
+
+    @Unroll
+    def "disallow mutating when configureEach(#factoryClass.configurationType.simpleName) calls #description"() {
+        def factory = factoryClass.newInstance()
+        if (factory.isUseExternalProviders()) {
+            containerAllowsExternalProviders()
+        }
+
+        when:
+        container.configureEach(factory.create(container, b))
+        container.add(a)
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "${containerPublicType.simpleName}#${description} on ${container.toString()} cannot be executed in the current context."
+
+        where:
+        [description, factoryClass] << getInvalidCallFromLazyConfiguration()
     }
 }
