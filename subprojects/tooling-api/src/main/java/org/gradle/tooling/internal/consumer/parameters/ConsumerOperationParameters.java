@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -114,18 +115,8 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         }
 
         public Builder addJvmArguments(List<String> jvmArguments) {
-            this.jvmArguments = append(this.jvmArguments, jvmArguments);
+            this.jvmArguments = concat(this.jvmArguments, jvmArguments);
             return this;
-        }
-
-        private static List<String> append(List<String> nullableFirst, List<String> second) {
-            if (nullableFirst == null) {
-                return new ArrayList<String>(second);
-            }
-            List<String> result = new ArrayList<String>(nullableFirst.size() + second.size());
-            result.addAll(nullableFirst);
-            result.addAll(second);
-            return result;
         }
 
         public Builder setArguments(List<String> arguments) {
@@ -134,8 +125,19 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         }
 
         public Builder addArguments(List<String> arguments) {
-            this.arguments = append(this.arguments, arguments);
+            this.arguments = concat(this.arguments, arguments);
             return this;
+        }
+
+        private static List<String> concat(List<String> first, List<String> second) {
+            List<String> result = new ArrayList<String>();
+            if (first  != null) {
+                result.addAll(first);
+            }
+            if (second != null) {
+                result.addAll(second);
+            }
+            return result;
         }
 
         public Builder setEnvironmentVariables(Map<String, String> envVariables) {

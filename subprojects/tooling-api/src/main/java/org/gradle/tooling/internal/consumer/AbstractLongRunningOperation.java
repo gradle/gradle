@@ -61,20 +61,6 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
         return arguments != null && arguments.iterator().hasNext() ? CollectionUtils.toList(arguments) : null;
     }
 
-    // TODO (donat) find a better name for this method
-    protected static <T> List<T> filterNull(@Nullable T argument, @Nullable T... arguments) {
-        List<T> result = new ArrayList<T>(arguments != null ? arguments.length + 1 : 1);
-        if (argument != null) {
-            result.add(argument);
-        }
-        for (T arg : arguments) {
-            if (arg != null) {
-                result.add(arg);
-            }
-        }
-        return result;
-    }
-
     @Override
     public T withArguments(String... arguments) {
         operationParamsBuilder.setArguments(rationalizeInput(arguments));
@@ -88,7 +74,7 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
     }
 
     public T addArguments(String argument, String... moreArguments) {
-        operationParamsBuilder.addArguments(filterNull(argument, moreArguments));
+        operationParamsBuilder.addArguments(listOfNonNulls(argument, moreArguments));
         return getThis();
     }
 
@@ -129,8 +115,21 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
     }
 
     public T addJvmArguments(String jvmArgument, String... moreJvmArguments) {
-        operationParamsBuilder.addJvmArguments(filterNull(jvmArgument, moreJvmArguments));
+        operationParamsBuilder.addJvmArguments(listOfNonNulls(jvmArgument, moreJvmArguments));
         return getThis();
+    }
+
+    protected static <T> List<T> listOfNonNulls(@Nullable T argument, @Nullable T... arguments) {
+        List<T> result = new ArrayList<T>(arguments != null ? arguments.length + 1 : 1);
+        if (argument != null) {
+            result.add(argument);
+        }
+        for (T arg : arguments) {
+            if (arg != null) {
+                result.add(arg);
+            }
+        }
+        return result;
     }
 
     @Override
