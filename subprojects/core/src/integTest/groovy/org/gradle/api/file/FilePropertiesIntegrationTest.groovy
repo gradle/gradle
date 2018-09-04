@@ -26,10 +26,6 @@ class FilePropertiesIntegrationTest extends AbstractIntegrationSpec {
             class SomeTask extends DefaultTask {
                 final DirectoryProperty outputDir = project.layout.directoryProperty()
                 
-                Directory getOutputDir() { return outputDir.getOrNull() }
-
-                void setOutputDir(Provider<Directory> f) { outputDir.set(f) }
-                
                 @TaskAction
                 void go() {
                     println "task output dir: " + outputDir.get() 
@@ -39,7 +35,7 @@ class FilePropertiesIntegrationTest extends AbstractIntegrationSpec {
             ext.childDirName = "child"
             def t = tasks.create("show", SomeTask)
             t.outputDir = layout.buildDirectory.dir(providers.provider { childDirName })
-            println "output dir before: " + t.outputDir
+            println "output dir before: " + t.outputDir.getOrNull()
             buildDir = "output/some-dir"
             childDirName = "other-child"
 """
@@ -138,10 +134,6 @@ task useFileProviderApi {
             class SomeTask extends DefaultTask {
                 final RegularFileProperty outputFile = project.layout.fileProperty()
                 
-                RegularFile getOutputFile() { return outputFile.getOrNull() }
-
-                void setOutputFile(Provider<RegularFile> f) { outputFile.set(f) }
-                
                 @TaskAction
                 void go() {
                     println "task output file: " + outputFile.get() 
@@ -151,7 +143,7 @@ task useFileProviderApi {
             ext.childDirName = "child"
             def t = tasks.create("show", SomeTask)
             t.outputFile = layout.buildDirectory.file(providers.provider { childDirName })
-            println "output file before: " + t.outputFile
+            println "output file before: " + t.outputFile.getOrNull()
             buildDir = "output/some-dir"
             childDirName = "other-child"
 """
@@ -307,26 +299,14 @@ task useDirProviderApi {
         failure.assertHasCause("Cannot set the value of a property of type org.gradle.api.file.RegularFile using a provider of type org.gradle.api.file.Directory.")
     }
 
-    def "can wire the output of a task as input to another task"() {
+    @Unroll
+    def "can wire the output file of a task as input to another task using property created by #outputFileMethod"() {
         buildFile << """
-            class DirOutputTask extends DefaultTask {
-                @InputFile
-                final RegularFileProperty inputFile = newInputFile()
-                @OutputDirectory
-                final DirectoryProperty outputDir = newOutputDirectory()
-                
-                @TaskAction
-                void go() {
-                    def dir = outputDir.asFile.get()
-                    new File(dir, "file.txt").text = inputFile.asFile.get().text
-                }
-            }
-            
             class FileOutputTask extends DefaultTask {
                 @InputFile
                 final RegularFileProperty inputFile = newInputFile()
                 @OutputFile
-                final RegularFileProperty outputFile = newOutputFile()
+                final RegularFileProperty outputFile = ${outputFileMethod}
                 
                 @TaskAction
                 void go() {
@@ -337,7 +317,7 @@ task useDirProviderApi {
 
             class MergeTask extends DefaultTask {
                 @InputFile
-                final RegularFileProperty inputFile = newInputFile()
+                final RegularFileProperty inputFile = ${inputFileMethod}
                 @InputFiles
                 final ConfigurableFileCollection inputFiles = project.layout.configurableFiles()
                 @OutputFile
@@ -352,19 +332,15 @@ task useDirProviderApi {
                 }
             }
             
-            task createDir(type: DirOutputTask)
             task createFile1(type: FileOutputTask)
             task createFile2(type: FileOutputTask)
             task merge(type: MergeTask) {
                 outputFile = layout.buildDirectory.file("merged.txt")
                 inputFile = createFile1.outputFile
                 inputFiles.from(createFile2.outputFile)
-                inputFiles.from(createDir.outputDir.asFileTree)
             }
-            
+
             // Set values lazily
-            createDir.inputFile = layout.projectDirectory.file("dir1-source.txt")
-            createDir.outputDir = layout.buildDirectory.dir("dir1")
             createFile1.inputFile = layout.projectDirectory.file("file1-source.txt")
             createFile1.outputFile = layout.buildDirectory.file("file1.txt")
             createFile2.inputFile = layout.projectDirectory.file("file2-source.txt")
@@ -372,7 +348,6 @@ task useDirProviderApi {
             
             buildDir = "output"
 """
-        file("dir1-source.txt").text = "dir1"
         file("file1-source.txt").text = "file1"
         file("file2-source.txt").text = "file2"
 
@@ -380,8 +355,8 @@ task useDirProviderApi {
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createDir", ":createFile1", ":createFile2", ":merge")
-        file("output/merged.txt").text == 'file1,file2,dir1'
+        result.assertTasksExecuted(":createFile1", ":createFile2", ":merge")
+        file("output/merged.txt").text == 'file1,file2'
 
         when:
         run("merge")
@@ -395,17 +370,23 @@ task useDirProviderApi {
 
         then:
         result.assertTasksNotSkipped(":createFile1", ":merge")
-        file("output/merged.txt").text == 'new-file1,file2,dir1'
+        file("output/merged.txt").text == 'new-file1,file2'
+
+        where:
+        outputFileMethod                | inputFileMethod
+        "newOutputFile()"               | "newInputFile()"
+        "project.layout.fileProperty()" | "project.layout.fileProperty()"
     }
 
-    def "can wire the output directory of a task as input directory to another task"() {
+    @Unroll
+    def "can wire the output directory of a task as input to another task using property created by #outputDirMethod"() {
         buildFile << """
             class DirOutputTask extends DefaultTask {
                 @InputFile
                 final RegularFileProperty inputFile = newInputFile()
 
                 @OutputDirectory
-                final DirectoryProperty outputDir = newOutputDirectory()
+                final DirectoryProperty outputDir = ${outputDirMethod}
 
                 @TaskAction
                 void go() {
@@ -416,16 +397,16 @@ task useDirProviderApi {
 
             class MergeTask extends DefaultTask {
                 @InputDirectory
-                final DirectoryProperty inputDir1 = newInputDirectory()
-                @InputDirectory
-                final DirectoryProperty inputDir2 = newInputDirectory()
+                final DirectoryProperty inputDir = ${inputDirMethod}
+                @InputFiles
+                final ConfigurableFileCollection inputFiles = project.files()
                 @OutputFile
                 final RegularFileProperty outputFile = newOutputFile()
 
                 @TaskAction
                 void go() {
                     def file = outputFile.asFile.get()
-                    file.text = [inputDir1, inputDir2]*.asFile*.get()*.listFiles().flatten()*.text.join(',')
+                    file.text = (inputDir.asFile.get().listFiles() + inputFiles.files)*.text.join(',')
                 }
             }
 
@@ -433,8 +414,8 @@ task useDirProviderApi {
             task createDir2(type: DirOutputTask)
             task merge(type: MergeTask) {
                 outputFile = layout.buildDirectory.file("merged.txt")
-                inputDir1 = createDir1.outputDir
-                inputDir2 = createDir2.outputDir
+                inputDir = createDir1.outputDir
+                inputFiles.from(createDir2.outputDir.asFileTree)
             }
 
             // Set values lazily
@@ -468,6 +449,11 @@ task useDirProviderApi {
         then:
         result.assertTasksNotSkipped(":createDir1", ":merge")
         file("output/merged.txt").text == 'new-dir1,dir2'
+
+        where:
+        outputDirMethod                      | inputDirMethod
+        "newOutputDirectory()"               | "newInputDirectory()"
+        "project.layout.directoryProperty()" | "project.layout.directoryProperty()"
     }
 
     @Unroll

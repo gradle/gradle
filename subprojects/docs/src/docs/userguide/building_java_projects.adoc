@@ -333,13 +333,11 @@ See link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar] for more de
 
 If you instead want to create an 'uber' (AKA 'fat') JAR, then you can use a task definition like this:
 
-=== Example: Creating a Java uber or fat JAR
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/archivesWithJavaPlugin/build.gradle[tag=create-uber-jar-example]
-----
+.Creating a Java uber or fat JAR
+====
+include::sample[dir="userguide/files/archivesWithJavaPlugin/groovy",files="build.gradle[tags=create-uber-jar-example]"]
+include::sample[dir="userguide/files/archivesWithJavaPlugin/kotlin",files="build.gradle.kts[tags=create-uber-jar-example]"]
+====
 
 There are several options for publishing a JAR once it has been created:
 

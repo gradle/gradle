@@ -21,6 +21,30 @@
                 "org.gradle.api.internal.AbstractTask.getValidators()",
                 "org.gradle.api.internal.AbstractTask.setExecuter(org.gradle.api.internal.tasks.TaskExecuter)"
             ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.CheckstyleReports",
+            "member": "Method org.gradle.api.plugins.quality.CheckstyleReports.getHtml()",
+            "acceptation": "Support type-safe configuration for Checkstyle HTML report stylesheet when using Kotlin DSL",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsReports",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsReports.getHtml()",
+            "acceptation": "Support type-safe configuration for FindBugs HTML report stylesheet when using Kotlin DSL",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.java.archives.Manifest",
+            "member": "Method org.gradle.api.java.archives.Manifest.from(java.lang.Object,org.gradle.api.Action)",
+            "acceptation": "Support type-safe manifest merging",
+            "changes": [
+                "Method added to interface"
+            ]
         }
     ]
 }

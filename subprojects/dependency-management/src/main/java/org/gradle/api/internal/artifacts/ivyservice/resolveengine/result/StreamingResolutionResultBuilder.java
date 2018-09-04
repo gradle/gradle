@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
@@ -72,9 +73,9 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         this.componentSelectorSerializer = new ComponentSelectorSerializer(attributeContainerSerializer);
     }
 
-    public ResolutionResult complete() {
+    public ResolutionResult complete(Set<UnresolvedDependency> extraFailures) {
         BinaryStore.BinaryData data = store.done();
-        RootFactory rootSource = new RootFactory(data, failures, cache, componentSelectorSerializer, dependencyResultSerializer, componentResultSerializer);
+        RootFactory rootSource = new RootFactory(data, failures, cache, componentSelectorSerializer, dependencyResultSerializer, componentResultSerializer, extraFailures);
         return new DefaultResolutionResult(rootSource);
     }
 
@@ -153,14 +154,16 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         private final Object lock = new Object();
         private final ComponentSelectorSerializer componentSelectorSerializer;
         private final DependencyResultSerializer dependencyResultSerializer;
+        private final Set<UnresolvedDependency> extraFailures;
 
-        RootFactory(BinaryStore.BinaryData data, Map<ComponentSelector, ModuleVersionResolveException> failures, Store<ResolvedComponentResult> cache, ComponentSelectorSerializer componentSelectorSerializer, DependencyResultSerializer dependencyResultSerializer, ComponentResultSerializer componentResultSerializer) {
+        RootFactory(BinaryStore.BinaryData data, Map<ComponentSelector, ModuleVersionResolveException> failures, Store<ResolvedComponentResult> cache, ComponentSelectorSerializer componentSelectorSerializer, DependencyResultSerializer dependencyResultSerializer, ComponentResultSerializer componentResultSerializer, Set<UnresolvedDependency> extraFailures) {
             this.data = data;
             this.failures = failures;
             this.cache = cache;
             this.componentResultSerializer = componentResultSerializer;
             this.componentSelectorSerializer = componentSelectorSerializer;
             this.dependencyResultSerializer = dependencyResultSerializer;
+            this.extraFailures = extraFailures;
         }
 
         public ResolvedComponentResult create() {
@@ -201,6 +204,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                         case ROOT:
                             // Last entry, complete the result
                             Long rootId = decoder.readSmallLong();
+                            builder.addExtraFailures(rootId, extraFailures);
                             ResolvedComponentResult root = builder.complete(rootId).getRoot();
                             LOG.debug("Loaded resolution results ({}) from {}", clock.getElapsed(), data);
                             return root;

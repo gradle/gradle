@@ -1,0 +1,41 @@
+// tag::zip[]
+// tag::tar[]
+plugins {
+    id 'java'
+}
+
+// end::tar[]
+// end::zip[]
+
+// tag::unpack-archive-example[]
+task unpackFiles(type: Copy) {
+    from zipTree("src/resources/thirdPartyResources.zip")
+    into "$buildDir/resources"
+}
+// end::unpack-archive-example[]
+
+// tag::zip[]
+task zip(type: Zip) {
+    from 'src/dist'
+    into('libs') {
+        from configurations.runtime
+    }
+}
+// end::zip[]
+
+// tag::tar[]
+task tar(type: Tar) {
+    from 'src/dist'
+    into('libs') {
+        from configurations.runtime
+    }
+}
+// end::tar[]
+
+// tag::reproducible[]
+tasks.withType(AbstractArchiveTask) {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+// end::reproducible[]
+

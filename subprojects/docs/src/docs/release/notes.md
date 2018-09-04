@@ -161,6 +161,10 @@ See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-exec
 For better compatibility with the Kotlin DSL, the property setter no longer accepts `null` as a way
 to reset the property back to its default value. Use `DuplicatesStrategy.INHERIT` instead.
 
+### `CheckstyleReports` and `FindbugsReports` `html` property now return `CustomizableHtmlReport`
+
+For easier configurability from statically compiled languages such as Java or Kotlin.
+
 ### Changes to previously deprecated APIs
 
 - The `org.gradle.plugins.signing.Signature` methods `getToSignArtifact()` and `setFile(File)` are removed.
@@ -202,10 +206,14 @@ We would like to thank the following community members for making contributions 
 - [Björn Kautler](https://github.com/Vampire) - No Deprecated Configurations in Build Init (gradle/gradle#6208)
 - [Georg Friedrich](https://github.com/GFriedrich) - Base Java Library Distribution Plugin on Java Library Plugin (gradle/gradle#5695)
 - [Stefan M.](https://github.com/StefMa) — Include Kotlin DSL samples in Gradle Wrapper, Java Gradle Plugin, and OSGI Plugin user manual chapters (gradle/gradle#5923, gradle/gradle#6485, gradle/gradle#6539)
-- [Jean-Baptiste Nizet](https://github.com/jnizet) — Include Kotlin DSL samples in Announcements, Base, Java Library Plugins, JaCoCo Plugins, Building Java Projects, Declaring Repositories, Dependency Locking, Dependency Types, Java Library, Java Testing and Artifact Management user manual chapters (gradle/gradle#6488, gradle/gradle#6500, gradle/gradle#6514, gradle/gradle#6518, gradle/gradle#6521, gradle/gradle#6540, gradle/gradle#6560, gradle/gradle#6559)
+- [Stefan M.](https://github.com/StefMa) - Fix incoherent task name in the Authoring Tasks user manual chapter (gradle/gradle#6581)
+- [Jean-Baptiste Nizet](https://github.com/jnizet) — Include Kotlin DSL samples in Announcements, Base, Java Library Plugins, JaCoCo Plugins, Building Java Projects, Declaring Repositories, Dependency Locking, Dependency Types, Java Library, Java Testing, Artifact Management, IDEA Plugin, Application Plugin, Dependency Management for Java Projects, Working With Files and Working With Dependencies user manual chapters (gradle/gradle#6488, gradle/gradle#6500, gradle/gradle#6514, gradle/gradle#6518, gradle/gradle#6521, gradle/gradle#6540, gradle/gradle#6560, gradle/gradle#6559, gradle/gradle#6569, gradle/gradle#6556, gradle/gradle#6512, gradle/gradle#6501, gradle/gradle#6497)
 - [Jean-Baptiste Nizet](https://github.com/jnizet) — Use proper subtype for useTestNG() (gradle/gradle#6520)
 - [Xiang Li](https://github.com/lixiangconan) and [Theodore Ni](https://github.com/tjni) - Make FileUtils#calculateRoots more efficient (gradle/gradle#6455)
-- [James Justinic](https://github.com/jjustinic) Include Kotlin DSL samples in Ant, Code Quality, and WAR Plugin user manual chapters (gradle/gradle#6492, gradle/gradle#6510, gradle/gradle#6522)
+- [James Justinic](https://github.com/jjustinic) Include Kotlin DSL samples in Ant, WAR Plugin, Checkstyle plugin, CodeNarc plugin, FindBugs plugin, JDepend plugin, PMD plugin user manual chapters (gradle/gradle#6492, gradle/gradle#6510, gradle/gradle#6522)
+- [James Justinic](https://github.com/jjustinic) Support type-safe configuration for Checkstyle/FindBugs HTML report stylesheet (gradle/gradle#6551)
+- [Mike Kobit](https://github.com/mkobit) - Include Kotlin DSL samples in Lazy Configuration user manual chapter (gradle/gradle#6528)
+- [Kevin Macksamie](https://github.com/k-mack) - Switch distribution plugin to use configuration avoidance APIs (gradle/gradle#6443)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
