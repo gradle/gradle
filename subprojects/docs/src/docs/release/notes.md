@@ -171,6 +171,7 @@ See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-exec
 The default tool versions of the following code quality plugins have been updated:
 
 - The CodeNarc plugin now uses 1.2.1 instead of 1.1 by default.
+- The JaCoCo plugin now uses 0.8.2 instead of 0.8.1 by default.
 
 ### `CopySpec.duplicatesStrategy` is no longer nullable
 
