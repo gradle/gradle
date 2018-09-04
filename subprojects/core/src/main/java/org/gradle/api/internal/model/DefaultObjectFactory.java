@@ -79,12 +79,12 @@ public class DefaultObjectFactory implements ObjectFactory {
 
     @Override
     public DirectoryProperty directoryProperty() {
-        return filePropertyFactory.directoryProperty();
+        return filePropertyFactory.newDirectoryProperty();
     }
 
     @Override
     public RegularFileProperty fileProperty() {
-        return filePropertyFactory.fileProperty();
+        return filePropertyFactory.newFileProperty();
     }
 
     @Override
