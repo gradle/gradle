@@ -14,6 +14,9 @@ class Greeting extends DefaultTask {
 }
 
 task greeting(type: Greeting) {
-    // Note that this is effectively calling Property.set()
+    // Configure the greeting
+    message.set('Hi')
+
+    // Note that an assignment statement can be used instead of calling Property.set()
     message = 'Hi'
 }
