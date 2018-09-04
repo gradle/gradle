@@ -170,6 +170,7 @@ See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-exec
 
 The default tool versions of the following code quality plugins have been updated:
 
+- The Checkstyle plugin now uses 8.12 instead of 6.19 by default.
 - The CodeNarc plugin now uses 1.2.1 instead of 1.1 by default.
 
 ### `CopySpec.duplicatesStrategy` is no longer nullable
