@@ -206,14 +206,11 @@ include::{samplesPath}/customPlugin/consumer/build.gradle[tag=use-plugin]
 
 Alternatively, you can use the plugins DSL (see <<plugins.adoc#sec:plugins_block,Applying plugins using the plugins DSL>>) to apply the plugin:
 
-=== Example: Applying a community plugin with the plugins DSL
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/plugins/dsl/groovy/build.gradle[tag=use-community-plugin]
-----
-
+.Applying a community plugin with the plugins DSL
+====
+include::sample[dir="plugins/dsl/groovy",files="build.gradle[tags=use-community-plugin]"]
+include::sample[dir="plugins/dsl/kotlin",files="build.gradle.kts[tags=use-community-plugin]"]
+====
 
 [[sec:writing_tests_for_your_plugin]]
 === Writing tests for your plugin
@@ -257,13 +254,11 @@ Gradle provides several conveniences to help create a well-behaved DSL for your 
 
 When Gradle creates a task or extension object, Gradle _decorates_ the implementation class to mix in DSL support. To create a nested DSL element you can use the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] type to create objects that are similarly decorated. These decorated objects can then be made visible to the DSL through properties and methods of the plugin's extension:
 
-=== Example: Nested DSL elements
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/customPlugins/customPluginWithNestedDsl/build.gradle[]
-----
+.Nested DSL elements
+====
+include::sample[dir="userguide/customPlugins/customPluginWithNestedDsl/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/customPlugins/customPluginWithNestedDsl/kotlin",files="build.gradle.kts[]"]
+====
 
 .Output of **`gradle -q hello`**
 ----
