@@ -165,6 +165,11 @@ to reset the property back to its default value. Use `DuplicatesStrategy.INHERIT
 
 For easier configurability from statically compiled languages such as Java or Kotlin.
 
+### Source and test source dirs in `IdeaModule` no longer contain resources
+
+The `IdeaModule` Tooling API model element contains methods to retrieve resources and test resources so those elements were removed from the result of  `IdeaModule#getSourceDirs()` and `IdeaModule#getTestSourceDirs()`.
+
+
 ### Changes to previously deprecated APIs
 
 - The `org.gradle.plugins.signing.Signature` methods `getToSignArtifact()` and `setFile(File)` are removed.
