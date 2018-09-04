@@ -80,6 +80,7 @@ By pointing an instance of a source set to one or many source code directories, 
 .Integration test source set
 ====
 include::sample[dir="/userguide/organizingGradleProjects/separatedTestTypes/groovy/gradle",files="integration-test.gradle[tags=custom-source-set]"]
+include::sample[dir="/userguide/organizingGradleProjects/separatedTestTypes/kotlin/gradle",files="integration-test.gradle.kts[tags=custom-source-set]"]
 ====
 
 Source sets are only responsible for compiling source code, but do not deal with executing the byte code.
@@ -88,6 +89,7 @@ For the purpose of test execution, a corresponding task of type link:{groovyDslP
 .Integration test task
 ====
 include::sample[dir="/userguide/organizingGradleProjects/separatedTestTypes/groovy/gradle",files="integration-test.gradle[tags=test-task]"]
+include::sample[dir="/userguide/organizingGradleProjects/separatedTestTypes/kotlin/gradle",files="integration-test.gradle.kts[tags=test-task]"]
 ====
 
 [[sec:use_standard_conventions]]
