@@ -123,13 +123,11 @@ The extension declaration in the build script as well as the mapping between ext
 
 The following demonstrates the usage of the type for mapping an extension property to a task property:
 
-=== Example: Mapping extension properties to task properties
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tasks/mapExtensionPropertiesToTaskProperties/build.gradle[]
-----
+.Mapping extension properties to task properties
+====
+include::sample[dir="userguide/tasks/mapExtensionPropertiesToTaskProperties/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/mapExtensionPropertiesToTaskProperties/kotlin",files="build.gradle.kts[]"]
+====
 
 NOTE: The code for this example can be found at **`samples/userguide/tasks/mapExtensionPropertiesToTaskProperties`** in the ‘-all’ distribution of Gradle.
 
