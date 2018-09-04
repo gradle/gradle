@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
@@ -121,9 +122,11 @@ public class DependencyGraphBuilder {
         DefaultBuildableComponentResolveResult rootModule = new DefaultBuildableComponentResolveResult();
         moduleResolver.resolve(resolveContext, rootModule);
 
-        final ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, moduleReplacementsData, componentSelectorConverter, attributesFactory, dependencySubstitutionApplicator, versionSelectorScheme, versionComparator, versionParser);
+        int graphSize = estimateSize(resolveContext);
+        final ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, moduleReplacementsData, componentSelectorConverter, attributesFactory, dependencySubstitutionApplicator, versionSelectorScheme, versionComparator, versionParser, graphSize);
 
-        traverseGraph(resolveState);
+        Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache = Maps.newHashMapWithExpectedSize(graphSize/2);
+        traverseGraph(resolveState, componentIdentifierCache);
 
         validateGraph(resolveState);
 
@@ -132,12 +135,24 @@ public class DependencyGraphBuilder {
     }
 
     /**
+     * This method is a heuristic that gives an idea of the "size" of the graph. The larger
+     * the graph is, the higher the risk of internal resizes exists, so we try to estimate
+     * the size of the graph to avoid maps resizing.
+     */
+    private static int estimateSize(ResolveContext resolveContext) {
+        int estimate = 0;
+        if (resolveContext instanceof Configuration) {
+            estimate = (int) (512 * Math.log(((Configuration) resolveContext).getAllDependencies().size()));
+        }
+        return Math.max(10, estimate);
+    }
+
+    /**
      * Traverses the dependency graph, resolving conflicts and building the paths from the root configuration.
      */
-    private void traverseGraph(final ResolveState resolveState) {
+    private void traverseGraph(final ResolveState resolveState, final Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache) {
         resolveState.onMoreSelected(resolveState.getRoot());
         final List<EdgeState> dependencies = Lists.newArrayList();
-        final Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache = Maps.newHashMap();
 
         while (resolveState.peek() != null || moduleConflictHandler.hasConflicts() || capabilitiesConflictHandler.hasConflicts()) {
             if (resolveState.peek() != null) {
