@@ -29,8 +29,6 @@ import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollectio
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.provider.AbstractMappingProvider;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.provider.Provider;
 
@@ -72,44 +70,6 @@ public class DefaultProjectLayout extends DefaultFilePropertyFactory implements 
         RegularFileProperty result = fileProperty();
         result.set(initialProvider);
         return result;
-    }
-
-    @Override
-    public DirectoryProperty newOutputDirectory(Task producer) {
-        DefaultDirectoryVar property = new DefaultDirectoryVar(projectDir.fileResolver);
-        property.attachProducer(producer);
-        return property;
-    }
-
-    @Override
-    public RegularFileProperty newOutputFile(Task producer) {
-        DefaultRegularFileVar property = new DefaultRegularFileVar(projectDir.fileResolver);
-        property.attachProducer(producer);
-        return property;
-    }
-
-    @Override
-    public RegularFileProperty newInputFile(final Task consumer) {
-        final DefaultRegularFileVar fileVar = new DefaultRegularFileVar(projectDir.fileResolver);
-        consumer.dependsOn(new AbstractTaskDependency() {
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                fileVar.visitDependencies(context);
-            }
-        });
-        return fileVar;
-    }
-
-    @Override
-    public DirectoryProperty newInputDirectory(final Task consumer) {
-        final DefaultDirectoryVar directoryVar = new DefaultDirectoryVar(projectDir.fileResolver);
-        consumer.dependsOn(new AbstractTaskDependency() {
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                directoryVar.visitDependencies(context);
-            }
-        });
-        return directoryVar;
     }
 
     @Override
