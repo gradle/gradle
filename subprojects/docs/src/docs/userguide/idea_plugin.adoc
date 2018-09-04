@@ -38,13 +38,11 @@ One focus of the IDEA plugin is to be open to customization. The plugin provides
 
 To use the IDEA plugin, include this in your build script:
 
-=== Example: Using the IDEA plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/idea/build.gradle[tag=use-plugin]
-----
+.Using the IDEA plugin
+====
+include::sample[dir="idea/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="idea/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+====
 
 The IDEA plugin adds a number of tasks to your project. The `idea` task generates an IDEA module file for the project. When the project is the root project, the `idea` task also generates an IDEA project and workspace. The IDEA project includes modules for each of the projects in the Gradle build.
 
@@ -176,52 +174,41 @@ link:{javadocPath}/org/gradle/plugins/ide/idea/model/IdeaWorkspace.html[IdeaWork
 
 A "complete rewrite" causes all existing content to be discarded, thereby losing any changes made directly in the IDE. The `beforeMerged` hook makes it possible to overwrite just certain parts of the existing content. The following example removes all existing dependencies from the `Module` domain object:
 
-=== Example: Partial Rewrite for Module
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/idea/build.gradle[tag=module-before-merged]
-----
+.Partial Rewrite for Module
+====
+include::sample[dir="idea/groovy",files="build.gradle[tags=module-before-merged]"]
+include::sample[dir="idea/kotlin",files="build.gradle.kts[tags=module-before-merged]"]
+====
 
 The resulting module file will only contain Gradle-generated dependency entries, but not any other dependency entries that may have been present in the original file. (In the case of dependency entries, this is also the default behavior.) Other sections of the module file will be either left as-is or merged. The same could be done for the module paths in the project file:
 
-=== Example: Partial Rewrite for Project
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/idea/build.gradle[tag=project-before-merged]
-----
-
+.Partial Rewrite for Project
+====
+include::sample[dir="idea/groovy",files="build.gradle[tags=project-before-merged]"]
+include::sample[dir="idea/kotlin",files="build.gradle.kts[tags=project-before-merged]"]
+====
 
 [[sec:idea_modify_domain_objects]]
 ==== Modifying the fully populated domain objects
 
 The `whenMerged` hook allows you to manipulate the fully populated domain objects. Often this is the preferred way to customize IDEA files. Here is how you would export all the dependencies of an IDEA module:
 
-=== Example: Export Dependencies
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/idea/build.gradle[tag=module-when-merged]
-----
-
+.Export Dependencies
+====
+include::sample[dir="idea/groovy",files="build.gradle[tags=module-when-merged]"]
+include::sample[dir="idea/kotlin",files="build.gradle.kts[tags=module-when-merged]"]
+====
 
 [[sec:idea_modify_xml]]
 ==== Modifying the XML representation
 
-The `withXml` hook allows you to manipulate the in-memory XML representation just before the file gets written to disk. Although Groovy's XML support makes up for a lot, this approach is less convenient than manipulating the domain objects. In return, you get total control over the generated file, including sections not modeled by the domain objects.
+The `withXml` hook allows you to manipulate the in-memory XML representation just before the file gets written to disk. Although Groovy's XML support and Kotlin's extension functions make up for a lot, this approach is less convenient than manipulating the domain objects. In return, you get total control over the generated file, including sections not modeled by the domain objects.
 
-=== Example: Customizing the XML
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/idea/build.gradle[tag=project-with-xml]
-----
-
+.Customizing the XML
+====
+include::sample[dir="idea/groovy",files="build.gradle[tags=project-with-xml]"]
+include::sample[dir="idea/kotlin",files="build.gradle.kts[tags=project-with-xml]"]
+====
 
 [[sec:further_things_to_consider]]
 == Further things to consider

@@ -19,30 +19,42 @@ package org.gradle.integtests.samples.files
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Unroll
 
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
+
+@Requires(KOTLIN_SCRIPT)
 class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
+    @Unroll
     @UsesSample("userguide/files/misc")
-    def "can create a directory"() {
+    def "can create a directory with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds('ensureDirectory')
 
         then:
-        sample.dir.file('images').isDirectory()
+        dslDir.file('images').isDirectory()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/files/misc")
-    def "can move a directory"() {
+    def "can move a directory with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
-        def reportsDir = sample.dir.file('build/reports')
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
+        def reportsDir = dslDir.file('build/reports')
         reportsDir.createDir().file('my-report.pdf').touch()
         reportsDir.file('numbers.csv').touch()
 
@@ -53,48 +65,66 @@ class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
         succeeds('moveReports')
 
         then:
-        def toArchiveDir = sample.dir.file("build/toArchive")
+        def toArchiveDir = dslDir.file("build/toArchive")
         toArchiveDir.file("reports").isDirectory()
         toArchiveDir.file("reports/my-report.pdf").isFile()
         toArchiveDir.file("reports/numbers.csv").isFile()
         toArchiveDir.file("reports/metrics/scatterPlot.pdf").isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/files/misc")
-    def "can delete a directory"() {
+    def "can delete a directory with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
-        sample.dir.file("build").createDir().file("dummy.txt").touch()
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
+        dslDir.file("build").createDir().file("dummy.txt").touch()
 
         when:
         succeeds('myClean')
 
         then:
-        sample.dir.file('build').assertDoesNotExist()
+        dslDir.file('build').assertDoesNotExist()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/files/misc")
-    def "can delete files matching a pattern"() {
+    def "can delete files matching a pattern with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds('cleanTempFiles')
 
         then:
-        def srcDir = sample.dir.file('src')
+        def srcDir = dslDir.file('src')
         srcDir.file("notes.txt.tmp").assertDoesNotExist()
         srcDir.file("README.md").isFile()
         srcDir.file("main/webapp/web.xml.tmp").assertDoesNotExist()
         srcDir.file("main/webapp/web.xml").isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/files/misc")
-    def "can use the rootDir property in a child project"() {
+    def "can use the rootDir property in a child project with #dsl dsl"() {
         given:
-        executer.inDirectory(sample.dir)
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         expect:
         succeeds(':project2:checkConfigFile')
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 }

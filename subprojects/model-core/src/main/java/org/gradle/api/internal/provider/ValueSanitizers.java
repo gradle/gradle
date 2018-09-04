@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
+import groovy.lang.GString;
 import org.gradle.internal.Cast;
 import org.gradle.util.CollectionUtils;
 
@@ -25,15 +26,11 @@ public class ValueSanitizers {
     private static final ValueSanitizer<Object> STRING_VALUE_SANITIZER = new ValueSanitizer<Object>() {
         @Override
         public Object sanitize(Object value) {
-            if (!(value instanceof String)) {
-                // The string name compare is a work around for the fact that GString isn't visible in base-services
-                // TODO - move this somewhere where GString is visible
-                Class<?> superclass = value.getClass().getSuperclass();
-                if (superclass != null && superclass.getName().equals("groovy.lang.GString")) {
-                    return value.toString();
-                }
+            if (value instanceof GString) {
+                return value.toString();
+            } else {
+                return value;
             }
-            return value;
         }
     };
     private static final ValueSanitizer<Object> IDENTITY_SANITIZER = new ValueSanitizer<Object>() {

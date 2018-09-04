@@ -41,7 +41,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
     def listenerManager = new DefaultListenerManager()
     def fileSystemSnapshotter = Mock(FileSystemSnapshotter)
     def cacheRepository = new DefaultCacheRepository(new DefaultCacheScopeMapping(tmpDir.file("user-home"), tmpDir.file("build-dir"), GradleVersion.current()), new InMemoryCacheFactory())
-    def inMemoryTaskArtifactCache = new InMemoryCacheDecoratorFactory(false, new CrossBuildInMemoryCacheFactory(new DefaultListenerManager())) {
+    def inMemoryTaskArtifactCache = new InMemoryCacheDecoratorFactory(false, new TestCrossBuildInMemoryCacheFactory()) {
         @Override
         CacheDecorator decorator(int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
             return new CacheDecorator() {

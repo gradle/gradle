@@ -16,7 +16,6 @@
 
 package org.gradle.testing
 
-import groovy.util.slurpersupport.GPathResult
 import groovy.util.slurpersupport.NodeChildren
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor
@@ -30,8 +29,12 @@ import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestOutputListener
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.event.ListenerBroadcast
+import org.openmbee.junit.model.JUnitTestSuite
+import org.openmbee.junit.model.JUnitFailure
+import org.openmbee.junit.model.JUnitTestCase
 
 import javax.xml.datatype.DatatypeFactory
+import groovy.transform.CompileStatic
 
 /**
  * This class is responsible for publishing events to {@link TestListener} and {@link TestOutputListener}
@@ -51,41 +54,37 @@ class JUnitXmlTestEventsGenerator {
         this.testListenerBroadcast = testListenerBroadcast
     }
 
-    void processXmlFile(File resultsFile, Object build) {
-        processXml(new XmlSlurper().parse(resultsFile), build)
-    }
-
-    void processXml(GPathResult testResult, Object build) {
-        String suiteName = testResult.@name.text()
-        def testSuiteDescriptor = new DecoratingTestDescriptor(new DefaultTestClassDescriptor(0, suiteName), createWorkerSuite())
+    @CompileStatic
+    void processTestSuite(JUnitTestSuite testSuite, Object build) {
+        String suiteName = testSuite.name
+        DecoratingTestDescriptor testSuiteDescriptor = new DecoratingTestDescriptor(new DefaultTestClassDescriptor(0, suiteName), createWorkerSuite())
         testListener.beforeSuite(testSuiteDescriptor.parent.parent)
         testListener.beforeSuite(testSuiteDescriptor.parent)
         testListener.beforeSuite(testSuiteDescriptor)
-        String timestamp = testResult.@timestamp.text()
+        String timestamp = testSuite.timestamp
         long startTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(timestamp).toGregorianCalendar().getTimeInMillis()
-        testResult.testcase.each { testCase ->
-            String testCaseClassName = testCase.@classname.text()
-            String testMethodName = testCase.@name.text()
-            def testCaseDescriptor = new DecoratingTestDescriptor(new DefaultTestMethodDescriptor(0, testCaseClassName, testMethodName), testSuiteDescriptor)
-            def skipped = testCase.skipped
-            def failure = testCase.failure
-            long endTime = startTime + (testCase.@time.toDouble() * 1000).round()
+        testSuite.testCases.each { JUnitTestCase testCase ->
+            String testCaseClassName = testCase.className
+            String testMethodName = testCase.name
+            DecoratingTestDescriptor testCaseDescriptor = new DecoratingTestDescriptor(new DefaultTestMethodDescriptor(0, testCaseClassName, testMethodName), testSuiteDescriptor)
+            List<JUnitFailure> failures = testCase.failures
+            long endTime = startTime + (testCase.time * 1000).round()
 
-            if (failure.size() > 0) {
+            if (failures && failures.size() > 0) {
                 testListener.beforeTest(testCaseDescriptor)
                 publishAdditionalMetadata(testCaseDescriptor, build)
                 try {
-                    String systemErr = testResult."system-err".text()
+                    String systemErr = testSuite.systemErr
                     if (systemErr) {
                         testOutputListener.onOutput(testCaseDescriptor, new DefaultTestOutputEvent(TestOutputEvent.Destination.StdErr, systemErr))
                     }
                 } catch (Exception e) {
                     e.printStackTrace()
                 }
-                String failureText = failure.text()
+                String failureText = failures.collect { it.message } .join('\n')
                 failureText = failureText.replace("java.lang.AssertionError: ", "")
-                testListener.afterTest(testCaseDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime, 1, 0, 1, [assertionError(failureText)]))
-            } else if (!(skipped.size() > 0)) {
+                testListener.afterTest(testCaseDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime, 1, 0, 1, [assertionError(failureText) as Throwable]))
+            } else if (notSkipped(testCase)) {
                 testListener.beforeTest(testCaseDescriptor)
                 publishAdditionalMetadata(testCaseDescriptor, build)
                 testListener.afterTest(testCaseDescriptor, new DefaultTestResult(TestResult.ResultType.SUCCESS, startTime, endTime, 1, 1, 0, []))
@@ -96,10 +95,14 @@ class JUnitXmlTestEventsGenerator {
         testListener.afterSuite(testSuiteDescriptor.parent.parent, new DefaultTestResult(TestResult.ResultType.SUCCESS, 0, 0, 0, 0, 0, []))
     }
 
-    @groovy.transform.CompileStatic
+    @CompileStatic
     // workaround for class org.codehaus.groovy.reflection.CachedConstructor cannot access a member of class java.lang.AssertionError (in module java.base) with modifiers "private"
     // using Jigsaw
-    AssertionError assertionError(/*must be Object*/Object failureText) { new AssertionError(failureText) }
+    private AssertionError assertionError(/*must be Object*/Object failureText) { new AssertionError(failureText) }
+
+    private boolean notSkipped(JUnitTestCase testCase) {
+        return testCase.skipped == null
+    }
 
     private void publishAdditionalMetadata(DecoratingTestDescriptor testCaseDescriptor, Object build) {
         List<String> outputs = []

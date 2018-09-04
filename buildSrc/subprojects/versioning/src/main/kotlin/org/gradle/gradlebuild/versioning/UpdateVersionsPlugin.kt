@@ -36,7 +36,7 @@ class UpdateVersionsPlugin : Plugin<Project> {
             group = "Versioning"
         }
 
-        tasks.register("updateReleasedVersions", UpdateReleasedVersions::class.java) {
+        tasks.register("updateReleasedVersions", UpdateReleasedVersions::class) {
             // TODO
             val currentReleasedVersionProperty = project.findProperty("currentReleasedVersion")
             val value =
@@ -45,7 +45,7 @@ class UpdateVersionsPlugin : Plugin<Project> {
             currentReleasedVersion.set(value)
         }
 
-        tasks.register("updateReleasedVersionsToLatestNightly", UpdateReleasedVersions::class.java) {
+        tasks.register("updateReleasedVersionsToLatestNightly", UpdateReleasedVersions::class) {
             currentReleasedVersion.set(project.providers.provider(Callable {
                 val jsonText = URL("https://services.gradle.org/versions/${VersionType.NIGHTLY.type}").readText()
                 println(jsonText)

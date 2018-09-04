@@ -16,10 +16,11 @@
 
 package org.gradle.integtests.resolve.locking
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.util.ToBeImplemented
 import spock.lang.Unroll
 
-class LockingInteractionsIntegrationTest extends AbstractDependencyResolutionTest {
+class LockingInteractionsIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def lockfileFixture = new LockfileFixture(testDirectory: testDirectory)
 
@@ -312,6 +313,42 @@ task copyFiles(type: Copy) {
         and:
         succeeds 'copyFiles'
 
+    }
+
+    @ToBeImplemented
+    def "avoids HTTP requests for dynamic version when lock exists"() {
+        def module1 = mavenHttpRepo.module('org', 'foo', '1.0').publish()
+        mavenHttpRepo.module('org', 'foo', '1.1').publish()
+        mavenHttpRepo.module('org', 'foo', '2.0').publish()
+
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'])
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenHttpRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:[1.0,2.0)'
+}
+"""
+        when:
+        // TODO:DAZ Should not need to load the maven-metadata to get the version list
+        module1.rootMetaData.expectGet()
+        module1.pom.expectGet()
+
+        then:
+        succeeds 'dependencies'
     }
 
 }

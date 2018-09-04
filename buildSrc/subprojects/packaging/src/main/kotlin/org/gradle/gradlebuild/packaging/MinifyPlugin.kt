@@ -60,7 +60,7 @@ open class MinifyPlugin : Plugin<Project> {
                          */
                         from.attribute(minified, false).attribute(artifactType, "jar")
                         to.attribute(minified, true).attribute(artifactType, "jar")
-                        artifactTransform(MinifyTransform::class.java) {
+                        artifactTransform(MinifyTransform::class) {
                             params(keepPatterns)
                         }
                     }

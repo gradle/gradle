@@ -18,8 +18,9 @@ package org.gradle.gradlebuild.testing.integrationtests.cleanup
 
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
+import org.gradle.kotlin.dsl.*
 
 
 open class TestFileCleanUpExtension(objects: ObjectFactory) {
-    val policy: Property<WhenNotEmpty> = objects.property(WhenNotEmpty::class.java)
+    val policy: Property<WhenNotEmpty> = objects.property()
 }
