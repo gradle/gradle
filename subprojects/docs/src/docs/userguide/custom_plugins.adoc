@@ -29,7 +29,8 @@ Build script::
 You can include the source for the plugin directly in the build script. This has the benefit that the plugin is automatically compiled and included in the classpath of the build script without you having to do anything. However, the plugin is not visible outside the build script, and so you cannot reuse the plugin outside the build script it is defined in.
 
 `buildSrc` project::
-You can put the source for the plugin in the `__rootProjectDir__/buildSrc/src/main/groovy` directory. Gradle will take care of compiling and testing the plugin and making it available on the classpath of the build script. The plugin is visible to every build script used by the build. However, it is not visible outside the build, and so you cannot reuse the plugin outside the build it is defined in.
+You can put the source for the plugin in the `__rootProjectDir__/buildSrc/src/main/groovy` directory
+(or `__rootProjectDir__/buildSrc/src/main/kotlin` if you prefer using Kotlin) . Gradle will take care of compiling and testing the plugin and making it available on the classpath of the build script. The plugin is visible to every build script used by the build. However, it is not visible outside the build, and so you cannot reuse the plugin outside the build it is defined in.
 +
 See <<organizing_gradle_projects.adoc#organizing_gradle_projects,Organizing Gradle Projects>> for more details about the `buildSrc` project.
 
@@ -77,7 +78,7 @@ include::sample[dir="userguide/customPlugins/customPluginWithConvention/kotlin",
 include::{samplesPath}/userguide/customPlugins/customPluginWithConvention/customPluginWithConvention.out[]
 ----
 
-In this example, `GreetingPluginExtension` is a plain old Groovy object with a property called `message`. The extension object is added to the plugin list with the name `greeting`. This object then becomes available as a project property with the same name as the extension object.
+In this example, `GreetingPluginExtension` is a plain old Groovy/Kotlin object with a property called `message`. The extension object is added to the plugin list with the name `greeting`. This object then becomes available as a project property with the same name as the extension object.
 
 Oftentimes, you have several related properties you need to specify on a single plugin. Gradle adds a configuration closure block for each extension object, so you can group settings together. The following example shows you how this works.
 
@@ -94,6 +95,8 @@ include::{samplesPath}/userguide/customPlugins/customPluginWithAdvancedConventio
 ----
 
 In this example, several settings can be grouped together within the `greeting` closure. The name of the closure block in the build script (`greeting`) needs to match the extension object name. Then, when the closure is executed, the fields on the extension object will be mapped to the variables within the closure based on the standard Groovy closure delegate feature.
+
+// TODO reword the above paragraph for Kotlin
 
 [[sec:working_with_files_in_custom_tasks_and_plugins]]
 == Working with files in custom tasks and plugins
@@ -112,7 +115,7 @@ include::sample[dir="userguide/tasks/customTaskWithFileProperty/kotlin",files="b
 include::{samplesPath}/userguide/tasks/customTaskWithFileProperty/lazyFileProperties.out[]
 ----
 
-In this example, we configure the `greet` task `destination` property as a closure, which is evaluated with the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method to turn the return value of the closure into a `File` object at the last minute. You will notice that in the example above we specify the `greetingFile` property value after we have configured to use it for the task. This kind of lazy evaluation is a key benefit of accepting any value when setting a file property, then resolving that value when reading the property.
+In this example, we configure the `greet` task `destination` property as a closure/provider, which is evaluated with the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method to turn the return value of the closure/provider into a `File` object at the last minute. You will notice that in the example above we specify the `greetingFile` property value after we have configured to use it for the task. This kind of lazy evaluation is a key benefit of accepting any value when setting a file property, then resolving that value when reading the property.
 
 [[sec:mapping_extension_properties_to_task_properties]]
 == Mapping extension properties to task properties
