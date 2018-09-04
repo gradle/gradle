@@ -1,7 +1,7 @@
 plugins {
     java
 }
-apply(from = "gradle/integration-test.gradle")
+apply(from = "gradle/integration-test.gradle.kts")
 
 repositories {
     mavenCentral()
