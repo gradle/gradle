@@ -380,6 +380,73 @@ task useDirProviderApi {
     }
 
     @Unroll
+    def "can wire the output file of an ad hoc task as input to another task using property created by #outputFileMethod"() {
+        buildFile << """
+            class MergeTask extends DefaultTask {
+                @InputFile
+                final RegularFileProperty inputFile = project.layout.fileProperty()
+                @InputFiles
+                final ConfigurableFileCollection inputFiles = project.layout.configurableFiles()
+                @OutputFile
+                final RegularFileProperty outputFile = newOutputFile()
+                
+                @TaskAction
+                void go() {
+                    def file = outputFile.asFile.get()
+                    file.text = ""
+                    file << inputFile.asFile.get().text
+                    inputFiles.each { file << ',' + it.text }
+                }
+            }
+            
+            task createFile1 {
+                ext.outputFile = ${outputFileMethod}
+                outputs.file(outputFile)
+                doLast {
+                    outputFile.get().asFile.text = 'file1'
+                }
+            }
+            task createFile2 {
+                ext.outputFile = ${outputFileMethod}
+                outputs.file(outputFile)
+                doLast {
+                    outputFile.get().asFile.text = 'file2'
+                }
+            }
+            task merge(type: MergeTask) {
+                outputFile = layout.buildDirectory.file("merged.txt")
+                inputFile = createFile1.outputFile
+                inputFiles.from(createFile2.outputFile)
+            }
+
+            // Set values lazily
+            createFile1.outputFile.set(layout.buildDirectory.file("file1.txt"))
+            createFile2.outputFile.set(layout.buildDirectory.file("file2.txt"))
+            
+            buildDir = "output"
+"""
+
+        when:
+        run("merge")
+
+        then:
+        result.assertTasksExecuted(":createFile1", ":createFile2", ":merge")
+        file("output/merged.txt").text == 'file1,file2'
+
+        when:
+        run("merge")
+
+        then:
+        result.assertTasksNotSkipped()
+
+        where:
+        outputFileMethod                 | _
+        "newOutputFile()"                | _
+        "project.layout.fileProperty()"  | _
+        "project.objects.fileProperty()" | _
+    }
+
+    @Unroll
     def "can wire the output directory of a task as input to another task using property created by #outputDirMethod"() {
         buildFile << """
             class DirOutputTask extends DefaultTask {
@@ -459,6 +526,71 @@ task useDirProviderApi {
     }
 
     @Unroll
+    def "can wire the output directory of an ad hoc task as input to another task using property created by #outputDirMethod"() {
+        buildFile << """
+            class MergeTask extends DefaultTask {
+                @InputDirectory
+                final DirectoryProperty inputDir = project.objects.directoryProperty()
+                @InputFiles
+                final ConfigurableFileCollection inputFiles = project.files()
+                @OutputFile
+                final RegularFileProperty outputFile = newOutputFile()
+
+                @TaskAction
+                void go() {
+                    def file = outputFile.asFile.get()
+                    file.text = (inputDir.asFile.get().listFiles() + inputFiles.files)*.text.join(',')
+                }
+            }
+
+            task createDir1 {
+                ext.outputDir = ${outputDirMethod}
+                outputs.dir(outputDir)
+                doLast {
+                    new File(outputDir.get().asFile, "file.txt").text = "dir1"
+                }
+            }
+            task createDir2 {
+                ext.outputDir = ${outputDirMethod}
+                outputs.dir(outputDir)
+                doLast {
+                    new File(outputDir.get().asFile, "file.txt").text = "dir2"
+                }
+            }
+            task merge(type: MergeTask) {
+                outputFile = layout.buildDirectory.file("merged.txt")
+                inputDir = createDir1.outputDir
+                inputFiles.from(createDir2.outputDir.asFileTree)
+            }
+
+            // Set values lazily
+            createDir1.outputDir.set(layout.buildDirectory.dir("dir1"))
+            createDir2.outputDir.set(layout.buildDirectory.dir("dir2"))
+
+            buildDir = "output"
+"""
+
+        when:
+        run("merge")
+
+        then:
+        result.assertTasksExecuted(":createDir1", ":createDir2", ":merge")
+        file("output/merged.txt").text == 'dir1,dir2'
+
+        when:
+        run("merge")
+
+        then:
+        result.assertTasksNotSkipped()
+
+        where:
+        outputDirMethod                       | _
+        "newOutputDirectory()"                | _
+        "project.layout.directoryProperty()"  | _
+        "project.objects.directoryProperty()" | _
+    }
+
+    @Unroll
     def "can wire the output of a task created using #outputFileMethod and #outputDirMethod as a dependency of another task via #fileMethod"() {
         buildFile << """
             class DirOutputTask extends DefaultTask {
@@ -512,11 +644,11 @@ task useDirProviderApi {
         result.assertTasksExecuted(":createDir", ":createFile1", ":otherTask")
 
         where:
-        fileMethod    | dirMethod    | outputDirMethod        | outputFileMethod
-        'dependsOn'   | 'dependsOn'  | "newOutputDirectory()" | "newOutputFile()"
-        'inputs.file' | 'inputs.dir' | "newOutputDirectory()" | "newOutputFile()"
-        'dependsOn'   | 'dependsOn'  | "project.layout.directoryProperty()" | "project.layout.fileProperty()"
-        'inputs.file' | 'inputs.dir' | "project.layout.directoryProperty()" | "project.layout.fileProperty()"
+        fileMethod    | dirMethod    | outputDirMethod                       | outputFileMethod
+        'dependsOn'   | 'dependsOn'  | "newOutputDirectory()"                | "newOutputFile()"
+        'inputs.file' | 'inputs.dir' | "newOutputDirectory()"                | "newOutputFile()"
+        'dependsOn'   | 'dependsOn'  | "project.layout.directoryProperty()"  | "project.layout.fileProperty()"
+        'inputs.file' | 'inputs.dir' | "project.layout.directoryProperty()"  | "project.layout.fileProperty()"
         'dependsOn'   | 'dependsOn'  | "project.objects.directoryProperty()" | "project.objects.fileProperty()"
         'inputs.file' | 'inputs.dir' | "project.objects.directoryProperty()" | "project.objects.fileProperty()"
     }
