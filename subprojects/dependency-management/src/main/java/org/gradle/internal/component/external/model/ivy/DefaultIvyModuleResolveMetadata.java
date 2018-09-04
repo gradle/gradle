@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model.ivy;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -88,7 +89,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
     }
 
     @Override
-    protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, VariantMetadataRules componentMetadataRules) {
+    protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableSet<String> hierarchy, VariantMetadataRules componentMetadataRules) {
         if (artifacts == null) {
             artifacts = new IdentityHashMap<Artifact, ModuleComponentArtifactMetadata>();
         }

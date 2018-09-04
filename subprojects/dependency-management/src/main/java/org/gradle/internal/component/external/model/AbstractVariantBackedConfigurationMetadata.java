@@ -34,7 +34,6 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -84,8 +83,8 @@ class AbstractVariantBackedConfigurationMetadata implements ConfigurationMetadat
     }
 
     @Override
-    public Collection<String> getHierarchy() {
-        return ImmutableList.of(variant.getName());
+    public ImmutableSet<String> getHierarchy() {
+        return ImmutableSet.of(variant.getName());
     }
 
     @Override

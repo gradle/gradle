@@ -17,6 +17,7 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -50,15 +51,15 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
     private CapabilitiesMetadata computedCapabilities;
 
     public DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
-                                           ImmutableList<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-                                           VariantMetadataRules componentMetadataRules,
-                                           ImmutableList<ExcludeMetadata> excludes,
-                                           ImmutableAttributes componentLevelAttributes) {
+                                        ImmutableSet<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+                                        VariantMetadataRules componentMetadataRules,
+                                        ImmutableList<ExcludeMetadata> excludes,
+                                        ImmutableAttributes componentLevelAttributes) {
         this(componentId, name, transitive, visible, hierarchy, artifacts, componentMetadataRules, excludes, componentLevelAttributes, null);
     }
 
     private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
-                                         ImmutableList<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+                                         ImmutableSet<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
                                          VariantMetadataRules componentMetadataRules,
                                          ImmutableList<ExcludeMetadata> excludes,
                                          ImmutableAttributes attributes,
@@ -93,15 +94,15 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
     }
 
     public DefaultConfigurationMetadata withAttributes(ImmutableAttributes attributes) {
-        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), ImmutableList.copyOf(getHierarchy()), ImmutableList.copyOf(getArtifacts()), componentMetadataRules, getExcludes(), attributes, getConfigDependencies());
+        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), ImmutableList.copyOf(getArtifacts()), componentMetadataRules, getExcludes(), attributes, getConfigDependencies());
     }
 
     public DefaultConfigurationMetadata withAttributes(String newName, ImmutableAttributes attributes) {
-        return new DefaultConfigurationMetadata(getComponentId(), newName, isTransitive(), isVisible(), ImmutableList.copyOf(getHierarchy()), ImmutableList.copyOf(getArtifacts()), componentMetadataRules, getExcludes(), attributes, getConfigDependencies());
+        return new DefaultConfigurationMetadata(getComponentId(), newName, isTransitive(), isVisible(), getHierarchy(), ImmutableList.copyOf(getArtifacts()), componentMetadataRules, getExcludes(), attributes, getConfigDependencies());
     }
 
     public DefaultConfigurationMetadata withForcedDependencies() {
-        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), ImmutableList.copyOf(getHierarchy()), ImmutableList.copyOf(getArtifacts()), componentMetadataRules, getExcludes(), componentLevelAttributes, force(getConfigDependencies()));
+        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), ImmutableList.copyOf(getArtifacts()), componentMetadataRules, getExcludes(), componentLevelAttributes, force(getConfigDependencies()));
     }
 
     private ImmutableList<ModuleDependencyMetadata> force(ImmutableList<ModuleDependencyMetadata> configDependencies) {
@@ -141,7 +142,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
             // Avoid creating a copy if the resulting configuration is identical
             return this;
         }
-        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), ImmutableList.copyOf(getHierarchy()), ImmutableList.copyOf(getArtifacts()), componentMetadataRules, getExcludes(), componentLevelAttributes, filtered.build());
+        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), ImmutableList.copyOf(getArtifacts()), componentMetadataRules, getExcludes(), componentLevelAttributes, filtered.build());
     }
 
     private static class ForcedDependencyMetadataWrapper implements ForcingDependencyMetadata, ModuleDependencyMetadata {
