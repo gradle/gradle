@@ -112,14 +112,13 @@ public interface LongRunningOperation {
     LongRunningOperation setJvmArguments(@Nullable String... jvmArguments);
 
     /**
-     * Appends one or more Java VM arguments to the existing list.
+     * Appends Java VM arguments to the existing list.
      *
-     * @param jvmArgument the argument to use for the Gradle process
-     * @param moreJvmArguments more arguments to to use for the Gradle process
+     * @param jvmArguments the argument to use for the Gradle process
      * @return this
      * @since 5.0
      */
-    LongRunningOperation addJvmArguments(@Nullable String jvmArgument, @Nullable String... moreJvmArguments);
+    LongRunningOperation addJvmArguments(String... jvmArguments);
 
     /**
      * Specifies the Java VM arguments to use for this operation.
@@ -184,14 +183,13 @@ public interface LongRunningOperation {
     LongRunningOperation withArguments(@Nullable Iterable<String> arguments);
 
     /**
-     * Appends one or more new command line argument to the existing list. Useful mostly for running tasks via {@link BuildLauncher}.
+     * Appends new command line arguments to the existing list. Useful mostly for running tasks via {@link BuildLauncher}.
      *
-     * @param argument Gradle command line arguments
-     * @param moreArguments additional Gradle command line arguments
+     * @param arguments Gradle command line arguments
      * @return this
      * @since 5.0
      */
-    LongRunningOperation addArguments(@Nullable String argument, @Nullable String... moreArguments);
+    LongRunningOperation addArguments(String... arguments);
 
     /**
      * Specifies the environment variables to use for this operation.

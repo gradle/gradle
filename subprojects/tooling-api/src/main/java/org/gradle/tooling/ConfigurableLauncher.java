@@ -50,7 +50,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher> extends Lo
      * {@inheritDoc}
      * @since 5.0
      */
-    T addArguments(String argument, String... moreArguments);
+    T addArguments(String... arguments);
 
     /**
      * {@inheritDoc}
@@ -105,7 +105,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher> extends Lo
      * {@inheritDoc}
      * @since 5.0
      */
-    T addJvmArguments(String jvmArgument, String... moreJvmArguments);
+    T addJvmArguments(String... jvmArguments);
 
     /**
      * {@inheritDoc}

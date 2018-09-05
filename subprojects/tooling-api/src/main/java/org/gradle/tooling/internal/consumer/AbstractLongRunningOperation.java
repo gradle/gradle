@@ -73,8 +73,9 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
         return getThis();
     }
 
-    public T addArguments(String argument, String... moreArguments) {
-        operationParamsBuilder.addArguments(listOfNonNulls(argument, moreArguments));
+    @Override
+    public T addArguments(String... arguments) {
+        operationParamsBuilder.addArguments(Arrays.asList(arguments));
         return getThis();
     }
 
@@ -114,22 +115,10 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
         return getThis();
     }
 
-    public T addJvmArguments(String jvmArgument, String... moreJvmArguments) {
-        operationParamsBuilder.addJvmArguments(listOfNonNulls(jvmArgument, moreJvmArguments));
+    @Override
+    public T addJvmArguments(String... jvmArguments) {
+        operationParamsBuilder.addJvmArguments(Arrays.asList(jvmArguments));
         return getThis();
-    }
-
-    protected static <T> List<T> listOfNonNulls(@Nullable T argument, @Nullable T... arguments) {
-        List<T> result = new ArrayList<T>(arguments != null ? arguments.length + 1 : 1);
-        if (argument != null) {
-            result.add(argument);
-        }
-        for (T arg : arguments) {
-            if (arg != null) {
-                result.add(arg);
-            }
-        }
-        return result;
     }
 
     @Override

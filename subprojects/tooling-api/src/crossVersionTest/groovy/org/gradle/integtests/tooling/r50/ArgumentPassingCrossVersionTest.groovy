@@ -83,6 +83,25 @@ class ArgumentPassingCrossVersionTest extends ToolingApiSpecification {
         env.java.jvmArguments.contains(JVM_ARG_2)
     }
 
+    def "Adding zero JVM arguments is a no-op"() {
+        setup:
+        BuildEnvironment env
+        withConnection {
+            env = it.model(BuildEnvironment.class).addJvmArguments().get()
+        }
+    }
+
+    def "Adding null JVM argument throws NPE"() {
+        when:
+        BuildEnvironment env
+        withConnection {
+            env = it.model(BuildEnvironment.class).addJvmArguments(null).get()
+        }
+
+        then:
+        thrown(NullPointerException)
+    }
+
     def "Appends additional arguments"() {
         when:
         ByteArrayOutputStream output = new ByteArrayOutputStream()
@@ -128,5 +147,22 @@ class ArgumentPassingCrossVersionTest extends ToolingApiSpecification {
         then:
         output.toString().contains(ARG_1)
         output.toString().contains(ARG_2)
+    }
+
+    def "Adding zero arguments is a no-op"() {
+        setup:
+        withConnection {
+            it.newBuild().addArguments().run()
+        }
+    }
+
+    def "Adding null argument throws NPE"() {
+        when:
+        withConnection {
+            it.newBuild().addArguments(null).run()
+        }
+
+        then:
+        thrown(NullPointerException)
     }
 }
