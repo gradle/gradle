@@ -21,11 +21,14 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Factory;
 import org.gradle.internal.InternalBuildAdapter;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Set;
@@ -61,9 +64,16 @@ public class BuildSrcBuildListenerFactory {
 
         @Override
         public void onConfigure(GradleInternal gradle) {
-            BuildableJavaComponent mainComponent = mainComponentOf(gradle);
+            final BuildableJavaComponent mainComponent = mainComponentOf(gradle);
             gradle.getStartParameter().setTaskNames(mainComponent.getBuildTasks());
-            classpath = mainComponent.getRuntimeClasspath().getFiles();
+            ProjectState projectState = mainComponent.getProject().getMutationState();
+            classpath = projectState.withMutableState(new Factory<Set<File>>() {
+                @Nullable
+                @Override
+                public Set<File> create() {
+                    return mainComponent.getRuntimeClasspath().getFiles();
+                }
+            });
         }
 
         public Collection<File> getRuntimeClasspath() {
