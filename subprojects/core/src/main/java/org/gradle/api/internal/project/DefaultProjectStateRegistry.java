@@ -199,5 +199,10 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         private <T> T withProjectLock(ResourceLock projectLock, final Factory<? extends T> action) {
             return workerLeaseService.withLocks(Lists.newArrayList(projectLock), action);
         }
+
+        @Override
+        public boolean hasMutableState() {
+            return workerLeaseService.getCurrentProjectLocks().contains(projectLock);
+        }
     }
 }

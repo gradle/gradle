@@ -110,7 +110,6 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
 import org.gradle.util.WrapUtil;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -280,34 +279,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return name;
     }
 
-    private <T> T withMutableProject(final Factory<T> factory) {
-        if (domainObjectContext.getProjectPath() != null) {
-            Project project = projectFinder.findProject(domainObjectContext.getProjectPath().getPath());
-            if (project != null) {
-                ProjectState projectState = projectStateRegistry.stateFor(project);
-                return projectState.withMutableState(factory);
-            }
-        }
-
-        return factory.create();
-    }
-
     public State getState() {
-        return withMutableProject(new Factory<State>() {
-            @Nullable
-            @Override
-            public State create() {
-                if (resolvedState == ARTIFACTS_RESOLVED || resolvedState == GRAPH_RESOLVED) {
-                    if (cachedResolverResults.hasError()) {
-                        return State.RESOLVED_WITH_FAILURES;
-                    } else {
-                        return State.RESOLVED;
-                    }
-                } else {
-                    return State.UNRESOLVED;
-                }
+        if (resolvedState == ARTIFACTS_RESOLVED || resolvedState == GRAPH_RESOLVED) {
+            if (cachedResolverResults.hasError()) {
+                return State.RESOLVED_WITH_FAILURES;
+            } else {
+                return State.RESOLVED;
             }
-        });
+        } else {
+            return State.UNRESOLVED;
+        }
     }
 
     public InternalState getResolvedState() {
@@ -527,17 +508,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void resolveToStateOrLater(final InternalState requestedState) {
         assertResolvingAllowed();
-        withMutableProject(Factories.toFactory(new Runnable() {
-            @Override
-            public void run() {
-                if (requestedState == GRAPH_RESOLVED || requestedState == ARTIFACTS_RESOLVED) {
-                    resolveGraphIfRequired(requestedState);
-                }
-                if (requestedState == ARTIFACTS_RESOLVED) {
-                    resolveArtifactsIfRequired();
-                }
-            }
-        }));
+
+        if (requestedState == GRAPH_RESOLVED || requestedState == ARTIFACTS_RESOLVED) {
+            resolveGraphIfRequired(requestedState);
+        }
+        if (requestedState == ARTIFACTS_RESOLVED) {
+            resolveArtifactsIfRequired();
+        }
     }
 
     private void resolveGraphIfRequired(final InternalState requestedState) {
@@ -635,7 +612,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public TaskDependency getBuildDependencies() {
-        assertResolvingAllowed();
+        assertIsResolvable();
         return intrinsicFiles.getBuildDependencies();
     }
 
@@ -1007,7 +984,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private SelectedArtifactSet selectedArtifacts;
 
         private ConfigurationFileCollection(Spec<? super Dependency> dependencySpec) {
-            assertResolvingAllowed();
+            assertIsResolvable();
             this.dependencySpec = dependencySpec;
             this.viewAttributes = configurationAttributes;
             this.componentSpec = Specs.satisfyAll();
@@ -1038,7 +1015,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public TaskDependency getBuildDependencies() {
-            assertResolvingAllowed();
+            assertIsResolvable();
             return new ConfigurationTaskDependency(dependencySpec, viewAttributes, componentSpec, allowNoMatchingVariants, lenient);
         }
 
@@ -1084,8 +1061,21 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         throw new DefaultLenientConfiguration.ArtifactResolveException(type, getIdentityPath().toString(), getDisplayName(), failures);
     }
 
-
     private void assertResolvingAllowed() {
+        assertIsResolvable();
+
+        if (domainObjectContext.getProjectPath() != null) {
+            Project project = projectFinder.findProject(domainObjectContext.getProjectPath().getPath());
+            if (project != null) {
+                ProjectState projectState = projectStateRegistry.stateFor(project);
+                if (!projectState.hasMutableState()) {
+                    throw new IllegalStateException("Attempting to resolve configuration '" + identityPath.getPath() + "' without holding the mutability lock is not allowed.");
+                }
+            }
+        }
+    }
+
+    private void assertIsResolvable() {
         if (!canBeResolved) {
             throw new IllegalStateException("Resolving configuration '" + name + "' directly is not allowed");
         }
@@ -1474,7 +1464,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         ConfigurationArtifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants) {
-            assertResolvingAllowed();
+            assertIsResolvable();
             this.viewAttributes = attributes.asImmutable();
             this.componentFilter = componentFilter;
             this.fileCollection = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), viewAttributes, this.componentFilter, lenient, allowNoMatchingVariants);
@@ -1534,6 +1524,18 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             this.componentIdentifierSpec = componentIdentifierSpec;
             this.allowNoMatchingVariants = allowNoMatchingVariants;
             this.lenient = lenient;
+        }
+
+        private <T> T withMutableProject(final Factory<T> factory) {
+            if (domainObjectContext.getProjectPath() != null) {
+                Project project = projectFinder.findProject(domainObjectContext.getProjectPath().getPath());
+                if (project != null) {
+                    ProjectState projectState = projectStateRegistry.stateFor(project);
+                    return projectState.withMutableState(factory);
+                }
+            }
+
+            return factory.create();
         }
 
         @Override
