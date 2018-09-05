@@ -115,28 +115,23 @@ include::{samplesPath}/userguide/initScripts/externalDependency/externalInitDepe
 
 Similar to a Gradle build script or a Gradle settings file, plugins can be applied on init scripts.
 
-=== Example: Using plugins in init scripts
-
-[.multi-language-sample,groovy]
+.Using plugins in init scripts
 ====
-.init.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/initScripts/plugins/init.gradle[tag=init-script-plugin]
-----
+include::sample[dir="userguide/initScripts/plugins/groovy",files="init.gradle[tags=init-script-plugin];build.gradle[tag=show-repos-task]"]
+include::sample[dir="userguide/initScripts/plugins/kotlin",files="init.gradle.kts[tags=init-script-plugin];build.gradle.kts[tag=show-repos-task]"]
+====
 
-.build.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/initScripts/plugins/build.gradle[tag=show-repos-task]
-----
-
-.Output of `gradle --init-script init.gradle -q showRepositories`
+==== Output when applying the init script
+[source.multi-language-sample,groovy]
 ----
 > gradle --init-script init.gradle -q showRepositories
 include::{samplesPath}/userguide/initScripts/plugins/usePluginsInInitScripts.out[]
 ----
-====
+[source.multi-language-sample,kotlin]
+----
+> gradle --init-script init.gradle.kts -q showRepositories
+include::{samplesPath}/userguide/initScripts/plugins/usePluginsInInitScripts.out[]
+----
 
 The plugin in the init script ensures that only a specified repository is used when running the build.
 
