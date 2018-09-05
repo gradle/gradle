@@ -14,29 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.xcode.internal;
+package org.gradle.api.internal.file;
 
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.ide.xcode.XcodeWorkspace;
+import org.gradle.api.file.RegularFileProperty;
 
-import javax.inject.Inject;
+public interface FilePropertyFactory {
+    DirectoryProperty newDirectoryProperty();
 
-public class DefaultXcodeWorkspace implements XcodeWorkspace {
-    private final DirectoryProperty workspaceDir;
-
-    @Inject
-    public DefaultXcodeWorkspace(ObjectFactory objectFactory) {
-        workspaceDir = objectFactory.directoryProperty();
-    }
-
-    @Override
-    public DirectoryProperty getLocation() {
-        return workspaceDir;
-    }
-
-    @Override
-    public String getDisplayName() {
-        return "Xcode workspace";
-    }
+    RegularFileProperty newFileProperty();
 }
