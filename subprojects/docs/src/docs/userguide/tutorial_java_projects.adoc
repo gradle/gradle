@@ -230,8 +230,8 @@ You can add dependencies between projects in the same build, so that, for exampl
 
 .Multi-project build - dependencies between projects
 ====
-include::sample[dir="java/multiproject/groovy/api",files="build.gradle[tags=dependencies]"]
-include::sample[dir="java/multiproject/kotlin/api",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="java/multiproject/groovy",files="api/build.gradle[tags=dependencies]"]
+include::sample[dir="java/multiproject/kotlin",files="api/build.gradle.kts[tags=dependencies]"]
 ====
 
 [[sec:creating_a_distribution]]
@@ -241,8 +241,8 @@ We also add a distribution, that gets shipped to the client:
 
 .Multi-project build - distribution file
 ====
-include::sample[dir="java/multiproject/groovy/api",files="build.gradle[tags=dists]"]
-include::sample[dir="java/multiproject/kotlin/api",files="build.gradle.kts[tags=dists]"]
+include::sample[dir="java/multiproject/groovy",files="api/build.gradle[tags=dists]"]
+include::sample[dir="java/multiproject/kotlin",files="api/build.gradle.kts[tags=dists]"]
 ====
 
 

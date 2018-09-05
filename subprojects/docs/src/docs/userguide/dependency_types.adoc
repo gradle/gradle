@@ -74,12 +74,6 @@ include::sample[dir="java/multiproject/groovy/api",files="build.gradle[tags=proj
 include::sample[dir="java/multiproject/kotlin/api",files="build.gradle.kts[tags=project-dependencies]"]
 ====
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/java/multiproject/groovy/api/build.gradle[tag=project-dependencies]
-----
-
 For more information see the API documentation for link:{javadocPath}/org/gradle/api/artifacts/ProjectDependency.html[ProjectDependency].
 
 Multi-project builds are discussed in <<multi_project_builds.adoc#multi_project_builds,this chapter>>.
