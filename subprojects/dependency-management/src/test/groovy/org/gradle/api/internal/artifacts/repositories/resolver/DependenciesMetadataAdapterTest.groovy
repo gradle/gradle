@@ -210,7 +210,7 @@ class DependenciesMetadataAdapterTest extends Specification {
         }
 
         @Override
-        protected boolean isPending() {
+        protected boolean isConstraint() {
             return false
         }
     }

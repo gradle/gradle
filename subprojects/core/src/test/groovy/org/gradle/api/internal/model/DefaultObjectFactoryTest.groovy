@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.model
 
+import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.internal.reflect.Instantiator
@@ -24,7 +25,7 @@ import spock.lang.Unroll
 
 
 class DefaultObjectFactoryTest extends Specification {
-    def factory = new DefaultObjectFactory(Stub(Instantiator), Stub(NamedObjectInstantiator), Stub(FileResolver), Stub(DirectoryFileTreeFactory))
+    def factory = new DefaultObjectFactory(Stub(Instantiator), Stub(NamedObjectInstantiator), Stub(FileResolver), Stub(DirectoryFileTreeFactory), Stub(FilePropertyFactory))
 
     def "can create a property"() {
         expect:

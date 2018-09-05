@@ -46,13 +46,13 @@ public class DependencyMetadataRules {
     private static final Spec<ModuleDependencyMetadata> DEPENDENCY_FILTER = new Spec<ModuleDependencyMetadata>() {
         @Override
         public boolean isSatisfiedBy(ModuleDependencyMetadata dep) {
-            return !dep.isPending();
+            return !dep.isConstraint();
         }
     };
     private static final Spec<ModuleDependencyMetadata> DEPENDENCY_CONSTRAINT_FILTER = new Spec<ModuleDependencyMetadata>() {
         @Override
         public boolean isSatisfiedBy(ModuleDependencyMetadata dep) {
-            return dep.isPending();
+            return dep.isConstraint();
         }
     };
 

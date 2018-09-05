@@ -38,6 +38,7 @@ dependencies {
 
     integTestImplementation project(':core')
     integTestRuntimeOnly project(':plugins')
+    integTestRuntimeOnly project(':apiMetadata')
 
     testFixturesImplementation project(':internalTesting')
     testFixturesImplementation project(':core')

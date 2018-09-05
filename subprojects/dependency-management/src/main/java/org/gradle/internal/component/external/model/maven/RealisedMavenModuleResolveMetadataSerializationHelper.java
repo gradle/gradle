@@ -171,8 +171,8 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
         IvyArtifactName artifactName = readNullableArtifact(decoder);
         List<ExcludeMetadata> mavenExcludes = readMavenExcludes(decoder);
         MavenScope scope = MavenScope.values()[decoder.readSmallInt()];
-        boolean optional = decoder.readBoolean();
-        return new MavenDependencyDescriptor(scope, optional, requested, artifactName, mavenExcludes);
+        MavenDependencyType type = MavenDependencyType.values()[decoder.readSmallInt()];
+        return new MavenDependencyDescriptor(scope, type, requested, artifactName, mavenExcludes);
     }
 
     private void writeMavenDependency(Encoder encoder, MavenDependencyDescriptor mavenDependency) throws IOException {
@@ -180,7 +180,7 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
         writeNullableArtifact(encoder, mavenDependency.getDependencyArtifact());
         writeMavenExcludeRules(encoder, mavenDependency.getAllExcludes());
         encoder.writeSmallInt(mavenDependency.getScope().ordinal());
-        encoder.writeBoolean(mavenDependency.isOptional());
+        encoder.writeSmallInt(mavenDependency.getType().ordinal());
     }
 
 }

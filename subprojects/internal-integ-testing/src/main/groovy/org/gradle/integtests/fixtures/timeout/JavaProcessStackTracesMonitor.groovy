@@ -57,7 +57,13 @@ class JavaProcessStackTracesMonitor {
 
         String jstack() {
             Map result = runProcess([jstackCommand, pid])
-            return "Run ${jstackCommand} ${pid} return ${result.code}:\n${result.stdout}\n---------\n${result.stderr}\n"
+
+            StringBuilder sb = new StringBuilder("Run ${jstackCommand} ${pid} return ${result.code}:\n${result.stdout}\n---------\n${result.stderr}\n")
+            if (result.code != 0) {
+                result = runProcess([jstackCommand, '-F', pid])
+                sb.append("Run ${jstackCommand} -F ${pid} return ${result.code}:\n${result.stdout}\n---------\n${result.stderr}\n")
+            }
+            return sb.toString()
         }
     }
 

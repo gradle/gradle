@@ -28,6 +28,7 @@ import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -280,30 +281,30 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     private void assertProjectMutatingMethodAllowed(String methodName) {
-        crossProjectConfigurator.assertProjectMutationAllowed(methodName, this);
+        MutationGuards.of(crossProjectConfigurator).assertMutationAllowed(methodName, this, Gradle.class);
     }
 
     @Override
     public void beforeProject(Closure closure) {
-        assertProjectMutatingMethodAllowed("Gradle#beforeProject(Closure)");
+        assertProjectMutatingMethodAllowed("beforeProject(Closure)");
         projectEvaluationListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Gradle.beforeProject", closure)));
     }
 
     @Override
     public void beforeProject(Action<? super Project> action) {
-        assertProjectMutatingMethodAllowed("Gradle#beforeProject(Action)");
+        assertProjectMutatingMethodAllowed("beforeProject(Action)");
         projectEvaluationListenerBroadcast.add("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Gradle.beforeProject", action));
     }
 
     @Override
     public void afterProject(Closure closure) {
-        assertProjectMutatingMethodAllowed("Gradle#afterProject(Closure)");
+        assertProjectMutatingMethodAllowed("afterProject(Closure)");
         projectEvaluationListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", getListenerBuildOperationDecorator().decorate("Gradle.afterProject", closure)));
     }
 
     @Override
     public void afterProject(Action<? super Project> action) {
-        assertProjectMutatingMethodAllowed("Gradle#afterProject(Action)");
+        assertProjectMutatingMethodAllowed("afterProject(Action)");
         projectEvaluationListenerBroadcast.add("afterEvaluate", getListenerBuildOperationDecorator().decorate("Gradle.afterProject", action));
     }
 
@@ -329,25 +330,25 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public void projectsLoaded(Closure closure) {
-        assertProjectMutatingMethodAllowed("Gradle#projectsLoaded(Closure)");
+        assertProjectMutatingMethodAllowed("projectsLoaded(Closure)");
         buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("projectsLoaded", getListenerBuildOperationDecorator().decorate("Gradle.projectsLoaded", closure)));
     }
 
     @Override
     public void projectsLoaded(Action<? super Gradle> action) {
-        assertProjectMutatingMethodAllowed("Gradle#projectsLoaded(Action)");
+        assertProjectMutatingMethodAllowed("projectsLoaded(Action)");
         buildListenerBroadcast.add("projectsLoaded", getListenerBuildOperationDecorator().decorate("Gradle.projectsLoaded", action));
     }
 
     @Override
     public void projectsEvaluated(Closure closure) {
-        assertProjectMutatingMethodAllowed("Gradle#projectsEvaluated(Closure)");
+        assertProjectMutatingMethodAllowed("projectsEvaluated(Closure)");
         buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("projectsEvaluated", getListenerBuildOperationDecorator().decorate("Gradle.projectsEvaluated", closure)));
     }
 
     @Override
     public void projectsEvaluated(Action<? super Gradle> action) {
-        assertProjectMutatingMethodAllowed("Gradle#projectsEvaluated(Action)");
+        assertProjectMutatingMethodAllowed("projectsEvaluated(Action)");
         buildListenerBroadcast.add("projectsEvaluated", getListenerBuildOperationDecorator().decorate("Gradle.projectsEvaluated", action));
     }
 

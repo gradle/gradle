@@ -36,6 +36,7 @@ import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
+import org.gradle.internal.component.external.model.maven.MavenDependencyType
 import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.internal.component.model.VariantResolveMetadata
@@ -87,7 +88,8 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
     }
     private mavenComponentMetadata(String[] deps) {
         def dependencies = deps.collect { name ->
-            new MavenDependencyDescriptor(MavenScope.Compile, addAllDependenciesAsConstraints(), newSelector(DefaultModuleIdentifier.newId("org.test", name), "1.0"), null, [])
+            MavenDependencyType type = addAllDependenciesAsConstraints() ? MavenDependencyType.OPTIONAL_DEPENDENCY : MavenDependencyType.DEPENDENCY
+            new MavenDependencyDescriptor(MavenScope.Compile, type, newSelector(DefaultModuleIdentifier.newId("org.test", name), "1.0"), null, [])
         }
         mavenMetadataFactory.create(componentIdentifier, dependencies)
     }
@@ -177,8 +179,8 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         then:
         if (supportedInMetadata(metadataType)) {
             assert dependencies.size() == 2
-            assert dependencies[0].pending == addAllDependenciesAsConstraints()
-            assert dependencies[1].pending == addAllDependenciesAsConstraints()
+            assert dependencies[0].constraint == addAllDependenciesAsConstraints()
+            assert dependencies[1].constraint == addAllDependenciesAsConstraints()
         } else {
             assert dependencies.empty
         }
@@ -214,7 +216,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
             assert dependencies[0].selector.version == "2.0"
             assert dependencies[0].selector.versionConstraint.strictVersion == "2.0"
             assert dependencies[0].selector.versionConstraint.rejectedVersions[0] == "[3.0,)"
-            assert dependencies[0].pending == addAllDependenciesAsConstraints()
+            assert dependencies[0].constraint == addAllDependenciesAsConstraints()
         } else {
             assert dependencies.empty
         }

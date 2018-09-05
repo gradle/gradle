@@ -29,21 +29,4 @@ public interface CrossProjectConfigurator {
 
     Project rootProject(Project project, Action<Project> buildOperationExecutor);
 
-    /**
-     * Asserts that project mutating methods are currently allowed at the point in time this method is called.
-     */
-    void assertProjectMutationAllowed(String methodName, Object target);
-
-    /**
-     * Wraps the configuration action to disallow certain project mutating methods from being called while executing.
-     * The intent is for this method to be used wherever configuration code could be invoked at execution time (or later)
-     * to prevent unsafe patterns such as calling {@link Project#afterEvaluate(Action)} after the configuration phase
-     * has finished.
-     *
-     * @param action the delegated action
-     * @param <T> the type the action is mutating
-     * @return action that disallows cross-project configuration.
-     */
-    <T> Action<T> withProjectMutationDisabled(Action<? super T> action);
-
 }
