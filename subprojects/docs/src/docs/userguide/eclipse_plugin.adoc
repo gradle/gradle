@@ -55,21 +55,17 @@ Both Eclipse plugins are open to customization and provide a standardized set of
 
 To use either the Eclipse or the Eclipse WTP plugin, include one of the lines in your build script:
 
-=== Example: Using the Eclipse plugin
+.Using the Eclipse plugin
+====
+include::sample[dir="eclipse/groovy",files="build.gradle[tags=use-eclipse-plugin]"]
+include::sample[dir="eclipse/kotlin",files="build.gradle.kts[tags=use-eclipse-plugin]"]
+====
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/eclipse/build.gradle[tag=use-eclipse-plugin]
-----
-
-=== Example: Using the Eclipse WTP plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/eclipse/build.gradle[tag=use-eclipse-wtp-plugin]
-----
+.Using the Eclipse WTP plugin
+====
+include::sample[dir="eclipse/groovy",files="build.gradle[tags=use-eclipse-wtp-plugin]"]
+include::sample[dir="eclipse/kotlin",files="build.gradle.kts[tags=use-eclipse-wtp-plugin]"]
+====
 
 _Note:_ Internally, the `eclipse-wtp` plugin also applies the `eclipse` plugin so you don't need to apply both.
 
@@ -240,47 +236,39 @@ link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.model.EclipseJdt.html[Eclips
 
 A complete overwrite causes all existing content to be discarded, thereby losing any changes made directly in the IDE. Alternatively, the `beforeMerged` hook makes it possible to overwrite just certain parts of the existing content. The following example removes all existing dependencies from the `Classpath` domain object:
 
-=== Example: Partial Overwrite for Classpath
+.Partial Overwrite for Classpath
+====
+include::sample[dir="eclipse/groovy",files="build.gradle[tags=module-before-merged]"]
+include::sample[dir="eclipse/kotlin",files="build.gradle.kts[tags=module-before-merged]"]
+====
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/eclipse/build.gradle[tag=module-before-merged]
-----
 The resulting `.classpath` file will only contain Gradle-generated dependency entries, but not any other dependency entries that may have been present in the original file. (In the case of dependency entries, this is also the default behavior.) Other sections of the `.classpath` file will be either left as-is or merged. The same could be done for the natures in the `.project` file:
 
-=== Example: Partial Overwrite for Project
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/eclipse/build.gradle[tag=project-before-merged]
-----
-
+.Partial Overwrite for Project
+====
+include::sample[dir="eclipse/groovy",files="build.gradle[tags=project-before-merged]"]
+include::sample[dir="eclipse/kotlin",files="build.gradle.kts[tags=project-before-merged]"]
+====
 
 [[sec:eclipse_modify_domain_objects]]
 ==== Modifying the fully populated domain objects
 
 The `whenMerged` hook allows to manipulate the fully populated domain objects. Often this is the preferred way to customize Eclipse files. Here is how you would export all the dependencies of an Eclipse project:
 
-=== Example: Export Classpath Entries
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/eclipse/build.gradle[tag=module-when-merged]
-----
-
+.Export Classpath Entries
+====
+include::sample[dir="eclipse/groovy",files="build.gradle[tags=module-when-merged]"]
+include::sample[dir="eclipse/kotlin",files="build.gradle.kts[tags=module-when-merged]"]
+====
 
 [[sec:eclipse_modify_xml]]
 ==== Modifying the XML representation
 
-The `withXml` hook allows to manipulate the in-memory XML representation just before the file gets written to disk. Although Groovy's XML support makes up for a lot, this approach is less convenient than manipulating the domain objects. In return, you get total control over the generated file, including sections not modeled by the domain objects.
+The `withXml` hook allows to manipulate the in-memory XML representation just before the file gets written to disk. Although Groovy's XML support and Kotlin's extension functions make up for a lot, this approach is less convenient than manipulating the domain objects. In return, you get total control over the generated file, including sections not modeled by the domain objects.
 
-=== Example: Customizing the XML
+.Customizing the XML
+====
+include::sample[dir="eclipse/groovy",files="build.gradle[tags=wtp-with-xml]"]
+include::sample[dir="eclipse/kotlin",files="build.gradle.kts[tags=wtp-with-xml]"]
+====
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/eclipse/build.gradle[tag=wtp-with-xml]
-----
