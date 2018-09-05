@@ -106,7 +106,7 @@ include::sample[dir="groovy/customizedLayout/kotlin",files="build.gradle.kts[tag
 
 Because Gradle's build language is based on Groovy, and parts of Gradle are implemented in Groovy, Gradle already ships with a Groovy library. Nevertheless, Groovy projects need to explicitly declare a Groovy dependency. This dependency will then be used on compile and runtime class paths. It will also be used to get hold of the Groovy compiler and Groovydoc tool, respectively.
 
-If Groovy is used for production code, the Groovy dependency should be added to the `compile` configuration:
+If Groovy is used for production code, the Groovy dependency should be added to the `implementation` configuration:
 
 .Configuration of Groovy dependency
 ====
@@ -114,25 +114,21 @@ include::sample[dir="groovy/quickstart/groovy",files="build.gradle[tags=groovy-d
 include::sample[dir="groovy/quickstart/kotlin",files="build.gradle.kts[tags=groovy-dependency]"]
 ====
 
-If Groovy is only used for test code, the Groovy dependency should be added to the `testCompile` configuration:
+If Groovy is only used for test code, the Groovy dependency should be added to the `testImplementation` configuration:
 
-=== Example: Configuration of Groovy test dependency
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/groovy/groovyDependency/build.gradle[tag=groovy-test-dependency]
-----
+.Configuration of Groovy test dependency
+====
+include::sample[dir="userguide/groovy/groovyDependency/groovy",files="build.gradle[tags=groovy-test-dependency]"]
+include::sample[dir="userguide/groovy/groovyDependency/kotlin",files="build.gradle.kts[tags=groovy-test-dependency]"]
+====
 
 To use the Groovy library that ships with Gradle, declare a `localGroovy()` dependency. Note that different Gradle versions ship with different Groovy versions; as such, using `localGroovy()` is less safe then declaring a regular Groovy dependency.
 
-=== Example: Configuration of bundled Groovy dependency
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/groovy/groovyDependency/build.gradle[tag=bundled-groovy-dependency]
-----
+.Configuration of bundled Groovy dependency
+====
+include::sample[dir="userguide/groovy/groovyDependency/groovy",files="build.gradle[tags=bundled-groovy-dependency]"]
+include::sample[dir="userguide/groovy/groovyDependency/kotlin",files="build.gradle.kts[tags=bundled-groovy-dependency]"]
+====
 
 The Groovy library doesn't necessarily have to come from a remote repository. It could also come from a local `lib` directory, perhaps checked in to source control:
 
