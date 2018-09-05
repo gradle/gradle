@@ -1,7 +1,7 @@
 // tag::after-evaluate[]
 allprojects {
     afterEvaluate {
-        if (property("hasTests") as Boolean) {
+        if (extra["hasTests"] as Boolean) {
             println("Adding test task to $project")
             task("test") {
                 doLast {
