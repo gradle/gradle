@@ -51,9 +51,12 @@ class MutationGuardsTest extends Specification {
         def subject2 = Mock(WithMutationGuard)
 
         when:
-        MutationGuards.of([subject1, subject2])
+        def guard = MutationGuards.of([subject1, subject2])
 
         then:
+        guard instanceof CompositeMutationGuard
+
+        and:
         1 * subject1.getMutationGuard() >> Mock(MutationGuard)
         0 * subject1._
 
