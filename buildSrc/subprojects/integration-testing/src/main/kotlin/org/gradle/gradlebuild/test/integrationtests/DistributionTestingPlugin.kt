@@ -31,6 +31,9 @@ import org.gradle.kotlin.dsl.*
 import accessors.base
 import org.gradle.gradlebuild.packaging.ShadedJar
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanUpDaemons
+import org.gradle.internal.classloader.ClasspathHasher
+import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.kotlin.dsl.support.serviceOf
 
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -84,6 +87,10 @@ class DistributionTestingPlugin : Plugin<Project> {
         gradleInstallationForTest.apply {
             val intTestImage: Sync by project.tasks
             gradleUserHomeDir.set(layout.projectDirectory.dir("intTestHomeDir"))
+            gradleGeneratedApiJarCacheDir.set(project.provider {
+                val hash = project.serviceOf<ClasspathHasher>().hash(DefaultClassPath.of(classpath))
+                layout.projectDirectory.dir("intTestHomeDir/generatedApiJars/${project.version}/${project.name}-$hash")
+            })
             daemonRegistry.set(layout.buildDirectory.dir("daemon"))
             gradleHomeDir.set(dirWorkaround { intTestImage.destinationDir })
             toolingApiShadedJarDir.set(dirWorkaround {

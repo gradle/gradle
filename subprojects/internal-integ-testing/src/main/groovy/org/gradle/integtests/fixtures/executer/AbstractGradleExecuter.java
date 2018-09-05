@@ -31,6 +31,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.WarningMode;
+import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
 import org.gradle.internal.ImmutableActionSet;
@@ -954,6 +955,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         if (useOwnUserHomeServices || (gradleUserHomeDir != null && !gradleUserHomeDir.equals(buildContext.getGradleUserHomeDir()))) {
             properties.put(REUSE_USER_HOME_SERVICES, "false");
+        } else {
+            properties.put(DefaultGeneratedGradleJarCache.BASE_DIR_OVERRIDE_PROPERTY, buildContext.getGradleGeneratedApiJarCacheDir().getAbsolutePath());
         }
         if (!noExplicitTmpDir) {
             if (tmpDir == null) {

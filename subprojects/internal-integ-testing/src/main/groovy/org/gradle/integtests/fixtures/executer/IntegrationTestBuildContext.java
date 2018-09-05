@@ -53,6 +53,10 @@ public class IntegrationTestBuildContext {
         return file("integTest.gradleUserHomeDir", "intTestHomeDir").file("worker-1");
     }
 
+    public TestFile getGradleGeneratedApiJarCacheDir() {
+        return file("integTest.gradleGeneratedApiJarCacheDir", null);
+    }
+
     public TestFile getTmpDir() {
         return file("integTest.tmpDir", "build/tmp");
     }

@@ -376,6 +376,7 @@ open class IdePlugin : Plugin<Project> {
             "-Dorg.gradle.docs.releasenotes.rendered=${releaseNotes.destinationDir.resolve(releaseNotes.property("fileName") as String)}",
             "-DintegTest.gradleHomeDir=\$MODULE_DIR\$/build/integ test",
             "-DintegTest.gradleUserHomeDir=${rootProject.file("intTestHomeDir").absolutePath}",
+            "-DintegTest.gradleGeneratedApiJarCacheDir=${rootProject.file("intTestHomeDir/generatedApiJars/${rootProject.version}/")}\$MODULE_NAME\$-idea/",
             "-DintegTest.libsRepo=${rootProject.file("build/repo").absolutePath}",
             "-Dorg.gradle.integtest.daemon.registry=${rootProject.file("build/daemon").absolutePath}",
             "-DintegTest.distsDir=${rootProject.base.distsDir.absolutePath}",
