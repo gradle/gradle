@@ -1,4 +1,6 @@
-apply plugin: 'java'
+plugins {
+    id 'java'
+}
 version = '1.0'
 
 // tag::add-to-manifest[]
@@ -27,8 +29,7 @@ task barJar(type: Jar) {
     manifest {
         attributes key1: 'value1'
         from sharedManifest, 'src/config/basemanifest.txt'
-        from('src/config/javabasemanifest.txt',
-             'src/config/libbasemanifest.txt') {
+        from(['src/config/javabasemanifest.txt', 'src/config/libbasemanifest.txt']) {
             eachEntry { details ->
                 if (details.baseValue != details.mergeValue) {
                     details.value = baseValue
