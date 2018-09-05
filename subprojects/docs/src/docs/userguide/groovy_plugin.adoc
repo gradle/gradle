@@ -230,11 +230,11 @@ The Groovy compiler will always be executed with the same version of Java that w
 [source]
 .gradle.properties
 ----
-include::{samplesPath}/groovy/crossCompilation/gradle.properties[]
+include::{samplesPath}/groovy/crossCompilation/groovy/gradle.properties[]
 ----
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/groovy/crossCompilation/build.gradle[tag=groovy-cross-compilation]
-----
+====
+include::sample[dir="groovy/crossCompilation/groovy",files="build.gradle[tags=groovy-cross-compilation]"]
+include::sample[dir="groovy/crossCompilation/kotlin",files="build.gradle.kts[tags=groovy-cross-compilation]"]
+====
+
