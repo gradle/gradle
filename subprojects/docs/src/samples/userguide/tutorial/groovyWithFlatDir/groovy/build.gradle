@@ -1,4 +1,6 @@
-apply plugin: 'groovy'
+plugins {
+    id 'groovy'
+}
 
 repositories {
     mavenCentral()
@@ -10,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    compile module('org.codehaus.groovy:groovy:2.4.15') {
+    implementation module('org.codehaus.groovy:groovy:2.4.15') {
         dependency('org.ow2.asm:asm-all:5.0.3')
         dependency('antlr:antlr:2.7.7')
         dependency('commons-cli:commons-cli:1.2')
