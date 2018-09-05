@@ -33,7 +33,9 @@ ear {
         securityRole("admin")
         securityRole("superadmin")
         withXml { // add a custom node to the XML
-            asNode().appendNode("data-source", "my/data/source")
+            asElement().apply {
+                appendChild(ownerDocument.createElement("data-source").apply { textContent = "my/data/source" })
+            }
         }
     }
 }
