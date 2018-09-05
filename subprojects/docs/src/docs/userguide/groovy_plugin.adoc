@@ -95,14 +95,11 @@ Groovy source files for the given source set. May also contain Java source files
 
 Just like the Java plugin, the Groovy plugin allows you to configure custom locations for Groovy production and test source files.
 
-=== Example: Custom Groovy source layout
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/groovy/customizedLayout/build.gradle[tag=custom-source-locations]
-----
-
+.Custom Groovy source layout
+====
+include::sample[dir="groovy/customizedLayout/groovy",files="build.gradle[tags=custom-source-locations]"]
+include::sample[dir="groovy/customizedLayout/kotlin",files="build.gradle.kts[tags=custom-source-locations]"]
+====
 
 [[sec:groovy_dependency_management]]
 == Dependency management
