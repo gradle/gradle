@@ -69,37 +69,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
             }
         }
     }
-
-    @Ignore("This is no longer true, since a dependency on a BOM is by default a dependency on a library")
-    def "can import a bom transitively"() {
-        given:
-        bomDependency('moduleA').publish()
-        mavenHttpRepo.module('group', 'main', '5.0').allowAll().dependsOn(bom).publish()
-
-        buildFile << """
-            dependencies {
-                compile "group:moduleA"
-                compile "group:main:5.0"
-            }
-        """
-
-        when:
-        succeeds 'checkDep'
-
-        then:
-        resolve.expectGraph {
-            root(':', ':testproject:') {
-                module("group:main:5.0") {
-                    module("group:bom:1.0") {
-                        module("group:moduleA:2.0")
-                        noArtifacts()
-                    }
-                }
-                edge("group:moduleA", "group:moduleA:2.0")
-            }
-        }
-    }
-
+    
     def "a bom dependencyManagement entry can declare excludes which are applied unconditionally to module"() {
         given:
         moduleA.dependsOn(mavenHttpRepo.module("group", "moduleC", "1.0").allowAll().publish()).publish()
