@@ -18,7 +18,6 @@ package org.gradle.tooling;
 
 import org.gradle.tooling.events.OperationType;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
