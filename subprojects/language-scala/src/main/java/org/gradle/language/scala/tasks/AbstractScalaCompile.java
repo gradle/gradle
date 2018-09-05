@@ -47,7 +47,6 @@ import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -137,21 +136,14 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
 
     @SuppressWarnings("unchecked")
     protected Map<File, File> createOrGetGlobalAnalysisMap() {
-        ExtraPropertiesExtension extraProperties = getProject().getRootProject().getExtensions().getExtraProperties();
-        Map<File, File> analysisMap;
+        Map<File, File> analysisMap = Maps.newHashMap();
+        String scalaAnalysisMapName = "scalaCompileAnalysisMapInternal";
 
-        if (extraProperties.has("scalaCompileAnalysisMap")) {
-            analysisMap = (Map) extraProperties.get("scalaCompileAnalysisMap");
-        } else {
-            analysisMap = Maps.newHashMap();
-            for (Project project : getProject().getRootProject().getAllprojects()) {
-                for (AbstractScalaCompile task : project.getTasks().withType(AbstractScalaCompile.class)) {
-                    File publishedCode = task.getScalaCompileOptions().getIncrementalOptions().getPublishedCode();
-                    File analysisFile = task.getScalaCompileOptions().getIncrementalOptions().getAnalysisFile();
-                    analysisMap.put(publishedCode, analysisFile);
-                }
+        for (Project project : getProject().getRootProject().getAllprojects()) {
+            ExtraPropertiesExtension extraProperties = project.getExtensions().getExtraProperties();
+            if (extraProperties.has(scalaAnalysisMapName)) {
+                analysisMap.putAll((Map)extraProperties.get(scalaAnalysisMapName));
             }
-            extraProperties.set("scalaCompileAnalysisMap", Collections.unmodifiableMap(analysisMap));
         }
         return analysisMap;
     }

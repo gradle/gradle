@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.scala;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Maps;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
@@ -23,11 +24,13 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.tasks.DefaultScalaSourceSet;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -43,9 +46,11 @@ import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.api.tasks.scala.ScalaDoc;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider;
+import org.gradle.language.scala.tasks.AbstractScalaCompile;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -56,15 +61,32 @@ public class ScalaBasePlugin implements Plugin<Project> {
     @VisibleForTesting
     public static final String ZINC_CONFIGURATION_NAME = "zinc";
     public static final String SCALA_RUNTIME_EXTENSION_NAME = "scalaRuntime";
+
     private final SourceDirectorySetFactory sourceDirectorySetFactory;
+    private final Map<File, File> analysisMap = Maps.newHashMap();
 
     @Inject
     public ScalaBasePlugin(SourceDirectorySetFactory sourceDirectorySetFactory) {
         this.sourceDirectorySetFactory = sourceDirectorySetFactory;
     }
 
-    public void apply(Project project) {
+    public void apply(final Project project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
+
+        project.getExtensions().getExtraProperties().set("scalaCompileAnalysisMapInternal", analysisMap);
+        project.getGradle().getTaskGraph().whenReady(new Action<TaskExecutionGraph>() {
+            @Override
+            public void execute(TaskExecutionGraph taskExecutionGraph) {
+                for (Task task : taskExecutionGraph.getAllTasks()) {
+                    if (task.getProject() == project) {
+                        if (task instanceof AbstractScalaCompile) {
+                            IncrementalCompileOptions incrementalOptions = ((AbstractScalaCompile) task).getScalaCompileOptions().getIncrementalOptions();
+                            analysisMap.put(incrementalOptions.getPublishedCode(), incrementalOptions.getAnalysisFile());
+                        }
+                    }
+                }
+            }
+        });
 
         configureConfigurations(project);
         ScalaRuntime scalaRuntime = configureScalaRuntimeExtension(project);
@@ -121,6 +143,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
         Convention scalaConvention = (Convention) InvokerHelper.getProperty(sourceSet, "convention");
         final ScalaSourceSet scalaSourceSet = scalaConvention.findPlugin(ScalaSourceSet.class);
         SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, scalaSourceSet.getScala(), project);
+
         final TaskProvider<ScalaCompile> scalaCompile = project.getTasks().register(sourceSet.getCompileTaskName("scala"), ScalaCompile.class, new Action<ScalaCompile>() {
             @Override
             public void execute(ScalaCompile scalaCompile) {
