@@ -23,6 +23,7 @@ import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
+import org.gradle.api.internal.ReusableAction;
 
 import java.util.Set;
 
@@ -46,7 +47,7 @@ public abstract class PlatformSupport {
         });
     }
 
-    public static class ComponentCategoryDisambiguationRule implements AttributeDisambiguationRule<String> {
+    public static class ComponentCategoryDisambiguationRule implements AttributeDisambiguationRule<String>, ReusableAction {
         @Override
         public void execute(MultipleCandidatesDetails<String> details) {
             String consumerValue = details.getConsumerValue();
