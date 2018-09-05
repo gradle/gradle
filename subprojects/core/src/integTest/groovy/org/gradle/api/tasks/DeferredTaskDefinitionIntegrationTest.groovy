@@ -1114,7 +1114,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
     @Ignore
     @Issue("https://github.com/gradle/gradle/issues/6558")
-    def "can use configureEach in multi-project build that nests allprojects and configureEach"() {
+    def "can register tasks in multi-project build that iterates over allprojects and tasks in task action"() {
         settingsFile << """
             include 'a', 'b', 'c', 'd'
         """
