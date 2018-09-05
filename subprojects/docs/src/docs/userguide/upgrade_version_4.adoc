@@ -129,6 +129,11 @@ For now, by-convention config files in subprojects will override any in the root
  * `getEnabledDirectoryReportDestinations()`, `getEnabledFileReportDestinations()` and `getEnabledReportNames()` have all been removed from `org.gradle.api.reporting.ReportContainer`.
  * link:{javadocPath}/org/gradle/StartParameter.html#getProjectProperties--[StartParameter.projectProperties] and link:{javadocPath}/org/gradle/StartParameter.html#getSystemPropertiesArgs--[StartParameter.systemPropertiesArgs] now return immutable maps.
 
+[[changes_5.0]]
+== Changes in 5.0
+
+* <<#rel5.0:pom_optional_dependencies,Maven optional dependencies are no longer interpreted as dependency constraints>>
+
 [[changes_4.6]]
 == Changes in 4.6
 
@@ -288,6 +293,11 @@ To override this behavior, you can explicitly declare the configuration to use i
 
 
 == Changes in detail
+
+[[rel5.0:pom_optional_dependencies]]
+=== [5.0] Support for optional dependencies when consuming POMs
+
+Support for importing optional dependencies as dependency constraints, introduced using the experimental POM support flag in 4.6, has been removed.
 
 [[rel4.10:aws_s3_permissions]]
 === [4.10] Publishing to AWS S3 requires new permissions
