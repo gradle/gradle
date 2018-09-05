@@ -9,8 +9,8 @@ dependencies {
     implementation(project(":build"))
     implementation(project(":kotlinDsl"))
     implementation("com.google.guava:guava-jdk5:14.0.1")
-    implementation("org.ow2.asm:asm:6.0")
-    implementation("org.ow2.asm:asm-commons:6.0")
+    implementation("org.ow2.asm:asm:6.2.1")
+    implementation("org.ow2.asm:asm-commons:6.2.1")
     implementation("com.google.code.gson:gson:2.7")
     implementation("com.thoughtworks.qdox:qdox:2.0-M9")
 
