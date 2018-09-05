@@ -171,6 +171,10 @@ See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-exec
 The default tool versions of the following code quality plugins have been updated:
 
 - The CodeNarc plugin now uses 1.2.1 instead of 1.1 by default.
+- The JaCoCo plugin now uses 0.8.2 instead of 0.8.1 by default.
+- The PMD plugin now uses 6.7.0 instead of 5.6.1 by default.
+  In addition, the default ruleset was changed from the now deprecated `java-basic` to `category/java/errorprone.xml`.
+  We recommend configuring a ruleset explicitly, though.
 
 ### `CopySpec.duplicatesStrategy` is no longer nullable
 
