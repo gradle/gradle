@@ -47,9 +47,11 @@ The `SourceDirectorySet` type is often used by plugins to represent some set of 
 
 In this release of Gradle, the `ObjectFactory` service, which is part of the public API, now includes a method to create `SourceDirectorySet` instances. A plugin can now use this method instead of the internal types.
 
-### Changes to file property construction
+### Changes to file and directory property construction
 
-TBD - `ObjectFactory` is now used to create file and directory `Property` instances, similar to other `Property` types.
+`ObjectFactory` is now used to create file and directory `Property` instances, similar to other `Property` types. Previously, this was done using either the methods on `DefaulTask`, which was available only for `DefaultTask` subclasses, or using `ProjectLayout`, only available for projects. Now a single type, `ObjectFactory` can be used to create all property instances in a Gradle model object.
+
+These other methods have been deprecated and will be removed in Gradle 6.0.
 
 ### JaCoCo plugin now works with the build cache and parallel test execution
 
@@ -136,6 +138,10 @@ In the next major release (6.0), removing dependencies from a task will become a
 Gradle will emit a deprecation warning for code such as `foo.dependsOn.remove(bar)`.  Removing dependencies in this way is error-prone and relies on the internal implementation details of how different tasks are wired together.
 At the moment, we are not planning to provide an alternative. In most cases, task dependencies should be expressed via [task inputs](userguide/more_about_tasks.html#sec:task_inputs_outputs) instead of explicit `dependsOn` relationships.
 
+### Factory methods for creating file and directory properties
+
+TBD - The methods on `DefaultTask` and `ProjectLayout` that create file and directory `Property` instances have been deprecated and replaced by methods on `ObjectFactory`. These deprecated methods will be removed in Gradle 6.0.
+
 ### The property `append` on `JacocoTaskExtension` has been deprecated
 
 See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
@@ -169,9 +175,42 @@ to reset the property back to its default value. Use `DuplicatesStrategy.INHERIT
 
 For easier configurability from statically compiled languages such as Java or Kotlin.
 
-### Property factory methods on `DefaultTask` are final
+### Changes to property factory methods on `DefaultTask`
+
+#### Property factory methods on `DefaultTask` are final
 
 The property factory methods such as `newInputFile()` are intended to be called from the constructor of a type that extends `DefaultTask`. These methods are now final to avoid subclasses overriding these methods and using state that is not initialized.
+
+#### Inputs and outputs are not automatically registered
+
+The `Property` instances that are returned by these methods are no longer automatically registered as inputs or outputs of the task. The `Property` instances need to be declared as inputs or outputs in the usual ways, such as attaching annotations such as `@OutputFile` or using the runtime API to register the property.
+
+Previously:
+```
+class MyTask extends DefaultTask {
+    // note: no annotation here
+    final RegularFileProperty outputFile = newOutputFile()
+}
+
+task myOtherTask {
+    def outputFile = newOutputFile()
+    doLast { ... }
+}
+```
+
+Now:
+```
+class MyTask extends DefaultTask {
+    @OutputFile // property needs an annotation
+    final RegularFileProperty outputFile = project.objects.fileProperty()
+}
+
+task myOtherTask {
+    def outputFile = project.objects.fileProperty()
+    outputs.file(outputFile) // or to be registered using the runtime API
+    doLast { ... }
+}
+```
 
 ### Source and test source dirs in `IdeaModule` no longer contain resources
 
