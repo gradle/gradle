@@ -16,10 +16,14 @@
 
 package org.gradle.testfixtures
 
+import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.Factories
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
+
+import java.util.concurrent.Callable
 
 class ProjectBuilderIntegrationTest extends AbstractIntegrationSpec {
     @Rule HttpServer server
@@ -43,8 +47,8 @@ class ProjectBuilderIntegrationTest extends AbstractIntegrationSpec {
                 compile "org.gradle:a:1.0"
             }
         }
-        def compileFiles = project.configurations.compile.files
-        def runtimeFiles = project.configurations.runtime.files
+        def compileFiles = mutable(project) { project.configurations.compile.files }
+        def runtimeFiles = mutable(project) { project.configurations.runtime.files }
 
         then:
         compileFiles.size() == 1
@@ -61,5 +65,9 @@ class ProjectBuilderIntegrationTest extends AbstractIntegrationSpec {
         then:
         customGradleUserHome.exists()
         project.gradle.startParameter.gradleUserHomeDir == customGradleUserHome
+    }
+
+    def mutable(Project project, Closure closure) {
+        return project.getMutationState().withMutableState(Factories.toFactory((Callable) closure))
     }
 }
