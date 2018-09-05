@@ -17,7 +17,7 @@ open class ReverseFile @Inject constructor(val fileToReverse: File, val destinat
 // The WorkerExecutor will be injected by Gradle at runtime
 open class ReverseFiles @Inject constructor(val workerExecutor: WorkerExecutor) : SourceTask() {
     @OutputDirectory
-    var outputDir: File? = null
+    lateinit var outputDir: File
 
     @TaskAction
     fun reverseFiles() {

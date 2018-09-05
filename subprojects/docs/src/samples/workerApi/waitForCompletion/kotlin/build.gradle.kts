@@ -12,7 +12,7 @@ open class ReverseFile @Inject constructor(val fileToReverse: File, val destinat
 
 open class ReverseFiles @Inject constructor(val workerExecutor: WorkerExecutor) : SourceTask() {
     @OutputDirectory
-    var outputDir: File? = null
+    lateinit var outputDir: File
 
     @TaskAction
     fun reverseFiles() {
@@ -28,7 +28,7 @@ open class ReverseFiles @Inject constructor(val workerExecutor: WorkerExecutor) 
 
         // Wait for all asynchronous work to complete before continuing
         workerExecutor.await()
-        logger.lifecycle("Created ${outputDir?.listFiles()?.size} reversed files in ${project.relativePath(outputDir!!)}")
+        logger.lifecycle("Created ${outputDir.listFiles().size} reversed files in ${project.relativePath(outputDir)}")
         // end::wait-for-completion[]
     }
 }

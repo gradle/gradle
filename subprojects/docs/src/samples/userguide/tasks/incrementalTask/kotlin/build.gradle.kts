@@ -43,21 +43,23 @@ task<IncrementalReverseTask>("incrementalReverse") {
 // tag::incremental-task[]
 open class IncrementalReverseTask : DefaultTask() {
     @InputDirectory
-    var inputDir: File? = null
+    lateinit var inputDir: File
 
     @OutputDirectory
-    var outputDir: File? = null
+    lateinit var outputDir: File
 
     @Input
-    var inputProperty: String? = null
+    lateinit var inputProperty: String
 
     @TaskAction
     fun execute(inputs: IncrementalTaskInputs) {
-        println(if (inputs.isIncremental) "CHANGED inputs considered out of date"
-            else "ALL inputs considered out of date")
+        println(
+            if (inputs.isIncremental) "CHANGED inputs considered out of date"
+            else "ALL inputs considered out of date"
+        )
         // tag::handle-non-incremental-inputs[]
         if (!inputs.isIncremental) {
-            project.delete(outputDir?.listFiles())
+            project.delete(outputDir.listFiles())
         }
         // end::handle-non-incremental-inputs[]
 
