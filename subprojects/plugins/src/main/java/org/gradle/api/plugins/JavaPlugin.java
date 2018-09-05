@@ -492,6 +492,11 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         public Configuration getCompileDependencies() {
             return convention.getProject().getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
         }
+
+        @Override
+        public ProjectInternal getProject() {
+            return convention.getProject();
+        }
     }
 
     /**
