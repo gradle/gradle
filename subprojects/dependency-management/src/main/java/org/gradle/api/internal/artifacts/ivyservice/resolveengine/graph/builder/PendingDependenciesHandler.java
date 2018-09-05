@@ -22,6 +22,10 @@ public interface PendingDependenciesHandler {
 
     void removeHardEdge(EdgeState edgeState);
 
+    boolean isPending(EdgeState edgeState);
+
+    void addNode(EdgeState edgeState);
+
     interface Visitor {
         boolean maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState);
 

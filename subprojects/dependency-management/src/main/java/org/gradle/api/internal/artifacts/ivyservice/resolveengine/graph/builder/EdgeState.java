@@ -114,6 +114,18 @@ class EdgeState implements DependencyGraphEdge {
             // The selector failed or the module has been deselected. Do not attach.
             return;
         }
+
+        if (dependencyMetadata.isConstraint()) {
+            // Need to double check that the target still has hard edges to it
+            PendingDependenciesHandler pendingDependenciesHandler = resolveState.getPendingDependenciesHandler();
+            if (pendingDependenciesHandler.isPending(this)) {
+                selector.getTargetModule().removeUnattachedDependency(this);
+                from.getOutgoingEdges().remove(this);
+                pendingDependenciesHandler.addNode(this);
+                return;
+            }
+        }
+
         calculateTargetConfigurations(targetComponent);
         for (NodeState targetConfiguration : targetNodes) {
             targetConfiguration.addIncomingEdge(this);

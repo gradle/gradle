@@ -35,6 +35,16 @@ class DefaultPendingDependenciesHandler implements PendingDependenciesHandler {
     }
 
     @Override
+    public void addNode(EdgeState edgeState) {
+        pendingDependencies.getPendingDependencies(edgeState.getTargetIdentifier()).addNode(edgeState.getFrom());
+    }
+
+    @Override
+    public boolean isPending(EdgeState edgeState) {
+        return pendingDependencies.getPendingDependencies(edgeState.getTargetIdentifier()).isPending();
+    }
+
+    @Override
     public Visitor start() {
         return new DefaultVisitor();
     }
