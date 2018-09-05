@@ -132,4 +132,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasFileOper
      */
     @Nullable
     ProjectEvaluationListener stepEvaluationListener(ProjectEvaluationListener listener, Action<ProjectEvaluationListener> action);
+
+    ProjectState getMutationState();
 }
