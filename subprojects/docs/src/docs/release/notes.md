@@ -171,6 +171,10 @@ See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-exec
 The default tool versions of the following code quality plugins have been updated:
 
 - The CodeNarc plugin now uses 1.2.1 instead of 1.1 by default.
+- The JaCoCo plugin now uses 0.8.2 instead of 0.8.1 by default.
+- The PMD plugin now uses 6.7.0 instead of 5.6.1 by default.
+  In addition, the default ruleset was changed from the now deprecated `java-basic` to `category/java/errorprone.xml`.
+  We recommend configuring a ruleset explicitly, though.
 
 ### `CopySpec.duplicatesStrategy` is no longer nullable
 
@@ -264,7 +268,7 @@ We would like to thank the following community members for making contributions 
 - [Georg Friedrich](https://github.com/GFriedrich) - Base Java Library Distribution Plugin on Java Library Plugin (gradle/gradle#5695)
 - [Stefan M.](https://github.com/StefMa) — Include Kotlin DSL samples in Gradle Wrapper, Java Gradle Plugin, and OSGI Plugin user manual chapters (gradle/gradle#5923, gradle/gradle#6485, gradle/gradle#6539)
 - [Stefan M.](https://github.com/StefMa) - Fix incoherent task name in the Authoring Tasks user manual chapter (gradle/gradle#6581)
-- [Jean-Baptiste Nizet](https://github.com/jnizet) — Include Kotlin DSL samples in Announcements, Base, Java Library Plugins, JaCoCo Plugins, Building Java Projects, Declaring Repositories, Dependency Locking, Dependency Types, Java Library, Java Testing, Artifact Management, IDEA Plugin, Application Plugin, Dependency Management for Java Projects, Working With Files, Working With Dependencies and Building Java Projects user manual chapters (gradle/gradle#6488, gradle/gradle#6500, gradle/gradle#6514, gradle/gradle#6518, gradle/gradle#6521, gradle/gradle#6540, gradle/gradle#6560, gradle/gradle#6559, gradle/gradle#6569, gradle/gradle#6556, gradle/gradle#6512, gradle/gradle#6501, gradle/gradle#6497, gradle/gradle#6571, gradle/gradle#6575)
+- [Jean-Baptiste Nizet](https://github.com/jnizet) — Include Kotlin DSL samples in Announcements, Base, Java Library Plugins, JaCoCo Plugins, Building Java Projects, Declaring Repositories, Dependency Locking, Dependency Types, Java Library, Java Testing, Artifact Management, IDEA Plugin, Application Plugin, Dependency Management for Java Projects, Working With Files, Working With Dependencies, Building Java Projects and Java Quickstart user manual chapters (gradle/gradle#6488, gradle/gradle#6500, gradle/gradle#6514, gradle/gradle#6518, gradle/gradle#6521, gradle/gradle#6540, gradle/gradle#6560, gradle/gradle#6559, gradle/gradle#6569, gradle/gradle#6556, gradle/gradle#6512, gradle/gradle#6501, gradle/gradle#6497, gradle/gradle#6571, gradle/gradle#6575, gradle/gradle#6586)
 - [Jean-Baptiste Nizet](https://github.com/jnizet) — Use proper subtype for useTestNG() (gradle/gradle#6520)
 - [Xiang Li](https://github.com/lixiangconan) and [Theodore Ni](https://github.com/tjni) - Make FileUtils#calculateRoots more efficient (gradle/gradle#6455)
 - [James Justinic](https://github.com/jjustinic) Include Kotlin DSL samples in Ant, WAR Plugin, Checkstyle plugin, CodeNarc plugin, FindBugs plugin, JDepend plugin, PMD plugin user manual chapters (gradle/gradle#6492, gradle/gradle#6510, gradle/gradle#6522)

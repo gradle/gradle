@@ -68,13 +68,11 @@ include::{samplesPath}/userguide/artifacts/generatedFileDependencies/generatedFi
 
 Gradle distinguishes between external dependencies and dependencies on projects which are part of the same multi-project build. For the latter you can declare _project dependencies_.
 
-=== Example: Project dependencies
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/java/multiproject/api/build.gradle[tag=project-dependencies]
-----
+.Project dependencies
+====
+include::sample[dir="java/multiproject/groovy/api",files="build.gradle[tags=project-dependencies]"]
+include::sample[dir="java/multiproject/kotlin/api",files="build.gradle.kts[tags=project-dependencies]"]
+====
 
 For more information see the API documentation for link:{javadocPath}/org/gradle/api/artifacts/ProjectDependency.html[ProjectDependency].
 

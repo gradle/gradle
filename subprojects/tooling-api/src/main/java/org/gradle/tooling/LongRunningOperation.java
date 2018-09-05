@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationType;
 
 import javax.annotation.Nullable;
@@ -112,6 +113,26 @@ public interface LongRunningOperation {
     LongRunningOperation setJvmArguments(@Nullable String... jvmArguments);
 
     /**
+     * Appends Java VM arguments to the existing list.
+     *
+     * @param jvmArguments the argument to use for the Gradle process
+     * @return this
+     * @since 5.0
+     */
+    @Incubating
+    LongRunningOperation addJvmArguments(String... jvmArguments);
+
+    /**
+     * Appends Java VM arguments to the existing list.
+     *
+     * @param jvmArguments the argument to use for the Gradle process
+     * @return this
+     * @since 5.0
+     */
+    @Incubating
+    LongRunningOperation addJvmArguments(Iterable<String> jvmArguments);
+
+    /**
      * Specifies the Java VM arguments to use for this operation.
      * <p>
      * {@link org.gradle.tooling.model.build.BuildEnvironment} model contains information such as Java or Gradle environment.
@@ -172,6 +193,26 @@ public interface LongRunningOperation {
      * @since 2.6
      */
     LongRunningOperation withArguments(@Nullable Iterable<String> arguments);
+
+    /**
+     * Appends new command line arguments to the existing list. Useful mostly for running tasks via {@link BuildLauncher}.
+     *
+     * @param arguments Gradle command line arguments
+     * @return this
+     * @since 5.0
+     */
+    @Incubating
+    LongRunningOperation addArguments(String... arguments);
+
+    /**
+     * Appends new command line arguments to the existing list. Useful mostly for running tasks via {@link BuildLauncher}.
+     *
+     * @param arguments Gradle command line arguments
+     * @return this
+     * @since 5.0
+     */
+    @Incubating
+    LongRunningOperation addArguments(Iterable<String> arguments);
 
     /**
      * Specifies the environment variables to use for this operation.
