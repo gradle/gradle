@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
@@ -73,6 +74,18 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
     }
 
     @Override
+    public T addArguments(String... arguments) {
+        operationParamsBuilder.addArguments(CollectionUtils.toList(Preconditions.checkNotNull(arguments)));
+        return getThis();
+    }
+
+    @Override
+    public T addArguments(Iterable<String> arguments) {
+        operationParamsBuilder.addArguments(CollectionUtils.toList(Preconditions.checkNotNull(arguments)));
+        return getThis();
+    }
+
+    @Override
     public T setStandardOutput(OutputStream outputStream) {
         operationParamsBuilder.setStdout(outputStream);
         return getThis();
@@ -105,6 +118,18 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
     @Override
     public T setJvmArguments(String... jvmArguments) {
         operationParamsBuilder.setJvmArguments(rationalizeInput(jvmArguments));
+        return getThis();
+    }
+
+    @Override
+    public T addJvmArguments(String... jvmArguments) {
+        operationParamsBuilder.addJvmArguments(CollectionUtils.toList(Preconditions.checkNotNull(jvmArguments)));
+        return getThis();
+    }
+
+    @Override
+    public T addJvmArguments(Iterable<String> jvmArguments) {
+        operationParamsBuilder.addJvmArguments(CollectionUtils.toList(Preconditions.checkNotNull(jvmArguments)));
         return getThis();
     }
 
