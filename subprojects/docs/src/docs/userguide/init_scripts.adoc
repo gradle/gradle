@@ -82,32 +82,33 @@ include::{samplesPath}/userguide/initScripts/configurationInjection/initScriptCo
 
 In <<tutorial_using_tasks.adoc#sec:build_script_external_dependencies,External dependencies for the build script>> it was explained how to add external dependencies to a build script. Init scripts can also declare dependencies. You do this with the `initscript()` method, passing in a closure which declares the init script classpath.
 
-=== Example: Declaring external dependencies for an init script
-
-[source.multi-language-sample,groovy]
-.init.gradle
-----
-include::{samplesPath}/userguide/initScripts/externalDependency/init.gradle[tag=declare-classpath]
-----
+.Declaring external dependencies for an init script
+====
+include::sample[dir="userguide/initScripts/externalDependency/groovy",files="init.gradle[tags=declare-classpath]"]
+include::sample[dir="userguide/initScripts/externalDependency/kotlin",files="init.gradle.kts[tags=declare-classpath]"]
+====
 
 The closure passed to the `initscript()` method configures a link:{javadocPath}/org/gradle/api/initialization/dsl/ScriptHandler.html[ScriptHandler] instance. You declare the init script classpath by adding dependencies to the `classpath` configuration. This is the same way you declare, for example, the Java compilation classpath. You can use any of the dependency types described in <<declaring_dependencies.adoc#declaring_dependencies,Declaring Dependencies>>, except project dependencies.
 
 Having declared the init script classpath, you can use the classes in your init script as you would any other classes on the classpath. The following example adds to the previous example, and uses classes from the init script classpath.
 
-=== Example: An init script with external dependencies
+.An init script with external dependencies
+====
+include::sample[dir="userguide/initScripts/externalDependency/groovy",files="init.gradle[tags=all]"]
+include::sample[dir="userguide/initScripts/externalDependency/kotlin",files="init.gradle.kts[tags=all]"]
+====
 
+==== Output when applying the init script
 [source.multi-language-sample,groovy]
-.init.gradle
-----
-include::{samplesPath}/userguide/initScripts/externalDependency/init.gradle[tag=all]
-----
-
-.Output of **`gradle --init-script init.gradle -q doNothing`**
 ----
 > gradle --init-script init.gradle -q doNothing
 include::{samplesPath}/userguide/initScripts/externalDependency/externalInitDependency.out[]
 ----
-
+[source.multi-language-sample,kotlin]
+----
+> gradle --init-script init.gradle.kts -q doNothing
+include::{samplesPath}/userguide/initScripts/externalDependency/externalInitDependency.out[]
+----
 
 [[sec:init_script_plugins]]
 == Init script plugins
