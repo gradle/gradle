@@ -61,10 +61,9 @@ eclipse.project.file.beforeMerged(Action<Project> {
 // tag::wtp-with-xml[]
 
 eclipse.wtp.facet.file.withXml(Action<XmlProvider> {
-    fun Element.firstElement(predicate: (Element.() -> Boolean)) =
+    fun Element.firstElement(predicate: Element.() -> Boolean) =
         childNodes
-            .let { children -> (0..children.length)
-                .map { children.item(it) } }
+            .let { children -> (0..children.length).map { children.item(it) } }
             .filterIsInstance<Element>()
             .first { it.predicate() }
 
