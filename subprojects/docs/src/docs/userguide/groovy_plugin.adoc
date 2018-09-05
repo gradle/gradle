@@ -23,14 +23,11 @@ The Groovy plugin extends the Java plugin to add support for Groovy projects. It
 
 To use the Groovy plugin, include the following in your build script:
 
-=== Example: Using the Groovy plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/groovy/quickstart/build.gradle[tag=use-plugin]
-----
-
+.Using the Groovy plugin
+====
+include::sample[dir="groovy/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="groovy/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+====
 
 [[sec:groovy_tasks]]
 == Tasks
@@ -114,13 +111,11 @@ Because Gradle's build language is based on Groovy, and parts of Gradle are impl
 
 If Groovy is used for production code, the Groovy dependency should be added to the `compile` configuration:
 
-=== Example: Configuration of Groovy dependency
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/groovy/quickstart/build.gradle[tag=groovy-dependency]
-----
+.Configuration of Groovy dependency
+====
+include::sample[dir="groovy/quickstart/groovy",files="build.gradle[tags=groovy-dependency]"]
+include::sample[dir="groovy/quickstart/kotlin",files="build.gradle.kts[tags=groovy-dependency]"]
+====
 
 If Groovy is only used for test code, the Groovy dependency should be added to the `testCompile` configuration:
 
