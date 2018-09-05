@@ -20,6 +20,9 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.api.internal.DefaultMutationGuard;
+import org.gradle.api.internal.MutationGuard;
+import org.gradle.api.internal.WithMutationGuard;
 import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.Collector;
@@ -34,10 +37,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-abstract public class AbstractIterationOrderRetainingElementSource<T> implements ElementSource<T> {
+abstract public class AbstractIterationOrderRetainingElementSource<T> implements ElementSource<T>, WithMutationGuard {
     // This set represents the order in which elements are inserted to the store, either actual
     // or provided.  We construct a correct iteration order from this set.
     private final List<Element<T>> inserted = new ArrayList<Element<T>>();
+
+    private final MutationGuard mutationGuard = new DefaultMutationGuard();
 
     private Action<T> realizeAction;
 
@@ -188,6 +193,11 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     @Override
     public void onRealize(final Action<T> action) {
         this.realizeAction = action;
+    }
+
+    @Override
+    public MutationGuard getMutationGuard() {
+        return mutationGuard;
     }
 
     protected class RealizedElementCollectionIterator implements Iterator<T> {

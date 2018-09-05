@@ -17,6 +17,9 @@
 package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.DefaultMutationGuard;
+import org.gradle.api.internal.MutationGuard;
+import org.gradle.api.internal.WithMutationGuard;
 import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
@@ -26,9 +29,10 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.TreeSet;
 
-public class SortedSetElementSource<T> implements ElementSource<T> {
+public class SortedSetElementSource<T> implements ElementSource<T>, WithMutationGuard {
     private final TreeSet<T> values;
     private final PendingSource<T> pending = new DefaultPendingSource<T>();
+    private final MutationGuard mutationGuard = new DefaultMutationGuard();
 
     public SortedSetElementSource(Comparator<T> comparator) {
         this.values = new TreeSet<T>(comparator);
@@ -156,5 +160,10 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     @Override
     public void realizeExternal(ProviderInternal<? extends T> provider) {
         pending.realizeExternal(provider);
+    }
+
+    @Override
+    public MutationGuard getMutationGuard() {
+        return mutationGuard;
     }
 }

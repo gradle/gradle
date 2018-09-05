@@ -1473,4 +1473,23 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         where:
         [description, factoryClass] << getInvalidCallFromLazyConfiguration()
     }
+
+    @Unroll
+    def "disallow mutating when withType(Class).configureEach(#factoryClass.configurationType.simpleName) calls #description"() {
+        def factory = factoryClass.newInstance()
+        if (factory.isUseExternalProviders()) {
+            containerAllowsExternalProviders()
+        }
+
+        when:
+        container.withType(type).configureEach(factory.create(container, b))
+        container.add(a)
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "${containerPublicType.simpleName}#${description} on ${container.toString()} cannot be executed in the current context."
+
+        where:
+        [description, factoryClass] << getInvalidCallFromLazyConfiguration()
+    }
 }

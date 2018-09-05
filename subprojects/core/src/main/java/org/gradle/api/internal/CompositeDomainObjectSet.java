@@ -37,7 +37,7 @@ import java.util.Set;
  *
  * @param <T> The type of domain objects in the component collections of this collection.
  */
-public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> implements WithEstimatedSize {
+public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> implements WithEstimatedSize, WithMutationGuard {
 
     private final Spec<T> uniqueSpec = new ItemIsUniqueInCompositeSpec();
     private final Spec<T> notInSpec = new ItemNotInCompositeSpec();
@@ -147,7 +147,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
     }
 
     // TODO Make this work with pending elements
-    private final static class DomainObjectCompositeCollection<T> implements ElementSource<T> {
+    private final static class DomainObjectCompositeCollection<T> implements ElementSource<T>, WithMutationGuard {
 
         private final List<DomainObjectCollection<? extends T>> store = Lists.newLinkedList();
 
@@ -305,6 +305,11 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         @Override
         public void realizeExternal(ProviderInternal<? extends T> provider) {
 
+        }
+
+        @Override
+        public MutationGuard getMutationGuard() {
+            return MutationGuards.of(store);
         }
     }
 }
