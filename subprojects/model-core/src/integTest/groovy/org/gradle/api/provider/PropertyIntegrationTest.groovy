@@ -27,7 +27,7 @@ class SomeTask extends DefaultTask {
     final Property<String> prop = project.objects.property(String)
     
     @OutputFile
-    final Property<RegularFile> outputFile = newOutputFile()
+    final Property<RegularFile> outputFile = project.objects.fileProperty()
     
     @TaskAction
     void go() { 

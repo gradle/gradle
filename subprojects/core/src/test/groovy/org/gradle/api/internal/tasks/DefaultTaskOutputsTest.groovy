@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
+import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder
 import org.gradle.util.DeferredUtil
 import org.gradle.util.UsesNativeServices
@@ -90,7 +91,7 @@ class DefaultTaskOutputsTest extends Specification {
         getLocalState() >> Stub(TaskLocalStateInternal)
     }
 
-    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(task, taskStatusNagger, new DefaultPropertyWalker(new DefaultPropertyMetadataStore([])), new DefaultPropertySpecFactory(task, resolver))
+    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(task, taskStatusNagger, new DefaultPropertyWalker(new DefaultPropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory())), new DefaultPropertySpecFactory(task, resolver))
 
     void hasNoOutputsByDefault() {
         setup:

@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileOperations;
@@ -58,13 +57,12 @@ public class DefaultCppTestExecutable extends DefaultCppBinary implements CppTes
 
     @Inject
     public DefaultCppTestExecutable(Names names, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, Configuration implementation,
-                                    Provider<CppComponent> testedComponent, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity,
-                                    ConfigurationContainer configurations, ProjectLayout projectLayout, ObjectFactory objects, FileOperations fileOperations) {
-        super(names, projectLayout, objects, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
+                                    Provider<CppComponent> testedComponent, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity, ConfigurationContainer configurations, ObjectFactory objects, FileOperations fileOperations) {
+        super(names, objects, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
         this.testedComponent = testedComponent;
-        this.executableFile = projectLayout.fileProperty();
-        this.debuggerExecutableFile = projectLayout.fileProperty();
-        this.installationDirectory = projectLayout.directoryProperty();
+        this.executableFile = objects.fileProperty();
+        this.debuggerExecutableFile = objects.fileProperty();
+        this.installationDirectory = objects.directoryProperty();
         this.linkTaskProperty = objects.property(LinkExecutable.class);
         this.installTaskProperty = objects.property(InstallExecutable.class);
         this.outputs = fileOperations.configurableFiles();

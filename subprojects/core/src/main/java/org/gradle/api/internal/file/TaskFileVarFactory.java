@@ -18,20 +18,10 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 
 public interface TaskFileVarFactory {
-    DirectoryProperty newOutputDirectory(Task producer);
-
-    RegularFileProperty newOutputFile(Task producer);
-
-    RegularFileProperty newInputFile(Task consumer);
-
-    DirectoryProperty newInputDirectory(Task consumer);
-
     /**
      * Creates a {@link ConfigurableFileCollection} that can be used as a task input.
      *

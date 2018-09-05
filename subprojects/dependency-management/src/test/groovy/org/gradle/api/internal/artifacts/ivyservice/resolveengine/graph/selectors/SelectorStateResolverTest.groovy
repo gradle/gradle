@@ -107,8 +107,7 @@ class SelectorStateResolverTest extends Specification {
         def expected = permutation.expected
 
         expect:
-        // TODO:DAZ These 'prefer' scenarios should never invoke the configured conflict resolver (ie: `failOnVersionConflict()`)
-        resolver(true).resolve(candidates) == expected
+        resolver(permutation.conflicts).resolve(candidates) == expected
 
         where:
         permutation << SCENARIOS_PREFER
