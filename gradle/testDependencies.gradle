@@ -15,6 +15,7 @@
  */
 ext {
     testLibraries = [:]
+    cglibWithoutAntRule = CglibWithoutAntRule.class
 }
 
 // Test classpath libraries
@@ -31,3 +32,15 @@ testLibraries.jmock = [
     'org.jmock:jmock-legacy:2.5.1'
 ]
 testLibraries.sampleCheck = 'org.gradle:sample-check:0.4.2'
+
+class CglibWithoutAntRule implements ComponentMetadataRule {
+    @Override
+    void execute(ComponentMetadataContext context) {
+        context.details.allVariants {
+            withDependencies {
+                // because we require a different Ant version
+                removeAll { it.name == "ant" }
+            }
+        }
+    }
+}
