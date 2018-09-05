@@ -34,6 +34,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
@@ -62,6 +63,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
             getIdentityPath() >> Path.path(":")
         }
         getServices() >> Mock(ServiceRegistry)
+        getObjects() >> Stub(ObjectFactory)
     }
     private taskCount = 1;
     private accessListener = Mock(ProjectAccessListener)
