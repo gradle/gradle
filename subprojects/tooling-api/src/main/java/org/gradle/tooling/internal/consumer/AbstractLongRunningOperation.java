@@ -75,7 +75,13 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
 
     @Override
     public T addArguments(String... arguments) {
-        operationParamsBuilder.addArguments(Arrays.asList(arguments));
+        operationParamsBuilder.addArguments(CollectionUtils.toList(Preconditions.checkNotNull(arguments)));
+        return getThis();
+    }
+
+    @Override
+    public T addArguments(Iterable<String> arguments) {
+        operationParamsBuilder.addArguments(CollectionUtils.toList(Preconditions.checkNotNull(arguments)));
         return getThis();
     }
 
@@ -117,7 +123,13 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
 
     @Override
     public T addJvmArguments(String... jvmArguments) {
-        operationParamsBuilder.addJvmArguments(Arrays.asList(jvmArguments));
+        operationParamsBuilder.addJvmArguments(CollectionUtils.toList(Preconditions.checkNotNull(jvmArguments)));
+        return getThis();
+    }
+
+    @Override
+    public T addJvmArguments(Iterable<String> jvmArguments) {
+        operationParamsBuilder.addJvmArguments(CollectionUtils.toList(Preconditions.checkNotNull(jvmArguments)));
         return getThis();
     }
 

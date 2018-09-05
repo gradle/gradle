@@ -54,6 +54,12 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher> extends Lo
 
     /**
      * {@inheritDoc}
+     * @since 5.0
+     */
+    T addArguments(Iterable<String> arguments);
+
+    /**
+     * {@inheritDoc}
      * @since 1.0-milestone-3
      */
     @Override
@@ -106,6 +112,12 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher> extends Lo
      * @since 5.0
      */
     T addJvmArguments(String... jvmArguments);
+
+    /**
+     * {@inheritDoc}
+     * @since 5.0
+     */
+    T addJvmArguments(Iterable<String> jvmArguments);
 
     /**
      * {@inheritDoc}

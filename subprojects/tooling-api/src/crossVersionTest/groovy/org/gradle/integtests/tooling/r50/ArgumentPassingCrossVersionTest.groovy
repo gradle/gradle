@@ -16,9 +16,11 @@
 
 package org.gradle.integtests.tooling.r50
 
-
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.SimpleType
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.model.build.BuildEnvironment
 
 @ToolingApiVersion('>=5.0')
@@ -38,65 +40,80 @@ class ArgumentPassingCrossVersionTest extends ToolingApiSpecification {
 
     def "Appends additional JVM arguments"() {
         when:
-        BuildEnvironment env
-        withConnection {
-            env = it.model(BuildEnvironment.class).addJvmArguments(JVM_ARG_1).get()
-        }
+        BuildEnvironment env1 = loadBuildEnvironment { builder -> builder.addJvmArguments(JVM_ARG_1) }
 
         then:
-        env.java.jvmArguments.contains(JVM_ARG_1)
+        env1.java.jvmArguments.contains(JVM_ARG_1)
+
+        when:
+        BuildEnvironment env2 = loadBuildEnvironment { builder -> builder.addJvmArguments([JVM_ARG_1]) }
+
+        then:
+        env2.java.jvmArguments.contains(JVM_ARG_1)
     }
 
     def "Appends additional JVM arguments multiple times"() {
         when:
-        BuildEnvironment env
-        withConnection {
-            env = it.model(BuildEnvironment.class).addJvmArguments(JVM_ARG_1).addJvmArguments(JVM_ARG_2).get()
-        }
+        BuildEnvironment env1 = loadBuildEnvironment { builder -> builder.addJvmArguments(JVM_ARG_1).addJvmArguments(JVM_ARG_2) }
 
         then:
-        env.java.jvmArguments.contains(JVM_ARG_1)
-        env.java.jvmArguments.contains(JVM_ARG_2)
+        env1.java.jvmArguments.contains(JVM_ARG_1)
+        env1.java.jvmArguments.contains(JVM_ARG_2)
+
+        when:
+        BuildEnvironment env2 = loadBuildEnvironment { builder -> builder.addJvmArguments([JVM_ARG_1]).addJvmArguments([JVM_ARG_2]) }
+
+        then:
+        env2.java.jvmArguments.contains(JVM_ARG_1)
+        env2.java.jvmArguments.contains(JVM_ARG_2)
     }
 
     def "Adds multiple JVM arguments at once"() {
         when:
-        BuildEnvironment env
-        withConnection {
-            env = it.model(BuildEnvironment.class).addJvmArguments(JVM_ARG_1, JVM_ARG_2).get()
-        }
+        BuildEnvironment env1 = loadBuildEnvironment { builder -> builder.addJvmArguments(JVM_ARG_1, JVM_ARG_2) }
 
         then:
-        env.java.jvmArguments.contains(JVM_ARG_1)
-        env.java.jvmArguments.contains(JVM_ARG_2)
+        env1.java.jvmArguments.contains(JVM_ARG_1)
+        env1.java.jvmArguments.contains(JVM_ARG_2)
+
+        when:
+        BuildEnvironment env2 = loadBuildEnvironment { builder -> builder.addJvmArguments([JVM_ARG_1, JVM_ARG_2]) }
+
+        then:
+        env2.java.jvmArguments.contains(JVM_ARG_1)
+        env2.java.jvmArguments.contains(JVM_ARG_2)
     }
 
     def "Adding JVM argument does not overwrite existing values"() {
         when:
-        BuildEnvironment env
-        withConnection {
-            env = it.model(BuildEnvironment.class).setJvmArguments(JVM_ARG_1).addJvmArguments(JVM_ARG_2).get()
-        }
+        BuildEnvironment env1 = loadBuildEnvironment { builder -> builder.setJvmArguments(JVM_ARG_1).addJvmArguments(JVM_ARG_2) }
 
         then:
-        env.java.jvmArguments.contains(JVM_ARG_1)
-        env.java.jvmArguments.contains(JVM_ARG_2)
+        env1.java.jvmArguments.contains(JVM_ARG_1)
+        env1.java.jvmArguments.contains(JVM_ARG_2)
+
+        when:
+        BuildEnvironment env2 = loadBuildEnvironment { builder -> builder.setJvmArguments(JVM_ARG_1).addJvmArguments([JVM_ARG_2]) }
+
+        then:
+        env2.java.jvmArguments.contains(JVM_ARG_1)
+        env2.java.jvmArguments.contains(JVM_ARG_2)
     }
 
     def "Adding zero JVM arguments is a no-op"() {
-        setup:
-        BuildEnvironment env
-        withConnection {
-            env = it.model(BuildEnvironment.class).addJvmArguments().get()
-        }
+        expect:
+        loadBuildEnvironment { builder -> builder.addJvmArguments() }
     }
 
     def "Adding null JVM argument throws NPE"() {
         when:
-        BuildEnvironment env
-        withConnection {
-            env = it.model(BuildEnvironment.class).addJvmArguments(null).get()
-        }
+        loadBuildEnvironment { builder -> builder.addJvmArguments(null as String) }
+
+        then:
+        thrown(NullPointerException)
+
+        when:
+        loadBuildEnvironment { builder -> builder.addJvmArguments(null as List) }
 
         then:
         thrown(NullPointerException)
@@ -104,65 +121,102 @@ class ArgumentPassingCrossVersionTest extends ToolingApiSpecification {
 
     def "Appends additional arguments"() {
         when:
-        ByteArrayOutputStream output = new ByteArrayOutputStream()
-        withConnection {
-            it.newBuild().setStandardOutput(output).addArguments("-P$ARG_1").run()
-        }
+        String output1 = runBuild { launcher -> launcher.addArguments("-P$ARG_1") }
 
         then:
-        output.toString().contains(ARG_1)
+        output1.contains(ARG_1)
+
+        when:
+        String output2 = runBuild { launcher -> launcher.addArguments(["-P$ARG_1" as String]) }
+
+        then:
+        output2.contains(ARG_1)
     }
 
     def "Appends arguments multiple times"() {
         when:
-        ByteArrayOutputStream output = new ByteArrayOutputStream()
-        withConnection {
-            it.newBuild().setStandardOutput(output).addArguments("-P$ARG_1").addArguments("-P$ARG_2").run()
-        }
+        String output1 = runBuild { launcher -> launcher.addArguments("-P$ARG_1").addArguments("-P$ARG_2") }
 
         then:
-        output.toString().contains(ARG_1)
-        output.toString().contains(ARG_2)
+        output1.toString().contains(ARG_1)
+        output1.toString().contains(ARG_2)
+
+        when:
+        String output2 = runBuild { launcher -> launcher.addArguments(["-P$ARG_1" as String]).addArguments(["-P$ARG_2" as String]) }
+
+        then:
+        output2.toString().contains(ARG_1)
+        output2.toString().contains(ARG_2)
     }
 
     def "Adds multiple arguments at once"() {
         when:
-        ByteArrayOutputStream output = new ByteArrayOutputStream()
-        withConnection {
-            it.newBuild().setStandardOutput(output).addArguments("-P$ARG_1", "-P$ARG_2").run()
-        }
+        String output1 = runBuild { launcher -> launcher.addArguments("-P$ARG_1", "-P$ARG_2") }
 
         then:
-        output.toString().contains(ARG_1)
-        output.toString().contains(ARG_2)
+        output1.toString().contains(ARG_1)
+        output1.toString().contains(ARG_2)
+
+        when:
+        String output2 = runBuild { launcher -> launcher.addArguments(["-P$ARG_1" as String, "-P$ARG_2" as String]) }
+
+        then:
+        output2.toString().contains(ARG_1)
+        output2.toString().contains(ARG_2)
     }
 
     def "Adding argument does not overwrite existing values"() {
         when:
-        ByteArrayOutputStream output = new ByteArrayOutputStream()
-        withConnection {
-            it.newBuild().setStandardOutput(output).withArguments("-P$ARG_1").addArguments("-P$ARG_2").run()
-        }
+        String output1 = runBuild { launcher -> launcher.withArguments("-P$ARG_1").addArguments("-P$ARG_2") }
 
         then:
-        output.toString().contains(ARG_1)
-        output.toString().contains(ARG_2)
+        output1.toString().contains(ARG_1)
+        output1.toString().contains(ARG_2)
+
+        when:
+        String output2 = runBuild { launcher -> launcher.withArguments("-P$ARG_1").addArguments(["-P$ARG_2" as String]) }
+
+        then:
+        output2.toString().contains(ARG_1)
+        output2.toString().contains(ARG_2)
     }
 
     def "Adding zero arguments is a no-op"() {
-        setup:
-        withConnection {
-            it.newBuild().addArguments().run()
-        }
+        expect:
+        runBuild { launcher -> launcher.addArguments() }
     }
 
     def "Adding null argument throws NPE"() {
         when:
-        withConnection {
-            it.newBuild().addArguments(null).run()
-        }
+        runBuild { launcher -> launcher.addArguments(null as String) }
 
         then:
         thrown(NullPointerException)
+
+        when:
+        runBuild { launcher -> launcher.addArguments(null as List) }
+
+        then:
+        thrown(NullPointerException)
+    }
+
+    private BuildEnvironment loadBuildEnvironment(@ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ModelBuilder"]) Closure config) {
+        BuildEnvironment env
+        withConnection {
+            def builder = it.model(BuildEnvironment)
+            config(builder)
+            env = builder.get()
+        }
+        env
+    }
+
+    private String runBuild(@ClosureParams(value = SimpleType, options = ["org.gradle.tooling.BuildLauncher"]) Closure config) {
+        ByteArrayOutputStream output = new ByteArrayOutputStream()
+        withConnection {
+            BuildLauncher launcher = it.newBuild().setStandardOutput(output)
+            config(launcher)
+            launcher.run()
+        }
+        return output.toString()
     }
 }
