@@ -1,14 +1,12 @@
-Evaluation of root project 'buildProjectEvaluateEvents' succeeded
-Evaluation of project ':projectA' succeeded
-Evaluation of project ':projectB' FAILED
+executing task ':ok' ...
+done
+executing task ':broken' ...
+FAILED
 
 FAILURE: Build failed with an exception.
 
-* Where:
-Build file '/home/user/gradle/samples/projectB.gradle' line: 1
-
 * What went wrong:
-A problem occurred evaluating project ':projectB'.
+Execution failed for task ':broken'.
 > broken
 
 * Try:
