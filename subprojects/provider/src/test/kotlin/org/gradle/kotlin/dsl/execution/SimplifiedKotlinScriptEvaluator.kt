@@ -52,8 +52,8 @@ import java.net.URLClassLoader
  * to sub-directories of [baseCacheDir].
  */
 fun eval(script: String, target: Any, baseCacheDir: File) {
-    SimplifiedKotlinScriptEvaluator(baseCacheDir).use { interpreter ->
-        interpreter.eval(script, target)
+    SimplifiedKotlinScriptEvaluator(baseCacheDir).use {
+        it.eval(script, target)
     }
 }
 
