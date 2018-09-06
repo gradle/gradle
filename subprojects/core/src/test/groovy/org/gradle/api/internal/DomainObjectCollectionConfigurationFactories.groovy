@@ -18,6 +18,7 @@ package org.gradle.api.internal
 
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectCollection
+import org.gradle.api.NamedDomainObjectCollection
 import org.gradle.api.NamedDomainObjectList
 import org.gradle.api.Transformer
 import org.gradle.api.internal.provider.CollectionProviderInternal
@@ -236,7 +237,62 @@ abstract class DomainObjectCollectionConfigurationFactories {
         }
     }
 
+    abstract static class CallNextOnIteratorFactory<T, F> extends AbstractConfigurationFactory<T, F> {
+        @Override
+        void doCall(DomainObjectCollection<T> container, T element) {
+            def iter = container.iterator()
+            iter.next()
+        }
+
+        static class AsAction<T> extends CallNextOnIteratorFactory<T, Action<T>> {
+            static def configurationType = Action
+        }
+
+        static class AsClosure<T> extends CallNextOnIteratorFactory<T, Closure> {
+            static def configurationType = Closure
+        }
+    }
+
+    abstract static class CallContainsFactory<T, F> extends AbstractConfigurationFactory<T, F> {
+        @Override
+        void doCall(DomainObjectCollection<T> container, T element) {
+            container.contains(element)
+        }
+
+        static class AsAction<T> extends CallContainsFactory<T, Action<T>> {
+            static def configurationType = Action
+        }
+
+        static class AsClosure<T> extends CallContainsFactory<T, Closure> {
+            static def configurationType = Closure
+        }
+    }
+
     abstract static class AbstractNamedConfigurationFactory<T, F> extends AbstractConfigurationFactory<T, F> {
+        @Override
+        void doCall(DomainObjectCollection<T> container, T element) {
+            doCall((NamedDomainObjectCollection) container, element)
+        }
+
+        abstract void doCall(NamedDomainObjectCollection<T> container, T element)
+    }
+
+    abstract static class CallGetByNameFactory<T, F> extends AbstractNamedConfigurationFactory<T, F> {
+        @Override
+        void doCall(NamedDomainObjectCollection<T> container, T element) {
+            container.getByName("a")
+        }
+
+        static class AsAction<T> extends CallGetByNameFactory<T, Action<T>> {
+            static def configurationType = Action
+        }
+
+        static class AsClosure<T> extends CallGetByNameFactory<T, Closure> {
+            static def configurationType = Closure
+        }
+    }
+
+    abstract static class AbstractNamedListConfigurationFactory<T, F> extends AbstractConfigurationFactory<T, F> {
         @Override
         void doCall(DomainObjectCollection<T> container, T element) {
             doCall((NamedDomainObjectList) container, element)
@@ -245,7 +301,7 @@ abstract class DomainObjectCollectionConfigurationFactories {
         abstract void doCall(NamedDomainObjectList<T> container, T element)
     }
 
-    abstract static class CallInsertFactory<T, F> extends AbstractNamedConfigurationFactory<T, F> {
+    abstract static class CallInsertFactory<T, F> extends AbstractNamedListConfigurationFactory<T, F> {
         @Override
         void doCall(NamedDomainObjectList<T> container, T element) {
             container.add(0, element)
@@ -260,7 +316,7 @@ abstract class DomainObjectCollectionConfigurationFactories {
         }
     }
 
-    abstract static class CallInsertAllFactory<T, F> extends AbstractNamedConfigurationFactory<T, F> {
+    abstract static class CallInsertAllFactory<T, F> extends AbstractNamedListConfigurationFactory<T, F> {
         @Override
         void doCall(NamedDomainObjectList<T> container, T element) {
             container.addAll(0, [element])
@@ -275,7 +331,7 @@ abstract class DomainObjectCollectionConfigurationFactories {
         }
     }
 
-    abstract static class CallSetFactory<T, F> extends AbstractNamedConfigurationFactory<T, F> {
+    abstract static class CallSetFactory<T, F> extends AbstractNamedListConfigurationFactory<T, F> {
         @Override
         void doCall(NamedDomainObjectList<T> container, T element) {
             container.set(0, element)
@@ -290,7 +346,7 @@ abstract class DomainObjectCollectionConfigurationFactories {
         }
     }
 
-    abstract static class CallRemoveWithIndexFactory<T, F> extends AbstractNamedConfigurationFactory<T, F> {
+    abstract static class CallRemoveWithIndexFactory<T, F> extends AbstractNamedListConfigurationFactory<T, F> {
         @Override
         void doCall(NamedDomainObjectList<T> container, T element) {
             container.remove(0)
@@ -305,7 +361,7 @@ abstract class DomainObjectCollectionConfigurationFactories {
         }
     }
 
-    abstract static class CallAddOnListIteratorFactory<T, F> extends AbstractNamedConfigurationFactory<T, F> {
+    abstract static class CallAddOnListIteratorFactory<T, F> extends AbstractNamedListConfigurationFactory<T, F> {
         @Override
         void doCall(NamedDomainObjectList<T> container, T element) {
             def iter = container.listIterator()
@@ -322,7 +378,7 @@ abstract class DomainObjectCollectionConfigurationFactories {
         }
     }
 
-    abstract static class CallSetOnListIteratorFactory<T, F> extends AbstractNamedConfigurationFactory<T, F> {
+    abstract static class CallSetOnListIteratorFactory<T, F> extends AbstractNamedListConfigurationFactory<T, F> {
         @Override
         void doCall(NamedDomainObjectList<T> container, T element) {
             def iter = container.listIterator()
@@ -339,7 +395,7 @@ abstract class DomainObjectCollectionConfigurationFactories {
         }
     }
 
-    abstract static class CallRemoveOnListIteratorFactory<T, F> extends AbstractNamedConfigurationFactory<T, F> {
+    abstract static class CallRemoveOnListIteratorFactory<T, F> extends AbstractNamedListConfigurationFactory<T, F> {
         @Override
         void doCall(NamedDomainObjectList<T> container, T element) {
             def iter = container.listIterator()

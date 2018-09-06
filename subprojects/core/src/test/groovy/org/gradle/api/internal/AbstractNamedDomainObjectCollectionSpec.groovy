@@ -16,5 +16,19 @@
 
 package org.gradle.api.internal
 
+import org.gradle.api.NamedDomainObjectCollection
+
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.*
+
 abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomainObjectCollectionSpec<T> {
+    abstract NamedDomainObjectCollection<T> getContainer()
+
+    @Override
+    protected def getValidCallFromLazyConfiguration() {
+        def result = []
+        result.addAll(super.getValidCallFromLazyConfiguration())
+        result.add(["getByName(String)", CallGetByNameFactory.AsAction])
+        result.add(["getByName(String)", CallGetByNameFactory.AsClosure])
+        return result
+    }
 }

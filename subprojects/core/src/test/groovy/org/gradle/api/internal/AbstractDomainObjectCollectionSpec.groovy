@@ -34,6 +34,8 @@ import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactori
 import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallRemoveFactory
 import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallRemoveOnIteratorFactory
 import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallRetainAllFactory
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallNextOnIteratorFactory
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallContainsFactory
 import static org.gradle.util.WrapUtil.toList
 
 abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
@@ -1455,6 +1457,15 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         ]
     }
 
+    protected def getValidCallFromLazyConfiguration() {
+        return [
+            ["contains(Object)", CallContainsFactory.AsAction],
+            ["contains(Object)", CallContainsFactory.AsClosure],
+            ["iterator().next()", CallNextOnIteratorFactory.AsAction],
+            ["iterator().next()", CallNextOnIteratorFactory.AsClosure],
+        ]
+    }
+
     @Unroll
     def "disallow mutating when configureEach(#factoryClass.configurationType.simpleName) calls #description"() {
         def factory = factoryClass.newInstance()
@@ -1491,5 +1502,41 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         where:
         [description, factoryClass] << getInvalidCallFromLazyConfiguration()
+    }
+
+    @Unroll
+    def "allow querying when configureEach(#factoryClass.configurationType.simpleName) calls #description"() {
+        def factory = factoryClass.newInstance()
+        if (factory.isUseExternalProviders()) {
+            containerAllowsExternalProviders()
+        }
+
+        when:
+        container.configureEach(factory.create(container, b))
+        container.add(a)
+
+        then:
+        noExceptionThrown()
+
+        where:
+        [description, factoryClass] << getValidCallFromLazyConfiguration()
+    }
+
+    @Unroll
+    def "allow querying when withType(Class).configureEach(#factoryClass.configurationType.simpleName) calls #description"() {
+        def factory = factoryClass.newInstance()
+        if (factory.isUseExternalProviders()) {
+            containerAllowsExternalProviders()
+        }
+
+        when:
+        container.withType(type).configureEach(factory.create(container, b))
+        container.add(a)
+
+        then:
+        noExceptionThrown()
+
+        where:
+        [description, factoryClass] << getValidCallFromLazyConfiguration()
     }
 }
