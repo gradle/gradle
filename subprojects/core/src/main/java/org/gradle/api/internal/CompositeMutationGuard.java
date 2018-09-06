@@ -49,13 +49,7 @@ public class CompositeMutationGuard extends AbstractMutationGuard {
             }
         }
 
-        final Action<? super T> result = action;
-        return new Action<T>() {
-            @Override
-            public void execute(T t) {
-                result.execute(t);
-            }
-        };
+        return action;
     }
 
     protected void runWithMutation(Runnable runnable, final boolean allowMutationMethods) {
