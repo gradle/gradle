@@ -69,7 +69,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
             }
         }
     }
-    
+
     def "a bom dependencyManagement entry can declare excludes which are applied unconditionally to module"() {
         given:
         moduleA.dependsOn(mavenHttpRepo.module("group", "moduleC", "1.0").allowAll().publish()).publish()
