@@ -1,15 +1,14 @@
 // tag::dependencies[]
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+}
 
 repositories {
     mavenCentral()
-    maven {
-        url 'https://repo.spring.io/snapshot/'
-    }
 }
 
 dependencies {
-    implementation 'org.springframework:spring-web:5.0.3.BUILD-SNAPSHOT'
+    implementation 'org.springframework:spring-web:5.0.2.RELEASE'
 }
 // end::dependencies[]
 

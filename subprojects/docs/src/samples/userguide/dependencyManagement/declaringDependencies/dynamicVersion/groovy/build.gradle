@@ -1,12 +1,14 @@
 // tag::dependencies[]
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+}
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation 'org.springframework:spring-web:5.0.2.RELEASE'
+    implementation 'org.springframework:spring-web:5.+'
 }
 // end::dependencies[]
 
