@@ -170,13 +170,11 @@ As well as configuring how things are to be signed (i.e. the signatory configura
 
 When publishing artifacts, you often want to sign them so the consumer of your artifacts can verify their signature. For example, the <<java_plugin.adoc#java_plugin,Java plugin>> defines a component that you can use to define a publication to a Maven (or Ivy) repository using the <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>> (or the <<publishing_ivy.adoc#publishing_ivy, Ivy Publish Plugin>>, respectively). Using the Signing DSL, you can specify that all of the artifacts of this publication should be signed.
 
-=== Example: Signing a publication
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/signing/maven-publish/build.gradle[tag=sign-publication]
-----
+.Signing a publication
+====
+include::sample[dir="signing/maven-publish/groovy",files="build.gradle[tags=sign-publication]"]
+include::sample[dir="signing/maven-publish/kotlin",files="build.gradle.kts[tags=sign-publication]"]
+====
 
 This will create a task (of type link:{groovyDslPath}/org.gradle.plugins.signing.Sign.html[Sign]) in your project named `signMavenJavaPublication` that will build all artifacts that are part of the publication (if needed) and then generate signatures for them. The signature files will be placed alongside the artifacts being signed.
 
