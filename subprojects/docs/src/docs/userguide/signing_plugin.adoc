@@ -214,13 +214,11 @@ include::{samplesPath}/signing/maven/signingArchivesOutput.out[]
 
 In some cases the artifact that you need to sign may not be part of a configuration. In this case you can directly sign the task that produces the artifact to sign.
 
-=== Example: Signing a task
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/signing/tasks/build.gradle[tag=sign-task]
-----
+.Signing a task
+====
+include::sample[dir="signing/tasks/groovy",files="build.gradle[tags=sign-task]"]
+include::sample[dir="signing/tasks/kotlin",files="build.gradle.kts[tags=sign-task]"]
+====
 
 This will create a task (of type link:{groovyDslPath}/org.gradle.plugins.signing.Sign.html[Sign]) in your project named `signStuffZip`, that will build the input task's archive (if needed) and then sign it. The signature file will be placed alongside the artifact being signed.
 
