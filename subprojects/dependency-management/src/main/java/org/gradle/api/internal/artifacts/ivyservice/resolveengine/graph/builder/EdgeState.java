@@ -117,11 +117,11 @@ class EdgeState implements DependencyGraphEdge {
 
         if (dependencyMetadata.isConstraint()) {
             // Need to double check that the target still has hard edges to it
-            PendingDependenciesHandler pendingDependenciesHandler = resolveState.getPendingDependenciesHandler();
-            if (pendingDependenciesHandler.isPending(this)) {
+            ModuleResolveState module = targetComponent.getModule();
+            if (module.isPending()) {
                 selector.getTargetModule().removeUnattachedDependency(this);
                 from.getOutgoingEdges().remove(this);
-                pendingDependenciesHandler.addNode(this);
+                module.addPendingNode(from);
                 return;
             }
         }
@@ -263,5 +263,11 @@ class EdgeState implements DependencyGraphEdge {
                 return targetConfiguration.artifact(ivyArtifactName);
             }
         });
+    }
+
+    void maybeDecreaseHardEdgeCount() {
+        if (!dependencyMetadata.isConstraint()) {
+            selector.getTargetModule().decreaseHardEdgeCount();
+        }
     }
 }

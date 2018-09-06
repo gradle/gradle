@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 
-public interface PendingDependenciesHandler {
-    Visitor start();
+public interface PendingDependenciesVisitor {
+    boolean maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState);
 
-    void removeHardEdge(EdgeState edgeState);
+    void markNotPending(ModuleIdentifier id);
 
-    boolean isPending(EdgeState edgeState);
-
-    void addNode(EdgeState edgeState);
-
-    interface Visitor {
-        boolean maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState);
-
-        void markNotPending(ModuleIdentifier id);
-
-        void complete();
-    }
+    void complete();
 }
