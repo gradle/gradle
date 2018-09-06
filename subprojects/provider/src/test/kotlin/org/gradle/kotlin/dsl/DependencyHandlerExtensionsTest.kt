@@ -235,7 +235,7 @@ class DependencyHandlerExtensionsTest {
             on { add(any(), any()) }.thenReturn(null)
         }
 
-        val configuration = mock<Configuration>() {
+        val configuration = mock<Configuration> {
             on { name } doReturn "configuration"
         }
 
