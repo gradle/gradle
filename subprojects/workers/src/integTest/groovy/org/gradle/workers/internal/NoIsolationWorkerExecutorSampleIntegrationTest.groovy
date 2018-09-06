@@ -27,9 +27,4 @@ class NoIsolationWorkerExecutorSampleIntegrationTest extends AbstractWorkerExecu
     String getSampleName() {
         "workerApi/noIsolation"
     }
-
-    @Override
-    boolean isMultiLang() {
-        true
-    }
 }

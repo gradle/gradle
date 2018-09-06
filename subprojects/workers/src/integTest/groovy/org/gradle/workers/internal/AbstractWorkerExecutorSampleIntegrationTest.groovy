@@ -26,10 +26,6 @@ import spock.lang.Unroll
 abstract class AbstractWorkerExecutorSampleIntegrationTest extends AbstractIntegrationSpec {
     abstract String getSampleName()
 
-    boolean isMultiLang() {
-        false
-    }
-
     List<String> getDsls() {
         // one sample is prepared for its Kotlin version, but doesn't have it yet
         ['groovy']
@@ -39,11 +35,7 @@ abstract class AbstractWorkerExecutorSampleIntegrationTest extends AbstractInteg
     Sample sampleProvider = new Sample(testDirectoryProvider, sampleName)
 
     TestFile workerExecutorSample(String dsl) {
-        def dir = sampleProvider.dir
-        if (multiLang) {
-            return dir.file(dsl)
-        }
-        return dir
+        sampleProvider.dir.file(dsl)
     }
 
     @Unroll
