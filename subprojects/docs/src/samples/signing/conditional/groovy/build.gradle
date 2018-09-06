@@ -1,6 +1,8 @@
-apply plugin: 'java'
-apply plugin: 'maven'
-apply plugin: 'signing'
+plugins {
+    id 'java'
+    id 'maven'
+    id 'signing'
+}
 
 group = 'gradle'
 
@@ -24,7 +26,7 @@ tasks.withType(Sign) {
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: uri("${buildDir}/repo"))
+            repository(url: uri("$buildDir/repo"))
             if (isReleaseVersion) {
                 beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
             }

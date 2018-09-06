@@ -237,25 +237,21 @@ For a task to be _signable_, it must produce an archive of some type, i.e. it mu
 
 A common usage pattern is to require the signing of build artifacts only under certain conditions. For example, you may not need to sign artifacts for non-release versions. To achieve this, you can specify the condition as an argument of the `required()` method.
 
-=== Example: Specifying when signing is required
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/signing/conditional/build.gradle[tag=conditional-signing]
-----
+.Specifying when signing is required
+====
+include::sample[dir="signing/conditional/groovy",files="build.gradle[tags=conditional-signing]"]
+include::sample[dir="signing/conditional/kotlin",files="build.gradle.kts[tags=conditional-signing]"]
+====
 
 In this example, we only want to require signing if we are building a release version and we are going to publish it. Because we are inspecting the task graph to determine if we are going to be publishing, we must set the `signing.required` property to a closure to defer the evaluation. See link:{javadocPath}/org/gradle/plugins/signing/SigningExtension.html#setRequired-java.lang.Object-[SigningExtension.setRequired(java.lang.Object)] for more information.
 
 If the `required` condition does not hold true, artifacts will only be signed if signatory credentials are configured. Alternatively, you may want to skip signing entirely whether or not signatory credentials are available. If so, you can configure the link:{groovyDslPath}/org.gradle.plugins.signing.Sign.html[Sign] tasks to be skipped, for example by attaching a predicate using the `onlyIf()` method shown in the following example:
 
-=== Example: Specifying when signing is skipped
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/signing/conditional/build.gradle[tag=only-if]
-----
+.Specifying when signing is skipped
+====
+include::sample[dir="signing/conditional/groovy",files="build.gradle[tags=only-if]"]
+include::sample[dir="signing/conditional/kotlin",files="build.gradle.kts[tags=only-if]"]
+====
 
 [[sec:publishing_the_signatures]]
 == Publishing the signatures
