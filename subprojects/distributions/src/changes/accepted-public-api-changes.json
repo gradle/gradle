@@ -1,36 +1,4 @@
 {
     "acceptedApiChanges": [
-        {
-            "type": "org.gradle.api.artifacts.DependencyConstraint",
-            "member": "Method org.gradle.api.artifacts.DependencyConstraint.getVersionConstraint()",
-            "acceptation": "Incubating method was pushed down from supertype. Has effectively been part of API since first introduced.",
-            "changes": [
-                "Method added to interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.artifacts.ExternalDependency",
-            "member": "Method org.gradle.api.artifacts.ExternalDependency.getVersionConstraint()",
-            "acceptation": "Incubating method pushed down from supertype: left original @since 4.4",
-            "changes": [
-                "Method added to interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.artifacts.VersionConstraint",
-            "member": "Method org.gradle.api.artifacts.VersionConstraint.getStrictVersion()",
-            "acceptation": "New method on incubating interface",
-            "changes": [
-                "Method added to interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.artifacts.VersionConstraint",
-            "member": "Method org.gradle.api.artifacts.VersionConstraint.getRequiredVersion()",
-            "acceptation": "New method on incubating interface",
-            "changes": [
-                "Method added to interface"
-            ]
-        }
     ]
 }
