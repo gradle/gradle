@@ -17,7 +17,6 @@ package org.gradle.scala
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class ScalaPluginIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://issues.gradle.org/browse/GRADLE-3094")
@@ -33,7 +32,6 @@ task someTask
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6558")
-    @Unroll
     def "can build in parallel with lazy tasks"() {
         settingsFile << """
             include 'a', 'b', 'c', 'd'
@@ -46,9 +44,6 @@ task someTask
                 plugins.withId("scala") {
                     dependencies {
                         compile("org.scala-lang:scala-library:2.12.6")
-                    }
-                    tasks.withType(ScalaCompile).configureEach {
-                        
                     }
                 }
             }
@@ -74,8 +69,5 @@ task someTask
 
         expect:
         succeeds(":a:classes", "--parallel")
-
-        where:
-        retries << (1..100)
     }
 }

@@ -22,9 +22,11 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.ArtifactView;
+import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
-import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
@@ -46,7 +48,6 @@ import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.api.tasks.scala.ScalaDoc;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider;
-import org.gradle.language.scala.tasks.AbstractScalaCompile;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -63,39 +64,30 @@ public class ScalaBasePlugin implements Plugin<Project> {
     public static final String SCALA_RUNTIME_EXTENSION_NAME = "scalaRuntime";
 
     private final SourceDirectorySetFactory sourceDirectorySetFactory;
-    private final Map<File, File> analysisMap = Maps.newHashMap();
+    private final ObjectFactory objectFactory;
 
     @Inject
-    public ScalaBasePlugin(SourceDirectorySetFactory sourceDirectorySetFactory) {
+    public ScalaBasePlugin(SourceDirectorySetFactory sourceDirectorySetFactory, ObjectFactory objectFactory) {
         this.sourceDirectorySetFactory = sourceDirectorySetFactory;
+        this.objectFactory = objectFactory;
     }
 
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
 
-        project.getExtensions().getExtraProperties().set("scalaCompileAnalysisMapInternal", analysisMap);
-        project.getGradle().getTaskGraph().whenReady(new Action<TaskExecutionGraph>() {
-            @Override
-            public void execute(TaskExecutionGraph taskExecutionGraph) {
-                for (Task task : taskExecutionGraph.getAllTasks()) {
-                    if (task.getProject() == project) {
-                        if (task instanceof AbstractScalaCompile) {
-                            IncrementalCompileOptions incrementalOptions = ((AbstractScalaCompile) task).getScalaCompileOptions().getIncrementalOptions();
-                            analysisMap.put(incrementalOptions.getPublishedCode(), incrementalOptions.getAnalysisFile());
-                        }
-                    }
-                }
-            }
-        });
+        Usage incrementalAnalysisUsage = objectFactory.named(Usage.class, "incremental-analysis");
+        configureConfigurations(project, incrementalAnalysisUsage);
 
-        configureConfigurations(project);
-        ScalaRuntime scalaRuntime = configureScalaRuntimeExtension(project);
+        ScalaRuntime scalaRuntime = project.getExtensions().create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntime.class, project);
+
         configureCompileDefaults(project, scalaRuntime);
-        configureSourceSetDefaults(project, sourceDirectorySetFactory);
+
+        configureSourceSetDefaults(project, incrementalAnalysisUsage, sourceDirectorySetFactory);
+
         configureScaladoc(project, scalaRuntime);
     }
 
-    private static void configureConfigurations(final Project project) {
+    private void configureConfigurations(final Project project, Usage incrementalAnalysisUsage) {
         project.getConfigurations().create(ZINC_CONFIGURATION_NAME).setVisible(false).setDescription("The Zinc incremental compiler to be used for this Scala project.")
             .defaultDependencies(new Action<DependencySet>() {
                 @Override
@@ -103,13 +95,24 @@ public class ScalaBasePlugin implements Plugin<Project> {
                     dependencies.add(project.getDependencies().create("com.typesafe.zinc:zinc:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION));
                 }
             });
+
+        Configuration incrementalAnalysisElements = project.getConfigurations().create("incrementalScalaAnalysisElements");
+        incrementalAnalysisElements.setVisible(false);
+        incrementalAnalysisElements.setDescription("Incremental compilation analysis files");
+        incrementalAnalysisElements.setCanBeResolved(false);
+        incrementalAnalysisElements.setCanBeConsumed(true);
+        incrementalAnalysisElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, incrementalAnalysisUsage);
+
+        // TODO: Derive this from the task/provider
+        incrementalAnalysisElements.getOutgoing().artifact(project.file("build/tmp/scala/compilerAnalysis/scalaCompile.mapping"), new Action<ConfigurablePublishArtifact>() {
+            @Override
+            public void execute(ConfigurablePublishArtifact configurablePublishArtifact) {
+                configurablePublishArtifact.builtBy("compileScala");
+            }
+        });
     }
 
-    private static ScalaRuntime configureScalaRuntimeExtension(Project project) {
-        return project.getExtensions().create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntime.class, project);
-    }
-
-    private static void configureSourceSetDefaults(final Project project, final SourceDirectorySetFactory sourceDirectorySetFactory) {
+    private static void configureSourceSetDefaults(final Project project, final Usage incrementalAnalysisUsage, final SourceDirectorySetFactory sourceDirectorySetFactory) {
         project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(new Action<SourceSet>() {
             @Override
             public void execute(final SourceSet sourceSet) {
@@ -117,13 +120,9 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 Convention sourceSetConvention = (Convention) InvokerHelper.getProperty(sourceSet, "convention");
                 DefaultScalaSourceSet scalaSourceSet = new DefaultScalaSourceSet(displayName, sourceDirectorySetFactory);
                 sourceSetConvention.getPlugins().put("scala", scalaSourceSet);
+
                 final SourceDirectorySet scalaDirectorySet = scalaSourceSet.getScala();
-                scalaDirectorySet.srcDir(new Callable<File>() {
-                    @Override
-                    public File call() throws Exception {
-                        return project.file("src/" + sourceSet.getName() + "/scala");
-                    }
-                });
+                scalaDirectorySet.srcDir(project.file("src/" + sourceSet.getName() + "/scala"));
                 sourceSet.getAllJava().source(scalaDirectorySet);
                 sourceSet.getAllSource().source(scalaDirectorySet);
                 sourceSet.getResources().getFilter().exclude(new Spec<FileTreeElement>() {
@@ -133,13 +132,13 @@ public class ScalaBasePlugin implements Plugin<Project> {
                     }
                 });
 
-                configureScalaCompile(project, sourceSet);
+                configureScalaCompile(project, sourceSet, incrementalAnalysisUsage);
             }
 
         });
     }
 
-    private static void configureScalaCompile(final Project project, final SourceSet sourceSet) {
+    private static void configureScalaCompile(final Project project, final SourceSet sourceSet, final Usage incrementalAnalysisUsage) {
         Convention scalaConvention = (Convention) InvokerHelper.getProperty(sourceSet, "convention");
         final ScalaSourceSet scalaSourceSet = scalaConvention.findPlugin(ScalaSourceSet.class);
         SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, scalaSourceSet.getScala(), project);
@@ -152,20 +151,31 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 scalaCompile.setDescription("Compiles the " + scalaSourceSet.getScala() + ".");
                 scalaCompile.setSource(scalaSourceSet.getScala());
 
+                scalaCompile.getAnalysisMappingFile().set(project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".mapping"));
 
-                // cannot use convention mapping because the resulting object won't be serializable
                 // cannot compute at task execution time because we need association with source set
-                // TODO: Replace this with Providers
                 IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
-                if (incrementalOptions.getAnalysisFile() == null) {
-                    String analysisFilePath = project.getBuildDir().getPath() + "/tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".analysis";
-                    incrementalOptions.setAnalysisFile(new File(analysisFilePath));
+                incrementalOptions.getAnalysisFile().set(
+                    project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".analysis")
+                );
+                // TODO: Replace this with Providers in Jar/AbstractArchiveTask
+                final Jar jarTask = (Jar) project.getTasks().findByName(sourceSet.getJarTaskName());
+                if (jarTask != null) {
+                    incrementalOptions.getPublishedCode().set(project.getLayout().file(project.provider(new Callable<File>() {
+                        @Override
+                        public File call() throws Exception {
+                            return jarTask.getArchivePath();
+                        }
+                    })));
                 }
-
-                if (incrementalOptions.getPublishedCode() == null) {
-                    Jar jarTask = (Jar) project.getTasks().findByName(sourceSet.getJarTaskName());
-                    incrementalOptions.setPublishedCode(jarTask == null ? null : jarTask.getArchivePath());
-                }
+                Configuration classpath = project.getConfigurations().getByName(sourceSet.getCompileClasspathConfigurationName());
+                scalaCompile.getAnalysisFiles().from(classpath.getIncoming().artifactView(new Action<ArtifactView.ViewConfiguration>() {
+                    @Override
+                    public void execute(ArtifactView.ViewConfiguration viewConfiguration) {
+                        viewConfiguration.lenient(true);
+                        viewConfiguration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, incrementalAnalysisUsage);
+                    }
+                }).getFiles());
             }
         });
 
