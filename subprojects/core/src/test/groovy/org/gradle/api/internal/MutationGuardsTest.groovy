@@ -45,26 +45,6 @@ class MutationGuardsTest extends Specification {
         0 * subject._
     }
 
-    def "can get composite mutation guard of several guard aware instance"() {
-        given:
-        def subject1 = Mock(WithMutationGuard)
-        def subject2 = Mock(WithMutationGuard)
-
-        when:
-        def guard = MutationGuards.of([subject1, subject2])
-
-        then:
-        guard instanceof CompositeMutationGuard
-
-        and:
-        1 * subject1.getMutationGuard() >> Mock(MutationGuard)
-        0 * subject1._
-
-        and:
-        1 * subject2.getMutationGuard() >> Mock(MutationGuard)
-        0 * subject2._
-    }
-
     interface WithoutMutationGuard {
         MutationGuard getMutationGuard()
     }
