@@ -26,7 +26,6 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.same
 
 import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 
 import org.gradle.groovy.scripts.ScriptSource
@@ -99,6 +98,8 @@ class InterpreterTest : TestWithTempFiles() {
 
         val host = mock<Interpreter.Host> {
 
+            on { serviceRegistryFor(any(), any()) } doReturn mock<ServiceRegistry>()
+
             on { startCompilerOperation(any()) } doReturn compilerOperation
 
             on { runCompileBuildOperation(any(), any(), any()) } doAnswer { it.getArgument<() -> String>(2)() }
@@ -145,20 +146,14 @@ class InterpreterTest : TestWithTempFiles() {
                 val newLocation = relocate(location)
 
                 classLoaderFor(newLocation)
-                    .also { classLoaders.add(it) }
+                    .also { classLoaders += it }
                     .loadClass(className)
             }
         }
 
         try {
 
-            val gradle = mock<GradleInternal> {
-                on { services } doReturn mock<ServiceRegistry>()
-            }
-            val target = mock<Settings> {
-                on { getGradle() } doReturn gradle
-            }
-
+            val target = mock<Settings>()
             val subject = Interpreter(host)
             assertStandardOutputOf("stage 1\nstage 2\n") {
                 subject.eval(

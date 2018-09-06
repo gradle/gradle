@@ -122,6 +122,12 @@ class Interpreter(val host: Host) {
         fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String
 
         val implicitImports: List<String>
+
+        fun serviceRegistryFor(programTarget: ProgramTarget, target: Any): ServiceRegistry = when (programTarget) {
+            ProgramTarget.Project -> serviceRegistryOf(target as Project)
+            ProgramTarget.Settings -> serviceRegistryOf(target as Settings)
+            ProgramTarget.Gradle -> serviceRegistryOf(target as Gradle)
+        }
     }
 
     fun eval(
@@ -208,18 +214,12 @@ class Interpreter(val host: Host) {
             scriptHandler,
             targetScope,
             baseScope,
-            serviceRegistryFor(programTarget, target))
+            host.serviceRegistryFor(programTarget, target))
 
     private
     fun programHostFor(options: EvalOptions) =
         if (EvalOption.SkipBody in options) FirstStageOnlyProgramHost() else defaultProgramHost
 
-    private
-    fun serviceRegistryFor(programTarget: ProgramTarget, target: Any): ServiceRegistry = when (programTarget) {
-        ProgramTarget.Project -> serviceRegistryOf(target as Project)
-        ProgramTarget.Settings -> serviceRegistryOf(target as Settings)
-        ProgramTarget.Gradle -> serviceRegistryOf(target as Gradle)
-    }
 
     private
     fun emitSpecializedProgramFor(
