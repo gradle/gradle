@@ -32,6 +32,7 @@ import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.ImmutablePatternSet;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
@@ -62,6 +63,8 @@ import java.util.List;
  */
 @NonNullApi
 public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
+    private static final PatternSet EMPTY_PATTERN_SET = ImmutablePatternSet.of(new PatternSet());
+
     private final FileHasher hasher;
     private final StringInterner stringInterner;
     private final FileSystem fileSystem;
@@ -207,7 +210,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
                 PhysicalSnapshot snapshot = fileSystemMirror.getSnapshot(path);
                 if (snapshot == null) {
                     snapshot = snapshotAndCache(dirTree.getDir(), patterns);
-                    return snapshot.getType() == FileType.Missing ? FileSystemSnapshot.EMPTY : snapshot;
+                    return filterSnapshot(snapshot, EMPTY_PATTERN_SET);
                 } else {
                     return filterSnapshot(snapshot, patterns);
                 }
@@ -236,11 +239,11 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     private FileSystemSnapshot filterSnapshot(PhysicalSnapshot snapshot, PatternSet patterns) {
-        if (patterns.isEmpty()) {
-            return snapshot;
-        }
         if (snapshot.getType() == FileType.Missing) {
             return FileSystemSnapshot.EMPTY;
+        }
+        if (patterns.isEmpty()) {
+            return snapshot;
         }
         Spec<FileTreeElement> spec = patterns.getAsSpec();
         return FileSystemSnapshotFilter.filterSnapshot(spec, snapshot, fileSystem);
