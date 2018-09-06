@@ -19,9 +19,6 @@ package org.gradle.api.internal;
 import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class MutationGuards {
     private static final MutationGuard IDENTITY_MUTATION_GUARD = new MutationGuard() {
         @Override
@@ -79,24 +76,5 @@ public class MutationGuards {
         } else {
             return IDENTITY_MUTATION_GUARD;
         }
-    }
-
-    /**
-     * Retrieves the {@code MutationGuard} of the targets if it implements {@code WithMutationGuard}, else returns an identity mutation guard performing no guard operations.
-     */
-    public static MutationGuard of(Iterable<Object> targets) {
-        List<MutationGuard> guards = new ArrayList<MutationGuard>();
-        for (Object target : targets) {
-            if (target instanceof WithMutationGuard) {
-                guards.add(((WithMutationGuard) target).getMutationGuard());
-            }
-        }
-
-        if (guards.isEmpty()) {
-            return IDENTITY_MUTATION_GUARD;
-        } else if (guards.size() == 1) {
-            return guards.get(0);
-        }
-        return new CompositeMutationGuard(guards);
     }
 }
