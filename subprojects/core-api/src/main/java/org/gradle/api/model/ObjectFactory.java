@@ -88,12 +88,15 @@ public interface ObjectFactory {
     SourceDirectorySet sourceDirectorySet(String name, String displayName);
 
     /**
-     * Creates a {@link Property} implementation to hold values of the given type.
+     * Creates a {@link Property} implementation to hold values of the given type. The property has no initial value.
      *
-     * <p>When the given type is a wrapper type for a Java primitive type, such as {@link Boolean}, the property will have a value equal to the default value of the corresponding primitive type as defined by the Java language specification (JLS). For example, a property with type {@link Boolean} will have a default value of {@code false}.
-     * Please see <a href="https://docs.oracle.com/javase/tutorial/java/nutsandbolts/datatypes.html">Oracle's Java manual</a> for more information.
-     * <p>
-     * Any other data type than the standard Java data types returns a property with no value defined.
+     * <p>For certain types, there are more specialized property factory methods available:</p>
+     * <ul>
+     * <li>For {@link List} properties, you should use {@link #listProperty(Class)}.</li>
+     * <li>For {@link Set} properties, you should use {@link #setProperty(Class)}.</li>
+     * <li>For {@link org.gradle.api.file.Directory} properties, you should use {@link #directoryProperty()}.</li>
+     * <li>For {@link org.gradle.api.file.RegularFile} properties, you should use {@link #fileProperty()}.</li>
+     * </ul>
      *
      * @param valueType The type of the property.
      * @return The property. Never returns null.
@@ -102,7 +105,7 @@ public interface ObjectFactory {
     <T> Property<T> property(Class<T> valueType);
 
     /**
-     * Creates a {@link ListProperty} implementation to hold a {@link List} of the given element type. The property will have an empty list as its initial value.
+     * Creates a {@link ListProperty} implementation to hold a {@link List} of the given element type {@code T}. The property will have an empty list as its initial value.
      *
      * <p>The implementation will return immutable {@link List} values from its query methods.</p>
      *
@@ -114,7 +117,7 @@ public interface ObjectFactory {
     <T> ListProperty<T> listProperty(Class<T> elementType);
 
     /**
-     * Creates a {@link SetProperty} implementation to hold a {@link Set} of the given element type. The property will have an empty set as its initial value.
+     * Creates a {@link SetProperty} implementation to hold a {@link Set} of the given element type {@code T}. The property will have an empty set as its initial value.
      *
      * <p>The implementation will return immutable {@link Set} values from its query methods.</p>
      *
