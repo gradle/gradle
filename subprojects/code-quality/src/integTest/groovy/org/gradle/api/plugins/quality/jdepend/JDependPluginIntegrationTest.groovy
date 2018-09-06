@@ -44,7 +44,7 @@ class JDependPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds("help")
 
         then:
-        outputContains("The JDepend plugin has been deprecated")
+        outputContains("The jdepend plugin has been deprecated")
     }
 
     def "analyze code"() {
