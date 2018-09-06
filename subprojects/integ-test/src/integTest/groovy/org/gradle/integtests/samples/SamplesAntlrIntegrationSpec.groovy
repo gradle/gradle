@@ -15,32 +15,37 @@
  */
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Before
+import org.gradle.util.Requires
 import org.junit.Rule
-import org.junit.Test
+import spock.lang.Unroll
 
-class SamplesAntlrIntegrationTest extends AbstractIntegrationTest {
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
-    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'antlr')
+@Requires(KOTLIN_SCRIPT)
+class SamplesAntlrIntegrationSpec extends AbstractSampleIntegrationTest {
 
-    @Before
-    void setup() {
-        useRepositoryMirrors()
-    }
+    @Rule
+    Sample sample = new Sample(testDirectoryProvider)
 
-    @Test
-    void canBuild() {
-        TestFile projectDir = sample.dir
+    @Unroll
+    @UsesSample("antlr")
+    def "can build with dsl #dsl"() {
+        given:
+        TestFile projectDir = sample.dir.file(dsl)
 
-        // Build and test projects
+        when: 'Build and test projects'
         executer.inDirectory(projectDir).withTasks('clean', 'build').run()
 
-        // Check tests have run
+        then: 'Check tests have run'
         def result = new DefaultTestExecutionResult(projectDir)
         result.assertTestClassesExecuted('org.gradle.GrammarTest')
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 }
