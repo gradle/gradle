@@ -146,6 +146,10 @@ TBD - The methods on `DefaultTask` and `ProjectLayout` that create file and dire
 
 See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
 
+### Deprecated code quality plugins
+
+- The JDepend plugin has been deprecated because the project is unmaintained and does not work with bytecode compiled for Java 8 and above.
+
 ## Potential breaking changes
 
 <!--
