@@ -45,6 +45,16 @@
             "changes": [
                 "Method added to interface"
             ]
+        },
+        {
+            "type": "org.gradle.language.cpp.CppBinary",
+            "member": "Method org.gradle.language.cpp.CppBinary.getTargetPlatform()",
+            "acceptation": "Upgrading to Java 8 seems to have changed the byte code slightly, probably introducing a bridge method."
+        },
+        {
+            "type": "org.gradle.language.swift.SwiftBinary",
+            "member": "Method org.gradle.language.swift.SwiftBinary.getTargetPlatform()",
+            "acceptation": "Upgrading to Java 8 seems to have changed the byte code slightly, probably introducing a bridge method."
         }
     ]
 }
