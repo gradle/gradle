@@ -148,6 +148,8 @@ See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-exec
 
 ### Deprecated code quality plugins
 
+- The FindBugs plugin has been deprecated because the project is unmaintained and does not work with bytecode compiled for Java 9 and above.
+  Please consider using the [SpotBugs plugin](https://plugins.gradle.org/plugin/com.github.spotbugs) instead.
 - The JDepend plugin has been deprecated because the project is unmaintained and does not work with bytecode compiled for Java 8 and above.
 
 ## Potential breaking changes
