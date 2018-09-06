@@ -44,7 +44,7 @@ import java.io.File;
 @CacheableTask
 public class UnexportMainSymbol extends DefaultTask {
     private final ConfigurableFileCollection source = getProject().files();
-    private final DirectoryProperty outputDirectory = newOutputDirectory();
+    private final DirectoryProperty outputDirectory = getProject().getObjects().directoryProperty();
 
     /**
      * The object files to relocate.

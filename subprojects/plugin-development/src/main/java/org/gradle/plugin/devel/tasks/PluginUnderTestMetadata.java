@@ -47,7 +47,7 @@ public class PluginUnderTestMetadata extends DefaultTask {
     public static final String IMPLEMENTATION_CLASSPATH_PROP_KEY = "implementation-classpath";
     public static final String METADATA_FILE_NAME = "plugin-under-test-metadata.properties";
     private final ConfigurableFileCollection pluginClasspath = getProject().files();
-    private final DirectoryProperty outputDirectory = newOutputDirectory();
+    private final DirectoryProperty outputDirectory = getProject().getObjects().directoryProperty();
 
     /**
      * The code under test. Defaults to {@code sourceSets.main.runtimeClasspath}.
