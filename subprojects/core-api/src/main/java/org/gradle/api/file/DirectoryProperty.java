@@ -17,6 +17,7 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 
@@ -25,7 +26,7 @@ import java.io.File;
 /**
  * Represents some configurable directory location, whose value is mutable and is not necessarily currently known until later.
  * <p>
- * <b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created using the {@link ProjectLayout#directoryProperty()} method.
+ * <b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created using the {@link ObjectFactory#directoryProperty()} method.
  *
  * @since 4.3
  */

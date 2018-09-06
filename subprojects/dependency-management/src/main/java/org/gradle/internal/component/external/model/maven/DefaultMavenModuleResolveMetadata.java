@@ -277,7 +277,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
          * Dependencies in the "optional" configuration are never 'pending'.
          */
         @Override
-        public boolean isPending() {
+        public boolean isConstraint() {
             return false;
         }
     }

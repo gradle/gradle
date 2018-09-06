@@ -1,0 +1,58 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // We should use a legacy version to support running on jdk6
+    implementation 'commons-lang:commons-lang:2.6'
+    testImplementation 'junit:junit:4.+'
+}
+
+// tag::java-cross-compilation[]
+assert hasProperty('javaHome'): "Set the property 'javaHome' in your your gradle.properties pointing to a Java 6 or 7 installation"
+assert hasProperty('targetJavaVersion'): "Set the property 'targetJavaVersion' in your your gradle.properties to '1.6' or '1.7'"
+
+java {
+    sourceCompatibility = JavaVersion.toVersion(targetJavaVersion)
+}
+
+def javaExecutablesPath = new File(javaHome, 'bin')
+def javaExecutables = [:].withDefault { execName ->
+    def executable = new File(javaExecutablesPath, execName)
+    assert executable.exists(): "There is no ${execName} executable in ${javaExecutablesPath}"
+    executable
+}
+tasks.withType(AbstractCompile) {
+    options.with {
+        fork = true
+        forkOptions.javaHome = file(javaHome)
+    }
+}
+tasks.withType(Javadoc) {
+    executable = javaExecutables.javadoc
+}
+tasks.withType(Test) {
+    executable = javaExecutables.java
+}
+tasks.withType(JavaExec) {
+    executable = javaExecutables.java
+}
+// end::java-cross-compilation[]
+
+tasks.withType(Test) {
+    systemProperty 'targetJavaVersion', targetJavaVersion
+}
+
+task checkJavadocOutput {
+    dependsOn javadoc
+    doLast {
+        assert new File(docsDir, 'javadoc/org/gradle/Person.html').text.contains('<p>Represents a person.</p>')
+    }
+}
+
+build.dependsOn checkJavadocOutput
+

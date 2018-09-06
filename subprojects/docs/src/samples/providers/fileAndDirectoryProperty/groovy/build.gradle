@@ -1,0 +1,35 @@
+class FooExtension {
+    // A directory
+    final DirectoryProperty someDirectory
+    //  A file
+    final RegularFileProperty someFile
+    // A collection of files or directories
+    final ConfigurableFileCollection someFiles
+
+    FooExtension(ObjectFactory objects, ProjectLayout layout) {
+        someDirectory = objects.directoryProperty()
+        someFile = objects.fileProperty()
+        someFiles = layout.configurableFiles()
+    }
+}
+
+project.extensions.create('foo', FooExtension, project.objects, project.layout)
+
+foo {
+    // Configure the locations
+    someDirectory = project.layout.projectDirectory.dir('some-directory')
+    someFile = project.layout.buildDirectory.file('some-file')
+    someFiles.from(someDirectory, someFile)
+}
+
+task print {
+    doLast {
+        def someDirectory = foo.someDirectory.get().asFile
+        logger.quiet("foo.someDirectory = " + someDirectory)
+        logger.quiet("foo.someFiles contains someDirectory? " + foo.someFiles.contains(someDirectory))
+
+        def someFile = foo.someFile.get().asFile
+        logger.quiet("foo.someFile = " + someFile)
+        logger.quiet("foo.someFiles contains someFile? " + foo.someFiles.contains(someFile))
+    }
+}

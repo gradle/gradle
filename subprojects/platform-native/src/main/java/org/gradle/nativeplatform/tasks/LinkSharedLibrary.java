@@ -38,7 +38,7 @@ import java.util.concurrent.Callable;
 @Incubating
 public class LinkSharedLibrary extends AbstractLinkTask {
     private String installName;
-    private final RegularFileProperty importLibrary = newOutputFile();
+    private final RegularFileProperty importLibrary = getProject().getObjects().fileProperty();
 
     public LinkSharedLibrary() {
         importLibrary.set(getProject().getLayout().getProjectDirectory().file(getProject().getProviders().provider(new Callable<String>() {

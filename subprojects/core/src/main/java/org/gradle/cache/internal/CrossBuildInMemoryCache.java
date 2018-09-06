@@ -27,7 +27,9 @@ import javax.annotation.Nullable;
 @ThreadSafe
 public interface CrossBuildInMemoryCache<K, V> {
     /**
-     * Locates the given entry, using the supplied factory when the entry is not present or has been discarded.
+     * Locates the given entry, using the supplied factory when the entry is not present or has been discarded, to recreate the entry in the cache.
+     *
+     * <p>Implementations should prevent more than one thread calculating the same key at the same time.
      */
     V get(K key, Transformer<V, K> factory);
 

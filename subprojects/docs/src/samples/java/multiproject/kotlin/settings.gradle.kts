@@ -1,0 +1,5 @@
+rootProject.name = "multiproject"
+
+// tag::include-projects[]
+include("shared", "api", "services:webservice", "services:shared")
+// end::include-projects[]

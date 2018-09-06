@@ -143,13 +143,11 @@ For multi-project builds there can be only one `buildSrc` directory, which has t
 `buildSrc` uses the same <<java_plugin.adoc#javalayout,source code conventions>> applicable to Java and Groovy projects.
 It also provides direct access to the Gradle API. Additional dependencies can be declared in a dedicated `build.gradle` under `buildSrc`.
 
-=== Example: Custom buildSrc build script
-
-[source.multi-language-sample,groovy]
-.buildSrc/build.gradle
-----
-include::{samplesPath}/java/multiproject/buildSrc/build.gradle[]
-----
+.Custom buildSrc build script
+====
+include::sample[dir="java/multiproject/groovy/buildSrc",files="build.gradle[]"]
+include::sample[dir="java/multiproject/kotlin/buildSrc",files="build.gradle.kts[]"]
+====
 
 A typical project including `buildSrc` has the following layout.
 Any code under `buildSrc` should use a package similar to application code.

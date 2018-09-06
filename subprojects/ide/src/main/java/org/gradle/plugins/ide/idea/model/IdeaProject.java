@@ -135,7 +135,7 @@ public class IdeaProject implements IdeWorkspace {
         ServiceRegistry services = ((ProjectInternal) project).getServices();
         this.projectPathRegistry = services.get(ProjectStateRegistry.class);
         this.artifactRegistry = services.get(IdeArtifactRegistry.class);
-        this.outputFile = project.getLayout().fileProperty();
+        this.outputFile = project.getObjects().fileProperty();
     }
 
     @Override

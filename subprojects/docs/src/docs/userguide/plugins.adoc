@@ -52,7 +52,7 @@ _Resolving_ a plugin means finding the correct version of the jar which contains
 
 _Applying_ a plugin means actually executing the plugin's link:{javadocPath}/org/gradle/api/Plugin.html#apply-T-[Plugin.apply(T)] on the Project you want to enhance with the plugin. Applying plugins is _idempotent_. That is, you can safely apply any plugin multiple times without side effects.
 
-The most common use case for using a plugin is to both resolve the plugin and apply it to the current project. Since this is such a common use case, it's recommended that build authors use the <<#sec:plugins_block,plugins DSL>> to both resolve and apply plugins in one step. The feature is technically still incubating, but it works well, and should be used by most users.
+The most common use case for using a plugin is to both resolve the plugin and apply it to the current project. Since this is such a common use case, it's recommended that build authors use the <<#sec:plugins_block,plugins DSL>> to both resolve and apply plugins in one step.
 
 [[sec:script_plugins]]
 == Script plugins
@@ -86,14 +86,6 @@ For more on defining your own plugins, see <<custom_plugins.adoc#custom_plugins,
 
 [[sec:plugins_block]]
 === Applying plugins with the plugins DSL
-
-
-[NOTE]
-====
-
-The plugins DSL is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
-
-====
 
 The plugins DSL provides a succinct and convenient way to declare plugin dependencies. It works with the http://plugins.gradle.org[Gradle plugin portal] to provide easy access to both core and community plugins. The plugins DSL block configures an instance of link:{javadocPath}/org/gradle/plugin/use/PluginDependenciesSpec.html[PluginDependenciesSpec].
 
@@ -240,11 +232,6 @@ include::sample[dir="plugins/dslWithBuildSrc/kotlin", files="build.gradle.kts[ta
 [[sec:plugin_management]]
 ==== Plugin Management
 
-
-[NOTE]
-====
-The `pluginManagement {}` DSL is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
-====
 
 The `pluginManagement {}` block may only appear in either the `settings.gradle` file, where it must be the first block in the file, or in an <<init_scripts.adoc#init_scripts,Initialization Script>>.
 
