@@ -1,6 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
- *
+ * Copyright 2018 the original author or authors.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,9 +13,8 @@
  * limitations under the License.
  */
 
-package org.gradle.build
+package org.gradle.gradlebuild.test.integrationtests
 
-import groovy.transform.CompileStatic
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.DirectoryProperty
@@ -24,15 +22,10 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 
-@CompileStatic
-class GradleDistributionWithSamples extends GradleDistribution {
 
-    @InputDirectory
-    @PathSensitive(PathSensitivity.RELATIVE)
-    ConfigurableFileTree samples
+open class GradleDistributionSamples(project: Project, gradleHomeDir: DirectoryProperty) {
 
-    GradleDistributionWithSamples(Project project, DirectoryProperty gradleHomeDir) {
-        super(project, gradleHomeDir)
-        samples = project.fileTree(gradleHomeDir.dir('samples'))
-    }
+    @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    val samples: ConfigurableFileTree = project.fileTree(gradleHomeDir.dir("samples"))
 }

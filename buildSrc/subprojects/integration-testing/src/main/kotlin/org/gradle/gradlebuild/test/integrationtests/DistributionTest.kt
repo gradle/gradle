@@ -27,8 +27,6 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.testing.Test
-import org.gradle.build.GradleDistribution
-import org.gradle.build.GradleDistributionWithSamples
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.CommandLineArgumentProvider
 import java.util.concurrent.Callable
@@ -61,7 +59,6 @@ open class DistributionTest : Test() {
         jvmArgumentProviders.add(gradleInstallationForTest)
         jvmArgumentProviders.add(BinaryDistributionsEnvironmentProvider(binaryDistributions))
         jvmArgumentProviders.add(libsRepository)
-        gradleInstallationForTest.samplesRequired.set(project.provider { binaryDistributions.distributionsRequired })
         systemProperty("java9Home", project.findProperty("java9Home") ?: System.getProperty("java9Home"))
     }
 }
@@ -95,9 +92,6 @@ class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLi
     @Internal
     val toolingApiShadedJarDir = project.layout.directoryProperty()
 
-    @Internal
-    val samplesRequired = project.objects.property(Boolean::class.javaObjectType)
-
     /**
      * The user home dir is not wiped out by clean.
      * Move the daemon working space underneath the build dir so they don't pile up on CI.
@@ -105,15 +99,8 @@ class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLi
     @Internal
     val daemonRegistry = project.layout.directoryProperty()
 
-    private
-    val gradleDistributionWithSamples = GradleDistributionWithSamples(project, gradleHomeDir)
-
-    private
-    val gradleDistributionWithoutSamples = GradleDistribution(project, gradleHomeDir)
-
     @get:Nested
-    val gradleDistribution: GradleDistribution
-        get() = gradleDistributionWithSamples
+    val gradleDistribution = GradleDistribution(project, gradleHomeDir)
 
     override fun asArguments() =
         mapOf(
