@@ -291,8 +291,10 @@ abstract class AbstractMutationGuardSpec extends Specification {
         }
 
         void noExceptionThrown() {
-            if (thrown == null) return;
-            throw new UnallowedExceptionThrownError(null, thrown);
+            if (thrown == null) {
+                return
+            }
+            throw new UnallowedExceptionThrownError(null, thrown)
         }
 
         boolean isCalled() {

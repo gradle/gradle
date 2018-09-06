@@ -17,9 +17,7 @@ package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.MutationGuard;
-import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.WithEstimatedSize;
-import org.gradle.api.internal.WithMutationGuard;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.internal.Cast;
@@ -28,7 +26,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class FilteredCollection<T, S extends T> implements ElementSource<S>, WithMutationGuard {
+public class FilteredCollection<T, S extends T> implements ElementSource<S> {
     protected final ElementSource<T> collection;
     protected final CollectionFilter<S> filter;
 
@@ -101,7 +99,7 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S>, Wit
 
     @Override
     public MutationGuard getMutationGuard() {
-        return MutationGuards.of(collection);
+        return collection.getMutationGuard();
     }
 
     private static class FilteringIterator<T, S extends T> implements Iterator<S>, WithEstimatedSize {

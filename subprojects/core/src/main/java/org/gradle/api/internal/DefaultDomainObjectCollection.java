@@ -394,7 +394,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Override
     public MutationGuard getMutationGuard() {
-        return MutationGuards.of(store);
+        return store.getMutationGuard();
     }
 
     public Collection<T> findAll(Closure cl) {

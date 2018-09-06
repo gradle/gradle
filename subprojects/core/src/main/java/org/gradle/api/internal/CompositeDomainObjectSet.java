@@ -147,7 +147,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
     }
 
     // TODO Make this work with pending elements
-    private final static class DomainObjectCompositeCollection<T> implements ElementSource<T>, WithMutationGuard {
+    private final static class DomainObjectCompositeCollection<T> implements ElementSource<T> {
 
         private final List<DomainObjectCollection<? extends T>> store = Lists.newLinkedList();
 
