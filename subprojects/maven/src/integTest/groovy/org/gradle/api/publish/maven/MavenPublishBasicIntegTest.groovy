@@ -27,7 +27,7 @@ import spock.lang.Ignore
  * Tests “simple” maven publishing scenarios
  */
 class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
-    private static final String DEFERRED_CONFIGURATION_WARNING = "the 'deferred configurable' behavior of the 'publishing {}' block is now deprecated"
+    private static final String DEFERRED_CONFIGURATION_WARNING = "the 'deferred configurable' behavior of the 'publishing {}' block has been deprecated."
 
     @Rule
     SetSystemProperties sysProp = new SetSystemProperties()
