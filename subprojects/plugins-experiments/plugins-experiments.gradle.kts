@@ -37,7 +37,7 @@ bundledGradlePlugin(
 
 // default versions ---------------------------------------------------
 
-val ktlintVersion = "0.27.0"
+val ktlintVersion = "0.28.0"
 
 val basePackagePath = "org/gradle/kotlin/dsl/experiments/plugins"
 val processResources by tasks.existing(ProcessResources::class)
