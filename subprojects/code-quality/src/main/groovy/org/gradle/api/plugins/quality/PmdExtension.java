@@ -46,18 +46,18 @@ public class PmdExtension extends CodeQualityExtension {
     }
 
     /**
-     * The built-in rule sets to be used. See the <a href="http://pmd.sourceforge.net/rules/index.html">official list</a> of built-in rule sets.
+     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.7.0/pmd_rules_java.html">official list</a> of built-in rule sets.
      *
-     * Example: ruleSets = ["basic", "braces"]
+     * Example: ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
      */
     public List<String> getRuleSets() {
         return ruleSets;
     }
 
     /**
-     * The built-in rule sets to be used. See the <a href="http://pmd.sourceforge.net/rules/index.html">official list</a> of built-in rule sets.
+     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.7.0/pmd_rules_java.html">official list</a> of built-in rule sets.
      *
-     * Example: ruleSets = ["basic", "braces"]
+     * Example: ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
      */
     public void setRuleSets(List<String> ruleSets) {
         this.ruleSets = ruleSets;
@@ -66,7 +66,7 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * Convenience method for adding rule sets.
      *
-     * Example: ruleSets "basic", "braces"
+     * Example: ruleSets "category/java/errorprone.xml", "category/java/bestpractices.xml"
      *
      * @param ruleSets the rule sets to be added
      */

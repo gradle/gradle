@@ -56,7 +56,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                               | Rules:
                                  ⤷ DeclarationRules#mutateMyBinary(UnmanagedBinary)
                                  ⤷ ComponentModelBasePlugin.PluginRules.AttachInputs#initializeBinarySourceSets(ModelMap<BinarySpec>) > withType()
-                                 ⤷ BinaryBasePlugin.Rules#defineBuildLifecycleTask(BinarySpecInternal, ITaskFactory)
+                                 ⤷ BinaryBasePlugin.Rules#defineBuildLifecycleTask(BinarySpecInternal, NamedEntityInstantiator<Task>)
                                  ⤷ BinaryBasePlugin.Rules#addSourceSetsOwnedByBinariesToTheirInputs(BinarySpecInternal)
                             + sources
                                   | Type:   	org.gradle.model.ModelMap<org.gradle.language.base.LanguageSourceSet>
@@ -121,7 +121,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                               | Rules:
                                  ⤷ DeclarationRules#mutateMyBinary(ManagedBinary)
                                  ⤷ ComponentModelBasePlugin.PluginRules.AttachInputs#initializeBinarySourceSets(ModelMap<BinarySpec>) > withType()
-                                 ⤷ BinaryBasePlugin.Rules#defineBuildLifecycleTask(BinarySpecInternal, ITaskFactory)
+                                 ⤷ BinaryBasePlugin.Rules#defineBuildLifecycleTask(BinarySpecInternal, NamedEntityInstantiator<Task>)
                                  ⤷ BinaryBasePlugin.Rules#addSourceSetsOwnedByBinariesToTheirInputs(BinarySpecInternal)
                             + data
                                   | Type:   	java.lang.String

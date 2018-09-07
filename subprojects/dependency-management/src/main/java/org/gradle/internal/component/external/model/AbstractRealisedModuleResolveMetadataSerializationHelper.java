@@ -113,7 +113,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         List<ExcludeMetadata> excludes = readMavenExcludes(decoder);
         boolean constraint = decoder.readBoolean();
         String reason = decoder.readNullableString();
-        return new GradleDependencyMetadata(selector, excludes, constraint, reason);
+        return new GradleDependencyMetadata(selector, excludes, constraint, reason, false);
     }
 
     protected List<ExcludeMetadata> readMavenExcludes(Decoder decoder) throws IOException {

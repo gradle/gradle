@@ -29,6 +29,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
+import org.gradle.api.internal.file.ProducerAwareProperty;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
@@ -219,6 +220,9 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.file(Object)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() {
+                if (path instanceof ProducerAwareProperty) {
+                    ((ProducerAwareProperty) path).attachProducer(task);
+                }
                 StaticValue value = new StaticValue(path);
                 DeclaredTaskOutputFileProperty outputFileSpec = specFactory.createOutputFileSpec(value);
                 registeredFileProperties.add(outputFileSpec);
@@ -232,6 +236,9 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.dir(Object)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() {
+                if (path instanceof ProducerAwareProperty) {
+                    ((ProducerAwareProperty) path).attachProducer(task);
+                }
                 StaticValue value = new StaticValue(path);
                 DeclaredTaskOutputFileProperty outputDirSpec = specFactory.createOutputDirSpec(value);
                 registeredFileProperties.add(outputDirSpec);

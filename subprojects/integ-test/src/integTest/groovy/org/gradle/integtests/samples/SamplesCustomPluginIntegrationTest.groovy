@@ -19,30 +19,43 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Unroll
 
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
+
+@Requires(KOTLIN_SCRIPT)
+@Ignore
 class SamplesCustomPluginIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule public final Sample sample = new Sample(temporaryFolder)
 
-    @UsesSample("customPlugin/plugin")
-    def "can test plugin and task implementation"() {
+    @Unroll
+    @UsesSample("customPlugin")
+    def "can test plugin and task implementation with #dsl dsl"() {
         when:
-        executer.inDirectory(sample.dir).withTasks('check').run()
+        TestFile dslDir = sample.dir.file("$dsl/plugin")
+        executer.inDirectory(dslDir).withTasks('check').run()
 
         then:
-        def result = new DefaultTestExecutionResult(sample.dir)
+        def result = new DefaultTestExecutionResult(dslDir)
         result.assertTestClassesExecuted('org.gradle.GreetingTaskTest', 'org.gradle.GreetingPluginTest')
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     @Unroll
     @UsesSample("customPlugin")
-    def "can publish and use plugin and test implementations for #producerName producer"() {
+    def "can publish and use plugin and test implementations for #producerName producer and #dsl dsl"() {
         given:
-        def producerDir = sample.dir.file(producerName)
+        TestFile dslDir = sample.dir.file(dsl)
+        TestFile producerDir = dslDir.file(producerName)
         executer.inDirectory(producerDir).withTasks('publish').run()
         executer.beforeExecute {
-            inDirectory(sample.dir.file('consumer'))
+            inDirectory(dslDir.file('consumer'))
             withArgument("-PproducerName=$producerName")
         }
 
@@ -59,6 +72,10 @@ class SamplesCustomPluginIntegrationTest extends AbstractSampleIntegrationTest {
         outputContains('hello from GreetingTask')
 
         where:
-        producerName << ['plugin', 'javaGradlePlugin']
+        producerName       | dsl
+        'plugin'           | 'groovy'
+        'javaGradlePlugin' | 'groovy'
+        'plugin'           | 'kotlin'
+        'javaGradlePlugin' | 'kotlin'
     }
 }

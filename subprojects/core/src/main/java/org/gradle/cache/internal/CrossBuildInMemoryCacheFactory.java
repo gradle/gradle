@@ -17,17 +17,6 @@
 package org.gradle.cache.internal;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Transformer;
-import org.gradle.initialization.SessionLifecycleListener;
-import org.gradle.internal.event.ListenerManager;
-
-import javax.annotation.Nullable;
-import java.lang.ref.SoftReference;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
 
 /**
  * A factory for {@link CrossBuildInMemoryCache} instances.
@@ -36,124 +25,22 @@ import java.util.WeakHashMap;
  * Note that this implementation currently retains strong references to keys and values during the whole lifetime of a build session.
  *
  * Uses a simple algorithm to collect unused values, by retaining strong references to all keys and values used during the current build session, and the previous build session. All other values are referenced only by soft references.
+ *
+ * NOTE: this is an abstract class rather than an interface because it is consumed by Kotlin DSL as a class.
  */
 @ThreadSafe
-public class CrossBuildInMemoryCacheFactory {
-    private final ListenerManager listenerManager;
-
-    public CrossBuildInMemoryCacheFactory(ListenerManager listenerManager) {
-        this.listenerManager = listenerManager;
-    }
-
+public abstract class CrossBuildInMemoryCacheFactory {
     /**
      * Creates a new cache instance. Keys are always referenced using strong references, values by strong or soft references depending on their usage.
      *
      * Note: this should be used to create _only_ global scoped instances.
      */
-    public <K, V> CrossBuildInMemoryCache<K, V> newCache() {
-        DefaultCrossBuildInMemoryCache<K, V> cache = new DefaultCrossBuildInMemoryCache<K, V>(new HashMap<K, SoftReference<V>>());
-        listenerManager.addListener(cache);
-        return cache;
-    }
+    public abstract <K, V> CrossBuildInMemoryCache<K, V> newCache();
 
     /**
      * Creates a new cache instance whose keys are Class instances. Keys are referenced using strong or weak references, values by strong or soft references depending on their usage.
      *
      * Note: this should be used to create _only_ global scoped instances.
      */
-    public <V> CrossBuildInMemoryCache<Class<?>, V> newClassCache() {
-        DefaultCrossBuildInMemoryCache<Class<?>, V> cache = new DefaultCrossBuildInMemoryCache<Class<?>, V>(new WeakHashMap<Class<?>, SoftReference<V>>());
-        listenerManager.addListener(cache);
-        return cache;
-    }
-
-    private static class DefaultCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCache<K, V>, SessionLifecycleListener {
-        private final Object lock = new Object();
-        private final Map<K, V> valuesForThisSession = new HashMap<K, V>();
-        // This is used only to retain strong references to the values
-        private final Set<V> valuesForPreviousSession = new HashSet<V>();
-        private final Map<K, SoftReference<V>> allValues;
-
-        public DefaultCrossBuildInMemoryCache(Map<K, SoftReference<V>> allValues) {
-            this.allValues = allValues;
-        }
-
-        @Override
-        public void afterStart() {
-        }
-
-        @Override
-        public void beforeComplete() {
-            synchronized (lock) {
-                // Retain strong references to the values created for this session
-                valuesForPreviousSession.clear();
-                valuesForPreviousSession.addAll(valuesForThisSession.values());
-                valuesForThisSession.clear();
-            }
-        }
-
-        @Override
-        public void clear() {
-            synchronized (lock) {
-                valuesForThisSession.clear();
-                valuesForPreviousSession.clear();
-                allValues.clear();
-            }
-        }
-
-        @Nullable
-        @Override
-        public V get(K key) {
-            synchronized (lock) {
-                return getIfPresent(key);
-            }
-        }
-
-        @Override
-        public V get(K key, Transformer<V, K> factory) {
-            synchronized (lock) {
-                V v = getIfPresent(key);
-                if (v != null) {
-                    return v;
-                }
-
-                // TODO - do not hold lock while computing value
-                v = factory.transform(key);
-
-                allValues.put(key, new SoftReference<V>(v));
-                // Retain strong reference
-                valuesForThisSession.put(key, v);
-
-                return v;
-            }
-        }
-
-        @Override
-        public void put(K key, V value) {
-            synchronized (lock) {
-                allValues.put(key, new SoftReference<V>(value));
-                valuesForThisSession.put(key, value);
-            }
-        }
-
-        // Caller must be holding lock
-        private V getIfPresent(K key) {
-            V v = valuesForThisSession.get(key);
-            if (v != null) {
-                return v;
-            }
-
-            SoftReference<V> reference = allValues.get(key);
-            if (reference != null) {
-                v = reference.get();
-                if (v != null) {
-                    // Retain strong reference
-                    valuesForThisSession.put(key, v);
-                    return v;
-                }
-            }
-
-            return null;
-        }
-    }
+    public abstract <V> CrossBuildInMemoryCache<Class<?>, V> newClassCache();
 }

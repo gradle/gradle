@@ -49,7 +49,13 @@ class VersionRangeResolveTestScenarios {
     public static final RANGE_10_12 = range(10, 12)
     public static final RANGE_10_14 = range(10, 14)
     public static final RANGE_10_16 = range(10, 16)
+    public static final RANGE_10_OR_HIGHER = dynamic("[10,)")
+    public static final RANGE_12_OR_LOWER = dynamic("(,12]")
+    public static final RANGE_MORE_THAN_10 = dynamic("(10,)")
+    public static final RANGE_LESS_THAN_12 = dynamic("(,12)")
+    public static final RANGE_10_12_EXCLUSIVE = dynamic("(10,12)")
     public static final RANGE_11_12 = range(11, 12)
+    public static final RANGE_11_13 = range(11, 13)
     public static final RANGE_12_14 = range(12, 14)
     public static final RANGE_13_14 = range(13, 14)
     public static final RANGE_14_16 = range(14, 16)
@@ -80,22 +86,27 @@ class VersionRangeResolveTestScenarios {
 
     public static final StrictPermutationsProvider SCENARIOS_PREFER = StrictPermutationsProvider.check(
         versions: [PREFER_11, PREFER_12],
-        expected: "12"
+        expected: "12",
+        conflicts: true
     ).and(
         versions: [PREFER_11, PREFER_10_12],
-        expected: "11"
+        expected: "11",
+        conflicts: true
     ).and(
         versions: [PREFER_12, PREFER_10_11],
-        expected: "12"
+        expected: "12",
+        conflicts: true
     ).and(
         versions: [PREFER_11, PREFER_12, PREFER_10_14],
-        expected: "12"
+        expected: "12",
+        conflicts: true
+    ).and(
+        versions: [PREFER_10_11, PREFER_12, PREFER_10_14],
+        expected: "12",
+        conflicts: true
     ).and(
         versions: [PREFER_10_11, PREFER_10_12, PREFER_10_14],
         expected: "11"
-    ).and(
-        versions: [PREFER_10_11, PREFER_12, PREFER_10_14],
-        expected: "12"
     ).and(
         versions: [PREFER_12, FIXED_11],
         expected: "11",
@@ -124,6 +135,13 @@ class VersionRangeResolveTestScenarios {
         versions: [PREFER_11, PREFER_12, RANGE_10_14],
         expected: "12",
         expectedStrict: [IGNORE, IGNORE, "12"]
+    ).and(
+        versions: [PREFER_11, RANGE_10_11, PREFER_13, RANGE_10_14],
+        expected: "11"
+    ).and(
+        versions: [FIXED_11, PREFER_12, RANGE_10_14],
+        expected: "11",
+        expectedStrict: ["11", IGNORE, "11"]
     ).and(
         versions: [PREFER_11, PREFER_13, RANGE_10_12],
         expected: "11",
@@ -184,6 +202,49 @@ class VersionRangeResolveTestScenarios {
         versions: [RANGE_10_14, RANGE_10_16],
         expected: "13",
         expectedStrict: ["13", "13"]
+    ).and(
+        versions: [RANGE_10_12, RANGE_11_13], // Intersecting ranges
+        expected: "12",
+        expectedStrict: ["12", "12"]
+    ).and(
+        versions: [FIXED_12, RANGE_10_OR_HIGHER],
+        expected: "12",
+        expectedStrict: ["12", IGNORE]
+    ).and(
+        versions: [FIXED_12, RANGE_MORE_THAN_10],
+        expected: "12",
+        expectedStrict: ["12", IGNORE]
+    ).and(
+        versions: [FIXED_12, RANGE_12_OR_LOWER],
+        expected: "12",
+        expectedStrict: ["12", "12"]
+    ).and(
+        versions: [FIXED_12, RANGE_LESS_THAN_12],
+        expected: "12",
+        expectedStrict: ["12", REJECTED],
+        conflicts: true
+    ).and(
+        versions: [FIXED_12, RANGE_10_12_EXCLUSIVE],
+        expected: "12",
+        expectedStrict: ["12", REJECTED],
+        conflicts: true
+    ).and(
+        versions: [FIXED_10, RANGE_10_12_EXCLUSIVE],
+        expected: "11",
+        expectedStrict: [REJECTED, "11"],
+        conflicts: true
+    ).and(
+        versions: [RANGE_10_12, RANGE_10_12_EXCLUSIVE],
+        expected: "11",
+        expectedStrict: ["11", "11"]
+    ).and(
+        versions: [RANGE_11_13, RANGE_10_12_EXCLUSIVE],
+        expected: "11",
+        expectedStrict: ["11", "11"]
+    ).and(
+        versions: [RANGE_11_12, RANGE_10_12_EXCLUSIVE],
+        expected: "11",
+        expectedStrict: ["11", "11"]
     ).and(
         versions: [DYNAMIC_PLUS, FIXED_11],
         expected: "13",
@@ -257,6 +318,21 @@ class VersionRangeResolveTestScenarios {
         versions: [FIXED_10, RANGE_11_12, RANGE_10_14],
         expected: "12",
         expectedStrict: [REJECTED, "12", "12"],
+        conflicts: true
+    ).and(
+        versions: [FIXED_11, RANGE_10_12, RANGE_11_13], // Intersecting ranges with shared fixed version
+        expected: "11",
+        expectedStrict: ["11", "11", "11"]
+    ).and(
+        ignore: "Resolution is currently order-dependent (and should not be!)",
+        versions: [FIXED_11, RANGE_10_12, RANGE_12_14], // Intersecting ranges with unshared fixed version
+        expected: "12",
+        expectedStrict: [REJECTED, "12", "13"],
+        conflicts: true
+    ).and(
+        versions: [FIXED_11, RANGE_10_11, FIXED_13, RANGE_10_14],
+        expected: "13",
+        expectedStrict: [REJECTED, REJECTED, "13", "13"],
         conflicts: true
     ).and(
         versions: [RANGE_10_11, RANGE_10_12, RANGE_10_14],

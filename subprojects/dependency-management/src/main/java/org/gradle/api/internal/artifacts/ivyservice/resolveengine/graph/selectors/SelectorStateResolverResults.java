@@ -17,6 +17,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selecto
 
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
@@ -24,9 +27,12 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 class SelectorStateResolverResults {
+    private static final VersionParser VERSION_PARSER = new VersionParser();
+    private static final Comparator<Version> VERSION_COMPARATOR = new DefaultVersionComparator().asVersionComparator();
     private final List<Registration> results;
 
     public SelectorStateResolverResults(int size) {
@@ -37,10 +43,6 @@ class SelectorStateResolverResults {
         ModuleVersionResolveException failure = null;
         List<T> resolved = null;
         for (Registration entry : results) {
-            if (entry.superceded) {
-                continue;
-            }
-
             ResolvableSelectorState selectorState = entry.selector;
             ComponentIdResolveResult idResolveResult = entry.result;
 
@@ -91,6 +93,7 @@ class SelectorStateResolverResults {
             ComponentIdResolveResult discovered = registration.result;
             if (included(selector, discovered)) {
                 register(selector, discovered);
+                selector.markResolved();
                 return true;
             }
         }
@@ -101,7 +104,8 @@ class SelectorStateResolverResults {
         // Check already-resolved dependencies and use this version if it's compatible
         boolean replaces = false;
         for (Registration registration : results) {
-            if (included(registration.selector, resolveResult) || sameVersion(registration.result, resolveResult)) {
+            if (sameVersion(registration.result, resolveResult) ||
+                (included(registration.selector, resolveResult) && lowerVersion(registration.result, resolveResult))) {
                 registration.result = resolveResult;
                 replaces = true;
             }
@@ -116,6 +120,17 @@ class SelectorStateResolverResults {
     private boolean sameVersion(ComponentIdResolveResult existing, ComponentIdResolveResult resolveResult) {
         if (existing.getFailure()==null && resolveResult.getFailure() == null) {
             return existing.getId().equals(resolveResult.getId());
+        }
+        return false;
+    }
+
+    private boolean lowerVersion(ComponentIdResolveResult existing, ComponentIdResolveResult resolveResult) {
+        if (existing.getFailure()==null && resolveResult.getFailure() == null) {
+            Version existingVersion = VERSION_PARSER.transform(existing.getModuleVersionId().getVersion());
+            Version candidateVersion = VERSION_PARSER.transform(resolveResult.getModuleVersionId().getVersion());
+
+            int comparison = VERSION_COMPARATOR.compare(candidateVersion, existingVersion);
+            return comparison < 0;
         }
         return false;
     }
@@ -141,9 +156,7 @@ class SelectorStateResolverResults {
 
     private static class Registration {
         private final ResolvableSelectorState selector;
-        public boolean superceded = false;
         private ComponentIdResolveResult result;
-        public boolean preferred = false;
 
         private Registration(ResolvableSelectorState selector, ComponentIdResolveResult result) {
             this.selector = selector;

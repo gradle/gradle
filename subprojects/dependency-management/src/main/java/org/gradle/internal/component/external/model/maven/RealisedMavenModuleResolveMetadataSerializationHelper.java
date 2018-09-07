@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model.maven;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -117,7 +118,7 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
         for (int i = 0; i < configurationsCount; i++) {
             String configurationName = decoder.readString();
             Configuration configuration = configurationDefinitions.get(configurationName);
-            ImmutableList<String> hierarchy = LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions);
+            ImmutableSet<String> hierarchy = LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions);
             ImmutableAttributes attributes = getAttributeContainerSerializer().read(decoder);
             ImmutableCapabilities capabilities = readCapabilities(decoder);
 

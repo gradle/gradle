@@ -17,6 +17,7 @@ package org.gradle.gradlebuild.test.fixtures
 
 import accessors.groovy
 import accessors.java
+import cglibWithoutAntRule
 
 import library
 
@@ -100,6 +101,10 @@ open class TestFixturesPlugin : Plugin<Project> {
             testFixturesCompile(library("junit"))
             testFixturesCompile(testLibrary("spock"))
             testLibraries("jmock").forEach { testFixturesCompile(it) }
+
+            components {
+                withModule("cglib:cglib", cglibWithoutAntRule)
+            }
         }
 
         plugins.withType<IdeaPlugin> {

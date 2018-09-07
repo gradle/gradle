@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.internal.file.TestFiles;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
@@ -33,10 +32,10 @@ import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 public class TestNativeBinariesFactory {
 
-    public static <T extends NativeBinarySpec, I extends AbstractNativeBinarySpec> T create(Class<T> publicType, Class<I> implType, String name, ITaskFactory taskFactory, MutableModelNode componentNode,
+    public static <T extends NativeBinarySpec, I extends AbstractNativeBinarySpec> T create(Class<T> publicType, Class<I> implType, String name, MutableModelNode componentNode,
                                                                                       BinaryNamingScheme namingScheme, NativeDependencyResolver resolver,
                                                                                       NativePlatform platform, BuildType buildType, Flavor flavor) {
-        T binary = BaseBinaryFixtures.create(publicType, implType, name, componentNode, taskFactory);
+        T binary = BaseBinaryFixtures.create(publicType, implType, name, componentNode);
         NativeBinaries.initialize(binary, namingScheme, resolver, TestFiles.fileCollectionFactory(), platform, buildType, flavor);
         SourceComponentSpec component = componentNode.asImmutable(ModelType.of(SourceComponentSpec.class), new SimpleModelRuleDescriptor("get component of " + name)).getInstance();
         binary.getInputs().addAll(component.getSources().values());

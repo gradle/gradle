@@ -97,10 +97,10 @@ public class SwiftCompile extends DefaultTask {
 
         ObjectFactory objectFactory = getProject().getObjects();
         this.moduleName = objectFactory.property(String.class);
-        this.moduleFile = newOutputFile();
+        this.moduleFile = objectFactory.fileProperty();
         this.modules = getProject().files();
         this.compilerArgs = objectFactory.listProperty(String.class);
-        this.objectFileDir = newOutputDirectory();
+        this.objectFileDir = objectFactory.directoryProperty();
         this.source = getProject().files();
         this.sourceCompatibility = objectFactory.property(SwiftVersion.class);
         this.macros = objectFactory.listProperty(String.class);

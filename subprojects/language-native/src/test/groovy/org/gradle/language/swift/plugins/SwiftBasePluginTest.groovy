@@ -82,7 +82,7 @@ class SwiftBasePluginTest extends Specification {
 
     def "adds link and install task for executable"() {
         def executable = Stub(DefaultSwiftExecutable)
-        def executableFile = project.layout.fileProperty()
+        def executableFile = project.objects.fileProperty()
         executable.name >> name
         executable.names >> Names.of(name)
         executable.module >> Providers.of("TestApp")
