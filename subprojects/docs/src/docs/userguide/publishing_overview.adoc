@@ -133,23 +133,19 @@ Inter-project dependencies have nothing to do with publishing, but both features
 
 You start by defining a custom artifact and attaching it to a Gradle <<#glossary:configuration,configuration>> of your choice. The following sample defines an RPM artifact that is produced by an `rpm` task (not shown) and attaches that artifact to the `archives` configuration:
 
-=== Example: Defining a custom artifact for a configuration
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/maven-publish/publish-artifact/build.gradle[tag=custom-artifact]
-----
+.Defining a custom artifact for a configuration
+====
+include::sample[dir="maven-publish/publish-artifact/groovy",files="build.gradle[tags=custom-artifact]"]
+include::sample[dir="maven-publish/publish-artifact/kotlin",files="build.gradle.kts[tags=custom-artifact]"]
+====
 
 The `artifacts.add()` method — from link:{groovyDslPath}/org.gradle.api.artifacts.dsl.ArtifactHandler.html[ArtifactHandler] — returns an artifact object of type link:{javadocPath}/org/gradle/api/artifacts/PublishArtifact.html[PublishArtifact] that can then be used in defining a publication, as shown in the following sample:
 
-=== Example: Attaching a custom PublishArtifact to a publication
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/maven-publish/publish-artifact/build.gradle[tag=custom-artifact-publication]
-----
+.Attaching a custom PublishArtifact to a publication
+====
+include::sample[dir="maven-publish/publish-artifact/groovy",files="build.gradle[tags=custom-artifact-publication]"]
+include::sample[dir="maven-publish/publish-artifact/kotlin",files="build.gradle.kts[tags=custom-artifact-publication]"]
+====
 
 Now you can publish the RPM as well as depend on it from another project using the `project(path: ':my-project', configuration: 'archives')` syntax.
 
