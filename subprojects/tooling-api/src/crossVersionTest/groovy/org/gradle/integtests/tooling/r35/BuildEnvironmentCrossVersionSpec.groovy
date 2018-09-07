@@ -85,7 +85,7 @@ class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        UnsupportedVersionException e = thrown()
+        def e = thrown UnsupportedVersionException
         e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support the environment variables customization feature. Support for this is available in Gradle 3.5 and all later versions."
     }
 }

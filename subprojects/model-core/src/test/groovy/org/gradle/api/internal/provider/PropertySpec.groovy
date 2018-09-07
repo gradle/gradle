@@ -175,7 +175,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.setFromAnyValue(new Thing())
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "Cannot set the value of a property of type ${type().name} using an instance of type ${Thing.name}."
     }
 

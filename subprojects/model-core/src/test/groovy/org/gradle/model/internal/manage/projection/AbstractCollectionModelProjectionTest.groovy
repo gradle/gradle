@@ -151,7 +151,7 @@ abstract class AbstractCollectionModelProjectionTest<T, C extends Collection<T>>
         registry.realize(collectionPath, collectionType)
 
         then:
-        ModelRuleExecutionException ex = thrown()
+        def ex = thrown ModelRuleExecutionException
         ex.cause.message == 'Cannot add an element of type java.lang.Integer to a collection of java.lang.String'
     }
 
@@ -178,7 +178,7 @@ abstract class AbstractCollectionModelProjectionTest<T, C extends Collection<T>>
         registry.realize(collectionPath, collectionType)
 
         then:
-        ModelRuleExecutionException ex = thrown()
+        def ex = thrown ModelRuleExecutionException
         ex.cause.message == 'Cannot add an element of type java.lang.Integer to a collection of java.lang.String'
     }
 

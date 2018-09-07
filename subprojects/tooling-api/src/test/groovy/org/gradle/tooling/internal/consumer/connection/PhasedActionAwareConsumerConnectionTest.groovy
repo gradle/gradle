@@ -155,7 +155,7 @@ class PhasedActionAwareConsumerConnectionTest extends Specification {
         connection.run(phasedAction, parameters)
 
         then:
-        BuildActionFailureException e = thrown()
+        def e = thrown BuildActionFailureException
         e.message == 'The supplied phased action failed with an exception.'
         e.cause == failure
 

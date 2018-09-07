@@ -500,7 +500,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         extract(RuleSourceCreatingARawModelMap)
 
         then:
-        InvalidModelRuleDeclarationException e = thrown()
+        def e = thrown InvalidModelRuleDeclarationException
         e.message == """Type ${fullyQualifiedNameOf(RuleSourceCreatingARawModelMap)} is not a valid rule source:
 - Method bar(org.gradle.model.ModelMap) is not a valid rule method: Raw type org.gradle.model.ModelMap used for parameter 1 (all type parameters must be specified of parameterized type)"""
     }
@@ -516,7 +516,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         extract(RuleSourceWithAVoidReturningNoArgumentMethod)
 
         then:
-        InvalidModelRuleDeclarationException e = thrown()
+        def e = thrown InvalidModelRuleDeclarationException
         e.message == """Type ${fullyQualifiedNameOf(RuleSourceWithAVoidReturningNoArgumentMethod)} is not a valid rule source:
 - Method bar() is not a valid rule method: A method annotated with @Model must either take at least one parameter or have a non-void return type"""
     }
@@ -539,7 +539,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         extract(inspected)
 
         then:
-        InvalidModelRuleDeclarationException e = thrown()
+        def e = thrown InvalidModelRuleDeclarationException
         e.message == "Declaration of model rule ModelRuleExtractorTest.$inspected.simpleName#bar($managedType.simpleName) is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
         e.cause.message == """Type $ModelMap.name<?> is not a valid model element type:
@@ -567,7 +567,7 @@ ${fullyQualifiedNameOf(managedType)}
         extract(RuleSourceCreatingManagedWithNonManageableParent)
 
         then:
-        InvalidModelRuleDeclarationException e = thrown()
+        def e = thrown InvalidModelRuleDeclarationException
         e.message == "Declaration of model rule ModelRuleExtractorTest.RuleSourceCreatingManagedWithNonManageableParent#bar(ManagedWithNonManageableParents) is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
         e.cause.message == """Type $ModelMap.name<?> is not a valid model element type:
@@ -593,7 +593,7 @@ ${fullyQualifiedNameOf(ManagedWithNonManageableParents)}
         extract(HasRuleWithUncheckedModelMap)
 
         then:
-        InvalidModelRuleDeclarationException e = thrown()
+        def e = thrown InvalidModelRuleDeclarationException
         e.message == """Type ${fullyQualifiedNameOf(HasRuleWithUncheckedModelMap)} is not a valid rule source:
 - Method modelPath(org.gradle.model.ModelMap) is not a valid rule method: Raw type org.gradle.model.ModelMap used for parameter 1 (all type parameters must be specified of parameterized type)"""
     }

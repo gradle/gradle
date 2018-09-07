@@ -86,7 +86,7 @@ class DefaultDeploymentRegistryTest extends Specification {
         when:
         registry.start("id", DeploymentRegistry.ChangeBehavior.NONE, TestDeploymentHandle)
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == "A deployment with id 'id' is already registered."
     }
 

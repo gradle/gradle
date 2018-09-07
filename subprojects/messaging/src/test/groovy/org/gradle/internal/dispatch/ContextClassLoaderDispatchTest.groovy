@@ -59,7 +59,7 @@ class ContextClassLoaderDispatchTest extends Specification {
             throw failure
         }
         0 * _._
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e.is(failure)
         assertContextClassloaderIs(original)
     }

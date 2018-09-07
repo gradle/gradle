@@ -106,7 +106,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         coordinator.runCommand(command, "command")
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
         1 * onStartCommand.run()
         1 * command.run() >> { throw failure }
@@ -124,7 +124,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         coordinator.runCommand(command, "command")
 
         then:
-        DaemonUnavailableException e = thrown()
+        def e = thrown DaemonUnavailableException
         e.message == 'This daemon is currently executing: command'
     }
 
@@ -138,7 +138,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         coordinator.runCommand(command, "command")
 
         then:
-        DaemonUnavailableException e = thrown()
+        def e = thrown DaemonUnavailableException
         e.message == 'This daemon has stopped.'
     }
 
@@ -152,7 +152,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         coordinator.runCommand(command, "command")
 
         then:
-        DaemonUnavailableException e = thrown()
+        def e = thrown DaemonUnavailableException
         e.message == 'This daemon has stopped.'
     }
 
@@ -166,7 +166,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         coordinator.runCommand(command, "command")
 
         then:
-        DaemonUnavailableException e = thrown()
+        def e = thrown DaemonUnavailableException
         e.message == 'This daemon has stopped.'
     }
 
@@ -178,7 +178,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         coordinator.runCommand(command, "command")
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
 
         1 * onStartCommand.run() >> { throw failure }
@@ -188,7 +188,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         coordinator.runCommand(command, "command")
 
         then:
-        DaemonUnavailableException unavailableException = thrown()
+        def unavailableException = thrown DaemonUnavailableException
         unavailableException.message == 'This daemon is in a broken state and will stop.'
     }
 
@@ -200,7 +200,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         coordinator.runCommand(command, "command")
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
 
         and:
@@ -213,7 +213,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         coordinator.runCommand(command, "command")
 
         then:
-        DaemonUnavailableException unavailableException = thrown()
+        def unavailableException = thrown DaemonUnavailableException
         unavailableException.message == 'This daemon is in a broken state and will stop.'
     }
 
@@ -225,7 +225,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         coordinator.runCommand(command, "command")
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
         1 * onStartCommand.run() >> { throw failure }
         0 * _._
@@ -234,7 +234,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         coordinator.awaitStop()
 
         then:
-        IllegalStateException illegalStateException = thrown()
+        def illegalStateException = thrown IllegalStateException
         illegalStateException.message == 'This daemon is in a broken state.'
     }
 
@@ -246,7 +246,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         coordinator.runCommand(command, "command")
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
         1 * onStartCommand.run() >> { throw failure }
         0 * _._
@@ -266,7 +266,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         coordinator.runCommand(command, "command")
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
         1 * onStartCommand.run()
         1 * command.run()
@@ -288,7 +288,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         coordinator.runCommand(command, "command")
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
         1 * onStartCommand.run()
         1 * command.run()
@@ -299,7 +299,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         coordinator.awaitStop()
 
         then:
-        IllegalStateException illegalStateException = thrown()
+        def illegalStateException = thrown IllegalStateException
         illegalStateException.message == 'This daemon is in a broken state.'
     }
 
@@ -378,7 +378,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         }
 
         and:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
 
         and:
@@ -442,7 +442,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         }
 
         then:
-        DaemonStoppedException e = thrown()
+        def e = thrown DaemonStoppedException
         e.message == "Gradle build daemon has been stopped: stop from test"
 
         and:
@@ -570,7 +570,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         }
 
         then:
-        DaemonStoppedException e = thrown()
+        def e = thrown DaemonStoppedException
 
         and:
         canceled

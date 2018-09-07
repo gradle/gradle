@@ -194,7 +194,7 @@ class ToolSearchPathTest extends Specification {
         result.getTool()
 
         then:
-        GradleException e = thrown()
+        def e = thrown GradleException
         e.message == "Could not find C compiler 'cc' in system path."
     }
 }

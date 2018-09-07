@@ -162,7 +162,7 @@ class MavenVersionListerTest extends Specification {
         lister.listVersions(module, [pattern], result)
 
         then:
-        ResourceException e = thrown()
+        def e = thrown ResourceException
         e.message == "Unable to load Maven meta-data from $metaDataResource."
         e.cause instanceof UncheckedException
         e.cause.cause instanceof SAXParseException
@@ -183,7 +183,7 @@ class MavenVersionListerTest extends Specification {
         lister.listVersions(module, [pattern], result)
 
         then:
-        ResourceException e = thrown()
+        def e = thrown ResourceException
         e.message == "Unable to load Maven meta-data from $metaDataResource."
         e.cause == failure
 

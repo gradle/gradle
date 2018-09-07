@@ -63,7 +63,7 @@ class RetryRuleTest extends Specification {
         throwWhen(new RuntimeException("test"), iteration == 2)
 
         then:
-        RuntimeException ex = thrown()
+        def ex = thrown RuntimeException
         ex.message.contains("test")
     }
 

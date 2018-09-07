@@ -56,14 +56,14 @@ class FilteringClassLoaderTest extends Specification {
         classLoader.loadClass(Test.class.name, false)
 
         then:
-        ClassNotFoundException e = thrown()
+        def e = thrown ClassNotFoundException
         e.message == "$Test.name not found."
 
         when:
         classLoader.loadClass(Test.class.name)
 
         then:
-        ClassNotFoundException e2 = thrown()
+        def e2 = thrown ClassNotFoundException
         e2.message == "$Test.name not found."
     }
 

@@ -49,7 +49,7 @@ class FailsafePhasedActionResultListenerTest extends Specification {
         failsafeListener.rethrowErrors()
 
         then:
-        ListenerNotificationException e = thrown()
+        def e = thrown ListenerNotificationException
         e.message == 'One or more build phasedAction listeners failed with an exception.'
         e.causes.size() == 1
         e.cause == failure

@@ -53,7 +53,7 @@ class DefaultResolvedVersionConstraintTest extends Specification {
         new DefaultResolvedVersionConstraint('', '', version, [], versionSelectorScheme)
 
         then:
-        IllegalArgumentException ex = thrown()
+        def ex = thrown IllegalArgumentException
         ex.message == "Version '$version' cannot be converted to a strict version constraint."
 
         where:

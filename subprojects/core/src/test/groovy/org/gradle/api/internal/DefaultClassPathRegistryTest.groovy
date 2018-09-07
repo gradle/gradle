@@ -33,7 +33,7 @@ class DefaultClassPathRegistryTest extends Specification {
         registry.getClassPath("name")
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == 'unknown classpath \'name\' requested.'
     }
 

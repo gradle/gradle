@@ -108,7 +108,7 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         }
 
         then:
-        TestExecutionException e = thrown()
+        def e = thrown TestExecutionException
         e.cause.message.startsWith("No matching tests found in any candidate test task.")
         output.toString().count(EXPECTED_JAVA7_DEPRECATION_MESSAGE) == 1
     }
@@ -175,7 +175,7 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         }
 
         then:
-        TestExecutionException e = thrown()
+        def e = thrown TestExecutionException
         e.cause.message.startsWith("No matching tests found in any candidate test task.")
         output.toString().count(EXPECTED_JAVA7_DEPRECATION_MESSAGE) == 0
     }

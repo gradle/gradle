@@ -92,7 +92,7 @@ class DefaultPropertyStateTest extends PropertySpec<String> {
         property.set(12)
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "Cannot set the value of a property of type java.lang.Boolean using an instance of type java.lang.Integer."
 
         and:
@@ -107,7 +107,7 @@ class DefaultPropertyStateTest extends PropertySpec<String> {
         property.set(other)
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "Cannot set the value of a property of type java.lang.Boolean using a provider of type java.lang.Number."
 
         and:

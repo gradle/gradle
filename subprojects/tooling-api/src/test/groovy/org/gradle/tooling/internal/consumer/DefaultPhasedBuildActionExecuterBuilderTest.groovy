@@ -52,7 +52,7 @@ class DefaultPhasedBuildActionExecuterBuilderTest extends Specification {
         builder.projectsLoaded(Stub(BuildAction), Stub(IntermediateResultHandler))
 
         then:
-        IllegalArgumentException e1 = thrown()
+        def e1 = thrown IllegalArgumentException
         e1.message == 'ProjectsLoadedAction has already been added. Only one action per phase is allowed.'
 
         when:
@@ -60,7 +60,7 @@ class DefaultPhasedBuildActionExecuterBuilderTest extends Specification {
         builder.buildFinished(Stub(BuildAction), Stub(IntermediateResultHandler))
 
         then:
-        IllegalArgumentException e2 = thrown()
+        def e2 = thrown IllegalArgumentException
         e2.message == 'BuildFinishedAction has already been added. Only one action per phase is allowed.'
     }
 }

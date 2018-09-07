@@ -242,7 +242,7 @@ class DefaultDependencyHandlerTest extends Specification {
         dependencyHandler.add(TEST_CONF_NAME, other)
 
         then:
-        UnsupportedOperationException e = thrown()
+        def e = thrown UnsupportedOperationException
         e.message == 'Currently you can only declare dependencies on configurations from the same project.'
     }
 

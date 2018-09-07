@@ -36,7 +36,7 @@ class DefaultProjectConnectionTest extends Specification {
         connection.model(String.class)
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "Cannot fetch a model of type 'java.lang.String' as this type is not an interface."
     }
 

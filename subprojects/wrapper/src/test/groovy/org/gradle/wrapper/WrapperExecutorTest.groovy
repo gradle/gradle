@@ -120,7 +120,7 @@ class WrapperExecutorTest extends Specification {
         WrapperExecutor.forWrapperPropertiesFile(propertiesFile)
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e.message == "Could not load wrapper properties from '$propertiesFile'."
         e.cause.message == "No value with key 'distributionUrl' specified in wrapper properties file '$propertiesFile'."
     }
@@ -132,7 +132,7 @@ class WrapperExecutorTest extends Specification {
         WrapperExecutor.forWrapperPropertiesFile(propertiesFile)
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e.message == "Wrapper properties file '$propertiesFile' does not exist."
     }
 
@@ -151,7 +151,7 @@ class WrapperExecutorTest extends Specification {
         WrapperExecutor.forWrapperPropertiesFile(propertiesFile)
 
         then:
-        Exception e = thrown()
+        def e = thrown Exception
         e.cause.message == "No value with key 'distributionUrl' specified in wrapper properties file '$propertiesFile'."
     }
 

@@ -33,7 +33,7 @@ class ExclusiveFileAccessManagerTest extends Specification {
         }
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e.message == "Could not create parent directory for lock file ${fileWithSameNameAsDirectory.file('someFile.zip.lck').absolutePath}"
     }
 }

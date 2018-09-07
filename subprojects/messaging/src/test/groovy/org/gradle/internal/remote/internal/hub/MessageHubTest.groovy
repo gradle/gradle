@@ -647,7 +647,7 @@ class MessageHubTest extends ConcurrentSpec {
         dispatcher.dispatch("message 1")
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot dispatch message, as <hub> has been stopped.'
     }
 
@@ -660,7 +660,7 @@ class MessageHubTest extends ConcurrentSpec {
         hub.getOutgoing("channel", String)
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot create outgoing dispatch, as <hub> has been stopped.'
     }
 
@@ -670,7 +670,7 @@ class MessageHubTest extends ConcurrentSpec {
         hub.addHandler("channel", new Object())
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot add handler, as <hub> has been stopped.'
     }
 
@@ -680,7 +680,7 @@ class MessageHubTest extends ConcurrentSpec {
         hub.addConnection(Mock(RemoteConnection))
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot add connection, as <hub> has been stopped.'
     }
 

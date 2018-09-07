@@ -246,7 +246,7 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.getCachingState(taskPropertiesWithCacheableOutput, validBuildCacheKey)
 
         then:
-        GradleException e = thrown()
+        def e = thrown GradleException
         e.message.contains("Could not evaluate spec for 'Exception is thrown'.")
     }
 
@@ -258,7 +258,7 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.getCachingState(taskPropertiesWithCacheableOutput, validBuildCacheKey)
 
         then:
-        GradleException e = thrown()
+        def e = thrown GradleException
         e.message.contains("Could not evaluate spec for 'Exception is thrown'.")
     }
 

@@ -63,7 +63,7 @@ class MapNotationConverterTest extends Specification {
         parser.parseNotation([name: 'name'])
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message == 'Required keys [version] are missing from map {name=name}.'
     }
 
@@ -72,7 +72,7 @@ class MapNotationConverterTest extends Specification {
         parser.parseNotation([name: null, version: ''])
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message.startsWith 'Required keys [name, version] are missing from map '
     }
 
@@ -81,7 +81,7 @@ class MapNotationConverterTest extends Specification {
         parser.parseNotation([name: 'name', version: 1.2, unknown: 'unknown'])
 
         then:
-        MissingPropertyException e = thrown()
+        def e = thrown MissingPropertyException
         e.property == 'unknown'
         e.type == TargetObject
     }

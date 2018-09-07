@@ -89,7 +89,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         container.create([:])
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message == "The task name must be provided."
     }
 
@@ -110,14 +110,14 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         container.create([name: 'task', dependson: 'anotherTask'])
 
         then:
-        InvalidUserDataException exception = thrown()
+        def exception = thrown InvalidUserDataException
         exception.message == "Could not create task 'task': Unknown argument(s) in task definition: [dependson]"
 
         when:
         container.create([name: 'task', Type: NotATask])
 
         then:
-        exception = thrown()
+        exception = thrown InvalidUserDataException
         exception.message == "Could not create task 'task': Unknown argument(s) in task definition: [Type]"
     }
 

@@ -79,7 +79,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.realize("foo")
 
         then:
-        UnboundModelRulesException e = thrown()
+        def e = thrown UnboundModelRulesException
         normaliseLineSeparators(e.message).contains '''
   foo creator
     inputs:
@@ -95,7 +95,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.realize("foo")
 
         then:
-        UnboundModelRulesException e = thrown()
+        def e = thrown UnboundModelRulesException
         normaliseLineSeparators(e.message).contains '''
   foo creator
     inputs:
@@ -113,7 +113,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.bindAllReferences()
 
         then:
-        InvalidModelRuleException e = thrown()
+        def e = thrown InvalidModelRuleException
         e.cause instanceof ModelRuleBindingException
         normaliseLineSeparators(e.cause.message) == """Type-only model reference of type java.lang.Number is ambiguous as multiple model elements are available for this type:
   - other-1 (created by: other-1 creator)
@@ -128,7 +128,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.register("foo") { it.descriptor("create foo as Integer").unmanaged(12.toInteger()) }
 
         then:
-        DuplicateModelException e = thrown()
+        def e = thrown DuplicateModelException
         e.message == /Cannot create 'foo' using creation rule 'create foo as Integer' as the rule 'create foo as String' is already registered to create this model element./
     }
 
@@ -142,7 +142,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.register("foo") { it.descriptor("create foo as Integer").unmanaged(12.toInteger()) }
 
         then:
-        DuplicateModelException e = thrown()
+        def e = thrown DuplicateModelException
         e.message == /Cannot create 'foo' using creation rule 'create foo as Integer' as the rule 'create foo as String' has already been used to create this model element./
     }
 
@@ -156,7 +156,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.bindAllReferences()
 
         then:
-        InvalidModelRuleException e = thrown()
+        def e = thrown InvalidModelRuleException
         e.cause instanceof ModelRuleBindingException
         normaliseLineSeparators(e.cause.message) == """Type-only model reference of type java.lang.Number is ambiguous as multiple model elements are available for this type:
   - other-1 (created by: other-1 creator)
@@ -178,7 +178,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.realize("foo")
 
         then:
-        ModelRuleExecutionException e = thrown()
+        def e = thrown ModelRuleExecutionException
         e.message == /Exception thrown while executing model rule: mutate foo as Integer/
         e.cause instanceof DuplicateModelException
         e.cause.message == /Cannot create 'foo.bar' using creation rule 'create foo.bar as Integer' as the rule 'create foo.bar as String' is already registered to create this model element./
@@ -324,7 +324,7 @@ class DefaultModelRegistryTest extends Specification {
         ref.setTarget(newTarget)
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == "Cannot set target for model element 'ref' as this element is not mutable."
 
         where:
@@ -602,7 +602,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.realize("thing")
 
         then:
-        ModelRuleExecutionException e = thrown()
+        def e = thrown ModelRuleExecutionException
         e.cause instanceof IllegalStateException
         e.cause.message == "Cannot create 'thing.child' using creation rule 'create thing.child as String' as model element 'thing' is no longer mutable."
     }
@@ -619,7 +619,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.realize("thing")
 
         then:
-        ModelRuleExecutionException e = thrown()
+        def e = thrown ModelRuleExecutionException
         e.cause instanceof IllegalStateException
         e.cause.message == "Cannot set value for model element 'thing' as this element is not mutable."
     }
@@ -746,7 +746,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.realize("thing")
 
         then:
-        ModelRuleExecutionException e = thrown()
+        def e = thrown ModelRuleExecutionException
         e.cause instanceof IllegalStateException
         e.cause.message == "Cannot add rule X for model element 'thing' at state ${targetRole.targetState.previous()} as this element is already at state ${fromRole.targetState.previous()}."
 
@@ -777,7 +777,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.realize("another")
 
         then:
-        ModelRuleExecutionException e = thrown()
+        def e = thrown ModelRuleExecutionException
         e.cause instanceof IllegalStateException
         e.cause.message == "Cannot add rule X for model element 'thing' at state ${targetRole.targetState.previous()} as this element is already at state ${fromState}."
 
@@ -945,7 +945,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.atState(ModelPath.path("thing"), state)
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == "No model node at 'thing'"
 
         where:
@@ -1088,7 +1088,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.bindAllReferences()
 
         then:
-        UnboundModelRulesException e = thrown()
+        def e = thrown UnboundModelRulesException
         normaliseLineSeparators(e.message).contains '''
   by-path
     subject:
@@ -1114,7 +1114,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.bindAllReferences()
 
         then:
-        UnboundModelRulesException e = thrown()
+        def e = thrown UnboundModelRulesException
         normaliseLineSeparators(e.message).contains '''
   by-path
     subject:
@@ -1188,7 +1188,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.bindAllReferences()
 
         then:
-        UnboundModelRulesException e = thrown()
+        def e = thrown UnboundModelRulesException
         normaliseLineSeparators(e.message).contains '''
   non-bindable
     subject:
@@ -1225,7 +1225,7 @@ class DefaultModelRegistryTest extends Specification {
         registry.get("foo")
 
         then:
-        ConfigurationCycleException e = thrown()
+        def e = thrown ConfigurationCycleException
         e.message == TextUtil.toPlatformLineSeparators("""A cycle has been detected in model rule dependencies. References forming the cycle:
 foo
 \\- foo mutator
@@ -1246,7 +1246,7 @@ foo
         registry.get("foo")
 
         then:
-        ConfigurationCycleException e = thrown()
+        def e = thrown ConfigurationCycleException
         e.message == TextUtil.toPlatformLineSeparators("""A cycle has been detected in model rule dependencies. References forming the cycle:
 foo
 \\- foo creator
@@ -1268,7 +1268,7 @@ foo
         registry.get("foo")
 
         then:
-        ConfigurationCycleException e = thrown()
+        def e = thrown ConfigurationCycleException
         e.message == TextUtil.toPlatformLineSeparators("""A cycle has been detected in model rule dependencies. References forming the cycle:
 foo
 \\- foo mutator
@@ -1288,7 +1288,7 @@ foo
         registry.get("foo")
 
         then:
-        ConfigurationCycleException e = thrown()
+        def e = thrown ConfigurationCycleException
         e.message == TextUtil.toPlatformLineSeparators("""A cycle has been detected in model rule dependencies. References forming the cycle:
 bar
 \\- bar creator
@@ -1307,7 +1307,7 @@ bar
         registry.get("foo")
 
         then:
-        ConfigurationCycleException e = thrown()
+        def e = thrown ConfigurationCycleException
         e.message == TextUtil.toPlatformLineSeparators("""A cycle has been detected in model rule dependencies. References forming the cycle:
 foo
 \\- foo.bar
@@ -1326,7 +1326,7 @@ foo
         registry.get("foo")
 
         then:
-        ConfigurationCycleException e = thrown()
+        def e = thrown ConfigurationCycleException
         e.message == TextUtil.toPlatformLineSeparators("""A cycle has been detected in model rule dependencies. References forming the cycle:
 foo
 \\- foo.bar

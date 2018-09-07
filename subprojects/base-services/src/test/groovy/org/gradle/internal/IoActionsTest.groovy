@@ -114,7 +114,7 @@ class IoActionsTest extends Specification {
         withResource(resource, action)
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e.is(failure)
 
         then:
@@ -134,7 +134,7 @@ class IoActionsTest extends Specification {
         withResource(resource, action)
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e.is(failure)
 
         then:
@@ -154,7 +154,7 @@ class IoActionsTest extends Specification {
         withResource(resource, action)
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e.is(failure)
 
         then:

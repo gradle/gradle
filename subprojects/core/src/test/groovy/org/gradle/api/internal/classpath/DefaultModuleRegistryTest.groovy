@@ -222,7 +222,7 @@ class DefaultModuleRegistryTest extends Specification {
         registry.getModule("gradle-some-module")
 
         then:
-        UnknownModuleException e = thrown()
+        def e = thrown UnknownModuleException
         e.message ==~ /Cannot locate manifest for module 'gradle-some-module' in classpath: \[.*]\./
     }
 
@@ -234,7 +234,7 @@ class DefaultModuleRegistryTest extends Specification {
         registry.getModule("gradle-other-module")
 
         then:
-        UnknownModuleException e = thrown()
+        def e = thrown UnknownModuleException
         e.message == "Cannot locate JAR for module 'gradle-other-module' in distribution directory '$distDir'."
     }
 
@@ -267,7 +267,7 @@ class DefaultModuleRegistryTest extends Specification {
         registry.getExternalModule("unknown")
 
         then:
-        UnknownModuleException e = thrown()
+        def e = thrown UnknownModuleException
         e.message == "Cannot locate JAR for module 'unknown' in distribution directory '$distDir'."
     }
 

@@ -53,7 +53,7 @@ class BuildControllerWithoutParameterSupportTest extends Specification {
         controller.getModel(null, modelType, parameterType, parameterInitializer)
 
         then:
-        UnsupportedVersionException e = thrown()
+        def e = thrown UnsupportedVersionException
         e.message == "Gradle version 4.1 does not support parameterized tooling models."
     }
 }

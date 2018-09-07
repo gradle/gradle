@@ -42,7 +42,7 @@ class BuildInitBuildScriptDslTest extends Specification {
         BuildInitDsl.fromName("unknown")
 
         then:
-        GradleException e = thrown()
+        def e = thrown GradleException
         e.message == TextUtil.toPlatformLineSeparators("""The requested build script DSL 'unknown' is not supported. Supported DSLs:
   - 'groovy'
   - 'kotlin'""")

@@ -244,7 +244,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         fileTree.visit(fileVisitor)
 
         then:
-        GradleException e = thrown()
+        def e = thrown GradleException
         e.message.contains("Could not list contents of '${link.absolutePath}'.")
 
         cleanup:

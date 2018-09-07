@@ -66,7 +66,7 @@ class FeaturePreviewsTest extends Specification {
         when:
         previews.enableFeature('UNKNOWN_FEATURE')
         then:
-        IllegalArgumentException exception = thrown()
+        def exception = thrown IllegalArgumentException
         exception.getMessage() == 'There is no feature named UNKNOWN_FEATURE'
     }
 
@@ -76,7 +76,7 @@ class FeaturePreviewsTest extends Specification {
         when:
         previews.isFeatureEnabled('UNKNOWN_FEATURE')
         then:
-        IllegalArgumentException exception = thrown()
+        def exception = thrown IllegalArgumentException
         exception.getMessage() == 'There is no feature named UNKNOWN_FEATURE'
     }
 

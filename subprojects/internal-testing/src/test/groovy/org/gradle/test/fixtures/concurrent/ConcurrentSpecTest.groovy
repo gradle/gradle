@@ -195,7 +195,7 @@ class ConcurrentSpecTest extends ConcurrentSpec {
         instant.unknown
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == "Instant 'unknown' has not been defined by any test thread."
     }
 
@@ -204,7 +204,7 @@ class ConcurrentSpecTest extends ConcurrentSpec {
         operation.unknown
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == "Operation 'unknown' has not been defined by any test thread."
     }
 
@@ -215,7 +215,7 @@ class ConcurrentSpecTest extends ConcurrentSpec {
         }
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == "Operation 'doStuff' has not completed yet."
     }
 
@@ -226,7 +226,7 @@ class ConcurrentSpecTest extends ConcurrentSpec {
         }
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == "Operation 'doStuff' has not completed yet."
     }
 
@@ -266,7 +266,7 @@ class ConcurrentSpecTest extends ConcurrentSpec {
         thread.blockUntil.unknown
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == "Timeout waiting for instant 'unknown' to be defined by another thread."
 
         when:
@@ -275,7 +275,7 @@ class ConcurrentSpecTest extends ConcurrentSpec {
         }
 
         then:
-        e = thrown()
+        e = thrown IllegalStateException
         e.message == "Timeout waiting for instant 'unknown' to be defined by another thread."
 
         when:
@@ -285,7 +285,7 @@ class ConcurrentSpecTest extends ConcurrentSpec {
         async { }
 
         then:
-        e = thrown()
+        e = thrown IllegalStateException
         e.message == "Timeout waiting for instant 'unknown' to be defined by another thread."
     }
 
@@ -299,7 +299,7 @@ class ConcurrentSpecTest extends ConcurrentSpec {
         }
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
     }
 

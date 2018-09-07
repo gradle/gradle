@@ -98,7 +98,7 @@ class CancellableConsumerConnectionTest extends Specification {
         connection.run(action, parameters)
 
         then:
-        BuildActionFailureException e = thrown()
+        def e = thrown BuildActionFailureException
         e.message == /The supplied build action failed with an exception./
         e.cause == failure
 
@@ -115,7 +115,7 @@ class CancellableConsumerConnectionTest extends Specification {
         connection.run(action, parameters)
 
         then:
-        InternalBuildCancelledException e = thrown()
+        def e = thrown InternalBuildCancelledException
         e.cause == failure
 
         and:
@@ -152,7 +152,7 @@ class CancellableConsumerConnectionTest extends Specification {
         connection.run(Void.class, parameters)
 
         then:
-        InternalBuildCancelledException e = thrown()
+        def e = thrown InternalBuildCancelledException
         e.cause == failure
 
         and:

@@ -172,7 +172,7 @@ class DefaultMutableVersionConstraintTest extends Specification {
         version.reject()
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message == "The 'reject' clause requires at least one rejected version"
     }
 

@@ -51,7 +51,7 @@ class MultiParentClassLoaderTest extends Specification {
         loader.loadClass('string')
 
         then:
-        ClassNotFoundException e = thrown()
+        def e = thrown ClassNotFoundException
         e.message == 'string not found.'
     }
 

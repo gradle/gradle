@@ -207,7 +207,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         loader.loadClass("org.gradle.Unknown")
 
         then:
-        ClassNotFoundException e = thrown()
+        def e = thrown ClassNotFoundException
     }
 
     ClassLoader getGroovyClassLoader() {

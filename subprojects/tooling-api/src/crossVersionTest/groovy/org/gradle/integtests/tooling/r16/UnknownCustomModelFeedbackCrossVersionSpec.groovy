@@ -29,7 +29,7 @@ class UnknownCustomModelFeedbackCrossVersionSpec extends ToolingApiSpecification
         withConnection { it.getModel(CustomModel.class) }
 
         then:
-        UnknownModelException e = thrown()
+        def e = thrown UnknownModelException
         e.message == "No model of type 'CustomModel' is available in this build."
     }
 
@@ -40,7 +40,7 @@ class UnknownCustomModelFeedbackCrossVersionSpec extends ToolingApiSpecification
         withConnection { it.getModel(CustomModel.class) }
 
         then:
-        UnknownModelException e = thrown()
+        def e = thrown UnknownModelException
         e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support building a model of type 'CustomModel'. Support for building custom tooling models was added in Gradle 1.6 and is available in all later versions."
     }
 

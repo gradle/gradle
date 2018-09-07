@@ -141,7 +141,7 @@ class DefaultRootBuildStateTest extends Specification {
         build.run(action)
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot use launcher after build has completed.'
 
         and:
@@ -155,7 +155,7 @@ class DefaultRootBuildStateTest extends Specification {
         build.run(action)
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
 
         and:
@@ -170,7 +170,7 @@ class DefaultRootBuildStateTest extends Specification {
         build.run(action)
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
 
         and:
@@ -188,7 +188,7 @@ class DefaultRootBuildStateTest extends Specification {
         build.run(action)
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
 
         and:
@@ -204,7 +204,7 @@ class DefaultRootBuildStateTest extends Specification {
         build.run(action)
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot use launcher after build has completed.'
 
         and:

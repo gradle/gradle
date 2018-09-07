@@ -144,7 +144,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.createRealResolver()
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message == 'You must specify a URL for a Maven repository.'
     }
 

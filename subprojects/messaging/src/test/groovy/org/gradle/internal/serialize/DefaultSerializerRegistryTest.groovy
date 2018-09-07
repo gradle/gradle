@@ -108,7 +108,7 @@ class DefaultSerializerRegistryTest extends SerializerSpec {
         toBytes(123.4, serializer)
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "Don't know how to serialize an object of type java.math.BigDecimal."
     }
 
@@ -121,7 +121,7 @@ class DefaultSerializerRegistryTest extends SerializerSpec {
         registry.build(String)
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "Don't know how to serialize objects of type java.lang.String."
     }
 

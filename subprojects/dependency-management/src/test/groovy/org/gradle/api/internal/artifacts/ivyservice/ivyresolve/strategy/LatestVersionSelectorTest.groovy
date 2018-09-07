@@ -38,7 +38,7 @@ class LatestVersionSelectorTest extends AbstractStringVersionSelectorTest {
         accept("latest.integration", "1.0")
 
         then:
-        UnsupportedOperationException e = thrown()
+        def e = thrown UnsupportedOperationException
         e.message.contains("accept")
     }
 

@@ -73,7 +73,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
         testObj.compile()
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message.contains("'testTask.groovyClasspath' must not be empty.")
     }
 

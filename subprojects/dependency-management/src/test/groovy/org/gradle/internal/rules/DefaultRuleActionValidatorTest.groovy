@@ -22,7 +22,7 @@ class DefaultRuleActionValidatorTest extends Specification {
 
     def "rejects invalid types" () {
         when:
-        def ruleValidator = new DefaultRuleActionValidator<Object>([String, Integer])
+        def ruleValidator = new DefaultRuleActionValidator([String, Integer])
         ruleValidator.validate(Stub(RuleAction) {
             getInputTypes() >> { [ String, Long ] }
         })
@@ -34,7 +34,7 @@ class DefaultRuleActionValidatorTest extends Specification {
 
     def "rejects invalid type" () {
         when:
-        def ruleValidator = new DefaultRuleActionValidator<Object>([Integer])
+        def ruleValidator = new DefaultRuleActionValidator([Integer])
         ruleValidator.validate(Stub(RuleAction) {
             getInputTypes() >> { [ Long ] }
         })
@@ -45,7 +45,7 @@ class DefaultRuleActionValidatorTest extends Specification {
     }
 
     def "accepts valid types" () {
-        def ruleValidator = new DefaultRuleActionValidator<Object>([String, Integer])
+        def ruleValidator = new DefaultRuleActionValidator([String, Integer])
         def ruleAction = Stub(RuleAction) {
             getInputTypes() >> { [ String, Integer ] }
         }

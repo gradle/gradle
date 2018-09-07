@@ -113,7 +113,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then: "listener exception is wrapped"
-        ListenerFailedException ex = thrown()
+        def ex = thrown ListenerFailedException
         ex.message.startsWith("Could not execute build using")
         ex.causes == [failure]
 
@@ -197,7 +197,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        BuildException ex = thrown()
+        def ex = thrown BuildException
         ex.cause.cause.message =~ /Execution failed for task ':test'/
 
         def test = events.operation("Task :test")

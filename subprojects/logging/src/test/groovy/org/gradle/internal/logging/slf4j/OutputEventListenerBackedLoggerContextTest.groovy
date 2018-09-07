@@ -57,7 +57,7 @@ class OutputEventListenerBackedLoggerContextTest extends Specification {
         context.level = null
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "Global log level cannot be set to null"
     }
 }

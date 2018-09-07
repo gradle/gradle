@@ -87,7 +87,7 @@ class DistributionFactoryTest extends Specification {
         dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, null, cancellationToken)
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "The specified Gradle installation directory '$distDir' does not exist."
     }
 
@@ -99,7 +99,7 @@ class DistributionFactoryTest extends Specification {
         dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, null, cancellationToken)
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "The specified Gradle installation directory '$distDir' is not a directory."
     }
 
@@ -111,7 +111,7 @@ class DistributionFactoryTest extends Specification {
         dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, null, cancellationToken)
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "The specified Gradle installation directory '$distDir' does not appear to contain a Gradle distribution."
     }
 
@@ -209,7 +209,7 @@ class DistributionFactoryTest extends Specification {
         dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, null, cancellationToken)
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "The specified Gradle distribution '${zipFile}' does not exist."
     }
 
@@ -222,7 +222,7 @@ class DistributionFactoryTest extends Specification {
 
         then:
         1 * cancellationToken.addCallback(_)
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "The specified Gradle distribution '${zipFile.toURI()}' does not appear to contain a Gradle distribution."
     }
 

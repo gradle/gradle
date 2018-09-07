@@ -44,19 +44,19 @@ public class TarCopyActionSpec extends Specification {
 
     def "creates tar file"() {
         expect:
-        final TestFile tarFile = initializeTarFile(temporaryFolder.testDirectory.file("test.tar"), new SimpleCompressor())
+        TestFile tarFile = initializeTarFile(temporaryFolder.testDirectory.file("test.tar"), new SimpleCompressor())
         tarAndUntarAndCheckFileContents(tarFile)
     }
 
     def "creates gzip compressed tar file"() {
         expect:
-        final TestFile tarFile = initializeTarFile(temporaryFolder.testDirectory.file("test.tgz"), GzipArchiver.getCompressor())
+        TestFile tarFile = initializeTarFile(temporaryFolder.testDirectory.file("test.tgz"), GzipArchiver.getCompressor())
         tarAndUntarAndCheckFileContents(tarFile)
     }
 
     def "creates bzip compressed tar file"() {
         expect:
-        final TestFile tarFile = initializeTarFile(temporaryFolder.testDirectory.file("test.tbz2"), Bzip2Archiver.getCompressor());
+        TestFile tarFile = initializeTarFile(temporaryFolder.testDirectory.file("test.tbz2"), Bzip2Archiver.getCompressor());
         tarAndUntarAndCheckFileContents(tarFile);
     }
 
@@ -71,7 +71,7 @@ public class TarCopyActionSpec extends Specification {
 
     def "tar file contains expected permissions"() {
         when:
-        final TestFile tarFile = initializeTarFile(temporaryFolder.getTestDirectory().file("test.tar"), new SimpleCompressor());
+        TestFile tarFile = initializeTarFile(temporaryFolder.getTestDirectory().file("test.tar"), new SimpleCompressor());
 
         tar(dir("dir"), file("file"));
 
@@ -83,7 +83,7 @@ public class TarCopyActionSpec extends Specification {
 
     def "wraps failure to open output file"() {
         when:
-        final TestFile tarFile = initializeTarFile(temporaryFolder.createDir("test.tar"), new SimpleCompressor());
+        TestFile tarFile = initializeTarFile(temporaryFolder.createDir("test.tar"), new SimpleCompressor());
 
         action.execute(new CopyActionProcessingStream() {
             public void process(CopyActionProcessingStreamAction action) {
@@ -98,7 +98,7 @@ public class TarCopyActionSpec extends Specification {
 
     def "wraps failure to add element"() {
         when:
-        final TestFile tarFile = initializeTarFile(temporaryFolder.getTestDirectory().file("test.tar"), new SimpleCompressor());
+        TestFile tarFile = initializeTarFile(temporaryFolder.getTestDirectory().file("test.tar"), new SimpleCompressor());
 
         Throwable failure = new RuntimeException("broken");
         visit(action, brokenFile("dir/file1", failure));

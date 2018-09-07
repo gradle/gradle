@@ -638,7 +638,7 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         selectNextTask()
 
         then:
-        Exception e = thrown()
+        def e = thrown Exception
         e.message.contains("Execution failed for task ':finalizer'")
 
         when:

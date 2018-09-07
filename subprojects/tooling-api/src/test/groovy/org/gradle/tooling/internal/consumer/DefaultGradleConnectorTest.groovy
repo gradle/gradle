@@ -122,7 +122,7 @@ class DefaultGradleConnectorTest extends Specification {
         connector.connect()
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'A project directory must be specified before creating a connection.'
     }
 }

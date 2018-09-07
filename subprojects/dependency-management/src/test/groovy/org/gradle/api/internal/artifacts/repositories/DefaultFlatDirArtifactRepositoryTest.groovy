@@ -81,7 +81,7 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
         repository.createResolver()
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message == 'You must specify at least one directory for a flat directory repository.'
     }
 }

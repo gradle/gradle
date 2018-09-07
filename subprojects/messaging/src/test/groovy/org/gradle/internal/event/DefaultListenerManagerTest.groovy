@@ -367,7 +367,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         0 * _
 
         and:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
     }
 
@@ -390,7 +390,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         0 * _
 
         and:
-        ListenerNotificationException e = thrown()
+        def e = thrown ListenerNotificationException
         e.causes == [failure1, failure2]
     }
 
@@ -415,7 +415,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         0 * _
 
         and:
-        ListenerNotificationException e = thrown()
+        def e = thrown ListenerNotificationException
         e.causes == [failure1, failure2, failure3]
     }
 
@@ -465,7 +465,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         0 * _
 
         and:
-        ListenerNotificationException e = thrown()
+        def e = thrown ListenerNotificationException
         e.causes == [failure1, failure2, failure3]
     }
 
@@ -618,7 +618,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         manager.getBroadcaster(TestFooListener.class).foo("param")
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == "Cannot notify listeners of type TestFooListener as these listeners are already being notified."
 
         and:
@@ -631,7 +631,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         manager.getBroadcaster(TestFooListener.class).foo("param")
 
         then:
-        IllegalStateException e2 = thrown()
+        def e2 = thrown IllegalStateException
         e2.message == "Cannot notify listeners of type TestFooListener as these listeners are already being notified."
 
         and:

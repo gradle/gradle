@@ -75,7 +75,7 @@ class DefaultAsyncConsumerActionExecutorTest extends ConcurrentSpec {
         connection.run(action, handler)
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot use [executer] as it has been stopped.'
     }
 }

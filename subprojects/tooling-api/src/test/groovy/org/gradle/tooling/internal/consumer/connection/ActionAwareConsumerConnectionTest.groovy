@@ -132,7 +132,7 @@ class ActionAwareConsumerConnectionTest extends Specification {
         connection.run(action, parameters)
 
         then:
-        BuildActionFailureException e = thrown()
+        def e = thrown BuildActionFailureException
         e.message == /The supplied build action failed with an exception./
         e.cause == failure
 

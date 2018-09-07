@@ -126,7 +126,7 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         task.executeTests()
 
         then:
-        GradleException e = thrown()
+        def e = thrown GradleException
         e.message.startsWith("There were failing tests. See the report at")
     }
 

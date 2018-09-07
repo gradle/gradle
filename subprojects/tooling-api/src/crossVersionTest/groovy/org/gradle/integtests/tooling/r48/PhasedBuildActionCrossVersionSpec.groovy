@@ -148,7 +148,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        BuildActionFailureException e = thrown()
+        def e = thrown BuildActionFailureException
         e.message == "The supplied phased action failed with an exception."
         e.cause instanceof RuntimeException
         e.cause.message == "actionFailure"
@@ -253,7 +253,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        UnsupportedVersionException e = thrown()
+        def e = thrown UnsupportedVersionException
         e.message == "The version of Gradle you are using (${version}) does not support the PhasedBuildActionExecuter API. Support for this is available in Gradle 4.8 and all later versions."
     }
 }

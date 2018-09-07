@@ -33,7 +33,7 @@ class NamedEntityInstantiatorsTest extends Specification {
         instantiator.create("foo", NonSubtypeChild)
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "Cannot create an item of type ${NonSubtypeChild.name} as this is not a subtype of ${Base.name}."
     }
 }

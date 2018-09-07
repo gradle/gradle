@@ -92,7 +92,7 @@ class LazyConsumerActionExecutorTest extends Specification {
         connection.run(action)
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory, _ as InternalBuildProgressListener, connectionParams, cancellationToken) >> { throw failure }

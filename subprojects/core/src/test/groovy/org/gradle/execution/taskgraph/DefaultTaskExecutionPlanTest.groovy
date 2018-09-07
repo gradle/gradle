@@ -586,7 +586,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         addToGraphAndPopulate([d])
 
         then:
-        CircularReferenceException e = thrown()
+        def e = thrown CircularReferenceException
         e.message == toPlatformLineSeparators("""Circular dependency between the following tasks:
 :c
 \\--- :d

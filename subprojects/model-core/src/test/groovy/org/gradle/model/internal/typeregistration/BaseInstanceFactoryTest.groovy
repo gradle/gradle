@@ -154,7 +154,7 @@ class BaseInstanceFactoryTest extends Specification {
             .withImplementation(ModelType.of(DefaultThingSpec))
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "No factory registered to create an instance of implementation class '${fullyQualifiedNameOf(DefaultThingSpec)}'."
     }
 

@@ -44,7 +44,7 @@ System.err.println 'this is stderr'
         }
 
         then:
-        BuildException e = thrown()
+        def e = thrown BuildException
         e.message.startsWith('Could not fetch model of type \'GradleProject\' using Gradle')
         e.cause.message.contains('A problem occurred evaluating root project')
     }

@@ -53,7 +53,7 @@ class ResourceVersionListerTest extends Specification {
         lister.listVersions(module, artifact, [testPattern], result)
 
         then:
-        ResourceException e = thrown()
+        def e = thrown ResourceException
         e.message == "Could not list versions using Ivy pattern '/a/pattern/with/[revision]/'."
         e.cause == failure
     }

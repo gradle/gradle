@@ -199,7 +199,7 @@ class SimpleXmlWriterSpec extends Specification {
         writer.endElement()
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot end element, as there are no started elements.'
     }
 
@@ -208,7 +208,7 @@ class SimpleXmlWriterSpec extends Specification {
         writer.characters("text")
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot write text, as there are no started elements.'
 
         given:
@@ -219,7 +219,7 @@ class SimpleXmlWriterSpec extends Specification {
         writer.characters("text")
 
         then:
-        e = thrown()
+        e = thrown IllegalStateException
         e.message == 'Cannot write text, as there are no started elements.'
     }
 
@@ -231,7 +231,7 @@ class SimpleXmlWriterSpec extends Specification {
         writer.endElement()
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot end element, as current CDATA node has not been closed.'
     }
 
@@ -243,7 +243,7 @@ class SimpleXmlWriterSpec extends Specification {
         writer.startElement("nested")
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot start element, as current CDATA node has not been closed.'
     }
 
@@ -255,7 +255,7 @@ class SimpleXmlWriterSpec extends Specification {
         writer.startCDATA()
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot start CDATA node, as current CDATA node has not been closed.'
     }
 
@@ -266,7 +266,7 @@ class SimpleXmlWriterSpec extends Specification {
         writer.endCDATA()
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot end CDATA node, as not currently in a CDATA node.'
     }
 

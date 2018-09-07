@@ -174,7 +174,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         0 * _._
 
         and:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
     }
 
@@ -200,7 +200,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         0 * _._
 
         and:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
     }
 

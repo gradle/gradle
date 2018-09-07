@@ -140,7 +140,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractNamedDomainObj
         container.create("fred")
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message == "Cannot create a Person named 'fred' because this container does not support creating " +
                 "elements by name alone. Please specify which subtype of Person to create. Known subtypes are: (None)"
     }
@@ -223,7 +223,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractNamedDomainObj
         container.maybeCreate("fred", AgeAwarePerson)
 
         then:
-        ClassCastException e = thrown()
+        def e = thrown ClassCastException
         e.message == "Failed to cast object fred of type ${DefaultPerson.class.name} to target type ${AgeAwarePerson.class.name}"
     }
 
@@ -234,7 +234,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractNamedDomainObj
         container.create("fred", Person)
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message == "Cannot create a Person because this type is not known to this container. Known types are: (None)"
     }
 
@@ -243,7 +243,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractNamedDomainObj
         container.registerFactory(String, {} as NamedDomainObjectFactory)
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "Cannot register a factory for type String because it is not a subtype of " +
                 "container element type Person."
     }

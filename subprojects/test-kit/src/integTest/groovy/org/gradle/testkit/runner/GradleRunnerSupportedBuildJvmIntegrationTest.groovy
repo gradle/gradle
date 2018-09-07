@@ -35,7 +35,7 @@ class GradleRunnerSupportedBuildJvmIntegrationTest extends BaseGradleRunnerInteg
         runner().buildAndFail()
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message.startsWith("An error occurred executing build with no args in directory ")
         e.cause instanceof GradleConnectionException
         e.cause.cause.message == "Gradle ${GradleVersion.current().version} requires Java 7 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."

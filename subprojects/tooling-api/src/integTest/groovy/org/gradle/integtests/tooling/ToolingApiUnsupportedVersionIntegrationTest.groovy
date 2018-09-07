@@ -38,7 +38,7 @@ class ToolingApiUnsupportedVersionIntegrationTest extends AbstractIntegrationSpe
         toolingApi.withConnection { ProjectConnection connection -> connection.getModel(GradleProject.class) }
 
         then:
-        UnsupportedVersionException e = thrown()
+        def e = thrown UnsupportedVersionException
         e.message == "The version of Gradle you are using (Gradle distribution '${distroZip}') does not support the ModelBuilder API. Support for this is available in Gradle 1.2 and all later versions."
     }
 
@@ -47,7 +47,7 @@ class ToolingApiUnsupportedVersionIntegrationTest extends AbstractIntegrationSpe
         toolingApi.withConnection { ProjectConnection connection -> connection.newBuild().run() }
 
         then:
-        UnsupportedVersionException e = thrown()
+        def e = thrown UnsupportedVersionException
         e.message == "The version of Gradle you are using (Gradle distribution '${distroZip}') does not support the BuildLauncher API. Support for this is available in Gradle 1.2 and all later versions."
     }
 
@@ -56,7 +56,7 @@ class ToolingApiUnsupportedVersionIntegrationTest extends AbstractIntegrationSpe
         toolingApi.withConnection { ProjectConnection connection -> connection.action(new NullAction()).run() }
 
         then:
-        UnsupportedVersionException e = thrown()
+        def e = thrown UnsupportedVersionException
         e.message == "The version of Gradle you are using (Gradle distribution '${distroZip}') does not support the BuildActionExecuter API. Support for this is available in Gradle 1.8 and all later versions."
     }
 
@@ -65,7 +65,7 @@ class ToolingApiUnsupportedVersionIntegrationTest extends AbstractIntegrationSpe
         toolingApi.withConnection { ProjectConnection connection -> connection.newTestLauncher().withJvmTestClasses("class").run() }
 
         then:
-        UnsupportedVersionException e = thrown()
+        def e = thrown UnsupportedVersionException
         e.message == "The version of Gradle you are using (Gradle distribution '${distroZip}') does not support the TestLauncher API. Support for this is available in Gradle 2.6 and all later versions."
     }
 }

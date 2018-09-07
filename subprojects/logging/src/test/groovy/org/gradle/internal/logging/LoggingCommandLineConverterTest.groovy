@@ -83,7 +83,7 @@ class LoggingCommandLineConverterTest extends Specification {
         converter.convert(["--console", "unknown"], new DefaultLoggingConfiguration())
 
         then:
-        CommandLineArgumentException e = thrown()
+        def e = thrown CommandLineArgumentException
         e.message == /Argument value 'unknown' given for --console option is invalid/
     }
 
