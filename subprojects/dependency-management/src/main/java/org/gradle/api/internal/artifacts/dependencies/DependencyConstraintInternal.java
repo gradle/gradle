@@ -13,17 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.component.model;
+package org.gradle.api.internal.artifacts.dependencies;
 
-public interface ForcingDependencyMetadata extends DependencyMetadata {
-    /**
-     * Was the dependency created with the 'force' attribute.
-     */
+import org.gradle.api.artifacts.DependencyConstraint;
+
+public interface DependencyConstraintInternal extends DependencyConstraint {
+    void setForce(boolean force);
     boolean isForce();
-
-    /**
-     * Returns a copy of this dependency metadata, using force.
-     * @return forced dependency metadata
-     */
-    ForcingDependencyMetadata forced();
 }

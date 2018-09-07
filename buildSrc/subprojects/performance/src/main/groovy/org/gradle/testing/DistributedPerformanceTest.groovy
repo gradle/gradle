@@ -183,9 +183,7 @@ class DistributedPerformanceTest extends PerformanceTest {
             schedule(it, coordinatorBuild?.lastChangeId)
         }
 
-        scheduledBuilds.each {
-            join(it)
-        }
+        waitForTestsCompletion()
 
         writeScenarioReport()
 
@@ -265,23 +263,44 @@ class DistributedPerformanceTest extends PerformanceTest {
         return null
     }
 
+    void waitForTestsCompletion() {
+        int total = scheduledBuilds.size()
+        Set<String> completed = []
+        while (completed.size() < total) {
+            scheduledBuilds.each { build ->
+                if (!completed.contains(build)) {
+                    if (checkResult(build)) {
+                        completed << build
+                    } else {
+                        println "Waiting for build $build to complete"
+                    }
+                }
+            }
+            if (completed.size() < total) {
+                int pc = (100 * (((double) completed.size()) / (double) total)) as int
+                println "Completed ${completed.size()} tests of $total ($pc%)"
+                sleep(TimeUnit.MINUTES.toMillis(1))
+            }
+        }
+    }
+
     @TypeChecked(TypeCheckingMode.SKIP)
     private String findLastChangeIdInXml(xmlroot) {
         xmlroot.lastChanges.change[0].@id.text()
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private void join(String jobId) {
-        def finished = false
-        def response
-        while (!finished) {
-            response = client.get(path: "builds/id:$jobId")
-            finished = response.data.@state == "finished"
-            if (!finished) {
-                println "Waiting for scenario build $jobId to finish"
-                sleep(TimeUnit.MINUTES.toMillis(1))
-            }
+    private boolean checkResult(String jobId) {
+        def response = client.get(path: "builds/id:$jobId")
+        boolean finished = response.data.@state == "finished"
+        if (finished) {
+            collectPerformanceTestResults(response)
         }
+        finished
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private void collectPerformanceTestResults(def response) {
         finishedBuilds += response.data
 
         try {

@@ -31,6 +31,7 @@ public class VirtualPlatformState {
     private final ModuleResolveState platformModule;
 
     private final Set<ModuleResolveState> participatingModules = Sets.newHashSet();
+    private final List<EdgeState> orphanEdges = Lists.newArrayListWithExpectedSize(2);
 
     public VirtualPlatformState(final Comparator<Version> versionComparator, final VersionParser versionParser, ModuleResolveState platformModule) {
         this.vC = new Comparator<String>() {
@@ -57,6 +58,10 @@ public class VirtualPlatformState {
     }
 
     List<String> getCandidateVersions() {
+        ComponentState selectedPlatformComponent = platformModule.getSelected();
+        if (selectedPlatformComponent.getSelectionReason().isForced()) {
+            return Collections.singletonList(selectedPlatformComponent.getVersion());
+        }
         List<String> sorted = Lists.newArrayListWithCapacity(participatingModules.size());
         for (ModuleResolveState module : participatingModules) {
             ComponentState selected = module.getSelected();
@@ -90,6 +95,25 @@ public class VirtualPlatformState {
                 return true;
             }
         }
-        return false;
+        return platformModule.getSelected().getSelectionReason().isForced();
+    }
+
+    /**
+     * It is possible that a member of a virtual platform is discovered after trying
+     * to resolve the platform itself. If the platform was declared as a dependency,
+     * then the engine thinks that the platform module is unresolved. We need to
+     * remember such edges, because in case a virtual platform gets defined, the error
+     * is no longer valid and we can attach the target revision.
+     * @param edge the orphan edge
+     */
+    void addOrphanEdge(EdgeState edge) {
+        orphanEdges.add(edge);
+    }
+
+    void attachOrphanEdges() {
+        for (EdgeState orphanEdge : orphanEdges) {
+            orphanEdge.attachToTargetConfigurations();
+        }
+        orphanEdges.clear();
     }
 }

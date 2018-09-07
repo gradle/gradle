@@ -41,16 +41,12 @@ class DefaultPendingDependenciesHandler implements PendingDependenciesHandler {
 
     public class DefaultVisitor implements Visitor {
         private List<PendingDependencies> noLongerPending;
-        private PendingDependencies currentPending;
 
         public boolean maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState) {
-            currentPending = null;
             ModuleIdentifier key = dependencyState.getModuleIdentifier();
-            boolean isOptionalDependency = dependencyState.getDependency().isConstraint();
-            if (!isOptionalDependency) {
-                currentPending = pendingDependencies.getPendingDependencies(key);
-                markNoLongerPending(currentPending);
-                currentPending.addHardEdge();
+            boolean isConstraint = dependencyState.getDependency().isConstraint();
+            if (!isConstraint) {
+                markNotPending(key);
                 return false;
             }
 
@@ -68,6 +64,11 @@ class DefaultPendingDependenciesHandler implements PendingDependenciesHandler {
             return true;
         }
 
+        @Override
+        public void markNotPending(ModuleIdentifier id) {
+            markNoLongerPending(pendingDependencies.getPendingDependencies(id));
+        }
+
         private void markNoLongerPending(PendingDependencies pendingDependencies) {
             if (pendingDependencies.hasPendingComponents()) {
                 if (noLongerPending == null) {
@@ -75,6 +76,7 @@ class DefaultPendingDependenciesHandler implements PendingDependenciesHandler {
                 }
                 noLongerPending.add(pendingDependencies);
             }
+            pendingDependencies.addHardEdge();
         }
 
         public void complete() {

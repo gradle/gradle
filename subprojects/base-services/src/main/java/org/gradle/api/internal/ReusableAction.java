@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal;
 
-package org.gradle.performance.fixture
-
-import groovy.transform.CompileStatic
-import org.gradle.performance.results.ResultsStoreHelper
-import org.gradle.testing.internal.util.RetryRule
-
-@CompileStatic
-class PerformanceTestRetryRule extends RetryRule {
-    PerformanceTestRetryRule() {
-        super(null, { Throwable failure ->
-            failure.message?.contains("slower") && !ResultsStoreHelper.isAdhocPerformanceTest()
-        })
-    }
+/**
+ * A marker interface for rules which can be safely reused because they are either
+ * stateless, or effectively immutable. Ideally this should be inferred, which is
+ * why the interface is internal.
+ */
+public interface ReusableAction {
 }

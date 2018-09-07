@@ -35,6 +35,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.util.GFileUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -95,6 +96,7 @@ public class Groovydoc extends SourceTask {
     @TaskAction
     protected void generate() {
         checkGroovyClasspathNonEmpty(getGroovyClasspath().getFiles());
+        GFileUtils.cleanDirectory(getDestinationDir());
         getAntGroovydoc().execute(getSource(), getDestinationDir(), isUse(), isNoTimestamp(), isNoVersionStamp(), getWindowTitle(),
                 getDocTitle(), getHeader(), getFooter(), getPathToOverview(), isIncludePrivate(), getLinks(), getGroovyClasspath(),
                 getClasspath(), getProject());

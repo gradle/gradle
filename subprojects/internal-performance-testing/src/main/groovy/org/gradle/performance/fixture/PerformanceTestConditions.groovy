@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.component.model;
 
-public interface ForcingDependencyMetadata extends DependencyMetadata {
-    /**
-     * Was the dependency created with the 'force' attribute.
-     */
-    boolean isForce();
+package org.gradle.performance.fixture
 
-    /**
-     * Returns a copy of this dependency metadata, using force.
-     * @return forced dependency metadata
-     */
-    ForcingDependencyMetadata forced();
+import org.gradle.performance.results.ResultsStoreHelper
+
+class PerformanceTestConditions {
+    static boolean whenSlowerButNotAdhoc(Throwable failure) {
+        failure.message?.contains("slower") && !ResultsStoreHelper.isAdhocPerformanceTest()
+    }
 }

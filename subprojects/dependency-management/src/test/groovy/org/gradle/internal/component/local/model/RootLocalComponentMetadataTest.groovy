@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.local.model
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
@@ -86,7 +87,7 @@ class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
     }
 
     private addConfiguration(String name, Collection<String> extendsFrom = [], ImmutableAttributes attributes = ImmutableAttributes.EMPTY) {
-        metadata.addConfiguration(name, "", extendsFrom as Set, (extendsFrom + [name]) as Set, true, true, attributes, true, true, ImmutableCapabilities.EMPTY)
+        metadata.addConfiguration(name, "", extendsFrom as Set, ImmutableSet.copyOf(extendsFrom + [name]), true, true, attributes, true, true, ImmutableCapabilities.EMPTY)
     }
 
 }

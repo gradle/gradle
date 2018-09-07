@@ -937,6 +937,17 @@ p {
     color: #02303A;
 }
 
+h1,
+h2,
+p,
+p strong,
+td.content,
+td.content strong,
+div.footnote strong,
+span.alt {
+    letter-spacing: normal;
+}
+
 .subheader,
 .admonitionblock td.content > .title,
 .audioblock > .title,
@@ -1217,7 +1228,7 @@ div.screenshot {
 }
 
 #header #toctitle {
-    margin-bottom: 0.625rem;
+    margin-bottom: 0.425rem;
 }
 
 #toc,
@@ -1231,9 +1242,9 @@ div.screenshot {
 }
 
 #toc > ul > li {
-    line-height: 1.0;
+    line-height: 1.25;
     margin-top: 0;
-    padding-bottom: 0.425rem;
+    padding-bottom: 0.5rem;
 }
 #toc > ul > li:last-of-type {
     padding-bottom: 0;
@@ -1266,7 +1277,7 @@ div.screenshot {
     #header #toctitle {
         font-size: 1rem;
         font-weight: 700;
-        margin: 0.4rem 0 0.625rem 0;
+        margin: 0.4rem 0 0.5rem 0;
     }
 
     #toc a {
@@ -1579,7 +1590,7 @@ div.screenshot {
     color: #02303A;
     display: block;
     font-size: 1rem;
-    line-height: 1.0;
+    line-height: 1.25;
 }
 
 .docs-navigation a code {
@@ -1595,15 +1606,18 @@ div.screenshot {
 
 .docs-navigation ul {
     list-style-type: none;
-    margin: 0.625em 0;
+    margin: 0.5em 0;
     padding: 0;
 }
 .docs-navigation ul:last-of-type {
     margin-bottom: 0;
 }
 
+.docs-navigation li:first-of-type {
+    margin-top: 0;
+}
 .docs-navigation li {
-    margin-bottom: 0.625em;
+    margin-bottom: 0.5em;
 }
 .docs-navigation li:last-of-type {
     margin-bottom: 0;
@@ -1698,7 +1712,6 @@ div.screenshot {
     .chapter #toc a {
         color: #02303A;
         display: inline-block;
-        margin-bottom: 0.2rem;
     }
 
     .appendix #toc a.active,

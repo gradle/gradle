@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model.ivy;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -72,7 +73,7 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
         ImmutableMap<String, Configuration> configurationDefinitions = metadata.getConfigurationDefinitions();
         for (String configurationName: metadata.getConfigurationNames()) {
             Configuration configuration = configurationDefinitions.get(configurationName);
-            ImmutableList<String> hierarchy = LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions);
+            ImmutableSet<String> hierarchy = LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions);
 
             NameOnlyVariantResolveMetadata variant = new NameOnlyVariantResolveMetadata(configurationName);
             ImmutableAttributes variantAttributes = variantMetadataRules.applyVariantAttributeRules(variant, metadata.getAttributes());
@@ -128,7 +129,7 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
         this.metadata = metadata;
     }
 
-    private static RealisedConfigurationMetadata createConfiguration(IvyConfigurationHelper configurationHelper, VariantMetadataRules variantMetadataRules, ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, ImmutableList<ModuleComponentArtifactMetadata> artifacts, ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes componentLevelAttributes, ImmutableCapabilities capabilities) {
+    private static RealisedConfigurationMetadata createConfiguration(IvyConfigurationHelper configurationHelper, VariantMetadataRules variantMetadataRules, ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableSet<String> hierarchy, ImmutableList<ModuleComponentArtifactMetadata> artifacts, ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes componentLevelAttributes, ImmutableCapabilities capabilities) {
         RealisedConfigurationMetadata configuration = new RealisedConfigurationMetadata(componentId, name, transitive, visible, hierarchy, artifacts, excludes, componentLevelAttributes, capabilities);
         ImmutableList<ModuleDependencyMetadata> dependencyMetadata = configurationHelper.filterDependencies(configuration);
         dependencyMetadata = ImmutableList.copyOf(variantMetadataRules.applyDependencyMetadataRules(new NameOnlyVariantResolveMetadata(name), dependencyMetadata));

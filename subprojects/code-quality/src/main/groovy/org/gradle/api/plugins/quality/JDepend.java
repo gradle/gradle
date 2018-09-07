@@ -43,8 +43,11 @@ import java.io.File;
 
 /**
  * Analyzes code with <a href="https://github.com/clarkware/jdepend">JDepend</a>.
+ *
+ * @deprecated JDepend is unmaintained and does not support bytecode compiled for Java 8 and above.
  */
 @CacheableTask
+@Deprecated
 public class JDepend extends DefaultTask implements Reporting<JDependReports> {
 
     private FileCollection jdependClasspath;

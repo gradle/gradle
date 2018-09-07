@@ -146,6 +146,10 @@ TBD - The methods on `DefaultTask` and `ProjectLayout` that create file and dire
 
 See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
 
+### Deprecated code quality plugins
+
+- The JDepend plugin has been deprecated because the project is unmaintained and does not work with bytecode compiled for Java 8 and above.
+
 ## Potential breaking changes
 
 <!--
@@ -170,6 +174,7 @@ See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-exec
 
 The default tool versions of the following code quality plugins have been updated:
 
+- The Checkstyle plugin now uses 8.12 instead of 6.19 by default.
 - The CodeNarc plugin now uses 1.2.1 instead of 1.1 by default.
 - The JaCoCo plugin now uses 0.8.2 instead of 0.8.1 by default.
 - The PMD plugin now uses 6.7.0 instead of 5.6.1 by default.
@@ -184,6 +189,11 @@ to reset the property back to its default value. Use `DuplicatesStrategy.INHERIT
 ### `CheckstyleReports` and `FindbugsReports` `html` property now return `CustomizableHtmlReport`
 
 For easier configurability from statically compiled languages such as Java or Kotlin.
+
+### Javadoc and Groovydoc delete destination dir
+
+The [`Javadoc`](dsl/org.gradle.api.tasks.javadoc.Javadoc.html) and [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) tasks now delete the destination dir for the documentation before executing.
+This has been added to remove stale output files from the last task execution.
 
 ### Changes to property factory methods on `DefaultTask`
 
