@@ -294,6 +294,13 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             if (name == null) {
                 return null;
             }
+            if (RuleVisitor.SOURCE_URI_TOKEN.equals(name)) {
+                URI uri = scriptSource.getResource().getLocation().getURI();
+                return uri == null ? null : uri.toString();
+            }
+            if (RuleVisitor.SOURCE_DESC_TOKEN.equals(name)) {
+                return scriptSource.getDisplayName();
+            }
             return name.replaceAll(RemappingScriptSource.MAPPED_SCRIPT, scriptSource.getClassName());
         }
 
@@ -303,13 +310,6 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             }
             if (o instanceof String) {
                 return remap((String) o);
-            }
-            if (RuleVisitor.SOURCE_URI_TOKEN.equals(o)) {
-                URI uri = scriptSource.getResource().getLocation().getURI();
-                return uri == null ? null : uri.toString();
-            }
-            if (RuleVisitor.SOURCE_DESC_TOKEN.equals(o)) {
-                return scriptSource.getDisplayName();
             }
             return o;
         }
