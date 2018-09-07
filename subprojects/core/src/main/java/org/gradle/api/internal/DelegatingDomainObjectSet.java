@@ -28,7 +28,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
-public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T>, WithMutationGuard {
+public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
     private final DomainObjectSet<T> backingSet;
 
     public DelegatingDomainObjectSet(DomainObjectSet<T> backingSet) {
@@ -148,10 +148,5 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T>, WithMut
 
     public Set<T> findAll(Closure spec) {
         return backingSet.findAll(spec);
-    }
-
-    @Override
-    public MutationGuard getMutationGuard() {
-        return MutationGuards.of(backingSet);
     }
 }
