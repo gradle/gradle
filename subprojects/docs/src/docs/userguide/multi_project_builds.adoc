@@ -138,13 +138,11 @@ The Project API also provides a property for accessing the subprojects only.
 === Defining common behavior
 
 
-=== Example: Defining common behavior of all projects and subprojects
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/multiproject/useSubprojects/water/build.gradle[]
-----
+.Defining common behavior of all projects and subprojects
+====
+include::sample[dir="userguide/multiproject/useSubprojects/water/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/multiproject/useSubprojects/water/kotlin",files="build.gradle.kts[]"]
+====
 
 .Output of **`gradle -q hello`**
 ----
