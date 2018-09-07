@@ -141,12 +141,12 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         def gradleVersion = GradleVersion.current().version
         def gradleBaseVersion = GradleVersion.current().baseVersion.version
         def groovyVersion = GroovySystem.version
-        outputContains("gradleApi() files: [gradle-api-${gradleVersion}.jar, groovy-all-${groovyVersion}.jar, gradle-installation-beacon-${gradleBaseVersion}.jar]")
-        outputContains("gradleApi() ids: [gradle-api-${gradleVersion}.jar (Gradle API), groovy-all-${groovyVersion}.jar (Gradle API), gradle-installation-beacon-${gradleBaseVersion}.jar (Gradle API)]")
-        outputContains("gradleTestKit() files: [gradle-test-kit-${gradleVersion}.jar, gradle-api-${ gradleVersion}.jar, groovy-all-${groovyVersion}.jar, gradle-installation-beacon-${gradleBaseVersion}.jar]")
-        outputContains("gradleTestKit() ids: [gradle-test-kit-${gradleVersion}.jar (Gradle TestKit), gradle-api-${gradleVersion}.jar (Gradle TestKit), groovy-all-${groovyVersion}.jar (Gradle TestKit), gradle-installation-beacon-${gradleBaseVersion}.jar (Gradle TestKit)]")
-        outputContains("localGroovy() files: [groovy-all-${groovyVersion}.jar]")
-        outputContains("localGroovy() ids: [groovy-all-${groovyVersion}.jar (Local Groovy)]")
+        outputContains("gradleApi() files: [gradle-api-${gradleVersion}.jar, groovy-${groovyVersion}.jar, groovy-ant-${groovyVersion}.jar, groovy-json-${groovyVersion}.jar, groovy-templates-${groovyVersion}.jar, groovy-test-${groovyVersion}.jar, groovy-xml-${groovyVersion}.jar, gradle-installation-beacon-${gradleBaseVersion}.jar]")
+        outputContains("gradleApi() ids: [gradle-api-${gradleVersion}.jar (Gradle API), groovy-${groovyVersion}.jar (Gradle API), groovy-ant-${groovyVersion}.jar (Gradle API), groovy-json-${groovyVersion}.jar (Gradle API), groovy-templates-${groovyVersion}.jar (Gradle API), groovy-test-${groovyVersion}.jar (Gradle API), groovy-xml-${groovyVersion}.jar (Gradle API), gradle-installation-beacon-${gradleBaseVersion}.jar (Gradle API)]")
+        outputContains("gradleTestKit() files: [gradle-test-kit-${gradleVersion}.jar, gradle-api-${ gradleVersion}.jar, groovy-${groovyVersion}.jar, groovy-ant-${groovyVersion}.jar, groovy-json-${groovyVersion}.jar, groovy-templates-${groovyVersion}.jar, groovy-test-${groovyVersion}.jar, groovy-xml-${groovyVersion}.jar, gradle-installation-beacon-${gradleBaseVersion}.jar]")
+        outputContains("gradleTestKit() ids: [gradle-test-kit-${gradleVersion}.jar (Gradle TestKit), gradle-api-${gradleVersion}.jar (Gradle TestKit), groovy-${groovyVersion}.jar (Gradle TestKit), groovy-ant-${groovyVersion}.jar (Gradle TestKit), groovy-json-${groovyVersion}.jar (Gradle TestKit), groovy-templates-${groovyVersion}.jar (Gradle TestKit), groovy-test-${groovyVersion}.jar (Gradle TestKit), groovy-xml-${groovyVersion}.jar (Gradle TestKit), gradle-installation-beacon-${gradleBaseVersion}.jar (Gradle TestKit)]")
+        outputContains("localGroovy() files: [groovy-${groovyVersion}.jar, groovy-ant-${groovyVersion}.jar, groovy-json-${groovyVersion}.jar, groovy-templates-${groovyVersion}.jar, groovy-test-${groovyVersion}.jar, groovy-xml-${groovyVersion}.jar]")
+        outputContains("localGroovy() ids: [groovy-${groovyVersion}.jar (Local Groovy), groovy-ant-${groovyVersion}.jar (Local Groovy), groovy-json-${groovyVersion}.jar (Local Groovy), groovy-templates-${groovyVersion}.jar (Local Groovy), groovy-test-${groovyVersion}.jar (Local Groovy), groovy-xml-${groovyVersion}.jar (Local Groovy)]")
     }
 
     private String javaClassReferencingTestKit() {
