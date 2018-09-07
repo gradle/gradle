@@ -65,7 +65,7 @@ class ScenarioReportRenderer {
                                     tr(class: rowClass) {
                                         td(colspan: 4) {
                                             span(class: 'code') {
-                                                pre(failure.message)
+                                                pre(failure.value)
                                             }
                                         }
                                     }

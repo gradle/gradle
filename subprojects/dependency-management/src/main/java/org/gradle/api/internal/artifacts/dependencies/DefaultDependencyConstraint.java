@@ -35,7 +35,7 @@ import org.gradle.api.logging.Logging;
 
 import javax.annotation.Nullable;
 
-public class DefaultDependencyConstraint implements DependencyConstraint {
+public class DefaultDependencyConstraint implements DependencyConstraintInternal {
 
     private final static Logger LOG = Logging.getLogger(DefaultDependencyConstraint.class);
 
@@ -45,6 +45,7 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
     private String reason;
     private ImmutableAttributesFactory attributesFactory;
     private AttributeContainerInternal attributes;
+    private boolean force;
 
     public DefaultDependencyConstraint(String group, String name, String version) {
         this.moduleIdentifier = DefaultModuleIdentifier.newId(group, name);
@@ -109,7 +110,8 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
         DefaultDependencyConstraint that = (DefaultDependencyConstraint) o;
         return Objects.equal(moduleIdentifier, that.moduleIdentifier) &&
             Objects.equal(versionConstraint, that.versionConstraint) &&
-            Objects.equal(attributes, that.attributes);
+            Objects.equal(attributes, that.attributes) &&
+            force == that.force;
     }
 
     @Override
@@ -152,6 +154,7 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
         constraint.reason = reason;
         constraint.attributes = attributes;
         constraint.attributesFactory = attributesFactory;
+        constraint.force = force;
         return constraint;
     }
 
@@ -160,5 +163,15 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
         return "constraint " +
             moduleIdentifier + ":" + versionConstraint +
             ", attributes=" + attributes;
+    }
+
+    @Override
+    public void setForce(boolean force) {
+        this.force = force;
+    }
+
+    @Override
+    public boolean isForce() {
+        return force;
     }
 }

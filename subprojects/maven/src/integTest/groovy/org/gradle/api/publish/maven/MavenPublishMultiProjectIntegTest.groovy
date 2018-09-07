@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class MavenPublishMultiProjectIntegTest extends AbstractMavenPublishIntegTest {
@@ -328,6 +329,7 @@ project(":project2") {
         }
     }
 
+    @Ignore("TODO: CC, there's currently no support for platform() on a local project. We must think about the concept of Gradle platform first")
     def "publish and resolve java-library with dependency on java-library-platform"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()

@@ -71,7 +71,7 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
 
     @Override
     public boolean isTransitive() {
-        return !isOptional();
+        return !(isConstraint() || isOptional());
     }
 
     /**
@@ -181,7 +181,12 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
 
     @Override
     public boolean isOptional() {
-        return type.optional;
+        return type == MavenDependencyType.OPTIONAL_DEPENDENCY;
+    }
+
+    @Override
+    public boolean isConstraint() {
+        return type == MavenDependencyType.DEPENDENCY_MANAGEMENT;
     }
 
     @Override

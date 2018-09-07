@@ -39,6 +39,10 @@ dependencies {
     testLibraries("jmock").forEach { compile(it) }
     compile(testLibrary("spock"))
     compile(testLibrary("jsoup"))
+
+    components {
+        withModule("cglib:cglib", cglibWithoutAntRule)
+    }
 }
 
 gradlebuildJava {

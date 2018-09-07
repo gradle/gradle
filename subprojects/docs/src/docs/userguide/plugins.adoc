@@ -305,8 +305,8 @@ With the introduction of the <<#sec:plugins_block,plugins DSL>>, users should ha
 
 .Applying a binary plugin
 ====
-include::sample[dir="java/quickstart/groovy", files="build.gradle[tags=use-plugin]"]
-include::sample[dir="java/quickstart/kotlin", files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="java/quickstart/groovy", files="build.gradle[tags=use-plugin-legacy]"]
+include::sample[dir="java/quickstart/kotlin", files="build.gradle.kts[tags=use-plugin-legacy]"]
 ====
 
 Plugins can be applied using a _plugin id_. In the above case, we are using the short name ‘`java`’ to apply the link:{javadocPath}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin].

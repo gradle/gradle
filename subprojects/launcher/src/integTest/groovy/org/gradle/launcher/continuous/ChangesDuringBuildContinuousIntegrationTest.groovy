@@ -16,26 +16,18 @@
 
 package org.gradle.launcher.continuous
 
-import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.testing.internal.util.RetryRule
 import org.gradle.util.TestPrecondition
-import org.junit.Rule
+import spock.lang.Retry
 import spock.lang.Unroll
 
+import static org.gradle.integtests.fixtures.RetryConditions.cleanProjectDir
+import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 // Continuous build will trigger a rebuild when an input file is changed during build execution
 @TestReproducibleArchives
+@Retry(condition = { TestPrecondition.LINUX && TestPrecondition.JDK8_OR_EARLIER && cleanProjectDir(instance) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 class ChangesDuringBuildContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
-
-    @Rule
-    RetryRule retryRule = RetryRule.retryIf(this) {
-        if (TestPrecondition.LINUX && TestPrecondition.JDK8_OR_EARLIER) {
-            // possibly hit JDK-8145981
-            return RetryRuleUtil.retryWithCleanProjectDir(this)
-        }
-        false
-    }
 
     def setup() {
         def quietPeriod = OperatingSystem.current().isMacOsX() ? 2000 : 250

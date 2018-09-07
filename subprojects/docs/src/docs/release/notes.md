@@ -146,6 +146,10 @@ TBD - The methods on `DefaultTask` and `ProjectLayout` that create file and dire
 
 See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
 
+### Deprecated code quality plugins
+
+- The JDepend plugin has been deprecated because the project is unmaintained and does not work with bytecode compiled for Java 8 and above.
+
 ## Potential breaking changes
 
 <!--
@@ -170,6 +174,7 @@ See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-exec
 
 The default tool versions of the following code quality plugins have been updated:
 
+- The Checkstyle plugin now uses 8.12 instead of 6.19 by default.
 - The CodeNarc plugin now uses 1.2.1 instead of 1.1 by default.
 - The JaCoCo plugin now uses 0.8.2 instead of 0.8.1 by default.
 - The PMD plugin now uses 6.7.0 instead of 5.6.1 by default.
@@ -184,6 +189,11 @@ to reset the property back to its default value. Use `DuplicatesStrategy.INHERIT
 ### `CheckstyleReports` and `FindbugsReports` `html` property now return `CustomizableHtmlReport`
 
 For easier configurability from statically compiled languages such as Java or Kotlin.
+
+### Javadoc and Groovydoc delete destination dir
+
+The [`Javadoc`](dsl/org.gradle.api.tasks.javadoc.Javadoc.html) and [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) tasks now delete the destination dir for the documentation before executing.
+This has been added to remove stale output files from the last task execution.
 
 ### Changes to property factory methods on `DefaultTask`
 
@@ -268,7 +278,7 @@ We would like to thank the following community members for making contributions 
 - [Georg Friedrich](https://github.com/GFriedrich) - Base Java Library Distribution Plugin on Java Library Plugin (gradle/gradle#5695)
 - [Stefan M.](https://github.com/StefMa) — Include Kotlin DSL samples in Gradle Wrapper, Java Gradle Plugin, and OSGI Plugin user manual chapters (gradle/gradle#5923, gradle/gradle#6485, gradle/gradle#6539)
 - [Stefan M.](https://github.com/StefMa) - Fix incoherent task name in the Authoring Tasks user manual chapter (gradle/gradle#6581)
-- [Jean-Baptiste Nizet](https://github.com/jnizet) — Include Kotlin DSL samples in Announcements, Base, Java Library Plugins, JaCoCo Plugins, Building Java Projects, Declaring Repositories, Dependency Locking, Dependency Types, Java Library, Java Testing, Artifact Management, IDEA Plugin, Application Plugin, Dependency Management for Java Projects, Working With Files, Working With Dependencies, Building Java Projects, Java Quickstart and Eclipse Plugin user manual chapters (gradle/gradle#6488, gradle/gradle#6500, gradle/gradle#6514, gradle/gradle#6518, gradle/gradle#6521, gradle/gradle#6540, gradle/gradle#6560, gradle/gradle#6559, gradle/gradle#6569, gradle/gradle#6556, gradle/gradle#6512, gradle/gradle#6501, gradle/gradle#6497, gradle/gradle#6571, gradle/gradle#6575, gradle/gradle#6586, gradle/gradle#6590)
+- [Jean-Baptiste Nizet](https://github.com/jnizet) — Include Kotlin DSL samples in Announcements, ANTLR, Base, EAR, Java Library Plugins, JaCoCo Plugins, Building Java Projects, Declaring Repositories, Dependency Locking, Dependency Types, Java Library, Java Testing, Artifact Management, IDEA Plugin, Application Plugin, Build Cache, Build Lifecycle, Declaring Dependencies, Inspecting Dependencies, Dependency Management for Java Projects, Working With Files, Working With Dependencies, Building Java Projects, Java Quickstart, Eclipse Plugin, Custom Tasks and Java Plugin user manual chapters (gradle/gradle#6488, gradle/gradle#6500, gradle/gradle#6514, gradle/gradle#6518, gradle/gradle#6521, gradle/gradle#6540, gradle/gradle#6560, gradle/gradle#6559, gradle/gradle#6569, gradle/gradle#6556, gradle/gradle#6512, gradle/gradle#6501, gradle/gradle#6497, gradle/gradle#6571, gradle/gradle#6575, gradle/gradle#6586, gradle/gradle#6590, gradle/gradle#6591, gradle/gradle#6593, gradle/gradle#6597, gradle/gradle#6598, gradle/gradle#6602, gradle/gradle#6613, gradle/gradle#6618, gradle/gradle#6578)
 - [Jean-Baptiste Nizet](https://github.com/jnizet) — Use proper subtype for useTestNG() (gradle/gradle#6520)
 - [Xiang Li](https://github.com/lixiangconan) and [Theodore Ni](https://github.com/tjni) - Make FileUtils#calculateRoots more efficient (gradle/gradle#6455)
 - [James Justinic](https://github.com/jjustinic) Include Kotlin DSL samples in Ant, WAR Plugin, Checkstyle plugin, CodeNarc plugin, FindBugs plugin, JDepend plugin, PMD plugin user manual chapters (gradle/gradle#6492, gradle/gradle#6510, gradle/gradle#6522)

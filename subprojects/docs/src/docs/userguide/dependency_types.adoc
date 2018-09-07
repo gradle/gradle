@@ -86,13 +86,11 @@ Multi-project builds are discussed in <<multi_project_builds.adoc#multi_project_
 
 You can declare a dependency on the API of the current version of Gradle by using the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:gradleApi()[DependencyHandler.gradleApi()] method. This is useful when you are developing custom Gradle tasks or plugins.
 
-=== Example: Gradle API dependencies
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/customPlugin/plugin/build.gradle[tag=gradle-api-dependencies]
-----
+.Gradle API dependencies
+====
+include::sample[dir="customPlugin/groovy/plugin",files="build.gradle[tags=gradle-api-dependencies]"]
+include::sample[dir="customPlugin/kotlin/plugin",files="build.gradle.kts[tags=gradle-api-dependencies]"]
+====
 
 [[sub:testkit_dependencies]]
 === Gradle TestKit dependency
@@ -114,10 +112,9 @@ include::{samplesPath}/testKit/gradleRunner/junitQuickstart/build.gradle[tag=dec
 
 You can declare a dependency on the Groovy that is distributed with Gradle by using the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:localGroovy()[DependencyHandler.localGroovy()] method. This is useful when you are developing custom Gradle tasks or plugins in Groovy.
 
-=== Example: Gradle's Groovy dependencies
+.Gradle's Groovy dependencies
+====
+include::sample[dir="customPlugin/groovy/plugin",files="build.gradle[tags=local-groovy-dependencies]"]
+include::sample[dir="customPlugin/kotlin/plugin",files="build.gradle.kts[tags=local-groovy-dependencies]"]
+====
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/customPlugin/plugin/build.gradle[tag=local-groovy-dependencies]
-----
