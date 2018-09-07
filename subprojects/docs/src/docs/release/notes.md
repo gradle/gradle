@@ -190,6 +190,11 @@ to reset the property back to its default value. Use `DuplicatesStrategy.INHERIT
 
 For easier configurability from statically compiled languages such as Java or Kotlin.
 
+### Javadoc and Groovydoc delete destination dir
+
+The [`Javadoc`](dsl/org.gradle.api.tasks.javadoc.Javadoc.html) and [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) tasks now delete the destination dir for the documentation before executing.
+This has been added to remove stale output files from the last task execution.
+
 ### Changes to property factory methods on `DefaultTask`
 
 #### Property factory methods on `DefaultTask` are final

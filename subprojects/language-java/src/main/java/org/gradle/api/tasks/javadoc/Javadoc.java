@@ -41,6 +41,7 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
@@ -103,7 +104,8 @@ public class Javadoc extends SourceTask {
 
     @TaskAction
     protected void generate() {
-        final File destinationDir = getDestinationDir();
+        File destinationDir = getDestinationDir();
+        GFileUtils.cleanDirectory(destinationDir);
 
         StandardJavadocDocletOptions options = new StandardJavadocDocletOptions((StandardJavadocDocletOptions) getOptions());
 
