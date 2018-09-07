@@ -186,31 +186,9 @@ As we have said, we usually prefer to put project specific behavior into the bui
 
 NOTE: The code for this example can be found at **`samples/userguide/multiproject/spreadSpecifics/water`** in the ‘-all’ distribution of Gradle.
 
-[.multi-language-sample,groovy]
 ====
-.settings.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/multiproject/spreadSpecifics/water/settings.gradle[]
-----
-
-.bluewhale/build.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/multiproject/spreadSpecifics/water/bluewhale/build.gradle[]
-----
-
-.krill/build.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/multiproject/spreadSpecifics/water/krill/build.gradle[]
-----
-
-.build.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/multiproject/spreadSpecifics/water/build.gradle[]
-----
+include::sample[dir="userguide/multiproject/spreadSpecifics/water/groovy",files="settings.gradle[];bluewhale/build.gradle[];krill/build.gradle[];build.gradle[]"]
+include::sample[dir="userguide/multiproject/spreadSpecifics/water/kotlin",files="settings.gradle.kts[];bluewhale/build.gradle.kts[];krill/build.gradle.kts[];build.gradle.kts[]"]
 ====
 
 .Output of `gradle -q hello`
