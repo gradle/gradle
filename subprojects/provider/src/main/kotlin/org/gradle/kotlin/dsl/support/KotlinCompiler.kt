@@ -38,11 +38,9 @@ import org.jetbrains.kotlin.config.AnalysisFlag
 import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.CompilerConfigurationKey
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.JVM_TARGET
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_DIRECTORY
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_JAR
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.RETAIN_OUTPUT_IN_MEMORY
 import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
 import org.jetbrains.kotlin.config.LanguageFeature
@@ -115,31 +113,8 @@ object HasImplicitReceiverCompilerPlugin {
 
 
 internal
-fun compileToJar(
-    outputJar: File,
-    sourceFiles: Iterable<File>,
-    logger: Logger,
-    classPath: Iterable<File> = emptyList()
-): Boolean =
-
-    compileTo(OUTPUT_JAR, outputJar, sourceFiles, logger, classPath)
-
-
-internal
 fun compileToDirectory(
     outputDirectory: File,
-    sourceFiles: Iterable<File>,
-    logger: Logger,
-    classPath: Iterable<File> = emptyList()
-): Boolean =
-
-    compileTo(OUTPUT_DIRECTORY, outputDirectory, sourceFiles, logger, classPath)
-
-
-private
-fun compileTo(
-    outputConfigurationKey: CompilerConfigurationKey<File>,
-    output: File,
     sourceFiles: Iterable<File>,
     logger: Logger,
     classPath: Iterable<File>
@@ -149,8 +124,8 @@ fun compileTo(
         withMessageCollectorFor(logger) { messageCollector ->
             val configuration = compilerConfigurationFor(messageCollector).apply {
                 addKotlinSourceRoots(sourceFiles.map { it.canonicalPath })
-                put(outputConfigurationKey, output)
-                setModuleName(output.nameWithoutExtension)
+                put(OUTPUT_DIRECTORY, outputDirectory)
+                setModuleName(outputDirectory.nameWithoutExtension)
                 classPath.forEach { addJvmClasspathRoot(it) }
                 addJvmClasspathRoot(kotlinStdlibJar)
             }

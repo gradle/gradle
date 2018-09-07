@@ -28,7 +28,7 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.kotlin.dsl.cache.ScriptCache
 import org.gradle.kotlin.dsl.codegen.fileHeader
 import org.gradle.kotlin.dsl.support.ClassBytesRepository
-import org.gradle.kotlin.dsl.support.compileToJar
+import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.kotlin.dsl.support.loggerFor
 import org.gradle.kotlin.dsl.support.serviceOf
 
@@ -73,10 +73,10 @@ fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath) =
         val cacheDir =
             scriptCacheOf(project)
                 .cacheDirFor(cacheKeyFor(projectSchema, classPath)) { baseDir ->
-                    buildAccessorsJarFor(projectSchema, classPath, outputDir = baseDir)
+                    buildAccessorsClassesFor(projectSchema, classPath, outputDir = baseDir)
                 }
         AccessorsClassPath(
-            DefaultClassPath.of(accessorsJar(cacheDir)),
+            DefaultClassPath.of(accessorsClassesDir(cacheDir)),
             DefaultClassPath.of(accessorsSourceDir(cacheDir)))
     }
 
@@ -137,15 +137,15 @@ fun scriptCacheOf(project: Project) = project.serviceOf<ScriptCache>()
 
 
 private
-fun buildAccessorsJarFor(projectSchema: ProjectSchema<String>, classPath: ClassPath, outputDir: File) {
+fun buildAccessorsClassesFor(projectSchema: ProjectSchema<String>, classPath: ClassPath, outputDir: File) {
 
     val availableSchema = availableProjectSchemaFor(projectSchema, classPath)
 
     val sourceFiles = sourceFilesWithAccessorsFor(availableSchema, outputDir)
 
     require(
-        compileToJar(
-            accessorsJar(outputDir),
+        compileToDirectory(
+            accessorsClassesDir(outputDir),
             sourceFiles,
             logger,
             classPath.asFiles
@@ -499,11 +499,11 @@ val logger by lazy { loggerFor<AccessorsClassPath>() }
 
 
 private
-fun accessorsSourceDir(baseDir: File) = File(baseDir, "src")
+fun accessorsSourceDir(baseDir: File) = baseDir.resolve("src")
 
 
 private
-fun accessorsJar(baseDir: File) = File(baseDir, "gradle-kotlin-dsl-accessors.jar")
+fun accessorsClassesDir(baseDir: File) = baseDir.resolve("classes")
 
 
 private
