@@ -300,7 +300,7 @@ public class MirrorUpdatingDirectoryWalker {
 
         @Override
         public String getPath() {
-            return path.toString();
+            return getRelativePath().getPathString();
         }
 
         @Override

@@ -19,14 +19,19 @@ package org.gradle.api.internal.file.collections.jdk7
 import com.google.common.base.Charsets
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
+import org.gradle.api.file.FileTreeElement
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
+import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.changedetection.state.mirror.MirrorUpdatingDirectoryWalker
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DefaultDirectoryWalker
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.ReproducibleDirectoryWalker
+import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
+import org.gradle.internal.MutableBoolean
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
@@ -46,7 +51,7 @@ import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory
 @UsesNativeServices
 class Jdk7DirectoryWalkerTest extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     @Rule
     SetSystemProperties setSystemPropertiesRule
@@ -138,7 +143,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         }
     }
 
-    private long millisToSeconds(long millis) {
+    private static long millisToSeconds(long millis) {
         millis / 1000L
     }
 
@@ -154,7 +159,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         }
     }
 
-    private List<FileVisitDetails> walkFiles(rootDir, walkerInstance) {
+    private static List<FileVisitDetails> walkFiles(rootDir, walkerInstance) {
         def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory, TestFiles.fileSystem(), false)
         def visited = []
         def visitClosure = { visited << it }
@@ -319,4 +324,35 @@ class Jdk7DirectoryWalkerTest extends Specification {
         }
     }
 
+    def "directory snapshotter returns the same details as directory walker"() {
+        given:
+        def rootDir = tmpDir.createDir("root")
+        generateFilesAndSubDirectories(rootDir, 10, 5, 3, 1, new AtomicInteger(0))
+        MirrorUpdatingDirectoryWalker directorySnapshotter = new MirrorUpdatingDirectoryWalker(TestFiles.fileHasher(), TestFiles.fileSystem(), new StringInterner())
+        def patternSet = Mock(PatternSet)
+        List<FileVisitDetails> visitedWithJdk7Walker = walkFiles(rootDir, new Jdk7DirectoryWalker(TestFiles.fileSystem()))
+        Spec<FileTreeElement> assertingSpec = new Spec<FileTreeElement>() {
+            @Override
+            boolean isSatisfiedBy(FileTreeElement element) {
+                def elementFromFileWalker = visitedWithJdk7Walker.find { it.file == element.file }
+                assert elementFromFileWalker != null
+                assert element.directory == elementFromFileWalker.directory
+                assert element.lastModified == elementFromFileWalker.lastModified
+                assert element.size == elementFromFileWalker.size
+                assert element.name == elementFromFileWalker.name
+                assert element.path == elementFromFileWalker.path
+                assert element.relativePath == elementFromFileWalker.relativePath
+                assert element.mode == elementFromFileWalker.mode
+                visitedWithJdk7Walker.remove(elementFromFileWalker)
+                return true
+            }
+        }
+
+        when:
+        directorySnapshotter.walkDir(rootDir.absolutePath, patternSet, new MutableBoolean())
+        then:
+        1 * patternSet.getAsSpec() >> assertingSpec
+
+        visitedWithJdk7Walker.empty
+    }
 }
