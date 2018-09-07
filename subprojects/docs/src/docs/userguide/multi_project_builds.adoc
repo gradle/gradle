@@ -290,21 +290,10 @@ include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/multi
 
 The basic rule behind Gradle's behavior is simple. Gradle looks down the hierarchy, starting with the _current dir_, for tasks with the name `hello` and executes them. One thing is very important to note. Gradle _always_ evaluates _every_ project of the multi-project build and creates all existing task objects. Then, according to the task name arguments and the current dir, Gradle filters the tasks which should be executed. Because of Gradle's cross project configuration _every_ project has to be evaluated before _any_ task gets executed. We will have a closer look at this in the next section. Let's now have our last marine example. Let's add a task to `bluewhale` and `krill`.
 
-=== Example: Evaluation and execution of projects
-
-[.multi-language-sample,groovy]
+.Example: Evaluation and execution of projects
 ====
-.bluewhale/build.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/multiproject/partialTasks/water/bluewhale/build.gradle[]
-----
-
-.krill/build.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/multiproject/partialTasks/water/krill/build.gradle[]
-----
+include::sample[dir="userguide/multiproject/partialTasks/water/groovy",files="bluewhale/build.gradle[];krill/build.gradle[]"]
+include::sample[dir="userguide/multiproject/partialTasks/water/kotlin",files="bluewhale/build.gradle.kts[];krill/build.gradle.kts[]"]
 ====
 
 .Output of `gradle -q distanceToIceberg`

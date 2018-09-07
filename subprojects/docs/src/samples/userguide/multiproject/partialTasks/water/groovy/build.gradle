@@ -1,5 +1,3 @@
-import org.gradle.api.Project
-
 allprojects {
     task hello {
         doLast { task ->
