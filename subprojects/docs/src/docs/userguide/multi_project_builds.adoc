@@ -257,42 +257,14 @@ Using the project name for filtering is one option. Using <<writing_build_script
 
 NOTE: The code for this example can be found at **`samples/userguide/multiproject/tropicalWithProperties/water`** in the ‘-all’ distribution of Gradle.
 
-[.multi-language-sample,groovy]
 ====
-.settings.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/settings.gradle[]
-----
-
-.bluewhale/build.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/bluewhale/build.gradle[]
-----
-
-.krill/build.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/krill/build.gradle[]
-----
-
-.build.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/build.gradle[]
-----
-
-.tropicalFish/build.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/tropicalFish/build.gradle[]
-----
+include::sample[dir="userguide/multiproject/tropicalWithProperties/water/groovy",files="settings.gradle[];bluewhale/build.gradle[];krill/build.gradle[];build.gradle[];tropicalFish/build.gradle[]"]
+include::sample[dir="userguide/multiproject/tropicalWithProperties/water/kotlin",files="settings.gradle.kts[];bluewhale/build.gradle.kts[];krill/build.gradle.kts[];build.gradle.kts[];tropicalFish/build.gradle.kts[]"]
 ====
 
 .Output of `gradle -q hello`
 ----
-> gradle -q hello
+> gradle -q hello --settings-file=../settings.gradle
 include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/multiprojectTropicalWithProperties.out[]
 ----
 
@@ -305,10 +277,15 @@ When we executed the `hello` task from the root project dir, things behaved in a
 
 === Example: Running build from subproject
 
-.Output of **`gradle -q hello`**
+[source.multi-language-sample,groovy]
 ----
-> gradle -q hello
-include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/bluewhale/multiprojectSubBuild.out[]
+> gradle -q hello --settings-file=../settings.gradle
+include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/multiprojectSubBuild.out[]
+----
+[source.multi-language-sample,kotlin]
+----
+> gradle -q hello --settings-file=../settings.gradle.kts
+include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/multiprojectSubBuild.out[]
 ----
 
 The basic rule behind Gradle's behavior is simple. Gradle looks down the hierarchy, starting with the _current dir_, for tasks with the name `hello` and executes them. One thing is very important to note. Gradle _always_ evaluates _every_ project of the multi-project build and creates all existing task objects. Then, according to the task name arguments and the current dir, Gradle filters the tasks which should be executed. Because of Gradle's cross project configuration _every_ project has to be evaluated before _any_ task gets executed. We will have a closer look at this in the next section. Let's now have our last marine example. Let's add a task to `bluewhale` and `krill`.
@@ -355,10 +332,15 @@ As we have seen, you can run a multi-project build by entering any subproject di
 
 === Example: Running tasks by their absolute path
 
-.Output of **`gradle -q :hello :krill:hello hello`**
+[source.multi-language-sample,groovy]
 ----
-> gradle -q :hello :krill:hello hello
-include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/tropicalFish/multiprojectAbsoluteTaskPaths.out[]
+> gradle -q :hello :krill:hello hello --settings-file=../settings.gradle
+include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/multiprojectAbsoluteTaskPaths.out[]
+----
+[source.multi-language-sample,kotlin]
+----
+> gradle -q :hello :krill:hello hello --settings-file=../settings.gradle.kts
+include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/multiprojectAbsoluteTaskPaths.out[]
 ----
 
 The build is executed from the `tropicalFish` project. We execute the `hello` tasks of the `water`, the `krill` and the `tropicalFish` project. The first two tasks are specified by their absolute path, the last task is executed using the name matching mechanism described above.
