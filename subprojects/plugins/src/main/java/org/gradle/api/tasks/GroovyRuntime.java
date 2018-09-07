@@ -23,13 +23,12 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.plugins.GroovyJarFile;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.internal.Cast;
 import org.gradle.util.VersionNumber;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -75,7 +74,12 @@ public class GroovyRuntime {
      * @param classpath a class path containing Groovy Jars
      * @return a corresponding class path for executing Groovy tools such as the Groovy compiler and Groovydoc tool
      */
-    public FileCollection inferGroovyClasspath(final Iterable<File> classpath) {
+    @Deprecated
+    public FileCollection inferGroovyClasspath(@Nullable Iterable<File> classpath) {
+        return inferGroovyClasspath(classpath, true);
+    }
+
+    public FileCollection inferGroovyClasspath(@Nullable final Iterable<File> classpath, final boolean requireGroovydocJars) {
         // alternatively, we could return project.getLayout().files(Runnable)
         // would differ in at least the following ways: 1. live 2. no autowiring
         return new LazilyInitializedFileCollection() {
@@ -91,8 +95,8 @@ public class GroovyRuntime {
                     throw new GradleException(String.format("Cannot infer Groovy class path because no Groovy Jar was found on class path: %s", Iterables.toString(classpath)));
                 }
 
-                if (groovyJar.isGroovyAll()) {
-                    return Cast.cast(FileCollectionInternal.class, project.getLayout().files(groovyJar.getFile()));
+                if (!requireGroovydocJars || groovyJar.isGroovyAll()) {
+                    return project.getLayout().files(groovyJar.getFile());
                 }
 
                 if (project.getRepositories().isEmpty()) {
@@ -129,7 +133,8 @@ public class GroovyRuntime {
         };
     }
 
-    private GroovyJarFile findGroovyJarFile(Iterable<File> classpath) {
+    @Nullable
+    private GroovyJarFile findGroovyJarFile(@Nullable Iterable<File> classpath) {
         if (classpath == null) {
             return null;
         }

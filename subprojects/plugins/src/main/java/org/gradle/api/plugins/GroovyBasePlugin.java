@@ -79,8 +79,8 @@ public class GroovyBasePlugin implements Plugin<Project> {
         project.getTasks().withType(GroovyCompile.class).configureEach(new Action<GroovyCompile>() {
             public void execute(final GroovyCompile compile) {
                 compile.getConventionMapping().map("groovyClasspath", new Callable<Object>() {
-                    public Object call() throws Exception {
-                        return groovyRuntime.inferGroovyClasspath(compile.getClasspath());
+                    public Object call() {
+                        return groovyRuntime.inferGroovyClasspath(compile.getClasspath(), false);
                     }
                 });
             }
@@ -131,7 +131,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
             public void execute(final Groovydoc groovydoc) {
                 groovydoc.getConventionMapping().map("groovyClasspath", new Callable<Object>() {
                     public Object call() throws Exception {
-                        FileCollection groovyClasspath = groovyRuntime.inferGroovyClasspath(groovydoc.getClasspath());
+                        FileCollection groovyClasspath = groovyRuntime.inferGroovyClasspath(groovydoc.getClasspath(), true);
                         // Jansi is required to log errors when generating Groovydoc
                         ConfigurableFileCollection jansi = project.getLayout().configurableFiles(moduleRegistry.getExternalModule("jansi").getImplementationClasspath().getAsFiles());
                         return groovyClasspath.plus(jansi);
