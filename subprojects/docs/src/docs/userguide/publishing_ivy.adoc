@@ -96,13 +96,11 @@ At times, the module descriptor file generated from the project information will
 
 The following sample shows how to use the most common aspects of the DSL:
 
-=== Example: Customizing the module descriptor file
-
-[source.multi-language-sample,groovy,indent=0]
-.build.gradle
-----
-include::{samplesPath}/ivy-publish/descriptor-customization/build.gradle[tag=customize-descriptor]
-----
+.Customizing the module descriptor file
+====
+include::sample[dir="ivy-publish/descriptor-customization/groovy",files="build.gradle[tags=customize-descriptor]"]
+include::sample[dir="ivy-publish/descriptor-customization/kotlin",files="build.gradle.kts[tags=customize-descriptor]"]
+====
 
 In this example we are simply adding a 'description' element to the generated Ivy dependency descriptor, but this hook allows you to modify any aspect of the generated descriptor. For example, you could replace the version range for a dependency with the actual version used to produce the build.
 
