@@ -1,10 +1,12 @@
-apply plugin: 'groovy'
+plugins {
+    id 'groovy'
+}
 
 dependencies {
-    compile localGroovy()
-    compile gradleApi()
-    testCompile gradleTestKit()
-    testCompile('org.spockframework:spock-core:1.1-groovy-2.4') {
+    implementation localGroovy()
+    implementation gradleApi()
+    testImplementation gradleTestKit()
+    testImplementation('org.spockframework:spock-core:1.1-groovy-2.4') {
         exclude module: 'groovy-all'
     }
 }
@@ -29,6 +31,6 @@ task createClasspathManifest {
 
 // Add the classpath file to the test runtime classpath
 dependencies {
-    testRuntime files(createClasspathManifest)
+    testRuntimeOnly files(createClasspathManifest)
 }
 // end::test-logic-classpath[]
