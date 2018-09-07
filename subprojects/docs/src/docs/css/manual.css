@@ -1799,6 +1799,27 @@ div.screenshot {
     fill: #999;
 }
 
+/*TODO(ew): Consider how to position and style this. Under copied code samples?*/
+.feedback-form {
+    background: white;
+    border: 1px solid #00c489;
+    border-radius: 4px;
+    border-width: 1px 0 1px 1px;
+    position: absolute;
+    bottom: 300px;
+    right: 0;
+    z-index: 1;
+}
+
+.feedback-form .question-container {
+    display: none;
+    padding: 1em;
+}
+
+.feedback-form .question-container:first-child {
+    display: block;
+}
+
 /* Footer styles */
 .site-footer {
 }
