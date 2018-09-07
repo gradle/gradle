@@ -59,6 +59,7 @@ dependencies {
     implementation libraries.commons_lang.coordinates
     implementation libraries.groovy_json.coordinates
     implementation libraries.groovy_templates.coordinates
+    implementation libraries.groovy_test.coordinates
     implementation libraries.groovy_xml.coordinates
     implementation libraries.jcip.coordinates
     implementation libraries.nativePlatform.coordinates

@@ -30,7 +30,7 @@ import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFacto
 
 public class DependencyClassPathProvider implements ClassPathProvider {
     private static final String[] LOCAL_GROOVY_MODULES = {
-        "groovy", "groovy-ant", /*"groovy-groovydoc",*/ "groovy-json", "groovy-templates", "groovy-xml"
+        "groovy", "groovy-ant", /*"groovy-groovydoc",*/ "groovy-json", "groovy-templates", "groovy-test", "groovy-xml"
     };
     private final ModuleRegistry moduleRegistry;
     private final PluginModuleRegistry pluginModuleRegistry;
