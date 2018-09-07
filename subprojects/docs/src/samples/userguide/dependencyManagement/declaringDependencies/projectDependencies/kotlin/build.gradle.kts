@@ -1,0 +1,15 @@
+subprojects {
+    apply(plugin = "java")
+}
+
+project(":utils")
+project(":api")
+
+// tag::project-dependencies[]
+project(":web-service") {
+    dependencies {
+        "implementation"(project(":utils"))
+        "implementation"(project(":api"))
+    }
+}
+// end::project-dependencies[]

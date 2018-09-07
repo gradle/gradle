@@ -172,13 +172,12 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         nonSkippedTasks.contains ":customTask"
     }
 
-    def "cacheable task with multiple outputs doesn't get cached"() {
+    def "cacheable task with multiple outputs declared via runtime API with matching cardinality get cached"() {
         buildFile << """
             task customTask {
                 outputs.cacheIf { true }
-                outputs.files files("build/output1.txt", "build/output2.txt")
+                outputs.files files("build/output1.txt", "build/output2.txt") withPropertyName("out")
                 doLast {
-                    file("build").mkdirs()
                     file("build/output1.txt") << "data"
                     file("build/output2.txt") << "data"
                 }
@@ -186,10 +185,81 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
 
         when:
-        withBuildCache().run "customTask", "--info"
+        withBuildCache().run "customTask"
         then:
         nonSkippedTasks.contains ":customTask"
-        output.contains "Caching disabled for task ':customTask': Declares multiple output files for the single output property '\$1' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
+
+        when:
+        cleanBuildDir()
+        withBuildCache().run "customTask"
+        then:
+        skippedTasks.contains ":customTask"
+    }
+
+    def "cacheable task with multiple output properties with matching cardinality get cached"() {
+        buildFile << """
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @OutputFiles Iterable<File> out
+                
+                @TaskAction
+                void execute() {
+                    out.eachWithIndex { file, index ->
+                        file.text = "data\${index + 1}"
+                    }
+                }
+            }
+
+            task customTask(type: CustomTask) {
+                out = files("build/output1.txt", "build/output2.txt")
+            }
+        """
+
+        when:
+        withBuildCache().run "customTask"
+        then:
+        nonSkippedTasks.contains ":customTask"
+
+        when:
+        cleanBuildDir()
+        withBuildCache().run "customTask"
+        then:
+        skippedTasks.contains ":customTask"
+        file("build/output1.txt").text == "data1"
+        file("build/output2.txt").text == "data2"
+    }
+
+    def "cacheable task with multiple outputs with not matching cardinality don't get cached"() {
+        buildFile << """
+            task customTask {
+                outputs.cacheIf { true }
+                def fileList
+                if (project.hasProperty("changedCardinality")) {
+                    fileList = ["build/output1.txt"]
+                } else {
+                    fileList = ["build/output1.txt", "build/output2.txt"]
+                }
+                outputs.files files(fileList) withPropertyName("out")
+                doLast {
+                    file("build").mkdirs()
+                    file("build/output1.txt") << "data"
+                    if (!project.hasProperty("changedCardinality")) {
+                        file("build/output2.txt") << "data"
+                    }
+                }
+            }
+        """
+
+        when:
+        withBuildCache().run "customTask"
+        then:
+        nonSkippedTasks.contains ":customTask"
+
+        when:
+        cleanBuildDir()
+        withBuildCache().run "customTask", "-PchangedCardinality"
+        then:
+        nonSkippedTasks.contains ":customTask"
     }
 
     def "non-cacheable task with cache enabled gets cached"() {

@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.ComponentDependencies;
@@ -34,10 +33,10 @@ public abstract class DefaultNativeBinary implements ComponentWithNames, Compone
     private final DirectoryProperty objectsDir;
     private final DefaultComponentDependencies dependencies;
 
-    public DefaultNativeBinary(Names names, ObjectFactory objectFactory, ProjectLayout projectLayout, Configuration componentImplementation) {
+    public DefaultNativeBinary(Names names, ObjectFactory objectFactory, Configuration componentImplementation) {
         this.names = names;
 
-        this.objectsDir = projectLayout.directoryProperty();
+        this.objectsDir = objectFactory.directoryProperty();
         dependencies = objectFactory.newInstance(DefaultComponentDependencies.class, names.getName() + "Implementation");
         dependencies.getImplementationDependencies().extendsFrom(componentImplementation);
     }

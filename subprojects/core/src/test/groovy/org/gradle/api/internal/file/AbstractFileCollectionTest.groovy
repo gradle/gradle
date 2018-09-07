@@ -359,10 +359,10 @@ class AbstractFileCollectionTest extends Specification {
 
     void canVisitRootElements() {
         def collection = new TestFileCollection()
-        def visitor = Mock(FileCollectionVisitor)
+        def visitor = Mock(FileCollectionLeafVisitor)
 
         when:
-        collection.visitRootElements(visitor)
+        collection.visitLeafCollections(visitor)
 
         then:
         1 * visitor.visitCollection(collection)

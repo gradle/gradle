@@ -1,0 +1,73 @@
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// tag::unit-of-work[]
+
+import org.gradle.workers.WorkerExecutor
+
+import javax.inject.Inject
+
+// The implementation of a single unit of work
+class ReverseFile implements Runnable {
+    File fileToReverse
+    File destinationFile
+
+    @Inject
+    public ReverseFile(File fileToReverse, File destinationFile) {
+        this.fileToReverse = fileToReverse
+        this.destinationFile = destinationFile
+    }
+
+    @Override
+    public void run() {
+        destinationFile.text = fileToReverse.text.reverse()
+    }
+}
+// end::unit-of-work[]
+
+// tag::task-implementation[]
+class ReverseFiles extends SourceTask {
+    final WorkerExecutor workerExecutor
+
+    @OutputDirectory
+    File outputDir
+
+    // The WorkerExecutor will be injected by Gradle at runtime
+    @Inject
+    public ReverseFiles(WorkerExecutor workerExecutor) {
+        this.workerExecutor = workerExecutor
+    }
+
+    @TaskAction
+    void reverseFiles() {
+        // Create and submit a unit of work for each file
+        source.each { file ->
+            workerExecutor.submit(ReverseFile.class) { WorkerConfiguration config ->
+                // Use the minimum level of isolation
+                config.isolationMode = IsolationMode.NONE
+
+                // Constructor parameters for the unit of work implementation
+                config.params file, project.file("$outputDir/${file.name}")
+            }
+        }
+    }
+}
+// end::task-implementation[]
+
+task reverseFiles(type: ReverseFiles) {
+    outputDir = file("$buildDir/reversed")
+    source("sources")
+}

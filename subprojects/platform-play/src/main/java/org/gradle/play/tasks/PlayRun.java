@@ -50,7 +50,7 @@ public class PlayRun extends ConventionTask {
 
     private int httpPort;
 
-    private final DirectoryProperty workingDir = getProject().getLayout().directoryProperty();
+    private final DirectoryProperty workingDir = getProject().getObjects().directoryProperty();
 
     @InputFile
     private File applicationJar;

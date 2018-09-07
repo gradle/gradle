@@ -139,8 +139,6 @@ public class DependencyGraphBuilder {
         final List<EdgeState> dependencies = Lists.newArrayList();
         final Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache = Maps.newHashMap();
 
-        final PendingDependenciesHandler pendingDependenciesHandler = new DefaultPendingDependenciesHandler();
-
         while (resolveState.peek() != null || moduleConflictHandler.hasConflicts() || capabilitiesConflictHandler.hasConflicts()) {
             if (resolveState.peek() != null) {
                 final NodeState node = resolveState.pop();
@@ -151,7 +149,7 @@ public class DependencyGraphBuilder {
 
                 // Initialize and collect any new outgoing edges of this node
                 dependencies.clear();
-                node.visitOutgoingDependencies(dependencies, pendingDependenciesHandler);
+                node.visitOutgoingDependencies(dependencies);
                 resolveEdges(node, dependencies, resolveState, componentIdentifierCache);
             } else {
                 // We have some batched up conflicts. Resolve the first, and continue traversing the graph

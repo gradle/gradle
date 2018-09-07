@@ -387,7 +387,7 @@ tasks.register("serveDocs", Exec) {
 tasks.register("editReleaseNotes") {
     group = "release notes"
     doLast {
-        Class.forName("java.awt.Desktop").getConstructor().newInstance().edit(file("src/docs/release/notes.md"))
+        Class.forName("java.awt.Desktop").getDesktop().edit(file("src/docs/release/notes.md"))
     }
 }
 
@@ -415,7 +415,7 @@ tasks.addRule("view«Doc Task Name» - Opens entry point") { String taskName ->
             tasks.create(taskName) {
                 dependsOn task
                 doLast {
-                    Class.forName("java.awt.Desktop").getConstructor().newInstance.browse(file(task.entryPoint).toURI())
+                    Class.forName("java.awt.Desktop").getDesktop().browse(file(task.entryPoint).toURI())
                 }
             }
         }

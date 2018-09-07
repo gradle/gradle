@@ -17,10 +17,11 @@
 package org.gradle.gradlebuild.test.integrationtests
 
 import org.gradle.api.tasks.CacheableTask
-import java.util.concurrent.TimeUnit
-import java.util.Timer
-import kotlin.concurrent.timerTask
+import org.gradle.api.tasks.Nested
 import org.gradle.gradlebuild.BuildEnvironment
+import java.util.Timer
+import java.util.concurrent.TimeUnit
+import kotlin.concurrent.timerTask
 
 
 /**
@@ -30,6 +31,10 @@ import org.gradle.gradlebuild.BuildEnvironment
  */
 @CacheableTask
 open class IntegrationTest : DistributionTest() {
+
+    @get:Nested
+    val distributionSamples: GradleDistributionSamples = GradleDistributionSamples(project, gradleInstallationForTest.gradleHomeDir)
+
     override fun executeTests() {
         printStacktracesAfterTimeout { super.executeTests() }
     }
@@ -55,7 +60,7 @@ open class IntegrationTest : DistributionTest() {
 
     private
     fun determineTimeoutMillis(): Long {
-        return if ("embedded" == getSystemProperties().get("org.gradle.integtest.executer")) {
+        return if ("embedded" == getSystemProperties()["org.gradle.integtest.executer"]) {
             TimeUnit.MINUTES.toMillis(30)
         } else {
             TimeUnit.HOURS.toMillis(2)

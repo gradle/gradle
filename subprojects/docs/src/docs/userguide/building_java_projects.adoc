@@ -231,19 +231,17 @@ To use Java 6 or Java 7, the following tasks need to be configured:
 
 The following sample shows how the `build.gradle` needs to be adjusted. In order to be able to make the build machine-independent, the location of the old Java home and target version should be configured in `GRADLE_USER_HOME/gradle.properties` footnote:[For more details on `gradle.properties` see <<build_environment.adoc#sec:gradle_configuration_properties,Gradle configuration properties>> ] in the user's home directory on each developer machine, as shown in the example.
 
-==== Example: Configure Java 7 build
-
+=== Example: Configure Java 7 build
 [source,properties]
 .gradle.properties
 ----
-include::{samplesPath}/java/crossCompilation/gradle.properties[]
+include::{samplesPath}/java/crossCompilation/groovy/gradle.properties[]
 ----
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/java/crossCompilation/build.gradle[tag=java-cross-compilation]
-----
+====
+include::sample[dir="java/crossCompilation/groovy",files="build.gradle[tags=java-cross-compilation]"]
+include::sample[dir="java/crossCompilation/kotlin",files="build.gradle.kts[tags=java-cross-compilation]"]
+====
 
 [[sec:custom_java_source_sets]]
 === Compiling independent sources separately
@@ -335,13 +333,11 @@ See link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar] for more de
 
 If you instead want to create an 'uber' (AKA 'fat') JAR, then you can use a task definition like this:
 
-=== Example: Creating a Java uber or fat JAR
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/files/archivesWithJavaPlugin/build.gradle[tag=create-uber-jar-example]
-----
+.Creating a Java uber or fat JAR
+====
+include::sample[dir="userguide/files/archivesWithJavaPlugin/groovy",files="build.gradle[tags=create-uber-jar-example]"]
+include::sample[dir="userguide/files/archivesWithJavaPlugin/kotlin",files="build.gradle.kts[tags=create-uber-jar-example]"]
+====
 
 There are several options for publishing a JAR once it has been created:
 
@@ -356,47 +352,39 @@ The former two "Publish" plugins are the preferred options.
 
 Each instance of the `Jar`, `War` and `Ear` tasks has a `manifest` property that allows you to customize the _MANIFEST.MF_ file that goes into the corresponding archive. The following example demonstrates how to set attributes in the JAR's manifest:
 
-==== Example: Customization of MANIFEST.MF
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tutorial/manifest/build.gradle[tag=add-to-manifest]
-----
+.Customization of MANIFEST.MF
+====
+include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=add-to-manifest]"]
+include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=add-to-manifest]"]
+====
 
 See link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest] for the configuration options it provides.
 
 You can also create standalone instances of `Manifest`. One reason for doing so is to share manifest information between JARs. The following example demonstrates how to share common attributes between JARs:
 
-==== Example: Creating a manifest object.
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tutorial/manifest/build.gradle[tag=custom-manifest]
-----
+.Creating a manifest object.
+====
+include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=custom-manifest]"]
+include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=custom-manifest]"]
+====
 
 Another option available to you is to merge manifests into a single `Manifest` object. Those source manifests can take the form of a text for or another `Manifest` object. In the following example, the source manifests are all text files except for `sharedManifest`, which is the `Manifest` object from the previous example:
 
-==== Example: Separate MANIFEST.MF for a particular archive
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tutorial/manifest/build.gradle[tag=merge]
-----
+.Separate MANIFEST.MF for a particular archive
+====
+include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=merge]"]
+include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=merge]"]
+====
 
 Manifests are merged in the order they are declared in the `from` statement. If the base manifest and the merged manifest both define values for the same key, the merged manifest wins by default. You can fully customize the merge behavior by adding `eachEntry` actions in which you have access to a link:{javadocPath}/org/gradle/api/java/archives/ManifestMergeDetails.html[ManifestMergeDetails] instance for each entry of the resulting manifest. Note that the merge is done lazily, either when generating the JAR or when `Manifest.writeTo()` or `Manifest.getEffectiveManifest()` are called.
 
 Speaking of `writeTo()`, you can use that to easily write a manifest to disk at any time, like so:
 
-==== Example: Saving a MANIFEST.MF to disk
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tutorial/manifest/build.gradle[tag=write]
-----
+.Saving a MANIFEST.MF to disk
+====
+include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=write]"]
+include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=write]"]
+====
 
 [[sec:generating_javadocs]]
 == Generating API documentation

@@ -16,8 +16,11 @@
 
 package org.gradle.api.internal.tasks
 
+import org.gradle.api.tasks.OutputDirectories
+import org.gradle.api.tasks.OutputFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import spock.lang.Unroll
 
 class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
     def setup() {
@@ -133,25 +136,32 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         withBuildCache().run "cacheable"
     }
 
-    def "cacheability for a task with plural outputs is PLURAL_OUTPUTS"() {
+    @Unroll
+    def "cacheability for a task with @#annotation file tree outputs is NON_CACHEABLE_TREE_OUTPUT"() {
         buildFile << """
             @CacheableTask
             class PluralOutputs extends BaseTask {
-                @OutputFiles
-                Set<File> outputFiles = ['some.txt']
+                @$annotation
+                def outputFiles = [project.fileTree('build/some-dir')]
                 
                 @TaskAction
-                void generate() {}
+                void generate() {
+                    project.mkdir("build/some-dir")
+                    project.file("build/some-dir/output.txt").text = "output"
+                }
             }
             
             task cacheable(type: PluralOutputs) {
                 cachingEnabled = false
-                disabledReason = "Declares multiple output files for the single output property 'outputFiles' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
-                disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.PLURAL_OUTPUTS
+                disabledReason = "Output property 'outputFiles' contains a file tree"
+                disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TREE_OUTPUT
             }
         """
         expect:
         withBuildCache().run "cacheable"
+
+        where:
+        annotation << [OutputFiles.simpleName, OutputDirectories.simpleName]
     }
 
     def "cacheability for a task with overlapping outputs is OVERLAPPING_OUTPUTS"() {

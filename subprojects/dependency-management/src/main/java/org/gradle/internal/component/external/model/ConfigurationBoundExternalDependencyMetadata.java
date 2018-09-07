@@ -154,7 +154,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     }
 
     @Override
-    public boolean isPending() {
+    public boolean isConstraint() {
         return dependencyDescriptor.isOptional();
     }
 

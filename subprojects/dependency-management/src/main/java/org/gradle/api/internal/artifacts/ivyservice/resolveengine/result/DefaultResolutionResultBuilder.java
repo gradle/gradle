@@ -17,7 +17,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
@@ -29,11 +33,15 @@ import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.Describables;
 import org.gradle.internal.Factory;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class DefaultResolutionResultBuilder {
     private final Map<Long, DefaultResolvedComponentResult> modules = new HashMap<Long, DefaultResolvedComponentResult>();
@@ -75,6 +83,18 @@ public class DefaultResolutionResultBuilder {
     private void create(Long id, ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId, ResolvedVariantResult variant, String repoName) {
         if (!modules.containsKey(id)) {
             modules.put(id, new DefaultResolvedComponentResult(moduleVersion, selectionReason, componentId, variant, repoName));
+        }
+    }
+
+    public void addExtraFailures(Long rootId, Set<UnresolvedDependency> extraFailures) {
+        DefaultResolvedComponentResult root = modules.get(rootId);
+        for (UnresolvedDependency failure : extraFailures) {
+            ModuleVersionSelector failureSelector = failure.getSelector();
+            ModuleComponentSelector failureComponentSelector = DefaultModuleComponentSelector.newSelector(failureSelector.getModule(), failureSelector.getVersion());
+            root.addDependency(dependencyResultFactory.createUnresolvedDependency(failureComponentSelector,
+                root,
+                VersionSelectionReasons.of(new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONSTRAINT, Describables.of("Dependency locking"))),
+                new ModuleVersionResolveException(failureComponentSelector, "Dependency lock state out of date", failure.getProblem())));
         }
     }
 

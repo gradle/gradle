@@ -162,8 +162,8 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     }
 
     @Override
-    public void visitRootElements(FileCollectionVisitor visitor) {
-        visitor.visitTree(this);
+    public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
+        visitor.visitGenericFileTree(this);
     }
 
     private static class FilteredFileTreeImpl extends AbstractFileTree {

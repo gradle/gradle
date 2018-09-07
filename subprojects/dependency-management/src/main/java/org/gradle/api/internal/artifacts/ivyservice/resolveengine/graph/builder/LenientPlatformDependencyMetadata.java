@@ -112,7 +112,7 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
     }
 
     @Override
-    public boolean isPending() {
+    public boolean isConstraint() {
         return true;
     }
 
