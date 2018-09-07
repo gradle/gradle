@@ -40,7 +40,9 @@ dependencies {
     compile(library("jansi"))
     compile(library("commons_collections"))
     compile("org.apache.mina:mina-core")
-    compile(testLibrary("sampleCheck"))
+    compile(testLibrary("sampleCheck")) {
+        exclude(module = "groovy-all")
+    }
 
     implementation(project(":dependencyManagement"))
 

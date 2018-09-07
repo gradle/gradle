@@ -12,7 +12,9 @@ dependencies {
     integTestCompile libraries.groovy.coordinates
     integTestCompile libraries.ant.coordinates
     integTestCompile testLibraries.jsoup
-    integTestCompile testLibraries.sampleCheck
+    integTestCompile(testLibraries.sampleCheck) {
+        exclude group: "org.codehaus.groovy", module: "groovy-all"
+    }
 
     integTestRuntime allTestRuntimeDependencies
 
