@@ -294,13 +294,13 @@ class DistributedPerformanceTest extends PerformanceTest {
         def response = client.get(path: "builds/id:$jobId")
         boolean finished = response.data.@state == "finished"
         if (finished) {
-            collectPerformanceTestResults(response)
+            collectPerformanceTestResults(response, jobId)
         }
         finished
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private void collectPerformanceTestResults(def response) {
+    private void collectPerformanceTestResults(def response, String jobId) {
         finishedBuilds += response.data
 
         try {
