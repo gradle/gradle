@@ -392,18 +392,6 @@ class AbstractIntegrationSpec extends Specification {
         result.assertHasPostBuildOutput(string.trim())
     }
 
-    void useRepositoryMirrors() {
-        executer.beforeExecute {
-            executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
-        }
-    }
-
-    void usePluginRepositoryMirror() {
-        executer.beforeExecute {
-            executer.withArgument("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}")
-        }
-    }
-
     void outputDoesNotContain(String string) {
         assertHasResult()
         result.assertNotOutput(string.trim())

@@ -41,7 +41,7 @@ abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationS
     private static final Pattern TEST_CASE_RESULT_PATTERN = ~/(.*)(\w+)\(\) (PASSED|FAILED|SKIPPED|STANDARD_OUT)/
 
     def setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
     @Override

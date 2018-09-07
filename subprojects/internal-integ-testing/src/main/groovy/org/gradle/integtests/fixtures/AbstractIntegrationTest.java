@@ -143,22 +143,4 @@ public abstract class AbstractIntegrationTest {
     public static String mavenCentralRepository() {
         return RepoScriptBlockUtil.mavenCentralRepository();
     }
-
-    public void useRepositoryMirrors() {
-        executer.beforeExecute(new Action<GradleExecuter>() {
-            @Override
-            public void execute(GradleExecuter gradleExecuter) {
-                executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript());
-            }
-        });
-    }
-
-    public void usePluginRepositoryMirror() {
-        executer.beforeExecute(new Action<GradleExecuter>() {
-            @Override
-            public void execute(GradleExecuter gradleExecuter) {
-                executer.withArgument("-D" + PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY + "=" + gradlePluginRepositoryMirrorUrl());
-            }
-        });
-    }
 }

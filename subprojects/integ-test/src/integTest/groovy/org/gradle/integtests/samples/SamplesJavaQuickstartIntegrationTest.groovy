@@ -37,7 +37,7 @@ class SamplesJavaQuickstartIntegrationTest extends AbstractIntegrationSpec {
     public final Sample sample = new Sample(testDirectoryProvider, 'java/quickstart')
 
     def setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
     @Unroll
