@@ -317,8 +317,8 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
 
-        Provider<JavaCompile> javaCompile = project.getTasks().withType(JavaCompile.class).named(COMPILE_JAVA_TASK_NAME);
-        Provider<ProcessResources> processResources = project.getTasks().withType(ProcessResources.class).named(PROCESS_RESOURCES_TASK_NAME);
+        Provider<JavaCompile> javaCompile = project.getTasks().named(COMPILE_JAVA_TASK_NAME, JavaCompile.class);
+        Provider<ProcessResources> processResources = project.getTasks().named(PROCESS_RESOURCES_TASK_NAME, ProcessResources.class);
 
         addJar(apiElementConfiguration, jarArtifact);
         addJar(runtimeConfiguration, jarArtifact);

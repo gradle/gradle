@@ -71,7 +71,7 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         Configuration apiElementsConfiguration = configurations.getByName(sourceSet.getApiElementsConfigurationName());
         apiElementsConfiguration.extendsFrom(apiConfiguration);
 
-        final Provider<JavaCompile> javaCompile = project.getTasks().withType(JavaCompile.class).named(COMPILE_JAVA_TASK_NAME);
+        final Provider<JavaCompile> javaCompile = project.getTasks().named(COMPILE_JAVA_TASK_NAME, JavaCompile.class);
 
         // Define a classes variant to use for compilation
         ConfigurationPublications publications = apiElementsConfiguration.getOutgoing();
