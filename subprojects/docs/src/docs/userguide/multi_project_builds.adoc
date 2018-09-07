@@ -394,31 +394,9 @@ This didn't quite do what we want. If nothing else is defined, Gradle executes t
 └── settings.gradle
 ----
 
-[.multi-language-sample,groovy]
 ====
-.build.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/multiproject/dependencies/messagesHack/messages/build.gradle[]
-----
-
-.settings.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/multiproject/dependencies/messagesHack/messages/settings.gradle[]
-----
-
-.aProducer/build.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/multiproject/dependencies/messagesHack/messages/aProducer/build.gradle[]
-----
-
-.consumer/build.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/multiproject/dependencies/messagesHack/messages/consumer/build.gradle[]
-----
+include::sample[dir="userguide/multiproject/dependencies/messagesHack/messages/groovy",files="build.gradle[];settings.gradle[];consumer/build.gradle[];aProducer/build.gradle[]"]
+include::sample[dir="userguide/multiproject/dependencies/messagesHack/messages/kotlin",files="build.gradle.kts[];settings.gradle.kts[];consumer/build.gradle.kts[];aProducer/build.gradle.kts[]"]
 ====
 
 .Output of `gradle -q action`
@@ -427,15 +405,17 @@ include::{samplesPath}/userguide/multiproject/dependencies/messagesHack/messages
 include::{samplesPath}/userguide/multiproject/dependencies/messagesHack/messages/multiprojectMessagesHack.out[]
 ----
 
-
 We can show where this hack doesn't work if we now switch to the `consumer` dir and execute the build.
 
-=== Example: Dependencies and execution order
-
-.Output of **`gradle -q action`**
+[source.multi-language-sample,groovy]
 ----
-> gradle -q action
-include::{samplesPath}/userguide/multiproject/dependencies/messagesHack/messages/consumer/multiprojectMessagesHackBroken.out[]
+> gradle -q action --settings-file=../settings.gradle
+include::{samplesPath}/userguide/multiproject/dependencies/messagesHack/messages/multiprojectMessagesHackBroken.out[]
+----
+[source.multi-language-sample,kotlin]
+----
+> gradle -q action --settings-file=../settings.gradle.kts
+include::{samplesPath}/userguide/multiproject/dependencies/messagesHack/messages/multiprojectMessagesHackBroken.out[]
 ----
 
 The problem is that the two “`action`” tasks are unrelated. If you execute the build from the “`messages`” project Gradle executes them both because they have the same name and they are down the hierarchy. In the last example only one “`action`” task was down the hierarchy and therefore it was the only task that was executed. We need something better than this hack.
