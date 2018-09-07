@@ -22,7 +22,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ArtifactView;
-import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.attributes.Usage;
@@ -100,19 +99,6 @@ public class ScalaBasePlugin implements Plugin<Project> {
         incrementalAnalysisElements.setCanBeResolved(false);
         incrementalAnalysisElements.setCanBeConsumed(true);
         incrementalAnalysisElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, incrementalAnalysisUsage);
-
-        // TODO: Derive this from the task/provider
-        project.afterEvaluate(new Action<Project>() {
-            @Override
-            public void execute(Project project) {
-                incrementalAnalysisElements.getOutgoing().artifact(project.file("build/tmp/scala/compilerAnalysis/compileScala.mapping"), new Action<ConfigurablePublishArtifact>() {
-                    @Override
-                    public void execute(ConfigurablePublishArtifact configurablePublishArtifact) {
-                        configurablePublishArtifact.builtBy("compileScala");
-                    }
-                });
-            }
-        });
     }
 
     private static void configureSourceSetDefaults(final Project project, final Usage incrementalAnalysisUsage, final SourceDirectorySetFactory sourceDirectorySetFactory) {
