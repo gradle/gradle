@@ -49,13 +49,11 @@ The following examples demonstrate the various ways that 2 Gradle builds that ar
 
 The `my-app` build does not have direct dependencies on `my-utils`. Instead, it declares binary dependencies on the libraries produced by `my-utils`.
 
-=== Example: Dependencies of my-app
-
-[source.multi-language-sample,groovy]
-.my-app/build.gradle
-----
-include::{samplesPath}/compositeBuilds/basic/my-app/build.gradle[]
-----
+.Dependencies of my-app
+====
+include::sample[dir="compositeBuilds/basic/groovy",files="my-app/build.gradle[]"]
+include::sample[dir="compositeBuilds/basic/kotlin",files="my-app/build.gradle.kts[]"]
+====
 
 NOTE: The code for this example can be found at **`samples/compositeBuilds/basic`** in the ‘-all’ distribution of Gradle.
 
@@ -69,36 +67,32 @@ The `--include-build` command-line argument turns the executed build into a comp
 .Output of **`gradle --include-build ../my-utils run`**
 ----
 > gradle --include-build ../my-utils run
-include::{samplesPath}/compositeBuilds/basic/my-app/compositeBuilds_basic_cli.out[]
+include::{samplesPath}/compositeBuilds/basic/compositeBuilds_basic_cli.out[]
 ----
 
 [[settings_defined_composite]]
-=== Defining a composite build via `settings.gradle`
+=== Defining a composite build via the settings file
 
-It's possible to make the above arrangement persistent, by using link:{groovyDslPath}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:includeBuild(java.lang.Object)[Settings.includeBuild(java.lang.Object)] to declare the included build in the `settings.gradle` file. The `settings.gradle` file can be used to add subprojects and included builds at the same time. Included builds are added by location. See the examples below for more details.
+It's possible to make the above arrangement persistent, by using link:{groovyDslPath}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:includeBuild(java.lang.Object)[Settings.includeBuild(java.lang.Object)] to declare the included build in the `settings.gradle` (or `settings.gradle.kts` in Kotlin) file. The settings file can be used to add subprojects and included builds at the same time. Included builds are added by location. See the examples below for more details.
 
 [[separate_composite]]
 === Defining a separate composite build
 
 One downside of the above approach is that it requires you to modify an existing build, rendering it less useful as a standalone build. One way to avoid this is to define a separate composite build, whose only purpose is to combine otherwise separate builds.
 
-=== Example: Declaring a separate composite
-
-[source.multi-language-sample,groovy]
-.settings.gradle
-----
-include::{samplesPath}/compositeBuilds/basic/composite/settings.gradle[]
-----
+.Declaring a separate composite
+====
+include::sample[dir="compositeBuilds/basic/groovy",files="composite/settings.gradle[]"]
+include::sample[dir="compositeBuilds/basic/kotlin",files="composite/settings.gradle.kts[]"]
+====
 
 In this scenario, the 'main' build that is executed is the composite, and it doesn't define any useful tasks to execute itself. In order to execute the 'run' task in the 'my-app' build, the composite build must define a delegating task.
 
-=== Example: Depending on task from included build
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/compositeBuilds/basic/composite/build.gradle[tag=run]
-----
+.Depending on task from included build
+====
+include::sample[dir="compositeBuilds/basic/groovy",files="composite/build.gradle[tags=run]"]
+include::sample[dir="compositeBuilds/basic/kotlin",files="composite/build.gradle.kts[tags=run]"]
+====
 
 More details tasks that depend on included build tasks below.
 
@@ -201,13 +195,11 @@ While included builds are isolated from one another and cannot declare direct de
 
 Using these APIs, it is possible to declare a dependency on a task in a particular included build, or tasks with a certain path in all or some of the included builds.
 
-=== Example: Depending on a single task from an included build
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/compositeBuilds/basic/composite/build.gradle[tag=run]
-----
+.Depending on a single task from an included build
+====
+include::sample[dir="compositeBuilds/basic/groovy",files="composite/build.gradle[tags=run]"]
+include::sample[dir="compositeBuilds/basic/kotlin",files="composite/build.gradle.kts[tags=run]"]
+====
 
 === Example: Depending on a tasks with path in all included builds
 

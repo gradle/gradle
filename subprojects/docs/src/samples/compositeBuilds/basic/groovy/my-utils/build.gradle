@@ -1,4 +1,6 @@
-apply plugin: 'idea'
+plugins {
+    id 'idea'
+}
 
 subprojects {
     apply plugin: 'java'
@@ -14,6 +16,6 @@ subprojects {
 
 project(":string-utils") {
     dependencies {
-        compile "org.apache.commons:commons-lang3:3.4"
+        implementation "org.apache.commons:commons-lang3:3.4"
     }
 }
