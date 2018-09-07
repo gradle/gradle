@@ -42,8 +42,6 @@ import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
 import org.junit.Rule
 
-import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFAULT_TIMEOUT_SECONDS
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 import static org.gradle.util.Matchers.normalizedLineSeparators
