@@ -15,7 +15,6 @@ import org.junit.Test
 class KotlinInitScriptIntegrationTest : AbstractIntegrationTest() {
 
     @Test
-    @LeaksFileHandles
     fun `initscript classpath`() {
 
         withClassJar("fixture.jar", DeepThought::class.java)
@@ -99,7 +98,6 @@ class KotlinInitScriptIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
-    @LeaksFileHandles
     fun `given a script plugin with an initscript block, it will be used to compute its classpath`() {
 
         withClassJar("fixture.jar", DeepThought::class.java)
