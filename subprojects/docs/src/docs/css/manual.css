@@ -866,15 +866,19 @@ h6,
 h1 {
     font-size: 2rem;
 }
+
 h2 {
     font-size: 1.5rem;
 }
+
 h3 {
     font-size: 1.125rem;
 }
+
 h4 {
     font-size: 1.0625rem;
 }
+
 h5, h6 {
     font-size: 1rem;
 }
@@ -912,6 +916,7 @@ dl {
     .footer {
         max-width: 100%;
     }
+
     .main-content > .appendix,
     .main-content > .book,
     .main-content > .chapter {
@@ -924,6 +929,7 @@ dl {
 #header {
     position: static;
 }
+
 #header, #content {
     padding: 0;
 }
@@ -1205,14 +1211,14 @@ body.book #header > h1 {
 }
 
 div.screenshot {
-    box-shadow: 0 0 20px 1px rgba(0,0,0,0.2);
+    box-shadow: 0 0 20px 1px rgba(0, 0, 0, 0.2);
     margin-left: auto;
     margin-right: auto;
     width: 90%;
 }
 
 .inset {
-    box-shadow: 0 0 1px 1px rgba(0,0,0,0.1);
+    box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.1);
     padding: 1em;
 }
 
@@ -1246,6 +1252,7 @@ div.screenshot {
     margin-top: 0;
     padding-bottom: 0.5rem;
 }
+
 #toc > ul > li:last-of-type {
     padding-bottom: 0;
 }
@@ -1324,6 +1331,7 @@ div.screenshot {
 .site-header div {
     font-family: 'Lato', Arial, sans-serif;
 }
+
 .site-header__navigation-header a {
     align-self: center;
     border-bottom: 0 none;
@@ -1360,7 +1368,7 @@ div.screenshot {
     flex-direction: column;
     flex-wrap: wrap;
     align-items: flex-start;
-    max-height: 170px;
+    max-height: 210px; /* This matches the collapsible height above */
     margin: 0 20px;
     padding-top: 12px;
     padding-left: 0;
@@ -1495,9 +1503,9 @@ div.screenshot {
         top: 0;
         left: 0;
         right: 0;
-        -webkit-box-shadow: 0 2px 4px 0 rgba(0,0,0,.15);
-        -moz-box-shadow: 0 2px 4px 0 rgba(0,0,0,.15);
-        box-shadow: 0 2px 4px 0 rgba(0,0,0,.15);
+        -webkit-box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .15);
+        -moz-box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .15);
+        box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .15);
         z-index: 1;
     }
 
@@ -1508,10 +1516,12 @@ div.screenshot {
     #content h2[id], #content h3[id], #content h4[id] {
         padding-top: 60px;
     }
+
     #content h2[id] {
         /* Little extra room above h2s */
         margin-top: -44px;
     }
+
     #content h3[id], #content h4[id] {
         margin-top: -60px;
     }
@@ -1581,9 +1591,11 @@ div.screenshot {
 /* Docs Navigation */
 .docs-navigation {
     display: none;
-    overflow: hidden;
     padding-left: 5px;
-    position: relative;
+}
+
+.docs-navigation .search-container {
+    display: none;
 }
 
 .docs-navigation a {
@@ -1609,6 +1621,7 @@ div.screenshot {
     margin: 0.5em 0;
     padding: 0;
 }
+
 .docs-navigation ul:last-of-type {
     margin-bottom: 0;
 }
@@ -1616,9 +1629,11 @@ div.screenshot {
 .docs-navigation li:first-of-type {
     margin-top: 0;
 }
+
 .docs-navigation li {
     margin-bottom: 0.5em;
 }
+
 .docs-navigation li:last-of-type {
     margin-bottom: 0;
 }
@@ -1648,10 +1663,14 @@ div.screenshot {
     margin: 1.5em 0 0;
 }
 
+.docs-navigation .docs-home-link {
+    position: relative;
+}
+
 .docs-navigation .pdf-link-container {
     display: inline-block;
     position: absolute;
-    top: 0.75em;
+    top: 0.1em;
     right: 0;
 }
 
@@ -1766,11 +1785,13 @@ div.screenshot {
 .rating {
     direction: rtl;
 }
+
 .rating > .star {
     cursor: pointer;
     display: table-cell;
     padding: 3px;
 }
+
 .rating > .star:hover > svg > g,
 .rating > .star:hover ~ .star > svg > g,
 .rating > .star.selected > svg > g,
