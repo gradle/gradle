@@ -92,7 +92,6 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
     def "emits test operations as expected for composite builds"() {
         given:
-        executer.withRepositoryMirrors()
         resources.maybeCopy('TestExecutionBuildOperationsIntegrationTest')
         settingsFile.text = """
             rootProject.name = "composite"
