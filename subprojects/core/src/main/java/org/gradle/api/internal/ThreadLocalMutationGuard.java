@@ -14,13 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal
+package org.gradle.api.internal;
 
+public class ThreadLocalMutationGuard extends AbstractMutationGuard {
+    private ThreadLocal<Boolean> isMutationAllowed = new ThreadLocal<Boolean>() {
+        @Override
+        protected Boolean initialValue() {
+            return Boolean.TRUE;
+        }
+    };
 
-import spock.lang.Subject
+    @Override
+    protected boolean getAndSetMutationAllowed(boolean mutationAllowed) {
+        boolean result = isMutationAllowed.get();
+        isMutationAllowed.set(mutationAllowed);
+        return result;
+    }
 
-@Subject(DefaultMutationGuard)
-class DefaultMutationGuardTest extends AbstractMutationGuardSpec {
-    final MutationGuard guard = new DefaultMutationGuard()
+    @Override
+    public boolean isMutationAllowed() {
+        return isMutationAllowed.get();
+    }
 }
-
