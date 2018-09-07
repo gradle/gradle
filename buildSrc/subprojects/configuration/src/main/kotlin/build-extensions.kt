@@ -15,8 +15,11 @@
  */
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ComponentMetadataRule
-
-import org.gradle.kotlin.dsl.*
+import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.HasConfigurableAttributes
+import org.gradle.kotlin.dsl.extra
+import org.gradle.util.GradleVersion
 
 
 // This file contains Kotlin extensions for the gradle/gradle build
@@ -46,6 +49,23 @@ fun Project.libraryReason(name: String): String? =
 
 fun Project.testLibrary(name: String): String =
     testLibraries[name]!! as String
+
+
+// TODO: Remove this with Gradle 5 native "platform" support once we build using a compatible nightly
+val gradle5CategoryAttribute = Attribute.of("org.gradle.component.category", String::class.java)
+
+
+fun DependencyHandler.gradle5Platform(name: Any) = if (GradleVersion.current().baseVersion >= GradleVersion.version("5.0")) {
+    val dep = create(name)
+    if (dep is HasConfigurableAttributes<*>) {
+        dep.attributes {
+            attribute(gradle5CategoryAttribute, "platform")
+        }
+    }
+    dep
+} else {
+    create(name)
+}
 
 
 // TODO:kotlin-dsl Remove work around for https://github.com/gradle/kotlin-dsl/issues/639 once fixed
