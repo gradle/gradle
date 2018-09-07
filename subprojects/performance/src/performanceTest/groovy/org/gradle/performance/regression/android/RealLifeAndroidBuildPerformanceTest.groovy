@@ -47,4 +47,33 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         'largeAndroidBuild' | '4g'   | true     | null       | null | 'assembleDebug'
         'largeAndroidBuild' | '4g'   | true     | 2          | 8    | 'clean phthalic:assembleDebug'
     }
+
+    @Unroll
+    def "#tasks on #testProject with dexing transforms"() {
+        given:
+        runner.testProject = testProject
+        runner.tasksToRun = tasks.split(' ')
+        runner.gradleOpts = ["-Xms$memory", "-Xmx$memory"]
+        runner.args = parallel ? ['-Dorg.gradle.parallel=true'] : []
+        runner.args += "-Pandroid.enableDexingArtifactTransform=true"
+        runner.warmUpRuns = warmUpRuns
+        runner.runs = runs
+        runner.minimumVersion = "4.3.1"
+        runner.targetVersions = ["4.11-20180813035115+0000"]
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject         | memory | parallel | warmUpRuns | runs | tasks
+        'k9AndroidBuild'    | '1g'   | false    | null       | null | 'help'
+        'k9AndroidBuild'    | '1g'   | false    | null       | null | 'assembleDebug'
+//        'k9AndroidBuild'    | '1g'   | false    | null       | null | 'clean k9mail:assembleDebug'
+        'largeAndroidBuild' | '4g'   | true     | null       | null | 'help'
+        'largeAndroidBuild' | '4g'   | true     | null       | null | 'assembleDebug'
+        'largeAndroidBuild' | '4g'   | true     | 2          | 8    | 'clean phthalic:assembleDebug'
+    }
 }
