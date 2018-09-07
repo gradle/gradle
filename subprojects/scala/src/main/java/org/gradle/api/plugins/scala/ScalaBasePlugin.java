@@ -135,13 +135,22 @@ public class ScalaBasePlugin implements Plugin<Project> {
                     }
                 });
 
-                configureScalaCompile(project, sourceSet, incrementalAnalysisUsage);
+                Configuration classpath = project.getConfigurations().getByName(sourceSet.getImplementationConfigurationName());
+                Configuration incrementalAnalysis = project.getConfigurations().create("incrementalScalaAnalysisFor" + sourceSet.getName());
+                incrementalAnalysis.setVisible(false);
+                incrementalAnalysis.setDescription("Incremental compilation analysis files for " + displayName);
+                incrementalAnalysis.setCanBeResolved(true);
+                incrementalAnalysis.setCanBeConsumed(false);
+                incrementalAnalysis.extendsFrom(classpath);
+                incrementalAnalysis.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, incrementalAnalysisUsage);
+
+                configureScalaCompile(project, sourceSet, incrementalAnalysis, incrementalAnalysisUsage);
             }
 
         });
     }
 
-    private static void configureScalaCompile(final Project project, final SourceSet sourceSet, final Usage incrementalAnalysisUsage) {
+    private static void configureScalaCompile(final Project project, final SourceSet sourceSet, final Configuration incrementalAnalysis, final Usage incrementalAnalysisUsage) {
         Convention scalaConvention = (Convention) InvokerHelper.getProperty(sourceSet, "convention");
         final ScalaSourceSet scalaSourceSet = scalaConvention.findPlugin(ScalaSourceSet.class);
         SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, scalaSourceSet.getScala(), project);
@@ -171,12 +180,10 @@ public class ScalaBasePlugin implements Plugin<Project> {
                         }
                     })));
                 }
-                Configuration classpath = project.getConfigurations().getByName(sourceSet.getCompileClasspathConfigurationName());
-                scalaCompile.getAnalysisFiles().from(classpath.getIncoming().artifactView(new Action<ArtifactView.ViewConfiguration>() {
+                scalaCompile.getAnalysisFiles().from(incrementalAnalysis.getIncoming().artifactView(new Action<ArtifactView.ViewConfiguration>() {
                     @Override
                     public void execute(ArtifactView.ViewConfiguration viewConfiguration) {
                         viewConfiguration.lenient(true);
-                        viewConfiguration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, incrementalAnalysisUsage);
                     }
                 }).getFiles());
             }
