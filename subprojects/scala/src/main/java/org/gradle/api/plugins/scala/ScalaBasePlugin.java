@@ -16,7 +16,6 @@
 package org.gradle.api.plugins.scala;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Maps;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
@@ -51,7 +50,6 @@ import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -96,7 +94,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 }
             });
 
-        Configuration incrementalAnalysisElements = project.getConfigurations().create("incrementalScalaAnalysisElements");
+        final Configuration incrementalAnalysisElements = project.getConfigurations().create("incrementalScalaAnalysisElements");
         incrementalAnalysisElements.setVisible(false);
         incrementalAnalysisElements.setDescription("Incremental compilation analysis files");
         incrementalAnalysisElements.setCanBeResolved(false);
@@ -104,10 +102,15 @@ public class ScalaBasePlugin implements Plugin<Project> {
         incrementalAnalysisElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, incrementalAnalysisUsage);
 
         // TODO: Derive this from the task/provider
-        incrementalAnalysisElements.getOutgoing().artifact(project.file("build/tmp/scala/compilerAnalysis/scalaCompile.mapping"), new Action<ConfigurablePublishArtifact>() {
+        project.afterEvaluate(new Action<Project>() {
             @Override
-            public void execute(ConfigurablePublishArtifact configurablePublishArtifact) {
-                configurablePublishArtifact.builtBy("compileScala");
+            public void execute(Project project) {
+                incrementalAnalysisElements.getOutgoing().artifact(project.file("build/tmp/scala/compilerAnalysis/compileScala.mapping"), new Action<ConfigurablePublishArtifact>() {
+                    @Override
+                    public void execute(ConfigurablePublishArtifact configurablePublishArtifact) {
+                        configurablePublishArtifact.builtBy("compileScala");
+                    }
+                });
             }
         });
     }
