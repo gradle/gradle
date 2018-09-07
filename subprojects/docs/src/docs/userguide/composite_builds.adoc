@@ -141,7 +141,7 @@ Importing a composite build permits sources from separate Gradle builds to be ea
 
 By default, Gradle will configure each included build in order to determine the dependencies it can provide. The algorithm for doing this is very simple: Gradle will inspect the group and name for the projects in the included build, and substitute project dependencies for any external dependency matching `${project.group}:${project.name}`.
 
-There are cases when the default substitutions determined by Gradle are not sufficient, or they are not correct for a particular composite. For these cases it is possible to explicitly declare the substitutions for an included build. Take for example a single-project build 'unpublished', that produces a java utility library but does not declare a value for the group attribute:
+There are cases when the default substitutions determined by Gradle are not sufficient, or they are not correct for a particular composite. For these cases it is possible to explicitly declare the substitutions for an included build. Take for example a single-project build 'anonymous-library', that produces a java utility library but does not declare a value for the group attribute:
 
 .Build that does not declare group attribute
 ====
@@ -149,7 +149,7 @@ include::sample[dir="compositeBuilds/declared-substitution/groovy/anonymous-libr
 include::sample[dir="compositeBuilds/declared-substitution/kotlin/anonymous-library",files="build.gradle.kts[]"]
 ====
 
-When this build is included in a composite, it will attempt to substitute for the dependency module "undefined:unpublished" ("undefined" being the default value for `project.group`, and 'unpublished' being the root project name). Clearly this isn't going to be very useful in a composite build. To use the unpublished library unmodified in a composite build, the composing build can explicitly declare the substitutions that it provides:
+When this build is included in a composite, it will attempt to substitute for the dependency module "undefined:anonymous-library" ("undefined" being the default value for `project.group`, and "anonymous-library" being the root project name). Clearly this isn't going to be very useful in a composite build. To use the unpublished library unmodified in a composite build, the composing build can explicitly declare the substitutions that it provides:
 
 .Declaring the substitutions for an included build
 ====
@@ -157,7 +157,7 @@ include::sample[dir="compositeBuilds/declared-substitution/groovy/my-app",files=
 include::sample[dir="compositeBuilds/declared-substitution/kotlin/my-app",files="settings.gradle.kts[]"]
 ====
 
-With this configuration, the "my-app" composite build will substitute any dependency on `org.sample:number-utils` with a dependency on the root project of "unpublished".
+With this configuration, the "my-app" composite build will substitute any dependency on `org.sample:number-utils` with a dependency on the root project of "anonymous-library".
 
 
 [[included_build_substitution_requirements]]
