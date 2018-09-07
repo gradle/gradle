@@ -49,6 +49,14 @@ open class CleanUpCaches : DefaultTask() {
         removeOldVersionsFromDir(file(".gradle"), expireTaskCache)
         removeOldVersionsFromDir(file("intTestHomeDir/worker-1/caches"), expireIntegTestCache)
 
+        /*
+         intTestHomeDir
+            generatedApiJars
+                5.0-123123123123
+                    core-api_AZERA        <-- the system property to pass to generated jar cache
+         */
+        removeOldVersionsFromDir(file("intTestHomeDir/generatedApiJars"), expireIntegTestCache)
+
         // Remove scripts caches
         removeCachedScripts(file("intTestHomeDir/worker-1/caches"))
 

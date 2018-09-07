@@ -35,6 +35,8 @@ import javax.annotation.Nullable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet.NO_ARTIFACTS;
+
 class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifactSelector {
     private final Map<String, ModuleComponentRepository> repositories = new LinkedHashMap<String, ModuleComponentRepository>();
 
@@ -56,6 +58,10 @@ class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifac
     @Nullable
     @Override
     public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactTypeRegistry artifactTypeRegistry, ModuleExclusion exclusions, ImmutableAttributes overriddenAttributes) {
+        if (component.getSource() == null) {
+            // virtual components have no source
+            return NO_ARTIFACTS;
+        }
         ModuleComponentRepository sourceRepository = findSourceRepository(component.getSource());
         ComponentResolveMetadata unpackedComponent = unpackSource(component);
         // First try to determine the artifacts locally before going remote

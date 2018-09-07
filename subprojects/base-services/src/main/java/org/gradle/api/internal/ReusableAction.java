@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'java'
+package org.gradle.api.internal;
 
-repositories {
-    jcenter()
+/**
+ * A marker interface for rules which can be safely reused because they are either
+ * stateless, or effectively immutable. Ideally this should be inferred, which is
+ * why the interface is internal.
+ */
+public interface ReusableAction {
 }
-
-// tag::annotation-processing[]
-dependencies {
-    // The dagger compiler and its transitive dependencies will only be found on annotation processing classpath
-    annotationProcessor 'com.google.dagger:dagger-compiler:2.8'
-
-    // And we still need the Dagger library on the compile classpath itself
-    implementation 'com.google.dagger:dagger:2.8'
-}
-// end::annotation-processing[]
-

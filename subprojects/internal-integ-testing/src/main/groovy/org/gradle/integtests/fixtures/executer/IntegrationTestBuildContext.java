@@ -53,6 +53,10 @@ public class IntegrationTestBuildContext {
         return file("integTest.gradleUserHomeDir", "intTestHomeDir").file("worker-1");
     }
 
+    public TestFile getGradleGeneratedApiJarCacheDir() {
+        return file("integTest.gradleGeneratedApiJarCacheDir", null);
+    }
+
     public TestFile getTmpDir() {
         return file("integTest.tmpDir", "build/tmp");
     }
@@ -97,21 +101,22 @@ public class IntegrationTestBuildContext {
         return new ReleasedGradleDistribution(version, previousVersionDir.file(version));
     }
 
-    protected static TestFile file(String propertyName, String defaultFile) {
-        String defaultPath;
-        if (defaultFile == null) {
-            defaultPath = null;
-        } else if (new File(defaultFile).isAbsolute()) {
-            defaultPath = defaultFile;
-        } else {
-            defaultPath = TEST_DIR.file(defaultFile).getAbsolutePath();
+    protected static TestFile file(String propertyName, String defaultPath) {
+        String path = System.getProperty(propertyName);
+        if (path != null) {
+            return new TestFile(new File(path));
         }
-        String path = System.getProperty(propertyName, defaultPath);
-        if (path == null) {
-            throw new RuntimeException(String.format("You must set the '%s' property to run the integration tests. The default passed was: '%s'",
-                propertyName, defaultFile));
+        if (defaultPath == null) {
+            throw new RuntimeException("You must set the '" + propertyName + "' property to run the integration tests.");
         }
-        return new TestFile(new File(path));
+        return testFile(defaultPath);
+    }
+
+    private static TestFile testFile(String path) {
+        File file = new File(path);
+        return file.isAbsolute()
+            ? new TestFile(file)
+            : new TestFile(TEST_DIR.file(path).getAbsoluteFile());
     }
 
 }

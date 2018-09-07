@@ -1705,7 +1705,7 @@ repositories {
 
 dependencies {
     implementation 'org.a:root'
-    implementation 'org:bom:1.0'
+    implementation platform('org:bom:1.0')
     constraints {
         implementation 'org.a:root:1.0'
     }

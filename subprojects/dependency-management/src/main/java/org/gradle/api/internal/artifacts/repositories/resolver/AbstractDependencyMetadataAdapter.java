@@ -29,6 +29,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
+import org.gradle.internal.component.model.ForcingDependencyMetadata;
 
 import java.util.List;
 
@@ -110,5 +111,12 @@ public abstract class AbstractDependencyMetadataAdapter<T extends DependencyMeta
         ModuleDependencyMetadata metadata = (ModuleDependencyMetadata) getOriginalMetadata().withTarget(target);
         updateMetadata(metadata);
         return Cast.uncheckedCast(this);
+    }
+
+    public void forced() {
+        ModuleDependencyMetadata originalMetadata = getOriginalMetadata();
+        if (originalMetadata instanceof ForcingDependencyMetadata) {
+            updateMetadata((ModuleDependencyMetadata) ((ForcingDependencyMetadata) originalMetadata).forced());
+        }
     }
 }

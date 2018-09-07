@@ -343,4 +343,45 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         where:
         inputAnnotation << [InputFiles.name, InputDirectory.name]
     }
+    
+    @Issue("https://github.com/gradle/gradle/issues/6592")
+    def "missing directory is ignored"() {
+        buildFile << """
+            class TaskWithInputDir extends DefaultTask {
+            
+                @InputFiles
+                FileTree inputDir
+                
+                @OutputFile
+                File outputFile
+            
+                @TaskAction
+                void doStuff() { 
+                    outputFile.text = inputDir.files.collect { it.name }.join("\\n") 
+                }
+            }                             
+
+            task myTask1(type: TaskWithInputDir) {
+                inputDir = fileTree(file('input'))
+                outputFile = file('build/output.txt')
+            }
+            task myTask2(type: TaskWithInputDir) {
+                inputDir = fileTree(file('input'))
+                outputFile = file('build/output.txt')
+                dependsOn("myTask1")
+            }
+        """
+
+        def tasks = [":myTask1", ":myTask2"]
+
+        when:
+        run(*tasks)
+        then:
+        executedAndNotSkipped(*tasks)
+
+        when:
+        run(*tasks)
+        then:
+        skipped(*tasks)
+    }
 }
