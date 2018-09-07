@@ -76,13 +76,11 @@ Overriding the default identity values is easy: simply specify the `organisation
 
 The `descriptor` property can also be used to add additional custom elements as children of the `&lt;info&gt;` element, like so:
 
-=== Example: customizing the publication identity
-
-[source.multi-language-sample,groovy,indent=0]
-.build.gradle
-----
-include::{samplesPath}/ivy-publish/multiple-publications/build.gradle[tag=customize-identity]
-----
+.customizing the publication identity
+====
+include::sample[dir="ivy-publish/customize-identity/groovy",files="build.gradle[tags=customize-identity]"]
+include::sample[dir="ivy-publish/customize-identity/kotlin",files="build.gradle.kts[tags=customize-identity]"]
+====
 
 [TIP]
 ====
