@@ -1,9 +1,11 @@
 // tag::automatic-classpath[]
-apply plugin: 'groovy'
-apply plugin: 'java-gradle-plugin'
+plugins {
+    id 'groovy'
+    id 'java-gradle-plugin'
+}
 
 dependencies {
-    testCompile('org.spockframework:spock-core:1.1-groovy-2.4') {
+    testImplementation('org.spockframework:spock-core:1.1-groovy-2.4') {
         exclude module: 'groovy-all'
     }
 }
