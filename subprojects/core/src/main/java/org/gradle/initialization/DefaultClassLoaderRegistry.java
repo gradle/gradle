@@ -42,8 +42,14 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
     private static FilteringClassLoader.Spec apiSpecFor(ClassLoader classLoader) {
         FilteringClassLoader.Spec apiSpec = new FilteringClassLoader.Spec();
         GradleApiSpecProvider.Spec apiAggregate = new GradleApiSpecAggregator(classLoader).aggregate();
+        for (String resource : apiAggregate.getExportedResources()) {
+            apiSpec.allowResource(resource);
+        }
         for (String resourcePrefix : apiAggregate.getExportedResourcePrefixes()) {
             apiSpec.allowResources(resourcePrefix);
+        }
+        for (Class<?> clazz : apiAggregate.getExportedClasses()) {
+            apiSpec.allowClass(clazz);
         }
         for (String packageName : apiAggregate.getExportedPackages()) {
             apiSpec.allowPackage(packageName);
