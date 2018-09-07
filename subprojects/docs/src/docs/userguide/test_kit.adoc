@@ -22,24 +22,19 @@ The Gradle TestKit (a.k.a. just TestKit) is a library that aids in testing Gradl
 
 To use the TestKit, include the following in your plugin's build:
 
-=== Example: Declaring the TestKit dependency
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/testKit/gradleRunner/junitQuickstart/build.gradle[tag=declare-gradle-testkit-dependency]
-----
+.Declaring the TestKit dependency
+====
+include::sample[dir="testKit/gradleRunner/junitQuickstart/groovy",files="build.gradle[tags=declare-gradle-testkit-dependency]"]
+include::sample[dir="testKit/gradleRunner/junitQuickstart/kotlin",files="build.gradle.kts[tags=declare-gradle-testkit-dependency]"]
+====
 
 The `gradleTestKit()` encompasses the classes of the TestKit, as well as the <<embedding.adoc#embedding,Gradle Tooling API client>>. It does not include a version of http://junit.org[JUnit], http://testng.org[TestNG], or any other test execution framework. Such a dependency must be explicitly declared.
 
-=== Example: Declaring the JUnit dependency
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/testKit/gradleRunner/junitQuickstart/build.gradle[tag=declare-junit-dependency]
-----
-
+.Declaring the JUnit dependency
+====
+include::sample[dir="testKit/gradleRunner/junitQuickstart/groovy",files="build.gradle[tags=declare-junit-dependency]"]
+include::sample[dir="testKit/gradleRunner/junitQuickstart/kotlin",files="build.gradle.kts[tags=declare-junit-dependency]"]
+====
 
 [[sec:functional_testing_with_the_gradle_runner]]
 == Functional testing with the Gradle runner
@@ -61,7 +56,7 @@ The following demonstrates the usage of Gradle runner in a Java JUnit test:
 [source,java,indent=0]
 .BuildLogicFunctionalTest.java
 ----
-include::{samplesPath}/testKit/gradleRunner/junitQuickstart/src/test/java/org/gradle/sample/BuildLogicFunctionalTest.java[tag=functional-test-junit]
+include::{samplesPath}/testKit/gradleRunner/junitQuickstart/groovy/src/test/java/org/gradle/sample/BuildLogicFunctionalTest.java[tag=functional-test-junit]
 ----
 
 Any test execution framework can be used.
