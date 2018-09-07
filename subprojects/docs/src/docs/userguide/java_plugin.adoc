@@ -22,13 +22,11 @@ The Java plugin adds Java compilation along with testing and bundling capabiliti
 
 To use the Java plugin, include the following in your build script:
 
-=== Example: Using the Java plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/java/quickstart/groovy/build.gradle[tag=use-plugin]
-----
+.Using the Java plugin
+====
+include::sample[dir="java/quickstart/groovy", files="build.gradle[tags=use-plugin]"]
+include::sample[dir="java/quickstart/kotlin", files="build.gradle.kts[tags=use-plugin]"]
+====
 
 
 [[sec:java_project_layout]]
@@ -48,13 +46,11 @@ include::javaProjectGenericLayout.adoc[]
 
 You configure the project layout by configuring the appropriate source set. This is discussed in more detail in the following sections. Here is a brief example which changes the main Java and resource source directories.
 
-=== Example: Custom Java source layout
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/java/customizedLayout/build.gradle[tag=define-main]
-----
+.Custom Java source layout
+====
+include::sample[dir="java/customizedLayout/groovy", files="build.gradle[tags=define-main]"]
+include::sample[dir="java/customizedLayout/kotlin", files="build.gradle.kts[tags=define-main]"]
+====
 
 == Source sets
 
@@ -143,33 +139,27 @@ See the <<java_testing.adoc#sec:configuring_java_integration_tests,integration t
 
 Adding a JAR containing the classes of a source set:
 
-=== Example: Assembling a JAR for a source set
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/java/sourceSets/build.gradle[tag=jar]
-----
+.Assembling a JAR for a source set
+====
+include::sample[dir="userguide/java/sourceSets/groovy", files="build.gradle[tags=jar]"]
+include::sample[dir="userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=jar]"]
+====
 
 Generating Javadoc for a source set:
 
-=== Example: Generating the Javadoc for a source set
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/java/sourceSets/build.gradle[tag=javadoc]
-----
+.Generating the Javadoc for a source set
+====
+include::sample[dir="userguide/java/sourceSets/groovy", files="build.gradle[tags=javadoc]"]
+include::sample[dir="userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=javadoc]"]
+====
 
 Adding a test suite to run the tests in a source set:
 
-=== Example: Running tests in a source set
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/java/sourceSets/build.gradle[tag=test]
-----
+.Running tests in a source set
+====
+include::sample[dir="userguide/java/sourceSets/groovy", files="build.gradle[tags=test]"]
+include::sample[dir="userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=test]"]
+====
 
 [[sec:java_tasks]]
 == Tasks
@@ -669,14 +659,11 @@ Some of the types of changes that do not affect the public API and are ignored:
 
 Compile-avoidance is deactivated if annotation processors are found on the compile classpath, because for annotation processors the implementation details matter. Annotation processors should be declared on the annotation processor path instead. Gradle 5.0 will ignore processors on the compile classpath.
 
-=== Example: Declaring annotation processors
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/java/apt/build.gradle[tag=annotation-processing]
-----
-
+.Declaring annotation processors
+====
+include::sample[dir="java/apt/groovy", files="build.gradle[tags=annotation-processing]"]
+include::sample[dir="java/apt/kotlin", files="build.gradle.kts[tags=annotation-processing]"]
+====
 
 [[sec:java_test]]
 == Test
