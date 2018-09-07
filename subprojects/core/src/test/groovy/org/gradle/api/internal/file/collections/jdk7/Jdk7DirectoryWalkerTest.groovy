@@ -24,9 +24,13 @@ import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.mirror.MirrorUpdatingDirectoryWalker
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DefaultDirectoryWalker
 import org.gradle.api.internal.file.collections.DirectoryFileTree
+import org.gradle.api.internal.file.collections.DirectoryWalker
 import org.gradle.api.internal.file.collections.ReproducibleDirectoryWalker
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
@@ -97,13 +101,8 @@ class Jdk7DirectoryWalkerTest extends Specification {
         patterns.include("**/*.txt")
         patterns.exclude("subdir1/**")
 
-        def fileTree = new DirectoryFileTree(rootDir, patterns, { walkerInstance } as Factory, TestFiles.fileSystem(), false)
-        def visited = []
-        def visitClosure = { visited << it.file.absolutePath }
-        def fileVisitor = [visitFile: visitClosure, visitDir: visitClosure] as FileVisitor
-
         when:
-        fileTree.visit(fileVisitor)
+        def visited = walkDirForPaths(walkerInstance, rootDir, patterns)
 
         then:
         visited.contains(rootTextFile.absolutePath)
@@ -114,7 +113,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         !visited.contains(doesNotExist.absolutePath)
 
         where:
-        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker()]
+        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker(), directorySnapshotter()]
     }
 
     def "both DirectoryWalker implementations return same set of files and attributes"() {
@@ -132,7 +131,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         checkFileVisitDetailsEqual(visitedWithDefaultWalker, visitedWithJdk7Walker)
     }
 
-    private void checkFileVisitDetailsEqual(List<FileVisitDetails> visitedWithDefaultWalker, List<FileVisitDetails> visitedWithJdk7Walker) {
+    private static void checkFileVisitDetailsEqual(List<FileVisitDetails> visitedWithDefaultWalker, List<FileVisitDetails> visitedWithJdk7Walker) {
         visitedWithDefaultWalker.each { FileVisitDetails details ->
             def detailsFromJdk7Walker = visitedWithJdk7Walker.find { it.file.absolutePath == details.file.absolutePath }
 
@@ -147,7 +146,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         millis / 1000L
     }
 
-    private generateFilesAndSubDirectories(TestFile parentDir, int fileCount, int dirCount, int maxDepth, int currentDepth, AtomicInteger fileIdGenerator) {
+    private static generateFilesAndSubDirectories(TestFile parentDir, int fileCount, int dirCount, int maxDepth, int currentDepth, AtomicInteger fileIdGenerator) {
         for (int i = 0; i < fileCount; i++) {
             parentDir.createFile("file" + fileIdGenerator.incrementAndGet()) << ("x" * fileIdGenerator.get())
         }
@@ -179,13 +178,8 @@ class Jdk7DirectoryWalkerTest extends Specification {
         def link = rootDir.file("a/d")
         link.createLink(dir)
 
-        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory, TestFiles.fileSystem(), false)
-        def visited = []
-        def visitClosure = { visited << it.file.absolutePath }
-        def fileVisitor = [visitFile: visitClosure, visitDir: visitClosure] as FileVisitor
-
         when:
-        fileTree.visit(fileVisitor)
+        def visited = walkDirForPaths(walkerInstance, rootDir, new PatternSet())
 
         then:
         visited.contains(file.absolutePath)
@@ -196,7 +190,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         link.delete()
 
         where:
-        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker()]
+        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker(), directorySnapshotter()]
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -210,13 +204,8 @@ class Jdk7DirectoryWalkerTest extends Specification {
         def link = rootDir.file("a/d").createDir().file("e.txt")
         link.createLink(file)
 
-        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory, TestFiles.fileSystem(), false)
-        def visited = []
-        def visitClosure = { visited << it.file.canonicalPath }
-        def fileVisitor = [visitFile: visitClosure, visitDir: visitClosure] as FileVisitor
-
         when:
-        fileTree.visit(fileVisitor)
+        def visited = walkDirForPaths(walkerInstance, rootDir, new PatternSet())
 
         then:
         visited.contains(file.canonicalPath)
@@ -227,7 +216,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         link.delete()
 
         where:
-        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker()]
+        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker(), directorySnapshotter()]
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -239,14 +228,9 @@ class Jdk7DirectoryWalkerTest extends Specification {
         def link = rootDir.file("a/d")
         link.createLink(dir)
 
-        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), { walkerInstance } as Factory, TestFiles.fileSystem(), false)
-        def visited = []
-        def visitClosure = { visited << it.file.absolutePath }
-        def fileVisitor = [visitFile: visitClosure, visitDir: visitClosure] as FileVisitor
-
         when:
         dir.deleteDir()
-        fileTree.visit(fileVisitor)
+        walkDirForPaths(walkerInstance, rootDir, new PatternSet())
 
         then:
         GradleException e = thrown()
@@ -256,7 +240,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         link.delete()
 
         where:
-        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker()]
+        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker(), directorySnapshotter()]
     }
 
     @Issue("GRADLE-3400")
@@ -274,13 +258,9 @@ class Jdk7DirectoryWalkerTest extends Specification {
 
         def patternSet = new PatternSet()
         patternSet.include("*.txt")
-        def fileTree = new DirectoryFileTree(rootDir, patternSet, { walkerInstance } as Factory, TestFiles.fileSystem(), false)
-        def visited = []
-        def visitClosure = { visited << it.file.absolutePath }
-        def fileVisitor = [visitFile: visitClosure, visitDir: visitClosure] as FileVisitor
 
         when:
-        fileTree.visit(fileVisitor)
+        def visited = walkDirForPaths(walkerInstance, rootDir, patternSet)
 
         then:
         visited.size() == 1
@@ -290,7 +270,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         link.delete()
 
         where:
-        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker()]
+        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker(), new ReproducibleDirectoryWalker(), directorySnapshotter()]
     }
 
     def "file walker sees a snapshot of file metadata even if files are deleted after walking has started"() {
@@ -354,5 +334,46 @@ class Jdk7DirectoryWalkerTest extends Specification {
         1 * patternSet.getAsSpec() >> assertingSpec
 
         visitedWithJdk7Walker.empty
+    }
+
+    private static MirrorUpdatingDirectoryWalker directorySnapshotter() {
+        new MirrorUpdatingDirectoryWalker(TestFiles.fileHasher(), TestFiles.fileSystem(), new StringInterner())
+    }
+
+    private List<String> walkDirForPaths(DirectoryWalker walkerInstance, File rootDir, PatternSet patternSet) {
+        def visited = []
+        def visitClosure = { visited << it.file.absolutePath }
+        def fileVisitor = [visitFile: visitClosure, visitDir: visitClosure] as FileVisitor
+        def fileTree = new DirectoryFileTree(rootDir, patternSet, { walkerInstance } as Factory, TestFiles.fileSystem(), false)
+        fileTree.visit(fileVisitor)
+        return visited
+    }
+
+    private List<String> walkDirForPaths(MirrorUpdatingDirectoryWalker walker, File rootDir, PatternSet patternSet) {
+        def snapshot = walker.walkDir(rootDir.absolutePath, patternSet, new MutableBoolean())
+        def visited = []
+        snapshot.accept(new PhysicalSnapshotVisitor() {
+            private boolean root = true
+
+            @Override
+            boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+                if (!root) {
+                    visited << directorySnapshot.absolutePath
+                }
+                root = false
+                return true
+            }
+
+            @Override
+            void visit(PhysicalSnapshot fileSnapshot) {
+                visited << fileSnapshot.absolutePath
+            }
+
+            @Override
+            void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+
+            }
+        })
+        return visited
     }
 }
