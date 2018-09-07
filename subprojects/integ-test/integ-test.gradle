@@ -35,7 +35,6 @@ testFixtures {
 
 integTestTasks.configureEach { task ->
     task.libsRepository.required = true
-    task.gradleInstallationForTest.samplesRequired.set(true)
 }
 
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
