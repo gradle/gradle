@@ -38,6 +38,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
@@ -212,6 +213,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
      * TODO
      * @return
      */
+    @Internal
     public ConfigurableFileCollection getAnalysisFiles() {
         return analysisFiles;
     }
