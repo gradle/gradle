@@ -38,7 +38,12 @@ class SamplesCodeQualityIntegrationTest extends AbstractSampleIntegrationTest {
         TestFile buildDir = projectDir.file('build')
 
         when:
-        executer.inDirectory(projectDir).requireGradleDistribution().withTasks('check').run()
+        executer
+            .inDirectory(projectDir)
+            .requireGradleDistribution()
+            .withTasks('check')
+            .expectDeprecationWarning()
+            .run()
 
         then:
         buildDir.file('reports/checkstyle/main.xml').assertDoesNotExist()
