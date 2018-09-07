@@ -103,21 +103,18 @@ We are not that happy with the build script of the `water` project. It is inconv
 
 NOTE: The code for this example can be found at **`samples/userguide/multiproject/addKrill/water`** in the ‘-all’ distribution of Gradle.
 
-[source.multi-language-sample,groovy]
-.settings.gradle
-----
-include::{samplesPath}/userguide/multiproject/addKrill/water/settings.gradle[]
-----
+====
+include::sample[dir="userguide/multiproject/addKrill/water/groovy",files="settings.gradle[]"]
+include::sample[dir="userguide/multiproject/addKrill/water/kotlin",files="settings.gradle.kts[]"]
+====
 
 Now we rewrite the `water` build script and boil it down to a single line.
 
-=== Example: Water project build script
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/multiproject/addKrill/water/build.gradle[]
-----
+.Water project build script
+====
+include::sample[dir="userguide/multiproject/addKrill/water/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/multiproject/addKrill/water/kotlin",files="build.gradle.kts[]"]
+====
 
 .Output of **`gradle -q hello`**
 ----
