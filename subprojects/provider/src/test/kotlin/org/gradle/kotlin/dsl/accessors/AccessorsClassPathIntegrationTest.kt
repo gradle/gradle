@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
-import org.gradle.kotlin.dsl.fixtures.fileByName
 import org.gradle.kotlin.dsl.fixtures.matching
 
 import org.gradle.kotlin.dsl.integration.kotlinBuildScriptModelFor
@@ -68,7 +67,7 @@ class AccessorsClassPathIntegrationTest : AbstractIntegrationTest() {
 
         assertThat(
             classPathFor(buildFile),
-            not(hasAccessorsJar()))
+            not(hasAccessorsClasses()))
     }
 
     @Test
@@ -90,13 +89,13 @@ class AccessorsClassPathIntegrationTest : AbstractIntegrationTest() {
     fun setOfAutomaticAccessorsFor(plugins: Set<String>): File {
         val script = "plugins {\n${plugins.joinToString(separator = "\n")}\n}"
         val buildFile = withBuildScript(script, produceFile = ::newOrExisting)
-        return accessorsJarFor(buildFile)!!.relativeTo(buildFile.parentFile)
+        return accessorsClassFor(buildFile)!!.relativeTo(buildFile.parentFile)
     }
 
     private
     fun assertAccessorsInClassPathOf(buildFile: File) {
         val model = kotlinBuildScriptModelFor(buildFile)
-        assertThat(model.classPath, hasAccessorsJar())
+        assertThat(model.classPath, hasAccessorsClasses())
         assertThat(model.sourcePath, hasAccessorsSource())
     }
 
@@ -104,20 +103,27 @@ class AccessorsClassPathIntegrationTest : AbstractIntegrationTest() {
     fun hasAccessorsSource() =
         hasItem(
             matching<File>({ appendText("accessors source") }) {
-                File(this, "org/gradle/kotlin/dsl/ConfigurationAccessors.kt").isFile
+                resolve(accessorsSourceFilePath).isFile
             })
 
     private
-    fun hasAccessorsJar() =
-        hasItem(fileByName(accessorsJarFileName))
+    fun hasAccessorsClasses() =
+        hasItem(
+            matching<File>({ appendText("accessors classes") }) {
+                resolve(accessorsClassFilePath).isFile
+            }
+        )
 
     private
-    fun accessorsJarFor(buildFile: File) =
+    fun accessorsClassFor(buildFile: File) =
         classPathFor(buildFile)
-            .find { it.isFile && it.name == accessorsJarFileName }
+            .find { it.isDirectory && it.resolve(accessorsClassFilePath).isFile }
 
     private
-    val accessorsJarFileName = "gradle-kotlin-dsl-accessors.jar"
+    val accessorsSourceFilePath = "org/gradle/kotlin/dsl/ConfigurationAccessors.kt"
+
+    private
+    val accessorsClassFilePath = "org/gradle/kotlin/dsl/ConfigurationAccessorsKt.class"
 
     private
     fun classPathFor(buildFile: File) =

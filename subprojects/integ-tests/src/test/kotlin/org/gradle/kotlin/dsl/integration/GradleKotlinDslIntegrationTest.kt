@@ -21,7 +21,6 @@ import okhttp3.mockwebserver.MockWebServer
 
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.DeepThought
-import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
 import org.gradle.kotlin.dsl.fixtures.LightThought
 import org.gradle.kotlin.dsl.fixtures.ZeroThought
 import org.gradle.kotlin.dsl.fixtures.canPublishBuildScan
@@ -43,7 +42,6 @@ import java.io.File
 class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
-    @LeaksFileHandles
     fun `given a buildscript block, it will be used to compute the runtime classpath`() {
         checkBuildscriptBlockIsUsedToComputeRuntimeClasspathAfter { it }
     }
@@ -79,7 +77,6 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @LeaksFileHandles
     fun `given a script plugin with a buildscript block, it will be used to compute its classpath`() {
 
         withClassJar("fixture.jar", DeepThought::class.java)
@@ -765,7 +762,6 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @LeaksFileHandles
     fun `can cross configure buildscript`() {
 
         withClassJar("zero.jar", ZeroThought::class.java)

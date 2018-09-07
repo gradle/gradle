@@ -5,7 +5,6 @@ import org.gradle.api.initialization.Settings
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
-import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
 
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
@@ -79,7 +78,6 @@ class KotlinSettingsScriptIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
-    @LeaksFileHandles
     fun `given a script plugin with a buildscript block, it will be used to compute its classpath`() {
 
         withClassJar("fixture.jar", DeepThought::class.java)
