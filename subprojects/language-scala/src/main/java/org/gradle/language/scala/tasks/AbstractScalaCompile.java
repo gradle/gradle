@@ -130,11 +130,11 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
         return spec;
     }
 
-    protected void configureIncrementalCompilation(ScalaCompileSpec spec) {
+    private void configureIncrementalCompilation(ScalaCompileSpec spec) {
         IncrementalCompileOptions incrementalOptions = scalaCompileOptions.getIncrementalOptions();
 
         File analysisFile = incrementalOptions.getAnalysisFile().getAsFile().get();
-        Map<File, File> globalAnalysisMap = getAnalysisMappingsForOtherProjects();
+        Map<File, File> globalAnalysisMap = resolveAnalysisMappingsForOtherProjects();
         spec.setAnalysisMap(globalAnalysisMap);
         spec.setAnalysisFile(analysisFile);
 
@@ -155,7 +155,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
     }
 
     @SuppressWarnings("unchecked")
-    protected Map<File, File> getAnalysisMappingsForOtherProjects() {
+    private Map<File, File> resolveAnalysisMappingsForOtherProjects() {
         Map<File, File> analysisMap = Maps.newHashMap();
         for (File mapping : analysisFiles.getFiles()) {
             if (mapping.exists()) {
