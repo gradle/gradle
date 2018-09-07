@@ -61,7 +61,7 @@ public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBin
     public CreateStaticLibrary() {
         ObjectFactory objectFactory = getProject().getObjects();
         this.source = getProject().files();
-        this.outputFile = newOutputFile();
+        this.outputFile = objectFactory.fileProperty();
         this.staticLibArgs = getProject().getObjects().listProperty(String.class);
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);

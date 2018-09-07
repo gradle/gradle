@@ -83,8 +83,8 @@ class BuildBuilderGenerator extends ProjectGeneratorTask {
                 // TODO: Model the other build builder options
                 return [
                     projectType,
-                    "--projects", projects,
-                    "--source-files", sourceFiles,
+                    "--projects", Integer.toString(projects),
+                    "--source-files", Integer.toString(sourceFiles),
                     "--dir", generatedDir.get().asFile.absolutePath
                 ]
             }

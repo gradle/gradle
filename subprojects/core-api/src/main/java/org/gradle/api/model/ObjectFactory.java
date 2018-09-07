@@ -18,6 +18,8 @@ package org.gradle.api.model;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
@@ -122,4 +124,18 @@ public interface ObjectFactory {
      * @since 4.5
      */
     <T> SetProperty<T> setProperty(Class<T> elementType);
+
+    /**
+     * Creates a new {@link DirectoryProperty} that uses the project directory to resolve relative paths, if required. The property has no initial value.
+     *
+     * @since 5.0
+     */
+    DirectoryProperty directoryProperty();
+
+    /**
+     * Creates a new {@link RegularFileProperty} that uses the project directory to resolve relative paths, if required. The property has no initial value.
+     *
+     * @since 5.0
+     */
+    RegularFileProperty fileProperty();
 }

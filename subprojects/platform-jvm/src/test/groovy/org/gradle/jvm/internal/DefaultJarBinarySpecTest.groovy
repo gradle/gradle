@@ -15,7 +15,8 @@
  */
 
 package org.gradle.jvm.internal
-import org.gradle.api.internal.project.taskfactory.ITaskFactory
+
+
 import org.gradle.jvm.JarBinarySpec
 import org.gradle.jvm.JvmLibrarySpec
 import org.gradle.jvm.platform.JavaPlatform
@@ -59,6 +60,6 @@ class DefaultJarBinarySpecTest extends Specification {
     }
 
     private JarBinarySpec binary() {
-        return BaseBinaryFixtures.create(JarBinarySpec, DefaultJarBinarySpec, "jvm-lib-jar", null, Mock(ITaskFactory))
+        return BaseBinaryFixtures.create(JarBinarySpec, DefaultJarBinarySpec, "jvm-lib-jar", null)
     }
 }

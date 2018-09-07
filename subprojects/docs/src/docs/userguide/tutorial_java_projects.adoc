@@ -198,15 +198,13 @@ Here we have four projects. Project `api` produces a JAR file which is shipped t
 [[sec:defining_a_multiproject_build]]
 === Defining a multi-project build
 
-To define a multi-project build, you need to create a _settings file_. The settings file lives in the root directory of the source tree, and specifies which projects to include in the build. It must be called `settings.gradle`. For this example, we are using a simple hierarchical layout. Here is the corresponding settings file:
+To define a multi-project build, you need to create a _settings file_. The settings file lives in the root directory of the source tree, and specifies which projects to include in the build. It must be called `settings.gradle` (with Groovy) or `settings.gradle.kts` (with Kotlin). For this example, we are using a simple hierarchical layout. Here is the corresponding settings file:
 
-=== Example: Multi-project build - settings.gradle file
-
-[source.multi-language-sample,groovy]
-.settings.gradle
-----
-include::{samplesPath}/java/multiproject/settings.gradle[tag=include-projects]
-----
+.Multi-project build - settings file
+====
+include::sample[dir="java/multiproject/groovy",files="settings.gradle[tags=include-projects]"]
+include::sample[dir="java/multiproject/kotlin",files="settings.gradle.kts[tags=include-projects]"]
+====
 
 You can find out more about the settings file in <<multi_project_builds.adoc#multi_project_builds,Authoring Multi-Project Builds>>.
 
@@ -215,13 +213,11 @@ You can find out more about the settings file in <<multi_project_builds.adoc#mul
 
 For most multi-project builds, there is some configuration which is common to all projects. In our sample, we will define this common configuration in the root project, using a technique called _configuration injection_. Here, the root project is like a container and the `subprojects` method iterates over the elements of this container - the projects in this instance - and injects the specified configuration. This way we can easily define the manifest content for all archives, and some common dependencies:
 
-=== Example: Multi-project build - common configuration
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/java/multiproject/build.gradle[tag=configuration-injection]
-----
+.Multi-project build - common configuration
+====
+include::sample[dir="java/multiproject/groovy",files="build.gradle[tags=configuration-injection]"]
+include::sample[dir="java/multiproject/kotlin",files="build.gradle.kts[tags=configuration-injection]"]
+====
 
 Notice that our sample applies the Java plugin to each subproject. This means the tasks and configuration properties we have seen in the previous section are available in each subproject. So, you can compile, test, and JAR all the projects by running `gradle build` from the root project directory.
 
@@ -232,26 +228,22 @@ Also note that these plugins are only applied within the `subprojects` section, 
 
 You can add dependencies between projects in the same build, so that, for example, the JAR file of one project is used to compile another project. In the `api` build file we will add a dependency on the `shared` project. Due to this dependency, Gradle will ensure that project `shared` always gets built before project `api`.
 
-=== Example: Multi-project build - dependencies between projects
-
-[source.multi-language-sample,groovy]
-.api/build.gradle
-----
-include::{samplesPath}/java/multiproject/api/build.gradle[tag=dependencies]
-----
+.Multi-project build - dependencies between projects
+====
+include::sample[dir="java/multiproject/groovy",files="api/build.gradle[tags=dependencies]"]
+include::sample[dir="java/multiproject/kotlin",files="api/build.gradle.kts[tags=dependencies]"]
+====
 
 [[sec:creating_a_distribution]]
 === Creating a distribution
 
 We also add a distribution, that gets shipped to the client:
 
-=== Example: Multi-project build - distribution file
-
-[source.multi-language-sample,groovy]
-.api/build.gradle
-----
-include::{samplesPath}/java/multiproject/api/build.gradle[tag=dists]
-----
+.Multi-project build - distribution file
+====
+include::sample[dir="java/multiproject/groovy",files="api/build.gradle[tags=dists]"]
+include::sample[dir="java/multiproject/kotlin",files="api/build.gradle.kts[tags=dists]"]
+====
 
 
 [[sec:java_tutorial_where_to_next]]

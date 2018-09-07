@@ -17,12 +17,7 @@
             <tr>
                 <td>sourceDirs</td>
                 <td><literal>[]</literal></td>
-                <td>
-                    <itemizedlist>
-                        <listitem>with Gradle &lt; 5.0: source dirs from <literal>project.sourceSets.main.allSource</literal>.</listitem>
-                        <listitem>with Gradle &gt;= 5.0: source dirs from <literal>project.sourceSets.main.allJava</literal>.</listitem>
-                    </itemizedlist>
-                </td>
+                <td>project.sourceSets.main.allJava</td>
             </tr>
             <tr>
                 <td>scopes</td>
@@ -59,12 +54,7 @@
             <tr>
                 <td>testSourceDirs</td>
                 <td><literal>[]</literal></td>
-                <td>
-                    <itemizedlist>
-                        <listitem>with Gradle &lt; 5.0: source dirs from <literal>project.sourceSets.test.allSource</literal>.</listitem>
-                        <listitem>with Gradle &gt;= 5.0: source dirs from <literal>project.sourceSets.test.allJava</literal>.</listitem>
-                    </itemizedlist>
-                </td>
+                <td>project.sourceSets.test.allJava</td>
             </tr>
             <tr>
                 <td>resourceDirs</td>

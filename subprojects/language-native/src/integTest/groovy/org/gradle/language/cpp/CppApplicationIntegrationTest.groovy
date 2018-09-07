@@ -410,9 +410,11 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             apply plugin: 'cpp-application'
             
+            def headerDirectory = objects.directoryProperty()
+            
             task generateHeader {
-                ext.headerDirectory = newOutputDirectory()
-                headerDirectory.set(project.layout.buildDirectory.dir("headers"))
+                outputs.dir(headerDirectory)
+                headerDirectory.set(layout.buildDirectory.dir("headers"))
                 doLast {
                     def fooH = headerDirectory.file("foo.h").get().asFile
                     fooH.parentFile.mkdirs()
@@ -423,7 +425,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             }
             
             application.binaries.whenElementFinalized { binary ->
-                def dependency = project.dependencies.create(files(generateHeader.headerDirectory))
+                def dependency = project.dependencies.create(files(headerDirectory))
                 binary.getIncludePathConfiguration().dependencies.add(dependency)
             }
          """
