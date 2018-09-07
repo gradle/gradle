@@ -29,6 +29,7 @@ dependencies {
     implementation project(':dependencyManagement')
     implementation project(':baseServicesGroovy')
     implementation libraries.guava.coordinates
+    implementation libraries.groovy_json.coordinates
     implementation libraries.jatl.coordinates
     implementation libraries.commons_collections.coordinates
     implementation libraries.commons_lang.coordinates

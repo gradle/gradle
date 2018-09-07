@@ -17,9 +17,6 @@
 package org.gradle.testing.internal.util
 
 import groovy.transform.CompileStatic
-import groovy.transform.stc.ClosureParams
-import groovy.transform.stc.SecondParam
-
 /**
  * This fixes Spock's Mock() and Stub() methods to be understandable by IDEA.
  * By using this subclass, IDEA knows the closure delegate type when using Mock() or Stub().
@@ -28,24 +25,24 @@ import groovy.transform.stc.SecondParam
 @CompileStatic
 class Specification extends spock.lang.Specification {
 
-    @SuppressWarnings(['MethodName', 'UnnecessaryOverridingMethod', 'GrUnnecessaryPublicModifier'])
-    @Override
-    public <T> T Mock(
-        @DelegatesTo.Target Class<T> type,
-        @DelegatesTo(strategy = Closure.DELEGATE_FIRST, genericTypeIndex = 0)
-        @ClosureParams(SecondParam.FirstGenericType) Closure closure
-    ) {
-        super.Mock(type, closure)
-    }
-
-    @SuppressWarnings(['MethodName', 'UnnecessaryOverridingMethod', 'GrUnnecessaryPublicModifier'])
-    @Override
-    public <T> T Stub(
-        @DelegatesTo.Target Class<T> type,
-        @DelegatesTo(strategy = Closure.DELEGATE_FIRST, genericTypeIndex = 0)
-        @ClosureParams(SecondParam.FirstGenericType) Closure closure
-    ) {
-        super.Stub(type, closure)
-    }
-
+//    @SuppressWarnings(['MethodName', 'UnnecessaryOverridingMethod', 'GrUnnecessaryPublicModifier'])
+//    @Override
+//    public <T> T Mock(
+//        @DelegatesTo.Target Class<T> type,
+//        @DelegatesTo(strategy = Closure.DELEGATE_FIRST, genericTypeIndex = 0)
+//        @ClosureParams(SecondParam.FirstGenericType) Closure closure
+//    ) {
+//        super.Mock(type, closure)
+//    }
+//
+//    @SuppressWarnings(['MethodName', 'UnnecessaryOverridingMethod', 'GrUnnecessaryPublicModifier'])
+//    @Override
+//    public <T> T Stub(
+//        @DelegatesTo.Target Class<T> type,
+//        @DelegatesTo(strategy = Closure.DELEGATE_FIRST, genericTypeIndex = 0)
+//        @ClosureParams(SecondParam.FirstGenericType) Closure closure
+//    ) {
+//        super.Stub(type, closure)
+//    }
+//
 }
