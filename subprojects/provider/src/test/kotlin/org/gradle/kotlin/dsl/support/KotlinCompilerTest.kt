@@ -29,6 +29,7 @@ class KotlinCompilerTest : TestWithTempFiles() {
         val answer =
             classLoaderFor(outputJar).use { it
                 .loadClass("hhgttg.DeepThought")
+                .getDeclaredConstructor()
                 .newInstance()
                 .run {
                     this::class.java.getMethod("compute").invoke(this)

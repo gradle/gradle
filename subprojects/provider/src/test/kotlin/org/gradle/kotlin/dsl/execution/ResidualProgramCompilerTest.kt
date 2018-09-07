@@ -521,7 +521,7 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
         outputDir().let { outputDir ->
             compileProgramTo(outputDir, program, sourceHash, programKind, programTarget)
             withClassLoaderFor(outputDir) {
-                val executableProgram = loadClass("Program").newInstance()
+                val executableProgram = loadClass("Program").getDeclaredConstructor().newInstance()
                 action(executableProgram as ExecutableProgram)
             }
         }
