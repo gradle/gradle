@@ -197,14 +197,11 @@ include::sample[dir="compositeBuilds/basic/groovy",files="composite/build.gradle
 include::sample[dir="compositeBuilds/basic/kotlin",files="composite/build.gradle.kts[tags=run]"]
 ====
 
-=== Example: Depending on a tasks with path in all included builds
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/compositeBuilds/hierarchical-multirepo/multirepo-app/build.gradle[tag=publishDeps]
-----
-
+.Depending on a task with path in all included builds
+====
+include::sample[dir="compositeBuilds/hierarchical-multirepo/multirepo-app/groovy",files="build.gradle[tags=publishDeps]"]
+include::sample[dir="compositeBuilds/hierarchical-multirepo/multirepo-app/kotlin",files="build.gradle.kts[tags=publishDeps]"]
+====
 
 [[current_limitations_and_future_work]]
 == Current limitations and future plans for composite builds

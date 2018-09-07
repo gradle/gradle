@@ -1,11 +1,13 @@
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id 'java'
+    id 'idea'
+}
 
 group "org.sample"
 version "1.0"
 
 dependencies {
-    compile "org.apache.commons:commons-lang3:3.4"
+    implementation "org.apache.commons:commons-lang3:3.4"
 }
 
 repositories {
