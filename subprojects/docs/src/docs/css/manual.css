@@ -1806,7 +1806,7 @@ div.screenshot {
 .site-footer__navigation {
     display: flex;
     max-width: 75rem;
-    margin: 3rem auto 2.5rem auto;
+    margin: 3rem auto 0 auto;
     padding: 0.5rem 0.75rem;
 }
 
@@ -1835,6 +1835,11 @@ div.screenshot {
 
 .site-footer__subscribe-newsletter {
     flex: 0 0 350px;
+}
+
+.site-footer__subscribe-newsletter .newsletter-form__header h5 {
+    color: #555;
+    margin-top: 0;
 }
 
 .site-footer__subscribe-newsletter p {
@@ -1974,7 +1979,7 @@ div.screenshot {
 /* Avoid the footer taking up much of the screen on short displays */
 @media all and (max-height: 56.25rem) {
     .site-footer__navigation {
-        margin: 1.5rem auto 1.5rem auto;
+        margin: 1.5rem auto 0 auto;
         padding-top: 0;
         padding-bottom: 0;
     }
