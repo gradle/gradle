@@ -67,21 +67,18 @@ Let's look at some examples with the following project tree. This is a multi-pro
 
 NOTE: The code for this example can be found at **`samples/userguide/multiproject/firstExample/water`** in the ‘-all’ distribution of Gradle.
 
-[source.multi-language-sample,groovy]
-.settings.gradle
-----
-include::{samplesPath}/userguide/multiproject/firstExample/water/settings.gradle[]
-----
+====
+include::sample[dir="userguide/multiproject/firstExample/water/groovy",files="settings.gradle[]"]
+include::sample[dir="userguide/multiproject/firstExample/water/kotlin",files="settings.gradle.kts[]"]
+====
 
 And where is the build script for the `bluewhale` project? In Gradle build scripts are optional. Obviously for a single project build, a project without a build script doesn't make much sense. For multiproject builds the situation is different. Let's look at the build script for the `water` project and execute it:
 
-=== Example: Build script of water (parent) project
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/multiproject/firstExample/water/build.gradle[]
-----
+.Build script of water (parent) project
+====
+include::sample[dir="userguide/multiproject/firstExample/water/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/multiproject/firstExample/water/kotlin",files="build.gradle.kts[]"]
+====
 
 .Output of **`gradle -q hello`**
 ----
