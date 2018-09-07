@@ -24,13 +24,11 @@ A published Ivy module can be consumed by Gradle (see <<declaring_dependencies.a
 
 To use the Ivy Publish Plugin, include the following in your build script:
 
-=== Example: Applying the Ivy Publish Plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/ivy-publish/quickstart/build.gradle[tag=use-plugin]
-----
+.Applying the Ivy Publish Plugin
+====
+include::sample[dir="ivy-publish/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="ivy-publish/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+====
 
 The Ivy Publish Plugin uses an extension on the project named `publishing` of type link:{groovyDslPath}/org.gradle.api.publish.PublishingExtension.html[PublishingExtension]. This extension provides a container of named publications and a container of named repositories. The Ivy Publish Plugin works with link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication] publications and link:{groovyDslPath}/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html[IvyArtifactRepository] repositories.
 
@@ -121,13 +119,11 @@ This plugin provides <<dependency_management_terminology.adoc#sub:terminology_re
 
 Here's a simple example of defining a publishing repository:
 
-=== Example: Declaring repositories to publish to
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/ivy-publish/quickstart/build.gradle[tag=repositories]
-----
+.Declaring repositories to publish to
+====
+include::sample[dir="ivy-publish/quickstart/groovy",files="build.gradle[tags=repositories]"]
+include::sample[dir="ivy-publish/quickstart/kotlin",files="build.gradle.kts[tags=repositories]"]
+====
 
 The two main things you will want to configure are the repository's:
 
