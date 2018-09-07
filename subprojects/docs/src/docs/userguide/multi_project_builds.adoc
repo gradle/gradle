@@ -456,19 +456,9 @@ Gradle's multi-project features are driven by real life use cases. One good exam
 
 NOTE: The code for this example can be found at **`samples/userguide/multiproject/dependencies/webDist`** in the ‘-all’ distribution of Gradle.
 
-[.multi-language-sample,groovy]
 ====
-.settings.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/multiproject/dependencies/webDist/settings.gradle[]
-----
-
-.build.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/multiproject/dependencies/webDist/build.gradle[]
-----
+include::sample[dir="userguide/multiproject/dependencies/webDist/groovy",files="settings.gradle[];build.gradle[]"]
+include::sample[dir="userguide/multiproject/dependencies/webDist/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
 ====
 
 We have an interesting set of dependencies. Obviously the `date` and `hello` projects have a _configuration_ dependency on `webDist`, as all the build logic for the webapp projects is injected by `webDist`. The _execution_ dependency is in the other direction, as `webDist` depends on the build artifacts of `date` and `hello`. There is even a third dependency. `webDist` has a _configuration_ dependency on `date` and `hello` because it needs to know the `archivePath`. But it asks for this information at _execution time_. Therefore we have no circular dependency.
