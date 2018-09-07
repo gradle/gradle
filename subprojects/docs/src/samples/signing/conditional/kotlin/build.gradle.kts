@@ -19,13 +19,13 @@ signing {
     setRequired(Callable {
         (project.extra["isReleaseVersion"] as Boolean) && gradle.taskGraph.hasTask("uploadArchives")
     })
-    sign(configurations["archives"])
+    sign(configurations.archives)
 }
 // end::conditional-signing[]
 
 // Alternative to signing.required
 // tag::only-if[]
-tasks.withType<Sign>() {
+tasks.withType<Sign> {
     onlyIf { project.extra["isReleaseVersion"] as Boolean }
 }
 // end::only-if[]

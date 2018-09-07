@@ -52,15 +52,16 @@ signing.secretKeyRingFile=/Users/me/.gnupg/secring.gpg
 
 If specifying this information (especially `signing.password`) in the user `gradle.properties` file is not feasible for your environment, you can source the information however you need to and set the project properties manually.
 
-[source.multi-language-sample,groovy]
+[.multi-language-sample]
+====
+.build.gradle
+[source,groovy]
 ----
-import org.gradle.plugins.signing.Sign
-
 gradle.taskGraph.whenReady { taskGraph ->
     if (taskGraph.allTasks.any { it instanceof Sign }) {
         // Use Java's console to read from the console (no good for
         // a CI environment)
-        Console console = System.console()
+        def console = System.console()
         console.printf "\n\nWe have to sign some things in this build." +
                        "\n\nPlease enter your signing details.\n\n"
 
@@ -78,19 +79,19 @@ gradle.taskGraph.whenReady { taskGraph ->
     }
 }
 ----
-[source.multi-language-sample,kotlin]
+====
+[.multi-language-sample]
+====
+.build.gradle.kts
+[source,kotlin]
 ----
-import org.gradle.plugins.signing.Sign
-
 gradle.taskGraph.whenReady {
     if (allTasks.any { it is Sign }) {
         // Use Java's console to read from the console (no good for
         // a CI environment)
         val console = System.console()
-        console.printf("""
-            We have to sign some things in this build.
-            Please enter your signing details.
-            """.trimIndent())
+        console.printf("\n\nWe have to sign some things in this build." +
+                       "\n\nPlease enter your signing details.\n\n")
 
         val id = console.readLine("PGP Key Id: ")
         val file = console.readLine("PGP Secret Key Ring File (absolute path): ")
@@ -106,6 +107,7 @@ gradle.taskGraph.whenReady {
     }
 }
 ----
+====
 
 Note that the presence of a null value for any these three properties will cause an exception.
 
