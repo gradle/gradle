@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.changes
 
-import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
@@ -717,7 +716,6 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         fileSystemMirror.beforeTaskOutputChanged()
     }
 
-    @EqualsAndHashCode
     @ToString(includeNames = true)
     private static class ChangedFiles {
         def added = []

@@ -399,21 +399,21 @@ ext.added = ['file3.txt', 'file4.txt']
             }           
             
             task myTask(type: MyTask) {
-                input = file(inputDir)
+                input = mkdir(inputDir)
                 child = new File(input, "child")
                 output = file("build/output.txt")
             }          
-            myTask.input.mkdirs()
-            myTask.child.createNewFile()
         """
         String myTask = ':myTask'
 
         when:
+        file("inputDir1/child") << "inputFile1"
         run myTask, '-PinputDir=inputDir1'
         then:
         executedAndNotSkipped(myTask)
 
         when:
+        file("inputDir2/child") << "inputFile2"
         run myTask, '-PinputDir=inputDir2'
         then:
         executedAndNotSkipped(myTask)

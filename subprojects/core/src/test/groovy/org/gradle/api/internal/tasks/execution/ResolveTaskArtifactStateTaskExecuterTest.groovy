@@ -63,7 +63,7 @@ class ResolveTaskArtifactStateTaskExecuterTest extends Specification {
 
         then: 'taskContext is initialized with task artifact state'
         1 * taskContext.setTaskProperties(_)
-        1 * repository.getStateFor(task, _,) >> taskArtifactState
+        1 * repository.getStateFor(task, _) >> taskArtifactState
         1 * taskContext.setTaskArtifactState(taskArtifactState)
         1 * taskArtifactState.getExecutionHistory() >> taskExecutionhistory
         2 * task.getOutputs() >> outputs
