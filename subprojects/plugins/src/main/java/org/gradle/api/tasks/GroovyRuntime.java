@@ -28,6 +28,7 @@ import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.plugins.GroovyJarFile;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Cast;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.util.List;
@@ -56,6 +57,8 @@ import java.util.List;
  */
 @Incubating
 public class GroovyRuntime {
+    public static final VersionNumber GROOVY_VERSION_WITH_SEPARATE_ANT = VersionNumber.parse("2.0");
+    public static final VersionNumber GROOVY_VERSION_REQUIRING_TEMPLATES = VersionNumber.parse("2.5");
     private final Project project;
 
     public GroovyRuntime(Project project) {
@@ -100,11 +103,20 @@ public class GroovyRuntime {
                 List<Dependency> dependencies = Lists.newArrayList();
                 // project.getDependencies().create(String) seems to be the only feasible way to create a Dependency with a classifier
                 dependencies.add(project.getDependencies().create(notation));
-                if (groovyJar.getVersion().getMajor() >= 2) {
-                    // add groovy-ant to bring in Groovydoc
-                    dependencies.add(project.getDependencies().create(notation.replace(":groovy:", ":groovy-ant:")));
+                VersionNumber groovyVersion = groovyJar.getVersion();
+                if (groovyVersion.compareTo(GROOVY_VERSION_WITH_SEPARATE_ANT) >= 0) {
+                    // add groovy-ant to bring in Groovydoc for Groovy 2.0+
+                    addGroovyDependency(notation, dependencies, "groovy-ant");
+                }
+                if (groovyVersion.compareTo(GROOVY_VERSION_REQUIRING_TEMPLATES) >= 0) {
+                    // add groovy-templates for Groovy 2.5+
+                    addGroovyDependency(notation, dependencies, "groovy-templates");
                 }
                 return project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[0]));
+            }
+
+            private void addGroovyDependency(String groovyDependencyNotion, List<Dependency> dependencies, String otherDependency) {
+                dependencies.add(project.getDependencies().create(groovyDependencyNotion.replace(":groovy:", ":" + otherDependency + ":")));
             }
 
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)
