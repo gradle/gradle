@@ -368,31 +368,9 @@ The examples from the last section were special, as the projects had no _Executi
 
 NOTE: The code for this example can be found at **`samples/userguide/multiproject/dependencies/firstMessages/messages`** in the ‘-all’ distribution of Gradle.
 
-[.multi-language-sample,groovy]
 ====
-.build.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/multiproject/dependencies/firstMessages/messages/build.gradle[]
-----
-
-.settings.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/multiproject/dependencies/firstMessages/messages/settings.gradle[]
-----
-
-.consumer/build.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/multiproject/dependencies/firstMessages/messages/consumer/build.gradle[]
-----
-
-.producer/build.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/multiproject/dependencies/firstMessages/messages/producer/build.gradle[]
-----
+include::sample[dir="userguide/multiproject/dependencies/firstMessages/messages/groovy",files="build.gradle[];settings.gradle[];consumer/build.gradle[];producer/build.gradle[]"]
+include::sample[dir="userguide/multiproject/dependencies/firstMessages/messages/kotlin",files="build.gradle.kts[];settings.gradle.kts[];consumer/build.gradle.kts[];producer/build.gradle.kts[]"]
 ====
 
 .Output of `gradle -q action`
