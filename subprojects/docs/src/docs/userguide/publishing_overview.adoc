@@ -62,23 +62,19 @@ These provide the specific publication and repository classes needed to configur
 
 Let's assume we're working with a simple Java library project, so only the following plugins are applied:
 
-=== Example: Applying the necessary plugins
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/publishing/javaLibrary/build.gradle[tag=apply-plugins]
-----
+.Applying the necessary plugins
+====
+include::sample[dir="userguide/publishing/javaLibrary/groovy",files="build.gradle[tags=apply-plugins]"]
+include::sample[dir="userguide/publishing/javaLibrary/kotlin",files="build.gradle.kts[tags=apply-plugins]"]
+====
 
 Once the appropriate plugin has been applied, you can configure the publications and repositories. For this example, we want to publish the project's production JAR file — the one produced by the `jar` task — to a custom, Maven repository. We do that with the following `publishing {}` block, which is backed by link:{groovyDslPath}/org.gradle.api.publish.PublishingExtension.html[PublishingExtension]:
 
-=== Example: Configuring a Java library for publishing
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/publishing/javaLibrary/build.gradle[tag=configure-publishing]
-----
+.Configuring a Java library for publishing
+====
+include::sample[dir="userguide/publishing/javaLibrary/groovy",files="build.gradle[tags=configure-publishing]"]
+include::sample[dir="userguide/publishing/javaLibrary/kotlin",files="build.gradle.kts[tags=configure-publishing]"]
+====
 
 This defines a publication called "myLibrary" that can be published to a Maven repository by virtue of its type: link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication]. This publication consists of just the production JAR artifact and its metadata, which combined are represented by the `java` <<#glossary:component,component>> of the project.
 
@@ -244,13 +240,11 @@ The publishing plugins create their non-aggregate tasks after the project has be
 
 For example, imagine you want to change where the `generatePomFileFor__PubName__Publication` tasks write their POM files. You can do this by using the link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-[TaskCollection.withType(java.lang.Class)] method, as demonstrated by this sample:
 
-=== Example: Configuring a dynamically named task created by the publishing plugins
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/publishing/javaLibrary/build.gradle[tag=configure-generate-task]
-----
+.Configuring a dynamically named task created by the publishing plugins
+====
+include::sample[dir="userguide/publishing/javaLibrary/groovy",files="build.gradle[tags=configure-generate-task]"]
+include::sample[dir="userguide/publishing/javaLibrary/kotlin",files="build.gradle.kts[tags=configure-generate-task]"]
+====
 
 The above sample uses a regular expression to extract the name of the publication from the name of the task. This is so that there is no conflict between the file paths of all the POM files that might be generated. If you only have one publication, then you don't have to worry about such conflicts since there will only be one POM file.
 
