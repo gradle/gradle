@@ -20,11 +20,13 @@ import org.gradle.performance.AbstractToolingApiCrossVersionPerformanceTest
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
+@Ignore("Temporarily ignore until we have a snapshot build to rebaseline")
 class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
     @Unroll
