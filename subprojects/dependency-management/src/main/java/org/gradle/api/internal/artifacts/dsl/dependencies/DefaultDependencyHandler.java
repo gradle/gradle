@@ -194,7 +194,6 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
 
     private void configureSchema() {
         attributesSchema.attribute(ARTIFACT_FORMAT);
-        PlatformSupport.configureSchema(attributesSchema);
     }
 
     @Override
