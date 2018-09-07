@@ -27,7 +27,7 @@ class GradleFeaturePreviewsPerformanceTest extends AbstractCrossBuildPerformance
     def "resolveDependencies on exclude merging project with improved pom support"() {
         def memory = '1g'
 
-        when:
+        given:
         runner.testGroup = "feature previews"
         runner.buildSpec {
             projectName(EXCLUDE_RULE_MERGING_TEST_PROJECT).displayName("advanced-pom-support").invocation {
@@ -40,14 +40,17 @@ class GradleFeaturePreviewsPerformanceTest extends AbstractCrossBuildPerformance
             }
         }
 
+        when:
+        def results = runner.run()
+
         then:
-        runner.run()
+        results
     }
 
     def "resolveDependencies on large number of dependencies with improved pom support"() {
         def memory = '1g'
 
-        when:
+        given:
         runner.testGroup = "feature previews"
         runner.buildSpec {
             projectName(EXCLUDE_RULE_MERGING_TEST_PROJECT).displayName("advanced-pom-support").invocation {
@@ -60,8 +63,11 @@ class GradleFeaturePreviewsPerformanceTest extends AbstractCrossBuildPerformance
             }
         }
 
+        when:
+        def results = runner.run()
+
         then:
-        runner.run()
+        results
     }
 
 }

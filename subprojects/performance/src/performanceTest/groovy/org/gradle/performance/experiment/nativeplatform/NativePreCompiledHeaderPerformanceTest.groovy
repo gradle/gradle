@@ -25,7 +25,7 @@ import spock.lang.Unroll
 class NativePreCompiledHeaderPerformanceTest extends AbstractCrossBuildPerformanceTest {
     @Unroll
     def "clean assemble on #testProject with precompiled headers" () {
-        when:
+        given:
         runner.testGroup = 'pre-compiled header builds'
         runner.buildSpec {
             projectName(testProject).displayName("Using PCH").invocation {
@@ -39,8 +39,11 @@ class NativePreCompiledHeaderPerformanceTest extends AbstractCrossBuildPerforman
             }
         }
 
+        when:
+        def results = runner.run()
+
         then:
-        runner.run()
+        results
 
         where:
         testProject << [ "smallPCHNative", "mediumPCHNative", "bigPCHNative" ]

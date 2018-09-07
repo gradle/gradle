@@ -20,7 +20,7 @@ import org.gradle.api.UncheckedIOException
 import org.gradle.internal.service.ServiceCreationException
 
 @TargetVersions(["1.9", "1.10"])
-class CrossVersionRetryRuleTest extends CrossVersionIntegrationSpec {
+class CrossVersionRetryTest extends CrossVersionIntegrationSpec {
 
     def iteration = 0
 
