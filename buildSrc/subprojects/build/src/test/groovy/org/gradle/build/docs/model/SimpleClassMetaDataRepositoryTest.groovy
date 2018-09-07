@@ -49,7 +49,7 @@ class SimpleClassMetaDataRepositoryTest extends Specification {
         repository.get('unknown')
 
         then:
-        UnknownDomainObjectException e = thrown()
+        def e = thrown UnknownDomainObjectException
         e.message == 'No meta-data is available for class \'unknown\'. Did you mean? [unkown]'
     }
 
@@ -61,7 +61,7 @@ class SimpleClassMetaDataRepositoryTest extends Specification {
         repository.get('org.gradle.jvm.JUnitTestSuiteSpec')
 
         then:
-        UnknownDomainObjectException e = thrown()
+        def e = thrown UnknownDomainObjectException
         e.message == 'No meta-data is available for class \'org.gradle.jvm.JUnitTestSuiteSpec\'. Did you mean? [org.gradle.jvm.test.JUnitTestSuiteSpec]'
     }
 

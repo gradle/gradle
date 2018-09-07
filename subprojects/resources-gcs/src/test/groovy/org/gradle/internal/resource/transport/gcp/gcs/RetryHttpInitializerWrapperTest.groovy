@@ -67,7 +67,7 @@ class RetryHttpInitializerWrapperTest extends Specification {
             retryCount++
             return retryCount < 2
         }
-        GoogleJsonResponseException e = thrown()
+        def e = thrown GoogleJsonResponseException
         e.statusCode == 401
     }
 

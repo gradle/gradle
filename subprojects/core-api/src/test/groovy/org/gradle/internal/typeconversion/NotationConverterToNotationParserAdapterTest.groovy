@@ -46,6 +46,6 @@ class NotationConverterToNotationParserAdapterTest extends Specification {
         parser.parseNotation(12)
 
         then:
-        UnsupportedNotationException e = thrown()
+        def e = thrown UnsupportedNotationException
     }
 }

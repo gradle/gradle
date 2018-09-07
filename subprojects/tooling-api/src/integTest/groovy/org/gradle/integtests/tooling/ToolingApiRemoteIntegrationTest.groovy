@@ -143,7 +143,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         }
 
         then:
-        GradleConnectionException e = thrown()
+        def e = thrown GradleConnectionException
         e.message == "Could not install Gradle distribution from '$distUri'."
 
         and:
@@ -186,7 +186,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         }
 
         then:
-        BuildCancelledException e = thrown()
+        def e = thrown BuildCancelledException
         e.message.contains('Distribution download cancelled.')
 
         and:

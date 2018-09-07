@@ -71,7 +71,7 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
         list.add(1, 'a')
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message == "Cannot add a CharSequence with name 'a' as a CharSequence with that name already exists."
         list == ['a']
     }
@@ -147,7 +147,7 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
         list.set(1, 'a')
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message == "Cannot add a CharSequence with name 'a' as a CharSequence with that name already exists."
         list == ['a', 'b']
     }
@@ -305,7 +305,7 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
         iterator.set('b')
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message == "Cannot add a CharSequence with name 'b' as a CharSequence with that name already exists."
         list == ['a', 'b']
     }
@@ -350,7 +350,7 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
         iterator.add('b')
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message == "Cannot add a CharSequence with name 'b' as a CharSequence with that name already exists."
         list == ['a', 'b']
     }
@@ -405,7 +405,7 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
         list.matching { it != "b" }.get(43)
 
         then:
-        IndexOutOfBoundsException e = thrown()
+        def e = thrown IndexOutOfBoundsException
     }
 
     def "can get index of filtered element"() {

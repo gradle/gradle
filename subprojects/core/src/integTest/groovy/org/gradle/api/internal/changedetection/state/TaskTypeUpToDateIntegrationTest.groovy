@@ -119,17 +119,21 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when: succeeds "copy"
+        when:
+        executer.expectDeprecationWarning()
+        succeeds "copy"
         then: skippedTasks.empty
 
         file("output.txt").makeOlder()
 
-        when: succeeds "copy"
+        when:
+        succeeds "copy"
         then: skippedTasks == ([":copy"] as Set)
 
         when:
         file("buildSrc/src/main/groovy/SimpleCopyTask.groovy").text = declareSimpleCopyTaskType(true)
 
+        executer.expectDeprecationWarning()
         succeeds "copy"
 
         then:
@@ -156,17 +160,21 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when: succeeds "copy"
+        when:
+        executer.expectDeprecationWarning()
+        succeeds "copy"
         then: skippedTasks.empty
 
         file("output.txt").makeOlder()
 
-        when: succeeds "copy"
+        when:
+        succeeds "copy"
         then: skippedTasks == ([":copy"] as Set)
 
         when:
         file("buildSrc/build.gradle").text = guavaDependency("19.0")
 
+        executer.expectDeprecationWarning()
         succeeds "copy"
 
         then:

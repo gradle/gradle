@@ -123,7 +123,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then: "listener exception is wrapped"
-        ListenerFailedException ex = thrown()
+        def ex = thrown ListenerFailedException
         ex.message.startsWith("Could not execute build using")
         ex.causes == [failure]
 

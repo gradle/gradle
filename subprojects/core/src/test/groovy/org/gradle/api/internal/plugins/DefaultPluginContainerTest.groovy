@@ -270,7 +270,7 @@ class DefaultPluginContainerTest extends Specification {
         container.withType(TestRuleSource)
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "'$TestRuleSource.name' does not implement the Plugin interface."
     }
 

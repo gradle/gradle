@@ -457,6 +457,6 @@ class JUnitTestClassProcessorTest extends Specification {
         when: classProcessor.stopNow()
 
         then:
-        UnsupportedOperationException uoe = thrown()
+        def uoe = thrown UnsupportedOperationException
     }
 }

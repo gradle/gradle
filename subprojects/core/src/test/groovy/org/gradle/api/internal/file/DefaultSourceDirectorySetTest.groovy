@@ -277,7 +277,7 @@ class DefaultSourceDirectorySetTest extends Specification {
         set.addToAntBuilder("node", "fileset")
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message == "Source directory '$srcDir' is not a directory."
     }
 

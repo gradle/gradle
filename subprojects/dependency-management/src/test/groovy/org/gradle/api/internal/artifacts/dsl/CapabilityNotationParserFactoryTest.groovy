@@ -43,7 +43,7 @@ class CapabilityNotationParserFactoryTest extends Specification {
         parser.parseNotation(notation)
 
         then:
-        InvalidUserDataException ex = thrown()
+        def ex = thrown InvalidUserDataException
         ex.message == "Invalid format for capability: '$notation'. The correct notation is a 3-part group:name:version notation, e.g: 'org.group:capability:1.0'"
 
         where:
@@ -71,7 +71,7 @@ class CapabilityNotationParserFactoryTest extends Specification {
         parser.parseNotation(notation)
 
         then:
-        InvalidUserDataException ex = thrown()
+        def ex = thrown InvalidUserDataException
         ex.message == error
 
         where:

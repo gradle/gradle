@@ -44,7 +44,7 @@ class UnsupportedOlderVersionConnectionTest extends Specification {
         connection.run(GradleProject.class, parameters)
 
         then:
-        UnsupportedVersionException e = thrown()
+        def e = thrown UnsupportedVersionException
         e != null
     }
 

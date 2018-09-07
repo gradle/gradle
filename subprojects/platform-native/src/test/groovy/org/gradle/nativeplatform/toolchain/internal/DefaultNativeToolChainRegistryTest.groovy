@@ -94,7 +94,7 @@ class DefaultNativeToolChainRegistryTest extends Specification {
         result.newCompiler(CCompileSpec.class)
 
         then:
-        GradleException e = thrown()
+        def e = thrown GradleException
         e.message == toPlatformLineSeparators("""No tool chain is available to build for platform 'platform':
   - Tool chain 'test': nope
   - Tool chain 'test2': not me
@@ -120,7 +120,7 @@ class DefaultNativeToolChainRegistryTest extends Specification {
         result.newCompiler(CCompileSpec.class)
 
         then:
-        GradleException e = thrown()
+        def e = thrown GradleException
         e.message == toPlatformLineSeparators("""No tool chain is available to build C++ for platform 'platform':
   - Tool chain 'test': nope
   - Tool chain 'test2': not me

@@ -171,7 +171,7 @@ class DefaultCacheFactoryTest extends Specification {
         factory.open(tmpDir.testDirectory, null, null, [prop: 'other'], CacheBuilder.LockTarget.DefaultTarget, mode(Exclusive), null, null)
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == "Cache '${tmpDir.testDirectory}' is already open with different properties."
 
         cleanup:
@@ -186,7 +186,7 @@ class DefaultCacheFactoryTest extends Specification {
         factory.open(tmpDir.testDirectory, null, null, [prop: 'other'], CacheBuilder.LockTarget.DefaultTarget, mode(Exclusive), null, null)
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == "Cache '${tmpDir.testDirectory}' is already open with different lock options."
 
         cleanup:
@@ -201,7 +201,7 @@ class DefaultCacheFactoryTest extends Specification {
         factory.open(tmpDir.testDirectory, null, null, [prop: 'other'], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null, null)
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == "Cache '${tmpDir.testDirectory}' is already open with different lock target."
 
         cleanup:

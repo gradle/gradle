@@ -312,7 +312,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         execute(task)
 
         then:
-        TaskValidationException e = thrown()
+        def e = thrown TaskValidationException
         validateException(task, e, "No value has been specified for property '$property'.")
 
         where:
@@ -336,7 +336,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         execute(task)
 
         then:
-        TaskValidationException e = thrown()
+        def e = thrown TaskValidationException
         validateException(task, e, "Cannot write to file '$task.outputFile' specified for property 'outputFile' as it is a directory.")
     }
 
@@ -348,7 +348,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         execute(task)
 
         then:
-        TaskValidationException e = thrown()
+        def e = thrown TaskValidationException
         validateException(task, e, "Cannot write to file '${task.outputFiles[0]}' specified for property 'outputFiles' as it is a directory.")
     }
 
@@ -361,7 +361,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         execute(task)
 
         then:
-        TaskValidationException e = thrown()
+        def e = thrown TaskValidationException
         validateException(task, e, "Cannot write to file '$task.outputFile' specified for property 'outputFile', as ancestor '$task.outputFile.parentFile' is not a directory.")
     }
 
@@ -374,7 +374,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         execute(task)
 
         then:
-        TaskValidationException e = thrown()
+        def e = thrown TaskValidationException
         validateException(task, e, "Cannot write to file '${task.outputFiles[0]}' specified for property 'outputFiles', as ancestor '${task.outputFiles[0].parentFile}' is not a directory.")
     }
 
@@ -386,7 +386,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         execute(task)
 
         then:
-        TaskValidationException e = thrown()
+        def e = thrown TaskValidationException
         validateException(task, e, "Directory '$task.outputDir' specified for property 'outputDir' is not a directory.")
     }
 
@@ -398,7 +398,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         execute(task)
 
         then:
-        TaskValidationException e = thrown()
+        def e = thrown TaskValidationException
         validateException(task, e, "Directory '${task.outputDirs[0]}' specified for property 'outputDirs' is not a directory.")
     }
 
@@ -411,7 +411,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         execute(task)
 
         then:
-        TaskValidationException e = thrown()
+        def e = thrown TaskValidationException
         validateException(task, e, "Cannot write to directory '$task.outputDir' specified for property 'outputDir', as ancestor '$task.outputDir.parentFile' is not a directory.")
     }
 
@@ -424,7 +424,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         execute(task)
 
         then:
-        TaskValidationException e = thrown()
+        def e = thrown TaskValidationException
         validateException(task, e, "Cannot write to directory '${task.outputDirs[0]}' specified for property 'outputDirs', as ancestor '${task.outputDirs[0].parentFile}' is not a directory.")
     }
 
@@ -436,7 +436,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         execute(task)
 
         then:
-        TaskValidationException e = thrown()
+        def e = thrown TaskValidationException
         validateException(task, e, "Directory '$task.inputDir' specified for property 'inputDir' does not exist.")
     }
 
@@ -449,7 +449,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         execute(task)
 
         then:
-        TaskValidationException e = thrown()
+        def e = thrown TaskValidationException
         validateException(task, e, "Directory '$task.inputDir' specified for property 'inputDir' is not a directory.")
     }
 
@@ -461,7 +461,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         execute(task)
 
         then:
-        TaskValidationException e = thrown()
+        def e = thrown TaskValidationException
         validateException(task, e, "No value has been specified for property 'bean.inputFile'.")
     }
 
@@ -474,7 +474,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         execute(task)
 
         then:
-        TaskValidationException e = thrown()
+        def e = thrown TaskValidationException
         validateException(task, e, "No value has been specified for property 'bean'.")
     }
 
@@ -487,7 +487,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         execute(task)
 
         then:
-        TaskValidationException e = thrown()
+        def e = thrown TaskValidationException
         validateException(task, e, "No value has been specified for property 'bean'.")
     }
 
@@ -499,7 +499,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         execute(task)
 
         then:
-        TaskValidationException e = thrown()
+        def e = thrown TaskValidationException
         validateException(task, e, "No value has been specified for property 'srcFile'.")
     }
 
@@ -511,7 +511,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         execute(task)
 
         then:
-        TaskValidationException e = thrown()
+        def e = thrown TaskValidationException
         validateException(task, e,
             "No value has been specified for property 'outputFile'.",
             "No value has been specified for property 'bean.inputFile'.")
@@ -525,7 +525,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         execute(task)
 
         then:
-        TaskValidationException e = thrown()
+        def e = thrown TaskValidationException
         validateException(task, e,
             "No value has been specified for property 'cCompiler'.",
             "No value has been specified for property 'CFlags'.",
@@ -541,7 +541,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         execute(task)
 
         then:
-        TaskValidationException e = thrown()
+        def e = thrown TaskValidationException
         validateException(task, e,
             "No value has been specified for property 'a'.",
             "No value has been specified for property 'b'.")

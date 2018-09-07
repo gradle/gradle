@@ -49,7 +49,7 @@ class FailureHandlingDispatchTest extends Specification {
         dispatch.dispatch("message")
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == adaptedFailure
         1 * target.dispatch("message") >> { throw failure }
         1 * handler.dispatchFailed("message", failure) >> { throw adaptedFailure }

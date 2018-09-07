@@ -43,7 +43,7 @@ class UnavailableNativePlatformToolProviderTest extends Specification {
         toolChain.newCompiler(NativeCompileSpec.class)
 
         then:
-        GradleException e = thrown()
+        def e = thrown GradleException
         e.message == "broken"
     }
 
@@ -52,7 +52,7 @@ class UnavailableNativePlatformToolProviderTest extends Specification {
         toolChain.getCompilerMetadata()
 
         then:
-        GradleException e = thrown()
+        def e = thrown GradleException
         e.message == "broken"
     }
 }

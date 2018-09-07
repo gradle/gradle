@@ -207,7 +207,7 @@ class ListenerBroadcastTest extends Specification {
         then:
         1 * listener.event3() >> { throw failure }
         0 * _._
-        ListenerNotificationException exception = thrown()
+        def exception = thrown ListenerNotificationException
         exception.message == 'Failed to notify test listener.'
         exception.cause.is(failure)
     }
@@ -227,7 +227,7 @@ class ListenerBroadcastTest extends Specification {
         1 * listener1.event1("param") >> { throw failure }
         1 * listener2.event1("param")
         0 * _._
-        RuntimeException exception = thrown()
+        def exception = thrown RuntimeException
         exception.is(failure)
 
     }
@@ -251,7 +251,7 @@ class ListenerBroadcastTest extends Specification {
         1 * listener3.event1("param")
         0 * _._
 
-        ListenerNotificationException exception = thrown()
+        def exception = thrown ListenerNotificationException
         exception.causes == [failure1, failure2]
     }
 

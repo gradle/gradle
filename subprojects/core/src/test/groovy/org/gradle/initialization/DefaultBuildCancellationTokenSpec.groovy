@@ -93,7 +93,7 @@ class DefaultBuildCancellationTokenSpec extends Specification {
         token.cancel()
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e.cause == ex
         token.cancellationRequested
 
@@ -118,7 +118,7 @@ class DefaultBuildCancellationTokenSpec extends Specification {
         token.cancel()
 
         then:
-        DefaultMultiCauseException e = thrown()
+        def e = thrown DefaultMultiCauseException
         e.causes == [ex1, ex2]
         token.cancellationRequested
 

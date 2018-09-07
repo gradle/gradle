@@ -107,7 +107,7 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
         }
 
         then:
-        UnsupportedBuildArgumentException ex = thrown()
+        def ex = thrown UnsupportedBuildArgumentException
         ex.message.contains('--foreground')
     }
 

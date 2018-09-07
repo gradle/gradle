@@ -71,7 +71,7 @@ class ExtensionContainerTest extends Specification {
         container.extensionsAsDynamicObject.foo = new FooExtension()
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "There's an extension registered with name 'foo'. You should not reassign it via a property setter."
     }
 
@@ -99,21 +99,21 @@ class ExtensionContainerTest extends Specification {
         container.add('foo', 'other')
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "Cannot add extension with name 'foo', as there is an extension already registered with that name."
 
         when:
         container.foo = 'other'
 
         then:
-        IllegalArgumentException e2 = thrown()
+        def e2 = thrown IllegalArgumentException
         e2.message == "There's an extension registered with name 'foo'. You should not reassign it via a property setter."
 
         when:
         container.create('foo', Thing, 'bar')
 
         then:
-        IllegalArgumentException e3 = thrown()
+        def e3 = thrown IllegalArgumentException
         e3.message == "Cannot add extension with name 'foo', as there is an extension already registered with that name."
     }
 

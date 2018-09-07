@@ -134,7 +134,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         instantiator.newInstance(HasBrokenConstructor)
 
         then:
-        ObjectInstantiationException e = thrown()
+        def e = thrown ObjectInstantiationException
         e.cause == HasBrokenConstructor.failure
     }
 
@@ -146,7 +146,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         instantiator.newInstance(HasBrokenConstructor)
 
         then:
-        ObjectInstantiationException e = thrown()
+        def e = thrown ObjectInstantiationException
         e.message == "Could not create an instance of type $HasBrokenConstructor.name."
         e.cause == HasBrokenConstructor.failure
     }
@@ -159,7 +159,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         instantiator.newInstance(HasOneInjectConstructor, 12, "param2")
 
         then:
-        ObjectInstantiationException e = thrown()
+        def e = thrown ObjectInstantiationException
         e.cause.message == "Too many parameters provided for constructor for class $HasOneInjectConstructor.name. Expected 1, received 2."
     }
 
@@ -172,7 +172,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         instantiator.newInstance(HasOneInjectConstructor, new StringBuilder("string"))
 
         then:
-        ObjectInstantiationException e = thrown()
+        def e = thrown ObjectInstantiationException
         e.cause.message == "Unexpected parameter provided for constructor for class $HasOneInjectConstructor.name."
     }
 
@@ -185,7 +185,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         instantiator.newInstance(HasInjectConstructor, 12)
 
         then:
-        ObjectInstantiationException e = thrown()
+        def e = thrown ObjectInstantiationException
         e.cause instanceof IllegalArgumentException
         e.cause.message == "Unable to determine $HasInjectConstructor.name argument #1: value 12 not assignable to type class java.lang.String, or no service of type class java.lang.String"
     }
@@ -198,7 +198,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         instantiator.newInstance(HasNoInjectConstructor, new StringBuilder("param"))
 
         then:
-        ObjectInstantiationException e = thrown()
+        def e = thrown ObjectInstantiationException
         e.cause.message == "Class $HasNoInjectConstructor.name has no constructor that is annotated with @Inject."
     }
 
@@ -210,7 +210,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         instantiator.newInstance(HasMixedConstructors, new StringBuilder("param"))
 
         then:
-        ObjectInstantiationException e = thrown()
+        def e = thrown ObjectInstantiationException
         e.cause.message == "Class $HasMixedConstructors.name has no constructor that is annotated with @Inject."
     }
 
@@ -222,7 +222,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         instantiator.newInstance(HasMultipleInjectConstructors, new StringBuilder("param"))
 
         then:
-        ObjectInstantiationException e = thrown()
+        def e = thrown ObjectInstantiationException
         e.cause.message == "Class $HasMultipleInjectConstructors.name has multiple constructors that are annotated with @Inject."
     }
 
@@ -234,7 +234,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         instantiator.newInstance(HasMixedInjectConstructors, new StringBuilder("param"))
 
         then:
-        ObjectInstantiationException e = thrown()
+        def e = thrown ObjectInstantiationException
         e.cause.message == "Class $HasMixedInjectConstructors.name has multiple constructors that are annotated with @Inject."
     }
 
@@ -246,7 +246,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         instantiator.newInstance(HasNonPublicNoArgsConstructor, new StringBuilder("param"))
 
         then:
-        ObjectInstantiationException e = thrown()
+        def e = thrown ObjectInstantiationException
         e.cause.message == "The constructor for class $HasNonPublicNoArgsConstructor.name should be public or package protected or annotated with @Inject."
     }
 
@@ -258,7 +258,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         instantiator.newInstance(HasSingleConstructorWithArgsAndNoAnnotation, "param")
 
         then:
-        ObjectInstantiationException e = thrown()
+        def e = thrown ObjectInstantiationException
         e.cause.message == "The constructor for class $HasSingleConstructorWithArgsAndNoAnnotation.name should be annotated with @Inject."
     }
 
@@ -270,7 +270,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         instantiator.newInstance(HasPrivateArgsConstructor, new StringBuilder("param"))
 
         then:
-        ObjectInstantiationException e = thrown()
+        def e = thrown ObjectInstantiationException
         e.cause.message == "The constructor for class $HasPrivateArgsConstructor.name should be annotated with @Inject."
     }
 
@@ -283,7 +283,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         instantiator.newInstance(HasInjectConstructor, null, null)
 
         then:
-        ObjectInstantiationException e = thrown()
+        def e = thrown ObjectInstantiationException
         e.cause instanceof IllegalArgumentException
         e.cause.message == "Unable to determine $HasInjectConstructor.name argument #1: value null not assignable to type class java.lang.String, or no service of type class java.lang.String"
     }

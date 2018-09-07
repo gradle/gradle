@@ -179,7 +179,7 @@ public class AsyncDispatchTest extends Specification {
         dispatch.stop()
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot wait for messages to be dispatched, as there are no dispatch threads running.'
     }
 
@@ -197,7 +197,7 @@ public class AsyncDispatchTest extends Specification {
             throw failure
         }
         0 * _._
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot wait for messages to be dispatched, as there are no dispatch threads running.'
     }
 
@@ -209,7 +209,7 @@ public class AsyncDispatchTest extends Specification {
         dispatch.dispatch('message')
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot dispatch message, as this message dispatch has been stopped. Message: message'
     }
 

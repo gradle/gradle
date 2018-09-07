@@ -121,7 +121,7 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
         getTask().doLast((Closure) null)
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message.equals("Action must not be null!")
     }
 

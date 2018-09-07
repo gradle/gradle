@@ -289,7 +289,7 @@ project(':b:c') {
             it.forLaunchables(selectorBT1, selectorBT3, selectorT1)
         }
         then:
-        UnsupportedBuildArgumentException e = thrown()
+        def e = thrown UnsupportedBuildArgumentException
         e.message.contains 'Only selector from the same Gradle project can be built.'
     }
 

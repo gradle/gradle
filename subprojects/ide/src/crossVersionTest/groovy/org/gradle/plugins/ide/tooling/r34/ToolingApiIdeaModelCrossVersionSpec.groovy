@@ -82,7 +82,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         ideaProject.modules.find { it.name == 'root' }.jdkName
 
         then:
-        UnsupportedMethodException e = thrown()
+        def e = thrown UnsupportedMethodException
         e.message.startsWith("Unsupported method: IdeaModule.getJdkName()")
     }
 

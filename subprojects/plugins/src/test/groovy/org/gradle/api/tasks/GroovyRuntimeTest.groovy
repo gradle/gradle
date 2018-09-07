@@ -31,17 +31,6 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
         project.extensions.getByType(GroovyRuntime)
     }
 
-    def "inferred Groovy class path uses same 'groovy-all' Jar that is found on class path"() {
-        when:
-        def classpath = project.groovyRuntime.inferGroovyClasspath([project.file("other.jar"), project.file("groovy-all-2.1.2${classifier}.jar")])
-
-        then:
-        classpath.singleFile == project.file("groovy-all-2.1.2${classifier}.jar")
-
-        where:
-        classifier << ["", "-indy"]
-    }
-
     def "inferred Groovy class path uses repository dependency if 'groovy' Jar is found on class path (to get transitive dependencies right)"() {
         project.repositories {
             mavenCentral()

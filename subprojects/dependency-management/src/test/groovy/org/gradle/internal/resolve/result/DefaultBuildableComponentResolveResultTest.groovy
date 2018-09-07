@@ -50,7 +50,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
         result.moduleVersionId
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'No result has been specified.'
     }
 
@@ -59,7 +59,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
         result.metadata
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'No result has been specified.'
     }
 
@@ -68,7 +68,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
         result.failure
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'No result has been specified.'
     }
 
@@ -80,7 +80,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
         result.moduleVersionId
 
         then:
-        ModuleVersionResolveException e = thrown()
+        def e = thrown ModuleVersionResolveException
         e == failure
     }
 
@@ -92,7 +92,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
         result.metadata
 
         then:
-        ModuleVersionResolveException e = thrown()
+        def e = thrown ModuleVersionResolveException
         e == failure
     }
 

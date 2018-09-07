@@ -233,14 +233,14 @@ class DefaultPluginRegistryTest extends Specification {
         pluginRegistry.lookup(DefaultPluginId.of("noImpl"))
 
         then:
-        InvalidPluginException e = thrown()
+        def e = thrown InvalidPluginException
         e.message == "No implementation class specified for plugin 'noImpl' in $url."
 
         when:
         pluginRegistry.lookup(DefaultPluginId.of("noImpl"))
 
         then:
-        e = thrown()
+        e = thrown InvalidPluginException
         e.message == "No implementation class specified for plugin 'noImpl' in $url."
     }
 
@@ -266,7 +266,7 @@ class DefaultPluginRegistryTest extends Specification {
         pluginRegistry.lookup(DefaultPluginId.of("somePlugin"))
 
         then:
-        InvalidPluginException e = thrown()
+        def e = thrown InvalidPluginException
         e.message == "Could not find implementation class '$TestPlugin1.name' for plugin 'somePlugin' specified in $url."
         e.cause instanceof ClassNotFoundException
     }

@@ -104,7 +104,7 @@ class IvyResourcePatternTest extends Specification {
         ivyPattern.toModuleVersionPath(moduleId).path
 
         then:
-        UnsupportedOperationException e = thrown()
+        def e = thrown UnsupportedOperationException
         e.message == 'Cannot locate module version for non standard Ivy layout.'
 
         where:

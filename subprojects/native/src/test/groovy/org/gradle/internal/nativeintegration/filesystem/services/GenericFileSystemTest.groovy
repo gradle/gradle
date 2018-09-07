@@ -40,7 +40,7 @@ class GenericFileSystemTest extends Specification {
         fileSystem.chmod(file, 0640)
 
         then:
-        FileException e = thrown()
+        def e = thrown FileException
         e.message == "Could not set file mode 640 on '$file'."
     }
 
@@ -55,7 +55,7 @@ class GenericFileSystemTest extends Specification {
         fileSystem.getUnixMode(file)
 
         then:
-        FileException e = thrown()
+        def e = thrown FileException
         e.message == "Could not get file mode for '$file'."
     }
 
@@ -71,7 +71,7 @@ class GenericFileSystemTest extends Specification {
         fileSystem.createSymbolicLink(file, target)
 
         then:
-        FileException e = thrown()
+        def e = thrown FileException
         e.message == "Could not create symlink from '$file' to '$target'."
     }
 }

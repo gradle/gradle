@@ -29,7 +29,7 @@ class ErrorHandlingNotationParserTest extends Specification {
         parser.parseNotation(null)
 
         then:
-        UnsupportedNotationException e = thrown()
+        def e = thrown UnsupportedNotationException
         e.message == toPlatformLineSeparators('''Cannot convert a null value to a thing.
 The following types/formats are supported:
   - format 1
@@ -50,7 +50,7 @@ The following types/formats are supported:
         parser.parseNotation("bad")
 
         then:
-        UnsupportedNotationException e = thrown()
+        def e = thrown UnsupportedNotationException
         e.message == toPlatformLineSeparators('''Cannot convert the provided notation to a thing: broken-part.
 The following types/formats are supported:
   - format 1

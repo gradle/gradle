@@ -226,7 +226,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * previousFile.toString() >> "output"
 
         then:
-        UncheckedIOException exception = thrown()
+        def exception = thrown UncheckedIOException
         exception.message.contains("Unable to delete file: output")
     }
 

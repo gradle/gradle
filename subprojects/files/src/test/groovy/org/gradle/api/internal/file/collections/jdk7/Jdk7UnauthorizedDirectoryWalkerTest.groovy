@@ -72,7 +72,7 @@ class Jdk7UnauthorizedDirectoryWalkerTest extends Specification {
         fileTree.visit(fileVisitor)
 
         then:
-        Exception exception = thrown()
+        def exception = thrown Exception
         Throwables.getRootCause(exception).class == AccessDeniedException
     }
 }

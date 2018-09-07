@@ -53,7 +53,7 @@ class LoggingBridgingBuildActionExecuterTest extends Specification {
         executer.execute(action, buildRequestContext, parameters, contextServices)
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
         1 * loggingManager.start()
         1 * target.execute(action, buildRequestContext, parameters, contextServices) >> {throw failure}

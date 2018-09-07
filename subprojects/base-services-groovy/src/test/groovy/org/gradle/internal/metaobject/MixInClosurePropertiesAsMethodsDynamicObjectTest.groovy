@@ -62,7 +62,7 @@ class MixInClosurePropertiesAsMethodsDynamicObjectTest extends Specification {
         obj.invokeMethod("m", [new Date()] as Object[])
 
         then:
-        MissingMethodException e = thrown()
+        def e = thrown MissingMethodException
         e.method == "m"
     }
 
@@ -113,7 +113,7 @@ class MixInClosurePropertiesAsMethodsDynamicObjectTest extends Specification {
         obj.invokeMethod("m", ["not-a-number"] as Object[])
 
         then:
-        MissingMethodException e = thrown()
+        def e = thrown MissingMethodException
         e.method == "doCall"
     }
 }

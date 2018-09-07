@@ -132,7 +132,7 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
         connection.run(CustomModel.class, parameters)
 
         then:
-        UnknownModelException e = thrown()
+        def e = thrown UnknownModelException
         e.message == /The version of Gradle you are using (1.2) does not support building a model of type 'CustomModel'. Support for building custom tooling models was added in Gradle 1.6 and is available in all later versions./
     }
 
@@ -145,7 +145,7 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
         connection.run(Stub(BuildAction), parameters)
 
         then:
-        UnsupportedVersionException e = thrown()
+        def e = thrown UnsupportedVersionException
         e.message == /The version of Gradle you are using (1.2) does not support the <api>. Support for this is available in Gradle 1.8 and all later versions./
     }
 

@@ -105,7 +105,7 @@ class NotationParserBuilderSpec extends Specification {
         parser.parseNotation(false)
 
         then:
-        UnsupportedNotationException e = thrown()
+        def e = thrown UnsupportedNotationException
         e.message == toPlatformLineSeparators("""Cannot convert the provided notation to an object of type Number: false.
 The following types/formats are supported:
   - Instances of Number.
@@ -123,7 +123,7 @@ The following types/formats are supported:
         parser.parseNotation("broken")
 
         then:
-        UnsupportedNotationException e = thrown()
+        def e = thrown UnsupportedNotationException
         e.message == toPlatformLineSeparators("""Cannot convert the provided notation to an object of type Number: broken.
 The following types/formats are supported:
   - a string containing a greeting, for example 'hello world'.""")
@@ -137,7 +137,7 @@ The following types/formats are supported:
         parser.parseNotation(12)
 
         then:
-        UnsupportedNotationException e = thrown()
+        def e = thrown UnsupportedNotationException
         e.message == toPlatformLineSeparators("""Cannot convert the provided notation to a thing: 12.
 The following types/formats are supported:
   - Instances of String.""")
@@ -151,7 +151,7 @@ The following types/formats are supported:
         parser.parseNotation(12)
 
         then:
-        UnsupportedNotationException e = thrown()
+        def e = thrown UnsupportedNotationException
         e.message == toPlatformLineSeparators("""Cannot convert the provided notation to a String: 12.
 The following types/formats are supported:
   - Instances of String.""")

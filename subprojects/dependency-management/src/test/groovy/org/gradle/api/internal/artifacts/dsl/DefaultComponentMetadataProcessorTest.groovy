@@ -114,7 +114,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
         processor.processMetadata(metadata.asImmutable())
 
         then:
-        ModuleVersionResolveException e = thrown()
+        def e = thrown ModuleVersionResolveException
         e.message == /Unexpected status 'green' specified for group:module:version. Expected one of: [alpha, beta]/
     }
 

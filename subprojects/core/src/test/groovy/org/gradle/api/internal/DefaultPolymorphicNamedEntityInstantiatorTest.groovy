@@ -43,7 +43,7 @@ class DefaultPolymorphicNamedEntityInstantiatorTest extends Specification {
         instantiator.create("foo", Integer)
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message == "Cannot create a Integer because this type is not known to this container. Known types are: TestType"
         e.cause instanceof NoFactoryRegisteredForTypeException
     }
@@ -77,7 +77,7 @@ class DefaultPolymorphicNamedEntityInstantiatorTest extends Specification {
         instantiator.registerFactory(String, {})
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "Cannot register a factory for type String because it is not a subtype of container element type Base."
     }
 
@@ -89,7 +89,7 @@ class DefaultPolymorphicNamedEntityInstantiatorTest extends Specification {
         instantiator.registerFactory(TestType, {})
 
         then:
-        GradleException e = thrown()
+        def e = thrown GradleException
         e.message == "Cannot register a factory for type TestType because a factory for this type is already registered."
     }
 

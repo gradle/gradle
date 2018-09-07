@@ -55,7 +55,7 @@ class BuildControllerAdapterTest extends Specification {
         controller.getModel(String)
 
         then:
-        UnknownModelException e = thrown()
+        def e = thrown UnknownModelException
         e.message == /No model of type 'String' is available in this build./
         e.cause == failure
     }
@@ -178,14 +178,14 @@ class BuildControllerAdapterTest extends Specification {
         })
 
         then:
-        NullPointerException e1 = thrown()
+        def e1 = thrown NullPointerException
         e1.message == "parameterType and parameterInitializer both need to be set for a parametrized model request."
 
         when:
         controller.getModel(GradleBuild, ValidParameter, null)
 
         then:
-        NullPointerException e2 = thrown()
+        def e2 = thrown NullPointerException
         e2.message == "parameterType and parameterInitializer both need to be set for a parametrized model request."
     }
 
@@ -197,7 +197,7 @@ class BuildControllerAdapterTest extends Specification {
         })
 
         then:
-        IllegalArgumentException e1 = thrown()
+        def e1 = thrown IllegalArgumentException
         e1.message == "org.gradle.tooling.internal.consumer.connection.BuildControllerAdapterTest\$InvalidParameter is not a valid parameter type. It must be an interface."
     }
 

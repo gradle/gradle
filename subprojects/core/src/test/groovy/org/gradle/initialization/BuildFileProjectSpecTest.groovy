@@ -62,7 +62,7 @@ class BuildFileProjectSpecTest extends Specification {
         spec.selectProject(registry())
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message == "No projects in this build have build file '$file'.".toString()
     }
 
@@ -71,7 +71,7 @@ class BuildFileProjectSpecTest extends Specification {
         spec.selectProject(registry(project(file), project(file)))
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message.startsWith("Multiple projects in this build have build file '$file':")
     }
 
@@ -81,7 +81,7 @@ class BuildFileProjectSpecTest extends Specification {
         spec.containsProject(registry())
 
         then:
-        InvalidUserDataException e = thrown()
+        def e = thrown InvalidUserDataException
         e.message == "Build file '$file' does not exist.".toString()
 
         when:
@@ -89,7 +89,7 @@ class BuildFileProjectSpecTest extends Specification {
         spec.containsProject(registry())
 
         then:
-        e = thrown()
+        e = thrown InvalidUserDataException
         e.message == "Build file '$file' is not a file.".toString()
     }
 

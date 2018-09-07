@@ -443,7 +443,7 @@ class DefaultModelSchemaExtractorTest extends Specification {
         extract(type)
 
         then:
-        InvalidManagedModelElementTypeException e = thrown()
+        def e = thrown InvalidManagedModelElementTypeException
         e.message == """Type $ModelMap.name is not a valid model element type:
 - type parameter of $ModelMap.name has to be specified.
 

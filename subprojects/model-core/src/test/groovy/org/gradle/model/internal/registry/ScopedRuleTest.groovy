@@ -68,7 +68,7 @@ class ScopedRuleTest extends ProjectRegistrySpec {
         registry.get("values")
 
         then:
-        ModelRuleExecutionException e = thrown()
+        def e = thrown ModelRuleExecutionException
         e.cause.class == UnsupportedOperationException
         e.cause.message == "ScopedRuleTest.RuleSourceUsingRuleWithDependencies#rule() has dependencies on plugins: [$ImperativePlugin]. Plugin dependencies are not supported in this context."
     }
@@ -89,7 +89,7 @@ class ScopedRuleTest extends ProjectRegistrySpec {
         registry.get("values")
 
         then:
-        ModelRuleExecutionException e = thrown()
+        def e = thrown ModelRuleExecutionException
         e.cause.class == InvalidModelRuleDeclarationException
         e.cause.message == "Rule ScopedRuleTest.CreatorRule#string() cannot be applied at the scope of model element values as creation rules cannot be used when applying rule sources to particular elements"
     }

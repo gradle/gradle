@@ -255,7 +255,7 @@ class DefaultMetadataProviderTest extends Specification {
         metadataProvider.componentMetadata
 
         then:
-        InvalidUserDataException ex = thrown()
+        def ex = thrown InvalidUserDataException
         ex.message == toPlatformLineSeparators("""Invalid attributes types have been provider by component metadata supplier. Attributes must either be strings or booleans:
   - Attribute 'integer' has type class java.lang.Integer
   - Attribute 'long' has type class java.lang.Long""")

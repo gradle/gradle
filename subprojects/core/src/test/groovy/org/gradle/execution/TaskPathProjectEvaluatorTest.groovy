@@ -53,7 +53,7 @@ class TaskPathProjectEvaluatorTest extends Specification {
         evaluator.configureHierarchy(project)
 
         then:
-        BuildCancelledException e = thrown()
+        def e = thrown BuildCancelledException
 
         and:
         1 * project.evaluate()

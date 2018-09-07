@@ -183,7 +183,7 @@ class JavaReflectionUtilTest extends Specification {
         readableProperty(JavaTestSubject, String, property)
 
         then:
-        NoSuchPropertyException e = thrown()
+        def e = thrown NoSuchPropertyException
         e.message == "Could not find getter method for property '${property}' on class JavaTestSubject."
 
         where:
@@ -201,7 +201,7 @@ class JavaReflectionUtilTest extends Specification {
         readableProperty(JavaTestSubject, String, property)
 
         then:
-        NoSuchPropertyException e = thrown()
+        def e = thrown NoSuchPropertyException
         e.message == "Could not find getter method for property '${property}' on class JavaTestSubject."
 
         where:
@@ -215,7 +215,7 @@ class JavaReflectionUtilTest extends Specification {
         writeableProperty(JavaTestSubject, property, Object.class)
 
         then:
-        NoSuchPropertyException e = thrown()
+        def e = thrown NoSuchPropertyException
         e.message == "Could not find setter method for property '${property}' of type Object on class JavaTestSubject."
 
         where:
@@ -231,7 +231,7 @@ class JavaReflectionUtilTest extends Specification {
         writeableProperty(JavaTestSubject, property, Object.class)
 
         then:
-        NoSuchPropertyException e = thrown()
+        def e = thrown NoSuchPropertyException
         e.message == "Could not find setter method for property '${property}' of type Object on class JavaTestSubject."
 
         where:
@@ -272,14 +272,14 @@ class JavaReflectionUtilTest extends Specification {
         method(myProperties.class, Void, "throwsException").invoke(myProperties)
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e == myProperties.failure
 
         when:
         method(myProperties.class, Void, "throwsCheckedException").invoke(myProperties)
 
         then:
-        UncheckedException checkedFailure = thrown()
+        def checkedFailure = thrown UncheckedException
         checkedFailure.cause instanceof JavaTestSubject.TestCheckedException
         checkedFailure.cause.cause == myProperties.failure
     }
@@ -295,7 +295,7 @@ class JavaReflectionUtilTest extends Specification {
         method(JavaTestSubjectSubclass, String, "unknown")
 
         then:
-        NoSuchMethodException e = thrown()
+        def e = thrown NoSuchMethodException
         e.message == /Could not find method unknown() on JavaTestSubjectSubclass./
     }
 

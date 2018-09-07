@@ -1511,7 +1511,7 @@ class DefaultConfigurationSpec extends Specification {
         conf.getAttributes().attribute(a1, "a1")
 
         then:
-        IllegalArgumentException t = thrown()
+        def t = thrown IllegalArgumentException
         t.message == "Cannot change attributes of configuration ':conf' after it has been resolved"
     }
 
@@ -1549,7 +1549,7 @@ class DefaultConfigurationSpec extends Specification {
         }
 
         then:
-        IllegalStateException t = thrown()
+        def t = thrown IllegalStateException
         t.message == "The component filter can only be set once before the view was computed"
     }
 
@@ -1581,7 +1581,7 @@ class DefaultConfigurationSpec extends Specification {
         artifactView.attributes.attribute(a1, "A")
 
         then:
-        UnsupportedOperationException t = thrown()
+        def t = thrown UnsupportedOperationException
         t.message == "Mutation of attributes is not allowed"
     }
 

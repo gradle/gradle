@@ -51,7 +51,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         registy.getBuilder("model")
 
         then:
-        UnknownModelException e = thrown()
+        def e = thrown UnknownModelException
         e.message == "No builders are available to build a model of type 'model'."
     }
 
@@ -71,7 +71,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         registy.getBuilder("model")
 
         then:
-        UnsupportedOperationException e = thrown()
+        def e = thrown UnsupportedOperationException
         e.message == "Multiple builders are available to build a model of type 'model'."
     }
 

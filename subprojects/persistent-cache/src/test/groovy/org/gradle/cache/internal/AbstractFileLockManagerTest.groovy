@@ -243,7 +243,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
         lock.updateFile({ throw failure } as Runnable)
 
         then:
-        RuntimeException e = thrown()
+        def e = thrown RuntimeException
         e == failure
         !lock.unlockedCleanly
 

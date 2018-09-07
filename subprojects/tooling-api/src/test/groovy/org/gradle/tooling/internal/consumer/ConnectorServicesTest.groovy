@@ -42,6 +42,6 @@ public class ConnectorServicesTest extends Specification {
         ConnectorServices.createConnector()
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
     }
 }

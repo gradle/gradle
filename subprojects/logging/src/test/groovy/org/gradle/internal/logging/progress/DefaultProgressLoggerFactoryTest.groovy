@@ -230,7 +230,7 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         logger.started()
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'A description must be specified before this operation is started.'
     }
 
@@ -243,7 +243,7 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         logger.description = 'new'
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot configure this operation (logger - old) once it has started.'
     }
 
@@ -256,7 +256,7 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         logger.shortDescription = 'new'
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot configure this operation (logger - old) once it has started.'
     }
 
@@ -269,7 +269,7 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         logger.loggingHeader = 'new'
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot configure this operation (logger - old) once it has started.'
     }
 
@@ -281,7 +281,7 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         logger.progress('new')
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'This operation (logger - op) has not been started.'
     }
 
@@ -295,7 +295,7 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         logger.progress('new')
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'This operation (logger - op) has already been completed.'
     }
 
@@ -307,7 +307,7 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         logger.completed('finished', false)
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'This operation (logger - op) has not been started.'
     }
 
@@ -320,7 +320,7 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         logger.started()
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'This operation (logger - op) has already been started.'
     }
 
@@ -334,7 +334,7 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         logger.started()
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'This operation (logger - op) has already completed.'
     }
 
@@ -348,7 +348,7 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         logger.completed()
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'This operation (logger - op) has already been completed.'
     }
 

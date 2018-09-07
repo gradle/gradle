@@ -74,7 +74,7 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
         result.id
 
         then:
-        ModuleVersionResolveException e = thrown()
+        def e = thrown ModuleVersionResolveException
         e == failure
     }
 }

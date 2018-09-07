@@ -118,7 +118,7 @@ class DefaultExecutorFactoryTest extends ConcurrentSpec {
         executor.stop()
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Cannot stop this executor from an executor thread.'
     }
 
@@ -139,7 +139,7 @@ class DefaultExecutorFactoryTest extends ConcurrentSpec {
         }
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Timeout waiting for concurrent jobs to complete.'
 
         and:
@@ -322,7 +322,7 @@ class DefaultExecutorFactoryTest extends ConcurrentSpec {
         }
 
         then:
-        IllegalStateException e = thrown()
+        def e = thrown IllegalStateException
         e.message == 'Timeout waiting for concurrent jobs to complete.'
     }
 

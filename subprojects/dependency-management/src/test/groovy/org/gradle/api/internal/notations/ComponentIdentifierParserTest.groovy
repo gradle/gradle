@@ -56,7 +56,7 @@ class ComponentIdentifierParserTest extends Specification {
         parser.parseNotation(notation)
 
         then:
-        InvalidUserDataException ex = thrown()
+        def ex = thrown InvalidUserDataException
         ex.message == "Invalid module component notation: $notation : must be a valid 3 part identifier, eg.: org.gradle:gradle:1.0"
 
         where:
@@ -69,7 +69,7 @@ class ComponentIdentifierParserTest extends Specification {
         parser.parseNotation(notation)
 
         then:
-        Exception ex = thrown()
+        def ex = thrown Exception
         ex.message.startsWith(error)
 
         where:

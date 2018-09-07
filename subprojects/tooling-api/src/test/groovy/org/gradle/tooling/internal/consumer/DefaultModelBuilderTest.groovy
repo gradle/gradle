@@ -224,7 +224,7 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
         }
 
         then:
-        GradleConnectionException e = thrown()
+        def e = thrown GradleConnectionException
         e.cause.is(failure)
 
         and:

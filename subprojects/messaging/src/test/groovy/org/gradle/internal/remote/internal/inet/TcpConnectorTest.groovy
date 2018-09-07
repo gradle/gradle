@@ -98,7 +98,7 @@ class TcpConnectorTest extends ConcurrentSpec {
         outgoingConnector.connect(address)
 
         then:
-        ConnectException e = thrown()
+        def e = thrown ConnectException
         e.message.startsWith "Could not connect to server ${address}."
         e.cause instanceof java.net.ConnectException
     }
@@ -110,7 +110,7 @@ class TcpConnectorTest extends ConcurrentSpec {
         outgoingConnector.connect(address)
 
         then:
-        ConnectException e = thrown()
+        def e = thrown ConnectException
         e.message.startsWith "Could not connect to server ${address}."
         e.cause instanceof java.net.ConnectException
     }
@@ -122,7 +122,7 @@ class TcpConnectorTest extends ConcurrentSpec {
         outgoingConnector.connect(acceptor.address)
 
         then:
-        ConnectException e = thrown()
+        def e = thrown ConnectException
         e.message.startsWith "Could not connect to server ${acceptor.address}."
         e.cause instanceof java.net.ConnectException
     }
@@ -165,7 +165,7 @@ class TcpConnectorTest extends ConcurrentSpec {
         outgoingConnector.connect(acceptor.address)
 
         then:
-        ConnectException e = thrown()
+        def e = thrown ConnectException
         e.message.startsWith "Could not connect to server ${acceptor.address}."
         e.cause instanceof java.net.ConnectException
 
@@ -271,7 +271,7 @@ class TcpConnectorTest extends ConcurrentSpec {
         connection.receive()
 
         then:
-        MessageIOException e = thrown()
+        def e = thrown MessageIOException
         e.message == "Could not read message from '${connection.remoteAddress}'."
         e.cause == failure
 

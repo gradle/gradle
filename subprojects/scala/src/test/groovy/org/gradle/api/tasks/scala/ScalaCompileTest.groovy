@@ -75,7 +75,7 @@ class ScalaCompileTest extends AbstractCompileTest {
         execute(scalaCompile)
 
         then:
-        TaskExecutionException e = thrown()
+        def e = thrown TaskExecutionException
         e.cause instanceof InvalidUserDataException
         e.cause.message.contains("'testTask.scalaClasspath' must not be empty")
     }

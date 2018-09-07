@@ -100,7 +100,7 @@ class HttpBuildCacheServiceTest extends Specification {
         when:
         cache.store(key, writer(content))
         then:
-        BuildCacheException exception = thrown()
+        def exception = thrown BuildCacheException
 
         exception.message == "Received unexpected redirect (HTTP 302) to ${server.uri}/redirect/cache/${key.hashCode} when storing entry at '${server.uri}/cache/${key.hashCode}'. Ensure the configured URL for the remote build cache is correct."
     }
@@ -146,7 +146,7 @@ class HttpBuildCacheServiceTest extends Specification {
         }
 
         then:
-        BuildCacheException exception = thrown()
+        def exception = thrown BuildCacheException
 
         exception.message == "Received unexpected redirect (HTTP 302) to ${server.uri}/redirect/cache/${key.hashCode} when loading entry from '${server.uri}/cache/${key.hashCode}'. Ensure the configured URL for the remote build cache is correct."
     }
@@ -172,7 +172,7 @@ class HttpBuildCacheServiceTest extends Specification {
         }
 
         then:
-        BuildCacheException exception = thrown()
+        def exception = thrown BuildCacheException
 
         exception.message == "Loading entry from '${server.uri}/cache/${key.hashCode}' response status ${httpCode}: broken"
 
@@ -189,7 +189,7 @@ class HttpBuildCacheServiceTest extends Specification {
         }
 
         then:
-        UncheckedIOException exception = thrown()
+        def exception = thrown UncheckedIOException
 
         exception.message == "Loading entry from '${server.uri}/cache/${key.hashCode}' response status ${httpCode}: broken"
 
@@ -204,7 +204,7 @@ class HttpBuildCacheServiceTest extends Specification {
         cache.store(key, writer("".bytes))
 
         then:
-        UncheckedIOException exception = thrown()
+        def exception = thrown UncheckedIOException
 
         exception.message == "Storing entry at '${server.uri}/cache/${key.hashCode}' response status ${httpCode}: broken"
 
@@ -219,7 +219,7 @@ class HttpBuildCacheServiceTest extends Specification {
         cache.store(key, writer("".bytes))
 
         then:
-        BuildCacheException exception = thrown()
+        def exception = thrown BuildCacheException
 
         exception.message == "Storing entry at '${server.uri}/cache/${key.hashCode}' response status ${httpCode}: broken"
 

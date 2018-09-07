@@ -48,24 +48,31 @@ class Specification extends spock.lang.Specification {
         super.with(t, type, closure)
     }
 
-    @SuppressWarnings(['MethodName', 'UnnecessaryOverridingMethod', 'GrUnnecessaryPublicModifier'])
-    @Override
-    public <T> T Mock(
-        @DelegatesTo.Target Class<T> type,
-        @DelegatesTo(strategy = Closure.DELEGATE_FIRST, genericTypeIndex = 0)
-        @ClosureParams(SecondParam.FirstGenericType) Closure closure
-    ) {
-        super.Mock(type, closure)
-    }
+    // Disabled because Groovy 2.5.1 compiler produces compile error:
+    //
+    // [Static type checking] - Cannot find matching method spock.lang.Specification#MockImpl(<unknown parameter type>, <unknown parameter type>, java.lang.Class <T>, groovy.lang.Closure). Please check if the declared type is correct and if the method exists.
+    // @ line 58, column 9.
+    //           super.Mock(type, closure)
+    //           ^
 
-    @SuppressWarnings(['MethodName', 'UnnecessaryOverridingMethod', 'GrUnnecessaryPublicModifier'])
-    @Override
-    public <T> T Stub(
-        @DelegatesTo.Target Class<T> type,
-        @DelegatesTo(strategy = Closure.DELEGATE_FIRST, genericTypeIndex = 0)
-        @ClosureParams(SecondParam.FirstGenericType) Closure closure
-    ) {
-        super.Stub(type, closure)
-    }
+//    @SuppressWarnings(['MethodName', 'UnnecessaryOverridingMethod', 'GrUnnecessaryPublicModifier'])
+//    @Override
+//    public <T> T Mock(
+//        @DelegatesTo.Target Class<T> type,
+//        @DelegatesTo(strategy = Closure.DELEGATE_FIRST, genericTypeIndex = 0)
+//        @ClosureParams(SecondParam.FirstGenericType) Closure closure
+//    ) {
+//        super.Mock(type, closure)
+//    }
+//
+//    @SuppressWarnings(['MethodName', 'UnnecessaryOverridingMethod', 'GrUnnecessaryPublicModifier'])
+//    @Override
+//    public <T> T Stub(
+//        @DelegatesTo.Target Class<T> type,
+//        @DelegatesTo(strategy = Closure.DELEGATE_FIRST, genericTypeIndex = 0)
+//        @ClosureParams(SecondParam.FirstGenericType) Closure closure
+//    ) {
+//        super.Stub(type, closure)
+//    }
 
 }

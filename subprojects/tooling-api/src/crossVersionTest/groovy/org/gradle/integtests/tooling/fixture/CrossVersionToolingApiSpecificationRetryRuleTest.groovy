@@ -54,7 +54,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         throwWhen(new GradleConnectionException("Test Exception", new NullPointerException()), iteration == 1)
 
         then:
-        GradleConnectionException gce = thrown()
+        def gce = thrown GradleConnectionException
         gce.cause instanceof NullPointerException
     }
 
@@ -79,7 +79,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         throwWhen(new IOException("Some action failed", new GradleException("Timeout waiting to connect to the Gradle daemon.\n more infos")), iteration == 1)
 
         then:
-        IOException ioe = thrown()
+        def ioe = thrown IOException
         ioe.cause?.message == "Timeout waiting to connect to the Gradle daemon.\n more infos"
     }
 
@@ -108,7 +108,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("An existing connection was forcibly closed by the remote host")), iteration == 1)
 
         then:
-        IOException ioe = thrown()
+        def ioe = thrown IOException
         ioe.cause?.message == "An existing connection was forcibly closed by the remote host"
     }
 
@@ -122,7 +122,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("A different cause")), iteration == 1)
 
         then:
-        IOException ioe = thrown()
+        def ioe = thrown IOException
         ioe.cause?.message == "A different cause"
     }
 
@@ -136,7 +136,7 @@ class CrossVersionToolingApiSpecificationRetryRuleTest extends ToolingApiSpecifi
         throwWhen(new IOException("Could not dispatch a message to the daemon.", new IOException("An existing connection was forcibly closed by the remote host")), iteration == 1)
 
         then:
-        IOException ioe = thrown()
+        def ioe = thrown IOException
         ioe.message == "Could not dispatch a message to the daemon."
     }
 

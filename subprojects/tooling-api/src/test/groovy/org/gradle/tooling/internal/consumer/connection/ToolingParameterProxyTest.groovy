@@ -35,7 +35,7 @@ class ToolingParameterProxyTest extends Specification {
         ToolingParameterProxy.validateParameter(InvalidParameter1)
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "org.gradle.tooling.internal.consumer.connection.ToolingParameterProxyTest\$InvalidParameter1 is not a valid parameter type. Method notASetterOrGetter is neither a setter nor a getter."
     }
 
@@ -44,7 +44,7 @@ class ToolingParameterProxyTest extends Specification {
         ToolingParameterProxy.validateParameter(InvalidParameter2)
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "org.gradle.tooling.internal.consumer.connection.ToolingParameterProxyTest\$InvalidParameter2 is not a valid parameter type. Method setValue is neither a setter nor a getter."
     }
 
@@ -53,7 +53,7 @@ class ToolingParameterProxyTest extends Specification {
         ToolingParameterProxy.validateParameter(InvalidParameter3)
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "org.gradle.tooling.internal.consumer.connection.ToolingParameterProxyTest\$InvalidParameter3 is not a valid parameter type. Setter and getter for property value have non corresponding types."
     }
 
@@ -62,7 +62,7 @@ class ToolingParameterProxyTest extends Specification {
         ToolingParameterProxy.validateParameter(InvalidParameter4)
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "org.gradle.tooling.internal.consumer.connection.ToolingParameterProxyTest\$InvalidParameter4 is not a valid parameter type. It contains a different number of getters and setters."
     }
 
@@ -71,7 +71,7 @@ class ToolingParameterProxyTest extends Specification {
         ToolingParameterProxy.validateParameter(InvalidParameter5)
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "org.gradle.tooling.internal.consumer.connection.ToolingParameterProxyTest\$InvalidParameter5 is not a valid parameter type. It contains a different number of getters and setters."
     }
 
@@ -80,7 +80,7 @@ class ToolingParameterProxyTest extends Specification {
         ToolingParameterProxy.validateParameter(InvalidParameter6)
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "org.gradle.tooling.internal.consumer.connection.ToolingParameterProxyTest\$InvalidParameter6 is not a valid parameter type. It must be an interface."
     }
 
@@ -89,7 +89,7 @@ class ToolingParameterProxyTest extends Specification {
         ToolingParameterProxy.validateParameter(InvalidParameter7)
 
         then:
-        IllegalArgumentException e = thrown()
+        def e = thrown IllegalArgumentException
         e.message == "org.gradle.tooling.internal.consumer.connection.ToolingParameterProxyTest\$InvalidParameter7 is not a valid parameter type. More than one getter for property value was found."
     }
 

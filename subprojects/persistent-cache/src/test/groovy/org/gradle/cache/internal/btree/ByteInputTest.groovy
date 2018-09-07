@@ -63,6 +63,6 @@ class ByteInputTest extends Specification {
         input.start(123).readInt()
 
         then:
-        EOFException e = thrown()
+        def e = thrown EOFException
     }
 }
