@@ -7,7 +7,7 @@ plugins {
 dependencies {
     modules {
         module("com.google.collections:google-collections") {
-            (this as ComponentModuleMetadataDetails).replacedBy("com.google.guava:guava", "google-collections is now part of Guava")
+            replacedBy("com.google.guava:guava", "google-collections is now part of Guava")
         }
     }
 }
