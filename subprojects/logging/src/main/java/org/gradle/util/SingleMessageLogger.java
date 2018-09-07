@@ -62,20 +62,25 @@ public class SingleMessageLogger {
 
     public static void nagUserOfReplacedPlugin(String pluginName, String replacement) {
         if (isEnabled()) {
-            nagUserWith(String.format("The %s plugin %s has been deprecated.", pluginName),
-                getRemovalDetails(),
-                String.format("Please use the %s plugin instead.", replacement),
-                null,
-                DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
+            nagUserOfDeprecatedPlugin(pluginName, String.format("Please use the %s plugin instead.", replacement));
         }
     }
 
     public static void nagUserOfPluginReplacedWithExternalOne(String pluginName, String replacement) {
         if (isEnabled()) {
-            nagUserWith(
-                String.format("The %s plugin has been deprecated.", pluginName),
-                getRemovalDetails(),
-                String.format("Consider using the %s plugin instead.", replacement),
+            nagUserOfDeprecatedPlugin(pluginName, String.format("Consider using the %s plugin instead.", replacement));
+        }
+    }
+
+    public static void nagUserOfDeprecatedPlugin(String pluginName) {
+        nagUserOfDeprecatedPlugin(pluginName, null);
+    }
+
+    public static void nagUserOfDeprecatedPlugin(String pluginName, @Nullable String advice) {
+        if (isEnabled()) {
+            nagUserWith(String.format("The %s plugin has been deprecated.", pluginName),
+                thisWillBeRemovedMessage(),
+                advice,
                 null,
                 DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
@@ -295,12 +300,10 @@ public class SingleMessageLogger {
     }
 
     public static void nagUserOfDeprecatedThing(String thing) {
-        if (isEnabled()) {
-            nagUserWith(thing, String.format("This has been deprecated and %s", getRemovalDetails()), null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
-        }
+        nagUserOfDeprecatedThing(thing, null);
     }
 
-    public static void nagUserOfDeprecatedThing(String thing, String advice) {
+    public static void nagUserOfDeprecatedThing(String thing, @Nullable String advice) {
         if (isEnabled()) {
             nagUserWith(thing, String.format("This has been deprecated and %s", getRemovalDetails()), advice, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }

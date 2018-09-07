@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
@@ -29,6 +30,7 @@ import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.internal.Factory;
@@ -207,6 +209,40 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
     @Override
     public void registerTransform(Action<? super VariantTransform> registrationAction) {
         transforms.registerTransform(registrationAction);
+    }
+
+    @Override
+    public Dependency platform(Object notation) {
+        Dependency dependency = create(notation);
+        if (dependency instanceof HasConfigurableAttributes) {
+            PlatformSupport.addPlatformAttribute((HasConfigurableAttributes<Object>) dependency, PlatformSupport.REGULAR_PLATFORM);
+        }
+        return dependency;
+    }
+
+    @Override
+    public Dependency platform(Object notation, Action<? super Dependency> configureAction) {
+        Dependency dep = platform(notation);
+        configureAction.execute(dep);
+        return dep;
+    }
+
+    @Override
+    public Dependency enforcedPlatform(Object notation) {
+        Dependency platformDependency = create(notation);
+        if (platformDependency instanceof ExternalModuleDependency) {
+            ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) platformDependency;
+            externalModuleDependency.setForce(true);
+            PlatformSupport.addPlatformAttribute(externalModuleDependency, PlatformSupport.ENFORCED_PLATFORM);
+        }
+        return platformDependency;
+    }
+
+    @Override
+    public Dependency enforcedPlatform(Object notation, Action<? super Dependency> configureAction) {
+        Dependency dep = enforcedPlatform(notation);
+        configureAction.execute(dep);
+        return dep;
     }
 
     private class DirectDependencyAdder implements DynamicAddDependencyMethods.DependencyAdder<Dependency> {
