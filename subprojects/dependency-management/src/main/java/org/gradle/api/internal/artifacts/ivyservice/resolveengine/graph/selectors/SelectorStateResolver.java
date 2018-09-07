@@ -98,12 +98,17 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
      */
     private List<T> buildResolveResults(List<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
         SelectorStateResolverResults results = new SelectorStateResolverResults(selectors.size());
+        List<ResolvableSelectorState> emptySelectors = null;
         List<ResolvableSelectorState> preferSelectors = null;
         for (ResolvableSelectorState selector : selectors) {
             // If this selector doesn't specify a prefer/require version, then ignore it here.
             // This will avoid resolving 'reject' selectors, too.
             if (isEmpty(selector)) {
                 selector.markResolved();
+                if (emptySelectors == null) {
+                    emptySelectors = Lists.newArrayList();
+                }
+                emptySelectors.add(selector);
                 continue;
             }
             // Defer prefer selectors until all other selectors are processed
@@ -120,7 +125,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
 
         processPreferSelectors(results, preferSelectors, allRejects);
 
-        return results.getResolved(componentFactory);
+        return results.getResolved(componentFactory, emptySelectors);
     }
 
     private boolean isEmpty(ResolvableSelectorState selector) {
