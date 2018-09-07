@@ -188,25 +188,21 @@ include::{samplesPath}/signing/maven-publish/publishingMavenSignAndPublish.out[]
 
 When you have defined multiple publications or repositories, you often want to control which publications are published to which repositories. For instance, consider the following sample that defines two publications — one that consists of just a binary and another that contains the binary and associated sources — and two repositories — one for internal use and one for external consumers:
 
-=== Example: Adding multiple publications and repositories
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/maven-publish/conditional-publishing/build.gradle[tag=publishing]
-----
+.Adding multiple publications and repositories
+====
+include::sample[dir="maven-publish/conditional-publishing/groovy",files="build.gradle[tags=publishing]"]
+include::sample[dir="maven-publish/conditional-publishing/kotlin",files="build.gradle.kts[tags=publishing]"]
+====
 
 The publishing plugins will create tasks that allow you to publish either of the publications to either repository. They also attach those tasks to the `publish` aggregate task. But let's say you want to restrict the binary-only publication to the external repository and the binary-with-sources publication to the internal one. To do that, you need to make the publishing _conditional_.
 
 Gradle allows you to skip any task you want based on a condition via the link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:onlyIf(org.gradle.api.specs.Spec)[Task.onlyIf(org.gradle.api.specs.Spec)] method. The following sample demonstrates how to implement the constraints we just mentioned:
 
-=== Example: Configuring which artifacts should be published to which repositories
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/maven-publish/conditional-publishing/build.gradle[tag=task-config]
-----
+.Configuring which artifacts should be published to which repositories
+====
+include::sample[dir="maven-publish/conditional-publishing/groovy",files="build.gradle[tags=task-config]"]
+include::sample[dir="maven-publish/conditional-publishing/kotlin",files="build.gradle.kts[tags=task-config]"]
+====
 
 .Output of `gradle publish`
 ----
@@ -219,13 +215,11 @@ You may also want to define your own aggregate tasks to help with your workflow.
 
 The following sample demonstrates how you can do this by defining an aggregate task — `publishToExternalRepository` — that depends on all the relevant publish tasks:
 
-=== Example: Defining your own shorthand tasks for publishing
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/maven-publish/conditional-publishing/build.gradle[tag=shorthand-tasks]
-----
+.Defining your own shorthand tasks for publishing
+====
+include::sample[dir="maven-publish/conditional-publishing/groovy",files="build.gradle[tags=shorthand-tasks]"]
+include::sample[dir="maven-publish/conditional-publishing/kotlin",files="build.gradle.kts[tags=shorthand-tasks]"]
+====
 
 This particular sample automatically handles the introduction or removal of the relevant publishing tasks by using link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-[TaskCollection.withType(java.lang.Class)] with the link:{groovyDslPath}/org.gradle.api.publish.maven.tasks.PublishToMavenRepository.html[PublishToMavenRepository] task type. You can do the same with link:{groovyDslPath}/org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.html[PublishToIvyRepository] if you're publishing to Ivy-compatible repositories.
 
