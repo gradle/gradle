@@ -33,6 +33,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
+import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
@@ -1537,7 +1538,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
         thrown(UnsupportedOperationException)
     }
 
-    ITaskFactory factory = new TaskFactory(new AsmBackedClassGenerator()).createChild(project, DirectInstantiator.INSTANCE)
+    def factory = new TaskInstantiator(new TaskFactory(new AsmBackedClassGenerator()).createChild(project, DirectInstantiator.INSTANCE), project)
     final SomeTask a = factory.create("a", SomeTask)
     final SomeTask b = factory.create("b", SomeTask)
     final SomeTask c = factory.create("c", SomeTask)

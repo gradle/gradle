@@ -165,9 +165,8 @@ class NodeState implements DependencyGraphNode {
      * The {@link #outgoingEdges} collection is populated, as is the `discoveredEdges` parameter.
      *
      * @param discoveredEdges A collector for visited edges.
-     * @param pendingDependenciesHandler Handler for pending dependencies.
      */
-    public void visitOutgoingDependencies(Collection<EdgeState> discoveredEdges, PendingDependenciesHandler pendingDependenciesHandler) {
+    public void visitOutgoingDependencies(Collection<EdgeState> discoveredEdges) {
         // If this configuration's version is in conflict, do not traverse.
         // If none of the incoming edges are transitive, remove previous state and do not traverse.
         // If not traversed before, simply add all selected outgoing edges (either hard or pending edges)
@@ -215,7 +214,7 @@ class NodeState implements DependencyGraphNode {
             removeOutgoingEdges();
         }
 
-        visitDependencies(resolutionFilter, pendingDependenciesHandler, discoveredEdges);
+        visitDependencies(resolutionFilter, discoveredEdges);
         visitOwners(discoveredEdges);
     }
 
@@ -223,8 +222,8 @@ class NodeState implements DependencyGraphNode {
      * Iterate over the dependencies originating in this node, adding them either as a 'pending' dependency
      * or adding them to the `discoveredEdges` collection (and `this.outgoingEdges`)
      */
-    private void visitDependencies(ModuleExclusion resolutionFilter, PendingDependenciesHandler pendingDependenciesHandler, Collection<EdgeState> discoveredEdges) {
-        PendingDependenciesHandler.Visitor pendingDepsVisitor = pendingDependenciesHandler.start();
+    private void visitDependencies(ModuleExclusion resolutionFilter, Collection<EdgeState> discoveredEdges) {
+        PendingDependenciesHandler.Visitor pendingDepsVisitor = resolveState.getPendingDependenciesHandler().start();
         try {
             for (DependencyMetadata dependency : metaData.getDependencies()) {
                 DependencyState dependencyState = new DependencyState(dependency, resolveState.getComponentSelectorConverter());
@@ -408,6 +407,7 @@ class NodeState implements DependencyGraphNode {
             for (EdgeState outgoingDependency : outgoingEdges) {
                 outgoingDependency.removeFromTargetConfigurations();
                 outgoingDependency.getSelector().release();
+                resolveState.getPendingDependenciesHandler().removeHardEdge(outgoingDependency);
             }
         }
         outgoingEdges.clear();

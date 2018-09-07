@@ -1,23 +1,6 @@
-/*
- * Copyright 2018 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-
 open class Producer : DefaultTask() {
     @get:OutputFile
-    val outputFile: RegularFileProperty = newOutputFile()
+    val outputFile: RegularFileProperty = project.objects.fileProperty()
 
     @TaskAction
     fun produce() {
@@ -30,7 +13,7 @@ open class Producer : DefaultTask() {
 
 open class Consumer : DefaultTask() {
     @get:InputFile
-    val inputFile: RegularFileProperty = newInputFile()
+    val inputFile: RegularFileProperty = project.objects.fileProperty()
 
     @TaskAction
     fun consume() {
@@ -44,12 +27,13 @@ val producer by tasks.creating(Producer::class)
 val consumer by tasks.creating(Consumer::class)
 
 // Wire property from producer to consumer task
+// Don't need to add a task dependency to the consumer task, this is automatically added
 consumer.inputFile.set(producer.outputFile)
 
 // Set values for the producer lazily
-// Note that the consumer does not need to be changed again.
+// Don't need to update the consumer.inputFile property, this is automatically updated
 producer.outputFile.set(layout.buildDirectory.file("file.txt"))
 
 // Change the base output directory.
-// Note that this automatically changes producer.outputFile and consumer.inputFile
+// Don't need to update producer.outputFile and consumer.inputFile, these are automatically updated
 setBuildDir("output")

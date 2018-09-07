@@ -23,13 +23,11 @@ The Ear plugin adds support for assembling web application EAR files. It adds a 
 
 To use the Ear plugin, include the following in your build script:
 
-=== Example: Using the Ear plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/ear/earWithWar/build.gradle[tag=use-ear-plugin]
-----
+.Using the Ear plugin
+====
+include::sample[dir="ear/earWithWar/groovy",files="build.gradle[tags=use-ear-plugin]"]
+include::sample[dir="ear/earWithWar/kotlin",files="build.gradle.kts[tags=use-ear-plugin]"]
+====
 
 [[sec:ear_tasks]]
 == Tasks
@@ -92,13 +90,11 @@ The link:{groovyDslPath}/org.gradle.plugins.ear.Ear.html[Ear] class in the API d
 
 Here is an example with the most important customization options:
 
-=== Example: Customization of ear plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/ear/earCustomized/ear/build.gradle[]
-----
+.Customization of ear plugin
+====
+include::sample[dir="ear/earCustomized/groovy/ear",files="build.gradle[]"]
+include::sample[dir="ear/earCustomized/kotlin/ear",files="build.gradle.kts[]"]
+====
 
 You can also use customization options that the link:{groovyDslPath}/org.gradle.plugins.ear.Ear.html[Ear] task provides, such as `from` and `metaInf`.
 

@@ -16,6 +16,7 @@
 package org.gradle.api.java.archives;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Map;
@@ -101,4 +102,16 @@ public interface Manifest {
      * @return this
      */
     Manifest from(Object mergePath, Closure<?> closure);
+
+    /**
+     * Specifies other manifests to be merged into this manifest. A merge path is interpreted as described in
+     * {@link #from(Object...)}.
+     *
+     * The merge is not happening instantaneously. It happens either before writing or when {@link #getEffectiveManifest()}
+     * is called.
+     *
+     * @return this
+     * @since 5.0
+     */
+    Manifest from(Object mergePath, Action<ManifestMergeSpec> action);
 }

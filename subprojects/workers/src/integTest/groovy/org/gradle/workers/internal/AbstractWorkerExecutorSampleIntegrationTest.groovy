@@ -18,33 +18,52 @@ package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.test.fixtures.file.TestFile
+import org.junit.Rule
+import spock.lang.Unroll
 
 
 abstract class AbstractWorkerExecutorSampleIntegrationTest extends AbstractIntegrationSpec {
-    abstract Sample getWorkerExecutorSample()
+    abstract String getSampleName()
 
-    def "creates expected content"() {
+    List<String> getDsls() {
+        // one sample is prepared for its Kotlin version, but doesn't have it yet
+        ['groovy']
+    }
+
+    @Rule
+    Sample sampleProvider = new Sample(testDirectoryProvider, sampleName)
+
+    TestFile workerExecutorSample(String dsl) {
+        sampleProvider.dir.file(dsl)
+    }
+
+    @Unroll
+    def "creates expected content (#dsl)"() {
         when:
-        sample workerExecutorSample
+        executer.inDirectory(workerExecutorSample(dsl))
         succeeds "reverseFiles"
 
         then:
-        assertReversedFilesArePresentAndCorrect()
+        assertReversedFilesArePresentAndCorrect(dsl)
 
         and:
-        assertSampleSpecificOutcome()
+        assertSampleSpecificOutcome(dsl)
+
+        where:
+        dsl << getDsls()
     }
 
-    void assertSampleSpecificOutcome() {
+    void assertSampleSpecificOutcome(String dsl) {
     }
 
-    void assertReversedFilesArePresentAndCorrect() {
-        assertReversedFileIsPresentAndCorrect("hemingway") && assertReversedFileIsPresentAndCorrect("steinbeck")
+    void assertReversedFilesArePresentAndCorrect(String dsl) {
+        assertReversedFileIsPresentAndCorrect(dsl, "hemingway") && assertReversedFileIsPresentAndCorrect(dsl, "steinbeck")
     }
 
-    void assertReversedFileIsPresentAndCorrect(String author) {
-        def reversedFile = workerExecutorSample.dir.file("build/reversed/${author}.txt")
+    void assertReversedFileIsPresentAndCorrect(String dsl, String author) {
+        def reversedFile = workerExecutorSample(dsl).file("build/reversed/${author}.txt")
         assert reversedFile.exists()
-        assert reversedFile.text == workerExecutorSample.dir.file("sources/${author}.txt").text.reverse()
+        assert reversedFile.text == workerExecutorSample(dsl).file("sources/${author}.txt").text.reverse()
     }
 }

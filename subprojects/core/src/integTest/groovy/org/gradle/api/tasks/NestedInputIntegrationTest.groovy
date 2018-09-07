@@ -41,7 +41,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             
             class GeneratorTask extends DefaultTask {
                 @Output${kind}
-                ${type.name} output = newOutput${kind}()
+                ${type.name} output = project.objects.${factory}()
                 
                 @TaskAction
                 void doStuff() {
@@ -50,11 +50,11 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             }
             
             task generator(type: GeneratorTask) {
-                output.set(project.layout.buildDirectory.${kind == 'Directory' ? 'dir' : 'file'}('output'))
+                output.set(project.layout.buildDirectory.${lookup}('output'))
             }
             
             task consumer(type: TaskWithNestedProperty) {
-                bean = new NestedBeanWithInput(input: newInput${kind}())
+                bean = new NestedBeanWithInput(input: project.objects.${factory}())
                 bean.input.set(generator.output)
             }
         """
@@ -65,9 +65,9 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(':generator', ':consumer')
 
         where:
-        kind        | type                | generatorAction
-        'File'      | RegularFileProperty | '.getAsFile().get().text = "Hello"'
-        'Directory' | DirectoryProperty   | '''.file('output.txt').get().getAsFile().text = "Hello"'''
+        kind        | type                | factory             | lookup | generatorAction
+        'File'      | RegularFileProperty | 'fileProperty'      | 'file' | '.getAsFile().get().text = "Hello"'
+        'Directory' | DirectoryProperty   | 'directoryProperty' | 'dir'  | '''.file('output.txt').get().getAsFile().text = "Hello"'''
     }
 
     def "nested FileCollection input adds a task dependency"() {
@@ -84,7 +84,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             
             class GeneratorTask extends DefaultTask {
                 @OutputFile
-                RegularFileProperty outputFile = newOutputFile()
+                RegularFileProperty outputFile = project.objects.fileProperty()
                 
                 @TaskAction
                 void doStuff() {
@@ -93,7 +93,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             }
             
             task generator(type: GeneratorTask) {
-                outputFile.set(project.layout.buildDirectory.file('output'))
+                outputFile = project.layout.buildDirectory.file('output')
             }
             
             task consumer(type: TaskWithNestedProperty) {
@@ -122,7 +122,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             
             class GeneratorTask extends DefaultTask {
                 @OutputFile
-                RegularFileProperty outputFile = newOutputFile()
+                RegularFileProperty outputFile = project.objects.fileProperty()
                 
                 @TaskAction
                 void doStuff() {
@@ -131,7 +131,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             }
             
             task generator(type: GeneratorTask) {
-                outputFile.set(project.layout.buildDirectory.file('output'))
+                outputFile = project.layout.buildDirectory.file('output')
             }
             
             task consumer(type: TaskWithNestedProperty) {
@@ -348,7 +348,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
                 Object bean
     
                 @OutputFile
-                RegularFileProperty outputFile = newOutputFile()
+                RegularFileProperty outputFile = project.objects.fileProperty()
     
                 @TaskAction
                 void writeInputToFile() {
@@ -897,6 +897,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             }
         """
     }
+
     private TestFile taskWithNestedBeanWithAction() {
         nestedBeanWithAction()
         return file("buildSrc/src/main/java/TaskWithNestedBeanWithAction.java") << """

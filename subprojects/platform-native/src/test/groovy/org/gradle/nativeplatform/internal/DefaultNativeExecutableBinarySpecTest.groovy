@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.internal
 
-import org.gradle.api.internal.project.taskfactory.ITaskFactory
+
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.NativeExecutableBinarySpec
 import org.gradle.nativeplatform.NativeExecutableSpec
@@ -39,15 +39,14 @@ class DefaultNativeExecutableBinarySpecTest extends Specification {
 
     final testUtil = TestUtil.create(tmpDir)
     def namingScheme = DefaultBinaryNamingScheme.component("bigOne").withBinaryType("executable")
-    def taskFactory = Mock(ITaskFactory)
-    def tasks = new DefaultNativeExecutableBinarySpec.DefaultTasksCollection(new DefaultBinaryTasksCollection(null, taskFactory))
+    def tasks = new DefaultNativeExecutableBinarySpec.DefaultTasksCollection(new DefaultBinaryTasksCollection(null, null))
 
     def "has useful string representation"() {
         given:
         def executable = BaseComponentFixtures.createNode(NativeExecutableSpec, DefaultNativeExecutableSpec, new DefaultComponentSpecIdentifier("path", "name"))
 
         when:
-        def binary = TestNativeBinariesFactory.create(NativeExecutableBinarySpec, DefaultNativeExecutableBinarySpec, namingScheme.getBinaryName(), taskFactory, executable, namingScheme,
+        def binary = TestNativeBinariesFactory.create(NativeExecutableBinarySpec, DefaultNativeExecutableBinarySpec, namingScheme.getBinaryName(), executable, namingScheme,
             Mock(NativeDependencyResolver), Stub(NativePlatform), Stub(BuildType), new DefaultFlavor("flavorOne"))
 
         then:

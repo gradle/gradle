@@ -5,6 +5,7 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import spock.lang.Subject
+import org.openmbee.junit.JUnitMarshalling
 
 
 class ScenarioReportRendererTest extends Specification {
@@ -41,7 +42,7 @@ class ScenarioReportRendererTest extends Specification {
         def successfulBuild = getSampleBuild("sample-build-result-success.xml")
         def testResultXmlFile = copyResource("TEST-sample.xml")
         def testResultFilesForBuild = [:]
-        testResultFilesForBuild.put(failedBuild.@id.text(), [testResultXmlFile])
+        testResultFilesForBuild.put(failedBuild.@id.text(), [JUnitMarshalling.unmarshalTestSuite(new FileInputStream(testResultXmlFile))])
 
         when:
         htmlFile.withWriter { Writer writer ->

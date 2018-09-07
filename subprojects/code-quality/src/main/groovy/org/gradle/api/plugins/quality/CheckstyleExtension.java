@@ -42,7 +42,7 @@ public class CheckstyleExtension extends CodeQualityExtension {
 
     public CheckstyleExtension(Project project) {
         this.project = project;
-        configDir = project.getLayout().directoryProperty();
+        configDir = project.getObjects().directoryProperty();
     }
 
     /**
