@@ -292,6 +292,16 @@ public class DefaultRealizableTaskCollection<T extends Task> implements Realizab
     }
 
     @Override
+    public <S extends T> TaskProvider<S> named(String name, Class<S> type) throws UnknownTaskException {
+        return delegate.named(name, type);
+    }
+
+    @Override
+    public <S extends T> TaskProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownTaskException {
+        return delegate.named(name, type, configurationAction);
+    }
+
+    @Override
     public NamedDomainObjectCollectionSchema getCollectionSchema() {
         return delegate.getCollectionSchema();
     }

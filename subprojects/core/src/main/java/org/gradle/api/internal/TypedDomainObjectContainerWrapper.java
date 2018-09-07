@@ -107,6 +107,16 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
         return delegate.named(name);
     }
 
+    @Override
+    public <S extends U> NamedDomainObjectProvider<S> named(String name, Class<S> type) throws UnknownDomainObjectException {
+        return delegate.named(name, type);
+    }
+
+    @Override
+    public <S extends U> NamedDomainObjectProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownDomainObjectException {
+        return delegate.named(name, type, configurationAction);
+    }
+
     public NamedDomainObjectSet<U> matching(Spec<? super U> spec) {
         return delegate.matching(spec);
     }

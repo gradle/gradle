@@ -87,6 +87,16 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
     }
 
     @Override
+    public <S extends T> TaskProvider<S> named(String name, Class<S> type) throws UnknownTaskException {
+        return (TaskProvider<S>) super.named(name, type);
+    }
+
+    @Override
+    public <S extends T> TaskProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownTaskException {
+        return (TaskProvider<S>) super.named(name, type, configurationAction);
+    }
+
+    @Override
     protected TaskProvider<? extends T> createExistingProvider(String name, T object) {
         return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, object.getName()));
     }

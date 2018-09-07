@@ -221,7 +221,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
     /**
      * Locates a object by name, without triggering its creation or configuration, failing if there is no such object.
      *
-     *
      * @param name The object's name
      * @return A {@link Provider} that will return the object when queried. The object may be created and configured at this point, if not already.
      * @throws UnknownDomainObjectException If a object with the given name is not defined.
@@ -229,6 +228,31 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      */
     @Incubating
     NamedDomainObjectProvider<T> named(String name) throws UnknownDomainObjectException;
+
+    /**
+     * Locates a object by name, without triggering its creation or configuration, failing if there is no such object.
+     *
+     * @param name The object's name
+     * @param type The object's type
+     * @return A {@link Provider} that will return the object when queried. The object may be created and configured at this point, if not already.
+     * @throws UnknownDomainObjectException If a object with the given name is not defined.
+     * @since 5.0
+     */
+    @Incubating
+    <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type) throws UnknownDomainObjectException;
+
+    /**
+     * Locates a object by name, without triggering its creation or configuration, failing if there is no such object.
+     *
+     * @param name The object's name
+     * @param type The object's type
+     * @param configurationAction The action to use to configure the object.
+     * @return A {@link Provider} that will return the object when queried. The object may be created and configured at this point, if not already.
+     * @throws UnknownDomainObjectException If a object with the given name is not defined.
+     * @since 5.0
+     */
+    @Incubating
+    <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownDomainObjectException;
 
     /**
      * Provides access to the schema of all created or registered named domain objects in this collection.
