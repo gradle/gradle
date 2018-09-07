@@ -61,6 +61,8 @@ import java.util.List;
  */
 @NonNullApi
 public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
+    private static final PatternSet EMPTY_PATTERN_SET = new PatternSet();
+
     private final FileHasher hasher;
     private final StringInterner stringInterner;
     private final FileSystem fileSystem;
@@ -193,7 +195,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
                 FileSystemLocationSnapshot snapshot = fileSystemMirror.getSnapshot(path);
                 if (snapshot == null) {
                     snapshot = snapshotAndCache(dirTree.getDir(), patterns);
-                    return snapshot.getType() == FileType.Missing ? FileSystemSnapshot.EMPTY : snapshot;
+                    return filterSnapshot(snapshot, EMPTY_PATTERN_SET);
                 } else {
                     return filterSnapshot(snapshot, patterns);
                 }
@@ -222,11 +224,11 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     private FileSystemSnapshot filterSnapshot(FileSystemLocationSnapshot snapshot, PatternSet patterns) {
-        if (patterns.isEmpty()) {
-            return snapshot;
-        }
         if (snapshot.getType() == FileType.Missing) {
             return FileSystemSnapshot.EMPTY;
+        }
+        if (patterns.isEmpty()) {
+            return snapshot;
         }
         Spec<FileTreeElement> spec = patterns.getAsSpec();
         return FileSystemSnapshotFilter.filterSnapshot(spec, snapshot, fileSystem);
