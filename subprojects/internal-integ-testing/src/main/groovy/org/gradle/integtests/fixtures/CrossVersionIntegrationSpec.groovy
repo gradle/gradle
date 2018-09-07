@@ -22,12 +22,15 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import org.gradle.testing.internal.util.RetryRule
 import org.junit.Rule
 import org.junit.runner.RunWith
+import spock.lang.Retry
 import spock.lang.Specification
 
+import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
+
 @RunWith(CrossVersionTestRunner)
+@Retry(condition = { RetryConditions.onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class CrossVersionIntegrationSpec extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     private final List<GradleExecuter> executers = []
@@ -35,9 +38,6 @@ abstract class CrossVersionIntegrationSpec extends Specification {
     static GradleDistribution previous
     private MavenFileRepository mavenRepo
     private TestFile gradleUserHomeDir
-
-    @Rule
-    RetryRule retryRule = RetryRuleUtil.retryCrossVersionTestOnIssueWithReleasedGradleVersion(this)
 
     boolean retryWithCleanProjectDir() {
         temporaryFolder.testDirectory.listFiles().each {

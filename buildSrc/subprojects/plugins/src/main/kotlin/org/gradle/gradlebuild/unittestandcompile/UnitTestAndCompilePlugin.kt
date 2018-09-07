@@ -18,6 +18,7 @@ package org.gradle.gradlebuild.unittestandcompile
 import accessors.base
 import accessors.java
 import availableJavaInstallations
+import cglibWithoutAntRule
 import library
 import maxParallelForks
 import org.gradle.api.InvalidUserDataException
@@ -121,6 +122,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 
             components {
                 withModule("org.spockframework:spock-core", SpockCoreRule::class.java)
+                withModule("cglib:cglib", cglibWithoutAntRule)
             }
         }
     }

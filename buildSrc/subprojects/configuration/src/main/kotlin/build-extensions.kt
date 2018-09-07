@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ComponentMetadataRule
 
 import org.gradle.kotlin.dsl.*
 
@@ -43,14 +44,19 @@ fun Project.libraryReason(name: String): String? =
     libraries[name]!!["because"]
 
 
-fun Project.testLibrary(name: String): Any =
-    testLibraries[name]!!
+fun Project.testLibrary(name: String): String =
+    testLibraries[name]!! as String
 
 
 // TODO:kotlin-dsl Remove work around for https://github.com/gradle/kotlin-dsl/issues/639 once fixed
 @Suppress("unchecked_cast")
-fun Project.testLibraries(name: String): List<Any> =
-    testLibraries[name]!! as List<Any>
+fun Project.testLibraries(name: String): List<String> =
+    testLibraries[name]!! as List<String>
+
+
+@Suppress("unchecked_cast")
+val Project.cglibWithoutAntRule
+    get() = rootProject.extra["cglibWithoutAntRule"] as Class<out ComponentMetadataRule>
 
 
 val Project.maxParallelForks: Int
