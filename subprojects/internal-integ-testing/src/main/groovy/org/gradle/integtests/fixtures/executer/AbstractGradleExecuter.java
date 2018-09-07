@@ -765,7 +765,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     @Override
     public boolean isUseDaemon() {
         CliDaemonArgument cliDaemonArgument = resolveCliDaemonArgument();
-        if (cliDaemonArgument == NO_DAEMON ||cliDaemonArgument == FOREGROUND) {
+        if (cliDaemonArgument == NO_DAEMON || cliDaemonArgument == FOREGROUND) {
             return false;
         }
         return requireDaemon || cliDaemonArgument == DAEMON;
@@ -953,9 +953,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         properties.put(LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, Boolean.toString(fullDeprecationStackTrace));
 
-        if (useOwnUserHomeServices || (gradleUserHomeDir != null && !gradleUserHomeDir.equals(buildContext.getGradleUserHomeDir()))) {
+        boolean useCustomGradleUserHomeDir = (gradleUserHomeDir != null && !gradleUserHomeDir.equals(buildContext.getGradleUserHomeDir()));
+        if (useOwnUserHomeServices || useCustomGradleUserHomeDir) {
             properties.put(REUSE_USER_HOME_SERVICES, "false");
-        } else {
+        }
+        if (!useCustomGradleUserHomeDir) {
             properties.put(DefaultGeneratedGradleJarCache.BASE_DIR_OVERRIDE_PROPERTY, buildContext.getGradleGeneratedApiJarCacheDir().getAbsolutePath());
         }
         if (!noExplicitTmpDir) {
