@@ -1,17 +1,23 @@
 package org.gradle.kotlin.dsl
 
 import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.eq
+import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
 
+import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 
 import org.hamcrest.CoreMatchers.equalTo
@@ -241,5 +247,66 @@ class DependencyHandlerExtensionsTest {
         }
 
         verify(dependencyHandler).add("configuration", baseConfig)
+    }
+
+    @Test
+    fun `can declare dependency constraints`() {
+
+        val constraint = mock<DependencyConstraint>()
+        val constraintHandler = mock<DependencyConstraintHandler> {
+            on { add(any(), any()) } doReturn constraint
+            on { add(any(), any(), any()) } doReturn constraint
+        }
+        val dependenciesHandler = mock<DependencyHandler> {
+            on { constraints } doReturn constraintHandler
+            on { constraints(any()) } doAnswer {
+                (it.getArgument(0) as Action<DependencyConstraintHandler>).execute(constraintHandler)
+            }
+        }
+        val dependencies = DependencyHandlerScope(dependenciesHandler)
+
+        // using the api
+        dependencies {
+            constraints {
+                it.add("api", "some:thing:1.0")
+                it.add("api", "other:thing") {
+                    it.version { it.strictly("1.0") }
+                }
+            }
+        }
+
+        // using generated accessors
+        fun DependencyConstraintHandler.api(dependencyConstraintNotation: Any): DependencyConstraint? =
+            add("api", dependencyConstraintNotation)
+
+        fun DependencyConstraintHandler.api(dependencyConstraintNotation: Any, configuration: DependencyConstraint.() -> Unit): DependencyConstraint? =
+            add("api", dependencyConstraintNotation, configuration)
+
+        dependencies {
+            constraints {
+                it.api("some:thing:1.0")
+                it.api("other:thing") {
+                    version { it.strictly("1.0") }
+                }
+            }
+        }
+
+        // using the string invoke syntax (requires extra parentheses around the `constraints` property)
+        dependencies {
+            (constraints) {
+                "api"("some:thing:1.0")
+                "api"("other:thing") {
+                    version { it.strictly("1.0") }
+                }
+            }
+        }
+
+        inOrder(constraintHandler) {
+            repeat(3) {
+                verify(constraintHandler).add(eq("api"), eq("some:thing:1.0"))
+                verify(constraintHandler).add(eq("api"), eq("other:thing"), any())
+            }
+            verifyNoMoreInteractions()
+        }
     }
 }

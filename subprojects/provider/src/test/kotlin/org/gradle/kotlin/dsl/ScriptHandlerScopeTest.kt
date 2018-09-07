@@ -16,11 +16,18 @@
 
 package org.gradle.kotlin.dsl
 
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.eq
+import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 
+import org.gradle.api.Action
+import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.initialization.dsl.ScriptHandler
 
@@ -49,5 +56,46 @@ class ScriptHandlerScopeTest {
         }
 
         verify(dependency).exclude(mapOf("module" to "com.google.guava"))
+    }
+
+    @Test
+    fun `can declare classpath dependency constraints`() {
+
+        val constraint = mock<DependencyConstraint>()
+        val constraintHandler = mock<DependencyConstraintHandler> {
+            on { add(any(), any()) } doReturn constraint
+        }
+        val dependencies = mock<DependencyHandler> {
+            on { constraints } doReturn constraintHandler
+            on { constraints(any()) } doAnswer {
+                (it.getArgument(0) as Action<DependencyConstraintHandler>).execute(constraintHandler)
+            }
+        }
+        val buildscript = mock<ScriptHandler> {
+            on { getDependencies() } doReturn dependencies
+        }
+
+        buildscript.configureWith {
+            dependencies.constraints.classpath("direct:accessor")
+            dependencies {
+                constraints.classpath("direct-in-dep-handler-scope:accessor")
+            }
+            dependencies {
+                constraints {
+                    it.classpath("in-block:accessor")
+                    it.classpath("in-block:accessor-with-action") {
+                        because("just because")
+                    }
+                }
+            }
+        }
+
+        inOrder(constraintHandler) {
+            verify(constraintHandler).add(eq("classpath"), eq("direct:accessor"))
+            verify(constraintHandler).add(eq("classpath"), eq("direct-in-dep-handler-scope:accessor"))
+            verify(constraintHandler).add(eq("classpath"), eq("in-block:accessor"))
+            verify(constraintHandler).add(eq("classpath"), eq("in-block:accessor-with-action"), any())
+            verifyNoMoreInteractions()
+        }
     }
 }

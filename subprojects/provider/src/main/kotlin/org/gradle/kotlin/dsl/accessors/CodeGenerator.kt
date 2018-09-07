@@ -286,6 +286,31 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
                 dependencyConfiguration: T.() -> Unit
             ): T = add("$stringLiteral", dependency, dependencyConfiguration)
 
+            /**
+             * Adds a dependency constraint to the '$original' configuration.
+             *
+             * @param constraintNotation the dependency constraint notation
+             *
+             * @return the added dependency constraint
+             *
+             * @see [DependencyConstraintHandler.add]
+             */
+            fun DependencyConstraintHandler.`$kotlinIdentifier`(constraintNotation: Any): DependencyConstraint? =
+                add("$stringLiteral", constraintNotation)
+
+            /**
+             * Adds a dependency constraint to the '$original' configuration.
+             *
+             * @param constraintNotation the dependency constraint notation
+             * @param block the block to use to configure the dependency constraint
+             *
+             * @return the added dependency constraint
+             *
+             * @see [DependencyConstraintHandler.add]
+             */
+            fun DependencyConstraintHandler.`$kotlinIdentifier`(constraintNotation: Any, block: DependencyConstraint.() -> Unit): DependencyConstraint? =
+                add("$stringLiteral", constraintNotation, block)
+
         """
     }
 }

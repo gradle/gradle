@@ -19,9 +19,11 @@ package org.gradle.kotlin.dsl
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
 
+import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 
 import org.gradle.api.initialization.dsl.ScriptHandler
@@ -135,4 +137,29 @@ class ScriptHandlerScope(scriptHandler: ScriptHandler) : ScriptHandler by script
         dependency: T,
         dependencyConfiguration: T.() -> Unit
     ): T = add(CLASSPATH_CONFIGURATION, dependency, dependencyConfiguration)
+
+    /**
+     * Adds a dependency constraint to the script classpath configuration.
+     *
+     * @param dependencyConstraintNotation the dependency constraint notation
+     *
+     * @return the added dependency constraint
+     *
+     * @see [DependencyConstraintHandler.add]
+     */
+    fun DependencyConstraintHandler.classpath(dependencyConstraintNotation: Any): DependencyConstraint? =
+        add(CLASSPATH_CONFIGURATION, dependencyConstraintNotation)
+
+    /**
+     * Adds a dependency constraint to the script classpath configuration.
+     *
+     * @param dependencyConstraintNotation the dependency constraint notation
+     * @param configuration the block to use to configure the dependency constraint
+     *
+     * @return the added dependency constraint
+     *
+     * @see [DependencyConstraintHandler.add]
+     */
+    fun DependencyConstraintHandler.classpath(dependencyConstraintNotation: Any, configuration: DependencyConstraint.() -> Unit): DependencyConstraint? =
+        add(CLASSPATH_CONFIGURATION, dependencyConstraintNotation, configuration)
 }
