@@ -136,13 +136,11 @@ You can also configure any authentication details that are required to connect t
 
 The following example demonstrates publishing with a multi-project build. Each project publishes a Java component and a configured additional source artifact. The descriptor file is customized to include the project description for each project.
 
-=== Example: Publishing a Java module
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/ivy-publish/java-multi-project/build.gradle[tag=all]
-----
+.Publishing a Java module
+====
+include::sample[dir="ivy-publish/java-multi-project/groovy",files="build.gradle[tags=all]"]
+include::sample[dir="ivy-publish/java-multi-project/kotlin",files="build.gradle.kts[tags=all]"]
+====
 
 The result is that the following artifacts will be published for each project:
 
