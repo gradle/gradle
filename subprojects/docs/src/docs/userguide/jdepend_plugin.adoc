@@ -17,6 +17,7 @@
 
 The JDepend plugin performs quality checks on your project's source files using http://clarkware.com/software/JDepend.html[JDepend] and generates reports from these checks.
 
+WARNING: Since JDepend is unmaintained and does not support bytecode compiled for Java 8 and above, the JDepend plugin has been deprecated and is scheduled to be removed in Gradle 6.0.
 
 [[sec:jdepend_usage]]
 == Usage
@@ -74,4 +75,4 @@ The JDepend libraries to use
 [[sec:jdepend_configuration]]
 == Configuration
 
-See the link:{groovyDslPath}/org.gradle.api.plugins.quality.()JDependExtension.html[JDependExtension] class in the API documentation.
+See the link:{groovyDslPath}/org.gradle.api.plugins.quality.JDependExtension.html[JDependExtension] class in the API documentation.
