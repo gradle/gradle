@@ -158,13 +158,12 @@ NOTE: The code for this example can be found at **`samples/testKit/gradleRunner/
 
 The following build script demonstrates how to reconfigure the conventions provided by the Java Gradle Plugin Development plugin for a project that uses a custom `Test` source set.
 
-=== Example: Reconfiguring the classpath generation conventions of the Java Gradle Development plugin
+.Reconfiguring the classpath generation conventions of the Java Gradle Development plugin
+====
+include::sample[dir="testKit/gradleRunner/automaticClasspathInjectionCustomTestSourceSet/groovy",files="build.gradle[tags=custom-test-source-set]"]
+include::sample[dir="testKit/gradleRunner/automaticClasspathInjectionCustomTestSourceSet/kotlin",files="build.gradle.kts[tags=custom-test-source-set]"]
+====
 
-[source.multi-language-sample,groovy,indent=0]
-.build.gradle
-----
-include::{samplesPath}/testKit/gradleRunner/automaticClasspathInjectionCustomTestSourceSet/build.gradle[tag=custom-test-source-set]
-----
 NOTE: The code for this example can be found at **`samples/testKit/gradleRunner/automaticClasspathInjectionCustomTestSourceSet`** in the ‘-all’ distribution of Gradle.
 
 
