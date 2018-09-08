@@ -8,6 +8,6 @@ dependencies {
 
 // tag::producer-project-dependency[]
 dependencies {
-    runtime project(':producer')
+    runtimeOnly project(':producer')
 }
 // end::producer-project-dependency[]

@@ -552,23 +552,19 @@ Sometimes you may want to depend on an output produced by another task. In turn 
 
 Let's say you are working in a multi-project build with the two subprojects `producer` and `consumer`. The subproject `producer` defines a task named `buildInfo` that generates a properties file containing build information e.g. the project version. The attribute `builtBy` takes care of establishing an inferred task dependency. For more information on `builtBy`, see link:{groovyDslPath}/org.gradle.api.tasks.SourceSetOutput.html[SourceSetOutput].
 
-=== Example: Task generating a property file containing build information
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/multiproject/dependencies/outgoingArtifact/producer/build.gradle[]
-----
+.Task generating a property file containing build information
+====
+include::sample[dir="userguide/multiproject/dependencies/outgoingArtifact/groovy/producer",files="build.gradle[]"]
+include::sample[dir="userguide/multiproject/dependencies/outgoingArtifact/kotlin/producer",files="build.gradle.kts[]"]
+====
 
 The consuming project is supposed to be able to read the properties file at runtime. Declaring a project dependency on the producing project takes care of creating the properties beforehand and making it available to the runtime classpath.
 
-=== Example: Declaring a project dependency on the project producing the properties file
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/multiproject/dependencies/outgoingArtifact/consumer/build.gradle[tag=producer-project-dependency]
-----
+.Declaring a project dependency on the project producing the properties file
+====
+include::sample[dir="userguide/multiproject/dependencies/outgoingArtifact/groovy/consumer",files="build.gradle[tags=producer-project-dependency]"]
+include::sample[dir="userguide/multiproject/dependencies/outgoingArtifact/kotlin/consumer",files="build.gradle.kts[tags=producer-project-dependency]"]
+====
 
 In the example above, the consumer now declares a dependency on the outputs of the `producer` project.
 
