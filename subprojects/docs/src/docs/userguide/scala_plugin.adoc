@@ -101,14 +101,11 @@ Scala source files for the given source set. May also contain Java source files 
 
 Just like the Java plugin, the Scala plugin allows you to configure custom locations for Scala production and test source files.
 
-=== Example: Custom Scala source layout
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/scala/customizedLayout/build.gradle[tag=custom-source-locations]
-----
-
+.Custom Scala source layout
+====
+include::sample[dir="scala/customizedLayout/groovy",files="build.gradle[tags=custom-source-locations]"]
+include::sample[dir="scala/customizedLayout/kotlin",files="build.gradle.kts[tags=custom-source-locations]"]
+====
 
 [[sec:scala_dependency_management]]
 == Dependency management
