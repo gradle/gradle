@@ -212,14 +212,11 @@ Scala compilation takes place in an external process.
 
 Memory settings for the external process default to the defaults of the JVM. To adjust memory settings, configure the `scalaCompileOptions.forkOptions` property as needed:
 
-=== Example: Adjusting memory settings
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/scala/zinc/build.gradle[tag=adjust-memory]
-----
-
+.Adjusting memory settings
+====
+include::sample[dir="scala/zinc/groovy",files="build.gradle[tags=adjust-memory]"]
+include::sample[dir="scala/zinc/kotlin",files="build.gradle.kts[tags=adjust-memory]"]
+====
 
 [[sec:scala_incremental_compilation]]
 == Incremental compilation
