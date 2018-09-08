@@ -1,4 +1,6 @@
-apply plugin: "scala"
+plugins {
+    id 'scala'
+}
 
 repositories {
     mavenCentral()
@@ -6,6 +8,6 @@ repositories {
 
 // tag::scala-test-dependency[]
 dependencies {
-    testCompile "org.scala-lang:scala-library:2.11.1"
+    testImplementation 'org.scala-lang:scala-library:2.11.1'
 }
 // end::scala-test-dependency[]

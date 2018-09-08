@@ -122,14 +122,11 @@ include::sample[dir="scala/quickstart/kotlin",files="build.gradle.kts[tags=scala
 
 If Scala is only used for test code, the `scala-library` dependency should be added to the `testCompile` configuration:
 
-=== Example: Declaring a Scala dependency for test code
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/scala/scalaDependency/build.gradle[tag=scala-test-dependency]
-----
-
+.Declaring a Scala dependency for test code
+====
+include::sample[dir="userguide/scala/scalaDependency/groovy",files="build.gradle[tags=scala-test-dependency]"]
+include::sample[dir="userguide/scala/scalaDependency/kotlin",files="build.gradle.kts[tags=scala-test-dependency]"]
+====
 
 [[sec:configure_scala_classpath]]
 == Automatic configuration of scalaClasspath
