@@ -31,7 +31,7 @@ Let's start with a very simple multi-project build. Gradle is a general purpose 
 [[sec:configuration_and_execution]]
 === Configuration and execution
 
-<<build_lifecycle.adoc#sec:build_phases,Build phases>> describes the phases of every Gradle build. Let's zoom into the configuration and execution phases of a multi-project build. Configuration here means executing the `build.gradle` file of a project, which implies e.g. downloading all plugins that were declared using '```apply plugin```'. By default, the configuration of all projects happens before any task is executed. This means that when a single task, from a single project is requested, _all_ projects of multi-project build are configured first. The reason every project needs to be configured is to support the flexibility of accessing and changing any part of the Gradle project model.
+<<build_lifecycle.adoc#sec:build_phases,Build phases>> describes the phases of every Gradle build. Let's zoom into the configuration and execution phases of a multi-project build. Configuration here means executing the `build.gradle` (or `build.gradle.kts`) file of a project, which implies e.g. downloading all plugins that were declared using '```apply plugin```' or a `plugins` block. By default, the configuration of all projects happens before any task is executed. This means that when a single task, from a single project is requested, _all_ projects of multi-project build are configured first. The reason every project needs to be configured is to support the flexibility of accessing and changing any part of the Gradle project model.
 
 
 [[sec:configuration_on_demand]]
@@ -39,12 +39,12 @@ Let's start with a very simple multi-project build. Gradle is a general purpose 
 
 The _Configuration injection_ feature and access to the complete project model are possible because every project is configured before the execution phase. Yet, this approach may not be the most efficient in a very large multi-project build. There are Gradle builds with a hierarchy of hundreds of subprojects. The configuration time of huge multi-project builds may become noticeable. Scalability is an important requirement for Gradle. Hence, starting from version 1.4 a new incubating 'configuration on demand' mode is introduced.
 
-Configuration on demand mode attempts to configure only projects that are relevant for requested tasks, i.e. it only executes the `build.gradle` file of projects that are participating in the build. This way, the configuration time of a large multi-project build can be reduced. In the long term, this mode will become the default mode, possibly the only mode for Gradle build execution. The configuration on demand feature is incubating so not every build is guaranteed to work correctly. The feature should work very well for multi-project builds that have <<#sec:decoupled_projects,decoupled projects>>. In “configuration on demand” mode, projects are configured as follows:
+Configuration on demand mode attempts to configure only projects that are relevant for requested tasks, i.e. it only executes the `build.gradle[.kts]` file of projects that are participating in the build. This way, the configuration time of a large multi-project build can be reduced. In the long term, this mode will become the default mode, possibly the only mode for Gradle build execution. The configuration on demand feature is incubating so not every build is guaranteed to work correctly. The feature should work very well for multi-project builds that have <<#sec:decoupled_projects,decoupled projects>>. In “configuration on demand” mode, projects are configured as follows:
 
 * The root project is always configured. This way the typical common configuration is supported (allprojects or subprojects script blocks).
 * The project in the directory where the build is executed is also configured, but only when Gradle is executed without any tasks. This way the default tasks behave correctly when projects are configured on demand.
 * The standard project dependencies are supported and makes relevant projects configured. If project A has a compile dependency on project B then building A causes configuration of both projects.
-* The task dependencies declared via task path are supported and cause relevant projects to be configured. Example: someTask.dependsOn(":someOtherProject:someOtherTask")
+* The task dependencies declared via task path are supported and cause relevant projects to be configured. Example: `someTask.dependsOn(":someOtherProject:someOtherTask")`
 * A task requested via task path from the command line (or Tooling API) causes the relevant project to be configured. For example, building 'projectA:projectB:someTask' causes configuration of projectB.
 
 
@@ -122,7 +122,7 @@ include::sample[dir="userguide/multiproject/addKrill/water/kotlin",files="build.
 include::{samplesPath}/userguide/multiproject/addKrill/water/multiprojectAddKrill.out[]
 ----
 
-Is this cool or is this cool? And how does this work? The Project API provides a property `allprojects` which returns a list with the current project and all its subprojects underneath it. If you call `allprojects` with a closure, the statements of the closure are delegated to the projects associated with `allprojects`. You could also do an iteration via `allprojects.each`, but that would be more verbose.
+Is this cool or is this cool? And how does this work? The Project API provides a property `allprojects` which returns a list with the current project and all its subprojects underneath it. If you call `allprojects` with a closure, the statements of the closure are delegated to the projects associated with `allprojects`. You could also do an iteration via `allprojects.each` (in Groovy) or `allprojects.forEach` (in Kotlin), but that would be more verbose.
 
 Other build systems use inheritance as the primary means for defining common behavior. We also offer inheritance for projects as you will see later. But Gradle uses configuration injection as the usual way of defining common behavior. We think it provides a very powerful and flexible way of configuring multiproject builds.
 
@@ -150,7 +150,7 @@ include::sample[dir="userguide/multiproject/useSubprojects/water/kotlin",files="
 include::{samplesPath}/userguide/multiproject/useSubprojects/water/multiprojectUseSubprojects.out[]
 ----
 
-You may notice that there are two code snippets referencing the “`hello`” task. The first one, which uses the “`task`” keyword, constructs the task and provides it's base configuration. The second piece doesn't use the “`task`” keyword, as it is further configuring the existing “`hello`” task. You may only construct a task once in a project, but you may add any number of code blocks providing additional configuration.
+You may notice that there are two code snippets referencing the “`hello`” task. The first one, which uses the “`task`” keyword (in Groovy) or the `task()` function (in Kotlin), constructs the task and provides it's base configuration. The second piece doesn't use the “`task`” keyword or function, as it is further configuring the existing “`hello`” task. You may only construct a task once in a project, but you may add any number of code blocks providing additional configuration.
 
 [[sub:adding_specific_behavior]]
 === Adding specific behavior
@@ -238,7 +238,7 @@ The `configure()` method takes a list as an argument and applies the configurati
 [[ssub:filtering_by_properties]]
 ==== Filtering by properties
 
-Using the project name for filtering is one option. Using <<writing_build_scripts.adoc#sec:extra_properties,extra project properties>> is another. for more information on extra properties.)
+Using the project name for filtering is one option. Using <<writing_build_scripts.adoc#sec:extra_properties,extra project properties>> is another.
 
 === Example: Adding custom behaviour to some projects (filtered by project properties)
 
@@ -531,7 +531,7 @@ include::sample[dir="userguide/multiproject/dependencies/java/groovy",files="set
 include::sample[dir="userguide/multiproject/dependencies/java/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
 ====
 
-All the build logic is in the “`build.gradle`” file of the root project.footnote:[We do this here, as it makes the layout a bit easier. We usually put the project specific stuff into the build script of the respective projects.] A “_lib_” dependency is a special form of an execution dependency. It causes the other project to be built first and adds the jar with the classes of the other project to the classpath. It also adds the dependencies of the other project to the classpath. So you can enter the “`api`” directory and trigger a “`gradle compile`”. First the “`shared`” project is built and then the “`api`” project is built. Project dependencies enable partial multi-project builds.
+All the build logic is in the build script of the root project.footnote:[We do this here, as it makes the layout a bit easier. We usually put the project specific stuff into the build script of the respective projects.] A “_lib_” dependency is a special form of an execution dependency. It causes the other project to be built first and adds the jar with the classes of the other project to the classpath. It also adds the dependencies of the other project to the classpath. So you can enter the “`api`” directory and trigger a “`gradle compile`”. First the “`shared`” project is built and then the “`api`” project is built. Project dependencies enable partial multi-project builds.
 
 If you come from Maven land you might be perfectly happy with this. If you come from Ivy land, you might expect some more fine grained control. Gradle offers this to you:
 
@@ -602,7 +602,7 @@ This means that using any form of shared build script logic or configuration inj
 
 In order to make good use of cross project configuration without running into issues for parallel and 'configuration on demand' options, follow these recommendations:
 
-* Avoid a subproject's `build.gradle` referencing other subprojects; preferring cross configuration from the root project.
+* Avoid a subproject's build script referencing other subprojects; preferring cross configuration from the root project.
 * Avoid changing the configuration of other projects at execution time.
 
 
