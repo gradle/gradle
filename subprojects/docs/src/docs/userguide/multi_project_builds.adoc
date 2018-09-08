@@ -525,21 +525,10 @@ We have the projects “`shared`”, “`api`” and “`personService`”. The 
 “`services`” is also a project, but we use it just as a container. It has no build script and gets nothing injected by another build script. We use the `:` separator to define a project path. Consult the DSL documentation of link:{groovyDslPath}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[Settings.include(java.lang.String[\])] for more information about defining project paths.
 
 [[javadependencies_2]]
-=== Example: Project lib dependencies
-
-[.multi-language-sample,groovy]
+.Example: Project lib dependencies
 ====
-.settings.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/multiproject/dependencies/java/settings.gradle[]
-----
-
-.build.gradle
-[source,groovy]
-----
-include::{samplesPath}/userguide/multiproject/dependencies/java/build.gradle[]
-----
+include::sample[dir="userguide/multiproject/dependencies/java/groovy",files="settings.gradle[];build.gradle[]"]
+include::sample[dir="userguide/multiproject/dependencies/java/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
 ====
 
 All the build logic is in the “`build.gradle`” file of the root project.footnote:[We do this here, as it makes the layout a bit easier. We usually put the project specific stuff into the build script of the respective projects.] A “_lib_” dependency is a special form of an execution dependency. It causes the other project to be built first and adds the jar with the classes of the other project to the classpath. It also adds the dependencies of the other project to the classpath. So you can enter the “`api`” directory and trigger a “`gradle compile`”. First the “`shared`” project is built and then the “`api`” project is built. Project dependencies enable partial multi-project builds.
