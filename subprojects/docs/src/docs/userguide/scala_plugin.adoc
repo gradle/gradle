@@ -154,23 +154,19 @@ It is important to take care when declaring your `scala-library` dependency. The
 
 For example, using `configurations.all` to force a particular version of `scala-library` would also override the version used by the Zinc compiler:
 
-=== Example: Forcing a scala-library dependency for all configurations
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/scala/zincOverride/build.gradle[tag=all-dependency]
-----
+.Forcing a scala-library dependency for all configurations
+====
+include::sample[dir="userguide/scala/zincOverride/groovy",files="build.gradle[tags=all-dependency]"]
+include::sample[dir="userguide/scala/zincOverride/kotlin",files="build.gradle.kts[tags=all-dependency]"]
+====
 
 The best way to avoid this problem is to be more selective when configuring the `scala-library` dependency (such as not using a `configuration.all` rule or using a conditional to prevent the rule from being applied to the `zinc` configuration). Sometimes this rule may come from a plugin or other code that you do not have control over. In such a case, you can force a correct version of the library on the `zinc` configuration only:
 
-=== Example: Forcing a scala-library dependency for the zinc configuration
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/scala/zincOverride/build.gradle[tag=zinc-dependency]
-----
+.Forcing a scala-library dependency for the zinc configuration
+====
+include::sample[dir="userguide/scala/zincOverride/groovy",files="build.gradle[tags=zinc-dependency]"]
+include::sample[dir="userguide/scala/zincOverride/kotlin",files="build.gradle.kts[tags=zinc-dependency]"]
+====
 
 You can diagnose problems with the version of the Zinc compiler selected by running <<inspecting_dependencies.adoc#inspecting_dependencies,dependencyInsight>> for the `zinc` configuration.
 
