@@ -22,10 +22,10 @@ data class CIBuildModel (
                     specificBuilds = listOf(
                             SpecificBuild.CompileAll, SpecificBuild.SanityCheck),
                     functionalTests = listOf(
-                            TestCoverage(TestType.quick, OS.linux, JvmVersion.java8)), omitsSlowProjects = true),
+                            TestCoverage(TestType.quick, OS.linux, JvmVersion.java10)), omitsSlowProjects = true),
             Stage("Quick Feedback", "Run checks and functional tests (embedded executer)",
                     functionalTests = listOf(
-                            TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)),
+                            TestCoverage(TestType.quick, OS.windows, JvmVersion.java8)),
                     functionalTestsDependOnSpecificBuilds = true,
                     omitsSlowProjects = true,
                     dependsOnSanityCheck = true),
@@ -35,29 +35,28 @@ data class CIBuildModel (
                             SpecificBuild.Gradleception,
                             SpecificBuild.SmokeTests),
                     functionalTests = listOf(
-                            TestCoverage(TestType.platform, OS.linux, JvmVersion.java7),
-                            TestCoverage(TestType.platform, OS.windows, JvmVersion.java8)),
+                            TestCoverage(TestType.platform, OS.linux, JvmVersion.java8),
+                            TestCoverage(TestType.platform, OS.windows, JvmVersion.java10)),
                     performanceTests = listOf(PerformanceTestType.test),
                     omitsSlowProjects = true),
             Stage("Master Accept", "Rerun tests in different environments / 3rd party components",
                     trigger = Trigger.eachCommit,
                     functionalTests = listOf(
-                            TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java7),
-                            TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java7),
+                            TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java8),
+                            TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java8),
                             TestCoverage(TestType.platform, OS.linux, JvmVersion.java10),
-                            TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7, JvmVersion.java8, JvmVendor.ibm))
+                            TestCoverage(TestType.parallel, OS.linux, JvmVersion.java8, JvmVendor.ibm))
             ),
             Stage("Release Accept", "Once a day: Rerun tests in more environments",
                     trigger = Trigger.daily,
                     functionalTests = listOf(
-                            TestCoverage(TestType.soak, OS.linux, JvmVersion.java8),
+                            TestCoverage(TestType.soak, OS.linux, JvmVersion.java10),
                             TestCoverage(TestType.soak, OS.windows, JvmVersion.java8),
-                            TestCoverage(TestType.allVersionsCrossVersion, OS.linux, JvmVersion.java7),
-                            TestCoverage(TestType.allVersionsCrossVersion, OS.windows, JvmVersion.java7),
+                            TestCoverage(TestType.allVersionsCrossVersion, OS.linux, JvmVersion.java8),
+                            TestCoverage(TestType.allVersionsCrossVersion, OS.windows, JvmVersion.java8),
                             TestCoverage(TestType.noDaemon, OS.linux, JvmVersion.java8),
-                            TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java8),
-                            TestCoverage(TestType.platform, OS.macos, JvmVersion.java8),
-                            TestCoverage(TestType.platform, OS.linux, JvmVersion.java9)),
+                            TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java10),
+                            TestCoverage(TestType.platform, OS.macos, JvmVersion.java8)),
                     performanceTests = listOf(
                             PerformanceTestType.experiment)),
             Stage("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions",
@@ -193,7 +192,7 @@ data class Stage(val name: String, val description: String, val specificBuilds: 
     val id = name.replace(" ", "").replace("-", "")
 }
 
-data class TestCoverage(val testType: TestType, val os: OS, val testJvmVersion: JvmVersion, val buildJvmVersion: JvmVersion = JvmVersion.java9, val vendor: JvmVendor = JvmVendor.oracle) {
+data class TestCoverage(val testType: TestType, val os: OS, val testJvmVersion: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle, val buildJvmVersion: JvmVersion = JvmVersion.java9) {
     fun asId(model : CIBuildModel): String {
         return "${model.projectPrefix}${testType.name.capitalize()}_${testJvmVersion.name.capitalize()}_${vendor.name.capitalize()}_${os.name.capitalize()}"
     }
@@ -213,7 +212,7 @@ enum class OS(val agentRequirement: String, val ignoredSubprojects: List<String>
 }
 
 enum class JvmVersion {
-    java7, java8, java9, java10, java11
+    java8, java9, java10, java11
 }
 
 enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val timeout: Int = 180) {
