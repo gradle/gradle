@@ -1,0 +1,24 @@
+// tag::bundle-task[]
+task bundle {
+    def scripts = file('scripts')
+    def bundle = file("$buildDir/bundle.js")
+
+    inputs.dir(scripts)
+    outputs.file(bundle)
+
+    doLast {
+        bundle.withOutputStream { stream ->
+            scripts.listFiles().sort().each {
+                stream.write(it.bytes)
+            }
+        }
+    }
+}
+// end::bundle-task[]
+
+task printBundle {
+    dependsOn bundle
+    doLast {
+        println file("$buildDir/bundle.js").text
+    }
+}

@@ -1,0 +1,33 @@
+plugins {
+    id 'base'
+}
+
+// tag::bundle-task[]
+task bundle {
+    def scripts = file('scripts')
+    def bundle = file("$buildDir/bundle.js")
+
+    outputs.cacheIf { true }
+
+    inputs.dir(scripts)
+        .withPropertyName("scripts")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    outputs.file(bundle)
+        .withPropertyName("bundle")
+
+    doLast {
+        bundle.withOutputStream { stream ->
+            scripts.listFiles().sort().each {
+                stream.write(it.bytes)
+            }
+        }
+    }
+}
+// end::bundle-task[]
+
+task printBundle {
+    dependsOn bundle
+    doLast {
+        println file("$buildDir/bundle.js").text
+    }
+}
