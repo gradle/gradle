@@ -225,13 +225,11 @@ By compiling only classes whose source code has changed since the previous compi
 
 The Scala plugin defaults to incremental compilation by integrating with https://github.com/typesafehub/zinc[Zinc], a standalone version of https://github.com/harrah/xsbt[sbt]'s incremental Scala compiler. If you want to disable the incremental compilation, set `force = true` in your build file:
 
-=== Example: Forcing all code to be compiled
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/scala/force/build.gradle[tag=force-compilation]
-----
+.Forcing all code to be compiled
+====
+include::sample[dir="scala/force/groovy",files="build.gradle[tags=force-compilation]"]
+include::sample[dir="scala/force/kotlin",files="build.gradle.kts[tags=force-compilation]"]
+====
 
 _Note:_ This will only cause all classes to be recompiled if at least one input source file has changed. If there are no changes to the source files, the `compileScala` task will still be considered `UP-TO-DATE` as usual.
 
