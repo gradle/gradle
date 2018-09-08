@@ -1,5 +1,7 @@
-apply plugin: "scala"
-apply plugin: "idea"
+plugins {
+    scala
+    idea
+}
 
 // tag::scala-idea-target-version[]
 idea {
