@@ -388,6 +388,13 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractNamedDomainObj
         fred.get().name == "fred"
         bob.present
         bob.get().age == 50
+
+        when:
+        container.named("bob") {
+            it.age = 100
+        }
+        then:
+        bob.get().age == 100
     }
 
     def "gets useful message if type does not match registered type"() {

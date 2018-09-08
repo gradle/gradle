@@ -18,7 +18,9 @@ package org.gradle.api.internal.tasks;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Task;
+import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.collections.CollectionFilter;
@@ -91,6 +93,11 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
     @Override
     public TaskProvider<T> named(String name) throws UnknownTaskException {
         return (TaskProvider<T>) super.named(name);
+    }
+
+    @Override
+    public TaskProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownTaskException {
+        return (TaskProvider<T>) super.named(name, configurationAction);
     }
 
     @Override

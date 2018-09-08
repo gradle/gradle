@@ -292,6 +292,11 @@ public class DefaultRealizableTaskCollection<T extends Task> implements Realizab
     }
 
     @Override
+    public TaskProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownTaskException {
+        return delegate.named(name, configurationAction);
+    }
+
+    @Override
     public <S extends T> TaskProvider<S> named(String name, Class<S> type) throws UnknownTaskException {
         return delegate.named(name, type);
     }

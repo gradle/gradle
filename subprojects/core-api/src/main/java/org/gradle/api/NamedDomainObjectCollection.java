@@ -231,6 +231,18 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
 
     /**
      * Locates a object by name, without triggering its creation or configuration, failing if there is no such object.
+     * The given configure action is executed against the object before it is returned from the provider.
+     *
+     * @param name The object's name
+     * @return A {@link Provider} that will return the object when queried. The object may be created and configured at this point, if not already.
+     * @throws UnknownDomainObjectException If a object with the given name is not defined.
+     * @since 5.0
+     */
+    @Incubating
+    NamedDomainObjectProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownDomainObjectException;
+
+    /**
+     * Locates a object by name and type, without triggering its creation or configuration, failing if there is no such object.
      *
      * @param name The object's name
      * @param type The object's type
@@ -242,7 +254,8 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
     <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type) throws UnknownDomainObjectException;
 
     /**
-     * Locates a object by name, without triggering its creation or configuration, failing if there is no such object.
+     * Locates a object by name and type, without triggering its creation or configuration, failing if there is no such object.
+     * The given configure action is executed against the object before it is returned from the provider.
      *
      * @param name The object's name
      * @param type The object's type

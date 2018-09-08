@@ -359,6 +359,13 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Override
+    public NamedDomainObjectProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownDomainObjectException {
+        NamedDomainObjectProvider<T> provider = named(name);
+        provider.configure(configurationAction);
+        return provider;
+    }
+
+    @Override
     public <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type) throws UnknownDomainObjectException {
         AbstractNamedDomainObjectProvider<S> provider = Cast.uncheckedCast(named(name));
         Class<S> actual = provider.type;

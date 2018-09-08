@@ -214,6 +214,22 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
         provider.get().value == "changed"
     }
 
+    def "can configure object by name"() {
+        def bean = new Bean("bean")
+
+        given:
+        container.add(bean)
+
+        when:
+        def provider = container.named('bean') {
+            it.value = "changed"
+        }
+        then:
+        provider.present
+        provider.orNull == bean
+        provider.get().value == "changed"
+    }
+
     def "gets useful error when trying to find object by name and improper type"() {
         def bean = new Bean("bean")
 

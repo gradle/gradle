@@ -1212,7 +1212,10 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                 message = "foo named(String, Class)"
             }
             tasks.named("foo", CustomTask) {
-                number = 12345
+                number = 100
+            }
+            tasks.named("foo") {
+                number = number * 2
             }
             tasks.named("bar", CustomTask) {
                 message = "bar named(String, Class, Action)"
@@ -1223,7 +1226,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         """
         expect:
         succeeds("foo", "bar")
-        outputContains("foo named(String, Class) 12345")
+        outputContains("foo named(String, Class) 200")
         outputContains("bar named(String, Class, Action) 12345")
     }
 
