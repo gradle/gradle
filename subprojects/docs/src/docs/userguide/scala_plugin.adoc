@@ -244,20 +244,18 @@ Note that Zinc's Nailgun based daemon mode is not supported. Instead, we plan to
 
 The Scala compiler ignores Gradle's `targetCompatibility` and `sourceCompatibility` settings. In Scala 2.11, the Scala compiler always compiles to Java 6 compatible bytecode. In Scala 2.12, the Scala compiler always compiles to Java 8 compatible bytecode. If you also have Java source, you can follow the same steps as for the <<building_java_projects.adoc#sec:java_cross_compilation,Java plugin>> to ensure the correct Java compiler is used.
 
-=== Example: Configure Java 6 build for Scala
+.Configure Java 6 build for Scala
 
 [source,properties]
 .gradle.properties
 ----
-include::{samplesPath}/scala/crossCompilation/gradle.properties[]
+include::{samplesPath}/scala/crossCompilation/groovy/gradle.properties[]
 ----
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/scala/crossCompilation/build.gradle[tag=scala-cross-compilation]
-----
-
+====
+include::sample[dir="scala/crossCompilation/groovy",files="build.gradle[tags=scala-cross-compilation]"]
+include::sample[dir="scala/crossCompilation/kotlin",files="build.gradle.kts[tags=scala-cross-compilation]"]
+====
 
 [[sec:eclipse_integration]]
 == Eclipse Integration

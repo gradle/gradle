@@ -1,19 +1,22 @@
-apply plugin: 'scala'
-
-version = 1.0
+plugins {
+    id 'scala'
+}
+version = '1.0'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compile 'org.scala-lang:scala-library:2.11.12'
-    testCompile 'org.scalatest:scalatest_2.11:3.0.0'
-    testCompile 'junit:junit:4.12'
+    implementation 'org.scala-lang:scala-library:2.11.12'
+    testImplementation 'org.scalatest:scalatest_2.11:3.0.0'
+    testImplementation 'junit:junit:4.12'
 }
 
 // tag::scala-cross-compilation[]
-sourceCompatibility = 1.6
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_6
+}
 
 assert hasProperty('java6Home') : "Set the property 'java6Home' in your your gradle.properties pointing to a Java 6 installation"
 def javaExecutablesPath = new File(java6Home, 'bin')
