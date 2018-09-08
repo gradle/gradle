@@ -1472,8 +1472,9 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
     }
 
     void "can remove eager created task and named provider update his state"() {
+        def task = task("task", CustomTask)
         given:
-        taskFactory.create(_ as TaskIdentity) >> task("task", CustomTask)
+        taskFactory.create(_ as TaskIdentity) >> task
 
         and:
         def customTask = container.create("task", CustomTask)
@@ -1498,7 +1499,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "The domain object 'task' (Task) for this provider is no longer present in its container."
+        ex.message == "The domain object 'task' (${task.class.simpleName}) for this provider is no longer present in its container."
     }
 
     void "lazy task that is realized and then removed is not recreated on iteration"() {

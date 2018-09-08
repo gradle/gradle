@@ -224,7 +224,7 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
         container.named('bean', String)
         then:
         def e = thrown(InvalidUserDataException)
-        e.message == "The domain object 'bean' (${Bean.class.canonicalName} is not a subclass of the given type (java.lang.String)."
+        e.message == "The domain object 'bean' (${Bean.class.canonicalName}) is not a subclass of the given type (java.lang.String)."
     }
 
     def "can extract schema from collection with domain objects"() {
