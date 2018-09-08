@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal
 
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Namer
 import org.gradle.api.Rule
 import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSource
@@ -211,6 +212,19 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
         provider.present
         provider.orNull == bean
         provider.get().value == "changed"
+    }
+
+    def "gets useful error when trying to find object by name and improper type"() {
+        def bean = new Bean("bean")
+
+        given:
+        container.add(bean)
+
+        when:
+        container.named('bean', String)
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message == "The domain object 'bean' (${Bean.class.canonicalName} is not a subclass of the given type (java.lang.String)."
     }
 
     def "can extract schema from collection with domain objects"() {

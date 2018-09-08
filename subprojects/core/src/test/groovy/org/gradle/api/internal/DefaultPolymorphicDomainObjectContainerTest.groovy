@@ -390,6 +390,18 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractNamedDomainObj
         bob.get().age == 50
     }
 
+    def "gets useful message if type does not match registered type"() {
+        container.registerFactory(Person, { new DefaultPerson(name: it) } as NamedDomainObjectFactory)
+        container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it) } as NamedDomainObjectFactory)
+        container.register("fred", Person)
+        container.register("bob", AgeAwarePerson)
+        when:
+        container.named("fred", AgeAwarePerson)
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message == "The domain object 'fred' (${Person.class.canonicalName}) is not a subclass of the given type (${AgeAwarePerson.class.canonicalName})."
+    }
+
     protected void assertSchemaIs(Map<String, String> expectedSchema) {
         def actualSchema = container.collectionSchema
         Map<String, String> actualSchemaMap = actualSchema.elements.collectEntries { schema ->

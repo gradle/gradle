@@ -1225,6 +1225,25 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         succeeds("foo", "bar")
         outputContains("foo named(String, Class) 12345")
         outputContains("bar named(String, Class, Action) 12345")
+    }
 
+    @Unroll
+    def "gets useful message when using improper type for named using #api"() {
+        buildFile << """
+            class CustomTask extends DefaultTask {
+            }
+            class AnotherTask extends DefaultTask {
+            }
+
+            tasks.${api}("foo", CustomTask)
+            
+            tasks.named("foo", AnotherTask) // should fail
+        """
+        expect:
+        fails("help")
+        failure.assertHasCause("The task 'foo' (CustomTask) is not a subclass of the given type (AnotherTask).")
+
+        where:
+        api << ["create", "register"]
     }
 }
