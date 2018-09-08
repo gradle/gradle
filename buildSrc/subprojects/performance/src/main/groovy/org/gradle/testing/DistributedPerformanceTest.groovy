@@ -267,17 +267,19 @@ class DistributedPerformanceTest extends PerformanceTest {
         int total = scheduledBuilds.size()
         Set<String> completed = []
         while (completed.size() < total) {
+            List<String> waiting = []
             scheduledBuilds.each { build ->
                 if (!completed.contains(build)) {
                     if (checkResult(build)) {
                         completed << build
                     } else {
-                        println "Waiting for build $build to complete"
+                        waiting << build
                     }
                 }
             }
             if (completed.size() < total) {
                 int pc = (100 * (((double) completed.size()) / (double) total)) as int
+                println "Waiting for scenarios $waiting to complete"
                 println "Completed ${completed.size()} tests of $total ($pc%)"
                 sleep(TimeUnit.MINUTES.toMillis(1))
             }
