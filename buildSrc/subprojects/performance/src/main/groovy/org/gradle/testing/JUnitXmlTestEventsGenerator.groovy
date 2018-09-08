@@ -81,7 +81,7 @@ class JUnitXmlTestEventsGenerator {
                 } catch (Exception e) {
                     e.printStackTrace()
                 }
-                String failureText = failures.collect { it.message } .join('\n')
+                String failureText = failures.collect { it.value } .join('\n')
                 failureText = failureText.replace("java.lang.AssertionError: ", "")
                 testListener.afterTest(testCaseDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime, 1, 0, 1, [assertionError(failureText) as Throwable]))
             } else if (notSkipped(testCase)) {
