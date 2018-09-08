@@ -1,4 +1,24 @@
 {
     "acceptedApiChanges": [
+{
+    "type": "org.gradle.language.scala.tasks.PlatformScalaCompile",
+    "member": "Class org.gradle.language.scala.tasks.PlatformScalaCompile",
+    "acceptation": "Reduced visibility of internal methods",
+    "changes": [
+        "org.gradle.language.scala.tasks.AbstractScalaCompile.configureIncrementalCompilation(org.gradle.api.internal.tasks.scala.ScalaCompileSpec)",
+        "org.gradle.language.scala.tasks.AbstractScalaCompile.createOrGetGlobalAnalysisMap()",
+        "org.gradle.language.scala.tasks.AbstractScalaCompile.filterForClasspath(java.util.Map,java.lang.Iterable)"
+    ]
+},
+{
+    "type": "org.gradle.api.tasks.scala.ScalaCompile",
+    "member": "Class org.gradle.api.tasks.scala.ScalaCompile",
+    "acceptation": "Reduced visibility of internal methods",
+    "changes": [
+        "org.gradle.language.scala.tasks.AbstractScalaCompile.configureIncrementalCompilation(org.gradle.api.internal.tasks.scala.ScalaCompileSpec)",
+        "org.gradle.language.scala.tasks.AbstractScalaCompile.createOrGetGlobalAnalysisMap()",
+        "org.gradle.language.scala.tasks.AbstractScalaCompile.filterForClasspath(java.util.Map,java.lang.Iterable)"
+    ]
+}
     ]
 }

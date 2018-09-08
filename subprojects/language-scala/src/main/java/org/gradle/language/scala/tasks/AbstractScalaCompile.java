@@ -218,6 +218,8 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
      * </p>
      *
      * @return collection of analysis mapping files.
+     *
+     * @since 4.10.1
      */
     @Internal
     public ConfigurableFileCollection getAnalysisFiles() {
@@ -228,6 +230,8 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
      * Analysis mapping file.
      *
      * @see #getAnalysisFiles()
+     *
+     * @since 4.10.1
      */
     @LocalState
     public RegularFileProperty getAnalysisMappingFile() {
