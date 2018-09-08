@@ -364,14 +364,14 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureBuild(Project project) {
-        project.getTasks().named(JavaBasePlugin.BUILD_NEEDED_TASK_NAME).configure(new Action<Task>() {
+        project.getTasks().named(JavaBasePlugin.BUILD_NEEDED_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task task) {
                 addDependsOnTaskInOtherProjects(task, true,
                     JavaBasePlugin.BUILD_NEEDED_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
             }
         });
-        project.getTasks().named(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME).configure(new Action<Task>() {
+        project.getTasks().named(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task task) {
                 addDependsOnTaskInOtherProjects(task, false,
@@ -403,7 +403,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
                 test.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
             }
         });
-        project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME).configure(new Action<Task>() {
+        project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task task) {
                 task.dependsOn(test);

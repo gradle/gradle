@@ -251,7 +251,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             }
         });
 
-        project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME).configure(new Action<Task>() {
+        project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task check) {
                 check.dependsOn(validator);
