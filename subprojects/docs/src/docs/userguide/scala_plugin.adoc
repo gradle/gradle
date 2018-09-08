@@ -23,14 +23,11 @@ The Scala plugin extends the Java plugin to add support for Scala projects. It c
 
 To use the Scala plugin, include the following in your build script:
 
-=== Example: Using the Scala plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/scala/quickstart/build.gradle[tag=use-plugin]
-----
-
+.Using the Scala plugin
+====
+include::sample[dir="scala/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="scala/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+====
 
 [[sec:scala_tasks]]
 == Tasks
@@ -120,13 +117,11 @@ Scala projects need to declare a `scala-library` dependency. This dependency wil
 
 If Scala is used for production code, the `scala-library` dependency should be added to the `compile` configuration:
 
-=== Example: Declaring a Scala dependency for production code
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/scala/quickstart/build.gradle[tag=scala-dependency]
-----
+.Declaring a Scala dependency for production code
+====
+include::sample[dir="scala/quickstart/groovy",files="build.gradle[tags=scala-dependency]"]
+include::sample[dir="scala/quickstart/kotlin",files="build.gradle.kts[tags=scala-dependency]"]
+====
 
 If Scala is only used for test code, the `scala-library` dependency should be added to the `testCompile` configuration:
 
