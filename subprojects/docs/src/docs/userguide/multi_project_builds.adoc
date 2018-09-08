@@ -535,13 +535,11 @@ All the build logic is in the “`build.gradle`” file of the root project.foot
 
 If you come from Maven land you might be perfectly happy with this. If you come from Ivy land, you might expect some more fine grained control. Gradle offers this to you:
 
-=== Example: Fine grained control over dependencies
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/multiproject/dependencies/javaWithCustomConf/build.gradle[]
-----
+.Fine grained control over dependencies
+====
+include::sample[dir="userguide/multiproject/dependencies/javaWithCustomConf/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/multiproject/dependencies/javaWithCustomConf/kotlin",files="build.gradle.kts[]"]
+====
 
 The Java plugin adds per default a jar to your project libraries which contains all the classes. In this example we create an _additional_ library containing only the interfaces of the “`api`” project. We assign this library to a new _dependency configuration_. For the person service we declare that the project should be compiled only against the “`api`” interfaces but tested with all classes from “`api`”.
 
