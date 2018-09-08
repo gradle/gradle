@@ -373,6 +373,23 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractNamedDomainObj
         bob.get().age == 50
     }
 
+    def "can find and configure objects by name and type"() {
+        container.registerFactory(Person, { new DefaultPerson(name: it) } as NamedDomainObjectFactory)
+        container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it) } as NamedDomainObjectFactory)
+        container.register("fred", Person)
+        container.register("bob", AgeAwarePerson)
+        when:
+        def fred = container.named("fred", Person)
+        def bob = container.named("bob", AgeAwarePerson) {
+            it.age = 50
+        }
+        then:
+        fred.present
+        fred.get().name == "fred"
+        bob.present
+        bob.get().age == 50
+    }
+
     protected void assertSchemaIs(Map<String, String> expectedSchema) {
         def actualSchema = container.collectionSchema
         Map<String, String> actualSchemaMap = actualSchema.elements.collectEntries { schema ->

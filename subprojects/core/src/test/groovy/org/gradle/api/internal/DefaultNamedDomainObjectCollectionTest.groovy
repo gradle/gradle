@@ -184,6 +184,35 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
         ex.message == "The domain object 'bean' (Bean) for this provider is no longer present in its container."
     }
 
+    def "can find object by name and type"() {
+        def bean = new Bean("bean")
+
+        given:
+        container.add(bean)
+
+        when:
+        def provider = container.named('bean', Bean)
+        then:
+        provider.present
+        provider.orNull == bean
+    }
+
+    def "can configure object by name and type"() {
+        def bean = new Bean("bean")
+
+        given:
+        container.add(bean)
+
+        when:
+        def provider = container.named('bean', Bean) {
+            it.value = "changed"
+        }
+        then:
+        provider.present
+        provider.orNull == bean
+        provider.get().value == "changed"
+    }
+
     def "can extract schema from collection with domain objects"() {
         container.add(a)
         expect:
