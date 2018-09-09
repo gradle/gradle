@@ -17,19 +17,21 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 
-@Ignore("Leaks files")
-@Requires(TestPrecondition.JDK8_OR_LATER)
 class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_APP_CLASS = "some/thing/App.kt"
     public static final String SAMPLE_APP_TEST_CLASS = "some/thing/AppTest.kt"
+
+    def setup() {
+        executer.beforeExecute {
+            // Run Kotlin compiler in-process to avoid file locking issues
+            executer.withArguments("-Dkotlin.compiler.execution.strategy=in-process")
+        }
+    }
 
     def "defaults to kotlin build scripts"() {
         when:
