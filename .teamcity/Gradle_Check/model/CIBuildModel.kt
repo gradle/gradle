@@ -36,7 +36,8 @@ data class CIBuildModel (
                             SpecificBuild.SmokeTests),
                     functionalTests = listOf(
                             TestCoverage(TestType.platform, OS.linux, JvmVersion.java8),
-                            TestCoverage(TestType.platform, OS.windows, JvmVersion.java10)),
+                            TestCoverage(TestType.platform, OS.windows, JvmVersion.java10),
+                            TestCoverage(TestType.platform, OS.windows, JvmVersion.java8)),
                     performanceTests = listOf(PerformanceTestType.test),
                     omitsSlowProjects = true),
             Stage("Master Accept", "Rerun tests in different environments / 3rd party components",
