@@ -41,3 +41,11 @@ gradlebuildJava {
 testFixtures {
     from(':core')
 }
+
+//if(org.gradle.internal.os.OperatingSystem.current().isWindows()) {
+    integTest {
+        def outputFile = rootProject.file("subprojects/build-init/build/reports/tests/integTest/output.txt").absolutePath.replace('\\', '/')
+        def agentJar = rootProject.file("file-leak-detector.jar").absolutePath.replace('\\', '/')
+        jvmArgs("-javaagent:${agentJar}=trace=${outputFile}")
+    }
+//}
