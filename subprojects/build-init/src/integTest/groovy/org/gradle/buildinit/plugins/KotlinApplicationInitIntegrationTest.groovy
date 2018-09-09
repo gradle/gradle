@@ -24,6 +24,7 @@ import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 
+@Ignore("Leaks files")
 @Requires(TestPrecondition.JDK8_OR_LATER)
 class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
@@ -38,7 +39,6 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
     }
 
-    @Ignore("Leaks files")
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
