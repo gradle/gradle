@@ -138,9 +138,11 @@ In the next major release (6.0), removing dependencies from a task will become a
 Gradle will emit a deprecation warning for code such as `foo.dependsOn.remove(bar)`.  Removing dependencies in this way is error-prone and relies on the internal implementation details of how different tasks are wired together.
 At the moment, we are not planning to provide an alternative. In most cases, task dependencies should be expressed via [task inputs](userguide/more_about_tasks.html#sec:task_inputs_outputs) instead of explicit `dependsOn` relationships.
 
-### Factory methods for creating file and directory properties
+### Factory methods for creating properties
 
 TBD - The methods on `DefaultTask` and `ProjectLayout` that create file and directory `Property` instances have been deprecated and replaced by methods on `ObjectFactory`. These deprecated methods will be removed in Gradle 6.0.
+
+TBD - The `ObjectFactory.property(type)` method no longer sets a default value for the property. There is an overload `property(type, initialValue)` that can be used instead.
 
 ### The property `append` on `JacocoTaskExtension` has been deprecated
 
