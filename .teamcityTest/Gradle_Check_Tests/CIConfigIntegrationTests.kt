@@ -106,7 +106,7 @@ class CIConfigIntegrationTests {
                                     SpecificBuild.BuildDistributions),
                             functionalTests = listOf(
                                     TestCoverage(TestType.quick, OS.linux, JvmVersion.java8),
-                                    TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)),
+                                    TestCoverage(TestType.quick, OS.windows, JvmVersion.java10)),
                             omitsSlowProjects = true)
                 )
         )
@@ -124,23 +124,23 @@ class CIConfigIntegrationTests {
             stages = listOf(
                 Stage("Stage1", "Stage1 description",
                     functionalTests = listOf(
-                        TestCoverage(TestType.quick, OS.linux, JvmVersion.java7),
-                        TestCoverage(TestType.quick, OS.windows, JvmVersion.java7)),
+                        TestCoverage(TestType.quick, OS.linux, JvmVersion.java8),
+                        TestCoverage(TestType.quick, OS.windows, JvmVersion.java8)),
                     omitsSlowProjects = true),
                 Stage("Stage2", "Stage2 description",
                     functionalTests = listOf(
-                        TestCoverage(TestType.noDaemon, OS.linux, JvmVersion.java7),
-                        TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java7)),
+                        TestCoverage(TestType.noDaemon, OS.linux, JvmVersion.java8),
+                        TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java8)),
                     omitsSlowProjects = true),
                 Stage("Stage3", "Stage3 description",
                     functionalTests = listOf(
-                        TestCoverage(TestType.platform, OS.linux, JvmVersion.java7),
-                       TestCoverage(TestType.platform, OS.windows, JvmVersion.java7)),
+                        TestCoverage(TestType.platform, OS.linux, JvmVersion.java8),
+                       TestCoverage(TestType.platform, OS.windows, JvmVersion.java8)),
                     omitsSlowProjects = false),
                 Stage("Stage4", "Stage4 description",
                     functionalTests = listOf(
-                        TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7),
-                        TestCoverage(TestType.parallel, OS.windows, JvmVersion.java7)),
+                        TestCoverage(TestType.parallel, OS.linux, JvmVersion.java8),
+                        TestCoverage(TestType.parallel, OS.windows, JvmVersion.java8)),
                     omitsSlowProjects = false)
             ),
             subProjects = listOf(
