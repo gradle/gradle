@@ -3,7 +3,8 @@ classesDir.mkdirs()
 task clean(type: Delete) {
     delete 'build'
 }
-task compile(dependsOn: 'clean') {
+task compile {
+    dependsOn 'clean'
     doLast {
         if (!classesDir.isDirectory()) {
             println 'The class directory does not exist. I can not operate'
