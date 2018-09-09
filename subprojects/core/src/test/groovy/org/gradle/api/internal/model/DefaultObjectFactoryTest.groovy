@@ -40,6 +40,13 @@ class DefaultObjectFactoryTest extends Specification {
         e.message == 'No value has been specified for this provider.'
     }
 
+    def "can create a property with initial value"() {
+        expect:
+        def property = factory.property(Boolean, true)
+        property.present
+        property.get()
+    }
+
     def "cannot create property for null value"() {
         when:
         factory.property(null)
