@@ -84,7 +84,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
             }
         }));
         this.linkerArgs = getProject().getObjects().listProperty(String.class);
-        this.debuggable = objectFactory.property(Boolean.class);
+        this.debuggable = objectFactory.property(Boolean.class, false);
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
     }
