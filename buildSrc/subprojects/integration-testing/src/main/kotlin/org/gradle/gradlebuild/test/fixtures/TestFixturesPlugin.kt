@@ -123,10 +123,12 @@ open class TestFixturesPlugin : Plugin<Project> {
 
         dependencies {
             val testFixturesApi by configurations
+            val testFixturesRuntimeOnly by configurations
 
             testFixturesApi(project(path))
             testFixturesApi(library("junit"))
             testFixturesApi(testLibrary("spock"))
+            testFixturesRuntimeOnly(testLibrary("bytebuddy"))
             testLibraries("jmock").forEach { testFixturesApi(it) }
         }
 
