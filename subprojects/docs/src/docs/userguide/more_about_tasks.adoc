@@ -57,7 +57,7 @@ Task did not need to execute its actions.
 [[sec:defining_tasks]]
 == Defining tasks
 
-We have already seen how to define tasks using strings for task names <<tutorial_using_tasks.adoc#tutorial_using_tasks,this chapter>>. There are a few variations on this style, which you may need to use in certain situations.
+We have already seen how to define tasks using strings for task names in <<tutorial_using_tasks.adoc#tutorial_using_tasks,this chapter>>. There are a few variations on this style, which you may need to use in certain situations.
 
 .Defining tasks using strings for task names
 ====
