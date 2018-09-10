@@ -24,7 +24,9 @@ import org.gradle.internal.exceptions.Contextual;
 public abstract class AbstractMutationGuard implements MutationGuard {
     @Override
     public void assertMutationAllowed(String methodName, Object target) {
-        assertMutationAllowed(methodName, target, new DslObject(target).getPublicType().getConcreteClass());
+        if (!isMutationAllowed()) {
+            throw createIllegalStateException(new DslObject(target).getPublicType().getConcreteClass(), methodName, target);
+        }
     }
 
     @Override
