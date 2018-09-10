@@ -106,12 +106,12 @@ class ScalaBasePluginTest {
         project.sourceSets.create('custom')
         project.tasks.create('customJar', Jar)
         ScalaCompile task = project.tasks['compileCustomScala']
-        task.scalaCompileOptions.incrementalOptions.analysisFile.set(new File("/my/file"))
-        task.scalaCompileOptions.incrementalOptions.publishedCode.set(new File("/my/published/code.jar"))
+        task.scalaCompileOptions.incrementalOptions.analysisFile.set(project.file("my/file"))
+        task.scalaCompileOptions.incrementalOptions.publishedCode.set(project.file("my/published/code.jar"))
         project.gradle.buildListenerBroadcaster.projectsEvaluated(project.gradle)
 
-        assertThat(task.scalaCompileOptions.incrementalOptions.analysisFile.get().asFile, equalTo(new File("/my/file")))
-        assertThat(task.scalaCompileOptions.incrementalOptions.publishedCode.get().asFile, equalTo(new File("/my/published/code.jar")))
+        assertThat(task.scalaCompileOptions.incrementalOptions.analysisFile.get().asFile, equalTo(project.file("my/file")))
+        assertThat(task.scalaCompileOptions.incrementalOptions.publishedCode.get().asFile, equalTo(project.file("my/published/code.jar")))
     }
 
     @Test
