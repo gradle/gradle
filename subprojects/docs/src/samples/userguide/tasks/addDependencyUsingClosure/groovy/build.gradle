@@ -4,6 +4,7 @@ task taskX {
     }
 }
 
+// Using a Groovy Closure
 taskX.dependsOn {
     tasks.findAll { task -> task.name.startsWith('lib') }
 }

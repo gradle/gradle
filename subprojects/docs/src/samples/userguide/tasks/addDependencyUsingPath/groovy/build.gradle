@@ -1,5 +1,6 @@
 project('projectA') {
-    task taskX(dependsOn: ':projectB:taskY') {
+    task taskX {
+        dependsOn ':projectB:taskY'
         doLast {
             println 'taskX'
         }

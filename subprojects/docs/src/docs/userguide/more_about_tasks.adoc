@@ -208,7 +208,8 @@ There are several ways you can define the dependencies of a task. In <<tutorial_
 
 .Adding dependency on task from another project
 ====
-include::sample[dir="userguide/tasks/addDependencyUsingPath",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/addDependencyUsingPath/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/addDependencyUsingPath/kotlin",files="build.gradle.kts[]"]
 
 .Output of **`gradle -q taskX`**
 ----
@@ -221,7 +222,8 @@ Instead of using a task name, you can define a dependency using a `Task` object,
 
 .Adding dependency using task object
 ====
-include::sample[dir="userguide/tasks/addDependencyUsingTask",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/addDependencyUsingTask/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/addDependencyUsingTask/kotlin",files="build.gradle.kts[]"]
 
 .Output of **`gradle -q taskX`**
 ----
@@ -230,11 +232,12 @@ include::{samplesPath}/userguide/tasks/addDependencyUsingTask/addDependencyUsing
 ----
 ====
 
-For more advanced uses, you can define a task dependency using a closure. When evaluated, the closure is passed the task whose dependencies are being calculated. The closure should return a single `Task` or collection of `Task` objects, which are then treated as dependencies of the task. The following example adds a dependency from `taskX` to all the tasks in the project whose name starts with `lib`:
+For more advanced uses, you can define a task dependency using a lazy block. When evaluated, the block is passed the task whose dependencies are being calculated. The lazy block should return a single `Task` or collection of `Task` objects, which are then treated as dependencies of the task. The following example adds a dependency from `taskX` to all the tasks in the project whose name starts with `lib`:
 
-.Adding dependency using closure
+.Adding dependency using a lazy block
 ====
-include::sample[dir="userguide/tasks/addDependencyUsingClosure",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/addDependencyUsingClosure/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/addDependencyUsingClosure/kotlin",files="build.gradle.kts[]"]
 
 .Output of **`gradle -q taskX`**
 ----
