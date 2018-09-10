@@ -446,6 +446,15 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
             } else if (details.getConsumerValue().getName().equals(Usage.JAVA_RUNTIME_RESOURCES) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
                 // Can use the Java runtime jars if present, but prefer Java runtime resources
                 details.compatible();
+            } else if (details.getConsumerValue().getName().equals(Usage.JAVA_RUNTIME_CLASSES) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME)) {
+                // Can use the Java runtime if present, but prefer Java runtime classes
+                details.compatible();
+            } else if (details.getConsumerValue().getName().equals(Usage.JAVA_RUNTIME_RESOURCES) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME)) {
+                // Can use the Java runtime if present, but prefer Java runtime resources
+                details.compatible();
+            } else if (details.getConsumerValue().getName().equals(Usage.JAVA_RUNTIME_JARS) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME)) {
+                // Can use the Java runtime if present, but prefer Java runtime jar
+                details.compatible();
             }
         }
     }

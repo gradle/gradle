@@ -385,7 +385,7 @@ class DependencyManagementBuildScopeServices {
                                                                       BuildCommencedTimeProvider timeProvider,
                                                                       ModuleComponentResolveMetadataSerializer serializer,
                                                                       FeaturePreviews featurePreviews) {
-        return new ComponentMetadataRuleExecutor(cacheRepository, cacheDecoratorFactory, valueSnapshotter, timeProvider, serializer, featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.IMPROVED_POM_SUPPORT));
+        return new ComponentMetadataRuleExecutor(cacheRepository, cacheDecoratorFactory, valueSnapshotter, timeProvider, serializer, true);
     }
 
     ComponentMetadataSupplierRuleExecutor createComponentMetadataSupplierRuleExecutor(ValueSnapshotter snapshotter,

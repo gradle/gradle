@@ -45,6 +45,7 @@ dependencies {
 
         def resolve = new ResolveTestFixture(buildFile)
         resolve.prepare()
+        resolve.expectDefaultConfiguration("runtime")
 
         when:
         succeeds 'checkDeps'
@@ -91,6 +92,7 @@ dependencies {
         succeeds 'checkDeps'
 
         then:
+        resolve.expectDefaultConfiguration("runtime")
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org.test:child:1.0", "org.test:child:1.0") {
@@ -127,6 +129,7 @@ dependencies {
 
         def resolve = new ResolveTestFixture(buildFile)
         resolve.prepare()
+        resolve.expectDefaultConfiguration("runtime")
 
         when:
         succeeds 'checkDeps'

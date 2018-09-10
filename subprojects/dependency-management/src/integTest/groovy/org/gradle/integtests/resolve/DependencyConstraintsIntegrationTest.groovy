@@ -79,8 +79,8 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo","org:foo:1.1")
-                module("org:foo:1.1")
+                edge("org:foo","org:foo:1.1:runtime")
+                module("org:foo:1.1:runtime")
             }
         }
     }
@@ -133,7 +133,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("org:bar:1.0") {
+                module("org:bar:1.0:runtime") {
                     edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1")
                 }
                 edgeFromConstraint("org:foo:1.1", "org:foo:1.1")
@@ -228,7 +228,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("org:bar:1.0") {
+                module("org:bar:1.0:runtime") {
                     edge("org:foo:[1.0,1.2]", "org:foo:1.1").byConstraint('didn\'t match version 1.2 because tested versions')
                 }
                 edgeFromConstraint("org:foo:[1.0,1.1]", "org:foo:1.1").byConstraint('didn\'t match version 1.2 because tested versions')
@@ -257,7 +257,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("org:bar:1.0")
+                module("org:bar:1.0:runtime")
             }
         }
     }
@@ -294,8 +294,8 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:bar:1.1", "org:foo:1.1").selectedByRule()
-                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1")
+                edge("org:bar:1.1", "org:foo:1.1:runtime").selectedByRule()
+                edge("org:foo:1.0", "org:foo:1.1:runtime").byConflictResolution("between versions 1.0 and 1.1")
             }
         }
     }
@@ -325,8 +325,8 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1")
-                module("org:foo:1.1")
+                edge("org:foo:1.0", "org:foo:1.1:runtime").byConflictResolution("between versions 1.0 and 1.1")
+                module("org:foo:1.1:runtime")
             }
         }
     }
@@ -368,11 +368,11 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1").byConstraint('transitive dependency constraint')
+                edge("org:foo:1.0", "org:foo:1.1:runtime").byConflictResolution("between versions 1.0 and 1.1").byConstraint('transitive dependency constraint')
                 project(":b", "test:b:") {
                     configuration = "conf"
                     noArtifacts()
-                    module("org:foo:1.1").byConstraint('transitive dependency constraint')
+                    module("org:foo:1.1:runtime").byConstraint('transitive dependency constraint')
                 }
             }
         }
@@ -416,7 +416,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.0 and 1.1")
+                edge("org:foo:1.0", "org:foo:1.1:runtime").byConflictResolution("between versions 1.0 and 1.1")
                 edge("org:included:1.0", "project :included", "org:included:1.0") {
                     noArtifacts()
                     module("org:foo:1.1:runtime")
@@ -449,7 +449,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("org:foo:1.0")
+                module("org:foo:1.0:runtime")
             }
         }
     }
@@ -474,8 +474,8 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:1.0","org:foo:1.1")
-                module("org:foo:1.1") {
+                edge("org:foo:1.0","org:foo:1.1:runtime")
+                module("org:foo:1.1:runtime") {
                     artifact(classifier: 'shaded')
                 }
             }
@@ -503,11 +503,11 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("org:foo:1.1") {
+                module("org:foo:1.1:runtime") {
                     graph.constraints.add(delegate)
                     artifact(classifier: 'shaded')
                 }
-                module("org:bar:1.0") {
+                module("org:bar:1.0:runtime") {
                     edge("org:foo:1.0","org:foo:1.1")
                 }
             }
@@ -535,7 +535,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("org:bar:1.1") {
+                module("org:bar:1.1:runtime") {
                     edge('org:foo:1.0', 'org:foo:1.0')
                 }
                 edge('org:bar:1.0', 'org:bar:1.1')
@@ -564,7 +564,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("org:bar:1.1") {
+                module("org:bar:1.1:runtime") {
                     edge('org:foo:1.0', 'org:foo:1.0')
                 }
                 edge('org:bar', 'org:bar:1.1')
