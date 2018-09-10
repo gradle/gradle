@@ -21,13 +21,9 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.TaskAction
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import javax.inject.Inject
 
-// Require Java 8+ to verify that Java lambdas work with the APIs.
-@Requires(TestPrecondition.JDK8_OR_LATER)
 class PropertyJavaInterOpIntegrationTest extends AbstractPropertyLanguageInterOpIntegrationTest {
     def setup() {
         pluginDir.file("build.gradle") << """

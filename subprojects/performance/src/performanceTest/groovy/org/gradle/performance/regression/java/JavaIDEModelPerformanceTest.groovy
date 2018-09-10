@@ -20,13 +20,11 @@ import org.gradle.performance.AbstractToolingApiCrossVersionPerformanceTest
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
-@Ignore("Temporarily ignore until we have a snapshot build to rebaseline")
 class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
     @Unroll
@@ -34,7 +32,7 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
         given:
         experiment(testProject.projectName) {
             minimumVersion = "2.11"
-            targetVersions = ["4.10-20180725235906+0000"]
+            targetVersions = ["5.0-20180909235858+0000"]
             invocationCount = iterations
             warmUpCount = iterations
             action {
@@ -94,7 +92,7 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
         given:
         experiment(testProject.projectName) {
             minimumVersion = "2.11"
-            targetVersions = ["4.11-20180820090420+0000"]
+            targetVersions = ["5.0-20180909235858+0000"]
             invocationCount = iterations
             warmUpCount = iterations
             action {

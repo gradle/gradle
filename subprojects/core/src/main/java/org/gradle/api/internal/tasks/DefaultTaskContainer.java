@@ -765,14 +765,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Deprecated
     @Override
     public boolean add(Task o) {
-        DeprecationLogger.nagUserOfReplacedMethodWithCustomRemoval("add()", "create() or register()", "This method will cause an error in Gradle 6.0.");
+        DeprecationLogger.nagUserOfReplacedMethodInvocation("TaskContainer.add()", "TaskContainer.register()");
         return addInternal(o);
     }
 
     @Deprecated
     @Override
     public boolean addAll(Collection<? extends Task> c) {
-        DeprecationLogger.nagUserOfReplacedMethodWithCustomRemoval("addAll()", "create() or register()", "This method will cause an error in Gradle 6.0.");
+        DeprecationLogger.nagUserOfDiscontinuedMethodInvocation("TaskContainer.addAll()");
         return addAllInternal(c);
     }
 

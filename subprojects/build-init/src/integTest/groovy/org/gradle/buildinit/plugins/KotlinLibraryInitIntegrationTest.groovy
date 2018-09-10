@@ -17,18 +17,21 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 
-@Requires(TestPrecondition.JDK8_OR_LATER)
 class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_LIBRARY_CLASS = "some/thing/Library.kt"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.kt"
+
+    def setup() {
+        executer.beforeExecute {
+            // Run Kotlin compiler in-process to avoid file locking issues
+            executer.withArguments("-Dkotlin.compiler.execution.strategy=in-process")
+        }
+    }
 
     def "defaults to kotlin build scripts"() {
         when:
@@ -38,7 +41,6 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
     }
 
-    @LeaksFileHandles
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:

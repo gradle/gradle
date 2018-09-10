@@ -104,13 +104,11 @@ The only Unicode values that are explicitly prohibited are `\`, `/` and any ISO 
 
 The generated POM file can be customized before publishing. For example, when publishing a library to Maven Central you will need to set certain metadata. The Maven Publish Plugin provides a DSL for that purpose. Please see link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPom.html[MavenPom] in the DSL Reference for the complete documentation of available properties and methods. The following sample shows how to use the most common ones:
 
-=== Example: Customizing the POM file
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/signing/maven-publish/build.gradle[tag=pom-customization]
-----
+.Customizing the POM file
+====
+include::sample[dir="signing/maven-publish/groovy",files="build.gradle[tags=pom-customization]"]
+include::sample[dir="signing/maven-publish/kotlin",files="build.gradle.kts[tags=pom-customization]"]
+====
 
 [[publishing_maven:repositories]]
 == Repositories
@@ -171,13 +169,11 @@ The Maven Publish Plugin makes this easy to do by automatically creating a link:
 
 The following example demonstrates how to sign and publish a Java library including sources, Javadoc, and a customized POM:
 
-=== Example: Publishing a Java library
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/signing/maven-publish/build.gradle[tag=all]
-----
+.Publishing a Java library
+====
+include::sample[dir="signing/maven-publish/groovy",files="build.gradle[tags=all]"]
+include::sample[dir="signing/maven-publish/kotlin",files="build.gradle.kts[tags=all]"]
+====
 
 The result is that the following artifacts will be published:
 
