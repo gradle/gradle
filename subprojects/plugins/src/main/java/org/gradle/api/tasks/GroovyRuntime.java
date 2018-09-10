@@ -74,12 +74,24 @@ public class GroovyRuntime {
      * @param classpath a class path containing Groovy Jars
      * @return a corresponding class path for executing Groovy tools such as the Groovy compiler and Groovydoc tool
      */
-    @Deprecated
-    public FileCollection inferGroovyClasspath(@Nullable Iterable<File> classpath) {
-        return inferGroovyClasspath(classpath, true);
+    public FileCollection inferGroovyClasspath(Iterable<File> classpath) {
+        return inferGroovyClasspath(classpath, false);
     }
 
-    public FileCollection inferGroovyClasspath(@Nullable final Iterable<File> classpath, final boolean requireGroovydocJars) {
+    /**
+     * Searches the specified class path for Groovy Jars ({@code groovy(-indy)}, {@code groovy-all(-indy)}) and returns a corresponding class path for executing Groovy tools such as the Groovy
+     * compiler and Groovydoc tool. The tool versions will match those of the Groovy Jars found. If no Groovy Jars are found on the specified class path, a class path with the contents of the {@code
+     * groovy} configuration will be returned.
+     *
+     * <p>The returned class path may be empty, or may fail to resolve when asked for its contents.
+     *
+     * @param classpath a class path containing Groovy Jars
+     * @param groovyJarOnly whether we the Groovy JAR itself is enough (otherwise return either a groovy-all JAR or all dependencies of groovy-ant and groovy-template).
+     * @return a corresponding class path for executing Groovy tools such as the Groovy compiler and Groovydoc tool
+     *
+     * @since 5.0
+     */
+    public FileCollection inferGroovyClasspath(final Iterable<File> classpath, final boolean groovyJarOnly) {
         // alternatively, we could return project.getLayout().files(Runnable)
         // would differ in at least the following ways: 1. live 2. no autowiring
         return new LazilyInitializedFileCollection() {
@@ -95,7 +107,7 @@ public class GroovyRuntime {
                     throw new GradleException(String.format("Cannot infer Groovy class path because no Groovy Jar was found on class path: %s", Iterables.toString(classpath)));
                 }
 
-                if (!requireGroovydocJars || groovyJar.isGroovyAll()) {
+                if (groovyJarOnly || groovyJar.isGroovyAll()) {
                     return project.getLayout().files(groovyJar.getFile());
                 }
 
@@ -134,10 +146,7 @@ public class GroovyRuntime {
     }
 
     @Nullable
-    private GroovyJarFile findGroovyJarFile(@Nullable Iterable<File> classpath) {
-        if (classpath == null) {
-            return null;
-        }
+    private static GroovyJarFile findGroovyJarFile(Iterable<File> classpath) {
         for (File file : classpath) {
             GroovyJarFile groovyJar = GroovyJarFile.parse(file);
             if (groovyJar != null) {
