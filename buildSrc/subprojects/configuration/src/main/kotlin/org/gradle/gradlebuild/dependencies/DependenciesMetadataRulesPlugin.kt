@@ -55,8 +55,6 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 withModule("org.jmock:jmock-legacy", ReplaceCglibNodepWithCglibRule::class.java)
 
                 //TODO check if we can upgrade the following dependencies and remove the rules
-                withModule("org.codehaus.groovy:groovy-all", DowngradeIvyRule::class.java)
-                withModule("org.codehaus.groovy:groovy-all", DowngradeTestNGRule::class.java)
                 withModule("org.codehaus.groovy:groovy", DowngradeIvyRule::class.java)
                 withModule("org.codehaus.groovy:groovy", DowngradeTestNGRule::class.java)
 
