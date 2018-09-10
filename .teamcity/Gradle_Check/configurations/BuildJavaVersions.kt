@@ -8,4 +8,5 @@ val buildJavaHome = linuxJava9Oracle
 val coordinatorPerformanceTestJavaHome = linuxJava8Oracle
 val individualPerformanceTestJavaHome = linuxJava8Oracle
 val smokeTestJavaHome = linuxJava8Oracle
+val distributionTestJavaHome = linuxJava9Oracle
 
