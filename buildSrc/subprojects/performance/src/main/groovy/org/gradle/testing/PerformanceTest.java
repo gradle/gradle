@@ -185,7 +185,17 @@ public class PerformanceTest extends DistributionTest {
             List<String> result = new ArrayList<>();
             addExecutionParameters(result);
             addDatabaseParameters(result);
+            addJava9HomeSystemProperty(result);
             return result;
+        }
+
+        private void addJava9HomeSystemProperty(List<String> result) {
+            Object java9Home = getProject().findProperty("java9Home");
+            if (java9Home != null) {
+                addSystemPropertyIfExist(result, "java9Home", java9Home.toString());
+            } else {
+                addSystemPropertyIfExist(result, "java9Home", System.getProperty("java9Home"));
+            }
         }
 
         private void addExecutionParameters(List<String> result) {
