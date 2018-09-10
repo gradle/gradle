@@ -38,6 +38,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
@@ -106,6 +107,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     @Override
     public boolean add(final T o) {
+        assertMutable("add(T)");
         return add(o, getEventRegister().getAddActions());
     }
 
@@ -143,7 +145,12 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Override
-    public void addLater(final Provider<? extends T> provider) {
+    public void addLater(Provider<? extends T> provider) {
+        assertMutable("addLater(Provider)");
+        if (provider instanceof Named && !(provider instanceof NamedDomainObjectProvider)) {
+            final Named named = (Named) provider;
+            provider = createExternalProvider(named.getName(), provider);
+        }
         super.addLater(provider);
         if (provider instanceof Named) {
             final Named named = (Named) provider;
@@ -284,8 +291,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
         ProviderInternal<? extends T> provider = index.getPending(name);
         if (provider != null) {
-            // TODO - this isn't correct, assumes that a side effect is to add the element
-            provider.getOrNull();
+            doRealize(provider);
             // Use the index here so we can apply any filters to the realized element
             return index.get(name);
         }
@@ -794,7 +800,15 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return Cast.uncheckedCast(getInstantiator().newInstance(ExistingNamedDomainObjectProvider.class, this, name));
     }
 
-    protected abstract class AbstractNamedDomainObjectProvider<I extends T> extends AbstractProvider<I> implements Named, NamedDomainObjectProvider<I> {
+    protected NamedDomainObjectProvider<? extends T> createExternalProvider(String name, Provider<? extends T> object) {
+        return Cast.uncheckedCast(getInstantiator().newInstance(ExternalNamedDomainObjectCreatingProvider.class, this, name, object));
+    }
+
+    protected interface NamedDomainObjectProviderInternal<I> extends NamedDomainObjectProvider<I>, ProviderInternal<I> {
+
+    }
+
+    protected abstract class AbstractNamedDomainObjectProvider<I extends T> extends AbstractProvider<I> implements Named, NamedDomainObjectProviderInternal<I> {
         private final String name;
         private final Class<I> type;
 
@@ -831,12 +845,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         public void configure(Action<? super I> action) {
-            action.execute(get());
-        }
-
-        @Override
-        public boolean isPresent() {
-            return getOrNull() != null;
+            getMutationGuard().withMutationDisabled(action).execute(get());
         }
 
         @Override
@@ -858,6 +867,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         private RuntimeException failure;
         protected ImmutableActionSet<I> onCreate;
         private boolean removedBeforeRealized = false;
+        private boolean realized = false;
 
         public AbstractDomainObjectCreatingProvider(String name, Class<I> type, @Nullable Action<? super I> configureAction) {
             super(name, type);
@@ -869,13 +879,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public boolean isPresent() {
-            return findDomainObject(getName()) != null;
-        }
-
-        @Override
         public void configure(final Action<? super I> action) {
-            Action<? super I> wrappedAction = wrap(action);
+            Action<? super I> wrappedAction = withMutationDisabled(action);
             if (object != null) {
                 // Already realized, just run the action now
                 wrappedAction.execute(object);
@@ -885,9 +890,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             onCreate = onCreate.mergeFrom(getEventRegister().getAddActions()).add(wrappedAction);
         }
 
-        protected Action<? super I> wrap(Action<? super I> action) {
-            // Do nothing.
-            return action;
+        protected Action<? super I> withMutationDisabled(Action<? super I> action) {
+            return getMutationGuard().withMutationDisabled(action);
         }
 
         @Override
@@ -916,6 +920,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         protected void tryCreate() {
+            // Nullifying the onRealize action as we take charge of it's effect here
+            Action<T> oldOnRealizeAction = getStore().onRealize(Actions.<T>doNothing());
             try {
                 // Collect any container level add actions added since the last call to configure()
                 onCreate = onCreate.mergeFrom(getEventRegister().getAddActions());
@@ -924,23 +930,23 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
                 object = createDomainObject();
 
                 // Register the domain object
-                add(object, onCreate);
-                realized(AbstractDomainObjectCreatingProvider.this);
-                onLazyDomainObjectRealized();
+                getStore().realizePending(this);
+                doAddRealized(object, onCreate);
+                realized = true;
+                realized(this);
             } catch (Throwable ex) {
                 failure = domainObjectCreationException(ex);
                 throw failure;
             } finally {
                 // Discard state that is no longer required
                 onCreate = ImmutableActionSet.empty();
+
+                // Revert the onRealize action
+                getStore().onRealize(oldOnRealizeAction);
             }
         }
 
         protected abstract I createDomainObject();
-
-        protected void onLazyDomainObjectRealized() {
-            // Do nothing.
-        }
 
         protected boolean wasElementRemoved() {
             // Check for presence as the domain object may have been replaced
@@ -952,11 +958,25 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         private boolean wasElementRemovedAfterRealized() {
-            return object != null && findByNameWithoutRules(getName()) == null;
+            return realized && object != null && findByNameWithoutRules(getName()) == null;
         }
 
         protected RuntimeException domainObjectCreationException(Throwable cause) {
             return new IllegalStateException(String.format("Could not create domain object '%s' (%s)", getName(), getType().getSimpleName()), cause);
+        }
+    }
+
+    public class ExternalNamedDomainObjectCreatingProvider<I extends T> extends AbstractDomainObjectCreatingProvider<I> {
+        private final ProviderInternal<I> provider;
+
+        public ExternalNamedDomainObjectCreatingProvider(String name, ProviderInternal<I> provider) {
+            super(name, provider.getType(), null);
+            this.provider = provider;
+        }
+
+        @Override
+        protected I createDomainObject() {
+            return provider.get();
         }
     }
 

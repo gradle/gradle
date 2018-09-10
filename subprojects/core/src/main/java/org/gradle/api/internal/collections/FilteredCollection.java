@@ -188,6 +188,13 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
     }
 
     @Override
+    public void realizePending(ProviderInternal<?> provider) {
+        if (filter.getType().isAssignableFrom(provider.getType())) {
+            collection.realizePending(provider);
+        }
+    }
+
+    @Override
     public boolean addPending(ProviderInternal<? extends S> provider) {
         return collection.addPending(provider);
     }
@@ -210,7 +217,9 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
     }
 
     @Override
-    public void onRealize(Action<S> action) { }
+    public Action<S> onRealize(Action<S> action) {
+        return null;
+    }
 
     @Override
     public void realizeExternal(ProviderInternal<? extends S> provider) {

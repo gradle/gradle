@@ -109,6 +109,11 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     }
 
     @Override
+    public void realizePending(ProviderInternal<?> provider) {
+        pending.realizePending(provider);
+    }
+
+    @Override
     public boolean addPending(final ProviderInternal<? extends T> provider) {
         if (provider instanceof ChangingValue) {
             ((ChangingValue<T>)provider).onValueChange(new Action<T>() {
@@ -149,8 +154,8 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     }
 
     @Override
-    public void onRealize(Action<T> action) {
-        pending.onRealize(action);
+    public Action<T> onRealize(Action<T> action) {
+        return pending.onRealize(action);
     }
 
     @Override

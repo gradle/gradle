@@ -19,6 +19,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
+import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.ChangingValueHandler;
@@ -41,7 +42,12 @@ public class DefaultArtifactPublicationSet {
     public void addCandidate(PublishArtifact artifact) {
         if (defaultArtifactProvider == null) {
             defaultArtifactProvider = new DefaultArtifactProvider();
-            artifactContainer.addAllLater(defaultArtifactProvider);
+            MutationGuards.of(artifactContainer).whileMutationEnabled(new Runnable() {
+                @Override
+                public void run() {
+                    artifactContainer.addAllLater(defaultArtifactProvider);
+                }
+            });
         }
         defaultArtifactProvider.addArtifact(artifact);
     }
