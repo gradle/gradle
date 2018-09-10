@@ -75,6 +75,7 @@ dependencies {
     testCompile("org.gebish:geb-spock:2.2") {
         exclude module: "groovy-all"
     }
+    testCompile libraries.groovy_json.coordinates
     testCompile('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
     testCompile libraries.commons_httpclient.coordinates
     testCompile "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"

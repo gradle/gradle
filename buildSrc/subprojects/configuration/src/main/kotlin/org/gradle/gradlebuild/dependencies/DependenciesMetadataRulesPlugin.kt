@@ -49,6 +49,9 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 readCapabilitiesFromJson()
 
                 withModule("org.spockframework:spock-core", ReplaceCglibNodepWithCglibRule::class.java)
+                // Prevent Spock from pulling in Groovy and third-party dependencies - see https://github.com/spockframework/spock/issues/899
+                withLibraryDependencies("org.spockframework:spock-core", DependencyRemovalByNameRule::class,
+                    setOf("groovy-groovysh", "groovy-json", "groovy-macro", "groovy-nio", "groovy-sql", "groovy-templates", "groovy-test", "groovy-xml"))
                 withModule("org.jmock:jmock-legacy", ReplaceCglibNodepWithCglibRule::class.java)
 
                 //TODO check if we can upgrade the following dependencies and remove the rules
