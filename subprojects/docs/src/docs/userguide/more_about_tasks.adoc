@@ -178,28 +178,24 @@ In order to pass values to the `Task` constructor, you must annotate the relevan
 
 .Task class with `@Inject` constructor
 ====
-include::sample[dir="userguide/tasks/taskConstructorArgs/groovyMap",files="build.gradle[tags=inject-task-constructor]"]
+include::sample[dir="userguide/tasks/taskConstructorArgs/onTaskContainer/groovy",files="build.gradle[tags=inject-task-constructor]"]
+include::sample[dir="userguide/tasks/taskConstructorArgs/onTaskContainer/kotlin",files="build.gradle.kts[tags=inject-task-constructor]"]
 ====
 
 You can then create a task, passing the constructor arguments at the end of the parameter list.
 
 .Creating a task with constructor arguments using TaskContainer
 ====
-include::sample[dir="userguide/tasks/taskConstructorArgs/groovyTaskContainer",files="build.gradle[tags=task-container]"]
+include::sample[dir="userguide/tasks/taskConstructorArgs/onTaskContainer/groovy",files="build.gradle[tags=on-task-container]"]
+include::sample[dir="userguide/tasks/taskConstructorArgs/onTaskContainer/kotlin",files="build.gradle.kts[tags=on-task-container]"]
 ====
 
-In a Groovy build script, you can create the task using `constructorArgs`.
+You can also create the task using a `constructorArgs` Map argument using the Project API:
 
 .Creating a task with constructor arguments using Map
 ====
-include::sample[dir="userguide/tasks/taskConstructorArgs/groovyMap",files="build.gradle[tags=groovy-map]"]
-====
-
-In a Kotlin build script, you can pass constructor arguments using the reified extension function on the `tasks` `TaskContainer`.
-
-.Creating a task with constructor arguments using Kotlin DSL
-====
-include::sample[dir="userguide/tasks/taskConstructorArgs/kotlinDsl",files="build.gradle.kts[tags=kotlin-dsl]"]
+include::sample[dir="userguide/tasks/taskConstructorArgs/onProject/groovy",files="build.gradle[tags=on-project]"]
+include::sample[dir="userguide/tasks/taskConstructorArgs/onProject/kotlin",files="build.gradle.kts[tags=on-project]"]
 ====
 
 In all circumstances, the values passed as constructor arguments must be non-null.

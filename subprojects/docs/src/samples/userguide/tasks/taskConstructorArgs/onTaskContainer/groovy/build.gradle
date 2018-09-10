@@ -16,8 +16,10 @@ class CustomTask extends DefaultTask {
     void printIt() {
         println("$message $number")
     }
+// tag::inject-task-constructor[]
 }
+// end::inject-task-constructor[]
 
-// tag::groovy-map[]
-task myTask(type: CustomTask, constructorArgs: ['hello', 42])
-// end::groovy-map[]
+// tag::on-task-container[]
+tasks.create('myTask', CustomTask, 'hello', 42)
+// end::on-task-container[]
