@@ -61,8 +61,8 @@ configurations.compile.withDependencies { deps ->
 
         then:
         resolvedGraph {
-            module("org:foo:1.0")
-            module("org:bar:1.0")
+            module("org:foo:1.0:runtime")
+            module("org:bar:1.0:runtime")
         }
     }
 
@@ -84,8 +84,8 @@ configurations.conf.withDependencies { deps ->
 
         then:
         resolvedGraph {
-            module("org:foo:1.0")
-            module("org:bar:1.0")
+            module("org:foo:1.0:runtime")
+            module("org:bar:1.0:runtime")
         }
     }
 
@@ -108,8 +108,8 @@ configurations.compile.withDependencies { DependencySet deps ->
 
         then:
         resolvedGraph {
-            module("org:foo:1.0")
-            module("org:bar:1.0")
+            module("org:foo:1.0:runtime")
+            module("org:bar:1.0:runtime")
         }
     }
 
@@ -127,8 +127,8 @@ configurations.compile.defaultDependencies { DependencySet deps ->
 
         then:
         resolvedGraph {
-            module("org:foo:1.0")
-            module("org:bar:1.0")
+            module("org:foo:1.0:runtime")
+            module("org:bar:1.0:runtime")
         }
     }
 
@@ -157,8 +157,8 @@ configurations.compile.withDependencies { deps ->
 
         then:
         resolvedGraph {
-            module("org:foo:1.0")
-            module("org:bar:1.0")
+            module("org:foo:1.0:runtime")
+            module("org:bar:1.0:runtime")
         }
     }
 

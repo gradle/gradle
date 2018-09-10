@@ -38,8 +38,8 @@ class MixedMavenAndIvyModulesIntegrationTest extends AbstractDependencyResolutio
 """
     }
 
-    def "when no target configuration is specified then a dependency on maven module includes the compile, runtime and master configurations of required ivy module when they are present"() {
-        def notRequired = ivyRepo.module("org.test", "ignore-me", "1.0")
+    def "when no target configuration is specified then a dependency on maven module includes the default configuration of required ivy module"() {
+        def inDefault = ivyRepo.module("org.test", "in-default", "1.0").publish()
         def m1 = ivyRepo.module("org.test", "m1", "1.0")
             .configuration("compile")
             .publish()
@@ -56,11 +56,11 @@ class MixedMavenAndIvyModulesIntegrationTest extends AbstractDependencyResolutio
             .dependsOn(m1, conf: "compile")
             .dependsOn(m2, conf: "runtime")
             .dependsOn(m3, conf: "master")
-            .dependsOn(notRequired, conf: "other,default")
+            .dependsOn(inDefault, conf: "other,default")
             .artifact(name: "compile", conf: "compile")
             .artifact(name: "runtime", conf: "runtime")
             .artifact(name: "master", conf: "master")
-            .artifact(name: 'ignore-me', conf: "other,default")
+            .artifact(name: 'in-default', conf: "other,default")
             .publish()
         mavenRepo.module("org.test", "maven", "1.0")
             .dependsOn(ivyModule)
@@ -75,22 +75,18 @@ dependencies {
         succeeds 'checkDep'
         resolve.expectGraph {
             root(':', ':testproject:') {
-                module('org.test:maven:1.0') {
+                module('org.test:maven:1.0:runtime') {
                     module('org.test:ivy:1.0') {
-                        artifact(name: 'compile')
-                        artifact(name: 'runtime')
-                        artifact(name: 'master')
-                        module('org.test:m1:1.0')
-                        module('org.test:m2:1.0')
-                        module('org.test:m3:1.0')
+                        artifact(name: 'in-default')
+                        module('org.test:in-default:1.0')
                     }
                 }
             }
         }
     }
 
-    def "a dependency on compile scope of maven module includes compile and master configurations of required ivy module when they are present"() {
-        def notRequired = ivyRepo.module("org.test", "ignore-me", "1.0")
+    def "a dependency on compile scope of maven module includes default of required ivy module when they are present"() {
+        def inDefault = ivyRepo.module("org.test", "in-default", "1.0").publish()
         def m1 = ivyRepo.module("org.test", "m1", "1.0")
             .configuration("compile")
             .publish()
@@ -105,10 +101,10 @@ dependencies {
             .configuration("default")
             .dependsOn(m1, conf: "compile")
             .dependsOn(m2, conf: "master")
-            .dependsOn(notRequired, conf: "other,default,runtime")
+            .dependsOn(inDefault, conf: "other,default,runtime")
             .artifact(name: "compile", conf: "compile")
             .artifact(name: "master", conf: "master")
-            .artifact(name: 'ignore-me', conf: "other,default,runtime")
+            .artifact(name: 'in-default', conf: "other,default,runtime")
             .publish()
         mavenRepo.module("org.test", "maven", "1.0")
             .dependsOn(ivyModule)
@@ -126,10 +122,8 @@ dependencies {
                 module('org.test:maven:1.0') {
                     configuration = 'compile'
                     module('org.test:ivy:1.0') {
-                        artifact(name: 'compile')
-                        artifact(name: 'master')
-                        module('org.test:m1:1.0')
-                        module('org.test:m2:1.0')
+                        module('org.test:in-default:1.0')
+                        artifact(name: 'in-default')
                     }
                 }
             }
@@ -137,7 +131,7 @@ dependencies {
     }
 
     def "ignores missing master configuration of ivy module when consumed by maven module"() {
-        def notRequired = ivyRepo.module("org.test", "ignore-me", "1.0")
+        def inDefault = ivyRepo.module("org.test", "in-default", "1.0").publish()
         def m1 = ivyRepo.module("org.test", "m1", "1.0").publish()
         def m2 = ivyRepo.module("org.test", "m2", "1.0").publish()
         def ivyModule = ivyRepo.module("org.test", "ivy", "1.0")
@@ -147,10 +141,10 @@ dependencies {
             .configuration("default")
             .dependsOn(m1, conf: "compile->default")
             .dependsOn(m2, conf: "runtime->default")
-            .dependsOn(notRequired, conf: "*,!compile,!runtime")
+            .dependsOn(inDefault, conf: "*,!compile,!runtime")
             .artifact(name: "compile", conf: "compile")
             .artifact(name: "runtime", conf: "runtime")
-            .artifact(name: 'ignore-me', conf: "other,default")
+            .artifact(name: 'in-default', conf: "other,default")
             .publish()
         mavenRepo.module("org.test", "maven", "1.0")
             .dependsOn(ivyModule)
@@ -165,12 +159,10 @@ dependencies {
         succeeds 'checkDep'
         resolve.expectGraph {
             root(':', ':testproject:') {
-                module('org.test:maven:1.0') {
+                module('org.test:maven:1.0:runtime') {
                     module('org.test:ivy:1.0') {
-                        artifact(name: 'compile')
-                        artifact(name: 'runtime')
-                        module('org.test:m1:1.0')
-                        module('org.test:m2:1.0')
+                        module('org.test:in-default:1.0')
+                        artifact(name: 'in-default')
                     }
                 }
             }
@@ -263,8 +255,8 @@ configurations.conf.resolutionStrategy.force('org.test:ivy:1.2')
         }
     }
 
-    def "selects correct configuration of ivy module when dynamic dependency is used from consuming maven module"() {
-        def notRequired = ivyRepo.module("org.test", "ignore-me", "1.0")
+    def "selects default configuration of ivy module when dynamic dependency is used from consuming maven module"() {
+        def inDefault = ivyRepo.module("org.test", "in-default", "1.0").publish()
         def m1 = ivyRepo.module("org.test", "m1", "1.0")
             .configuration("compile")
             .publish()
@@ -279,10 +271,10 @@ configurations.conf.resolutionStrategy.force('org.test:ivy:1.2')
             .configuration("default")
             .dependsOn(m1, conf: "compile")
             .dependsOn(m2, conf: "master")
-            .dependsOn(notRequired, conf: "*,!compile,!master->unknown")
+            .dependsOn(inDefault, conf: "*,!compile,!master")
             .artifact(name: "compile", conf: "compile")
             .artifact(name: "master", conf: "master")
-            .artifact(name: 'ignore-me', conf: "other,default,runtime")
+            .artifact(name: 'in-default', conf: "other,default,runtime")
             .publish()
         mavenRepo.module("org.test", "maven", "1.0")
             .dependsOn("org.test", "ivy", "1.+")
@@ -297,13 +289,11 @@ dependencies {
         succeeds 'checkDep'
         resolve.expectGraph {
             root(':', ':testproject:') {
-                module('org.test:maven:1.0') {
+                module('org.test:maven:1.0:runtime') {
                     configuration = 'compile'
                     edge('org.test:ivy:1.+', 'org.test:ivy:1.2') {
-                        artifact(name: 'compile')
-                        artifact(name: 'master')
-                        module('org.test:m1:1.0')
-                        module('org.test:m2:1.0')
+                        artifact(name: 'in-default')
+                        module('org.test:in-default:1.0')
                     }
                 }
             }
@@ -331,9 +321,9 @@ dependencies {
         succeeds 'checkDep'
         resolve.expectGraph {
             root(':', ':testproject:') {
-                module('org.test:m4:1.0') {
+                module('org.test:m4:1.0:runtime') {
                     module('org.test:m3:1.0') {
-                        module('org.test:m2:1.0') {
+                        module('org.test:m2:1.0:runtime') {
                             module('org.test:m1:1.0')
                         }
                     }

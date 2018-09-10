@@ -422,12 +422,15 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'b'
 
         when:
+        executer.withStackTraceChecksDisabled()
         run 'dependencyInsight', '--configuration=conf', '--dependency=a'
 
         then:
         result.groupedOutput.task(':dependencyInsight').output.contains("""org:b:1
-   variant "default" [
-      org.gradle.status = release (not requested)
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - Selected by rule : $expected

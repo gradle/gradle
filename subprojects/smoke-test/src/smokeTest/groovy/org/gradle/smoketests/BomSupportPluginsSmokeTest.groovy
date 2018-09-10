@@ -16,11 +16,9 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
-
 /**
  * https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
  */
@@ -40,7 +38,6 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
         settingsFile << """
             rootProject.name = 'springbootproject'
         """
-        FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
         def buildScript = """
             plugins {
                 id "java"

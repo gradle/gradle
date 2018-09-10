@@ -107,6 +107,7 @@ project(':consumer') {
         buildFile << """
             project(':consumer') {
                 configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, ${usage})
+                dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules.add(org.gradle.api.plugins.JavaBasePlugin.UsageCompatibilityRules)
             }
 """
         when:
@@ -149,6 +150,7 @@ project(':consumer') {
         buildFile << """
             project(':consumer') {
                 configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, ${usage})
+                dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules.add(org.gradle.api.plugins.JavaBasePlugin.UsageCompatibilityRules)
             }
 """
         when:
@@ -208,6 +210,7 @@ project(':consumer') {
         buildFile << """
             project(':consumer') {
                 configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME_CLASSES))
+                dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules.add(org.gradle.api.plugins.JavaBasePlugin.UsageCompatibilityRules)
             }
 """
 
@@ -245,6 +248,7 @@ project(':consumer') {
         buildFile << """
             project(':consumer') {
                 configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME_RESOURCES))
+                dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules.add(org.gradle.api.plugins.JavaBasePlugin.UsageCompatibilityRules)
             }
 """
 

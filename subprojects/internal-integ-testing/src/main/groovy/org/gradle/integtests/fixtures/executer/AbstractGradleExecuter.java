@@ -1187,8 +1187,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                     throw new UncheckedIOException(e);
                 }
                 int i = 0;
+                boolean insideVariantDescriptionBlock = false;
                 while (i < lines.size()) {
                     String line = lines.get(i);
+                    if (insideVariantDescriptionBlock && line.contains("]")) {
+                        insideVariantDescriptionBlock = false;
+                    } else if (!insideVariantDescriptionBlock && line.contains("variant \"")) {
+                        insideVariantDescriptionBlock = true;
+                    }
                     if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {
                         // A javac warning, ignore
                         i++;
@@ -1204,7 +1210,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                         while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
                             i++;
                         }
-                    } else if (!expectStackTraces && STACK_TRACE_ELEMENT.matcher(line).matches() && i < lines.size() - 1 && STACK_TRACE_ELEMENT.matcher(lines.get(i + 1)).matches()) {
+                    } else if (!expectStackTraces && !insideVariantDescriptionBlock && STACK_TRACE_ELEMENT.matcher(line).matches() && i < lines.size() - 1 && STACK_TRACE_ELEMENT.matcher(lines.get(i + 1)).matches()) {
                         // 2 or more lines that look like stack trace elements
                         throw new AssertionError(String.format("%s line %d contains an unexpected stack trace: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
                     } else {

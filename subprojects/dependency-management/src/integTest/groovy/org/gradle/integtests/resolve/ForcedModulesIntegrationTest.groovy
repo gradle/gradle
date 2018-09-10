@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 import spock.lang.Unroll
 
-public class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
+class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
 
     void "can force the version of a particular module"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
@@ -395,8 +395,8 @@ task checkDeps {
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                edge('org:foo:1.1', 'org:foo:1.0').forced()
-                module('org:foo:1.0')
+                edge('org:foo:1.1', 'org:foo:1.0:runtime').forced()
+                module('org:foo:1.0:runtime')
             }
         }
 
