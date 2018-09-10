@@ -19,8 +19,13 @@ package org.gradle.integtests.samples
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Unroll
 
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
+
+@Requires(KOTLIN_SCRIPT)
 class SamplesScalaZincIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule Sample sample = new Sample(temporaryFolder, 'scala/zinc')
@@ -29,9 +34,10 @@ class SamplesScalaZincIntegrationTest extends AbstractIntegrationSpec {
         useRepositoryMirrors()
     }
 
-    def canBuildJar() {
+    @Unroll
+    def "can build jar with #dsl dsl"() {
         given:
-        def projectDir = sample.dir
+        def projectDir = sample.dir.file(dsl)
 
         when:
         // Build and test projects
@@ -46,5 +52,8 @@ class SamplesScalaZincIntegrationTest extends AbstractIntegrationSpec {
                 'org/gradle/sample/Named.class',
                 'org/gradle/sample/Person.class'
         )
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 }
