@@ -147,6 +147,7 @@ allprojects {
             name = "kotlin-dev"
             url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
         }
+        maven { url = uri("https://jitpack.io") }
     }
 
     // patchExternalModules lives in the root project - we need to activate normalization there, too.

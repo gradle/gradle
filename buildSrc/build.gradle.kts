@@ -79,6 +79,7 @@ allprojects {
             name = "kotlin-dev"
             url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
         }
+        maven { url = uri("https://jitpack.io") }
     }
 }
 
@@ -149,7 +150,7 @@ fun Project.applyGroovyProjectConventions() {
 
     dependencies {
         compile(localGroovy())
-        testCompile("org.spockframework:spock-core:1.2-RC2-groovy-2.4")
+        testCompile("com.github.spockframework.spock:spock-core:a463f1b")
         testCompile("cglib:cglib:3.2.7")
         testCompile("org.objenesis:objenesis:2.4")
         constraints {
