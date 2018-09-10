@@ -126,12 +126,29 @@ public class SingleMessageLogger {
         }
     }
 
-    public static void nagUserOfReplacedMethodWithCustomRemoval(String methodName, String replacement, String removalDetails) {
+    /**
+     * Use for a method that is not deprecated, but some combination of parameter is deprecated.
+     */
+    public static void nagUserOfDiscontinuedMethodInvocation(String invocation) {
         if (isEnabled()) {
             nagUserWith(
-                String.format("The %s method has been deprecated.", methodName),
-                removalDetails,
-                String.format("Please use the %s method instead.", replacement),
+                String.format("Using method %s has been deprecated.", invocation),
+                thisWillBecomeAnError(),
+                null,
+                null,
+                DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
+        }
+    }
+
+    /**
+     * Use for a method that is not deprecated, but some combination of parameter is deprecated.
+     */
+    public static void nagUserOfReplacedMethodInvocation(String invocation, String replacement) {
+        if (isEnabled()) {
+            nagUserWith(
+                String.format("Using method %s has been deprecated.", invocation),
+                thisWillBecomeAnError(),
+                String.format(String.format("Please use the %s method instead.", replacement)),
                 null,
                 DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
@@ -177,16 +194,6 @@ public class SingleMessageLogger {
     public static void nagUserOfDiscontinuedProperty(String propertyName, String advice) {
         if (isEnabled()) {
             nagUserWith(String.format("The %s property has been deprecated.", propertyName),
-                thisWillBeRemovedMessage(),
-                advice,
-                null,
-                DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
-        }
-    }
-
-    public static void nagUserOfDiscontinuedApi(String api, String advice) {
-        if (isEnabled()) {
-            nagUserWith(String.format("The %s has been deprecated.", api),
                 thisWillBeRemovedMessage(),
                 advice,
                 null,
@@ -330,6 +337,10 @@ public class SingleMessageLogger {
 
     private static boolean isEnabled() {
         return ENABLED.get();
+    }
+
+    private static String thisWillBecomeAnError() {
+        return String.format("This will fail with an error in Gradle %s.", GradleVersion.current().getNextMajor().getVersion());
     }
 
     private static String thisWillBeRemovedMessage() {
