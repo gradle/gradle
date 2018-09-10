@@ -121,7 +121,7 @@ repositories {
 repositories {
     ivy {
         url '${httpRepo.uri}'
-        layout 'pattern', {
+        patternLayout {
             artifact '[module]/[revision]/[artifact](.[ext])'
             ivy '[module]/[revision]/alternate-ivy.xml'
         }

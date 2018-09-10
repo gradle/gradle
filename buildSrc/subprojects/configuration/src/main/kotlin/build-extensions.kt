@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.HasConfigurableAttributes
@@ -72,11 +71,6 @@ fun DependencyHandler.gradle5Platform(name: Any) = if (GradleVersion.current().b
 @Suppress("unchecked_cast")
 fun Project.testLibraries(name: String): List<String> =
     testLibraries[name]!! as List<String>
-
-
-@Suppress("unchecked_cast")
-val Project.cglibWithoutAntRule
-    get() = rootProject.extra["cglibWithoutAntRule"] as Class<out ComponentMetadataRule>
 
 
 val Project.maxParallelForks: Int
