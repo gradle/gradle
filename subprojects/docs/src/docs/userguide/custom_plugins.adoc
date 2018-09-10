@@ -80,9 +80,9 @@ include::{samplesPath}/userguide/customPlugins/customPluginWithConvention/custom
 
 In this example, `GreetingPluginExtension` is a plain old Groovy/Kotlin object with a property called `message`. The extension object is added to the plugin list with the name `greeting`. This object then becomes available as a project property with the same name as the extension object.
 
-Oftentimes, you have several related properties you need to specify on a single plugin. Gradle adds a configuration closure block for each extension object, so you can group settings together. The following example shows you how this works.
+Oftentimes, you have several related properties you need to specify on a single plugin. Gradle adds a configuration block block for each extension object, so you can group settings together. The following example shows you how this works.
 
-.A custom plugin with configuration closure
+.A custom plugin with configuration block
 ====
 include::sample[dir="userguide/customPlugins/customPluginWithAdvancedConvention/groovy",files="build.gradle[]"]
 include::sample[dir="userguide/customPlugins/customPluginWithAdvancedConvention/kotlin",files="build.gradle.kts[]"]
@@ -94,9 +94,12 @@ include::sample[dir="userguide/customPlugins/customPluginWithAdvancedConvention/
 include::{samplesPath}/userguide/customPlugins/customPluginWithAdvancedConvention/customPluginWithAdvancedConvention.out[]
 ----
 
+[.multi-language-text.lang-groovy]
 In this example, several settings can be grouped together within the `greeting` closure. The name of the closure block in the build script (`greeting`) needs to match the extension object name. Then, when the closure is executed, the fields on the extension object will be mapped to the variables within the closure based on the standard Groovy closure delegate feature.
 
-// TODO reword the above paragraph for Kotlin
+[.multi-language-text.lang-kotlin]
+In this example, several settings can be grouped together within the `configure<GreetingPluginExtension>` block. The type used on the `configure` function in the build script (`GreetingPluginExtension`) needs to match the extension type. Then, when the block is executed, the receiver of the block is the extension.
+
 
 [[sec:working_with_files_in_custom_tasks_and_plugins]]
 == Working with files in custom tasks and plugins
