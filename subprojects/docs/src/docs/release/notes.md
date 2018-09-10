@@ -6,10 +6,6 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
-<!--
-### Example new and noteworthy
--->
-
 ### Build init plugin improvements
 
 This release includes a number of improvements to The [Build Init plugin](userguide/build_init_plugin.html).
@@ -97,10 +93,6 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 The `interactive` flag is deprecated and will be removed in Gradle 6.0.
 
-<!--
-### Example deprecation
--->
-
 ### Removing tasks from TaskContainer
 
 Removing tasks from the `TaskContainer` using the following methods has been deprecated and will be an error in Gradle 6.0.
@@ -138,7 +130,7 @@ In the next major release (6.0), removing dependencies from a task will become a
 Gradle will emit a deprecation warning for code such as `foo.dependsOn.remove(bar)`.  Removing dependencies in this way is error-prone and relies on the internal implementation details of how different tasks are wired together.
 At the moment, we are not planning to provide an alternative. In most cases, task dependencies should be expressed via [task inputs](userguide/more_about_tasks.html#sec:task_inputs_outputs) instead of explicit `dependsOn` relationships.
 
-### Factory methods for creating properties
+### Incubating factory methods for creating properties
 
 TBD - The methods on `DefaultTask` and `ProjectLayout` that create file and directory `Property` instances have been deprecated and replaced by methods on `ObjectFactory`. These deprecated methods will be removed in Gradle 6.0.
 
@@ -268,6 +260,12 @@ The `IdeaModule` Tooling API model element contains methods to retrieve resource
 - Chaining calls to the methods `file`, `files`, and `dir` on `TaskInputs` is now impossible.
 - Chaining calls to the methods `file`, `files`, and `dir` on `TaskOutputs` is now impossible.
 - Chaining calls to the method `property` and `properties` on `TaskInputs` is now an error.
+- `JavaPluginConvention` is now abstract. 
+- `ApplicationPluginConvention` is now abstract. 
+- `WarPluginConvention` is now abstract. 
+- `EarPluginConvention` is now abstract. 
+- `BasePluginConvention` is now abstract. 
+- `ProjectReportsPluginConvention` is now abstract. 
 
 ### Changes to internal APIs
 
