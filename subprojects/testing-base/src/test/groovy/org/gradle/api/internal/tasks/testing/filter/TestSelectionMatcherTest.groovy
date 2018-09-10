@@ -197,6 +197,8 @@ class TestSelectionMatcherTest extends Specification {
         ['Foo']                           | 'FooTest'            | false
         ['org.gradle.Foo']                | 'org.gradle.FooTest' | false
         ['org.gradle.Foo.*']              | 'org.gradle.FooTest' | false
+
+        ['Enclosing$Nested.test']         | "Enclosing"          | true
     }
 
     @Unroll
