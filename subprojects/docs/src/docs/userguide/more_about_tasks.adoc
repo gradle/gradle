@@ -89,25 +89,28 @@ Note that the Kotlin link:https://kotlinlang.org/docs/reference/delegated-proper
 [[sec:locating_tasks]]
 == Locating tasks
 
-You often need to locate the tasks that you have defined in the build file, for example, to configure them or use them for dependencies. There are a number of ways of doing this. Firstly, each task is available as a property of the project, using the task name as the property name:
+You often need to locate the tasks that you have defined in the build file, for example, to configure them or use them for dependencies. There are a number of ways of doing this. Firstly, just like with defining tasks there are language specific syntaxes for the Groovy and Kotlin DSL:
 
-.Accessing tasks as properties
+.Accessing tasks using a DSL specific syntax
 ====
-include::sample[dir="userguide/tasks/accessAsProperty",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/accessAsGroovyProperty",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/accessAsKotlinDelegatedProperty",files="build.gradle.kts[]"]
 ====
 
 Tasks are also available through the `tasks` collection.
 
 .Accessing tasks via tasks collection
 ====
-include::sample[dir="userguide/tasks/accessFromTaskContainer",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/accessFromTaskContainer/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/accessFromTaskContainer/kotlin",files="build.gradle.kts[]"]
 ====
 
 You can access tasks from any project using the task's path using the `tasks.getByPath()` method. You can call the `getByPath()` method with a task name, or a relative path, or an absolute path.
 
 .Accessing tasks by path
 ====
-include::sample[dir="userguide/tasks/accessUsingPath",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/accessUsingPath/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/accessUsingPath/kotlin",files="build.gradle.kts[]"]
 
 .Output of **`gradle -q hello`**
 ----
