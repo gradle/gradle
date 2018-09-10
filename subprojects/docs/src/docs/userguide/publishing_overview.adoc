@@ -172,13 +172,11 @@ The <<signing_plugin.adoc#signing_plugin, Signing Plugin>> can be used to sign a
 
 Here's an example that configures the plugin to sign the `mavenJava` publication:
 
-=== Example: Signing a publication
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/signing/maven-publish/build.gradle[tag=sign-publication]
-----
+.Signing a publication
+====
+include::sample[dir="signing/maven-publish/groovy",files="build.gradle[tags=sign-publication]"]
+include::sample[dir="signing/maven-publish/kotlin",files="build.gradle.kts[tags=sign-publication]"]
+====
 
 This will create a `Sign` task for each publication you specify and wire all `publish__PubName__PublicationTo__RepoName__Repository` tasks to depend on it. Thus, publishing any publication will automatically create and publish the signatures for its artifacts and metadata, as you can see from this output:
 

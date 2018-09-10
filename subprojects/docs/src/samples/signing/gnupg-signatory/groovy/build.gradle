@@ -1,5 +1,7 @@
-apply plugin: 'java'
-apply plugin: 'signing'
+plugins {
+    id 'java'
+    id 'signing'
+}
 
 group = 'gradle'
 version = '1.0'
