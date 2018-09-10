@@ -20,8 +20,8 @@ import java.net.URI
  * need this to be a script unless we can model dual usage better with composite/included builds or another solution.
  */
 
-val remoteCacheUrl = System.getProperty("gradle.cache.remote.url")?.let { URI(it) }
-val isCiServer = System.getenv().containsKey("CI")
+val remoteCacheUrl = System.getProperty("gradle.cache.remote.url")?.let(::URI)
+val isCiServer = "CI" in System.getenv()
 val remotePush = System.getProperty("gradle.cache.remote.push") != "false"
 val remoteCacheUsername = System.getProperty("gradle.cache.remote.username", "")
 val remoteCachePassword = System.getProperty("gradle.cache.remote.password", "")
@@ -32,7 +32,9 @@ buildCache {
     }
 }
 
-val isRemoteBuildCacheEnabled = remoteCacheUrl != null && gradle.startParameter.isBuildCacheEnabled && !gradle.startParameter.isOffline
+val isRemoteBuildCacheEnabled = remoteCacheUrl != null
+    && gradle.startParameter.run { isBuildCacheEnabled && !isOffline }
+
 if (isRemoteBuildCacheEnabled) {
     buildCache {
         remote<HttpBuildCache> {
