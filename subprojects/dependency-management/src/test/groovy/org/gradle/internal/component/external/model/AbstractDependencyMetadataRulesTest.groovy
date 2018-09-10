@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstraintMetadataImpl
@@ -57,7 +58,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
     @Shared versionIdentifier = new DefaultModuleVersionIdentifier("org.test", "producer", "1.0")
     @Shared componentIdentifier = DefaultModuleComponentIdentifier.newId(versionIdentifier)
     @Shared attributes = TestUtil.attributesFactory().of(Attribute.of("someAttribute", String), "someValue")
-    @Shared schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), TestUtil.valueSnapshotter())
+    @Shared schema = createSchema()
     @Shared mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews(true))
     @Shared ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory())
     @Shared defaultVariant
@@ -67,12 +68,19 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         new VariantMetadataRules.VariantAction<T>(spec, action)
     }
 
+    private DefaultAttributesSchema createSchema() {
+        def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), TestUtil.valueSnapshotter())
+        PlatformSupport.configureSchema(schema)
+        schema
+    }
+
+
     abstract boolean addAllDependenciesAsConstraints()
 
     abstract void doAddDependencyMetadataRule(MutableModuleComponentResolveMetadata metadataImplementation, String variantName = null, Action<? super DependenciesMetadata> action)
 
     boolean supportedInMetadata(String metadata) {
-        !addAllDependenciesAsConstraints() || metadata != "ivy" //ivy does not support dependency constraints or optional dependencies
+        !addAllDependenciesAsConstraints() || metadata == "gradle"
     }
 
     private ivyComponentMetadata(String[] deps) {

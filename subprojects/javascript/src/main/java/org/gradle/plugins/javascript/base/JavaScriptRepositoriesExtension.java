@@ -66,7 +66,7 @@ public class JavaScriptRepositoriesExtension {
             public void execute(IvyArtifactRepository repo) {
                 repo.setName("googleApisJs");
                 repo.setUrl(GOOGLE_APIS_REPO_URL);
-                repo.layout("pattern", new Action<IvyPatternRepositoryLayout>() {
+                repo.patternLayout(new Action<IvyPatternRepositoryLayout>() {
                     public void execute(IvyPatternRepositoryLayout layout) {
                         layout.artifact("[organization]/[revision]/[module].[ext]");
                         layout.ivy("[organization]/[revision]/[module].xml");

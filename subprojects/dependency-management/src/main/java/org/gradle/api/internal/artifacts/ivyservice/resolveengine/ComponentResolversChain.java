@@ -136,10 +136,12 @@ public class ComponentResolversChain {
     }
 
     private static class DependencyToComponentIdResolverChain implements DependencyToComponentIdResolver {
-        private final List<DependencyToComponentIdResolver> resolvers;
+        // Using an array here because we're going to iterate pretty often and it avoids the creation of an iterator
+        // that checks for concurrent modification
+        private final DependencyToComponentIdResolver[] resolvers;
 
         public DependencyToComponentIdResolverChain(List<DependencyToComponentIdResolver> resolvers) {
-            this.resolvers = resolvers;
+            this.resolvers = resolvers.toArray(new DependencyToComponentIdResolver[0]);
         }
 
         @Override

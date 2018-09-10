@@ -50,6 +50,7 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
 
                 withModule("org.spockframework:spock-core", ReplaceCglibNodepWithCglibRule::class.java)
                 withModule("org.jmock:jmock-legacy", ReplaceCglibNodepWithCglibRule::class.java)
+                withModule("cglib:cglib", NoAntRule::class.java)
 
                 //TODO check if we can upgrade the following dependencies and remove the rules
                 withModule("org.codehaus.groovy:groovy-all", DowngradeIvyRule::class.java)
@@ -273,9 +274,21 @@ open class ReplaceCglibNodepWithCglibRule : ComponentMetadataRule {
         context.details.allVariants {
             withDependencies {
                 filter { it.name == "cglib-nodep" }.forEach {
-                    add("${it.group}:cglib:3.2.6")
+                    add("${it.group}:cglib:3.2.7")
                 }
                 removeAll { it.name == "cglib-nodep" }
+            }
+        }
+    }
+}
+
+
+open class NoAntRule : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
+            withDependencies {
+                // because Gradle requires a different Ant version
+                removeAll { it.name == "ant" }
             }
         }
     }

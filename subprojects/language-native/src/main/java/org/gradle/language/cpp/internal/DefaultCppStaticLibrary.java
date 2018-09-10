@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
@@ -56,9 +55,9 @@ public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStat
     private final ConfigurableFileCollection outputs;
 
     @Inject
-    public DefaultCppStaticLibrary(Names names, ProjectLayout projectLayout, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        super(names, projectLayout, objectFactory, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
-        this.linkFile = projectLayout.fileProperty();
+    public DefaultCppStaticLibrary(Names names, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+        super(names, objectFactory, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
+        this.linkFile = objectFactory.fileProperty();
         this.createTaskProperty = objectFactory.property(CreateStaticLibrary.class);
         this.linkElements = objectFactory.property(Configuration.class);
         this.runtimeElements = objectFactory.property(Configuration.class);

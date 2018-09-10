@@ -68,23 +68,23 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     private final Property<NativeToolChain> toolChain;
 
     public AbstractLinkTask() {
-        ObjectFactory objectFactory = getProject().getObjects();
+        final ObjectFactory objectFactory = getProject().getObjects();
         this.libs = getProject().files();
         this.source = getProject().files();
-        this.linkedFile = newOutputFile();
-        this.destinationDirectory = newOutputDirectory();
+        this.linkedFile = objectFactory.fileProperty();
+        this.destinationDirectory = objectFactory.directoryProperty();
         destinationDirectory.set(linkedFile.map(new Transformer<Directory, RegularFile>() {
             @Override
             public Directory transform(RegularFile regularFile) {
                 // TODO: Get rid of destinationDirectory entirely and replace it with a
                 // collection of link outputs
-                DirectoryProperty dirProp = getProject().getLayout().directoryProperty();
+                DirectoryProperty dirProp = objectFactory.directoryProperty();
                 dirProp.set(regularFile.getAsFile().getParentFile());
                 return dirProp.get();
             }
         }));
         this.linkerArgs = getProject().getObjects().listProperty(String.class);
-        this.debuggable = objectFactory.property(Boolean.class);
+        this.debuggable = objectFactory.property(Boolean.class, false);
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
     }

@@ -157,6 +157,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     /**
      * Does the work of actually resolving a component selector to a component identifier.
      */
+    @Override
     public ComponentIdResolveResult resolve(VersionSelector allRejects) {
         if (!requiresResolve(allRejects)) {
             return idResolveResult;
@@ -177,6 +178,15 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         this.idResolveResult = idResolveResult;
         this.resolved = true;
         return idResolveResult;
+    }
+
+    @Override
+    public void failed(ModuleVersionResolveException failure) {
+        this.failure = failure;
+        BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
+        idResolveResult.failed(failure);
+        this.idResolveResult = idResolveResult;
+
     }
 
     private boolean requiresResolve(VersionSelector allRejects) {

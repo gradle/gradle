@@ -94,7 +94,7 @@ public class CompileOptions extends AbstractOptions {
     @Inject
     public CompileOptions(ProjectLayout projectLayout, ObjectFactory objectFactory) {
         this.annotationProcessorGeneratedSourcesDirectory = objectFactory.property(File.class);
-        this.headerOutputDirectory = projectLayout.directoryProperty();
+        this.headerOutputDirectory = objectFactory.directoryProperty();
     }
 
     /**

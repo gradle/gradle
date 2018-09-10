@@ -127,9 +127,9 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         return outputBuilder.toString();
     }
 
-    private void append(StringBuilder outputBuilder, String removalDetails) {
-        if (!StringUtils.isEmpty(removalDetails)) {
-            outputBuilder.append(" ").append(removalDetails);
+    private void append(StringBuilder outputBuilder, String message) {
+        if (!StringUtils.isEmpty(message)) {
+            outputBuilder.append(" ").append(message);
         }
     }
 

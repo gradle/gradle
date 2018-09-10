@@ -1,7 +1,7 @@
 
 class Producer extends DefaultTask {
     @OutputFile
-    final RegularFileProperty outputFile = newOutputFile()
+    final RegularFileProperty outputFile = project.objects.fileProperty()
 
     @TaskAction
     void produce() {
@@ -14,7 +14,7 @@ class Producer extends DefaultTask {
 
 class Consumer extends DefaultTask {
     @InputFile
-    final RegularFileProperty inputFile = newInputFile()
+    final RegularFileProperty inputFile = project.objects.fileProperty()
 
     @TaskAction
     void consume() {
@@ -28,12 +28,13 @@ task producer(type: Producer)
 task consumer(type: Consumer)
 
 // Wire property from producer to consumer task
+// Don't need to add a task dependency to the consumer task, this is automatically added
 consumer.inputFile = producer.outputFile
 
 // Set values for the producer lazily
-// Note that the consumer does not need to be changed again.
+// Don't need to update the consumer.inputFile property, this is automatically updated
 producer.outputFile = layout.buildDirectory.file('file.txt')
 
 // Change the base output directory.
-// Note that this automatically changes producer.outputFile and consumer.inputFile
+// Don't need to update producer.outputFile and consumer.inputFile, these are automatically updated
 buildDir = 'output'

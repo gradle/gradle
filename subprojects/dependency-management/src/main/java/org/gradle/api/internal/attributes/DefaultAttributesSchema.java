@@ -23,6 +23,7 @@ import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
@@ -55,6 +56,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         this.instantiatorFactory = instantiatorFactory;
         matcher = new DefaultAttributeMatcher(componentAttributeMatcher, mergeWith(EmptySchema.INSTANCE));
         this.isolatableFactory = isolatableFactory;
+        PlatformSupport.configureSchema(this);
     }
 
     @Override

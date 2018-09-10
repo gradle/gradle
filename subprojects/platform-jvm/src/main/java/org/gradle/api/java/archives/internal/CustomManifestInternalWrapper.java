@@ -17,9 +17,11 @@
 package org.gradle.api.java.archives.internal;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.ManifestException;
+import org.gradle.api.java.archives.ManifestMergeSpec;
 
 import java.io.OutputStream;
 import java.util.Map;
@@ -86,5 +88,10 @@ public class CustomManifestInternalWrapper implements ManifestInternal {
     @Override
     public Manifest from(Object mergePath, Closure<?> closure) {
         return delegate.from(mergePath, closure);
+    }
+
+    @Override
+    public Manifest from(Object mergePath, Action<ManifestMergeSpec> action) {
+        return delegate.from(mergePath, action);
     }
 }

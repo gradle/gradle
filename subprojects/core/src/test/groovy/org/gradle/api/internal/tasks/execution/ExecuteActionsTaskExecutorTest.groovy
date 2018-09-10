@@ -123,6 +123,8 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * action1.contextualise(executionContext)
         then:
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
+        then:
         1 * action1.execute(task) >> {
             assert state.executing
         }
@@ -131,21 +133,19 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
-        then:
         1 * standardOutputCapture.stop()
         then:
         1 * standardOutputCapture.start()
         then:
         1 * action2.contextualise(executionContext)
         then:
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
+        then:
         1 * action2.execute(task)
         then:
         1 * action2.releaseContext()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
-        then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -182,6 +182,8 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * action1.contextualise(executionContext)
         then:
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
+        then:
         1 * action1.execute(task) >> {
             task.getActions().add(action2)
         }
@@ -189,8 +191,6 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         1 * action1.releaseContext()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
-        then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -221,11 +221,11 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * action1.contextualise(executionContext)
         then:
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
+        then:
         1 * action1.releaseContext()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
-        then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -301,6 +301,8 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * action1.contextualise(executionContext)
         then:
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
+        then:
         1 * action1.execute(task) >> {
             throw new StopActionException('stop')
         }
@@ -309,21 +311,19 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
-        then:
         1 * standardOutputCapture.stop()
         then:
         1 * standardOutputCapture.start()
         then:
         1 * action2.contextualise(executionContext)
         then:
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
+        then:
         1 * action2.execute(task)
         then:
         1 * action2.releaseContext()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
-        then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -357,13 +357,13 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * action1.contextualise(executionContext)
         then:
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
+        then:
         1 * action1.releaseContext()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true) >> {
             throw new DefaultMultiCauseException("mock failures", new RuntimeException("failure 1"), new RuntimeException("failure 2"))
         }
-        then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -405,13 +405,13 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * action1.contextualise(executionContext)
         then:
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
+        then:
         1 * action1.releaseContext()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true) >> {
             throw new DefaultMultiCauseException("mock failures", new RuntimeException("failure 1"), new RuntimeException("failure 2"))
         }
-        then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         then:
@@ -452,13 +452,13 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * action1.contextualise(executionContext)
         then:
+        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
+        then:
         1 * action1.releaseContext()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true) >> {
             throw new DefaultMultiCauseException("mock failures", failure)
         }
-        then:
-        1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * standardOutputCapture.stop()
         then:

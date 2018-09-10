@@ -35,6 +35,7 @@ import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
+import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -322,7 +323,12 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
     }
 
     ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        return new DefaultObjectFactory(instantiatorFactory.injectAndDecorate(services), NamedObjectInstantiator.INSTANCE, fileResolver, directoryFileTreeFactory);
+        return new DefaultObjectFactory(
+            instantiatorFactory.injectAndDecorate(services),
+            NamedObjectInstantiator.INSTANCE,
+            fileResolver,
+            directoryFileTreeFactory,
+            new DefaultFilePropertyFactory(fileResolver));
     }
 
     ProviderFactory createProviderFactory() {

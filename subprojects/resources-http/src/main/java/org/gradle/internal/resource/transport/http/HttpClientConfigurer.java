@@ -65,6 +65,7 @@ import org.gradle.authentication.http.DigestAuthentication;
 import org.gradle.authentication.http.HttpHeaderAuthentication;
 import org.gradle.internal.authentication.AllSchemesAuthentication;
 import org.gradle.internal.authentication.AuthenticationInternal;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.resource.UriTextResource;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMCredentials;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMSchemeFactory;
@@ -73,7 +74,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HostnameVerifier;
-import java.io.IOException;
 import java.net.ProxySelector;
 import java.util.Collection;
 import java.util.Collections;
@@ -89,7 +89,7 @@ public class HttpClientConfigurer {
         String httpsProtocols = System.getProperty(HTTPS_PROTOCOLS);
         if (httpsProtocols != null) {
             SSL_PROTOCOLS = httpsProtocols.split(",");
-        } else if (JavaVersion.current().isJava7()) {
+        } else if (JavaVersion.current().isJava7() || (JavaVersion.current().isJava8() && Jvm.current().isIbmJvm())) {
             SSL_PROTOCOLS = new String[]{"TLSv1", "TLSv1.1", "TLSv1.2"};
         } else {
             SSL_PROTOCOLS = null;
@@ -247,7 +247,7 @@ public class HttpClientConfigurer {
 
     private void configureSocketConfig(HttpClientBuilder builder) {
         HttpTimeoutSettings timeoutSettings = httpSettings.getTimeoutSettings();
-        builder.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(timeoutSettings.getSocketTimeoutMs()).build());
+        builder.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(timeoutSettings.getSocketTimeoutMs()).setSoKeepAlive(true).build());
     }
 
     private void configureRedirectStrategy(HttpClientBuilder builder) {
@@ -281,7 +281,7 @@ public class HttpClientConfigurer {
             this.alwaysSendAuth = alwaysSendAuth;
         }
 
-        public void process(final HttpRequest request, final HttpContext context) throws HttpException, IOException {
+        public void process(final HttpRequest request, final HttpContext context) throws HttpException {
 
             AuthState authState = (AuthState) context.getAttribute(HttpClientContext.TARGET_AUTH_STATE);
 

@@ -66,6 +66,7 @@ dependencies {
 
     testImplementation testLibraries.jsoup
     testImplementation libraries.log4j_to_slf4j.coordinates
+    testImplementation libraries.jcl_to_slf4j.coordinates
 
     testRuntimeOnly libraries.xerces.coordinates
     testRuntimeOnly project(":diagnostics")

@@ -48,7 +48,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
     def "configures pmd extension"() {
         expect:
         PmdExtension extension = project.extensions.pmd
-        extension.ruleSets == ["java-basic"]
+        extension.ruleSets == ["category/java/errorprone.xml"]
         extension.ruleSetConfig == null
         extension.ruleSetFiles.empty
         extension.reportsDir == project.file("build/reports/pmd")
@@ -100,7 +100,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             assert description == "Run PMD analysis for ${sourceSet.name} classes"
             source as List == sourceSet.allJava as List
             assert pmdClasspath == project.configurations.pmd
-            assert ruleSets == ["java-basic"]
+            assert ruleSets == ["category/java/errorprone.xml"]
             assert ruleSetConfig == null
             assert ruleSetFiles.empty
             assert reports.xml.destination == project.file("build/reports/pmd/${sourceSet.name}.xml")
@@ -117,7 +117,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         task.description == null
         task.source.empty
         task.pmdClasspath == project.configurations.pmd
-        task.ruleSets == ["java-basic"]
+        task.ruleSets == ["category/java/errorprone.xml"]
         task.ruleSetConfig == null
         task.ruleSetFiles.empty
         task.reports.xml.destination == project.file("build/reports/pmd/custom.xml")

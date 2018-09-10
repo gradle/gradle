@@ -24,20 +24,14 @@ import java.util.Map;
  * Maintains the pending state of all modules seen during graph traversal.
  */
 public class PendingDependenciesState {
-    private static final PendingDependencies NOT_PENDING = PendingDependencies.notPending();
-
     private final Map<ModuleIdentifier, PendingDependencies> pendingDependencies = Maps.newHashMap();
 
     public PendingDependencies getPendingDependencies(ModuleIdentifier module) {
         PendingDependencies pendingDependencies = this.pendingDependencies.get(module);
         if (pendingDependencies == null) {
-            pendingDependencies = PendingDependencies.pending();
+            pendingDependencies = new PendingDependencies();
             this.pendingDependencies.put(module, pendingDependencies);
         }
         return pendingDependencies;
-    }
-
-    public PendingDependencies notPending(ModuleIdentifier module) {
-        return pendingDependencies.put(module, NOT_PENDING);
     }
 }
