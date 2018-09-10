@@ -39,9 +39,10 @@ import java.util.zip.ZipInputStream
 import org.gradle.api.Action
 import org.gradle.process.JavaExecSpec
 import groovy.transform.CompileStatic
-import org.openmbee.junit.model.JUnitTestSuite
 import org.openmbee.junit.JUnitMarshalling
+import org.openmbee.junit.model.JUnitTestSuite
 import org.apache.commons.io.input.CloseShieldInputStream
+import groovy.json.JsonOutput
 
 /**
  * Runs each performance test scenario in a dedicated TeamCity job.
@@ -54,10 +55,6 @@ import org.apache.commons.io.input.CloseShieldInputStream
 @CompileStatic
 @CacheableTask
 class DistributedPerformanceTest extends PerformanceTest {
-
-    @Internal
-    String coordinatorBuildId
-
     @Internal
     String branchName
 
@@ -80,21 +77,17 @@ class DistributedPerformanceTest extends PerformanceTest {
     @PathSensitive(PathSensitivity.RELATIVE)
     File scenarioList
 
-    @OutputFile
-    @PathSensitive(PathSensitivity.RELATIVE)
-    File scenarioReport
-
     @OutputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
     File reportDir
 
     private RESTClient client
 
-    private List<String> scheduledBuilds = Lists.newArrayList()
+    private List<String> scheduledBuildIds = Lists.newArrayList()
 
-    private List<Object> finishedBuilds = Lists.newArrayList()
+    private Map<String, Object> finishedBuilds = [:]
 
-    private Map<String, List<JUnitTestSuite>> testResultFilesForBuild = [:]
+    private Map<String, JUnitTestSuite> testResultForBuild = [:]
     private File workerTestResultsTempDir
 
     private final JUnitXmlTestEventsGenerator testEventsGenerator
@@ -105,6 +98,7 @@ class DistributedPerformanceTest extends PerformanceTest {
     DistributedPerformanceTest(BuildCancellationToken cancellationToken) {
         this.testEventsGenerator = new JUnitXmlTestEventsGenerator(listenerManager.createAnonymousBroadcaster(TestListener.class), listenerManager.createAnonymousBroadcaster(TestOutputListener.class))
         this.cancellationToken = cancellationToken
+        systemProperty("out-of-date", UUID.randomUUID().toString())
         jvmArgumentProviders.add(new CommandLineArgumentProvider() {
             @Override
             Iterable<String> asArguments() {
@@ -139,12 +133,29 @@ class DistributedPerformanceTest extends PerformanceTest {
         }
     }
 
+    private File generateResultJson() {
+        File resultJson = new File(workerTestResultsTempDir, 'results.json')
+        List<Map> resultData = finishedBuilds.collect { workerBuildId, xmlroot ->
+            // org.gradle.performance.results.ScenarioBuildResultData
+            [
+                scenarioName: findScenarioNameInXml(xmlroot),
+                webUrl: findWebUrlInXml(xmlroot),
+                successful: findStatusInXml(xmlroot),
+                result: testResultForBuild.get(workerBuildId)?.systemOut
+            ] as Map
+        }
+        resultJson.text = JsonOutput.toJson(resultData)
+        logger.info("JSON: ${resultJson.text}")
+
+        return resultJson
+    }
+
     private void generatePerformanceReport() {
         project.delete(reportDir)
         project.javaexec(new Action<JavaExecSpec>() {
             void execute(JavaExecSpec spec) {
                 spec.setMain("org.gradle.performance.results.ReportGenerator")
-                spec.args(resultStoreClass, reportDir.getPath())
+                spec.args(resultStoreClass, reportDir.path, generateResultJson().path)
                 spec.systemProperties(databaseParameters)
                 spec.systemProperty("org.gradle.performance.execution.channel", channel)
                 spec.setClasspath(DistributedPerformanceTest.this.getClasspath())
@@ -169,10 +180,10 @@ class DistributedPerformanceTest extends PerformanceTest {
 
         def scenarios = scenarioList.readLines()
             .collect { line ->
-                def parts = Splitter.on(';').split(line).toList()
-                new Scenario(id: parts[0], estimatedRuntime: Long.parseLong(parts[1]), templates: parts.subList(2, parts.size()))
-            }
-            .sort { -it.estimatedRuntime }
+            def parts = Splitter.on(';').split(line).toList()
+            new Scenario(id: parts[0], estimatedRuntime: Long.parseLong(parts[1]), templates: parts.subList(2, parts.size()))
+        }
+        .sort { -it.estimatedRuntime }
 
         createClient()
 
@@ -184,8 +195,6 @@ class DistributedPerformanceTest extends PerformanceTest {
         }
 
         waitForTestsCompletion()
-
-        writeScenarioReport()
 
         checkForErrors()
     }
@@ -202,16 +211,16 @@ class DistributedPerformanceTest extends PerformanceTest {
                     <properties>
                         <property name="scenario" value="${scenario.id}"/>
                         <property name="templates" value="${scenario.templates.join(' ')}"/>
-                        <property name="baselines" value="${baselines?:'defaults'}"/>
-                        <property name="warmups" value="${warmups!=null?:'defaults'}"/>
-                        <property name="runs" value="${runs!=null?:'defaults'}"/>
-                        <property name="checks" value="${checks?:'all'}"/>
-                        <property name="channel" value="${channel?:'commits'}"/>
+                        <property name="baselines" value="${baselines ?: 'defaults'}"/>
+                        <property name="warmups" value="${warmups ?: 'defaults'}"/>
+                        <property name="runs" value="${runs ?: 'defaults'}"/>
+                        <property name="checks" value="${checks ?: 'all'}"/>
+                        <property name="channel" value="${channel ?: 'commits'}"/>
                     </properties>
                     ${renderLastChange(lastChangeId)}
                 </build>
             """
-        logger.info("Scheduling $scenario.id, estimated runtime: $scenario.estimatedRuntime, coordinatorBuildId: $coordinatorBuildId, lastChangeId: $lastChangeId, build request: $buildRequest")
+        logger.info("Scheduling $scenario.id, estimated runtime: $scenario.estimatedRuntime, coordinatorBuildId: $buildId, lastChangeId: $lastChangeId, build request: $buildRequest")
         def response = client.post(
             path: "buildQueue",
             requestContentType: ContentType.XML,
@@ -223,9 +232,9 @@ class DistributedPerformanceTest extends PerformanceTest {
         }
         def scheduledChangeId = findLastChangeIdInXml(response.data)
         if (lastChangeId && scheduledChangeId != lastChangeId) {
-            throw new RuntimeException("The requested change id is different than the actual one. requested change id: $lastChangeId in coordinatorBuildId: $coordinatorBuildId , actual change id: $scheduledChangeId in workerBuildId: $workerBuildId\nresponse: ${xmlToString(response.data)}")
+            throw new RuntimeException("The requested change id is different than the actual one. requested change id: $lastChangeId in coordinatorBuildId: $buildId, actual change id: $scheduledChangeId in workerBuildId: $workerBuildId\nresponse: ${xmlToString(response.data)}")
         }
-        scheduledBuilds += workerBuildId
+        scheduledBuildIds += workerBuildId
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
@@ -254,21 +263,21 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     private CoordinatorBuild resolveCoordinatorBuild() {
-        if (coordinatorBuildId) {
-            def response = client.get(path: "builds/id:$coordinatorBuildId")
+        if (buildId) {
+            def response = client.get(path: "builds/id:$buildId")
             if (response.success) {
-                return new CoordinatorBuild(id: coordinatorBuildId, lastChangeId: findLastChangeIdInXml(response.data), buildTypeId: response.data.@buildTypeId.text())
+                return new CoordinatorBuild(id: buildId, lastChangeId: findLastChangeIdInXml(response.data), buildTypeId: response.data.@buildTypeId.text())
             }
         }
         return null
     }
 
     void waitForTestsCompletion() {
-        int total = scheduledBuilds.size()
+        int total = scheduledBuildIds.size()
         Set<String> completed = []
         while (completed.size() < total) {
             List<String> waiting = []
-            scheduledBuilds.each { build ->
+            scheduledBuildIds.each { build ->
                 if (!completed.contains(build)) {
                     if (checkResult(build)) {
                         completed << build
@@ -304,14 +313,28 @@ class DistributedPerformanceTest extends PerformanceTest {
     @TypeChecked(TypeCheckingMode.SKIP)
     private void collectPerformanceTestResults(def response, String jobId) {
         finishedBuilds += response.data
-
         try {
-            List<JUnitTestSuite> results = fetchTestResults(response.data)
-            testResultFilesForBuild.put(jobId, results)
-            fireTestListener(results, response.data)
+            JUnitTestSuite result = fetchTestResult(response.data)
+            testResultForBuild.put(jobId, result)
+            fireTestListener(result, response.data)
         } catch (e) {
             e.printStackTrace(System.err)
         }
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private String findScenarioNameInXml(xmlroot) {
+        xmlroot.properties.children().find { it.@name == 'scenario' }.@value.text()
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private boolean findStatusInXml(xmlroot) {
+        xmlroot.@status.toString() == 'SUCCESS'
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private String findWebUrlInXml(xmlroot) {
+        xmlroot.@webUrl.toString()
     }
 
     void cancel(String buildId) {
@@ -334,7 +357,7 @@ class DistributedPerformanceTest extends PerformanceTest {
     }
 
     void cancel(String buildId, String endpoint) {
-        String link = XmlUtil.escapeXml("$teamCityUrl/viewLog.html?buildId=$coordinatorBuildId&buildTypeId=$buildTypeId")
+        String link = XmlUtil.escapeXml("$teamCityUrl/viewLog.html?buildId=$buildId&buildTypeId=$buildTypeId")
         String cancelRequest = """<buildCancelRequest comment="Coordinator build was canceled: $link" readdIntoQueue="false" />"""
         client.post(
             path: "$endpoint/id:$buildId",
@@ -343,15 +366,13 @@ class DistributedPerformanceTest extends PerformanceTest {
         )
     }
 
-    private void fireTestListener(List<JUnitTestSuite> results, Object build) {
-        results.each {
-            testEventsGenerator.processTestSuite(it, build)
-        }
+    private void fireTestListener(JUnitTestSuite result, Object build) {
+        testEventsGenerator.processTestSuite(result, build)
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private List<JUnitTestSuite> fetchTestResults(buildData) {
-        def junitTestSuites = []
+    private JUnitTestSuite fetchTestResult(buildData) {
+        JUnitTestSuite testSuite = null
         def artifactsUri = buildData?.artifacts?.@href?.text()
         if (artifactsUri) {
             def resultArtifacts = client.get(path: "${artifactsUri}/results/${project.name}/build/")
@@ -364,15 +385,15 @@ class DistributedPerformanceTest extends PerformanceTest {
                     def contentUri = fileNode.content.@href.text()
                     client.get(path: contentUri, contentType: ContentType.BINARY) {
                         resp, inputStream ->
-                            junitTestSuites = parseXmlsInZip(inputStream)
+                            testSuite = parseXmlsInZip(inputStream)
                     }
                 }
             }
         }
-        junitTestSuites
+        return testSuite
     }
 
-    List<JUnitTestSuite> parseXmlsInZip(InputStream inputStream) {
+    JUnitTestSuite parseXmlsInZip(InputStream inputStream) {
         List<JUnitTestSuite> parsedXmls = []
         new ZipInputStream(inputStream).withStream { zipInput ->
             def entry
@@ -382,22 +403,15 @@ class DistributedPerformanceTest extends PerformanceTest {
                 }
             }
         }
-        parsedXmls
-    }
-
-    private void writeScenarioReport() {
-        def renderer = new ScenarioReportRenderer()
-        IoActions.writeTextFile(scenarioReport) { Writer writer ->
-            renderer.render(writer, project.name, finishedBuilds, testResultFilesForBuild)
-        }
-        renderer.writeCss(scenarioReport.getParentFile())
+        assert parsedXmls.size() == 1
+        parsedXmls[0]
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
     private void checkForErrors() {
-        def failedBuilds = finishedBuilds.findAll { it.@status != "SUCCESS"}
+        def failedBuilds = finishedBuilds.values().findAll { it.@status != "SUCCESS" }
         if (failedBuilds) {
-            throw new GradleException("${failedBuilds.size()} performance tests failed. See $scenarioReport for details.")
+            throw new GradleException("${failedBuilds.size()} performance tests failed. See $reportDir for details.")
         }
     }
 
@@ -407,7 +421,6 @@ class DistributedPerformanceTest extends PerformanceTest {
         client.headers['Origin'] = teamCityUrl
         client
     }
-
 
     private static class Scenario {
         String id

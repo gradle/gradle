@@ -79,6 +79,10 @@ allprojects {
             name = "kotlin-dev"
             url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
         }
+        maven {
+            name = "Gradle ext releases"
+            url = uri("https://repo.gradle.org/gradle/ext-releases-local")
+        }
     }
 }
 

@@ -59,7 +59,7 @@ object ProjectGroups {
             rootProject.project(":resources"))
 
     val Project.projectsRequiringJava8
-        get() = setOf(rootProject.project(":testingJunitPlatform"))
+        get() = setOf(rootProject.project(":testingJunitPlatform"), rootProject.project("internalPerformanceTesting"))
 
     val Project.publicProjects
         get() = pluginProjects +

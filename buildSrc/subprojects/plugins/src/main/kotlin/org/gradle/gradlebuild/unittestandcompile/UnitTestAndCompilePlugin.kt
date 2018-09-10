@@ -227,6 +227,14 @@ open class UnitTestAndCompileExtension(val project: Project) {
             if (this@UnitTestAndCompileExtension.moduleType == ModuleType.UNDEFINED) {
                 throw InvalidUserDataException("gradlebuild.moduletype must be set for project $project")
             }
+            if (this@UnitTestAndCompileExtension.moduleType == ModuleType.REQUIRES_JAVA_8) {
+                val javaInstallationForTest = rootProject.availableJavaInstallations.javaInstallationForTest
+                if (javaInstallationForTest.javaVersion.isJava7) {
+                    project.tasks.withType<Test>().configureEach {
+                        enabled = false
+                    }
+                }
+            }
         }
     }
 }

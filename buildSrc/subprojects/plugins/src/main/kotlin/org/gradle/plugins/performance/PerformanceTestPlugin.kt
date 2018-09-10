@@ -40,7 +40,6 @@ object PropertyNames {
     const val dbPassword = "org.gradle.performance.db.password"
 
     const val workerTestTaskName = "org.gradle.performance.workerTestTaskName"
-    const val coordinatorBuildId = "org.gradle.performance.coordinatorBuildId"
     const val performanceTestVerbose = "performanceTest.verbose"
     const val baselines = "org.gradle.performance.baselines"
     const val buildTypeId = "org.gradle.performance.buildTypeId"
@@ -319,10 +318,8 @@ class PerformanceTestPlugin : Plugin<Project> {
             configureReportProperties()
             configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask)
             scenarioList = buildDir / Config.performanceTestScenarioListFileName
-            scenarioReport = buildDir / Config.performanceTestScenarioReportFileName
             buildTypeId = stringPropertyOrNull(PropertyNames.buildTypeId)
             workerTestTaskName = stringPropertyOrNull(PropertyNames.workerTestTaskName) ?: "fullPerformanceTest"
-            coordinatorBuildId = stringPropertyOrNull(PropertyNames.coordinatorBuildId)
             branchName = stringPropertyOrNull(PropertyNames.branchName)
             teamCityUrl = Config.teamCityUrl
             teamCityUsername = stringPropertyOrNull(PropertyNames.teamCityUsername)
@@ -402,6 +399,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         task.apply {
             group = "verification"
+            buildId = System.getenv("BUILD_ID")
             addDatabaseParameters(propertiesForPerformanceDb())
             testClassesDirs = performanceSourceSet.output.classesDirs
             classpath = performanceSourceSet.runtimeClasspath
