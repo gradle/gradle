@@ -23,6 +23,7 @@ import org.gradle.util.GUtil;
 import javax.annotation.Nullable;
 import java.util.List;
 
+@SuppressWarnings("checkstyle:EqualsHashCode")
 public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint implements ImmutableVersionConstraint {
     private static final DefaultImmutableVersionConstraint EMPTY = new DefaultImmutableVersionConstraint("");
     private final String requiredVersion;

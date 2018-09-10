@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.artifacts.ResolvableDependency;
 
+@SuppressWarnings("checkstyle:EqualsHashCode")
 public abstract class AbstractDependency implements ResolvableDependency, Dependency {
     private String reason;
 
