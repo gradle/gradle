@@ -274,7 +274,8 @@ With these rules present it is still possible to execute `taskA` without `taskB`
 
 .Adding a 'must run after' task ordering
 ====
-include::sample[dir="userguide/tasks/mustRunAfter",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/mustRunAfter/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/mustRunAfter/kotlin",files="build.gradle.kts[]"]
 
 .Output of **`gradle -q taskY taskX`**
 ----
@@ -285,7 +286,8 @@ include::{samplesPath}/userguide/tasks/mustRunAfter/mustRunAfter.out[]
 
 .Adding a 'should run after' task ordering
 ====
-include::sample[dir="userguide/tasks/shouldRunAfter",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/shouldRunAfter/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/shouldRunAfter/kotlin",files="build.gradle.kts[]"]
 
 .Output of **`gradle -q taskY taskX`**
 ----
@@ -317,7 +319,8 @@ As mentioned before, the “should run after” ordering rule will be ignored if
 
 .A 'should run after' task ordering is ignored if it introduces an ordering cycle
 ====
-include::sample[dir="userguide/tasks/shouldRunAfterWithCycle",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/shouldRunAfterWithCycle/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/shouldRunAfterWithCycle/kotlin",files="build.gradle.kts[]"]
 
 .Output of **`gradle -q taskX`**
 ----
