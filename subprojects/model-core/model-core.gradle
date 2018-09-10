@@ -26,6 +26,7 @@ plugins {
 
 dependencies {
     api project(':baseServices')
+    api project(":coreApi")
     api libraries.groovy.coordinates
 
     implementation project(':baseServicesGroovy')
@@ -50,6 +51,7 @@ gradlebuildJava {
 
 testFixtures {
     from(':core')
+    from(':coreApi')
     from(':diagnostics', 'testFixtures')
 }
 
