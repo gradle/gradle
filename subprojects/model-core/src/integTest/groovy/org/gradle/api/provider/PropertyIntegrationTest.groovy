@@ -216,4 +216,35 @@ task wrongRuntimeType {
         failure.assertHasDescription("Execution failed for task ':wrongRuntimeType'.")
         failure.assertHasCause("Cannot get the value of a property of type java.lang.String as the provider associated with this property returned a value of type java.lang.Integer.")
     }
+
+    def "emits deprecation warning when specialized factory method is not used"() {
+        buildFile << """
+class SomeExtension {
+    final Property<List<String>> prop1
+    final Property<Set<String>> prop2
+    final Property<Directory> prop3
+    final Property<RegularFile> prop4
+
+    @javax.inject.Inject
+    SomeExtension(ObjectFactory objects) {
+        prop1 = objects.property(List)
+        prop2 = objects.property(Set)
+        prop3 = objects.property(Directory)
+        prop4 = objects.property(RegularFile)
+    }
+}
+ 
+project.extensions.create("some", SomeExtension, objects)            
+        """
+
+        when:
+        executer.expectDeprecationWarnings(4)
+        succeeds()
+
+        then:
+        outputContains("Using method ObjectFactory.property() to create a property of type List<T> has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.listProperty() method instead.")
+        outputContains("Using method ObjectFactory.property() method to create a property of type Set<T> has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.setProperty() method instead.")
+        outputContains("Using method ObjectFactory.property() method to create a property of type Directory has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.directoryProperty() method instead.")
+        outputContains("Using method ObjectFactory.property() method to create a property of type RegularFile has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.fileProperty() method instead.")
+    }
 }

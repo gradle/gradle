@@ -23,7 +23,7 @@ class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPe
 
     def setup() {
         runner.minimumVersion = "4.3"
-        runner.targetVersions = ["4.10-20180725235906+0000"]
+        runner.targetVersions = ["5.0-20180909235858+0000"]
         runner.args += ["-Dorg.gradle.caching.native=true", "--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 

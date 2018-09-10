@@ -52,14 +52,14 @@ import java.util.Map;
  */
 class ResolveState implements ComponentStateFactory<ComponentState> {
     private final Spec<? super DependencyMetadata> edgeFilter;
-    private final Map<ModuleIdentifier, ModuleResolveState> modules = new LinkedHashMap<ModuleIdentifier, ModuleResolveState>();
-    private final Map<ResolvedConfigurationIdentifier, NodeState> nodes = new LinkedHashMap<ResolvedConfigurationIdentifier, NodeState>();
-    private final Map<ComponentSelector, SelectorState> selectors = new LinkedHashMap<ComponentSelector, SelectorState>();
+    private final Map<ModuleIdentifier, ModuleResolveState> modules;
+    private final Map<ResolvedConfigurationIdentifier, NodeState> nodes;
+    private final Map<ComponentSelector, SelectorState> selectors;
     private final RootNode root;
     private final IdGenerator<Long> idGenerator;
     private final DependencyToComponentIdResolver idResolver;
     private final ComponentMetaDataResolver metaDataResolver;
-    private final Deque<NodeState> queue = new ArrayDeque<NodeState>();
+    private final Deque<NodeState> queue;
     private final AttributesSchemaInternal attributesSchema;
     private final ModuleExclusions moduleExclusions;
     private final DeselectVersionAction deselectVersionAction = new DeselectVersionAction(this);
@@ -79,7 +79,8 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
                         ModuleExclusions moduleExclusions, ModuleReplacementsData moduleReplacementsData,
                         ComponentSelectorConverter componentSelectorConverter, ImmutableAttributesFactory attributesFactory,
                         DependencySubstitutionApplicator dependencySubstitutionApplicator, VersionSelectorScheme versionSelectorScheme,
-                        Comparator<Version> versionComparator, VersionParser versionParser) {
+                        Comparator<Version> versionComparator, VersionParser versionParser,
+                        int graphSize) {
         this.idGenerator = idGenerator;
         this.idResolver = idResolver;
         this.metaDataResolver = metaDataResolver;
@@ -93,6 +94,10 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
+        this.modules = new LinkedHashMap<ModuleIdentifier, ModuleResolveState>(graphSize);
+        this.nodes = new LinkedHashMap<ResolvedConfigurationIdentifier, NodeState>(3*graphSize/2);
+        this.selectors = new LinkedHashMap<ComponentSelector, SelectorState>(5*graphSize/2);
+        this.queue = new ArrayDeque<NodeState>(graphSize);
         ComponentState rootVersion = getRevision(rootResult.getId(), rootResult.getModuleVersionId(), rootResult.getMetadata());
         final ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(rootVersion.getId(), rootConfigurationName);
         ConfigurationMetadata configurationMetadata = rootVersion.getMetadata().getConfiguration(id.getConfiguration());

@@ -39,7 +39,7 @@ class SelectorStateResolverResults {
         results = Lists.newArrayListWithCapacity(size);
     }
 
-    public <T extends ComponentResolutionState> List<T> getResolved(ComponentStateFactory<T> componentFactory) {
+    public <T extends ComponentResolutionState> List<T> getResolved(ComponentStateFactory<T> componentFactory, List<ResolvableSelectorState> emptySelectors) {
         ModuleVersionResolveException failure = null;
         List<T> resolved = null;
         for (Registration entry : results) {
@@ -68,10 +68,19 @@ class SelectorStateResolverResults {
         }
 
         if (resolved == null && failure != null) {
+            recordFailureInEmptySelectors(emptySelectors, failure);
             throw failure;
         }
 
         return resolved == null ? Collections.<T>emptyList() : resolved;
+    }
+
+    private void recordFailureInEmptySelectors(List<ResolvableSelectorState> emptySelectors, ModuleVersionResolveException failure) {
+        if (emptySelectors != null) {
+            for (ResolvableSelectorState emptySelector : emptySelectors) {
+                emptySelector.failed(failure);
+            }
+        }
     }
 
     public static <T extends ComponentResolutionState> T componentForIdResolveResult(ComponentStateFactory<T> componentFactory, ComponentIdResolveResult idResolveResult, ResolvableSelectorState selector) {
@@ -118,14 +127,14 @@ class SelectorStateResolverResults {
     }
 
     private boolean sameVersion(ComponentIdResolveResult existing, ComponentIdResolveResult resolveResult) {
-        if (existing.getFailure()==null && resolveResult.getFailure() == null) {
+        if (existing.getFailure() == null && resolveResult.getFailure() == null) {
             return existing.getId().equals(resolveResult.getId());
         }
         return false;
     }
 
     private boolean lowerVersion(ComponentIdResolveResult existing, ComponentIdResolveResult resolveResult) {
-        if (existing.getFailure()==null && resolveResult.getFailure() == null) {
+        if (existing.getFailure() == null && resolveResult.getFailure() == null) {
             Version existingVersion = VERSION_PARSER.transform(existing.getModuleVersionId().getVersion());
             Version candidateVersion = VERSION_PARSER.transform(resolveResult.getModuleVersionId().getVersion());
 

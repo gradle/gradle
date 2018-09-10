@@ -312,7 +312,8 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         withBuildCache().run "jar"
 
         then:
-        output.contains("java.net.UnknownHostException: invalid.invalid")
+        output.contains("java.net.UnknownHostException")
+        output.contains("invalid.invalid")
         output.contains("The remote build cache was disabled during the build due to errors.")
     }
 }

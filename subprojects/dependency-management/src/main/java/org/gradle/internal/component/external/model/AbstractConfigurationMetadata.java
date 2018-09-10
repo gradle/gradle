@@ -29,7 +29,6 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -39,7 +38,7 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
     private final ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
     private final boolean transitive;
     private final boolean visible;
-    private final ImmutableList<String> hierarchy;
+    private final ImmutableSet<String> hierarchy;
     private final ImmutableList<ExcludeMetadata> excludes;
     private final ImmutableAttributes attributes;
     private final ImmutableCapabilities capabilities;
@@ -47,9 +46,9 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
     private ImmutableList<ModuleDependencyMetadata> configDependencies;
 
     AbstractConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
-                                         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableList<String> hierarchy,
-                                         ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
-                                         ImmutableList<ModuleDependencyMetadata> configDependencies, ImmutableCapabilities capabilities) {
+                                  ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableSet<String> hierarchy,
+                                  ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
+                                  ImmutableList<ModuleDependencyMetadata> configDependencies, ImmutableCapabilities capabilities) {
 
         this.componentId = componentId;
         this.name = name;
@@ -79,7 +78,7 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
     }
 
     @Override
-    public Collection<String> getHierarchy() {
+    public ImmutableSet<String> getHierarchy() {
         return hierarchy;
     }
 

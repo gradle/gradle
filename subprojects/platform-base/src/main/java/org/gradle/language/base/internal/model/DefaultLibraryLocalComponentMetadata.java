@@ -16,6 +16,7 @@
 package org.gradle.language.base.internal.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -85,7 +86,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
                 usage,
                 String.format("Request metadata: %s", componentId.getDisplayName()),
                 Collections.<String>emptySet(),
-                Collections.singleton(usage),
+                ImmutableSet.of(usage),
                 true,
                 true,
                 ImmutableAttributes.EMPTY,
@@ -168,7 +169,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
     }
 
     @Override
-    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved, ImmutableCapabilities capabilities) {
+    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, ImmutableSet<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved, ImmutableCapabilities capabilities) {
         assert hierarchy.contains(name);
         DefaultLocalConfigurationMetadata conf = new LibraryLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved, capabilities);
         addToConfigurations(name, conf);
@@ -182,7 +183,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
                                           boolean visible,
                                           boolean transitive,
                                           Set<String> extendsFrom,
-                                          Set<String> hierarchy,
+                                          ImmutableSet<String> hierarchy,
                                           ImmutableAttributes attributes,
                                           boolean canBeConsumed,
                                           boolean canBeResolved,

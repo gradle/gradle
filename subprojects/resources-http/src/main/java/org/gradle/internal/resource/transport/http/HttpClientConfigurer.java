@@ -65,6 +65,7 @@ import org.gradle.authentication.http.DigestAuthentication;
 import org.gradle.authentication.http.HttpHeaderAuthentication;
 import org.gradle.internal.authentication.AllSchemesAuthentication;
 import org.gradle.internal.authentication.AuthenticationInternal;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.resource.UriTextResource;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMCredentials;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMSchemeFactory;
@@ -88,7 +89,7 @@ public class HttpClientConfigurer {
         String httpsProtocols = System.getProperty(HTTPS_PROTOCOLS);
         if (httpsProtocols != null) {
             SSL_PROTOCOLS = httpsProtocols.split(",");
-        } else if (JavaVersion.current().isJava7()) {
+        } else if (JavaVersion.current().isJava7() || (JavaVersion.current().isJava8() && Jvm.current().isIbmJvm())) {
             SSL_PROTOCOLS = new String[]{"TLSv1", "TLSv1.1", "TLSv1.2"};
         } else {
             SSL_PROTOCOLS = null;

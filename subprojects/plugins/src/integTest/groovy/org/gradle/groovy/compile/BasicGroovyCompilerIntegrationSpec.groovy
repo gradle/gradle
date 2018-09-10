@@ -17,7 +17,6 @@ package org.gradle.groovy.compile
 
 import com.google.common.collect.Ordering
 import org.gradle.api.Action
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
@@ -29,7 +28,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Ignore
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 @TargetCoverage({GroovyCoverage.ALL})
@@ -388,7 +386,8 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     // JavaFx was removed in JDK 10
-    @IgnoreIf({ JavaVersion.current() < JavaVersion.VERSION_1_8 || JavaVersion.current() > JavaVersion.VERSION_1_9 })
+    // Only oracle distribution contains JavaFx
+    @Requires([TestPrecondition.JDK8_OR_LATER, TestPrecondition.JDK9_OR_EARLIER, TestPrecondition.NOT_JDK_IBM])
     def "compileJavaFx8Code"() {
         expect:
         succeeds("compileGroovy")
