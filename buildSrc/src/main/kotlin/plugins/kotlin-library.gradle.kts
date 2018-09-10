@@ -60,9 +60,6 @@ tasks {
         systemProperty(
             DefaultClassLoaderScope.STRICT_MODE_PROPERTY,
             true)
-
-        // sets the memory limits for test workers
-        jvmArgs("-Xms64m", "-Xmx128m")
     }
 
     register("quickTest", Test::class) {
