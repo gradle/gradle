@@ -1,29 +1,31 @@
 import org.example.*
 
-apply plugin: "base"
+plugins {
+    base
+}
 
-task processTemplates(type: ProcessTemplates) {
+val processTemplates by tasks.creating(ProcessTemplates::class) {
     templateEngine = TemplateEngineType.FREEMARKER
     sourceFiles = fileTree("src/templates")
-    templateData = new TemplateData("test", [year: 2012])
+    templateData = TemplateData("test", mapOf("year" to "2012"))
     outputDir = file("$buildDir/genOutput")
 }
 
 // tag::ad-hoc-task[]
-task processTemplatesAdHoc {
+task("processTemplatesAdHoc") {
     inputs.property("engine", TemplateEngineType.FREEMARKER)
     inputs.files(fileTree("src/templates"))
     inputs.property("templateData.name", "docs")
-    inputs.property("templateData.variables", [year: 2013])
+    inputs.property("templateData.variables", mapOf("year" to "2013"))
     outputs.dir("$buildDir/genOutput2")
 
     doLast {
         // Process the templates here
 // end::ad-hoc-task[]
         copy {
-            into "$buildDir/genOutput2"
-            from fileTree("src/templates")
-            expand([year: 2013])
+            into("$buildDir/genOutput2")
+            from(fileTree("src/templates"))
+            expand("year" to "2012")
         }
 
 // tag::ad-hoc-task[]
@@ -32,13 +34,13 @@ task processTemplatesAdHoc {
 // end::ad-hoc-task[]
 
 // tag::custom-class-runtime-api[]
-task processTemplatesRuntime(type: ProcessTemplatesNoAnnotations) {
+task<ProcessTemplatesNoAnnotations>("processTemplatesRuntime") {
     templateEngine = TemplateEngineType.FREEMARKER
     sourceFiles = fileTree("src/templates")
-    templateData = new TemplateData("test", [year: 2014])
+    templateData = TemplateData("test", mapOf("year" to "2014"))
     outputDir = file("$buildDir/genOutput3")
 
-    inputs.property("engine",templateEngine)
+    inputs.property("engine", templateEngine)
     inputs.files(sourceFiles)
     inputs.property("templateData.name", templateData.name)
     inputs.property("templateData.variables", templateData.variables)
@@ -47,21 +49,21 @@ task processTemplatesRuntime(type: ProcessTemplatesNoAnnotations) {
 // end::custom-class-runtime-api[]
 
 // tag::runtime-api-conf[]
-task processTemplatesRuntimeConf(type: ProcessTemplatesNoAnnotations) {
+task<ProcessTemplatesNoAnnotations>("processTemplatesRuntimeConf") {
     // ...
 // end::runtime-api-conf[]
     templateEngine = TemplateEngineType.FREEMARKER
-    templateData = new TemplateData("test", [year: 2014])
+    templateData = TemplateData("test", mapOf("year" to "2014"))
     outputDir = file("$buildDir/genOutput3")
 // tag::runtime-api-conf[]
     sourceFiles = fileTree("src/templates") {
-        include "**/*.fm"
+        include("**/*.fm")
     }
 
     inputs.files(sourceFiles).skipWhenEmpty()
     // ...
 // end::runtime-api-conf[]
-    inputs.property("engine",templateEngine)
+    inputs.property("engine", templateEngine)
     inputs.property("templateData.name", templateData.name)
     inputs.property("templateData.variables", templateData.variables)
     outputs.dir(outputDir)
@@ -70,20 +72,20 @@ task processTemplatesRuntimeConf(type: ProcessTemplatesNoAnnotations) {
 // end::runtime-api-conf[]
 
 // tag::inferred-task-dep-via-outputs[]
-task packageFiles(type: Zip) {
-    from processTemplates.outputs
+task<Zip>("packageFiles") {
+    from(processTemplates.outputs)
 }
 // end::inferred-task-dep-via-outputs[]
 
 // tag::inferred-task-dep-via-task[]
-task packageFiles2(type: Zip) {
-    from processTemplates
+task<Zip>("packageFiles2") {
+    from(processTemplates)
 }
 // end::inferred-task-dep-via-task[]
 
 
 // tag::adhoc-destroyable-task[]
-task removeTempDir {
+task("removeTempDir") {
     destroyables.register("$projectDir/tmpDir")
     doLast {
         delete("$projectDir/tmpDir")
@@ -91,4 +93,4 @@ task removeTempDir {
 }
 // end::adhoc-destroyable-task[]
 
-build.dependsOn processTemplates, processTemplatesAdHoc, processTemplatesRuntime, processTemplatesRuntimeConf
+tasks["build"].dependsOn(processTemplates, "processTemplatesAdHoc", "processTemplatesRuntime", "processTemplatesRuntimeConf")

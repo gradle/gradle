@@ -490,13 +490,13 @@ When you’re writing a custom task class, it’s easy to register properties as
 [source,java]
 .buildSrc/src/main/java/org/example/ProcessTemplates.java
 ----
-include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=custom-task-class]
+include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/groovy/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=custom-task-class]
 ----
 
 [source,java]
 .buildSrc/src/main/java/org/example/TemplateData.java
 ----
-include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/buildSrc/src/main/java/org/example/TemplateData.java[]
+include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/groovy/buildSrc/src/main/java/org/example/TemplateData.java[]
 ----
 
 .Output of `gradle processTemplates`
@@ -757,7 +757,8 @@ Let’s take the template processing example from before and see how it would lo
 
 .Ad-hoc task
 ====
-include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass",files="build.gradle[tags=ad-hoc-task]"]
+include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass/groovy",files="build.gradle[tags=ad-hoc-task]"]
+include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass/kotlin",files="build.gradle.kts[tags=ad-hoc-task]"]
 
 .Output of **`gradle processTemplatesAdHoc`**
 ----
@@ -776,7 +777,8 @@ The files that a task removes can be specified through `destroyables.register()`
 
 .Ad-hoc task declaring a destroyable
 ====
-include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass",files="build.gradle[tags=adhoc-destroyable-task]"]
+include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass/groovy",files="build.gradle[tags=adhoc-destroyable-task]"]
+include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass/kotlin",files="build.gradle.kts[tags=adhoc-destroyable-task]"]
 ====
 
 One notable difference between the runtime API and the annotations is the lack of a method that corresponds directly to `@Nested`. That’s why the example uses two `property()` declarations for the template data, one for each `TemplateData` property. You should utilize the same technique when using the runtime API with nested values.  Any given task can either declare destroyables or inputs/outputs, but cannot declare both.
@@ -788,7 +790,8 @@ Another type of example involves adding input and output definitions to instance
 
 .Using runtime API with custom task type
 ====
-include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass",files="build.gradle[tags=custom-class-runtime-api]"]
+include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass/groovy",files="build.gradle[tags=custom-class-runtime-api]"]
+include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass/kotlin",files="build.gradle.kts[tags=custom-class-runtime-api]"]
 
 .Output of `gradle processTemplatesRuntime`
 ----
@@ -816,7 +819,8 @@ Let’s say we don’t want to run the `processTemplates` task if there are no s
 
 .Using skipWhenEmpty() via the runtime API
 ====
-include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass",files="build.gradle[tags=runtime-api-conf]"]
+include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass/groovy",files="build.gradle[tags=runtime-api-conf]"]
+include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass/kotlin",files="build.gradle.kts[tags=runtime-api-conf]"]
 
 .Output of **`gradle clean processTemplatesRuntimeConf`**
 ----
@@ -844,7 +848,8 @@ Consider an archive task that packages the output of the `processTemplates` task
 
 .Inferred task dependency via task outputs
 ====
-include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass",files="build.gradle[tags=inferred-task-dep-via-outputs]"]
+include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass/groovy",files="build.gradle[tags=inferred-task-dep-via-outputs]"]
+include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass/kotlin",files="build.gradle.kts[tags=inferred-task-dep-via-outputs]"]
 
 .Output of **`gradle clean packageFiles`**
 ----
@@ -859,7 +864,8 @@ The above example can also be written as
 
 .Inferred task dependency via a task argument
 ====
-include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass",files="build.gradle[tags=inferred-task-dep-via-task]"]
+include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass/groovy",files="build.gradle[tags=inferred-task-dep-via-task]"]
+include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass/kotlin",files="build.gradle.kts[tags=inferred-task-dep-via-task]"]
 
 .Output of **`gradle clean packageFiles2`**
 ----
@@ -942,12 +948,13 @@ The implementation is quite simple and you can use the same technique for your o
 
 .Declaring a method to add task inputs
 ====
-include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced",files="build.gradle[tags=custom-task-class]"]
+include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced/groovy",files="build.gradle[tags=custom-task-class]"]
+include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=custom-task-class]"]
 
 .ProcessTemplates.java
 [source,java]
 ----
-include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=custom-task-class]
+include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/groovy/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=custom-task-class]
 ----
 
 .Output of `gradle processTemplates`
@@ -963,12 +970,13 @@ If we want to support tasks as arguments as well and treat their outputs as the 
 
 .Declaring a method to add a task as an input
 ====
-include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced",files="build.gradle[tags=task-arg-method]"]
+include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced/groovy",files="build.gradle[tags=task-arg-method]"]
+include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=task-arg-method]"]
 
 .ProcessTemplates.java
 [source,java]
 ----
-include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=task-arg-method]
+include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/groovy/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=task-arg-method]
 ----
 
 .Output of `gradle processTemplates2`
@@ -994,7 +1002,8 @@ As an example, imagine you want to use the output of a Java compilation task - v
 
 .Failed attempt at setting up an inferred task dependency
 ====
-include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced",files="build.gradle[tags=failed-inferred-task-dep]"]
+include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced/groovy",files="build.gradle[tags=failed-inferred-task-dep]"]
+include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=failed-inferred-task-dep]"]
 
 .Output of **`gradle clean badInstrumentClasses`**
 ----
@@ -1009,7 +1018,8 @@ One solution is to use the `TaskOutputs.files` property, as demonstrated by the 
 
 .Setting up an inferred task dependency between output dir and input files
 ====
-include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced",files="build.gradle[tags=inferred-task-dep]"]
+include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced/groovy",files="build.gradle[tags=inferred-task-dep]"]
+include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=inferred-task-dep]"]
 
 .Output of **`gradle clean instrumentClasses`**
 ----
@@ -1022,7 +1032,8 @@ Alternatively, you can get Gradle to access the appropriate property itself by u
 
 .Setting up an inferred task dependency with filesFor()
 ====
-include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced",files="build.gradle[tags=inferred-task-dep-with-files]"]
+include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced/groovy",files="build.gradle[tags=inferred-task-dep-with-files]"]
+include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=inferred-task-dep-with-files]"]
 
 .Output of **`gradle clean instrumentClasses2`**
 ----
@@ -1037,7 +1048,8 @@ The downside of this approach is that all file outputs of the source task become
 
 .Setting up an inferred task dependency with builtBy()
 ====
-include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced",files="build.gradle[tags=inferred-task-dep-with-builtby]"]
+include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced/groovy",files="build.gradle[tags=inferred-task-dep-with-builtby]"]
+include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=inferred-task-dep-with-builtby]"]
 
 .Output of **`gradle clean instrumentClassesBuiltBy`**
 ----
@@ -1057,7 +1069,8 @@ That’s where the `upToDateWhen()` method on `TaskOutputs` comes in. This takes
 
 .Ignoring up-to-date checks
 ====
-include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced",files="build.gradle[tags=up-to-date-when]"]
+include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced/groovy",files="build.gradle[tags=up-to-date-when]"]
+include::sample[dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=up-to-date-when]"]
 
 .Output of `gradle clean alwaysInstrumentClasses`
 ----
@@ -1096,7 +1109,8 @@ In order to benefit from incremental builds again, you are able tell Gradle to i
 
 .Runtime classpath normalization
 ====
-include::sample[dir="userguide/tasks/inputNormalization",files="build.gradle[tags=ignore-build-info-properties]"]
+include::sample[dir="userguide/tasks/inputNormalization/groovy",files="build.gradle[tags=ignore-build-info-properties]"]
+include::sample[dir="userguide/tasks/inputNormalization/kotlin",files="build.gradle.kts[tags=ignore-build-info-properties]"]
 ====
 
 The effect of this configuration would be that changes to `build-info.properties` would be ignored for up-to-date checks and <<build_cache.adoc#build_cache,build cache>> key calculations.

@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-apply plugin: 'java'
+plugins {
+    id 'java'
+}
 
 // tag::ignore-build-info-properties[]
 normalization {

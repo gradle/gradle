@@ -1,9 +1,12 @@
 import org.example.*
 
-apply plugin: "base"
-
 // tag::failed-inferred-task-dep[]
-apply plugin: "java"
+plugins {
+// end::failed-inferred-task-dep[]
+    id 'base'
+// tag::failed-inferred-task-dep[]
+    id 'java'
+}
 // end::failed-inferred-task-dep[]
 
 repositories {
