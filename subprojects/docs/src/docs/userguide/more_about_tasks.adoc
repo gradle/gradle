@@ -348,7 +348,8 @@ Sometimes you want to replace a task. For example, if you want to exchange a tas
 
 .Overwriting a task
 ====
-include::sample[dir="userguide/tutorial/replaceTask",files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/replaceTask/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/replaceTask/kotlin",files="build.gradle.kts[]"]
 
 .Output of **`gradle -q copy`**
 ----
