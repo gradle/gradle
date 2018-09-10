@@ -1133,7 +1133,8 @@ Sometimes you want to have a task whose behavior depends on a large or infinite 
 
 .Task rule
 ====
-include::sample[dir="userguide/tasks/addRules",files="build.gradle[tags=task-rule]"]
+include::sample[dir="userguide/tasks/addRules/groovy",files="build.gradle[tags=task-rule]"]
+include::sample[dir="userguide/tasks/addRules/kotlin",files="build.gradle.kts[tags=task-rule]"]
 
 .Output of **`gradle -q pingServer1`**
 ----
@@ -1148,7 +1149,8 @@ Rules are not only used when calling tasks from the command line. You can also c
 
 .Dependency on rule based tasks
 ====
-include::sample[dir="userguide/tasks/addRules",files="build.gradle[tags=all]"]
+include::sample[dir="userguide/tasks/addRules/groovy",files="build.gradle[tags=all]"]
+include::sample[dir="userguide/tasks/addRules/kotlin",files="build.gradle.kts[tags=all]"]
 
 .Output of **`gradle -q groupPing`**
 ----
