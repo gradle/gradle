@@ -106,7 +106,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
             if (isEmpty(selector)) {
                 selector.markResolved();
                 if (emptySelectors == null) {
-                    emptySelectors = Lists.newArrayList();
+                    emptySelectors = Lists.newArrayListWithCapacity(selectors.size());
                 }
                 emptySelectors.add(selector);
                 continue;
@@ -114,7 +114,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
             // Defer prefer selectors until all other selectors are processed
             if (isPrefer(selector)) {
                 if (preferSelectors == null) {
-                    preferSelectors = Lists.newArrayList();
+                    preferSelectors = Lists.newArrayListWithCapacity(selectors.size());
                 }
                 preferSelectors.add(selector);
                 continue;
