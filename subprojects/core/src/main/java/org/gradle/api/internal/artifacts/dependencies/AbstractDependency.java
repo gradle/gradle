@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.artifacts.ResolvableDependency;
 
-@SuppressWarnings("checkstyle:EqualsHashCode")
 public abstract class AbstractDependency implements ResolvableDependency, Dependency {
     private String reason;
 
@@ -29,14 +28,6 @@ public abstract class AbstractDependency implements ResolvableDependency, Depend
     }
 
     public void resolve(DependencyResolveContext context) {
-    }
-
-    @Override
-    public int hashCode() {
-        int result = getGroup() != null ? getGroup().hashCode() : 0;
-        result = 31 * result + getName().hashCode();
-        result = 31 * result + (getVersion() != null ? getVersion().hashCode() : 0);
-        return result;
     }
 
     @Override

@@ -23,6 +23,8 @@ import org.gradle.util.GUtil;
 import javax.annotation.Nullable;
 import java.util.List;
 
+// does not override equals() but hashCode() in order to cache the latter's
+// pre-computed value to improve performance when used in HashMaps
 @SuppressWarnings("checkstyle:EqualsHashCode")
 public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint implements ImmutableVersionConstraint {
     private static final DefaultImmutableVersionConstraint EMPTY = new DefaultImmutableVersionConstraint("");
