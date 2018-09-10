@@ -6,8 +6,8 @@ Note that the `my-app` build does not have direct dependencies on `my-utils`. In
 
 ```
 dependencies {
-    compile "org.sample:number-utils:1.0"
-    compile "org.sample:string-utils:1.0"
+    implementation "org.sample:number-utils:1.0"
+    implementation "org.sample:string-utils:1.0"
 }
 ```
 

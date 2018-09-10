@@ -16,12 +16,15 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
-import org.junit.Rule
+import org.gradle.util.Requires
 
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
+
+@Requires(KOTLIN_SCRIPT)
 @IntegrationTestTimeout(60)
 class NoIsolationWorkerExecutorSampleIntegrationTest extends AbstractWorkerExecutorSampleIntegrationTest {
-    @Rule
-    Sample workerExecutorSample = new Sample(temporaryFolder, "workerApi/noIsolation")
+    String getSampleName() {
+        "workerApi/noIsolation"
+    }
 }

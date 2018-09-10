@@ -50,7 +50,6 @@ import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -158,7 +157,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
-    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved, ImmutableCapabilities capabilities) {
+    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, ImmutableSet<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved, ImmutableCapabilities capabilities) {
         assert hierarchy.contains(name);
         DefaultLocalConfigurationMetadata conf = new DefaultLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved, capabilities);
         addToConfigurations(name, conf);
@@ -266,7 +265,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         private final String description;
         private final boolean transitive;
         private final boolean visible;
-        private final Set<String> hierarchy;
+        private final ImmutableSet<String> hierarchy;
         private final Set<String> extendsFrom;
         private final ImmutableAttributes attributes;
         private final boolean canBeConsumed;
@@ -291,7 +290,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                                                     boolean visible,
                                                     boolean transitive,
                                                     Set<String> extendsFrom,
-                                                    Set<String> hierarchy,
+                                                    ImmutableSet<String> hierarchy,
                                                     ImmutableAttributes attributes,
                                                     boolean canBeConsumed,
                                                     boolean canBeResolved,
@@ -362,7 +361,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         }
 
         @Override
-        public Collection<String> getHierarchy() {
+        public ImmutableSet<String> getHierarchy() {
             return hierarchy;
         }
 

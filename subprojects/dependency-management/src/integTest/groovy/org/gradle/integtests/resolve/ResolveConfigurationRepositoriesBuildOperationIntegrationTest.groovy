@@ -244,7 +244,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     url 'http://myCompanyBucket/ivyrepo'
                     artifactPattern 'http://myCompanyBucket/ivyrepo/[organisation]/[module]/[artifact]-[revision]'
                     ivyPattern 'http://myCompanyBucket/ivyrepo/[organisation]/[module]/ivy-[revision].xml'
-                    layout 'pattern', {
+                    patternLayout {
                         artifact '[module]/[organisation]/[revision]/[artifact]'
                         artifact '3rd-party/[module]/[organisation]/[revision]/[artifact]'
                         ivy '[module]/[organisation]/[revision]/ivy.xml'

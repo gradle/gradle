@@ -866,15 +866,19 @@ h6,
 h1 {
     font-size: 2rem;
 }
+
 h2 {
     font-size: 1.5rem;
 }
+
 h3 {
     font-size: 1.125rem;
 }
+
 h4 {
     font-size: 1.0625rem;
 }
+
 h5, h6 {
     font-size: 1rem;
 }
@@ -912,6 +916,7 @@ dl {
     .footer {
         max-width: 100%;
     }
+
     .main-content > .appendix,
     .main-content > .book,
     .main-content > .chapter {
@@ -924,6 +929,7 @@ dl {
 #header {
     position: static;
 }
+
 #header, #content {
     padding: 0;
 }
@@ -935,6 +941,17 @@ dl {
 
 p {
     color: #02303A;
+}
+
+h1,
+h2,
+p,
+p strong,
+td.content,
+td.content strong,
+div.footnote strong,
+span.alt {
+    letter-spacing: normal;
 }
 
 .subheader,
@@ -1194,14 +1211,14 @@ body.book #header > h1 {
 }
 
 div.screenshot {
-    box-shadow: 0 0 20px 1px rgba(0,0,0,0.2);
+    box-shadow: 0 0 20px 1px rgba(0, 0, 0, 0.2);
     margin-left: auto;
     margin-right: auto;
     width: 90%;
 }
 
 .inset {
-    box-shadow: 0 0 1px 1px rgba(0,0,0,0.1);
+    box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.1);
     padding: 1em;
 }
 
@@ -1217,7 +1234,7 @@ div.screenshot {
 }
 
 #header #toctitle {
-    margin-bottom: 0.625rem;
+    margin-bottom: 0.425rem;
 }
 
 #toc,
@@ -1231,10 +1248,11 @@ div.screenshot {
 }
 
 #toc > ul > li {
-    line-height: 1.0;
+    line-height: 1.25;
     margin-top: 0;
-    padding-bottom: 0.425rem;
+    padding-bottom: 0.5rem;
 }
+
 #toc > ul > li:last-of-type {
     padding-bottom: 0;
 }
@@ -1266,7 +1284,7 @@ div.screenshot {
     #header #toctitle {
         font-size: 1rem;
         font-weight: 700;
-        margin: 0.4rem 0 0.625rem 0;
+        margin: 0.4rem 0 0.5rem 0;
     }
 
     #toc a {
@@ -1313,6 +1331,7 @@ div.screenshot {
 .site-header div {
     font-family: 'Lato', Arial, sans-serif;
 }
+
 .site-header__navigation-header a {
     align-self: center;
     border-bottom: 0 none;
@@ -1349,7 +1368,7 @@ div.screenshot {
     flex-direction: column;
     flex-wrap: wrap;
     align-items: flex-start;
-    max-height: 170px;
+    max-height: 210px; /* This matches the collapsible height above */
     margin: 0 20px;
     padding-top: 12px;
     padding-left: 0;
@@ -1484,9 +1503,9 @@ div.screenshot {
         top: 0;
         left: 0;
         right: 0;
-        -webkit-box-shadow: 0 2px 4px 0 rgba(0,0,0,.15);
-        -moz-box-shadow: 0 2px 4px 0 rgba(0,0,0,.15);
-        box-shadow: 0 2px 4px 0 rgba(0,0,0,.15);
+        -webkit-box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .15);
+        -moz-box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .15);
+        box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .15);
         z-index: 1;
     }
 
@@ -1497,10 +1516,12 @@ div.screenshot {
     #content h2[id], #content h3[id], #content h4[id] {
         padding-top: 60px;
     }
+
     #content h2[id] {
         /* Little extra room above h2s */
         margin-top: -44px;
     }
+
     #content h3[id], #content h4[id] {
         margin-top: -60px;
     }
@@ -1570,16 +1591,18 @@ div.screenshot {
 /* Docs Navigation */
 .docs-navigation {
     display: none;
-    overflow: hidden;
     padding-left: 5px;
-    position: relative;
+}
+
+.docs-navigation .search-container {
+    display: none;
 }
 
 .docs-navigation a {
     color: #02303A;
     display: block;
     font-size: 1rem;
-    line-height: 1.0;
+    line-height: 1.25;
 }
 
 .docs-navigation a code {
@@ -1595,16 +1618,22 @@ div.screenshot {
 
 .docs-navigation ul {
     list-style-type: none;
-    margin: 0.625em 0;
+    margin: 0.5em 0;
     padding: 0;
 }
+
 .docs-navigation ul:last-of-type {
     margin-bottom: 0;
 }
 
-.docs-navigation li {
-    margin-bottom: 0.625em;
+.docs-navigation li:first-of-type {
+    margin-top: 0;
 }
+
+.docs-navigation li {
+    margin-bottom: 0.5em;
+}
+
 .docs-navigation li:last-of-type {
     margin-bottom: 0;
 }
@@ -1634,10 +1663,14 @@ div.screenshot {
     margin: 1.5em 0 0;
 }
 
+.docs-navigation .docs-home-link {
+    position: relative;
+}
+
 .docs-navigation .pdf-link-container {
     display: inline-block;
     position: absolute;
-    top: 0.75em;
+    top: 0.1em;
     right: 0;
 }
 
@@ -1698,7 +1731,6 @@ div.screenshot {
     .chapter #toc a {
         color: #02303A;
         display: inline-block;
-        margin-bottom: 0.2rem;
     }
 
     .appendix #toc a.active,
@@ -1753,11 +1785,13 @@ div.screenshot {
 .rating {
     direction: rtl;
 }
+
 .rating > .star {
     cursor: pointer;
     display: table-cell;
     padding: 3px;
 }
+
 .rating > .star:hover > svg > g,
 .rating > .star:hover ~ .star > svg > g,
 .rating > .star.selected > svg > g,
@@ -1772,7 +1806,7 @@ div.screenshot {
 .site-footer__navigation {
     display: flex;
     max-width: 75rem;
-    margin: 3rem auto 2.5rem auto;
+    margin: 3rem auto 0 auto;
     padding: 0.5rem 0.75rem;
 }
 
@@ -1801,6 +1835,11 @@ div.screenshot {
 
 .site-footer__subscribe-newsletter {
     flex: 0 0 350px;
+}
+
+.site-footer__subscribe-newsletter .newsletter-form__header h5 {
+    color: #555;
+    margin-top: 0;
 }
 
 .site-footer__subscribe-newsletter p {
@@ -1940,7 +1979,7 @@ div.screenshot {
 /* Avoid the footer taking up much of the screen on short displays */
 @media all and (max-height: 56.25rem) {
     .site-footer__navigation {
-        margin: 1.5rem auto 1.5rem auto;
+        margin: 1.5rem auto 0 auto;
         padding-top: 0;
         padding-bottom: 0;
     }

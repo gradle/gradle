@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.fixtures;
 
-import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
@@ -31,7 +30,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.gradle.util.CollectionUtils.*;
+import static org.gradle.util.CollectionUtils.collect;
 
 /**
  * A base class for those test runners which execute a test multiple times against a set of Gradle versions.
@@ -72,15 +71,13 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestR
                 }
             }), Collections.reverseOrder());
 
-            inject(previous, gradleVersions, new Action<InjectionStep<List<GradleDistribution>, GradleVersion>>() {
-                public void execute(InjectionStep<List<GradleDistribution>, GradleVersion> step) {
-                    GradleDistribution distribution = releasedVersions.getDistribution(step.getItem());
-                    if (distribution == null) {
-                        throw new RuntimeException("Gradle version '" + step.getItem().getVersion() + "' is not a valid testable released version");
-                    }
-                    step.getTarget().add(distribution);
+            for (GradleVersion gradleVersion : gradleVersions) {
+                GradleDistribution distribution = releasedVersions.getDistribution(gradleVersion);
+                if (distribution == null) {
+                    throw new RuntimeException("Gradle version '" + gradleVersion.getVersion() + "' is not a valid testable released version");
                 }
-            });
+                addVersionIfCompatibleWithJvmAndOs(distribution);
+            }
         } else {
             throw new RuntimeException("Invalid value for " + VERSIONS_SYSPROP_NAME + " system property: " + versionStr + "(valid values: 'all', 'latest' or comma separated list of versions)");
         }

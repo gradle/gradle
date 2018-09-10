@@ -23,7 +23,6 @@ import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classloader.MultiParentClassLoader
 import org.gradle.internal.classloader.VisitableURLClassLoader
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.testing.internal.util.RetryRule
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
@@ -70,7 +69,6 @@ trait ToolingApiClasspathProvider {
         sharedSpec.allowClass(TargetGradleVersion)
         sharedSpec.allowClass(ToolingApiVersion)
         sharedSpec.allowClass(TeeOutputStream)
-        sharedSpec.allowClass(RetryRule)
         sharedSpec.allowClass(ClassLoaderFixture)
         classpathConfigurer.execute(sharedSpec)
         def sharedClassLoader = classLoaderFactory.createFilteringClassLoader(getClass().classLoader, sharedSpec)
