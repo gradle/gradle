@@ -158,6 +158,11 @@ See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-exec
 ### Example breaking change
 -->
 
+### Gradle requires Java 8
+
+Gradle can no longer be run on Java 7, but requires Java 8 as the minimum build JVM version. 
+However, you can still use forked compilation and testing to build and test software for Java 6 and above.
+
 ### Java Library Distribution Plugin utilizes Java Library Plugin
 
 The [Java Library Distribution Plugin](userguide/java_library_distribution_plugin.html) is now based on the
