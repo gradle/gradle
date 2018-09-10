@@ -70,14 +70,4 @@ public class OrSpec<T> extends CompositeSpec<T> {
         return uncheckedCast(EMPTY);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        // override to make Checkstyle's EqualsHashCode check happy
-        return super.equals(o);
-    }
-
-    @Override
-    public int hashCode() {
-        return 13 * super.hashCode();
-    }
 }
