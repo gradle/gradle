@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.signing
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -24,32 +24,44 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.IgnoreIf
+import spock.lang.Unroll
 
-class SigningSamplesSpec extends AbstractIntegrationSpec {
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
+
+@Requires(KOTLIN_SCRIPT)
+class SigningSamplesSpec extends AbstractSampleIntegrationTest {
     @Rule
-    public final Sample sampleProject = new Sample(temporaryFolder)
+    public final Sample sample = new Sample(testDirectoryProvider)
 
-    void setup() {
+    def setup() {
         using m2
+        requireGradleDistribution()
     }
 
+    @Unroll
     @UsesSample('signing/maven')
-    def "upload attaches signatures"() {
+    def "upload attaches signatures with dsl #dsl"() {
         given:
-        sample sampleProject
+        inDirectory(sample.dir.file(dsl))
 
         when:
         run "uploadArchives"
 
         then:
-        repo.module('gradle', 'maven', '1.0').assertArtifactsPublished('maven-1.0.pom', 'maven-1.0.pom.asc', 'maven-1.0.jar', 'maven-1.0.jar.asc')
+        repoFor(dsl)
+            .module('gradle', 'maven', '1.0')
+            .assertArtifactsPublished('maven-1.0.pom', 'maven-1.0.pom.asc', 'maven-1.0.jar', 'maven-1.0.jar.asc')
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample('signing/conditional')
     @IgnoreIf({ GradleContextualExecuter.parallel })
-    def "conditional signing"() {
+    def "conditional signing with dsl #dsl"() {
         given:
-        sample sampleProject
+        inDirectory(sample.dir.file(dsl))
 
         when:
         run "uploadArchives"
@@ -58,38 +70,47 @@ class SigningSamplesSpec extends AbstractIntegrationSpec {
         ":signArchives" in skippedTasks
 
         and:
-        final module = repo.module('gradle', 'conditional', '1.0-SNAPSHOT')
+        def module = repoFor(dsl).module('gradle', 'conditional', '1.0-SNAPSHOT')
         module.assertArtifactsPublished("maven-metadata.xml", "conditional-${module.publishArtifactVersion}.pom", "conditional-${module.publishArtifactVersion}.jar")
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample('signing/gnupg-signatory')
     @Requires(adhoc = { GpgCmdFixture.getAvailableGpg() != null })
-    def "use gnupg signatory"() {
+    def "use gnupg signatory with dsl #dsl"() {
         setup:
-        def symlink = GpgCmdFixture.setupGpgCmd(file('signing/gnupg-signatory'))
+        def projectDir = sample.dir.file(dsl)
+        def symlink = GpgCmdFixture.setupGpgCmd(projectDir)
 
         when:
-        sample sampleProject
+        inDirectory(projectDir)
 
         and:
         run "signArchives"
 
         then:
-        file("signing", "gnupg-signatory", "build", "libs", "gnupg-signatory-1.0.jar.asc").assertExists()
+        projectDir.file("build/libs/gnupg-signatory-1.0.jar.asc").assertExists()
 
         cleanup:
         GpgCmdFixture.cleanupGpgCmd(symlink)
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample('signing/maven-publish')
-    def "publish attaches signatures"() {
+    def "publish attaches signatures with dsl #dsl"() {
         given:
-        sample sampleProject
+        inDirectory(sample.dir.file(dsl))
 
         and:
         def artifactId = "my-library"
         def version = "1.0"
-        def fileRepo = maven(sampleProject.dir.file("build/repos/releases"))
+        def fileRepo = maven(sample.dir.file("$dsl/build/repos/releases"))
         def module = fileRepo.module("com.example", artifactId, version)
 
         when:
@@ -112,9 +133,12 @@ class SigningSamplesSpec extends AbstractIntegrationSpec {
         module.parsedPom.scm.connection.text() == 'scm:git:git://example.com/my-library.git'
         module.parsedPom.scm.developerConnection.text() == 'scm:git:ssh://example.com/my-library.git'
         module.parsedPom.scm.url.text() == 'http://example.com/my-library/'
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
-    MavenFileRepository getRepo() {
-        return maven(sampleProject.dir.file("build/repo"))
+    MavenFileRepository repoFor(String dsl) {
+        return maven(sample.dir.file("$dsl/build/repo"))
     }
 }

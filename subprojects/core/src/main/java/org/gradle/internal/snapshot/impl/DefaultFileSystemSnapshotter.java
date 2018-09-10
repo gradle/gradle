@@ -23,7 +23,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionVisitor;
+import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.specs.Spec;
@@ -61,6 +61,8 @@ import java.util.List;
  */
 @NonNullApi
 public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
+    private static final PatternSet EMPTY_PATTERN_SET = new PatternSet();
+
     private final FileHasher hasher;
     private final StringInterner stringInterner;
     private final FileSystem fileSystem;
@@ -121,8 +123,8 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
 
     @Override
     public List<FileSystemSnapshot> snapshot(FileCollectionInternal fileCollection) {
-        FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl();
-        fileCollection.visitRootElements(visitor);
+        FileCollectionLeafVisitorImpl visitor = new FileCollectionLeafVisitorImpl();
+        fileCollection.visitLeafCollections(visitor);
         return visitor.getRoots();
     }
 
@@ -193,7 +195,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
                 FileSystemLocationSnapshot snapshot = fileSystemMirror.getSnapshot(path);
                 if (snapshot == null) {
                     snapshot = snapshotAndCache(dirTree.getDir(), patterns);
-                    return snapshot.getType() == FileType.Missing ? FileSystemSnapshot.EMPTY : snapshot;
+                    return filterSnapshot(snapshot, EMPTY_PATTERN_SET);
                 } else {
                     return filterSnapshot(snapshot, patterns);
                 }
@@ -222,17 +224,17 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     private FileSystemSnapshot filterSnapshot(FileSystemLocationSnapshot snapshot, PatternSet patterns) {
-        if (patterns.isEmpty()) {
-            return snapshot;
-        }
         if (snapshot.getType() == FileType.Missing) {
             return FileSystemSnapshot.EMPTY;
+        }
+        if (patterns.isEmpty()) {
+            return snapshot;
         }
         Spec<FileTreeElement> spec = patterns.getAsSpec();
         return FileSystemSnapshotFilter.filterSnapshot(spec, snapshot, fileSystem);
     }
 
-    private class FileCollectionVisitorImpl implements FileCollectionVisitor {
+    private class FileCollectionLeafVisitorImpl implements FileCollectionLeafVisitor {
         private final List<FileSystemSnapshot> roots = new ArrayList<FileSystemSnapshot>();
 
         @Override
@@ -243,7 +245,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         }
 
         @Override
-        public void visitTree(FileTreeInternal fileTree) {
+        public void visitGenericFileTree(FileTreeInternal fileTree) {
             roots.add(snapshotFileTree(fileTree));
         }
 

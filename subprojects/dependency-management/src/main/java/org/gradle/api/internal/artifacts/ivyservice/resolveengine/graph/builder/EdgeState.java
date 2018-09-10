@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
@@ -80,6 +81,10 @@ class EdgeState implements DependencyGraphEdge {
 
     DependencyMetadata getDependencyMetadata() {
         return dependencyMetadata;
+    }
+
+    ModuleIdentifier getTargetIdentifier() {
+        return dependencyState.getModuleIdentifier();
     }
 
     /**
@@ -155,6 +160,7 @@ class EdgeState implements DependencyGraphEdge {
         targetNodeSelectionFailure = null;
         ComponentResolveMetadata targetModuleVersion = targetComponent.getMetadata();
         if (targetModuleVersion == null) {
+            targetComponent.getModule().getPlatformState().addOrphanEdge(this);
             // Broken version
             return;
         }
@@ -185,9 +191,17 @@ class EdgeState implements DependencyGraphEdge {
         return resolveState.getModuleExclusions().intersect(edgeExclusions, transitiveExclusions);
     }
 
+    public ModuleExclusion getEdgeExclusions() {
+        List<ExcludeMetadata> excludes = dependencyMetadata.getExcludes();
+        if (excludes.isEmpty()) {
+            return null;
+        }
+        return resolveState.getModuleExclusions().excludeAny(ImmutableList.copyOf(excludes));
+    }
+
     @Override
     public boolean contributesArtifacts() {
-        return !dependencyMetadata.isPending();
+        return !dependencyMetadata.isConstraint();
     }
 
     @Override

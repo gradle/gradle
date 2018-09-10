@@ -646,11 +646,13 @@ The `@CompileClasspath` annotation was introduced in Gradle 3.4. To stay compati
 
 | `@link:{javadocPath}/org/gradle/api/tasks/OutputFiles.html[OutputFiles]`
 | `Map&lt;String, File&gt;`+++**+++ or `Iterable&lt;File&gt;`+++*+++
-| An iterable of output files (no directories). The task outputs can only be <<build_cache.adoc#sec:task_output_caching, cached>> if a `Map` is provided.
+| An iterable or map of output files.
+Using a file tree turns <<build_cache.adoc#sec:task_output_caching, caching>> off for the task.
 
 | `@link:{javadocPath}/org/gradle/api/tasks/OutputDirectories.html[OutputDirectories]`
 | `Map&lt;String, File&gt;`+++**+++ or `Iterable&lt;File&gt;`+++*+++
-| An iterable of output directories (no files). The task outputs can only be <<build_cache.adoc#sec:task_output_caching, cached>> if a `Map` is provided.
+| An iterable of output directories.
+Using a file tree turns <<build_cache.adoc#sec:task_output_caching, caching>> off for the task.
 
 | `@link:{javadocPath}/org/gradle/api/tasks/Destroys.html[Destroys]`
 | `File` or `Iterable&lt;File&gt;`+++*+++
@@ -1159,7 +1161,7 @@ include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced
 include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced/incrementalBuildUpToDateWhenAgain.out[]
 ----
 
-The `{ false }` closure ensures that `copyResources` will always perform the copy, irrespective of whether there is no change in the inputs or outputs.
+The `{ false }` closure ensures that `alwaysInstrumentClasses` will always be executed, irrespective of whether there is no change in the inputs or outputs.
 
 You can of course put more complex logic into the closure. You could check whether a particular record in a database table exists or has changed for example. Just be aware that up-to-date checks should _save_ you time. Don’t add checks that cost as much or more time than the standard execution of the task. In fact, if a task ends up running frequently anyway, because it’s rarely up to date, then it may not be worth having an up-to-date check at all. Remember that your checks will always run if the task is in the execution task graph.
 

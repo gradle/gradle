@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model.maven;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -117,7 +118,7 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
         for (int i = 0; i < configurationsCount; i++) {
             String configurationName = decoder.readString();
             Configuration configuration = configurationDefinitions.get(configurationName);
-            ImmutableList<String> hierarchy = LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions);
+            ImmutableSet<String> hierarchy = LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions);
             ImmutableAttributes attributes = getAttributeContainerSerializer().read(decoder);
             ImmutableCapabilities capabilities = readCapabilities(decoder);
 
@@ -171,8 +172,8 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
         IvyArtifactName artifactName = readNullableArtifact(decoder);
         List<ExcludeMetadata> mavenExcludes = readMavenExcludes(decoder);
         MavenScope scope = MavenScope.values()[decoder.readSmallInt()];
-        boolean optional = decoder.readBoolean();
-        return new MavenDependencyDescriptor(scope, optional, requested, artifactName, mavenExcludes);
+        MavenDependencyType type = MavenDependencyType.values()[decoder.readSmallInt()];
+        return new MavenDependencyDescriptor(scope, type, requested, artifactName, mavenExcludes);
     }
 
     private void writeMavenDependency(Encoder encoder, MavenDependencyDescriptor mavenDependency) throws IOException {
@@ -180,7 +181,7 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
         writeNullableArtifact(encoder, mavenDependency.getDependencyArtifact());
         writeMavenExcludeRules(encoder, mavenDependency.getAllExcludes());
         encoder.writeSmallInt(mavenDependency.getScope().ordinal());
-        encoder.writeBoolean(mavenDependency.isOptional());
+        encoder.writeSmallInt(mavenDependency.getType().ordinal());
     }
 
 }

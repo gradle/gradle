@@ -26,6 +26,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
@@ -52,8 +53,16 @@ import java.util.concurrent.Callable;
  */
 @Incubating
 public class InstallXCTestBundle extends DefaultTask {
-    private final DirectoryProperty installDirectory = newOutputDirectory();
-    private final RegularFileProperty bundleBinaryFile = newInputFile();
+    private final DirectoryProperty installDirectory;
+    private final RegularFileProperty bundleBinaryFile;
+
+    public InstallXCTestBundle() {
+        ObjectFactory objectFactory = getProject().getObjects();
+        installDirectory = objectFactory.directoryProperty();
+        bundleBinaryFile = objectFactory.fileProperty();
+        // A work around for not being able to skip the task when an input _file_ does not exist
+        dependsOn(bundleBinaryFile);
+    }
 
     @Inject
     protected SwiftStdlibToolLocator getSwiftStdlibToolLocator() {

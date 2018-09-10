@@ -19,9 +19,8 @@ package org.gradle.api.internal.tasks.properties;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Iterables;
@@ -32,6 +31,7 @@ import com.google.common.collect.Sets;
 import groovy.lang.GroovyObject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DynamicObjectAware;
@@ -58,6 +58,8 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.options.OptionValues;
+import org.gradle.cache.internal.CrossBuildInMemoryCache;
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.GroovyMethods;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.Types;
@@ -106,16 +108,15 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
     private final Map<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers;
     private final Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides;
     private final Set<Class<? extends Annotation>> relevantAnnotationTypes;
-    private final LoadingCache<Class<?>, TypeMetadata> cache = CacheBuilder.newBuilder()
-        .weakKeys()
-        .build(new CacheLoader<Class<?>, TypeMetadata>() {
-            @Override
-            public TypeMetadata load(@Nonnull Class<?> type) {
-                return createTypeMetadata(type);
-            }
-        });
+    private final CrossBuildInMemoryCache<Class<?>, TypeMetadata> cache;
+    private Transformer<TypeMetadata, Class<?>> typeMetadataFactory = new Transformer<TypeMetadata, Class<?>>() {
+        @Override
+        public TypeMetadata transform(Class<?> type) {
+            return createTypeMetadata(type);
+        }
+    };
 
-    public DefaultPropertyMetadataStore(Iterable<? extends PropertyAnnotationHandler> customAnnotationHandlers) {
+    public DefaultPropertyMetadataStore(Iterable<? extends PropertyAnnotationHandler> customAnnotationHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
         Iterable<PropertyAnnotationHandler> allAnnotationHandlers = Iterables.concat(HANDLERS, customAnnotationHandlers);
         Map<Class<? extends Annotation>, PropertyAnnotationHandler> annotationsHandlers = Maps.uniqueIndex(allAnnotationHandlers, new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
             @Override
@@ -126,6 +127,7 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
         this.annotationHandlers = annotationsHandlers;
         this.annotationOverrides = collectAnnotationOverrides(allAnnotationHandlers);
         this.relevantAnnotationTypes = collectRelevantAnnotationTypes(annotationsHandlers.keySet());
+        cache = cacheFactory.newClassCache();
     }
 
     private static Multimap<Class<? extends Annotation>, Class<? extends Annotation>> collectAnnotationOverrides(Iterable<PropertyAnnotationHandler> allAnnotationHandlers) {
@@ -148,13 +150,13 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
     }
 
     @Override
-    public <T> TypeMetadata getTypeMetadata(Class<T> type) {
-        return cache.getUnchecked(type);
+    public <T> TypeMetadata getTypeMetadata(final Class<T> type) {
+        return cache.get(type, typeMetadataFactory);
     }
 
     private <T> TypeMetadata createTypeMetadata(Class<T> type) {
         final Set<Class<? extends Annotation>> propertyTypeAnnotations = annotationHandlers.keySet();
-        final Map<String, DefaultPropertyMetadata> propertyContexts = Maps.newLinkedHashMap();
+        final Map<String, PropertyMetadataBuilder> properties = Maps.newLinkedHashMap();
         Types.walkTypeHierarchy(type, IGNORED_SUPER_CLASSES, new Types.TypeVisitor<T>() {
             @Override
             public void visitType(Class<? super T> type) {
@@ -177,10 +179,10 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
                         continue;
                     }
 
-                    DefaultPropertyMetadata propertyMetadata = propertyContexts.get(fieldName);
+                    PropertyMetadataBuilder propertyMetadata = properties.get(fieldName);
                     if (propertyMetadata == null) {
-                        propertyMetadata = new DefaultPropertyMetadata(propertyTypeAnnotations, fieldName, method);
-                        propertyContexts.put(fieldName, propertyMetadata);
+                        propertyMetadata = new PropertyMetadataBuilder(propertyTypeAnnotations, fieldName, method);
+                        properties.put(fieldName, propertyMetadata);
                     }
 
                     Iterable<Annotation> declaredAnnotations = mergeDeclaredAnnotations(method, field, propertyMetadata);
@@ -192,13 +194,17 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
                 }
             }
         });
-        return new DefaultTypeMetadata(ImmutableSet.<PropertyMetadata>builder().addAll(propertyContexts.values()).build());
+        ImmutableSet.Builder<PropertyMetadata> builder = ImmutableSet.builder();
+        for (PropertyMetadataBuilder property : properties.values()) {
+            builder.add(property.toMetadata());
+        }
+        return new DefaultTypeMetadata(builder.build());
     }
 
-    private Iterable<Annotation> mergeDeclaredAnnotations(Method method, @Nullable Field field, DefaultPropertyMetadata propertyContext) {
+    private Iterable<Annotation> mergeDeclaredAnnotations(Method method, @Nullable Field field, PropertyMetadataBuilder property) {
         Collection<Annotation> methodAnnotations = collectRelevantAnnotations(method.getDeclaredAnnotations());
         if (Modifier.isPrivate(method.getModifiers()) && !methodAnnotations.isEmpty()) {
-            propertyContext.validationMessage("is private and annotated with an input or output annotation");
+            property.validationMessage("is private and annotated with an input or output annotation");
         }
         if (field == null) {
             return methodAnnotations;
@@ -216,7 +222,7 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
             while (iFieldAnnotation.hasNext()) {
                 Annotation fieldAnnotation = iFieldAnnotation.next();
                 if (methodAnnotation.annotationType().equals(fieldAnnotation.annotationType())) {
-                    propertyContext.validationMessage("has both a getter and field declared with annotation @" + methodAnnotation.annotationType().getSimpleName());
+                    property.validationMessage("has both a getter and field declared with annotation @" + methodAnnotation.annotationType().getSimpleName());
                     iFieldAnnotation.remove();
                 }
             }
@@ -245,17 +251,17 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
         });
     }
 
-    private void recordAnnotations(DefaultPropertyMetadata propertyContext, Iterable<Annotation> annotations, Set<Class<? extends Annotation>> propertyTypeAnnotations) {
+    private void recordAnnotations(PropertyMetadataBuilder property, Iterable<Annotation> annotations, Set<Class<? extends Annotation>> propertyTypeAnnotations) {
         Set<Class<? extends Annotation>> declaredPropertyTypes = Sets.newLinkedHashSet();
         for (Annotation annotation : annotations) {
             if (propertyTypeAnnotations.contains(annotation.annotationType())) {
                 declaredPropertyTypes.add(annotation.annotationType());
             }
-            propertyContext.addAnnotation(annotation);
+            property.addAnnotation(annotation);
         }
 
         if (declaredPropertyTypes.size() > 1) {
-            propertyContext.validationMessage("has conflicting property types declared: "
+            property.validationMessage("has conflicting property types declared: "
                     + Joiner.on(", ").join(Iterables.transform(declaredPropertyTypes, new Function<Class<? extends Annotation>, String>() {
                     @Override
                     public String apply(Class<? extends Annotation> annotationType) {
@@ -276,6 +282,7 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
         }
         return relevantAnnotations;
     }
+
     private static Map<String, Field> getFields(Class<?> type) {
         Map<String, Field> fields = Maps.newHashMap();
         for (Field field : type.getDeclaredFields()) {
@@ -307,7 +314,7 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
         private final Method method;
         private final String name;
 
-        public Getter(Method method, String name) {
+        Getter(Method method, String name) {
             this.method = method;
             this.name = name;
         }
@@ -328,10 +335,9 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
     }
 
     private class DefaultTypeMetadata implements TypeMetadata {
+        private final ImmutableSet<PropertyMetadata> propertiesMetadata;
 
-        private final Set<PropertyMetadata> propertiesMetadata;
-
-        public DefaultTypeMetadata(ImmutableSet<PropertyMetadata> propertiesMetadata) {
+        DefaultTypeMetadata(ImmutableSet<PropertyMetadata> propertiesMetadata) {
             this.propertiesMetadata = propertiesMetadata;
         }
 
@@ -351,23 +357,22 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
         }
     }
 
-    private class DefaultPropertyMetadata implements PropertyMetadata {
+    private class PropertyMetadataBuilder {
         private final Set<Class<? extends Annotation>> propertyTypeAnnotations;
         private final String fieldName;
         private final Method method;
         private Class<? extends Annotation> propertyType;
-        private final List<Annotation> annotations = Lists.newArrayList();
+        private final Map<Class<? extends Annotation>, Annotation> annotations = Maps.newHashMap();
         private final List<String> validationMessages = Lists.newArrayList();
 
-        public DefaultPropertyMetadata(Set<Class<? extends Annotation>> propertyTypeAnnotations, String fieldName, Method method) {
+        PropertyMetadataBuilder(Set<Class<? extends Annotation>> propertyTypeAnnotations, String fieldName, Method method) {
             this.propertyTypeAnnotations = propertyTypeAnnotations;
             this.fieldName = fieldName;
             this.method = method;
         }
 
-        @Override
-        public String getFieldName() {
-            return fieldName;
+        public void validationMessage(String message) {
+            validationMessages.add(message);
         }
 
         public void addAnnotation(Annotation annotation) {
@@ -378,12 +383,48 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
             }
             // Record the most specific annotation only
             if (!isAnnotationPresent(annotation.annotationType())) {
-                annotations.add(annotation);
+                annotations.put(annotationType, annotation);
             }
         }
 
-        private boolean isPropertyTypeAnnotation(Class<? extends Annotation> annotationType) {
+        boolean isPropertyTypeAnnotation(Class<? extends Annotation> annotationType) {
             return propertyTypeAnnotations.contains(annotationType);
+        }
+
+        boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
+            return getAnnotation(annotationType) != null;
+        }
+
+        @Nullable
+        <A extends Annotation> A getAnnotation(Class<A> annotationType) {
+            return annotationType.cast(annotations.get(annotationType));
+        }
+
+        PropertyMetadata toMetadata() {
+            return new DefaultPropertyMetadata(fieldName, method, propertyType, annotationHandlers.get(propertyType), ImmutableMap.copyOf(annotations), ImmutableList.copyOf(validationMessages));
+        }
+    }
+
+    private static class DefaultPropertyMetadata implements PropertyMetadata {
+        private final String fieldName;
+        private final Method method;
+        private final Class<? extends Annotation> propertyType;
+        private final PropertyAnnotationHandler annotationHandler;
+        private final ImmutableMap<Class<? extends Annotation>, Annotation> annotations;
+        private final ImmutableList<String> validationMessages;
+
+        DefaultPropertyMetadata(String fieldName, Method method, Class<? extends Annotation> propertyType, PropertyAnnotationHandler annotationHandler, ImmutableMap<Class<? extends Annotation>, Annotation> annotations, ImmutableList<String> validationMessages) {
+            this.fieldName = fieldName;
+            this.method = method;
+            this.propertyType = propertyType;
+            this.annotationHandler = annotationHandler;
+            this.annotations = annotations;
+            this.validationMessages = validationMessages;
+        }
+
+        @Override
+        public String getFieldName() {
+            return fieldName;
         }
 
         @Override
@@ -394,16 +435,7 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
         @Override
         @Nullable
         public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
-            for (Annotation annotation : annotations) {
-                if (annotationType.equals(annotation.annotationType())) {
-                    return annotationType.cast(annotation);
-                }
-            }
-            return null;
-        }
-
-        public void validationMessage(String message) {
-            validationMessages.add(message);
+            return annotationType.cast(annotations.get(annotationType));
         }
 
         @Override
@@ -412,14 +444,9 @@ public class DefaultPropertyMetadataStore implements PropertyMetadataStore {
         }
 
         @Override
-        public List<Annotation> getAnnotations() {
-            return annotations;
-        }
-
-        @Override
         @Nullable
         public PropertyAnnotationHandler getPropertyValueVisitor() {
-            return annotationHandlers.get(propertyType);
+            return annotationHandler;
         }
 
         @Override

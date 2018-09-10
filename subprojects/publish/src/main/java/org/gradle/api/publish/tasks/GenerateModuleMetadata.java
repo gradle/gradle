@@ -25,16 +25,17 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.internal.ModuleMetadataFileGenerator;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -69,9 +70,10 @@ public class GenerateModuleMetadata extends DefaultTask {
     private final RegularFileProperty outputFile;
 
     public GenerateModuleMetadata() {
-        publication = getProject().getObjects().property(Publication.class);
-        publications = getProject().getObjects().listProperty(Publication.class);
-        outputFile = newOutputFile();
+        ObjectFactory objectFactory = getProject().getObjects();
+        publication = objectFactory.property(Publication.class);
+        publications = objectFactory.listProperty(Publication.class);
+        outputFile = objectFactory.fileProperty();
         // TODO - should be incremental
         getOutputs().upToDateWhen(Specs.<Task>satisfyNone());
         mustHaveAttachedComponent();

@@ -15,11 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
+
 public interface PendingDependenciesHandler {
     Visitor start();
 
+    void removeHardEdge(EdgeState edgeState);
+
     interface Visitor {
         boolean maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState);
+
+        void markNotPending(ModuleIdentifier id);
 
         void complete();
     }

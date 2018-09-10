@@ -37,6 +37,7 @@ fun Project.configureCheckstyle(codeQualityConfigDir: File) {
     val checkStyleConfigDir = codeQualityConfigDir.resolve("checkstyle")
     configure<CheckstyleExtension> {
         configDir = checkStyleConfigDir
+        toolVersion = "6.19"
 
         plugins.withType<GroovyBasePlugin> {
             java.sourceSets.all {

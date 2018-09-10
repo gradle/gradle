@@ -25,8 +25,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Named
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ComponentMetadataContext
-import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.compile.CompileOptions
@@ -108,7 +106,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 
     private
     fun Project.addGeneratedResources(gradlebuildJava: UnitTestAndCompileExtension) {
-        val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class.java)
+        val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class)
         java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), gradlebuildJava.generatedResourcesDir)
         plugins.withType<IdeaPlugin> {
             configure<IdeaModel> {
@@ -128,10 +126,6 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             testCompile(library("groovy"))
             testCompile(testLibrary("spock"))
             testLibraries("jmock").forEach { testCompile(it) }
-
-            components {
-                withModule("org.spockframework:spock-core", SpockCoreRule::class.java)
-            }
         }
     }
 
@@ -232,20 +226,6 @@ open class UnitTestAndCompileExtension(val project: Project) {
         project.afterEvaluate {
             if (this@UnitTestAndCompileExtension.moduleType == ModuleType.UNDEFINED) {
                 throw InvalidUserDataException("gradlebuild.moduletype must be set for project $project")
-            }
-        }
-    }
-}
-
-
-open class SpockCoreRule : ComponentMetadataRule {
-    override fun execute(context: ComponentMetadataContext) {
-        context.details.allVariants {
-            withDependencyConstraints {
-                filter { it.group == "org.objenesis" }.forEach {
-                    it.version { prefer("1.2") }
-                    it.because("1.2 is required by Gradle and part of the distribution")
-                }
             }
         }
     }

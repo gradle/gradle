@@ -496,7 +496,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             path 'org3:bar:1.0 -> org4:b:1.1 -> org4:a:1.1'
         }
 
-        buildFile << """
+        buildFile << """          
             dependencies {
                 conf 'org:xml:1.0'
                 conf 'org2:foo:1.0'
