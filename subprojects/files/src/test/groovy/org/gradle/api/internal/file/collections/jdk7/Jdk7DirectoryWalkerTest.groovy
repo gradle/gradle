@@ -23,10 +23,6 @@ import org.gradle.api.file.FileTreeElement
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.state.mirror.MirrorUpdatingDirectoryWalker
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshotVisitor
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DefaultDirectoryWalker
 import org.gradle.api.internal.file.collections.DirectoryFileTree
@@ -36,6 +32,10 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
 import org.gradle.internal.MutableBoolean
+import org.gradle.internal.snapshot.DirectorySnapshot
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
+import org.gradle.internal.snapshot.impl.DirectorySnapshotter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
@@ -49,8 +49,6 @@ import spock.lang.Unroll
 
 import java.nio.charset.Charset
 import java.util.concurrent.atomic.AtomicInteger
-
-import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory
 
 @UsesNativeServices
 class Jdk7DirectoryWalkerTest extends Specification {
@@ -73,7 +71,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         setup:
         System.setProperty("file.encoding", fileEncoding)
         Charset.defaultCharset = null
-        def directoryWalkerFactory = org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory().create(tmpDir.createDir("root")).directoryWalkerFactory
+        def directoryWalkerFactory = TestFiles.directoryFileTreeFactory().create(tmpDir.createDir("root")).directoryWalkerFactory
         directoryWalkerFactory.reset()
         expect:
         directoryWalkerFactory.create().class.simpleName == expectedClassName
@@ -308,7 +306,6 @@ class Jdk7DirectoryWalkerTest extends Specification {
         given:
         def rootDir = tmpDir.createDir("root")
         generateFilesAndSubDirectories(rootDir, 10, 5, 3, 1, new AtomicInteger(0))
-        MirrorUpdatingDirectoryWalker directorySnapshotter = new MirrorUpdatingDirectoryWalker(TestFiles.fileHasher(), TestFiles.fileSystem(), new StringInterner())
         def patternSet = Mock(PatternSet)
         List<FileVisitDetails> visitedWithJdk7Walker = walkFiles(rootDir, new Jdk7DirectoryWalker(TestFiles.fileSystem()))
         Spec<FileTreeElement> assertingSpec = new Spec<FileTreeElement>() {
@@ -329,15 +326,15 @@ class Jdk7DirectoryWalkerTest extends Specification {
         }
 
         when:
-        directorySnapshotter.walkDir(rootDir.absolutePath, patternSet, new MutableBoolean())
+        directorySnapshotter().snapshot(rootDir.absolutePath, patternSet, new MutableBoolean())
         then:
         1 * patternSet.getAsSpec() >> assertingSpec
 
         visitedWithJdk7Walker.empty
     }
 
-    private static MirrorUpdatingDirectoryWalker directorySnapshotter() {
-        new MirrorUpdatingDirectoryWalker(TestFiles.fileHasher(), TestFiles.fileSystem(), new StringInterner())
+    private static DirectorySnapshotter directorySnapshotter() {
+        new DirectorySnapshotter(TestFiles.fileHasher(), TestFiles.fileSystem(), new StringInterner())
     }
 
     private List<String> walkDirForPaths(DirectoryWalker walkerInstance, File rootDir, PatternSet patternSet) {
@@ -349,14 +346,14 @@ class Jdk7DirectoryWalkerTest extends Specification {
         return visited
     }
 
-    private List<String> walkDirForPaths(MirrorUpdatingDirectoryWalker walker, File rootDir, PatternSet patternSet) {
-        def snapshot = walker.walkDir(rootDir.absolutePath, patternSet, new MutableBoolean())
+    private List<String> walkDirForPaths(DirectorySnapshotter walker, File rootDir, PatternSet patternSet) {
+        def snapshot = walker.snapshot(rootDir.absolutePath, patternSet, new MutableBoolean())
         def visited = []
-        snapshot.accept(new PhysicalSnapshotVisitor() {
+        snapshot.accept(new FileSystemSnapshotVisitor() {
             private boolean root = true
 
             @Override
-            boolean preVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
+            boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                 if (!root) {
                     visited << directorySnapshot.absolutePath
                 }
@@ -365,13 +362,12 @@ class Jdk7DirectoryWalkerTest extends Specification {
             }
 
             @Override
-            void visit(PhysicalSnapshot fileSnapshot) {
+            void visit(FileSystemLocationSnapshot fileSnapshot) {
                 visited << fileSnapshot.absolutePath
             }
 
             @Override
-            void postVisitDirectory(PhysicalDirectorySnapshot directorySnapshot) {
-
+            void postVisitDirectory(DirectorySnapshot directorySnapshot) {
             }
         })
         return visited
