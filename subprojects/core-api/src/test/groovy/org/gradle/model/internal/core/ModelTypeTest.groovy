@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ class ModelTypeTest extends Specification {
         type.displayName == String.simpleName
 
         def nested = ModelType.of(Nested)
-        nested.toString() == fullyQualifiedNameOf(Nested)
+        nested.toString() == org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf(Nested)
         nested.displayName == "ModelTypeTest.Nested"
     }
 
@@ -96,7 +96,7 @@ class ModelTypeTest extends Specification {
         nestedInterface.rawClass == NestedInterface
         nestedInterface.concreteClass == NestedInterface
 
-        nestedInterface.toString() == fullyQualifiedNameOf(NestedInterface)
+        nestedInterface.toString() == org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf(NestedInterface)
         nestedInterface.displayName == "ModelTypeTest.NestedInterface"
     }
 
