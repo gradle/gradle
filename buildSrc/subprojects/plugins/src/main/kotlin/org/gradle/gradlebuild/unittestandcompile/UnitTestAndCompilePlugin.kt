@@ -154,9 +154,11 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     fun Project.addDependencies() {
         dependencies {
             val testCompile = configurations.getByName("testCompile")
+            val testRuntime = configurations.getByName("testRuntime")
             testCompile(library("junit"))
             testCompile(library("groovy"))
             testCompile(testLibrary("spock"))
+            testRuntime(testLibrary("bytebuddy"))
             testLibraries("jmock").forEach { testCompile(it) }
         }
     }
