@@ -20,6 +20,9 @@ import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import spock.lang.Timeout
+
+import java.util.concurrent.CountDownLatch
 
 import static org.gradle.internal.resources.ResourceLockState.Disposition.*
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.*
@@ -201,6 +204,39 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         and:
         !lock1.lockedState
         !lock2.lockedState
+    }
+
+    @Timeout(10)
+    def "other threads get notification when an exception is thrown"() {
+        given:
+        CountDownLatch latch = new CountDownLatch(3)
+
+        when:
+        (1..3).each {
+            start {
+                try {
+                    coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+                        private int i = 0
+
+                        @Override
+                        ResourceLockState.Disposition transform(ResourceLockState workerLeaseState) {
+                            if (i == 0) {
+                                i++
+                                return RETRY
+                            } else {
+                                throw new RuntimeException("BOOM!")
+                            }
+                        }
+                    })
+                } finally {
+                    latch.countDown()
+                }
+
+            }
+        }
+
+        then:
+        latch.await()
     }
 
     def "locks are rolled back when releaseLocks is called"() {
