@@ -151,8 +151,8 @@ fun Project.applyGroovyProjectConventions() {
     dependencies {
         compile(localGroovy())
         testCompile("com.github.spockframework.spock:spock-core:a463f1b")
-        testCompile("cglib:cglib:3.2.7")
-        testCompile("org.objenesis:objenesis:2.4")
+        testCompile("net.bytebuddy:byte-buddy:1.8.21")
+        testCompile("org.objenesis:objenesis:2.6")
         constraints {
             compile("org.codehaus.groovy:groovy-all:${groovy.lang.GroovySystem.getVersion()}")
         }

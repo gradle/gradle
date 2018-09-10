@@ -99,6 +99,7 @@ open class TestFixturesPlugin : Plugin<Project> {
             testFixturesUsageCompile(project(path))
             testFixturesCompile(library("junit"))
             testFixturesCompile(testLibrary("spock"))
+            testFixturesRuntime(testLibrary("bytebuddy"))
             testLibraries("jmock").forEach { testFixturesCompile(it) }
         }
 
