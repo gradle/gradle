@@ -1174,7 +1174,8 @@ Finalizer tasks are automatically added to the task graph when the finalized tas
 
 .Adding a task finalizer
 ====
-include::sample[dir="userguide/tasks/finalizers",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/finalizers/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/finalizers/kotlin",files="build.gradle.kts[]"]
 
 .Output of **`gradle -q taskX`**
 ----
@@ -1187,7 +1188,8 @@ Finalizer tasks will be executed even if the finalized task fails.
 
 .Task finalizer for a failing task
 ====
-include::sample[dir="userguide/tasks/finalizersWithFailure",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/finalizersWithFailure/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/finalizersWithFailure/kotlin",files="build.gradle.kts[]"]
 
 .Output of **`gradle -q taskX`**
 ----
