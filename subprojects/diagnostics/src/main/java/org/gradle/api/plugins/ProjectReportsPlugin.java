@@ -19,12 +19,11 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.plugins.internal.DefaultProjectReportsPluginConvention;
 import org.gradle.api.reporting.dependencies.HtmlDependencyReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
-import org.gradle.internal.Factory;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -42,12 +41,7 @@ public class ProjectReportsPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(ReportingBasePlugin.class);
-        final ProjectReportsPluginConvention convention = DeprecationLogger.whileDisabled(new Factory<ProjectReportsPluginConvention>() {
-            @Override
-            public ProjectReportsPluginConvention create() {
-                return new ProjectReportsPluginConvention(project);
-            }
-        });
+        final ProjectReportsPluginConvention convention = new DefaultProjectReportsPluginConvention(project);
         project.getConvention().getPlugins().put("projectReports", convention);
 
         TaskReportTask taskReportTask = project.getTasks().create(TASK_REPORT, TaskReportTask.class);

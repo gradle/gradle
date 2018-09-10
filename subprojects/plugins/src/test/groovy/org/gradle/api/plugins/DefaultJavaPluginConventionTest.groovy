@@ -18,11 +18,12 @@ package org.gradle.api.plugins
 
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
-import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
+import org.gradle.api.plugins.internal.DefaultJavaPluginConvention
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -37,17 +38,17 @@ import static org.hamcrest.Matchers.instanceOf
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertThat
 
-class JavaPluginConventionTest {
+class DefaultJavaPluginConventionTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    private final Project project = TestUtil.create(tmpDir).rootProject()
+    private final ProjectInternal project = TestUtil.create(tmpDir).rootProject()
     private Instantiator instantiator = project.services.get(Instantiator)
     private JavaPluginConvention convention
 
     @Before public void setUp() {
         project.pluginManager.apply(ReportingBasePlugin)
-        convention = new JavaPluginConvention(project, instantiator)
+        convention = new DefaultJavaPluginConvention(project, instantiator)
     }
 
     @Test public void defaultValues() {
