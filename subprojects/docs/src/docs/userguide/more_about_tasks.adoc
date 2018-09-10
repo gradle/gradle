@@ -57,28 +57,34 @@ Task did not need to execute its actions.
 [[sec:defining_tasks]]
 == Defining tasks
 
-We have already seen how to define tasks using a keyword style in <<tutorial_using_tasks.adoc#tutorial_using_tasks,this chapter>>. There are a few variations on this style, which you may need to use in certain situations. For example, the keyword style does not work in expressions.
+We have already seen how to define tasks using strings for task names <<tutorial_using_tasks.adoc#tutorial_using_tasks,this chapter>>. There are a few variations on this style, which you may need to use in certain situations.
 
-.Defining tasks
+.Defining tasks using strings for task names
 ====
-include::sample[dir="userguide/tasks/defineAsExpression",files="build.gradle[]"]
-====
-
-You can also use strings for the task names:
-
-.Defining tasks - using strings for task names
-====
-include::sample[dir="userguide/tasks/defineUsingStringTaskNames",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/defineUsingStringTaskNames/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/defineUsingStringTaskNames/kotlin",files="build.gradle.kts[]"]
 ====
 
 There is an alternative syntax for defining tasks, which you may prefer to use:
 
-.Defining tasks with alternative syntax
+.Defining tasks using the `tasks` container
 ====
-include::sample[dir="userguide/tasks/addToTaskContainer",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/addToTaskContainer/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/addToTaskContainer/kotlin",files="build.gradle.kts[]"]
 ====
 
 Here we add tasks to the `tasks` collection. Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more variations of the `create()` method.
+
+And finally, there are language specific syntaxes for the Groovy and Kotlin DSL:
+
+.Defining tasks using a DSL specific syntax
+====
+include::sample[dir="userguide/tasks/defineAsGroovyExpression",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/defineAsKotlinDelegatedProperty",files="build.gradle.kts[]"]
+
+[.multi-language-text.lang-kotlin]
+Note that the Kotlin link:https://kotlinlang.org/docs/reference/delegated-properties.html[delegated properties] syntax is particularly useful if you need the created task for further reference.
+====
 
 [[sec:locating_tasks]]
 == Locating tasks

@@ -1,3 +1,5 @@
+// Using Groovy dynamic keywords
+
 task(hello) {
     doLast {
         println "hello"
