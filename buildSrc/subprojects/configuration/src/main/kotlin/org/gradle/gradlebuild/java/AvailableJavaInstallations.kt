@@ -106,7 +106,7 @@ open class AvailableJavaInstallations(project: Project, private val javaInstalla
     fun validateProductionEnvironment() {
         val validationErrors = validateCompilationJdks() +
             mapOf(
-                validationMessage(testJavaHomePropertyName, javaInstallationForTest, oracleJdk8) to (javaInstallationForTest.displayName != oracleJdk8)
+                validationMessage(testJavaHomePropertyName, javaInstallationForTest, oracleJdk8) to (javaInstallationForTest.displayName != oracleJdk8 && javaInstallationForTest.displayName != oracleJdk9)
             ).filterValues { it }.keys
         if (validationErrors.isNotEmpty()) {
             throw GradleException(formatValidationError("JDKs not configured correctly for production build.", validationErrors))
