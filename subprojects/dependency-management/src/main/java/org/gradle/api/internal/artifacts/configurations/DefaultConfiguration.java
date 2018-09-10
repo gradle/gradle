@@ -107,6 +107,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.Path;
 import org.gradle.util.WrapUtil;
 
@@ -1069,7 +1070,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             if (project != null) {
                 ProjectState projectState = projectStateRegistry.stateFor(project);
                 if (!projectState.hasMutableState()) {
-                    throw new IllegalStateException("Attempting to resolve configuration '" + identityPath.getPath() + "' without holding the mutability lock is not allowed.");
+                    DeprecationLogger.nagUserOfDeprecatedBehaviour("The configuration " + identityPath.toString() + " was resolved unsafely without accessing the project mutably.");
                 }
             }
         }
