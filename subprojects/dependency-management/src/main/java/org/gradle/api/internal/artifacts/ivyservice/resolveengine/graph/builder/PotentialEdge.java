@@ -44,11 +44,11 @@ class PotentialEdge {
     }
 
     static PotentialEdge of(ResolveState resolveState, NodeState from, ModuleComponentIdentifier toComponent, ModuleComponentSelector toSelector, ComponentIdentifier owner) {
-        return of(resolveState, from, toComponent, toSelector, owner, false);
+        return of(resolveState, from, toComponent, toSelector, owner, false, true);
     }
 
-    static PotentialEdge of(ResolveState resolveState, NodeState from, ModuleComponentIdentifier toComponent, ModuleComponentSelector toSelector, ComponentIdentifier owner, boolean force) {
-        DependencyState dependencyState = new DependencyState(new LenientPlatformDependencyMetadata(resolveState, from, toSelector, toComponent, owner, force || isForce(from)), resolveState.getComponentSelectorConverter());
+    static PotentialEdge of(ResolveState resolveState, NodeState from, ModuleComponentIdentifier toComponent, ModuleComponentSelector toSelector, ComponentIdentifier owner, boolean force, boolean transitive) {
+        DependencyState dependencyState = new DependencyState(new LenientPlatformDependencyMetadata(resolveState, from, toSelector, toComponent, owner, force || isForce(from), transitive), resolveState.getComponentSelectorConverter());
         dependencyState = NodeState.maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
         EdgeState edge = new EdgeState(from, dependencyState, from.previousTraversalExclusions, resolveState);
         ModuleVersionIdentifier toModuleVersionId = DefaultModuleVersionIdentifier.newId(toSelector.getModuleIdentifier(), toSelector.getVersion());

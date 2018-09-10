@@ -21,6 +21,12 @@ import org.gradle.test.fixtures.file.TestFile
 
 class JDependRelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
 
+    void setup() {
+        executer.beforeExecute {
+            noDeprecationChecks()
+        }
+    }
+
     @Override
     protected String getTaskName() {
         return ":jdepend"

@@ -22,6 +22,7 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
@@ -43,9 +44,16 @@ import java.util.List;
  */
 @Incubating
 public class XCTest extends AbstractTestTask {
-    private final DirectoryProperty workingDirectory = getProject().getLayout().directoryProperty();
-    private final DirectoryProperty testInstallDirectory = newInputDirectory();
-    private final RegularFileProperty runScriptFile = newInputFile();
+    private final DirectoryProperty workingDirectory;
+    private final DirectoryProperty testInstallDirectory;
+    private final RegularFileProperty runScriptFile;
+
+    public XCTest() {
+        ObjectFactory objectFactory = getProject().getObjects();
+        workingDirectory = objectFactory.directoryProperty();
+        testInstallDirectory = objectFactory.directoryProperty();
+        runScriptFile = objectFactory.fileProperty();
+    }
 
     @Override
     protected XCTestTestExecutionSpec createTestExecutionSpec() {

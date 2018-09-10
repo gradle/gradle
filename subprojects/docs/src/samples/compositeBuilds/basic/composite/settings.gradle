@@ -1,4 +1,0 @@
-rootProject.name='adhoc'
-
-includeBuild '../my-app'
-includeBuild '../my-utils'

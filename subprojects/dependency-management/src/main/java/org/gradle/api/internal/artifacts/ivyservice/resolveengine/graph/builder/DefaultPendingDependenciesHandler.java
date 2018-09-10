@@ -28,6 +28,13 @@ class DefaultPendingDependenciesHandler implements PendingDependenciesHandler {
     private final PendingDependenciesState pendingDependencies = new PendingDependenciesState();
 
     @Override
+    public void removeHardEdge(EdgeState edgeState) {
+        if (!edgeState.getDependencyMetadata().isConstraint()) {
+            pendingDependencies.getPendingDependencies(edgeState.getTargetIdentifier()).removeHardEdge();
+        }
+    }
+
+    @Override
     public Visitor start() {
         return new DefaultVisitor();
     }
@@ -37,16 +44,9 @@ class DefaultPendingDependenciesHandler implements PendingDependenciesHandler {
 
         public boolean maybeAddAsPendingDependency(NodeState node, DependencyState dependencyState) {
             ModuleIdentifier key = dependencyState.getModuleIdentifier();
-            boolean isOptionalDependency = dependencyState.getDependency().isPending();
-            if (!isOptionalDependency) {
-                // Mark as not pending. If we saw pending dependencies before, mark them as no longer pending
-                PendingDependencies priorPendingDependencies = pendingDependencies.notPending(key);
-                if (priorPendingDependencies != null && priorPendingDependencies.isPending()) {
-                    if (noLongerPending == null) {
-                        noLongerPending = Lists.newLinkedList();
-                    }
-                    noLongerPending.add(priorPendingDependencies);
-                }
+            boolean isConstraint = dependencyState.getDependency().isConstraint();
+            if (!isConstraint) {
+                markNotPending(key);
                 return false;
             }
 
@@ -62,6 +62,21 @@ class DefaultPendingDependenciesHandler implements PendingDependenciesHandler {
             // No hard dependency, queue up pending dependency in case we see a hard dependency later.
             pendingDependencies.addNode(node);
             return true;
+        }
+
+        @Override
+        public void markNotPending(ModuleIdentifier id) {
+            markNoLongerPending(pendingDependencies.getPendingDependencies(id));
+        }
+
+        private void markNoLongerPending(PendingDependencies pendingDependencies) {
+            if (pendingDependencies.hasPendingComponents()) {
+                if (noLongerPending == null) {
+                    noLongerPending = Lists.newLinkedList();
+                }
+                noLongerPending.add(pendingDependencies);
+            }
+            pendingDependencies.addHardEdge();
         }
 
         public void complete() {

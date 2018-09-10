@@ -7,4 +7,9 @@ dependencies {
         // Xerces on the runtime classpath is breaking some of our doc tasks
         exclude(group = "xerces")
     }
+    implementation("org.openmbee.junit:junit-xml-parser:1.0.0") {
+        // don't need it at runtime
+        exclude(module = "lombok")
+    }
+    implementation("javax.activation:activation:1.1.1")
 }

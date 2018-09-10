@@ -351,7 +351,8 @@ task checkArtifacts {
         buildFile << """
             project(':a') {
                 task classes {
-                    ext.outputFile = newOutputFile()
+                    ext.outputFile = project.objects.fileProperty()
+                    outputs.file(outputFile)
                     outputFile.set(layout.buildDirectory.file("a.jar"))
                 }
                 artifacts {
@@ -383,7 +384,8 @@ task checkArtifacts {
         buildFile << """
             project(':a') {
                 task classes {
-                    ext.outputDir = newOutputDirectory()
+                    ext.outputDir = objects.directoryProperty()
+                    outputs.dir(outputDir)
                     outputDir.set(layout.buildDirectory.dir("classes"))
                 }
                 artifacts {

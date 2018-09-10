@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.JDependInvoker;
@@ -35,6 +34,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.SingleMessageLogger;
 
@@ -43,8 +43,11 @@ import java.io.File;
 
 /**
  * Analyzes code with <a href="https://github.com/clarkware/jdepend">JDepend</a>.
+ *
+ * @deprecated JDepend is unmaintained and does not support bytecode compiled for Java 8 and above.
  */
 @CacheableTask
+@Deprecated
 public class JDepend extends DefaultTask implements Reporting<JDependReports> {
 
     private FileCollection jdependClasspath;

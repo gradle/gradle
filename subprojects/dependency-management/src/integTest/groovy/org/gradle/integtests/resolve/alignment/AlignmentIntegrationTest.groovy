@@ -496,7 +496,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             path 'org3:bar:1.0 -> org4:b:1.1 -> org4:a:1.1'
         }
 
-        buildFile << """
+        buildFile << """          
             dependencies {
                 conf 'org:xml:1.0'
                 conf 'org2:foo:1.0'
@@ -1003,6 +1003,47 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                         module('org:core:2.9.4')
                         edge('org:annotations:2.9.0', 'org:annotations:2.9.4')
                     }
+                }
+            }
+        }
+
+    }
+
+    @RequiredFeatures([
+        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    ])
+    def "virtual platform constraints shouldn't be transitive"() {
+        repository {
+            "org:member1:1.1" {
+                dependsOn(group: "other", artifact:"transitive", version:"1.0")
+            }
+            "org:member2:1.1" {
+                dependsOn(group:'org', artifact:'member1', version:'1.1', exclusions: [[module: 'transitive']])
+            }
+            "other:transitive:1.0"()
+        }
+
+        given:
+        buildFile << """
+            dependencies {
+                conf 'org:member2:1.1'
+            }
+        """
+        and:
+        "align the 'org' group only"()
+
+        when:
+        expectAlignment {
+            module('member1') alignsTo('1.1') byVirtualPlatform()
+            module('member2') alignsTo('1.1') byVirtualPlatform()
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:member2:1.1") {
+                    module("org:member1:1.1")
                 }
             }
         }

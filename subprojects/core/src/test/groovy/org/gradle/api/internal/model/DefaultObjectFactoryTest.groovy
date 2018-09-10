@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.model
 
+import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.internal.reflect.Instantiator
@@ -24,13 +25,26 @@ import spock.lang.Unroll
 
 
 class DefaultObjectFactoryTest extends Specification {
-    def factory = new DefaultObjectFactory(Stub(Instantiator), Stub(NamedObjectInstantiator), Stub(FileResolver), Stub(DirectoryFileTreeFactory))
+    def factory = new DefaultObjectFactory(Stub(Instantiator), Stub(NamedObjectInstantiator), Stub(FileResolver), Stub(DirectoryFileTreeFactory), Stub(FilePropertyFactory))
 
     def "can create a property"() {
         expect:
         def property = factory.property(Boolean)
+        !property.present
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'No value has been specified for this provider.'
+    }
+
+    def "can create a property with initial value"() {
+        expect:
+        def property = factory.property(Boolean, true)
         property.present
-        !property.get()
+        property.get()
     }
 
     def "cannot create property for null value"() {
@@ -43,33 +57,24 @@ class DefaultObjectFactoryTest extends Specification {
     }
 
     @Unroll
-    def "properties wih boolean and numbers provide default value for #type"() {
+    def "can create property wih primitive type"() {
         given:
         def property = factory.property(type)
 
         expect:
-        property.get() == defaultValue
+        property.type == boxedType
+        !property.present
 
         where:
-        type      | defaultValue
-        Boolean   | false
-        Byte      | 0
-        Short     | 0
-        Integer   | 0
-        Long      | 0L
-        Float     | 0.0f
-        Double    | 0.0d
-        Character | '\u0000'
-    }
-
-    def "creating property type for reference type throws exception upon retrieval of value"() {
-        when:
-        def property = factory.property(Runnable)
-        property.get()
-
-        then:
-        def t = thrown(IllegalStateException)
-        t.message == 'No value has been specified for this provider.'
+        type           | boxedType
+        Boolean.TYPE   | Boolean
+        Byte.TYPE      | Byte
+        Short.TYPE     | Short
+        Integer.TYPE   | Integer
+        Long.TYPE      | Long
+        Float.TYPE     | Float
+        Double.TYPE    | Double
+        Character.TYPE | Character
     }
 
     def "can create SourceDirectorySet"() {

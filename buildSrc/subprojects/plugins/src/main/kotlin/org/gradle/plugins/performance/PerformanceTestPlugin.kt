@@ -7,6 +7,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.testing.junit.JUnitOptions
@@ -104,7 +105,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
     private
     fun Project.createRebaselineTask(performanceTestSourceSet: SourceSet) {
-        project.tasks.register("rebaselinePerformanceTests", RebaselinePerformanceTests::class.java) {
+        project.tasks.register("rebaselinePerformanceTests", RebaselinePerformanceTests::class) {
             source(performanceTestSourceSet.allSource)
         }
     }
@@ -204,17 +205,25 @@ class PerformanceTestPlugin : Plugin<Project> {
         tasks.register("prepareSamples") {
             group = "Project Setup"
             description = "Generates all sample projects for automated performance tests"
-            dependsOn(tasks.withType<ProjectGeneratorTask>())
-            dependsOn(tasks.withType<RemoteProject>())
-            dependsOn(tasks.withType<JavaExecProjectGeneratorTask>())
+            configureSampleGenerators {
+                this@register.dependsOn(this)
+            }
         }
 
     private
+    fun Project.configureSampleGenerators(action: TaskCollection<*>.() -> Unit) {
+        tasks.withType<ProjectGeneratorTask>().action()
+        tasks.withType<RemoteProject>().action()
+        tasks.withType<JavaExecProjectGeneratorTask>().action()
+    }
+
+
+    private
     fun Project.createCleanSamplesTask() =
-        tasks.register("cleanSamples", Delete::class.java) {
-            delete(deferred { tasks.withType<ProjectGeneratorTask>().map { it.outputs } })
-            delete(deferred { tasks.withType<RemoteProject>().map { it.outputDirectory } })
-            delete(deferred { tasks.withType<JavaExecProjectGeneratorTask>().map { it.outputs } })
+        tasks.register("cleanSamples", Delete::class) {
+            configureSampleGenerators {
+                this@register.delete(deferred { map { it.outputs } })
+            }
         }
 
 
@@ -306,7 +315,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         prepareSamplesTask: TaskProvider<Task>
     ): TaskProvider<DistributedPerformanceTest> {
 
-        val result = tasks.register(name, DistributedPerformanceTest::class.java) {
+        val result = tasks.register(name, DistributedPerformanceTest::class) {
             configureReportProperties()
             configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask)
             scenarioList = buildDir / Config.performanceTestScenarioListFileName
@@ -338,7 +347,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         prepareSamplesTask: TaskProvider<Task>
     ): TaskProvider<PerformanceTest> {
 
-        val performanceTest = tasks.register(name, PerformanceTest::class.java) {
+        val performanceTest = tasks.register(name, PerformanceTest::class) {
             configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask)
 
             if (project.hasProperty(PropertyNames.performanceTestVerbose)) {
@@ -362,8 +371,8 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.testResultsZipTaskFor(performanceTest: TaskProvider<PerformanceTest>, name: String): TaskProvider<Zip> {
-        return tasks.register("${name}ResultsZip", Zip::class.java) {
+    fun Project.testResultsZipTaskFor(performanceTest: TaskProvider<PerformanceTest>, name: String): TaskProvider<Zip> =
+        tasks.register("${name}ResultsZip", Zip::class) {
             val junitXmlDir = performanceTest.get().reports.junitXml.destination
             from(junitXmlDir) {
                 include("**/TEST-*.xml")
@@ -383,7 +392,6 @@ class PerformanceTestPlugin : Plugin<Project> {
             destinationDir = buildDir
             archiveName = "test-results-${junitXmlDir.name}.zip"
         }
-    }
 
     private
     fun Project.configureForAnyPerformanceTestTask(
@@ -412,9 +420,9 @@ class PerformanceTestPlugin : Plugin<Project> {
 
             registerTemplateInputsToPerformanceTest()
 
-            mustRunAfter(tasks.withType<ProjectGeneratorTask>())
-            mustRunAfter(tasks.withType<RemoteProject>())
-            mustRunAfter(tasks.withType<JavaExecProjectGeneratorTask>())
+            configureSampleGenerators {
+                this@apply.mustRunAfter(this)
+            }
         }
     }
 
@@ -427,11 +435,13 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun PerformanceTest.registerTemplateInputsToPerformanceTest() {
         val registerInputs: (Task) -> Unit = { prepareSampleTask ->
             val prepareSampleTaskInputs = prepareSampleTask.inputs.properties.mapKeys { entry -> "${prepareSampleTask.name}_${entry.key}" }
-            inputs.properties(prepareSampleTaskInputs)
+            prepareSampleTaskInputs.forEach { key, value ->
+                inputs.property(key, value).optional(true)
+            }
         }
-        project.tasks.withType<ProjectGeneratorTask>().forEach(registerInputs)
-        project.tasks.withType<RemoteProject>().forEach(registerInputs)
-        project.tasks.withType<JavaExecProjectGeneratorTask>().forEach(registerInputs)
+        project.configureSampleGenerators {
+            configureEach(registerInputs)
+        }
     }
 
     private

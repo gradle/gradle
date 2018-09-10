@@ -31,22 +31,18 @@ The build announcements plugin uses the <<announce_plugin.adoc#announce_plugin,a
 
 To use the build announcements plugin, include the following in your build script:
 
-=== Example: Using the build announcements plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/announce/build.gradle[tag=use-build-announcements-plugin]
-----
+.Using the build announcements plugin
+====
+include::sample[dir="build-announcements/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="build-announcements/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+====
 
 That's it. If you want to tweak where the announcements go, you can configure the <<announce_plugin.adoc#announce_plugin,announce>> plugin to change the local announcer.
 
 You can also apply the plugin from an init script:
 
-=== Example: Using the build announcements plugin from an init script
-
-[source.multi-language-sample,groovy]
-.init.gradle
-----
-include::{samplesPath}/announce/init.gradle[]
-----
+.Using the build announcements plugin from an init script
+====
+include::sample[dir="build-announcements/groovy",files="init.gradle[]"]
+include::sample[dir="build-announcements/kotlin",files="init.gradle.kts[]"]
+====

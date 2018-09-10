@@ -27,23 +27,33 @@ class JacocoReportFixture {
         this.htmlDir = htmlDir
     }
 
-    public boolean exists() {
+    boolean exists() {
         htmlDir.file("index.html").exists()
     }
 
-    public String jacocoVersion() {
+    String jacocoVersion() {
         def parsedHtmlReport = Jsoup.parse(htmlDir.file("index.html"), "UTF-8")
         def footer = parsedHtmlReport.select("div.footer:has(a[href~=http://www.eclemma.org/jacoco|http://www.jacoco.org/jacoco])")
         String text = footer.text()
         return text.startsWith("Created with JaCoCo ") ? text.substring(20) : text
     }
 
-    public BigDecimal totalCoverage() {
+    BigDecimal totalCoverage() {
         def parsedHtmlReport = Jsoup.parse(htmlDir.file("index.html"), "UTF-8")
         def table = parsedHtmlReport.select("table#coveragetable").first()
         def td = table.select("tfoot td:eq(2)").first()
         String totalCoverage = td.text().replaceAll(NON_BREAKING_WHITESPACE, '') // remove non-breaking whitespace
         return totalCoverage.endsWith("%") ? totalCoverage.subSequence(0, totalCoverage.length() - 1) as BigDecimal : null
+    }
+
+    int numberOfClasses() {
+        def parsedHtmlReport = Jsoup.parse(htmlDir.file("index.html"), "UTF-8")
+        def table = parsedHtmlReport.select("table#coveragetable").first()
+        def td = table.select("tfoot td").last()
+        String numberOfClasses = td.text()
+            .replaceAll(NON_BREAKING_WHITESPACE, '')  // remove non-breaking whitespace
+            .replaceAll('[^0-9]', '') // remove digit separators
+        return Integer.parseInt(numberOfClasses)
     }
 
     boolean assertVersion(String version) {

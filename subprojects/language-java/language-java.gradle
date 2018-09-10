@@ -20,7 +20,7 @@ dependencies {
 
 gradlebuildJava {
     // Needs to run in the compiler daemon
-    moduleType = ModuleType.REQUIRES_JAVA_9_COMPILER
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

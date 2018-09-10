@@ -19,7 +19,7 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitorUtil
-import org.gradle.api.internal.tasks.TaskDependencies
+import org.gradle.api.internal.tasks.TaskDependencyInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.test.fixtures.file.TestFile
@@ -359,10 +359,10 @@ class AbstractFileCollectionTest extends Specification {
 
     void canVisitRootElements() {
         def collection = new TestFileCollection()
-        def visitor = Mock(FileCollectionVisitor)
+        def visitor = Mock(FileCollectionLeafVisitor)
 
         when:
-        collection.visitRootElements(visitor)
+        collection.visitLeafCollections(visitor)
 
         then:
         1 * visitor.visitCollection(collection)
@@ -396,7 +396,7 @@ class AbstractFileCollectionTest extends Specification {
 
         @Override
         TaskDependency getBuildDependencies() {
-            TaskDependencies.EMPTY
+            TaskDependencyInternal.EMPTY
         }
     }
 

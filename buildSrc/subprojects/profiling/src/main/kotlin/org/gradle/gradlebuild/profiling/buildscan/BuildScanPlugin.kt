@@ -18,13 +18,13 @@ package org.gradle.gradlebuild.profiling.buildscan
 import com.gradle.scan.plugin.BuildScanExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.internal.GradleInternal
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.CodeNarc
 import org.gradle.api.reporting.Reporting
 import org.gradle.gradlebuild.BuildEnvironment.isCiServer
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.support.serviceOf
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
 
@@ -141,13 +141,15 @@ open class BuildScanPlugin : Plugin<Project> {
             val tasksToInvestigate = System.getProperty("cache.investigate.tasks", ":baseServices:classpathManifest")
                 .split(",")
 
-            buildScan.buildFinished {
-                gradle.taskGraph.allTasks
-                    .filter { it.state.executed && it.path in tasksToInvestigate }
-                    .forEach { task ->
-                        val hasher = (gradle as GradleInternal).services.get(ClassLoaderHierarchyHasher::class.java)
-                        Visitor(buildScan, hasher, task).visit(task::class.java.classLoader)
-                    }
+            gradle.taskGraph.whenReady {
+                buildScan.buildFinished {
+                    gradle.taskGraph.allTasks
+                        .filter { it.state.executed && it.path in tasksToInvestigate }
+                        .forEach { task ->
+                            val hasher = gradle.serviceOf<ClassLoaderHierarchyHasher>()
+                            Visitor(buildScan, hasher, task).visit(task::class.java.classLoader)
+                        }
+                }
             }
         }
     }

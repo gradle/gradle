@@ -21,7 +21,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -30,6 +29,7 @@ import org.gradle.model.Finalize;
 import org.gradle.model.Model;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
+import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentType;
@@ -82,11 +82,11 @@ public class BinaryBasePlugin implements Plugin<Project> {
         }
 
         @Finalize
-        public void defineBuildLifecycleTask(@Each BinarySpecInternal binary, ITaskFactory taskFactory) {
+        public void defineBuildLifecycleTask(@Each BinarySpecInternal binary, NamedEntityInstantiator<Task> taskInstantiator) {
             if (binary.isLegacyBinary()) {
                 return;
             }
-            TaskInternal binaryLifecycleTask = taskFactory.create(binary.getProjectScopedName(), DefaultTask.class);
+            TaskInternal binaryLifecycleTask = taskInstantiator.create(binary.getProjectScopedName(), DefaultTask.class);
             binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
             binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
             binary.setBuildTask(binaryLifecycleTask);
