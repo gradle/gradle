@@ -57,6 +57,8 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 withModule("org.codehaus.groovy:groovy", DowngradeIvyRule::class.java)
                 withModule("org.codehaus.groovy:groovy", DowngradeTestNGRule::class.java)
 
+                withModule("org.junit.platform:junit-platform-engine", DowngradeOpentest4jRule::class.java)
+
                 withModule("jaxen:jaxen", DowngradeXmlApisRule::class.java)
                 withModule("jdom:jdom", DowngradeXmlApisRule::class.java)
                 withModule("xalan:xalan", DowngradeXmlApisRule::class.java)
@@ -249,6 +251,20 @@ open class DowngradeTestNGRule : ComponentMetadataRule {
                 filter { it.group == "org.testng" }.forEach {
                     it.version { prefer("6.3.1") }
                     it.because("6.3.1 is required by Gradle and part of the distribution")
+                }
+            }
+        }
+    }
+}
+
+
+open class DowngradeOpentest4jRule : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
+            withDependencies {
+                filter { it.group == "org.opentest4j" }.forEach {
+                    it.version { strictly("1.0.0") }
+                    it.because("1.1.0 has has issue https://github.com/ota4j-team/opentest4j/issues/49")
                 }
             }
         }
