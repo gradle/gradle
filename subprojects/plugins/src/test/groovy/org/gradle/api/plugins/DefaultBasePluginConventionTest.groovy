@@ -17,6 +17,7 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.plugins.internal.DefaultBasePluginConvention
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Before
@@ -25,7 +26,7 @@ import org.junit.Test
 
 import static org.junit.Assert.assertEquals
 
-class BasePluginConventionTest {
+class DefaultBasePluginConventionTest {
     @Rule
     public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
 
@@ -34,7 +35,7 @@ class BasePluginConventionTest {
     private BasePluginConvention convention
 
     @Before public void setUp() {
-        convention = new BasePluginConvention(project)
+        convention = new DefaultBasePluginConvention(project)
     }
 
     @Test public void defaultValues() {
