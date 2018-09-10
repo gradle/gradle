@@ -18,8 +18,8 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.gradle.api.internal.DefaultMutationGuard;
 import org.gradle.api.internal.MutationGuard;
-import org.gradle.api.internal.ThreadLocalMutationGuard;
 import org.gradle.api.internal.WithMutationGuard;
 import org.gradle.internal.Actions;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -32,7 +32,7 @@ import java.util.Collections;
 public class BuildOperationCrossProjectConfigurator implements CrossProjectConfigurator, WithMutationGuard {
 
     private final BuildOperationExecutor buildOperationExecutor;
-    private final MutationGuard mutationGuard = new ThreadLocalMutationGuard();
+    private final MutationGuard mutationGuard = new DefaultMutationGuard();
 
     public BuildOperationCrossProjectConfigurator(BuildOperationExecutor buildOperationExecutor) {
         this.buildOperationExecutor = buildOperationExecutor;

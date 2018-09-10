@@ -45,39 +45,11 @@ public abstract class AbstractMutationGuard implements MutationGuard {
         }
     }
 
-    protected abstract boolean getAndSetMutationAllowed(boolean mutationAllowed);
+    protected abstract <T> Action<? super T> newActionWithMutation(final Action<? super T> action, final boolean allowMutationMethods);
 
-    protected <T> Action<? super T> newActionWithMutation(final Action<? super T> action, final boolean allowMutationMethods) {
-        return new Action<T>() {
-            @Override
-            public void execute(T t) {
-                boolean oldIsMutationAllowed = getAndSetMutationAllowed(allowMutationMethods);
-                try {
-                    action.execute(t);
-                } finally {
-                    getAndSetMutationAllowed(oldIsMutationAllowed);
-                }
-            }
-        };
-    }
+    protected abstract void runWithMutation(final Runnable runnable, boolean allowMutationMethods);
 
-    protected void runWithMutation(final Runnable runnable, boolean allowMutationMethods) {
-        boolean oldIsMutationAllowed = getAndSetMutationAllowed(allowMutationMethods);
-        try {
-            runnable.run();
-        } finally {
-            getAndSetMutationAllowed(oldIsMutationAllowed);
-        }
-    }
-
-    protected <I> I createWithMutation(final Factory<I> factory, boolean allowMutationMethods) {
-        boolean oldIsMutationAllowed = getAndSetMutationAllowed(allowMutationMethods);
-        try {
-            return factory.create();
-        } finally {
-            getAndSetMutationAllowed(oldIsMutationAllowed);
-        }
-    }
+    protected abstract <I> I createWithMutation(final Factory<I> factory, boolean allowMutationMethods);
 
     @Override
     public <T> Action<? super T> withMutationEnabled(Action<? super T> action) {

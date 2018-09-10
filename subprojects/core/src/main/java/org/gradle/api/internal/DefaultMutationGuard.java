@@ -16,18 +16,54 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.api.Action;
+import org.gradle.internal.Factory;
+
 public class DefaultMutationGuard extends AbstractMutationGuard {
-    private boolean isMutationAllowed = true;
+    private ThreadLocal<Boolean> isMutationAllowed = new ThreadLocal<Boolean>() {
+        @Override
+        protected Boolean initialValue() {
+            return Boolean.TRUE;
+        }
+    };
 
     @Override
     public boolean isMutationAllowed() {
-        return isMutationAllowed;
+        return isMutationAllowed.get();
     }
 
-    @Override
-    protected boolean getAndSetMutationAllowed(boolean mutationAllowed) {
-        boolean result = isMutationAllowed;
-        isMutationAllowed = mutationAllowed;
-        return result;
+    protected <T> Action<? super T> newActionWithMutation(final Action<? super T> action, final boolean allowMutationMethods) {
+        return new Action<T>() {
+            @Override
+            public void execute(T t) {
+                boolean oldIsMutationAllowed = isMutationAllowed.get();
+                isMutationAllowed.set(allowMutationMethods);
+                try {
+                    action.execute(t);
+                } finally {
+                    isMutationAllowed.set(oldIsMutationAllowed);
+                }
+            }
+        };
+    }
+
+    protected void runWithMutation(final Runnable runnable, boolean allowMutationMethods) {
+        boolean oldIsMutationAllowed = isMutationAllowed.get();
+        isMutationAllowed.set(allowMutationMethods);
+        try {
+            runnable.run();
+        } finally {
+            isMutationAllowed.set(oldIsMutationAllowed);
+        }
+    }
+
+    protected <I> I createWithMutation(final Factory<I> factory, boolean allowMutationMethods) {
+        boolean oldIsMutationAllowed = isMutationAllowed.get();
+        isMutationAllowed.set(allowMutationMethods);
+        try {
+            return factory.create();
+        } finally {
+            isMutationAllowed.set(oldIsMutationAllowed);
+        }
     }
 }
