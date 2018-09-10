@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.collections.jdk7
+package org.gradle.api.internal.file.collections
 
 import com.google.common.base.Charsets
 import org.gradle.api.GradleException
@@ -24,10 +24,7 @@ import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.DefaultDirectoryWalker
-import org.gradle.api.internal.file.collections.DirectoryFileTree
-import org.gradle.api.internal.file.collections.DirectoryWalker
-import org.gradle.api.internal.file.collections.ReproducibleDirectoryWalker
+import org.gradle.api.internal.file.collections.jdk7.Jdk7DirectoryWalker
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
@@ -51,7 +48,7 @@ import java.nio.charset.Charset
 import java.util.concurrent.atomic.AtomicInteger
 
 @UsesNativeServices
-class Jdk7DirectoryWalkerTest extends Specification {
+class DirectoryWalkerTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
