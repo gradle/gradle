@@ -373,7 +373,8 @@ You can use the `onlyIf()` method to attach a predicate to a task. The task's ac
 
 .Skipping a task using a predicate
 ====
-include::sample[dir="userguide/tutorial/taskOnlyIf",files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/taskOnlyIf/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/taskOnlyIf/kotlin",files="build.gradle.kts[]"]
 
 .Output of **`gradle hello -PskipHello`**
 ----
@@ -390,7 +391,8 @@ If the logic for skipping a task can't be expressed with a predicate, you can us
 
 .Skipping tasks with StopExecutionException
 ====
-include::sample[dir="userguide/tutorial/stopExecutionException",files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/stopExecutionException/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/stopExecutionException/kotlin",files="build.gradle.kts[]"]
 
 .Output of **`gradle -q myTask`**
 ----
@@ -408,7 +410,8 @@ Every task has an `enabled` flag which defaults to `true`. Setting it to `false`
 
 .Enabling and disabling tasks
 ====
-include::sample[dir="userguide/tutorial/disableTask",files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/disableTask/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/tutorial/disableTask/kotlin",files="build.gradle.kts[]"]
 
 .Output of **`gradle disableMe`**
 ----
