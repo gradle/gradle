@@ -225,6 +225,7 @@ public class CreateStartScripts extends ConventionTask {
     /**
      * The application's name.
      */
+    @Nullable
     @Input
     public String getApplicationName() {
         return applicationName;
