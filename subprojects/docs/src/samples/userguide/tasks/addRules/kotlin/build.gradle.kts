@@ -5,7 +5,7 @@ tasks.addRule("Pattern: ping<ID>") {
     if (startsWith("ping")) {
         task(taskName) {
             doLast {
-                println("Pinging: " + (taskName - "ping"))
+                println("Pinging: " + (taskName.replace("ping", "")))
             }
         }
     }
