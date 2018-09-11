@@ -58,6 +58,7 @@ testFixtures {
 classycle {
     excludePatterns = ['org/gradle/model/internal/core/**',
                        'org/gradle/model/internal/inspect/**',
+                       'org/gradle/api/internal/tasks/**',
                        'org/gradle/model/internal/manage/schema/**',
                        'org/gradle/model/internal/type/**']
 }

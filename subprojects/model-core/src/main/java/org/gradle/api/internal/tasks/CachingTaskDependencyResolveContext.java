@@ -81,6 +81,13 @@ public class CachingTaskDependencyResolveContext<T> implements TaskDependencyRes
         queue.add(dependency);
     }
 
+    @Override
+    public void maybeAdd(Object dependency) {
+        if (dependency instanceof Buildable || dependency instanceof TaskDependencyContainer) {
+            queue.add(dependency);
+        }
+    }
+
     private class TaskGraphImpl implements DirectedGraph<Object, T> {
         private final Collection<? extends WorkDependencyResolver<T>> workResolvers;
 

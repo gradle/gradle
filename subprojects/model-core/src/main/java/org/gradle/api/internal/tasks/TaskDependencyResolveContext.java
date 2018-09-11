@@ -39,6 +39,11 @@ public interface TaskDependencyResolveContext {
     void add(Object dependency);
 
     /**
+     * Adds the given dependency to the result, if it is one of the supported types. Otherwise ignore the value.
+     */
+    void maybeAdd(Object dependency);
+
+    /**
      * Returns the task whose dependencies are being resolved.
      */
     Task getTask();

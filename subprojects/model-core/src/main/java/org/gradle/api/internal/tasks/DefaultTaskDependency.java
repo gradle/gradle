@@ -23,7 +23,6 @@ import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.provider.ProviderInternal;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
@@ -133,15 +132,11 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
             } else if (dependency instanceof TaskDependencyContainer) {
                 ((TaskDependencyContainer) dependency).visitDependencies(context);
             } else if (dependency instanceof ProviderInternal) {
-                ProviderInternal providerInternal = (ProviderInternal) dependency;
-                if (providerInternal.getType() == null || providerInternal.getType().equals(Provider.class) || Task.class.isAssignableFrom(providerInternal.getType())) {
+                ProviderInternal<?> providerInternal = (ProviderInternal) dependency;
+                if (!providerInternal.maybeVisitBuildDependencies(context)) {
+                    // Provider does not know its build dependencies, so unpack the value
                     queue.addFirst(providerInternal.get());
-                    continue;
                 }
-                List<String> formats = new ArrayList<String>();
-                formats.add("A RegularFileProperty");
-                formats.add("A DirectoryProperty");
-                throw new UnsupportedNotationException(dependency, String.format("Cannot convert Provider %s to a task.", dependency), null, formats);
             } else {
                 List<String> formats = new ArrayList<String>();
                 if (resolver != null) {
