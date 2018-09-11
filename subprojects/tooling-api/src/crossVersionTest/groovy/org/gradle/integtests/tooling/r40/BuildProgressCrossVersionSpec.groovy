@@ -72,9 +72,9 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
-                    .forTasks('runForked')
                     .setStandardOutput(System.out)
                     .setStandardError(System.err)
+                    .forTasks('runForked')
                     .withArguments("-i")
                     .addProgressListener(events)
                     .run()
