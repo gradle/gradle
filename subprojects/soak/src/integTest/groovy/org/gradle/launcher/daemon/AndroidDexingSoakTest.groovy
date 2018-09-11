@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon
 
+import org.gradle.api.JavaVersion
 import org.gradle.cache.internal.HeapProportionalCacheSizer
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.soak.categories.SoakTest
@@ -84,6 +85,9 @@ class AndroidDexingSoakTest extends DaemonIntegrationSpec {
             executer.withStackTraceChecksDisabled()
             executer.expectDeprecationWarnings(4)
             executer.withBuildJvmOpts("-Xmx2560m", "-D${HeapProportionalCacheSizer.CACHE_RESERVED_SYSTEM_PROPERTY}=1536")
+            if (JavaVersion.current().isJava9Compatible()) {
+                executer.withBuildJvmOpts('--add-modules', 'java.xml.bind')
+            }
             args('-x', 'lint')
             succeeds('clean', 'transformClassesWithDexForRelease')
             result.assertTaskNotSkipped(':transformClassesWithDexForRelease')
