@@ -1,0 +1,25 @@
+import javax.inject.Inject
+
+// tag::inject-task-constructor[]
+class CustomTask extends DefaultTask {
+    final String message
+    final int number
+
+    @Inject
+    CustomTask(String message, int number) {
+        this.message = message
+        this.number = number
+    }
+// end::inject-task-constructor[]
+
+    @TaskAction
+    void printIt() {
+        println("$message $number")
+    }
+// tag::inject-task-constructor[]
+}
+// end::inject-task-constructor[]
+
+// tag::on-project[]
+task myTask(type: CustomTask, constructorArgs: ['hello', 42])
+// end::on-project[]

@@ -25,13 +25,13 @@ gradle run
 And the 'dependencies' report shows the dependency substitution in action:
 
 ```
-gradle dependencies --configuration compile
+gradle dependencies --configuration runtimeClasspath
 ```
 
 >>>
 
 ```
-compile - Dependencies for source set 'main'.
+runtimeClasspath - Runtime classpath of source set 'main'.
 +--- org.sample:number-utils:1.0 -> project :number-utils
 \--- org.sample:string-utils:1.0 -> project :string-utils
      \--- org.apache.commons:commons-lang3:3.4
@@ -71,13 +71,13 @@ Note that the `number-utils` dependency is still satisfied by the included build
 The 'dependencies' report shows the dependency substitution in action:
 
 ```
-gradle dependencies --configuration compile
+gradle dependencies --configuration runtimeClasspath
 ```
 
 >>>
 
 ```
-compile - Dependencies for source set 'main'.
+runtimeClasspath - Runtime classpath of source set 'main'.
 +--- org.sample:number-utils:1.0 -> project :number-utils
 \--- org.sample:string-utils:1.0
      \--- org.apache.commons:commons-lang3:3.4

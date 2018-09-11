@@ -241,7 +241,7 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         !dep.transitive
     }
 
-    def "a bom can declare an optional dependency with excludes"() {
+    def "a bom can declare a constraint with excludes"() {
         given:
         pomFile << """
 <project>
