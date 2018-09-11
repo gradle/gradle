@@ -26,6 +26,7 @@ Gradle is an open-source https://en.wikipedia.org/wiki/Build_automation[build au
  * _Uses conventions and plugins_ — which make it simple to build common types of project
  * _Is customizable and extensible_
  * _Can be run from the command line or IDEs_ — like Android Studio, IntelliJ IDEA and Eclipse
+ * _Grants insight into your builds_ — https://scans.gradle.com/[build scans] provide extensive information about a build run that you can also share
 
 As with many flexible and customizable tools, Gradle can take a little time to understand. However, you can get a jump start by reading this short primer:
 
@@ -39,29 +40,30 @@ Actively using Gradle is a great way to learn about it, so try one of the introd
  * {guidesUrl}/building-android-apps/[Building Android apps]
  * {guidesUrl}/building-java-libraries/[Building Java libraries]
  * {guidesUrl}/building-cpp-libraries/[Building C++ libraries]
+ * {guidesUrl}/creating-build-scans/[Creating build scans]
 
 There are also many other {guidesUrl}/[tutorials and guides] available, which you can filter by category — for example {guidesUrl}/?q=Fundamentals[Fundamentals]. 
 
-== How do I execute a Gradle build?
+== Executing a Gradle build
 
-If you follow any of the tutorials linked above, you will execute a Gradle build. But what do you do if you're given a Gradle build without any instructions?
+If you follow any of the tutorials linked above, you will execute a Gradle build. But what do you do if you're given a Gradle build without any instructions? Just follow these steps:
 
- 1. Determine whether the project has a Gradle wrapper and <<gradle_wrapper#sec:using_wrapper,use it if it's there>>.
- 2. Determine whether it's a single-project or multi-project build.
+ 1. Determine whether the project has a Gradle wrapper and <<gradle_wrapper#sec:using_wrapper,use it if it's there>> — the main IDEs default to using the wrapper when it's available.
+ 2. Discover the project structure.
 +
-Either import the build with an IDE (preferring the wrapper if it exists) or run `gradle projects`. If only the root project is listed, it's a single-project build. Otherwise it's a <<intro_multi_project_builds#intro_multi_project_builds,multi-project build>>.
+Either import the build with an IDE or run `gradle projects` from the command line. If only the root project is listed, it's a single-project build. Otherwise it's a <<intro_multi_project_builds#intro_multi_project_builds,multi-project build>>.
  3. Find out what tasks you can run.
 +
 If you have imported the build into an IDE, you should have access to a view that displays all the available tasks. From the command line, run `gradle tasks`.
  4. Run the task that you are interested in.
 +
-Many convention-based builds integrate with Gradle's <<base_plugin#sec:base_tasks,lifecycle tasks>>, so use those when you don't have something more specific you want to do with the build.
+Many convention-based builds integrate with Gradle's <<base_plugin#sec:base_tasks,lifecycle tasks>>, so use those when you don't have something more specific you want to do with the build. For example, most builds have `clean`, `check`, `assemble` and `build` tasks.
 
-Most builds will follow standard conventions on project structure and tasks, so if you're familiar with other builds of the same type — for example Java, Android or native builds — then the file and directory structure of the build should be familiar, as well as many of the tasks and project properties.
+Gradle builds often follow standard conventions on project structure and tasks, so if you're familiar with other builds of the same type — such as Java, Android or native builds — then the file and directory structure of the build should be familiar, as well as many of the tasks and project properties.
 
 For more specialized builds or those with significant customizations, you should ideally have access to documentation on how to run the build and what build properties you can configure.
 
-== How do I migrate from another build tool
+== Migrating from other build tools
 
  * {guidesUrl}/migrating-from-maven/[Migrating from Apache Maven]
 
