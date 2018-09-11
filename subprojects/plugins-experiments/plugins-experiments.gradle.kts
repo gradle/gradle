@@ -78,9 +78,7 @@ val rulesetChecksum by tasks.registering {
         rulesetChecksumFile.writeText(Hashing.md5().hashBytes(archivePath.readBytes()).toString())
     }
 }
-sourceSets["main"].output.dir(
-    mapOf("builtBy" to listOf(rulesetJar, rulesetChecksum)),
-    generatedResourcesRulesetJarDir)
+sourceSets["main"].output.dir(generatedResourcesRulesetJarDir, "builtBy" to listOf(rulesetJar, rulesetChecksum))
 
 dependencies {
     rulesetShaded("com.github.shyiko.ktlint:ktlint-ruleset-standard:$ktlintVersion") {
