@@ -64,6 +64,30 @@ private
 const val ideConfigurationBaseName = "ideConfiguration"
 
 
+private
+const val javaCompilerHeapSpace = 2048
+
+
+object GradleCopyright {
+    val profileName = "ASL2"
+    val keyword = "Copyright"
+    val notice =
+        """Copyright ${"$"}{today.year} the original author or authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License."""
+}
+
+
 open class IdePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
@@ -170,7 +194,7 @@ open class IdePlugin : Plugin<Project> {
                             withJsoup { document ->
                                 val projectElement = document.getElementsByTag("project").first()
                                 projectElement.createOrEmptyOutChildElement("CompilerWorkspaceConfiguration")
-                                    .option("COMPILER_PROCESS_HEAP_SIZE", "2048")
+                                    .option("COMPILER_PROCESS_HEAP_SIZE", javaCompilerHeapSpace.toString())
                                 val runManagerComponent = projectElement.select("component[name=RunManager]")
                                     .first()
                                 configureJunitRunConfiguration(runManagerComponent)
@@ -190,154 +214,6 @@ open class IdePlugin : Plugin<Project> {
             }
         }
         configureJUnitDefaults()
-    }
-
-    private
-    fun Project.configureJUnitDefaults() {
-        val rootProject = this
-        val docsProject = project(":docs")
-        docsProject.afterEvaluate {
-            rootProject.idea {
-                project {
-                    settings {
-                        runConfigurations {
-                            create<JUnit>("defaults") {
-                                defaults = true
-                                val releaseNotesMarkdown: PegDown by docsProject.tasks
-                                val releaseNotes: Copy by docsProject.tasks
-                                val releaseNotesFileName: String = releaseNotes.property("fileName") as String
-                                val defaultTestVmParams = listOf(
-                                    "-ea",
-                                    "-Dorg.gradle.docs.releasenotes.source=${releaseNotesMarkdown.markdownFile}",
-                                    "-Dorg.gradle.docs.releasenotes.rendered=${releaseNotes.destinationDir.resolve(releaseNotesFileName)}",
-                                    "-DintegTest.gradleHomeDir=\$MODULE_DIR\$/build/integ test",
-                                    "-DintegTest.gradleUserHomeDir=${rootProject.file("intTestHomeDir").absolutePath}",
-                                    "-DintegTest.gradleGeneratedApiJarCacheDir=\$MODULE_DIR\$/build/generatedApiJars/${rootProject.version}",
-                                    "-DintegTest.libsRepo=${rootProject.file("build/repo").absolutePath}",
-                                    "-Dorg.gradle.integtest.daemon.registry=${rootProject.file("build/daemon").absolutePath}",
-                                    "-DintegTest.distsDir=${rootProject.base.distsDir.absolutePath}",
-                                    "-Dorg.gradle.public.api.includes=${PublicApi.includes.joinToString(":")}",
-                                    "-Dorg.gradle.public.api.excludes=${PublicApi.excludes.joinToString(":")}",
-                                    "-Dorg.gradle.integtest.executer=embedded",
-                                    "-Dorg.gradle.integtest.versions=latest",
-                                    "-Dorg.gradle.integtest.native.toolChains=default",
-                                    "-Dorg.gradle.integtest.multiversion=default",
-                                    "-Dorg.gradle.integtest.testkit.compatibility=current",
-                                    "-Xmx512m"
-                                )
-                                vmParameters = defaultTestVmParams.map {
-                                    if (it.contains(" ")) "\"$it\"" else it
-                                }.joinToString(" ")
-                                val lang = System.getenv("LANG") ?: "en_US.UTF-8"
-                                envs = mapOf("LANG" to lang)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private
-    fun ProjectSettings.configureRunConfigurations(rootProject: Project) {
-        runConfigurations {
-            val gradleRunners = mapOf(
-                "Regenerate IDEA metadata" to "idea",
-                "Regenerate Int Test Image" to "prepareVersionsInfo intTestImage publishLocalArchives"
-            )
-            gradleRunners.forEach { (name, tasks) ->
-                create<Application>(name) {
-                    mainClass = "org.gradle.testing.internal.util.GradlewRunner"
-                    programParameters = tasks
-                    workingDirectory = rootProject.projectDir.absolutePath
-                    moduleName = "internalTesting"
-                    envs = mapOf("TERM" to "xterm")
-                    beforeRun {
-                        create<Make>("make") {
-                            enabled = false
-                        }
-                    }
-                }
-            }
-            create<Remote>("Remote debug port 5005") {
-                mode = Remote.RemoteMode.ATTACH
-                transport = Remote.RemoteTransport.SOCKET
-                sharedMemoryAddress = "javadebug"
-                host = "localhost"
-                port = 5005
-            }
-        }
-    }
-
-    private
-    fun ProjectSettings.configureCodeStyle() {
-        codeStyle {
-            @Suppress("DEPRECATION")
-            USE_SAME_INDENTS = true // deprecated!
-            hardWrapAt = 200
-            java {
-                wrapCommentsAtRightMargin = true
-                classCountToUseImportOnDemand = 999
-                keepControlStatementInOneLine = false
-                alignParameterDescriptions = false
-                alignThrownExceptionDescriptions = false
-                generatePTagOnEmptyLines = false
-                keepEmptyParamTags = false
-                keepEmptyThrowsTags = false
-                keepEmptyReturnTags = false
-                ifForceBraces = FORCE_BRACES_ALWAYS
-                doWhileForceBraces = FORCE_BRACES_ALWAYS
-                whileForceBraces = FORCE_BRACES_ALWAYS
-                forForceBraces = FORCE_BRACES_ALWAYS
-            }
-            groovy {
-                alignMultilineNamedArguments = false
-                classCountToUseImportOnDemand = 999
-                ifForceBraces = FORCE_BRACES_ALWAYS
-                doWhileForceBraces = FORCE_BRACES_ALWAYS
-                whileForceBraces = FORCE_BRACES_ALWAYS
-                forForceBraces = FORCE_BRACES_ALWAYS
-            }
-        }
-    }
-
-    private
-    fun ProjectSettings.configureCopyright() {
-        copyright {
-            useDefault = "ASL2"
-            profiles {
-                create("ASL2") {
-                    notice =
-                        """Copyright ${"$"}{today.year} the original author or authors.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License."""
-                    keyword = "Copyright"
-                }
-            }
-        }
-    }
-
-    private
-    fun ProjectSettings.configureCompilerSettings(project: Project) {
-        compiler {
-            processHeapSize = 2048
-            useReleaseOption = false
-        }
-        groovyCompiler {
-            excludes {
-                file("${project.rootProject.projectDir.absolutePath}/subprojects/plugins/src/test/groovy/org/gradle/api/internal/tasks/testing/junit/JUnitTestClassProcessorTest.groovy")
-            }
-        }
     }
 
     private
@@ -387,6 +263,37 @@ limitations under the License."""
     }
 
     private
+    fun ProjectSettings.configureRunConfigurations(rootProject: Project) {
+        runConfigurations {
+            val gradleRunners = mapOf(
+                "Regenerate IDEA metadata" to "idea",
+                "Regenerate Int Test Image" to "prepareVersionsInfo intTestImage publishLocalArchives"
+            )
+            gradleRunners.forEach { (name, tasks) ->
+                create<Application>(name) {
+                    mainClass = "org.gradle.testing.internal.util.GradlewRunner"
+                    programParameters = tasks
+                    workingDirectory = rootProject.projectDir.absolutePath
+                    moduleName = "internalTesting"
+                    envs = mapOf("TERM" to "xterm")
+                    beforeRun {
+                        create<Make>("make") {
+                            enabled = false
+                        }
+                    }
+                }
+            }
+            create<Remote>("Remote debug port 5005") {
+                mode = Remote.RemoteMode.ATTACH
+                transport = Remote.RemoteTransport.SOCKET
+                sharedMemoryAddress = "javadebug"
+                host = "localhost"
+                port = 5005
+            }
+        }
+    }
+
+    private
     fun Project.configureJunitRunConfiguration(runManagerComponent: org.jsoup.nodes.Element) {
         val junitConfiguration = runManagerComponent.select("configuration[type=JUnit]").first()
         val junitVmParametersOption = junitConfiguration.select("option[name=VM_PARAMETERS]").first()
@@ -396,6 +303,28 @@ limitations under the License."""
             .createOrEmptyOutChildElement("env")
             .attr("name", "LANG")
             .attr("value", lang)
+    }
+
+    private
+    fun Project.configureJUnitDefaults() {
+        val rootProject = this
+        val docsProject = project(":docs")
+        docsProject.afterEvaluate {
+            rootProject.idea {
+                project {
+                    settings {
+                        runConfigurations {
+                            create<JUnit>("defaults") {
+                                defaults = true
+                                vmParameters = getDefaultJunitVmParameter(docsProject)
+                                val lang = System.getenv("LANG") ?: "en_US.UTF-8"
+                                envs = mapOf("LANG" to lang)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private
@@ -490,16 +419,29 @@ limitations under the License."""
     fun configureCopyright(root: Element) {
         val options = mapOf(
             // TODO Get rid of {newline} and the replacement hack by using a better XML parser / writer
-            "notice" to "Copyright ${'$'}{today.year} the original author or authors.{newline}{newline}Licensed under the Apache License, Version 2.0 (the \"License\");{newline}you may not use this file except in compliance with the License.{newline}You may obtain a copy of the License at{newline}{newline}     http://www.apache.org/licenses/LICENSE-2.0{newline}{newline}Unless required by applicable law or agreed to in writing, software{newline}distributed under the License is distributed on an \"AS IS\" BASIS,{newline}WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.{newline}See the License for the specific language governing permissions and{newline}limitations under the License.",
-            "keyword" to "Copyright",
+            "notice" to GradleCopyright.notice.replace("\n", "{newline}"),
+            "keyword" to GradleCopyright.keyword,
             "allowReplaceKeyword" to "",
-            "myName" to "ASL2",
+            "myName" to GradleCopyright.profileName,
             "myLocal" to "true")
         val copyrightManager = root.select("component[name=CopyrightManager]").first()
-        copyrightManager.attr("default", "ASL2")
+        copyrightManager.attr("default", GradleCopyright.profileName)
         copyrightManager.createOrEmptyOutChildElement("copyright").let {
             options.forEach { name, value ->
                 it.option(name, value)
+            }
+        }
+    }
+
+    private
+    fun ProjectSettings.configureCopyright() {
+        copyright {
+            useDefault = GradleCopyright.profileName
+            profiles {
+                create(GradleCopyright.profileName) {
+                    notice = GradleCopyright.notice
+                    keyword = GradleCopyright.keyword
+                }
             }
         }
     }
@@ -512,6 +454,19 @@ limitations under the License."""
             .option("BUILD_PROCESS_HEAP_SIZE", "2048")
         compilerConfiguration.removeBySelector("option[name=USE_RELEASE_OPTION]")
             .option("USE_RELEASE_OPTION", "false")
+    }
+
+    private
+    fun ProjectSettings.configureCompilerSettings(project: Project) {
+        compiler {
+            processHeapSize = javaCompilerHeapSpace
+            useReleaseOption = false
+        }
+        groovyCompiler {
+            excludes {
+                file("${project.rootProject.projectDir.absolutePath}/subprojects/plugins/src/test/groovy/org/gradle/api/internal/tasks/testing/junit/JUnitTestClassProcessorTest.groovy")
+            }
+        }
     }
 
     private
@@ -678,6 +633,39 @@ fun Element.configureCodeStyleSettings() {
         "JD_KEEP_EMPTY_RETURN" to "false"
     ).forEach { (name, value) ->
         javaCodeStyleSettings.option(name, value)
+    }
+}
+
+
+private
+fun ProjectSettings.configureCodeStyle() {
+    codeStyle {
+        @Suppress("DEPRECATION")
+        USE_SAME_INDENTS = true // deprecated!
+        hardWrapAt = 200
+        java {
+            classCountToUseImportOnDemand = 999
+            alignParameterDescriptions = false
+            alignThrownExceptionDescriptions = false
+            keepEmptyParamTags = false
+            keepEmptyThrowsTags = false
+            keepEmptyReturnTags = false
+            wrapCommentsAtRightMargin = true
+            keepControlStatementInOneLine = false
+            generatePTagOnEmptyLines = false
+            ifForceBraces = FORCE_BRACES_ALWAYS
+            doWhileForceBraces = FORCE_BRACES_ALWAYS
+            whileForceBraces = FORCE_BRACES_ALWAYS
+            forForceBraces = FORCE_BRACES_ALWAYS
+        }
+        groovy {
+            classCountToUseImportOnDemand = 999
+            alignMultilineNamedArguments = false
+            ifForceBraces = FORCE_BRACES_ALWAYS
+            doWhileForceBraces = FORCE_BRACES_ALWAYS
+            whileForceBraces = FORCE_BRACES_ALWAYS
+            forForceBraces = FORCE_BRACES_ALWAYS
+        }
     }
 }
 
