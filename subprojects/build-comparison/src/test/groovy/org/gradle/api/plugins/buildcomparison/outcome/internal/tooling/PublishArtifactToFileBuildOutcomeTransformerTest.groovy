@@ -20,9 +20,10 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
+import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.War
@@ -33,7 +34,13 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome
 import spock.lang.Unroll
 
-import static org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier.*
+import static org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier.ARCHIVE_ARTIFACT
+import static org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier.EAR_ARTIFACT
+import static org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier.JAR_ARTIFACT
+import static org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier.TAR_ARTIFACT
+import static org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier.UNKNOWN_ARTIFACT
+import static org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier.WAR_ARTIFACT
+import static org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier.ZIP_ARTIFACT
 
 class PublishArtifactToFileBuildOutcomeTransformerTest extends AbstractProjectBuilderSpec {
 
@@ -69,12 +76,13 @@ class PublishArtifactToFileBuildOutcomeTransformerTest extends AbstractProjectBu
     "can create outcome for lazy #taskClass archive artifact"(Class<? extends AbstractArchiveTask> taskClass, FileOutcomeIdentifier typeIdentifier) {
         given:
         AbstractArchiveTask task = Mock(taskClass)
-        TaskProvider taskProvider = Mock(TaskProvider)
+        ProviderInternal taskProvider = Mock(ProviderInternal)
         PublishArtifact artifact = new LazyPublishArtifact(taskProvider)
 
         and:
-        _ * taskProvider.get() >> task
         _ * task.getArchivePath() >> project.file("file")
+        _ * taskProvider.get() >> task
+        _ * taskProvider.maybeVisitBuildDependencies(_) >> { TaskDependencyResolveContext context -> context.add(task); true }
 
         when:
         GradleFileBuildOutcome outcome = transformer.transform(artifact, project)

@@ -16,7 +16,6 @@
 package org.gradle.api.internal.tasks
 
 import org.gradle.api.Buildable
-import org.gradle.api.GradleException
 import org.gradle.api.Task
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.tasks.TaskDependency
@@ -150,11 +149,11 @@ class DefaultTaskDependencyTest extends Specification {
         dependency.getDependencies(task) == emptySet()
     }
 
-    def "can depend on a Provider that is also a task dependency container"() {
-        def dep = Mock(TestProvider)
+    def "delegates to Provider to determine build dependencies"() {
+        def dep = Mock(ProviderInternal)
 
         given:
-        1 * dep.visitDependencies(_) >> { args -> args[0].add(otherTask) }
+        1 * dep.maybeVisitBuildDependencies(_) >> { args -> args[0].add(otherTask); true }
 
         when:
         dependency.add(dep)
@@ -165,11 +164,12 @@ class DefaultTaskDependencyTest extends Specification {
 
     def "can depend on a Provider whose value is a provider"() {
         def dep = Mock(ProviderInternal)
-        def nested = Mock(TestProvider)
+        def nested = Mock(ProviderInternal)
 
         given:
+        1 * dep.maybeVisitBuildDependencies(_) >> false
         1 * dep.get() >> nested
-        1 * nested.visitDependencies(_) >> { args -> args[0].add(otherTask) }
+        1 * nested.maybeVisitBuildDependencies(_) >> { args -> args[0].add(otherTask); true }
 
         when:
         dependency.add(dep)
@@ -178,10 +178,11 @@ class DefaultTaskDependencyTest extends Specification {
         dependency.getDependencies(task) == toSet(otherTask)
     }
 
-    def "can depend on a Provider whose value is a Task"() {
+    def "can depend on a Provider whose value can be resolved to a task"() {
         def dep = Mock(ProviderInternal)
 
         given:
+        1 * dep.maybeVisitBuildDependencies(_) >> false
         1 * dep.get() >> otherTask
 
         when:
@@ -195,6 +196,7 @@ class DefaultTaskDependencyTest extends Specification {
         def dep = Mock(ProviderInternal)
 
         given:
+        1 * dep.maybeVisitBuildDependencies(_) >> false
         1 * dep.get() >> 123
         dependency.add(dep)
 
@@ -213,7 +215,7 @@ class DefaultTaskDependencyTest extends Specification {
         dependency.getDependencies(task)
 
         then:
-        def e = thrown(GradleException)
+        def e = thrown(TaskDependencyResolveException)
         e.cause instanceof UnsupportedNotationException
         e.cause.message == TextUtil.toPlatformLineSeparators('''Cannot convert 12 to a task.
 The following types/formats are supported:
@@ -238,23 +240,9 @@ The following types/formats are supported:
         dependency.getDependencies(task)
 
         then:
-        def e = thrown(GradleException)
+        def e = thrown(TaskDependencyResolveException)
         e.cause instanceof UnsupportedNotationException
         e.cause.message.startsWith "Cannot convert $dep to a task."
-    }
-
-    def "produces sensible error when a provider is of the wrong type"() {
-        def provider = Mock(ProviderInternal)
-        provider.type >> Number
-
-        when:
-        dependency.add(provider)
-        dependency.getDependencies(task)
-
-        then:
-        def e = thrown(GradleException)
-        e.cause instanceof UnsupportedNotationException
-        e.cause.message.startsWith "Cannot convert Provider $provider to a task."
     }
 
     def "flattens collections"() {
@@ -340,9 +328,6 @@ The following types/formats are supported:
 
     static emptySet() {
         return [] as Set
-    }
-
-    interface TestProvider extends ProviderInternal, TaskDependencyContainer {
     }
 
     interface TestTaskProvider extends ProviderInternal, TaskProvider {

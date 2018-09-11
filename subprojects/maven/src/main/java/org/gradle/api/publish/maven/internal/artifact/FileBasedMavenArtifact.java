@@ -17,17 +17,24 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import com.google.common.io.Files;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class FileBasedMavenArtifact extends AbstractMavenArtifact {
     private final File file;
     private final String extension;
+    @Nullable
+    private final ProviderInternal<?> provider;
 
-    public FileBasedMavenArtifact(File file) {
+    public FileBasedMavenArtifact(File file, @Nullable ProviderInternal<?> provider) {
         this.file = file;
         extension = Files.getFileExtension(file.getName());
+        this.provider = provider;
     }
 
     @Override
@@ -47,6 +54,13 @@ public class FileBasedMavenArtifact extends AbstractMavenArtifact {
 
     @Override
     protected TaskDependencyInternal getDefaultBuildDependencies() {
-        return TaskDependencyInternal.EMPTY;
+        return new AbstractTaskDependency() {
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                if (provider != null) {
+                    provider.maybeVisitBuildDependencies(context);
+                }
+            }
+        };
     }
 }
