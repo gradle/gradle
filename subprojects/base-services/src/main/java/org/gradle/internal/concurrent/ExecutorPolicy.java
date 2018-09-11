@@ -62,6 +62,12 @@ public interface ExecutorPolicy {
         private final AtomicReference<Throwable> failure = new AtomicReference<Throwable>();
 
         public void onExecute(Runnable command) {
+            Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+                @Override
+                public void uncaughtException(Thread t, Throwable e) {
+                    onFailure(t.getName(), e);
+                }
+            });
             try {
                 command.run();
             } catch (Throwable throwable) {
