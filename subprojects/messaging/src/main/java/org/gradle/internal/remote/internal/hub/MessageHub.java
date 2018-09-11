@@ -401,6 +401,7 @@ public class MessageHub implements AsyncStoppable {
                             }
                             if (message instanceof ChannelMessage) {
                                 ChannelMessage channelMessage = (ChannelMessage) message;
+                                System.out.print("Get channel message: ");
                                 dispatch.dispatch(channelMessage.getPayload());
                             } else if (message instanceof RejectedMessage) {
                                 RejectedMessage rejectedMessage = (RejectedMessage) message;
