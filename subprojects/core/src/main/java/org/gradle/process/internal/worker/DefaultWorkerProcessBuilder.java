@@ -190,6 +190,8 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
 
         JavaExecHandleBuilder javaCommand = getJavaCommand();
         javaCommand.setDisplayName(displayName);
+        javaCommand.setStandardOutput(System.out);
+        javaCommand.setErrorOutput(System.err);
 
         workerImplementationFactory.prepareJavaCommand(id, displayName, this, implementationClassPath, localAddress, javaCommand, shouldPublishJvmMemoryInfo);
 
