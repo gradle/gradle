@@ -223,7 +223,7 @@ class NodeState implements DependencyGraphNode {
      * or adding them to the `discoveredEdges` collection (and `this.outgoingEdges`)
      */
     private void visitDependencies(ModuleExclusion resolutionFilter, Collection<EdgeState> discoveredEdges) {
-        PendingDependenciesHandler.Visitor pendingDepsVisitor = resolveState.getPendingDependenciesHandler().start();
+        PendingDependenciesVisitor pendingDepsVisitor = resolveState.newPendingDependenciesVisitor();
         try {
             for (DependencyMetadata dependency : metaData.getDependencies()) {
                 DependencyState dependencyState = new DependencyState(dependency, resolveState.getComponentSelectorConverter());
@@ -255,7 +255,7 @@ class NodeState implements DependencyGraphNode {
     private void visitOwners(Collection<EdgeState> discoveredEdges) {
         ImmutableList<? extends ComponentIdentifier> owners = component.getMetadata().getPlatformOwners();
         if (!owners.isEmpty()) {
-            PendingDependenciesHandler.Visitor visitor = resolveState.getPendingDependenciesHandler().start();
+            PendingDependenciesVisitor visitor = resolveState.newPendingDependenciesVisitor();
             for (ComponentIdentifier owner : owners) {
                 if (owner instanceof ModuleComponentIdentifier) {
                     ModuleComponentIdentifier platformId = (ModuleComponentIdentifier) owner;
@@ -410,7 +410,7 @@ class NodeState implements DependencyGraphNode {
             for (EdgeState outgoingDependency : outgoingEdges) {
                 outgoingDependency.removeFromTargetConfigurations();
                 outgoingDependency.getSelector().release();
-                resolveState.getPendingDependenciesHandler().removeHardEdge(outgoingDependency);
+                outgoingDependency.maybeDecreaseHardEdgeCount();
             }
         }
         outgoingEdges.clear();

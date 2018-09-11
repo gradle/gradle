@@ -75,16 +75,17 @@ public abstract class IdePlugin implements Plugin<Project> {
         project = target;
         String lifecycleTaskName = getLifecycleTaskName();
         lifecycleTask = target.getTasks().register(lifecycleTaskName);
-        lifecycleTask.configure(new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                task.setGroup("IDE");
-            }
-        });
         cleanTask = target.getTasks().register(cleanName(lifecycleTaskName), Delete.class, new Action<Delete>() {
             @Override
             public void execute(Delete task) {
                 task.setGroup("IDE");
+            }
+        });
+        lifecycleTask.configure(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.setGroup("IDE");
+                task.shouldRunAfter(cleanTask);
             }
         });
         onApply(target);
@@ -126,6 +127,14 @@ public abstract class IdePlugin implements Plugin<Project> {
         if (includeInClean) {
             cleanTask.configure(dependsOn(cleanWorker));
         }
+
+        // Always schedule the generation task after the clean task
+        worker.configure(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.shouldRunAfter(cleanWorker);
+            }
+        });
     }
 
     protected static Action<? super Task> dependsOn(final Task taskDependency) {

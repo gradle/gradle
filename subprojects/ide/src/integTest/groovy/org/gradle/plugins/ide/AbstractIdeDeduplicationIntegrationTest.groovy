@@ -16,15 +16,7 @@
 
 package org.gradle.plugins.ide
 
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.ConfigureUtil
-
-abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeIntegrationSpec {
-    protected abstract String projectName(String path)
-
-    protected abstract String getIdeName()
-
-    protected abstract String getConfiguredModule()
+abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjectIntegrationTest {
 
     def "unique project names are not deduplicated"() {
         given:
@@ -303,50 +295,6 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeIntegr
         projectName("foo/other") == "app"
         projectName("bar") == "bar"
         projectName("bar/app") == "app"
-    }
-
-    Project project(String projectName, boolean allProjects = true, Closure configClosure) {
-        String applyTo = allProjects ? "allprojects" : "subprojects"
-        buildFile.createFile().text = """
-$applyTo {
-    apply plugin:'java'
-    apply plugin:'$ideName'
-}
-"""
-        settingsFile.createFile().text = "rootProject.name='$projectName'\n"
-        def proj = new Project(name: projectName, path: "", projectDir: getTestDirectory())
-        ConfigureUtil.configure(configClosure, proj);
-
-        def includeSubProject
-        includeSubProject = { Project p ->
-            for (Project subProj : p.subProjects) {
-                settingsFile << "include '${subProj.path}'\n"
-                includeSubProject.trampoline().call(subProj)
-            }
-        }
-
-        includeSubProject.trampoline().call(proj);
-    }
-
-    public static class Project {
-        String name
-        String path
-        def subProjects = []
-        TestFile projectDir
-
-        def project(String projectName, Closure configClosure) {
-            def p = new Project(name: projectName, path: "$path:$projectName", projectDir: projectDir.createDir(projectName));
-            subProjects << p;
-            ConfigureUtil.configure(configClosure, p);
-        }
-
-        File getBuildFile() {
-            def buildFile = projectDir.file("build.gradle")
-            if (!buildFile.exists()) {
-                buildFile.createFile()
-            }
-            return buildFile
-        }
     }
 
 }
