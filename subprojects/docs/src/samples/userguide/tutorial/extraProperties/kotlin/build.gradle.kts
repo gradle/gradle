@@ -21,7 +21,7 @@ task("printTaskProperties") {
 // tag::extraProperties[]
 
 val springVersion by extra("3.1.0.RELEASE")
-val emailNotification by extra("build@master.org")
+val emailNotification by extra { "build@master.org" }
 
 sourceSets.all { extra["purpose"] = null }
 
