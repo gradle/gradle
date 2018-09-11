@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
@@ -29,7 +29,7 @@ import spock.lang.Unroll
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 @Requires(KOTLIN_SCRIPT)
-class SamplesScalaCustomizedLayoutIntegrationTest extends AbstractIntegrationSpec {
+class SamplesScalaCustomizedLayoutIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, testDirectoryProvider)
 
@@ -42,7 +42,7 @@ class SamplesScalaCustomizedLayoutIntegrationTest extends AbstractIntegrationSpe
         TestFile projectDir = sample.dir.file(dsl)
 
         // Build and test projects
-        executer.inDirectory(projectDir).withTasks('clean', 'build').run()
+        executer.inDirectory(projectDir).requireGradleDistribution().withTasks('clean', 'build').run()
 
         // Check tests have run
         def result = new DefaultTestExecutionResult(projectDir)

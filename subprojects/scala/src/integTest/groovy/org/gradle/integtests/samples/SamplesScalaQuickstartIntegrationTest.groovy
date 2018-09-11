@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
@@ -31,10 +31,14 @@ import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.hamcrest.Matchers.containsString
 
 @Requires(KOTLIN_SCRIPT)
-class SamplesScalaQuickstartIntegrationTest extends AbstractIntegrationSpec {
+class SamplesScalaQuickstartIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule public final Sample sample = new Sample(testDirectoryProvider)
     @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, testDirectoryProvider)
+
+    def setup() {
+        executer.requireGradleDistribution()
+    }
 
     @Unroll
     @UsesSample('scala/quickstart')
