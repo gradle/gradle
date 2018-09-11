@@ -58,6 +58,7 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 withModule("org.codehaus.groovy:groovy", DowngradeIvyRule::class.java)
                 withModule("org.codehaus.groovy:groovy", DowngradeTestNGRule::class.java)
 
+                withModule("org.junit.jupiter:junit-jupiter-api", DowngradeOpentest4jRule::class.java)
                 withModule("org.junit.platform:junit-platform-engine", DowngradeOpentest4jRule::class.java)
 
                 withModule("jaxen:jaxen", DowngradeXmlApisRule::class.java)
