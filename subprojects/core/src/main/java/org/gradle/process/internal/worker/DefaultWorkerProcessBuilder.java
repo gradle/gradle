@@ -189,6 +189,9 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         LOGGER.debug("Using implementation classpath {}", implementationClassPath);
 
         JavaExecHandleBuilder javaCommand = getJavaCommand();
+//        if (System.getProperty("debug.worker") != null) {
+//            javaCommand.jvmArgs("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5006");
+//        }
         javaCommand.setDisplayName(displayName);
         javaCommand.setStandardOutput(System.out);
         javaCommand.setErrorOutput(System.err);
