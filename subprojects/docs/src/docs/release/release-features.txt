@@ -1,5 +1,5 @@
  - Incremental Java compilation by default
  - Periodic Gradle caches cleanup
- - Gradle Kotlin DSL 1.0-RC3
+ - Gradle Kotlin DSL 1.0-RC5
  - Nested included builds
  - SNAPSHOT plugin versions in the `plugins {}` block
