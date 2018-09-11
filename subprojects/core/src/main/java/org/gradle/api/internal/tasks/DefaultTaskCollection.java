@@ -22,8 +22,6 @@ import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.taskfactory.TaskIdentity;
-import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskCollection;

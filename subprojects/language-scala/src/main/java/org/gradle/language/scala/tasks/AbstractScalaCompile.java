@@ -64,11 +64,13 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
     protected static final Logger LOGGER = Logging.getLogger(AbstractScalaCompile.class);
     private final BaseScalaCompileOptions scalaCompileOptions;
     private final CompileOptions compileOptions;
-    private final RegularFileProperty analysisMappingFile = newOutputFile();
-    private final ConfigurableFileCollection analysisFiles = getProject().files();
+    private final RegularFileProperty analysisMappingFile;
+    private final ConfigurableFileCollection analysisFiles;
 
     protected AbstractScalaCompile(BaseScalaCompileOptions scalaCompileOptions) {
         ObjectFactory objectFactory = getServices().get(ObjectFactory.class);
+        this.analysisMappingFile = objectFactory.fileProperty();
+        this.analysisFiles = getProject().files();
         this.compileOptions = objectFactory.newInstance(CompileOptions.class);
         this.scalaCompileOptions = scalaCompileOptions;
         this.scalaCompileOptions.setIncrementalOptions(objectFactory.newInstance(IncrementalCompileOptions.class));

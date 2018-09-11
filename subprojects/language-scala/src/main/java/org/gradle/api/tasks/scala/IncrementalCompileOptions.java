@@ -17,8 +17,8 @@
 package org.gradle.api.tasks.scala;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 
@@ -35,7 +35,7 @@ public class IncrementalCompileOptions {
     private final RegularFileProperty publishedCode;
 
     @Inject
-    public IncrementalCompileOptions(ProjectLayout objectFactory) {
+    public IncrementalCompileOptions(ObjectFactory objectFactory) {
         this.analysisFile = objectFactory.fileProperty();
         this.publishedCode = objectFactory.fileProperty();
     }
