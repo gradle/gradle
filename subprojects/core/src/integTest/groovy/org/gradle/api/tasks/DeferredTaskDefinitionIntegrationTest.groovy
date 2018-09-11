@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -1162,5 +1163,60 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         """
         expect:
         succeeds("help")
+    }
+
+    @Ignore
+    @Issue("https://github.com/gradle/gradle/issues/6558")
+    def "can register tasks in multi-project build that iterates over allprojects and tasks in task action"() {
+        settingsFile << """
+            include 'a', 'b', 'c', 'd'
+        """
+        buildFile << """
+            class MyTask extends DefaultTask {
+                @TaskAction
+                void doIt() {
+                    for (Project subproject : project.rootProject.getAllprojects()) {
+                        for (MyTask myTask : subproject.tasks.withType(MyTask)) {
+                            println "Looking at " + myTask.path
+                        }
+                    }
+                }
+            }
+            
+            allprojects {
+                (1..10).each {
+                    def mytask = tasks.register("mytask" + it, MyTask)
+                }
+            }
+        """
+        expect:
+        succeeds("mytask0", "--parallel")
+    }
+ 
+    def "can lookup task created by rules"() {
+        buildFile << """
+            tasks.addRule("create some tasks") { taskName ->
+                if (taskName == "bar") {
+                    tasks.register("bar")
+                } else if (taskName == "baz") {
+                    tasks.create("baz")
+                } else if (taskName == "notByRule") {
+                    tasks.register("notByRule") {
+                        throw new Exception("This should not be called")
+                    }
+                }
+            }
+            tasks.register("notByRule")
+            
+            task foo {
+                dependsOn tasks.named("bar")
+                dependsOn tasks.named("baz")
+                dependsOn "notByRule"
+            }
+            
+        """
+        expect:
+        succeeds("foo")
+        result.assertTasksExecuted(":notByRule", ":bar", ":baz", ":foo")
     }
 }

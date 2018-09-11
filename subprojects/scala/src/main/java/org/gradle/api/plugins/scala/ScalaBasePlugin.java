@@ -21,8 +21,10 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
@@ -63,17 +65,20 @@ public class ScalaBasePlugin implements Plugin<Project> {
         this.objectFactory = objectFactory;
     }
 
-    public void apply(Project project) {
+    public void apply(final Project project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
 
-        configureConfigurations(project);
-        ScalaRuntime scalaRuntime = configureScalaRuntimeExtension(project);
+        Usage incrementalAnalysisUsage = objectFactory.named(Usage.class, "incremental-analysis");
+        configureConfigurations(project, incrementalAnalysisUsage);
+
+        ScalaRuntime scalaRuntime = project.getExtensions().create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntime.class, project);
+
         configureCompileDefaults(project, scalaRuntime);
-        configureSourceSetDefaults(project, objectFactory);
+        configureSourceSetDefaults(project, incrementalAnalysisUsage, objectFactory);
         configureScaladoc(project, scalaRuntime);
     }
 
-    private static void configureConfigurations(final Project project) {
+    private void configureConfigurations(final Project project, Usage incrementalAnalysisUsage) {
         project.getConfigurations().create(ZINC_CONFIGURATION_NAME).setVisible(false).setDescription("The Zinc incremental compiler to be used for this Scala project.")
             .defaultDependencies(new Action<DependencySet>() {
                 @Override
@@ -81,13 +86,16 @@ public class ScalaBasePlugin implements Plugin<Project> {
                     dependencies.add(project.getDependencies().create("com.typesafe.zinc:zinc:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION));
                 }
             });
+
+        final Configuration incrementalAnalysisElements = project.getConfigurations().create("incrementalScalaAnalysisElements");
+        incrementalAnalysisElements.setVisible(false);
+        incrementalAnalysisElements.setDescription("Incremental compilation analysis files");
+        incrementalAnalysisElements.setCanBeResolved(false);
+        incrementalAnalysisElements.setCanBeConsumed(true);
+        incrementalAnalysisElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, incrementalAnalysisUsage);
     }
 
-    private static ScalaRuntime configureScalaRuntimeExtension(Project project) {
-        return project.getExtensions().create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntime.class, project);
-    }
-
-    private static void configureSourceSetDefaults(final Project project, final ObjectFactory objectFactory) {
+    private static void configureSourceSetDefaults(final Project project, final Usage incrementalAnalysisUsage, final ObjectFactory objectFactory) {
         project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(new Action<SourceSet>() {
             @Override
             public void execute(final SourceSet sourceSet) {
@@ -95,13 +103,9 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 Convention sourceSetConvention = (Convention) InvokerHelper.getProperty(sourceSet, "convention");
                 DefaultScalaSourceSet scalaSourceSet = new DefaultScalaSourceSet(displayName, objectFactory);
                 sourceSetConvention.getPlugins().put("scala", scalaSourceSet);
+
                 final SourceDirectorySet scalaDirectorySet = scalaSourceSet.getScala();
-                scalaDirectorySet.srcDir(new Callable<File>() {
-                    @Override
-                    public File call() throws Exception {
-                        return project.file("src/" + sourceSet.getName() + "/scala");
-                    }
-                });
+                scalaDirectorySet.srcDir(project.file("src/" + sourceSet.getName() + "/scala"));
                 sourceSet.getAllJava().source(scalaDirectorySet);
                 sourceSet.getAllSource().source(scalaDirectorySet);
                 sourceSet.getResources().getFilter().exclude(new Spec<FileTreeElement>() {
@@ -111,16 +115,26 @@ public class ScalaBasePlugin implements Plugin<Project> {
                     }
                 });
 
-                configureScalaCompile(project, sourceSet);
+                Configuration classpath = project.getConfigurations().getByName(sourceSet.getImplementationConfigurationName());
+                Configuration incrementalAnalysis = project.getConfigurations().create("incrementalScalaAnalysisFor" + sourceSet.getName());
+                incrementalAnalysis.setVisible(false);
+                incrementalAnalysis.setDescription("Incremental compilation analysis files for " + displayName);
+                incrementalAnalysis.setCanBeResolved(true);
+                incrementalAnalysis.setCanBeConsumed(false);
+                incrementalAnalysis.extendsFrom(classpath);
+                incrementalAnalysis.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, incrementalAnalysisUsage);
+
+                configureScalaCompile(project, sourceSet, incrementalAnalysis, incrementalAnalysisUsage);
             }
 
         });
     }
 
-    private static void configureScalaCompile(final Project project, final SourceSet sourceSet) {
+    private static void configureScalaCompile(final Project project, final SourceSet sourceSet, final Configuration incrementalAnalysis, final Usage incrementalAnalysisUsage) {
         Convention scalaConvention = (Convention) InvokerHelper.getProperty(sourceSet, "convention");
         final ScalaSourceSet scalaSourceSet = scalaConvention.findPlugin(ScalaSourceSet.class);
         SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, scalaSourceSet.getScala(), project);
+
         final TaskProvider<ScalaCompile> scalaCompile = project.getTasks().register(sourceSet.getCompileTaskName("scala"), ScalaCompile.class, new Action<ScalaCompile>() {
             @Override
             public void execute(ScalaCompile scalaCompile) {
@@ -129,20 +143,29 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 scalaCompile.setDescription("Compiles the " + scalaSourceSet.getScala() + ".");
                 scalaCompile.setSource(scalaSourceSet.getScala());
 
+                scalaCompile.getAnalysisMappingFile().set(project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".mapping"));
 
-                // cannot use convention mapping because the resulting object won't be serializable
                 // cannot compute at task execution time because we need association with source set
-                // TODO: Replace this with Providers
                 IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
-                if (incrementalOptions.getAnalysisFile() == null) {
-                    String analysisFilePath = project.getBuildDir().getPath() + "/tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".analysis";
-                    incrementalOptions.setAnalysisFile(new File(analysisFilePath));
+                incrementalOptions.getAnalysisFile().set(
+                    project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".analysis")
+                );
+                // TODO: Replace this with Providers in Jar/AbstractArchiveTask
+                final Jar jarTask = (Jar) project.getTasks().findByName(sourceSet.getJarTaskName());
+                if (jarTask != null) {
+                    incrementalOptions.getPublishedCode().set(project.getLayout().file(project.provider(new Callable<File>() {
+                        @Override
+                        public File call() throws Exception {
+                            return jarTask.getArchivePath();
+                        }
+                    })));
                 }
-
-                if (incrementalOptions.getPublishedCode() == null) {
-                    Jar jarTask = (Jar) project.getTasks().findByName(sourceSet.getJarTaskName());
-                    incrementalOptions.setPublishedCode(jarTask == null ? null : jarTask.getArchivePath());
-                }
+                scalaCompile.getAnalysisFiles().from(incrementalAnalysis.getIncoming().artifactView(new Action<ArtifactView.ViewConfiguration>() {
+                    @Override
+                    public void execute(ArtifactView.ViewConfiguration viewConfiguration) {
+                        viewConfiguration.lenient(true);
+                    }
+                }).getFiles());
             }
         });
 
