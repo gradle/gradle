@@ -18,9 +18,11 @@ package org.gradle.api.tasks;
 
 import org.apache.tools.ant.types.Commandline;
 import org.gradle.api.Incubating;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
@@ -377,9 +379,21 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     }
 
     /**
+     * Returns the version of the Java executable specified by {@link #getExecutable()}.
+     *
+     * @since 5.1
+     */
+    @Input
+    public JavaVersion getJavaVersion() {
+        return getServices().get(JvmVersionDetector.class).getJavaVersion(getExecutable());
+    }
+
+    /**
      * {@inheritDoc}
      */
-    @Nullable @Optional @Input
+    @Internal
+    @Nullable
+    @Override
     public String getExecutable() {
         return javaExecHandleBuilder.getExecutable();
     }

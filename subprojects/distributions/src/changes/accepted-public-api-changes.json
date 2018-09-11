@@ -1,3 +1,10 @@
 {
-   "acceptedApiChanges": []
+   "acceptedApiChanges": [
+       {
+           "type": "org.gradle.api.tasks.JavaExec",
+           "member": "Method org.gradle.api.tasks.JavaExec.getJavaVersion()",
+           "acceptation": "Improving cacheability of an existing task",
+           "changes": []
+       }
+   ]
 }

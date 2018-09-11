@@ -84,10 +84,10 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
     }
 
     @Unroll
-    def "cache switches off after first error for the current build (stacktraces: #showStractrace)"() {
+    def "cache switches off after first error for the current build (stacktraces: #showStacktrace)"() {
         // Need to do it like this because stacktraces are always enabled for integration tests
         settingsFile << """
-            gradle.startParameter.setShowStacktrace(org.gradle.api.logging.configuration.ShowStacktrace.$showStractrace)
+            gradle.startParameter.setShowStacktrace(org.gradle.api.logging.configuration.ShowStacktrace.$showStacktrace)
         """
 
         buildFile << """
@@ -128,7 +128,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         skippedTasks.empty
 
         where:
-        showStractrace                     | expectStacktrace
+        showStacktrace                     | expectStacktrace
         ShowStacktrace.INTERNAL_EXCEPTIONS | false
         ShowStacktrace.ALWAYS              | true
         ShowStacktrace.ALWAYS_FULL         | true
