@@ -19,54 +19,44 @@ package codegen
 import accessors.base
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependency
 
-import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
 import org.gradle.kotlin.dsl.*
 
+import java.io.File
 
-@CacheableTask
+
 open class GenerateClasspathManifest : DefaultTask() {
 
     @get:OutputDirectory
-    @get:PathSensitive(PathSensitivity.RELATIVE)
-    val outputDirectory = project.objects.directoryProperty()
+    var outputDirectory: File? = null
 
-    @get:Input
-    val compileOnlyProjectNames by lazy {
-        val compileOnly by project.configurations
-        join(
-            compileOnly.dependencies.asSequence()
-                .filterIsInstance<ExternalModuleDependency>()
-                .map { it.name })
-    }
+    @get:InputFiles
+    val compileOnly by project.configurations
 
-    @get:Input
-    val runtimeFileNames by lazy {
-        val runtime by project.configurations
-        join(runtime.files.asSequence().map { it.name })
-    }
+    @get:InputFiles
+    val runtime by project.configurations
 
-    private
+    @get:Internal
     val outputFile by lazy {
-        outputDirectory.file("${project.moduleName}-classpath.properties").get().asFile
+        File(outputDirectory!!, "${moduleName()}-classpath.properties")
     }
 
     @Suppress("unused")
     @TaskAction
     fun generate() {
-        write("projects=$compileOnlyProjectNames\nruntime=$runtimeFileNames\n")
+        val projects = join(compileOnly.dependencies.filterIsInstance<ExternalModuleDependency>().map { it.name })
+        val runtime = join(runtime.files.map { it.name })
+        write("projects=$projects\nruntime=$runtime\n")
     }
 
     private
-    fun join(ss: Sequence<String>) =
+    fun join(ss: List<String>) =
         ss.joinToString(separator = ",")
 
     private
@@ -75,6 +65,6 @@ open class GenerateClasspathManifest : DefaultTask() {
     }
 
     private
-    val Project.moduleName
-        get() = base.archivesBaseName
+    fun moduleName(): String =
+        project.base.archivesBaseName
 }

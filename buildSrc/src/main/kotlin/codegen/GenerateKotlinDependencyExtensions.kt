@@ -18,34 +18,28 @@ package codegen
 
 import org.gradle.api.DefaultTask
 
-import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.gradle.kotlin.dsl.property
+
+import java.io.File
 
 
-@CacheableTask
 open class GenerateKotlinDependencyExtensions : DefaultTask() {
 
     @get:OutputFile
-    @get:PathSensitive(PathSensitivity.NONE)
-    val outputFile = project.objects.fileProperty()
+    var outputFile: File? = null
 
     @get:Input
-    val embeddedKotlinVersion = project.objects.property<String>()
+    var embeddedKotlinVersion: String? = null
 
     @get:Input
-    val kotlinDslPluginsVersion = project.objects.property<String>()
+    var kotlinDslPluginsVersion: String? = null
 
     @Suppress("unused")
     @TaskAction
     fun generate() {
-        val kotlinVersion = embeddedKotlinVersion.get()
-        val dslVersion = kotlinDslPluginsVersion.get()
-        outputFile.get().asFile.writeText(
+        outputFile!!.writeText(
             """$licenseHeader
 
 package org.gradle.kotlin.dsl
@@ -57,13 +51,13 @@ import org.gradle.plugin.use.PluginDependencySpec
 
 
 /**
- * The version of the Kotlin compiler embedded in gradle-kotlin-dsl (currently _${kotlinVersion}_).
+ * The version of the Kotlin compiler embedded in gradle-kotlin-dsl (currently _${embeddedKotlinVersion}_).
  */
-val embeddedKotlinVersion = "$kotlinVersion"
+val embeddedKotlinVersion = "$embeddedKotlinVersion"
 
 
 /**
- * Builds the dependency notation for the named Kotlin [module] at the embedded version (currently _${kotlinVersion}_).
+ * Builds the dependency notation for the named Kotlin [module] at the embedded version (currently _${embeddedKotlinVersion}_).
  *
  * @param module simple name of the Kotlin module, for example "reflect".
  */
@@ -84,7 +78,7 @@ fun DependencyHandler.kotlin(module: String, version: String? = null): Any =
 /**
  * Applies the given Kotlin plugin [module].
  *
- * For example: `plugins { kotlin("jvm") version "$kotlinVersion" }`
+ * For example: `plugins { kotlin("jvm") version "$embeddedKotlinVersion" }`
  *
  * Visit the [plugin portal](https://plugins.gradle.org/search?term=org.jetbrains.kotlin) to see the list of available plugins.
  *
@@ -97,40 +91,40 @@ fun PluginDependenciesSpec.kotlin(module: String): PluginDependencySpec =
 /**
  * The `embedded-kotlin` plugin.
  *
- * Equivalent to `id("org.gradle.kotlin.embedded-kotlin") version "$dslVersion"`
+ * Equivalent to `id("org.gradle.kotlin.embedded-kotlin") version "$kotlinDslPluginsVersion"`
  *
- * You can also use `` `embedded-kotlin` version "$dslVersion" `` if you want to use a different version.
+ * You can also use `` `embedded-kotlin` version "$kotlinDslPluginsVersion" `` if you want to use a different version.
  *
  * @see org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
  */
 val PluginDependenciesSpec.`embedded-kotlin`: PluginDependencySpec
-    get() = id("org.gradle.kotlin.embedded-kotlin") version "$dslVersion"
+    get() = id("org.gradle.kotlin.embedded-kotlin") version "$kotlinDslPluginsVersion"
 
 
 /**
  * The `kotlin-dsl` plugin.
  *
- * Equivalent to `id("org.gradle.kotlin.kotlin-dsl") version "$dslVersion"`
+ * Equivalent to `id("org.gradle.kotlin.kotlin-dsl") version "$kotlinDslPluginsVersion"`
  *
- * You can also use `` `kotlin-dsl` version "$dslVersion" `` if you want to use a different version.
+ * You can also use `` `kotlin-dsl` version "$kotlinDslPluginsVersion" `` if you want to use a different version.
  *
  * @see org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin
  */
 val PluginDependenciesSpec.`kotlin-dsl`: PluginDependencySpec
-    get() = id("org.gradle.kotlin.kotlin-dsl") version "$dslVersion"
+    get() = id("org.gradle.kotlin.kotlin-dsl") version "$kotlinDslPluginsVersion"
 
 
 /**
  * The `kotlin-dsl.precompiled-script-plugins` plugin.
  *
- * Equivalent to `id("org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins") version "$dslVersion"`
+ * Equivalent to `id("org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins") version "$kotlinDslPluginsVersion"`
  *
- * You can also use `` `kotlin-dsl-precompiled-script-plugins` version "$dslVersion" `` if you want to use a different version.
+ * You can also use `` `kotlin-dsl-precompiled-script-plugins` version "$kotlinDslPluginsVersion" `` if you want to use a different version.
  *
  * @see org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins
  */
 val PluginDependenciesSpec.`kotlin-dsl-precompiled-script-plugins`: PluginDependencySpec
-    get() = id("org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins") version "$dslVersion"
+    get() = id("org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins") version "$kotlinDslPluginsVersion"
 """)
     }
 }
