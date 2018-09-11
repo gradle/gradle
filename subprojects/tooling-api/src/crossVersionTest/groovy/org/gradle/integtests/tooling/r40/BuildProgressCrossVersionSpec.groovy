@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r40
 
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
@@ -27,16 +28,19 @@ import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
+@IntegrationTestTimeout(30)
 @ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=4.0")
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     @Rule
     public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder, targetDist.version.version)
 
+    @Ignore("FIXME wolfs, https://github.com/gradle/gradle-private/issues/1486")
     def "generates events for worker actions executed in-process and forked"() {
         given:
         settingsFile << "rootProject.name = 'single'"
