@@ -231,7 +231,7 @@ public class CreateStartScripts extends ConventionTask {
         return applicationName;
     }
 
-    public void setApplicationName(String applicationName) {
+    public void setApplicationName(@Nullable String applicationName) {
         this.applicationName = applicationName;
     }
 
