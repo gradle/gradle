@@ -20,6 +20,9 @@ import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
@@ -83,6 +86,14 @@ public interface ExecutorPolicy {
             // Capture or log all failures
             if (!failure.compareAndSet(null, throwable)) {
                 LOGGER.error(message, throwable);
+            }
+
+            try {
+                PrintStream ps = new PrintStream(new File(System.getProperty("user.home"), "error.txt"));
+                throwable.printStackTrace(ps);
+                ps.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
