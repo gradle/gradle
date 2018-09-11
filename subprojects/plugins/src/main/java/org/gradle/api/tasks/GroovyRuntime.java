@@ -17,15 +17,19 @@ package org.gradle.api.tasks;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import groovy.lang.GroovySystem;
 import org.gradle.api.Buildable;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.plugins.GroovyJarFile;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.util.VersionNumber;
 
 import javax.annotation.Nullable;
@@ -59,9 +63,11 @@ public class GroovyRuntime {
     private static final VersionNumber GROOVY_VERSION_WITH_SEPARATE_ANT = VersionNumber.parse("2.0");
     private static final VersionNumber GROOVY_VERSION_REQUIRING_TEMPLATES = VersionNumber.parse("2.5");
     private final Project project;
+    private final ModuleRegistry moduleRegistry;
 
-    public GroovyRuntime(Project project) {
+    public GroovyRuntime(Project project, ModuleRegistry moduleRegistry) {
         this.project = project;
+        this.moduleRegistry = moduleRegistry;
     }
 
     /**
@@ -74,24 +80,7 @@ public class GroovyRuntime {
      * @param classpath a class path containing Groovy Jars
      * @return a corresponding class path for executing Groovy tools such as the Groovy compiler and Groovydoc tool
      */
-    public FileCollection inferGroovyClasspath(Iterable<File> classpath) {
-        return inferGroovyClasspath(classpath, false);
-    }
-
-    /**
-     * Searches the specified class path for Groovy Jars ({@code groovy(-indy)}, {@code groovy-all(-indy)}) and returns a corresponding class path for executing Groovy tools such as the Groovy
-     * compiler and Groovydoc tool. The tool versions will match those of the Groovy Jars found. If no Groovy Jars are found on the specified class path, a class path with the contents of the {@code
-     * groovy} configuration will be returned.
-     *
-     * <p>The returned class path may be empty, or may fail to resolve when asked for its contents.
-     *
-     * @param classpath a class path containing Groovy Jars
-     * @param groovyJarOnly whether we the Groovy JAR itself is enough (otherwise return either a groovy-all JAR or all dependencies of groovy-ant and groovy-template).
-     * @return a corresponding class path for executing Groovy tools such as the Groovy compiler and Groovydoc tool
-     *
-     * @since 5.0
-     */
-    public FileCollection inferGroovyClasspath(final Iterable<File> classpath, final boolean groovyJarOnly) {
+    public FileCollection inferGroovyClasspath(final Iterable<File> classpath) {
         // alternatively, we could return project.getLayout().files(Runnable)
         // would differ in at least the following ways: 1. live 2. no autowiring
         return new LazilyInitializedFileCollection() {
@@ -107,8 +96,18 @@ public class GroovyRuntime {
                     throw new GradleException(String.format("Cannot infer Groovy class path because no Groovy Jar was found on class path: %s", Iterables.toString(classpath)));
                 }
 
-                if (groovyJarOnly || groovyJar.isGroovyAll()) {
+                if (groovyJar.isGroovyAll()) {
                     return project.getLayout().files(groovyJar.getFile());
+                }
+
+                // If we can serve Groovy from the runtime, let's do that
+                if (groovyJar.getVersion().equals(VersionNumber.parse(GroovySystem.getVersion()))) {
+                    // TODO:lptr Provide full Groovy classpath here like in DependencyClassPathProvider
+                    ClassPath result = DefaultClassPath.of(groovyJar.getFile());
+                    result = result.plus(moduleRegistry.getExternalModule("groovy-ant").getClasspath());
+                    result = result.plus(moduleRegistry.getExternalModule("groovy-groovydoc").getClasspath());
+                    result = result.plus(moduleRegistry.getExternalModule("groovy-templates").getClasspath());
+                    return project.getLayout().files(result.getAsFiles());
                 }
 
                 if (project.getRepositories().isEmpty()) {
