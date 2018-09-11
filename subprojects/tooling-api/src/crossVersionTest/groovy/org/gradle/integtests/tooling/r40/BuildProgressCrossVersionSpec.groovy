@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r40
 
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
@@ -31,6 +32,7 @@ import spock.lang.Issue
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
+@IntegrationTestTimeout(30)
 @ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=4.0")
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {

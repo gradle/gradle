@@ -50,7 +50,7 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
             inDirectory(contentsDir)
             usingExecutable('gradlew')
             withTasks('binZip')
-            withArguments("-Djava9Home=${System.getProperty('java9Home')}", "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}")
+            withArguments("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}")
             withWarningMode(null)
         }.run()
 

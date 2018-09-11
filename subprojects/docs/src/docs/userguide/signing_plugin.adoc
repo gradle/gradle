@@ -24,13 +24,11 @@ The Signing Plugin currently only provides support for generating https://en.wik
 
 To use the Signing Plugin, include the following in your build script:
 
-=== Example: Using the Signing Plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/signing/maven/build.gradle[tag=use-plugin]
-----
+.Using the Signing Plugin
+====
+include::sample[dir="signing/maven/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="signing/maven/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+====
 
 [[sec:signatory_credentials]]
 == Signatory credentials
@@ -54,15 +52,16 @@ signing.secretKeyRingFile=/Users/me/.gnupg/secring.gpg
 
 If specifying this information (especially `signing.password`) in the user `gradle.properties` file is not feasible for your environment, you can source the information however you need to and set the project properties manually.
 
+[.multi-language-sample]
+====
+.build.gradle
 [source,groovy]
 ----
-import org.gradle.plugins.signing.Sign
-
 gradle.taskGraph.whenReady { taskGraph ->
     if (taskGraph.allTasks.any { it instanceof Sign }) {
-        // Use Java 6's console to read from the console (no good for
+        // Use Java's console to read from the console (no good for
         // a CI environment)
-        Console console = System.console()
+        def console = System.console()
         console.printf "\n\nWe have to sign some things in this build." +
                        "\n\nPlease enter your signing details.\n\n"
 
@@ -70,14 +69,45 @@ gradle.taskGraph.whenReady { taskGraph ->
         def file = console.readLine("PGP Secret Key Ring File (absolute path): ")
         def password = console.readPassword("PGP Private Key Password: ")
 
-        allprojects { ext."signing.keyId" = id }
-        allprojects { ext."signing.secretKeyRingFile" = file }
-        allprojects { ext."signing.password" = password }
+        allprojects {
+            ext."signing.keyId" = id
+            ext."signing.secretKeyRingFile" = file
+            ext."signing.password" = password
+        }
 
         console.printf "\nThanks.\n\n"
     }
 }
 ----
+====
+[.multi-language-sample]
+====
+.build.gradle.kts
+[source,kotlin]
+----
+gradle.taskGraph.whenReady {
+    if (allTasks.any { it is Sign }) {
+        // Use Java's console to read from the console (no good for
+        // a CI environment)
+        val console = System.console()
+        console.printf("\n\nWe have to sign some things in this build." +
+                       "\n\nPlease enter your signing details.\n\n")
+
+        val id = console.readLine("PGP Key Id: ")
+        val file = console.readLine("PGP Secret Key Ring File (absolute path): ")
+        val password = console.readPassword("PGP Private Key Password: ")
+
+        allprojects {
+            extra["signing.keyId"] = id
+            extra["signing.secretKeyRingFile"] = file
+            extra["signing.password"] = password
+        }
+
+        console.printf("\nThanks.\n\n")
+    }
+}
+----
+====
 
 Note that the presence of a null value for any these three properties will cause an exception.
 
@@ -93,13 +123,11 @@ The Signing Plugin supports OpenPGP subkeys out of the box. Just specify a subke
 
 By default the Signing Plugin uses a Java-based implementation of PGP for signing. This implementation cannot use the gpg-agent program for managing private keys, though. If you want to use the gpg-agent, you can change the signatory implementation used by the Signing Plugin:
 
-=== Example: Sign with GnuPG
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/signing/gnupg-signatory/build.gradle[tag=configure-signatory]
-----
+.Sign with GnuPG
+====
+include::sample[dir="signing/gnupg-signatory/groovy",files="build.gradle[tags=configure-signatory]"]
+include::sample[dir="signing/gnupg-signatory/kotlin",files="build.gradle.kts[tags=configure-signatory]"]
+====
 
 This tells the Signing Plugin to use the `GnupgSignatory` instead of the default link:{javadocPath}/org/gradle/plugins/signing/signatory/pgp/PgpSignatory.html[PgpSignatory]. The `GnupgSignatory` relies on the gpg2 program to sign the artifacts. Of course, this requires that GnuPG is installed.
 
@@ -113,10 +141,10 @@ The `GnupgSignatory` supports a number of configuration options for controlling 
 
 === Example: Configure the GnupgSignatory
 
-[source.multi-language-sample,groovy]
+[source.multi-language-sample,properties]
 .gradle.properties
 ----
-include::{samplesPath}/signing/gnupg-signatory/gradle.properties[tag=user-properties]
+include::{samplesPath}/signing/gnupg-signatory/groovy/gradle.properties[tag=user-properties]
 ----
 
 `signing.gnupg.executable`::
@@ -144,13 +172,11 @@ As well as configuring how things are to be signed (i.e. the signatory configura
 
 When publishing artifacts, you often want to sign them so the consumer of your artifacts can verify their signature. For example, the <<java_plugin.adoc#java_plugin,Java plugin>> defines a component that you can use to define a publication to a Maven (or Ivy) repository using the <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>> (or the <<publishing_ivy.adoc#publishing_ivy, Ivy Publish Plugin>>, respectively). Using the Signing DSL, you can specify that all of the artifacts of this publication should be signed.
 
-=== Example: Signing a publication
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/signing/maven-publish/build.gradle[tag=sign-publication]
-----
+.Signing a publication
+====
+include::sample[dir="signing/maven-publish/groovy",files="build.gradle[tags=sign-publication]"]
+include::sample[dir="signing/maven-publish/kotlin",files="build.gradle.kts[tags=sign-publication]"]
+====
 
 This will create a task (of type link:{groovyDslPath}/org.gradle.plugins.signing.Sign.html[Sign]) in your project named `signMavenJavaPublication` that will build all artifacts that are part of the publication (if needed) and then generate signatures for them. The signature files will be placed alongside the artifacts being signed.
 
@@ -169,13 +195,11 @@ In addition, the above DSL allows to `sign` multiple comma-separated publication
 
 It is common to want to sign the artifacts of a configuration. For example, the <<java_plugin.adoc#java_plugin,Java plugin>> configures a jar to build and this jar artifact is added to the `archives` configuration. Using the Signing DSL, you can specify that all of the artifacts of this configuration should be signed.
 
-=== Example: Signing a configuration
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/signing/maven/build.gradle[tag=sign-archives]
-----
+.Signing a configuration
+====
+include::sample[dir="signing/maven/groovy",files="build.gradle[tags=sign-archives]"]
+include::sample[dir="signing/maven/kotlin",files="build.gradle.kts[tags=sign-archives]"]
+====
 
 This will create a task (of type link:{groovyDslPath}/org.gradle.plugins.signing.Sign.html[Sign]) in your project named `signArchives`, that will build any `archives` artifacts (if needed) and then generate signatures for them. The signature files will be placed alongside the artifacts being signed.
 
@@ -192,13 +216,11 @@ include::{samplesPath}/signing/maven/signingArchivesOutput.out[]
 
 In some cases the artifact that you need to sign may not be part of a configuration. In this case you can directly sign the task that produces the artifact to sign.
 
-=== Example: Signing a task
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/signing/tasks/build.gradle[tag=sign-task]
-----
+.Signing a task
+====
+include::sample[dir="signing/tasks/groovy",files="build.gradle[tags=sign-task]"]
+include::sample[dir="signing/tasks/kotlin",files="build.gradle.kts[tags=sign-task]"]
+====
 
 This will create a task (of type link:{groovyDslPath}/org.gradle.plugins.signing.Sign.html[Sign]) in your project named `signStuffZip`, that will build the input task's archive (if needed) and then sign it. The signature file will be placed alongside the artifact being signed.
 
@@ -217,25 +239,21 @@ For a task to be _signable_, it must produce an archive of some type, i.e. it mu
 
 A common usage pattern is to require the signing of build artifacts only under certain conditions. For example, you may not need to sign artifacts for non-release versions. To achieve this, you can specify the condition as an argument of the `required()` method.
 
-=== Example: Specifying when signing is required
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/signing/conditional/build.gradle[tag=conditional-signing]
-----
+.Specifying when signing is required
+====
+include::sample[dir="signing/conditional/groovy",files="build.gradle[tags=conditional-signing]"]
+include::sample[dir="signing/conditional/kotlin",files="build.gradle.kts[tags=conditional-signing]"]
+====
 
 In this example, we only want to require signing if we are building a release version and we are going to publish it. Because we are inspecting the task graph to determine if we are going to be publishing, we must set the `signing.required` property to a closure to defer the evaluation. See link:{javadocPath}/org/gradle/plugins/signing/SigningExtension.html#setRequired-java.lang.Object-[SigningExtension.setRequired(java.lang.Object)] for more information.
 
 If the `required` condition does not hold true, artifacts will only be signed if signatory credentials are configured. Alternatively, you may want to skip signing entirely whether or not signatory credentials are available. If so, you can configure the link:{groovyDslPath}/org.gradle.plugins.signing.Sign.html[Sign] tasks to be skipped, for example by attaching a predicate using the `onlyIf()` method shown in the following example:
 
-=== Example: Specifying when signing is skipped
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/signing/conditional/build.gradle[tag=only-if]
-----
+.Specifying when signing is skipped
+====
+include::sample[dir="signing/conditional/groovy",files="build.gradle[tags=only-if]"]
+include::sample[dir="signing/conditional/kotlin",files="build.gradle.kts[tags=only-if]"]
+====
 
 [[sec:publishing_the_signatures]]
 == Publishing the signatures
@@ -255,12 +273,10 @@ The POM file generated by the _new_ Maven publishing support provided by the <<p
 
 When deploying signatures for your artifacts to a Maven repository, you will also want to sign the published POM file. The Signing Plugin adds a `signing.signPom()` (see link:{groovyDslPath}/org.gradle.plugins.signing.SigningExtension.html#org.gradle.plugins.signing.SigningExtension:signPom(org.gradle.api.artifacts.maven.MavenDeployment,%20groovy.lang.Closure)[SigningExtension.signPom(org.gradle.api.artifacts.maven.MavenDeployment, groovy.lang.Closure)]) method that can be used in the `beforeDeployment()` block in your upload task configuration.
 
-=== Example: Signing a POM for deployment
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/signing/maven/build.gradle[tag=sign-pom]
-----
+.Signing a POM for deployment
+====
+include::sample[dir="signing/maven/groovy",files="build.gradle[tags=sign-pom]"]
+include::sample[dir="signing/maven/kotlin",files="build.gradle.kts[tags=sign-pom]"]
+====
 
 When signing is not required and the POM cannot be signed due to insufficient configuration (i.e. no credentials for signing) then the `signPom()` method will silently do nothing.

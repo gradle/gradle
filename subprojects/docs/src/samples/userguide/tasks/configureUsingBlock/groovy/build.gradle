@@ -1,0 +1,12 @@
+// tag::declare-task[]
+task myCopy(type: Copy)
+// end::declare-task[]
+
+// tag::configure[]
+// Configure task using Groovy dynamic task configuration block
+myCopy {
+   from 'resources'
+   into 'target'
+}
+myCopy.include('**/*.txt', '**/*.xml', '**/*.properties')
+// end::configure[]

@@ -82,7 +82,7 @@ public abstract class CompositeSpec<T> implements Spec<T> {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public final boolean equals(Object o) {
         if (this == o) {
             return true;
         }
@@ -95,7 +95,9 @@ public abstract class CompositeSpec<T> implements Spec<T> {
     }
 
     @Override
-    public int hashCode() {
-        return Arrays.hashCode(specs);
+    public final int hashCode() {
+        int result = getClass().hashCode();
+        result = 31 * result + Arrays.hashCode(specs);
+        return result;
     }
 }

@@ -829,7 +829,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         outputContains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
     }
 
-    @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() })
+    @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() && TestPrecondition.NOT_JDK_IBM.fulfilled })
     def "bootclasspath can be set"() {
         def jdk7 = AvailableJavaHomes.getJdk7()
         def jdk7bootClasspath = TextUtil.escapeString(jdk7.jre.homeDir.absolutePath) + "/lib/rt.jar"
