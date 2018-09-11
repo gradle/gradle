@@ -16,15 +16,16 @@
 
 package org.gradle.language.scala.tasks;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.io.Files;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.Project;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory;
 import org.gradle.api.internal.tasks.scala.CleaningScalaCompiler;
@@ -35,22 +36,25 @@ import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.HashMap;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * An abstract Scala compile task sharing common functionality for compiling scala.
@@ -60,11 +64,15 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
     protected static final Logger LOGGER = Logging.getLogger(AbstractScalaCompile.class);
     private final BaseScalaCompileOptions scalaCompileOptions;
     private final CompileOptions compileOptions;
+    private final RegularFileProperty analysisMappingFile = newOutputFile();
+    private final ConfigurableFileCollection analysisFiles = getProject().files();
 
     protected AbstractScalaCompile(BaseScalaCompileOptions scalaCompileOptions) {
-        CompileOptions compileOptions = getServices().get(ObjectFactory.class).newInstance(CompileOptions.class);
-        this.compileOptions = compileOptions;
+        ObjectFactory objectFactory = getServices().get(ObjectFactory.class);
+        this.compileOptions = objectFactory.newInstance(CompileOptions.class);
         this.scalaCompileOptions = scalaCompileOptions;
+        this.scalaCompileOptions.setIncrementalOptions(objectFactory.newInstance(IncrementalCompileOptions.class));
+
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
     }
 
@@ -99,8 +107,8 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
     }
 
     private boolean isNonIncrementalCompilation() {
-        File analysisFile = getScalaCompileOptions().getIncrementalOptions().getAnalysisFile();
-        if (analysisFile != null && !analysisFile.exists()) {
+        File analysisFile = getScalaCompileOptions().getIncrementalOptions().getAnalysisFile().getAsFile().get();
+        if (!analysisFile.exists()) {
             LOGGER.info("Zinc is doing a full recompile since the analysis file doesn't exist");
             return true;
         }
@@ -122,47 +130,45 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
         return spec;
     }
 
-    protected void configureIncrementalCompilation(ScalaCompileSpec spec) {
+    private void configureIncrementalCompilation(ScalaCompileSpec spec) {
+        IncrementalCompileOptions incrementalOptions = scalaCompileOptions.getIncrementalOptions();
 
-        Map<File, File> globalAnalysisMap = createOrGetGlobalAnalysisMap();
-        HashMap<File, File> filteredMap = filterForClasspath(globalAnalysisMap, spec.getCompileClasspath());
-        spec.setAnalysisMap(filteredMap);
+        File analysisFile = incrementalOptions.getAnalysisFile().getAsFile().get();
+        Map<File, File> globalAnalysisMap = resolveAnalysisMappingsForOtherProjects();
+        spec.setAnalysisMap(globalAnalysisMap);
+        spec.setAnalysisFile(analysisFile);
 
+        // If this Scala compile is published into a jar, generate a analysis mapping file
+        if (incrementalOptions.getPublishedCode().isPresent()) {
+            File publishedCode = incrementalOptions.getPublishedCode().getAsFile().get();
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("scala-incremental Analysis file: {}", analysisFile);
+                LOGGER.debug("scala-incremental Published code: {}", publishedCode);
+            }
+            File analysisMapping = getAnalysisMappingFile().getAsFile().get();
+            GFileUtils.writeFile(publishedCode.getAbsolutePath() + "\n" + analysisFile.getAbsolutePath(), analysisMapping);
+        }
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Analysis file: {}", scalaCompileOptions.getIncrementalOptions().getAnalysisFile());
-            LOGGER.debug("Published code: {}", scalaCompileOptions.getIncrementalOptions().getPublishedCode());
-            LOGGER.debug("Analysis map: {}", filteredMap);
+            LOGGER.debug("scala-incremental Analysis map: {}", globalAnalysisMap);
         }
     }
 
     @SuppressWarnings("unchecked")
-    protected Map<File, File> createOrGetGlobalAnalysisMap() {
-        ExtraPropertiesExtension extraProperties = getProject().getRootProject().getExtensions().getExtraProperties();
-        Map<File, File> analysisMap;
-
-        if (extraProperties.has("scalaCompileAnalysisMap")) {
-            analysisMap = (Map) extraProperties.get("scalaCompileAnalysisMap");
-        } else {
-            analysisMap = Maps.newHashMap();
-            for (Project project : getProject().getRootProject().getAllprojects()) {
-                for (AbstractScalaCompile task : project.getTasks().withType(AbstractScalaCompile.class)) {
-                    File publishedCode = task.getScalaCompileOptions().getIncrementalOptions().getPublishedCode();
-                    File analysisFile = task.getScalaCompileOptions().getIncrementalOptions().getAnalysisFile();
-                    analysisMap.put(publishedCode, analysisFile);
+    private Map<File, File> resolveAnalysisMappingsForOtherProjects() {
+        Map<File, File> analysisMap = Maps.newHashMap();
+        for (File mapping : analysisFiles.getFiles()) {
+            if (mapping.exists()) {
+                try {
+                    List<String> lines = Files.readLines(mapping, Charset.defaultCharset());
+                    assert lines.size() == 2;
+                    analysisMap.put(new File(lines.get(0)), new File(lines.get(1)));
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
                 }
             }
-            extraProperties.set("scalaCompileAnalysisMap", Collections.unmodifiableMap(analysisMap));
         }
         return analysisMap;
-    }
-
-    protected HashMap<File, File> filterForClasspath(Map<File, File> analysisMap, Iterable<File> classpath) {
-        final Set<File> classpathLookup = Sets.newHashSet(classpath);
-        return Maps.newHashMap(Maps.filterEntries(analysisMap, new Predicate<Map.Entry<File, File>>() {
-            public boolean apply(Map.Entry<File, File> entry) {
-                return classpathLookup.contains(entry.getKey());
-            }
-        }));
     }
 
     /**
@@ -203,4 +209,32 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
         return JavaVersion.current().getMajorVersion();
     }
 
+    /**
+     * Source of analysis mapping files for incremental Scala compilation.
+     * <p>
+     *     An analysis mapping file is produced by each {@code AbstractScalaCompile} task. This file contains paths to the jar containing
+     *     compiled Scala classes and the Scala compiler analysis file for that jar. The Scala compiler uses this information to perform
+     *     incremental compilation of Scala sources.
+     * </p>
+     *
+     * @return collection of analysis mapping files.
+     *
+     * @since 4.10.1
+     */
+    @Internal
+    public ConfigurableFileCollection getAnalysisFiles() {
+        return analysisFiles;
+    }
+
+    /**
+     * Analysis mapping file.
+     *
+     * @see #getAnalysisFiles()
+     *
+     * @since 4.10.1
+     */
+    @LocalState
+    public RegularFileProperty getAnalysisMappingFile() {
+        return analysisMappingFile;
+    }
 }

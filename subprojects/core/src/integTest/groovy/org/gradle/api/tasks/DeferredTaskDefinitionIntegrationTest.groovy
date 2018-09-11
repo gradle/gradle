@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -1109,5 +1110,33 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         """
         expect:
         succeeds("help")
+    }
+
+    @Ignore
+    @Issue("https://github.com/gradle/gradle/issues/6558")
+    def "can register tasks in multi-project build that iterates over allprojects and tasks in task action"() {
+        settingsFile << """
+            include 'a', 'b', 'c', 'd'
+        """
+        buildFile << """
+            class MyTask extends DefaultTask {
+                @TaskAction
+                void doIt() {
+                    for (Project subproject : project.rootProject.getAllprojects()) {
+                        for (MyTask myTask : subproject.tasks.withType(MyTask)) {
+                            println "Looking at " + myTask.path
+                        }
+                    }
+                }
+            }
+            
+            allprojects {
+                (1..10).each {
+                    def mytask = tasks.register("mytask" + it, MyTask)
+                }
+            }
+        """
+        expect:
+        succeeds("mytask0", "--parallel")
     }
 }
