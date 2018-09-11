@@ -89,7 +89,7 @@ public interface ExecutorPolicy {
             }
 
             try {
-                PrintStream ps = new PrintStream(new File(System.getProperty("user.home"), "error.txt"));
+                PrintStream ps = new PrintStream(new File( "C:/Users/vmadmin/error.txt"));
                 throwable.printStackTrace(ps);
                 ps.close();
             } catch (IOException e) {
