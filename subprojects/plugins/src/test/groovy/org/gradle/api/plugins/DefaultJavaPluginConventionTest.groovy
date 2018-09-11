@@ -19,52 +19,50 @@ package org.gradle.api.plugins
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.testing.internal.util.Specification
 import org.gradle.util.TestUtil
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.instanceOf
-import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertThat
 
-class DefaultJavaPluginConventionTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+class DefaultJavaPluginConventionTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    private final ProjectInternal project = TestUtil.create(tmpDir).rootProject()
-    private Instantiator instantiator = project.services.get(Instantiator)
+    def project = TestUtil.create(tmpDir).rootProject()
+    def instantiator = project.services.get(Instantiator)
     private JavaPluginConvention convention
 
-    @Before public void setUp() {
+    def setup() {
         project.pluginManager.apply(ReportingBasePlugin)
         convention = new DefaultJavaPluginConvention(project, instantiator)
     }
 
-    @Test public void defaultValues() {
-        assertThat(convention.sourceSets, instanceOf(DefaultSourceSetContainer))
-        assertEquals('docs', convention.docsDirName)
-        assertEquals('test-results', convention.testResultsDirName)
-        assertEquals('tests', convention.testReportDirName)
+    def defaultValues() {
+        expect:
+        convention.sourceSets instanceof DefaultSourceSetContainer
+        convention.docsDirName == 'docs'
+        convention.testResultsDirName == 'test-results'
+        convention.testReportDirName == 'tests'
     }
 
-    @Test public void sourceCompatibilityDefaultsToCurentJvmVersion() {
+   def sourceCompatibilityDefaultsToCurentJvmVersion() {
+        given:
         JavaVersion currentJvmVersion = JavaVersion.toVersion(System.properties["java.version"]);
-        assertEquals(currentJvmVersion, convention.sourceCompatibility)
-        assertEquals(currentJvmVersion, convention.targetCompatibility)
+        expect:
+        convention.sourceCompatibility == currentJvmVersion
+        convention.targetCompatibility == currentJvmVersion
     }
 
-    @Test public void canConfigureSourceSets() {
+    @Test
+    void canConfigureSourceSets() {
         File dir = new File('classes-dir')
         convention.sourceSets {
             main {
@@ -74,87 +72,103 @@ class DefaultJavaPluginConventionTest {
         assertThat(convention.sourceSets.main.output.classesDir, equalTo(project.file(dir)))
     }
 
-    @Test public void testDefaultDirs() {
+    def defaultDirs() {
+        expect:
         checkDirs()
     }
 
-    @Test public void testDynamicDirs() {
+    def dynamicDirs() {
+        when:
         project.buildDir = project.file('mybuild')
+        then:
         checkDirs()
     }
 
     private void checkDirs() {
-        assertEquals(new File(project.buildDir, convention.docsDirName), convention.docsDir)
-        assertEquals(new File(project.buildDir, convention.testResultsDirName), convention.testResultsDir)
-        assertEquals(new File(convention.reportsDir, convention.testReportDirName), convention.testReportDir)
+        assert convention.docsDir == new File(project.buildDir, convention.docsDirName)
+        assert convention.testResultsDir == new File(project.buildDir, convention.testResultsDirName)
+        assert convention.testReportDir == new File(convention.reportsDir, convention.testReportDirName)
     }
 
-    @Test public void testTestReportDirIsCalculatedRelativeToReportsDir() {
-        assertEquals(new File(project.buildDir, 'reports/tests'), convention.testReportDir)
+    def "testReportDir is calculated relative to reporting.baseDir"() {
+        expect:
+        convention.testReportDir == new File(project.buildDir, 'reports/tests')
 
+        when:
         project.reporting.baseDir = 'other-reports-dir'
         convention.testReportDirName = 'other-test-dir'
 
-        assertEquals(new File(project.projectDir, 'other-reports-dir/other-test-dir'), convention.testReportDir)
+        then:
+        convention.testReportDir == new File(project.projectDir, 'other-reports-dir/other-test-dir')
     }
 
-    @Test public void testTargetCompatibilityDefaultsToSourceCompatibilityWhenNotSet() {
+    def targetCompatibilityDefaultsToSourceCompatibilityWhenNotSet() {
+        when:
         convention.sourceCompatibility = '1.4'
-        assertEquals(JavaVersion.VERSION_1_4, convention.sourceCompatibility)
-        assertEquals(JavaVersion.VERSION_1_4, convention.targetCompatibility)
+        then:
+        convention.sourceCompatibility == JavaVersion.VERSION_1_4
+        convention.targetCompatibility == JavaVersion.VERSION_1_4
 
+        when:
         convention.targetCompatibility = '1.2'
-        assertEquals(JavaVersion.VERSION_1_4, convention.sourceCompatibility)
-        assertEquals(JavaVersion.VERSION_1_2, convention.targetCompatibility)
+        then:
+        convention.sourceCompatibility == JavaVersion.VERSION_1_4
+        convention.targetCompatibility == JavaVersion.VERSION_1_2
 
+        when:
         convention.sourceCompatibility = 6
-        assertEquals(JavaVersion.VERSION_1_6, convention.sourceCompatibility)
-        assertEquals(JavaVersion.VERSION_1_2, convention.targetCompatibility)
+        then:
+        convention.sourceCompatibility == JavaVersion.VERSION_1_6
+        convention.targetCompatibility == JavaVersion.VERSION_1_2
 
+        when:
         convention.targetCompatibility = JavaVersion.VERSION_1_3
-        assertEquals(JavaVersion.VERSION_1_6, convention.sourceCompatibility)
-        assertEquals(JavaVersion.VERSION_1_3, convention.targetCompatibility)
+        then:
+        convention.sourceCompatibility == JavaVersion.VERSION_1_6
+        convention.targetCompatibility == JavaVersion.VERSION_1_3
 
+        when:
         convention.sourceCompatibility = JavaVersion.VERSION_1_7
-        assertEquals(JavaVersion.VERSION_1_7, convention.sourceCompatibility)
-        assertEquals(JavaVersion.VERSION_1_3, convention.targetCompatibility)
+        then:
+        convention.sourceCompatibility == JavaVersion.VERSION_1_7
+        convention.targetCompatibility == JavaVersion.VERSION_1_3
     }
 
-    @Test
-    public void createsManifestWithFileResolvingAndValues() {
-        FileResolver fileResolver = context.mock(FileResolver)
-        project.setFileResolver fileResolver
-        TestFile manifestFile = expectPathResolved(fileResolver, 'file')
-        manifestFile.write("key2: value2")
+    def createsManifestWithFileResolvingAndValues() {
+        given:
+        def fileResolver = Mock(FileResolver)
+        def manifestFile = tmpDir.file('file') << "key2: value2"
+        project.fileResolver = fileResolver
         def manifest = convention.manifest {
             from 'file'
             attributes(key1: 'value1')
         }
-        assertThat(manifest, instanceOf(DefaultManifest.class))
-        DefaultManifest mergedManifest = manifest.effectiveManifest
-        assertThat(mergedManifest.attributes, equalTo([key1: 'value1', key2: 'value2', 'Manifest-Version': '1.0']))
+
+        when:
+        def mergedManifest = manifest.effectiveManifest
+
+        then:
+        1 * fileResolver.resolve('file') >> manifestFile
+        manifest instanceof DefaultManifest
+        mergedManifest.attributes as Map == [key1: 'value1', key2: 'value2', 'Manifest-Version': '1.0']
     }
 
-    @Test
-    void "can configure manifest with an action"() {
+    def "can configure manifest with an Action"() {
+        given:
         def manifest = convention.manifest({ Manifest manifest ->
             manifest.attributes key: 'value'
         } as Action<Manifest>)
+
+        when:
         Manifest mergedManifest = manifest.effectiveManifest
-        assertThat(mergedManifest.attributes, equalTo([key: 'value', 'Manifest-Version': '1.0']))
+
+        then:
+        mergedManifest.attributes as Map == [key: 'value', 'Manifest-Version': '1.0']
     }
 
-    @Test
-    public void createsEmptyManifest() {
-        assertThat(convention.manifest(), instanceOf(DefaultManifest.class))
+    def createsEmptyManifest() {
+        expect:
+        convention.manifest() instanceof DefaultManifest
     }
 
-    private TestFile expectPathResolved(FileResolver fileResolver, String path) {
-        TestFile file = tmpDir.file(path)
-        context.checking {
-            one(fileResolver).resolve(path)
-            will(returnValue(file))
-        }
-        return file
-    }
 }
