@@ -36,12 +36,12 @@ fun shouldBeSkipped(subProject: GradleSubproject, testConfig: TestCoverage): Boo
     return testConfig.os.ignoredSubprojects.contains(subProject.name)
 }
 
-fun gradleParameters(os: OS = OS.linux, daemon: Boolean = true): List<String> =
+fun gradleParameters(os: OS = OS.linux, daemon: Boolean = true, isContinue: Boolean = true): List<String> =
     listOf(
         "-PmaxParallelForks=%maxParallelForks%",
         "-s",
         if (daemon) "--daemon" else "--no-daemon",
-        "--continue",
+        if (isContinue) "--continue" else "",
         """-I "%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts"""",
         java7Homes[os]!!,
         java9Homes[os]!!,
