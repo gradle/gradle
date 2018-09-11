@@ -958,7 +958,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             properties.put(REUSE_USER_HOME_SERVICES, "false");
         }
         if (!useCustomGradleUserHomeDir) {
-            properties.put(DefaultGeneratedGradleJarCache.BASE_DIR_OVERRIDE_PROPERTY, buildContext.getGradleGeneratedApiJarCacheDir().getAbsolutePath());
+            TestFile generatedApiJarCacheDir = buildContext.getGradleGeneratedApiJarCacheDir();
+            if (generatedApiJarCacheDir != null) {
+                properties.put(DefaultGeneratedGradleJarCache.BASE_DIR_OVERRIDE_PROPERTY, generatedApiJarCacheDir.getAbsolutePath());
+            }
         }
         if (!noExplicitTmpDir) {
             if (tmpDir == null) {
