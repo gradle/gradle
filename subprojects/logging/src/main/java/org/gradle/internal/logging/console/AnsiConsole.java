@@ -28,6 +28,10 @@ public class AnsiConsole implements Console {
         @Override
         public void execute(AnsiContext ansiContext) {
             buildStatusArea.redraw(ansiContext);
+            // When build output area is not visible, position the cursor at the end of the output area
+            if (!buildStatusArea.isVisible()) {
+                ansiContext.cursorAt(buildOutputArea.getWritePosition());
+            }
         }
     };
     private final Flushable flushable;

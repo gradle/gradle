@@ -24,14 +24,21 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.tooling.ProjectConnection
-import org.junit.Rule
 
 @ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=4.7")
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
-    @Rule
-    public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder, targetDist.version.version)
+    public RepositoryHttpServer server
+
+    def setup() {
+        server = new RepositoryHttpServer(temporaryFolder, targetDist.version.version)
+        server.before()
+    }
+
+    def cleanup() {
+        server.after()
+    }
 
     def "generates download events during maven publish"() {
         given:

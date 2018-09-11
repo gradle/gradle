@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.testng
 
-import org.gradle.api.Action
+
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
@@ -55,12 +55,12 @@ public class TestNGTestFrameworkTest extends Specification {
 
     def "can configure TestNG with an Action"() {
         when:
-        testTask.useTestNG({TestNGOptions options ->
+        testTask.useTestNG { TestNGOptions options ->
             options.suiteName = 'Custom Suite'
-        } as Action<TestNGOptions>)
+        }
 
         then:
-        (testTask.options as TestNGOptions).suiteName == 'Custom Suite'
+        testTask.options.suiteName == 'Custom Suite'
     }
 
     TestNGTestFramework createFramework() {

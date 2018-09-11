@@ -15,9 +15,11 @@
  */
 
 apply(from = "gradle/shared-with-buildSrc/build-cache-configuration.settings.gradle.kts")
+apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 enableFeaturePreview("IMPROVED_POM_SUPPORT")
 
+include("apiMetadata")
 include("distributionsDependencies")
 include("distributions")
 include("baseServices")
@@ -75,7 +77,7 @@ include("languageJvm")
 include("languageJava")
 include("languageGroovy")
 include("languageNative")
-include("toolingBuildersNative")
+include("toolingNative")
 include("languageScala")
 include("pluginUse")
 include("pluginDevelopment")
@@ -98,6 +100,7 @@ include("persistentCache")
 include("buildCache")
 include("coreApi")
 include("versionControl")
+include("files")
 
 val upperCaseLetters = "\\p{Upper}".toRegex()
 

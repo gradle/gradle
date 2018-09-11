@@ -18,9 +18,8 @@ package org.gradle.internal.fingerprint.impl
 
 import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVisitor
 import org.gradle.api.internal.changedetection.rules.FileChange
-import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot
 import org.gradle.internal.file.FileType
-import org.gradle.internal.fingerprint.NormalizedFileSnapshot
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -29,7 +28,7 @@ import static org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy.AB
 import static org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy.CLASSPATH
 import static org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy.IGNORED_PATH
 import static org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy.NORMALIZED
-import static org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy.compareTrivialSnapshots
+import static org.gradle.internal.fingerprint.impl.FingerprintCompareStrategy.compareTrivialFingerprints
 
 class FingerprintCompareStrategyTest extends Specification {
 
@@ -57,7 +56,7 @@ class FingerprintCompareStrategyTest extends Specification {
     def "trivial addition (#strategy, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
-            ["one-new": snapshot("one")],
+            ["one-new": fingerprint("one")],
             [:]
         ) as List == results
 
@@ -77,8 +76,8 @@ class FingerprintCompareStrategyTest extends Specification {
     def "non-trivial addition (#strategy, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
-            ["one-new": snapshot("one"), "two-new": snapshot("two")],
-            ["one-old": snapshot("one")]
+            ["one-new": fingerprint("one"), "two-new": fingerprint("two")],
+            ["one-old": fingerprint("one")]
         ) == results
 
         where:
@@ -93,8 +92,8 @@ class FingerprintCompareStrategyTest extends Specification {
     def "non-trivial addition with absolute paths (#strategy, include added: #includeAdded)"() {
         expect:
         changesUsingAbsolutePaths(strategy, includeAdded,
-            ["one": snapshot("one"), "two": snapshot("two")],
-            ["one": snapshot("one")]
+            ["one": fingerprint("one"), "two": fingerprint("two")],
+            ["one": fingerprint("one")]
         ) == results
 
         where:
@@ -108,7 +107,7 @@ class FingerprintCompareStrategyTest extends Specification {
         expect:
         changes(strategy, includeAdded,
             [:],
-            ["one-old": snapshot("one")]
+            ["one-old": fingerprint("one")]
         ) as List == [removed("one-old")]
 
         where:
@@ -125,8 +124,8 @@ class FingerprintCompareStrategyTest extends Specification {
     def "non-trivial removal (#strategy, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
-            ["one-new": snapshot("one")],
-            ["one-old": snapshot("one"), "two-old": snapshot("two")]
+            ["one-new": fingerprint("one")],
+            ["one-old": fingerprint("one"), "two-old": fingerprint("two")]
         ) == [removed("two-old")]
 
         where:
@@ -141,8 +140,8 @@ class FingerprintCompareStrategyTest extends Specification {
     def "non-trivial removal with absolute paths (#strategy, include added: #includeAdded)"() {
         expect:
         changesUsingAbsolutePaths(strategy, includeAdded,
-            ["one": snapshot("one")],
-            ["one": snapshot("one"), "two": snapshot("two")]
+            ["one": fingerprint("one")],
+            ["one": fingerprint("one"), "two": fingerprint("two")]
         ) == [removed("two")]
 
         where:
@@ -155,8 +154,8 @@ class FingerprintCompareStrategyTest extends Specification {
     def "non-trivial modification (#strategy, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
-            ["one-new": snapshot("one"), "two-new": snapshot("two", 0x9876cafe)],
-            ["one-old": snapshot("one"), "two-old": snapshot("two", 0xface1234)]
+            ["one-new": fingerprint("one"), "two-new": fingerprint("two", 0x9876cafe)],
+            ["one-old": fingerprint("one"), "two-old": fingerprint("two", 0xface1234)]
         ) == [modified("two-new", FileType.RegularFile, FileType.RegularFile)]
 
         where:
@@ -171,8 +170,8 @@ class FingerprintCompareStrategyTest extends Specification {
     def "non-trivial modification with re-ordering and same normalized paths (UNORDERED, include added: #includeAdded)"() {
         expect:
         changes(NORMALIZED, includeAdded,
-            ["two-new": snapshot("", 0x9876cafe), "one-new": snapshot("")],
-            ["one-old": snapshot(""), "two-old": snapshot("", 0xface1234)]
+            ["two-new": fingerprint("", 0x9876cafe), "one-new": fingerprint("")],
+            ["one-old": fingerprint(""), "two-old": fingerprint("", 0xface1234)]
         ) == [modified("two-new", FileType.RegularFile, FileType.RegularFile)]
 
         where:
@@ -183,8 +182,8 @@ class FingerprintCompareStrategyTest extends Specification {
     def "non-trivial modification with absolute paths (#strategy, include added: #includeAdded)"() {
         expect:
         changesUsingAbsolutePaths(strategy, includeAdded,
-            ["one": snapshot("one"), "two": snapshot("two", 0x9876cafe)],
-            ["one": snapshot("one"), "two": snapshot("two", 0xface1234)]
+            ["one": fingerprint("one"), "two": fingerprint("two", 0x9876cafe)],
+            ["one": fingerprint("one"), "two": fingerprint("two", 0xface1234)]
         ) == [modified("two", FileType.RegularFile, FileType.RegularFile)]
 
         where:
@@ -197,8 +196,8 @@ class FingerprintCompareStrategyTest extends Specification {
     def "trivial replacement (#strategy, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
-            ["two-new": snapshot("two")],
-            ["one-old": snapshot("one")]
+            ["two-new": fingerprint("two")],
+            ["one-old": fingerprint("one")]
         ) as List == results
 
         where:
@@ -213,8 +212,8 @@ class FingerprintCompareStrategyTest extends Specification {
     def "non-trivial replacement (#strategy, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
-            ["one-new": snapshot("one"), "two-new": snapshot("two"), "four-new": snapshot("four")],
-            ["one-old": snapshot("one"), "three-old": snapshot("three"), "four-old": snapshot("four")]
+            ["one-new": fingerprint("one"), "two-new": fingerprint("two"), "four-new": fingerprint("four")],
+            ["one-old": fingerprint("one"), "three-old": fingerprint("three"), "four-old": fingerprint("four")]
         ) == results
 
         where:
@@ -229,8 +228,8 @@ class FingerprintCompareStrategyTest extends Specification {
     def "non-trivial replacement with absolute paths (#strategy, include added: #includeAdded)"() {
         expect:
         changesUsingAbsolutePaths(strategy, includeAdded,
-            ["one": snapshot("one"), "two": snapshot("two"), "four": snapshot("four")],
-            ["one": snapshot("one"), "three": snapshot("three"), "four": snapshot("four")]
+            ["one": fingerprint("one"), "two": fingerprint("two"), "four": fingerprint("four")],
+            ["one": fingerprint("one"), "three": fingerprint("three"), "four": fingerprint("four")]
         ) == results
 
         where:
@@ -243,8 +242,8 @@ class FingerprintCompareStrategyTest extends Specification {
     def "reordering (#strategy, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
-            ["one-new": snapshot("one"), "two-new": snapshot("two"), "three-new": snapshot("three")],
-            ["one-old": snapshot("one"), "three-old": snapshot("three"), "two-old": snapshot("two")]
+            ["one-new": fingerprint("one"), "two-new": fingerprint("two"), "three-new": fingerprint("three")],
+            ["one-old": fingerprint("one"), "three-old": fingerprint("three"), "two-old": fingerprint("two")]
         ) == results
 
         where:
@@ -259,8 +258,8 @@ class FingerprintCompareStrategyTest extends Specification {
     def "reordering with absolute paths (#strategy, include added: #includeAdded)"() {
         expect:
         changesUsingAbsolutePaths(strategy, includeAdded,
-            ["one": snapshot("one"), "two": snapshot("two"), "three": snapshot("three")],
-            ["one": snapshot("one"), "three": snapshot("three"), "two": snapshot("two")]
+            ["one": fingerprint("one"), "two": fingerprint("two"), "three": fingerprint("three")],
+            ["one": fingerprint("one"), "three": fingerprint("three"), "two": fingerprint("two")]
         ) == results
 
         where:
@@ -273,8 +272,8 @@ class FingerprintCompareStrategyTest extends Specification {
     def "handling duplicates (#strategy, include added: #includeAdded)"() {
         expect:
         changes(strategy, includeAdded,
-            ["one-new-1": snapshot("one"), "one-new-2": snapshot("one"), "two-new": snapshot("two")],
-            ["one-old-1": snapshot("one"), "one-old-2": snapshot("one"), "two-old": snapshot("two")]
+            ["one-new-1": fingerprint("one"), "one-new-2": fingerprint("one"), "two-new": fingerprint("two")],
+            ["one-old-1": fingerprint("one"), "one-old-2": fingerprint("one"), "two-old": fingerprint("two")]
         ) == []
 
         where:
@@ -288,29 +287,29 @@ class FingerprintCompareStrategyTest extends Specification {
     @Unroll
     def "too many elements not handled by trivial comparison (#current.size() current vs #previous.size() previous)"() {
         expect:
-        compareTrivialSnapshots(new CollectingTaskStateChangeVisitor(), current, previous, "test", true) == null
-        compareTrivialSnapshots(new CollectingTaskStateChangeVisitor(), current, previous, "test", false) == null
+        compareTrivialFingerprints(new CollectingTaskStateChangeVisitor(), current, previous, "test", true) == null
+        compareTrivialFingerprints(new CollectingTaskStateChangeVisitor(), current, previous, "test", false) == null
 
         where:
-        current                                          | previous
-        ["one": snapshot("one")]                         | ["one": snapshot("one"), "two": snapshot("two")]
-        ["one": snapshot("one"), "two": snapshot("two")] | ["one": snapshot("one")]
+        current                                                | previous
+        ["one": fingerprint("one")]                            | ["one": fingerprint("one"), "two": fingerprint("two")]
+        ["one": fingerprint("one"), "two": fingerprint("two")] | ["one": fingerprint("one")]
     }
 
-    def changes(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous) {
+    def changes(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
         def visitor = new CollectingTaskStateChangeVisitor()
         strategy.visitChangesSince(visitor, current, previous, "test", includeAdded)
         visitor.getChanges().toList()
     }
 
-    def changesUsingAbsolutePaths(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous) {
+    def changesUsingAbsolutePaths(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
         def visitor = new CollectingTaskStateChangeVisitor()
         strategy.visitChangesSince(visitor, current, previous, "test", includeAdded)
         visitor.getChanges().toList()
     }
 
-    def snapshot(String normalizedPath, def hashCode = 0x1234abcd) {
-        return new DefaultNormalizedFileSnapshot(normalizedPath, FileType.RegularFile, HashCode.fromInt((int) hashCode))
+    def fingerprint(String normalizedPath, def hashCode = 0x1234abcd) {
+        return new DefaultFileSystemLocationFingerprint(normalizedPath, FileType.RegularFile, HashCode.fromInt((int) hashCode))
     }
 
     def added(String path) {

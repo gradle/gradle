@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformInfoFactory;
 import org.gradle.api.internal.artifacts.transform.TransformInfoDependencyResolver;
 import org.gradle.api.internal.artifacts.transform.TransformInfoExecutor;
 import org.gradle.api.internal.artifacts.transform.TransformInfoFactory;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -35,11 +37,6 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
     }
 
     @Override
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-        registration.addProvider(new DependencyManagementBuildSessionServices());
-    }
-
-    @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new DependencyManagementBuildScopeServices());
     }
@@ -49,7 +46,16 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
         registration.addProvider(new DependencyManagementBuildTreeScopeServices());
     }
 
-    private static class DependencyManagementBuildSessionServices {
+    @Override
+    public void registerGradleServices(ServiceRegistration registration) {
+        registration.addProvider(new DependencyManagementGradleServices());
+    }
+
+    private static class DependencyManagementGradleServices {
+        ArtifactTransformListener createArtifactTransformListener(ListenerManager listenerManager) {
+            return listenerManager.getBroadcaster(ArtifactTransformListener.class);
+        }
+
         TransformInfoFactory createTransformInfoFactory() {
             return new DefaultTransformInfoFactory();
         }
@@ -58,8 +64,8 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
             return new TransformInfoDependencyResolver(transformInfoFactory);
         }
 
-        TransformInfoExecutor createTransformInfoExecutor(BuildOperationExecutor buildOperationExecutor) {
-            return new TransformInfoExecutor(buildOperationExecutor);
+        TransformInfoExecutor createTransformInfoExecutor(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
+            return new TransformInfoExecutor(buildOperationExecutor, transformListener);
         }
     }
 }

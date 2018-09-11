@@ -68,24 +68,24 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         return userCodeApplicationContext;
     }
 
-    public <T> Action<T> decorate(String name, Action<T> action) {
+    public <T> Action<T> decorate(String registrationPoint, Action<T> action) {
         UserCodeApplicationId applicationId = userCodeApplicationContext.current();
         if (applicationId == null || action instanceof InternalListener) {
             return action;
         }
-        return new BuildOperationEmittingAction<T>(applicationId, name, action);
+        return new BuildOperationEmittingAction<T>(applicationId, registrationPoint, action);
     }
 
-    public <T> Closure<T> decorate(String name, Closure<T> closure) {
+    public <T> Closure<T> decorate(String registrationPoint, Closure<T> closure) {
         UserCodeApplicationId applicationId = userCodeApplicationContext.current();
         if (applicationId == null) {
             return closure;
         }
-        return new BuildOperationEmittingClosure<T>(applicationId, name, closure);
+        return new BuildOperationEmittingClosure<T>(applicationId, registrationPoint, closure);
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T decorate(Class<T> targetClass, T listener) {
+    public <T> T decorate(String registrationPoint, Class<T> targetClass, T listener) {
         if (listener instanceof InternalListener || !isSupported(listener)) {
             return listener;
         }
@@ -97,12 +97,12 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
 
         Class<?> listenerClass = listener.getClass();
         List<Class<?>> allInterfaces = ClassUtils.getAllInterfaces(listenerClass);
-        BuildOperationEmittingInvocationHandler handler = new BuildOperationEmittingInvocationHandler(applicationId, listener);
+        BuildOperationEmittingInvocationHandler handler = new BuildOperationEmittingInvocationHandler(applicationId, registrationPoint, listener);
         return targetClass.cast(Proxy.newProxyInstance(listenerClass.getClassLoader(), allInterfaces.toArray(new Class[0]), handler));
     }
 
-    public Object decorateUnknownListener(Object listener) {
-        return decorate(Object.class, listener);
+    public Object decorateUnknownListener(String registrationPoint, Object listener) {
+        return decorate(registrationPoint, Object.class, listener);
     }
 
     private static boolean isSupported(Object listener) {
@@ -117,36 +117,36 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
     private static abstract class Operation implements RunnableBuildOperation {
 
         private final UserCodeApplicationId applicationId;
-        private final String name;
+        private final String registrationPoint;
 
-        protected Operation(UserCodeApplicationId applicationId, String name) {
+        protected Operation(UserCodeApplicationId applicationId, String registrationPoint) {
             this.applicationId = applicationId;
-            this.name = name;
+            this.registrationPoint = registrationPoint;
         }
 
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor
-                .displayName("Execute " + name + " listener")
-                .details(new DetailsImpl(applicationId));
+                .displayName("Execute " + registrationPoint + " listener")
+                .details(new DetailsImpl(applicationId, registrationPoint));
         }
     }
 
     private class BuildOperationEmittingAction<T> implements Action<T> {
 
         private final UserCodeApplicationId applicationId;
-        private final String name;
+        private final String registrationPoint;
         private final Action<T> delegate;
 
-        private BuildOperationEmittingAction(UserCodeApplicationId applicationId, String name, Action<T> delegate) {
+        private BuildOperationEmittingAction(UserCodeApplicationId applicationId, String registrationPoint, Action<T> delegate) {
             this.applicationId = applicationId;
             this.delegate = delegate;
-            this.name = name;
+            this.registrationPoint = registrationPoint;
         }
 
         @Override
         public void execute(final T arg) {
-            buildOperationExecutor.run(new Operation(applicationId, name) {
+            buildOperationExecutor.run(new Operation(applicationId, registrationPoint) {
                 @Override
                 public void run(final BuildOperationContext context) {
                     userCodeApplicationContext.reapply(applicationId, new Runnable() {
@@ -164,18 +164,18 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
     private class BuildOperationEmittingClosure<T> extends Closure<T> {
 
         private final UserCodeApplicationId applicationId;
-        private final String name;
+        private final String registrationPoint;
         private final Closure<T> delegate;
 
-        private BuildOperationEmittingClosure(UserCodeApplicationId application, String name, Closure<T> delegate) {
+        private BuildOperationEmittingClosure(UserCodeApplicationId application, String registrationPoint, Closure<T> delegate) {
             super(delegate.getOwner(), delegate.getThisObject());
             this.applicationId = application;
             this.delegate = delegate;
-            this.name = name;
+            this.registrationPoint = registrationPoint;
         }
 
         public void doCall(final Object... args) {
-            buildOperationExecutor.run(new Operation(applicationId, name) {
+            buildOperationExecutor.run(new Operation(applicationId, registrationPoint) {
                 @Override
                 public void run(final BuildOperationContext context) {
                     userCodeApplicationContext.reapply(applicationId, new Runnable() {
@@ -210,10 +210,12 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
     private class BuildOperationEmittingInvocationHandler implements InvocationHandler {
 
         private final UserCodeApplicationId applicationId;
+        private final String registrationPoint;
         private final Object delegate;
 
-        private BuildOperationEmittingInvocationHandler(UserCodeApplicationId applicationId, Object delegate) {
+        private BuildOperationEmittingInvocationHandler(UserCodeApplicationId applicationId, String registrationPoint, Object delegate) {
             this.applicationId = applicationId;
+            this.registrationPoint = registrationPoint;
             this.delegate = delegate;
         }
 
@@ -229,7 +231,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
             } else if (!SUPPORTED_INTERFACES.contains(method.getDeclaringClass()) || UNDECORATED_METHOD_NAMES.contains(methodName)) {
                 return method.invoke(delegate, args);
             } else {
-                buildOperationExecutor.run(new Operation(applicationId, methodName) {
+                buildOperationExecutor.run(new Operation(applicationId, registrationPoint) {
                     @Override
                     public void run(final BuildOperationContext context) {
                         userCodeApplicationContext.reapply(applicationId, new Runnable() {

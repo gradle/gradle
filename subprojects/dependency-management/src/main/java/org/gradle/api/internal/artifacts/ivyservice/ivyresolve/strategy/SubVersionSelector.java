@@ -62,16 +62,6 @@ public class SubVersionSelector extends AbstractStringVersionSelector implements
         }
 
         @Override
-        public boolean accept(String candidate) {
-            return true;
-        }
-
-        @Override
-        public boolean matchesUniqueVersion() {
-            return false;
-        }
-
-        @Override
         public boolean canShortCircuitWhenVersionAlreadyPreselected() {
             return true;
         }

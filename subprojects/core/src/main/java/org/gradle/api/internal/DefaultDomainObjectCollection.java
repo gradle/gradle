@@ -25,6 +25,7 @@ import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.collections.FilteredCollection;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -38,6 +39,7 @@ import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> implements DomainObjectCollection<T>, WithEstimatedSize {
 
@@ -214,7 +216,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public void whenObjectRemoved(Closure action) {
-        whenObjectRemoved(toAction(action));
+        eventRegister.registerRemoveAction(type, toAction(action));
     }
 
     /**
@@ -262,11 +264,22 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     public void addLater(Provider<? extends T> provider) {
         assertMutable();
         ProviderInternal<? extends T> providerInternal = Cast.uncheckedCast(provider);
-        if (eventRegister.isSubscribed(providerInternal.getType())) {
-            doAdd(provider.get(), eventRegister.getAddActions());
-            return;
-        }
         store.addPending(providerInternal);
+        if (eventRegister.isSubscribed(providerInternal.getType())) {
+            doAddRealized(provider.get(), eventRegister.getAddActions());
+        }
+    }
+
+    @Override
+    public void addAllLater(Provider<? extends Iterable<T>> provider) {
+        assertMutable();
+        CollectionProviderInternal<T, ? extends Iterable<T>> providerInternal = Cast.uncheckedCast(provider);
+        store.addPendingCollection(providerInternal);
+        if (eventRegister.isSubscribed(providerInternal.getElementType())) {
+            for (T value : provider.get()) {
+                doAddRealized(value, eventRegister.getAddActions());
+            }
+        }
     }
 
     protected void didAdd(T toAdd) {
@@ -288,10 +301,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         if (store.constantTimeIsEmpty()) {
             return;
         }
-        Object[] c = toArray();
+        List<T> c = Lists.newArrayList(store.iteratorNoFlush());
         getStore().clear();
-        for (Object o : c) {
-            eventRegister.fireObjectRemoved((T) o);
+        for (T o : c) {
+            eventRegister.fireObjectRemoved(o);
         }
     }
 
@@ -313,6 +326,19 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     private boolean doRemove(Object o) {
+        if (o instanceof ProviderInternal) {
+            ProviderInternal<? extends T> providerInternal = Cast.uncheckedCast(o);
+            if (getStore().removePending(providerInternal)) {
+                // NOTE: When removing provider, we don't need to fireObjectRemoved as they were never added in the first place.
+                didRemove(providerInternal);
+                return true;
+            } else if (getType().isAssignableFrom(providerInternal.getType()) && providerInternal.isPresent()) {
+                // The provider is of compatible type and the element was either already realized or we are removing a provider to the element
+                o = providerInternal.get();
+            }
+            // Else, the provider is of incompatible type, maybe we have a domain object collection of Provider, fallthrough
+        }
+
         if (getStore().remove(o)) {
             @SuppressWarnings("unchecked") T cast = (T) o;
             didRemove(cast);
@@ -324,6 +350,9 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     protected void didRemove(T t) {
+    }
+
+    protected void didRemove(ProviderInternal<? extends T> t) {
     }
 
     public boolean removeAll(Collection<?> c) {

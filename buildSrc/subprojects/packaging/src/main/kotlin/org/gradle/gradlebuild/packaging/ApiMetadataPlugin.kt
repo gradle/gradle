@@ -20,7 +20,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputFiles
@@ -29,23 +28,25 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.WriteProperties
-import org.gradle.api.tasks.bundling.Jar
 
 import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classpath.DefaultClassPath
 
-import accessors.base
 import org.gradle.build.ReproduciblePropertiesWriter
 
 import com.thoughtworks.qdox.JavaProjectBuilder
 import com.thoughtworks.qdox.library.SortedClassLibraryBuilder
 import com.thoughtworks.qdox.model.JavaMethod
 
+import accessors.java
+
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.serviceOf
 
+import java.net.URLClassLoader
 
-open class ApiMetadataExtension(project: Project, val jarTask: Provider<Jar>) {
+
+open class ApiMetadataExtension(project: Project) {
 
     val sources = project.files()
     val includes = project.objects.listProperty<String>()
@@ -55,7 +56,7 @@ open class ApiMetadataExtension(project: Project, val jarTask: Provider<Jar>) {
 
 
 /**
- * Generates a JAR with Gradle API metadata resources.
+ * Generates Gradle API metadata resources.
  *
  * Include and exclude patterns for the Gradle API.
  * Parameter names for the Gradle API.
@@ -64,50 +65,51 @@ open class ApiMetadataPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 
-        val jarTask =
-            tasks.register("apiMetadataJar", Jar::class.java)
-
         val extension =
-            extensions.create("apiMetadata", ApiMetadataExtension::class.java, project, jarTask)
+            extensions.create("apiMetadata", ApiMetadataExtension::class, project)
 
         val apiDeclarationTask =
-            tasks.register("apiDeclarationResource", WriteProperties::class.java) {
+            tasks.register("apiDeclarationResource", WriteProperties::class) {
                 property("includes", extension.includes.get().joinToString(":"))
                 property("excludes", extension.excludes.get().joinToString(":"))
-                outputFile = generatedPropertiesFileFor("gradle-api-declaration").get().asFile
+                outputFile = generatedPropertiesFileFor(apiDeclarationFilename).get().asFile
             }
 
         val apiParameterNamesTask =
-            tasks.register("apiParameterNamesResource", ParameterNamesResourceTask::class.java) {
+            tasks.register("apiParameterNamesResource", ParameterNamesResourceTask::class) {
                 sources.from(extension.sources.asFileTree.matching {
                     include(extension.includes.get())
                     exclude(extension.excludes.get())
                 })
                 classpath.from(extension.classpath)
-                destinationFile.set(generatedPropertiesFileFor("gradle-api-parameter-names"))
+                destinationFile.set(generatedPropertiesFileFor(apiParametersFilename))
             }
 
-        jarTask.configure {
-            description = "Assembles the API metadata jar."
-            group = "build"
-            from(apiDeclarationTask)
-            from(apiParameterNamesTask)
-            destinationDir = layout.buildDirectory.file(name).get().asFile
-            archiveName = "gradle-api-metadata-$version.jar"
-        }
-
-        // Required as this is overridden by :distributions build script
-        afterEvaluate {
-            jarTask.configure {
-                destinationDir = base.libsDir
-            }
+        mapOf(
+            apiDeclarationTask to generatedDirFor(apiDeclarationFilename),
+            apiParameterNamesTask to generatedDirFor(apiParametersFilename)
+        ).forEach { task, dir ->
+            java.sourceSets["main"].output.dir(mapOf("builtBy" to task), dir)
         }
     }
+
+    private
+    fun Project.generatedDirFor(name: String) =
+        layout.buildDirectory.dir("generated-resources/$name")
+
 
     private
     fun Project.generatedPropertiesFileFor(name: String) =
         layout.buildDirectory.file("generated-resources/$name/$name.properties")
 }
+
+
+private
+const val apiDeclarationFilename = "gradle-api-declaration"
+
+
+private
+const val apiParametersFilename = "gradle-api-parameter-names"
 
 
 @CacheableTask
@@ -128,17 +130,20 @@ open class ParameterNamesResourceTask : DefaultTask() {
     @TaskAction
     fun generate() {
 
-        val qdoxBuilder = JavaProjectBuilder(sortedClassLibraryBuilderWithClassLoaderFor(classpath))
-        val qdoxSources = sources.asSequence().mapNotNull { qdoxBuilder.addSource(it) }
+        isolatedClassLoaderFor(classpath).use { loader ->
 
-        val properties = qdoxSources
-            .flatMap { it.classes.asSequence().filter { it.isPublic } }
-            .flatMap { it.methods.asSequence().filter { it.isPublic && it.parameterTypes.isNotEmpty() } }
-            .map { method ->
-                fullyQualifiedSignatureOf(method) to commaSeparatedParameterNamesOf(method)
-            }.toMap(linkedMapOf())
+            val qdoxBuilder = JavaProjectBuilder(sortedClassLibraryBuilderWithClassLoaderFor(loader))
+            val qdoxSources = sources.asSequence().mapNotNull { qdoxBuilder.addSource(it) }
 
-        write(properties)
+            val properties = qdoxSources
+                .flatMap { it.classes.asSequence().filter { it.isPublic } }
+                .flatMap { it.methods.asSequence().filter { it.isPublic && it.parameterTypes.isNotEmpty() } }
+                .map { method ->
+                    fullyQualifiedSignatureOf(method) to commaSeparatedParameterNamesOf(method)
+                }.toMap(linkedMapOf())
+
+            write(properties)
+        }
     }
 
     private
@@ -165,14 +170,14 @@ open class ParameterNamesResourceTask : DefaultTask() {
         method.parameters.joinToString(separator = ",") { it.name }
 
     private
-    fun sortedClassLibraryBuilderWithClassLoaderFor(classpath: FileCollection): SortedClassLibraryBuilder =
+    fun sortedClassLibraryBuilderWithClassLoaderFor(loader: ClassLoader): SortedClassLibraryBuilder =
         SortedClassLibraryBuilder().apply {
-            appendClassLoader(isolatedClassLoaderFor(classpath))
+            appendClassLoader(loader)
         }
 
     private
     fun isolatedClassLoaderFor(classpath: FileCollection) =
-        classLoaderFactory.createIsolatedClassLoader(DefaultClassPath.of(classpath.files))
+        classLoaderFactory.createIsolatedClassLoader(DefaultClassPath.of(classpath.files)) as URLClassLoader
 
     private
     val classLoaderFactory

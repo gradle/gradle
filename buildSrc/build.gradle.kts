@@ -14,25 +14,18 @@
  * limitations under the License.
  */
 
-import org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_DEFAULT_URL
 import org.gradle.plugins.ide.idea.model.IdeaModel
 
 import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin
-import org.gradle.kotlin.dsl.plugins.dsl.ProgressiveModeState
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 import java.io.File
 import java.util.Properties
 
-
-buildscript {
-    project.apply(from = "$rootDir/../gradle/shared-with-buildSrc/mirrors.gradle.kts")
-}
-
 plugins {
     `kotlin-dsl`
-    id("org.gradle.kotlin.ktlint-convention") version "0.1.10" apply false
+    id("org.gradle.kotlin.ktlint-convention") version "0.1.15" apply false
 }
 
 subprojects {
@@ -65,7 +58,7 @@ subprojects {
             val validateTaskProperties = tasks.register("validateTaskProperties", ValidateTaskProperties::class.java) {
                 outputFile.set(project.the<ReportingExtension>().baseDirectory.file("task-properties/report.txt"))
 
-                val mainSourceSet = project.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
+                val mainSourceSet = project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
                 classes = mainSourceSet.output.classesDirs
                 classpath = mainSourceSet.compileClasspath
                 dependsOn(mainSourceSet.output)
@@ -74,13 +67,18 @@ subprojects {
         }
     }
 }
-var pluginPortalUrl = (project.rootProject.extensions.extraProperties.get("repositoryMirrors") as Map<String, String>).get("gradleplugins")
 
 allprojects {
     repositories {
-        maven(url = "https://repo.gradle.org/gradle/libs-releases")
-        maven(url = "https://repo.gradle.org/gradle/libs-snapshots")
-        maven(url = pluginPortalUrl ?: PLUGIN_PORTAL_DEFAULT_URL)
+        gradlePluginPortal()
+        maven {
+            name = "Gradle libs"
+            url = uri("https://repo.gradle.org/gradle/libs")
+        }
+        maven {
+            name = "kotlin-dev"
+            url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
+        }
     }
 }
 
@@ -151,8 +149,8 @@ fun Project.applyGroovyProjectConventions() {
 
     dependencies {
         compile(localGroovy())
-        testCompile("org.spockframework:spock-core:1.0-groovy-2.4")
-        testCompile("cglib:cglib:3.2.6")
+        testCompile("org.spockframework:spock-core:1.2-RC2-groovy-2.4")
+        testCompile("cglib:cglib:3.2.7")
         testCompile("org.objenesis:objenesis:2.4")
         constraints {
             compile("org.codehaus.groovy:groovy-all:${groovy.lang.GroovySystem.getVersion()}")
@@ -199,7 +197,7 @@ fun Project.applyKotlinProjectConventions() {
 
     plugins.withType<KotlinDslPlugin> {
         kotlinDslPluginOptions {
-            progressive.set(ProgressiveModeState.ENABLED)
+            experimentalWarning.set(false)
         }
     }
 }

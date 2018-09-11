@@ -18,7 +18,6 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matcher
 import spock.lang.Unroll
 
@@ -37,14 +36,6 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         outputContains "init - Initializes a new Gradle build."
     }
 
-    def "defaults to groovy build scripts"() {
-        when:
-        run 'init'
-
-        then:
-        dslFixtureFor(GROOVY).assertGradleFilesGenerated()
-    }
-
     @Unroll
     def "creates a simple project with #scriptDsl build scripts when no pom file present and no type specified"() {
         given:
@@ -55,6 +46,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         dslFixture.assertGradleFilesGenerated()
+        targetDir.file(".gitignore").assertIsFile()
 
         and:
         dslFixture.buildFile.assertContents(
@@ -203,7 +195,16 @@ include("child")
         fails('init', '--type', 'some-unknown-library')
 
         then:
-        failure.assertHasCause("The requested build setup type 'some-unknown-library' is not supported.")
+        failure.assertHasCause("""The requested build setup type 'some-unknown-library' is not supported. Supported types:
+  - 'basic'
+  - 'groovy-application'
+  - 'groovy-library'
+  - 'java-application'
+  - 'java-library'
+  - 'kotlin-application'
+  - 'kotlin-library'
+  - 'pom'
+  - 'scala-library'""")
     }
 
     def "gives decent error message when triggered with unknown dsl"() {
@@ -211,7 +212,9 @@ include("child")
         fails('init', '--dsl', 'some-unknown-dsl')
 
         then:
-        failure.assertHasCause("The requested build script DSL 'some-unknown-dsl' is not supported.")
+        failure.assertHasCause("""The requested build script DSL 'some-unknown-dsl' is not supported. Supported DSLs:
+  - 'groovy'
+  - 'kotlin'""")
     }
 
     def "gives decent error message when using unknown test framework"() {
@@ -219,7 +222,7 @@ include("child")
         fails('init', '--type', 'basic', '--test-framework', 'fake')
 
         then:
-        failure.assertHasCause("The requested test framework 'fake' is not supported.")
+        failure.assertHasCause("The requested test framework 'fake' is not supported for 'basic' setup type. Supported frameworks: 'none'")
     }
 
     def "gives decent error message when test framework is not supported by specific type"() {
@@ -227,7 +230,23 @@ include("child")
         fails('init', '--type', 'basic', '--test-framework', 'spock')
 
         then:
-        failure.assertHasCause("The requested test framework 'spock' is not supported in 'basic' setup type")
+        failure.assertHasCause("The requested test framework 'spock' is not supported for 'basic' setup type. Supported frameworks: 'none'")
+    }
+
+    def "gives decent error message when project name option is not supported by specific type"() {
+        when:
+        fails('init', '--type', 'pom', '--project-name', 'thing')
+
+        then:
+        failure.assertHasCause("Project name is not supported for 'pom' setup type.")
+    }
+
+    def "gives decent error message when package name option is not supported by specific type"() {
+        when:
+        fails('init', '--type', 'basic', '--package', 'thing')
+
+        then:
+        failure.assertHasCause("Package name is not supported for 'basic' setup type.")
     }
 
     def "displays all build types and modifiers in help command output"() {
@@ -236,23 +255,32 @@ include("child")
 
         then:
         outputContains("""Options
-     --dsl     Set alternative build script DSL to be used.
+     --dsl     Set the build script DSL to be used in generated scripts.
                Available values are:
                     groovy
                     kotlin
 
-     --test-framework     Set alternative test framework to be used.
+     --package     Set the package for source files.
+
+     --project-name     Set the project name.
+
+     --test-framework     Set the test framework to be used.
                           Available values are:
+                               junit
+                               kotlintest
+                               scalatest
                                spock
                                testng
 
-     --type     Set type of build to create.
+     --type     Set the type of project to generate.
                 Available values are:
                      basic
                      groovy-application
                      groovy-library
                      java-application
                      java-library
+                     kotlin-application
+                     kotlin-library
                      pom
                      scala-library""")
     }
@@ -272,18 +300,6 @@ include("child")
 
     private ExecutionResult runInitWith(BuildInitDsl dsl) {
         run 'init', '--dsl', dsl.id
-    }
-
-    private TestFile pom() {
-        file("pom.xml") << """
-      <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-        <modelVersion>4.0.0</modelVersion>
-        <groupId>util</groupId>
-        <artifactId>util</artifactId>
-        <version>2.5</version>
-        <packaging>jar</packaging>
-      </project>"""
     }
 
     private static pomValuesUsed(ScriptDslFixture dslFixture) {

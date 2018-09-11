@@ -45,6 +45,7 @@ dependencies {
     compile(library("commons_httpclient"))
     compile(library("jsch"))
     compile(library("commons_math"))
+    compile(library("jcl_to_slf4j"))
 
     flamegraph("com.github.oehme:jfr-flame-graph:v0.0.10:all")
 
@@ -64,7 +65,7 @@ val reportResources = tasks.register<Copy>("reportResources") {
 
 java.sourceSets["main"].output.dir(mapOf("builtBy" to reportResources), generatedResourcesDir)
 
-tasks.named("jar").configureAs<Jar> {
+tasks.named<Jar>("jar") {
     inputs.files(flamegraph)
     from(files(deferred{ flamegraph.map { zipTree(it) } }))
 }

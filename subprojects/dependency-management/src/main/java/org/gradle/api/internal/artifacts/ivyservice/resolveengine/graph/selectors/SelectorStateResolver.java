@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.UnionVersionSelector;
@@ -33,7 +34,9 @@ import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 public class SelectorStateResolver<T extends ComponentResolutionState> {
     private final ModuleConflictResolver conflictResolver;
@@ -71,12 +74,21 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
     private List<T> resolveSelectors(List<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
         if (selectors.size() == 1) {
             ResolvableSelectorState selectorState = selectors.get(0);
-            ComponentIdResolveResult resolved = selectorState.resolve(allRejects);
-            T selected = SelectorStateResolverResults.componentForIdResolveResult(componentFactory, resolved, selectorState);
-            return Collections.singletonList(selected);
+            return resolveSingleSelector(selectorState, allRejects);
         }
 
-        return buildResolveResults(selectors, allRejects);
+        List<T> results = buildResolveResults(selectors, allRejects);
+        if (results.isEmpty()) {
+            // Every selector was empty: simply 'resolve' one of them
+            return resolveSingleSelector(selectors.get(0), allRejects);
+        }
+        return results;
+    }
+
+    private List<T> resolveSingleSelector(ResolvableSelectorState selectorState, VersionSelector allRejects) {
+        ComponentIdResolveResult resolved = selectorState.resolve(allRejects);
+        T selected = SelectorStateResolverResults.componentForIdResolveResult(componentFactory, resolved, selectorState);
+        return Collections.singletonList(selected);
     }
 
     /**
@@ -86,25 +98,97 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
      */
     private List<T> buildResolveResults(List<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
         SelectorStateResolverResults results = new SelectorStateResolverResults(selectors.size());
+        List<ResolvableSelectorState> emptySelectors = null;
+        List<ResolvableSelectorState> preferSelectors = null;
         for (ResolvableSelectorState selector : selectors) {
-
-            // For a 'reject-only' selector, don't need to resolve
-//            if (isRejectOnly(dep)) {
-//                continue;
-//            }
-
-            // Check already resolved results for a compatible version, and use it for this dependency rather than re-resolving.
-            if (results.alreadyHaveResolution(selector)) {
+            // If this selector doesn't specify a prefer/require version, then ignore it here.
+            // This will avoid resolving 'reject' selectors, too.
+            if (isEmpty(selector)) {
                 selector.markResolved();
+                if (emptySelectors == null) {
+                    emptySelectors = Lists.newArrayListWithCapacity(selectors.size());
+                }
+                emptySelectors.add(selector);
+                continue;
+            }
+            // Defer prefer selectors until all other selectors are processed
+            if (isPrefer(selector)) {
+                if (preferSelectors == null) {
+                    preferSelectors = Lists.newArrayListWithCapacity(selectors.size());
+                }
+                preferSelectors.add(selector);
                 continue;
             }
 
-            // Need to perform the actual resolve
-            ComponentIdResolveResult resolved = selector.resolve(allRejects);
-
-            results.registerResolution(selector, resolved);
+            processPrimarySelector(results, selector, allRejects);
         }
-        return results.getResolved(componentFactory);
+
+        processPreferSelectors(results, preferSelectors, allRejects);
+
+        return results.getResolved(componentFactory, emptySelectors);
+    }
+
+    private boolean isEmpty(ResolvableSelectorState selector) {
+        ResolvedVersionConstraint versionConstraint = selector.getVersionConstraint();
+        if (versionConstraint != null) {
+            return versionConstraint.getPreferredSelector().getSelector().isEmpty();
+        }
+        return false;
+    }
+
+    private boolean isPrefer(ResolvableSelectorState selector) {
+        return selector.getVersionConstraint() != null && selector.getVersionConstraint().isPrefer();
+    }
+
+    /**
+     * Process a selector as 'primary'.
+     * A version will be registered for this selector, and it will participate in conflict resolution.
+     */
+    private void processPrimarySelector(SelectorStateResolverResults results, ResolvableSelectorState selector, VersionSelector allRejects) {
+        // Check already resolved results for a compatible version, and use it for this dependency rather than re-resolving.
+        if (results.alreadyHaveResolutionForSelector(selector)) {
+            return;
+        }
+
+        // Need to perform the actual resolve
+        ComponentIdResolveResult result = selector.resolve(allRejects);
+
+        if (result.getFailure() != null) {
+            results.register(selector, result);
+            return;
+        }
+
+        results.replaceExistingResolutionsWithBetterResult(result);
+        results.register(selector, result);
+    }
+
+    private void processPreferSelectors(SelectorStateResolverResults results, List<ResolvableSelectorState> preferSelectors, VersionSelector allRejects) {
+        if (preferSelectors == null) {
+            return;
+        }
+
+        if (results.isEmpty()) {
+            // All selectors were either empty or prefer, so resolve all of the 'prefer' selectors as primary
+            for (ResolvableSelectorState selector : preferSelectors) {
+                processPrimarySelector(results, selector, allRejects);
+            }
+        } else {
+            // Resolve the 'prefer' selectors as secondary: will disambiguate, but not add new results.
+            Set<ComponentIdResolveResult> preferResults = Sets.newTreeSet(new DescendingResolveResultComparator());
+            for (ResolvableSelectorState selector : preferSelectors) {
+                ComponentIdResolveResult resolvedPreference = selector.resolve(allRejects);
+                // Ignore failure resolving a 'prefer' constraint.
+                if (resolvedPreference.getFailure() == null) {
+                    preferResults.add(resolvedPreference);
+                }
+            }
+
+            for (ComponentIdResolveResult preferResult : preferResults) {
+                if (results.replaceExistingResolutionsWithBetterResult(preferResult)) {
+                    break;
+                }
+            }
+        }
     }
 
     private VersionSelector createAllRejects(List<? extends ResolvableSelectorState> selectors) {
@@ -139,5 +223,12 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
             selected.addCause(desc.withReason(new VersionConflictResolutionDetails(candidates)));
         }
         return selected;
+    }
+
+    private static class DescendingResolveResultComparator implements Comparator<ComponentIdResolveResult> {
+        @Override
+        public int compare(ComponentIdResolveResult o1, ComponentIdResolveResult o2) {
+            return o2.getModuleVersionId().getVersion().compareTo(o1.getModuleVersionId().getVersion());
+        }
     }
 }

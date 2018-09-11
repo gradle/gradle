@@ -33,7 +33,7 @@ import java.io.File;
 
 public class BuildOperationBackedScriptCompilationHandler implements ScriptCompilationHandler {
 
-    public static final String GROOVY_LANGUAGE = "groovy";
+    public static final String GROOVY_LANGUAGE = "GROOVY";
 
     private static final CompileScriptBuildOperationType.Result RESULT = new CompileScriptBuildOperationType.Result() {
     };

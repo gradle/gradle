@@ -39,9 +39,9 @@ class MixInCoreTypesTransformingClassLoaderIntegrationTest extends AbstractInteg
                     assertReturnTypesFor task, "getInputs", TaskInputs, TaskInputsInternal
 
                     // Internal return types leaked in Gradle 3.2
-                    assertReturnTypesFor task.inputs, "dir", TaskInputFilePropertyBuilder, TaskInputFilePropertyBuilderInternal, TaskInputs
-                    assertReturnTypesFor task.inputs, "file", TaskInputFilePropertyBuilder, TaskInputFilePropertyBuilderInternal, TaskInputs
-                    assertReturnTypesFor task.inputs, "files", TaskInputFilePropertyBuilder, TaskInputFilePropertyBuilderInternal, TaskInputs
+                    assertReturnTypesFor task.inputs, "dir", TaskInputFilePropertyBuilder, TaskInputFilePropertyBuilderInternal
+                    assertReturnTypesFor task.inputs, "file", TaskInputFilePropertyBuilder, TaskInputFilePropertyBuilderInternal
+                    assertReturnTypesFor task.inputs, "files", TaskInputFilePropertyBuilder, TaskInputFilePropertyBuilderInternal
                 }
             }
         """

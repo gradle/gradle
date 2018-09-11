@@ -16,10 +16,11 @@
 
 package org.gradle.integtests.resolve.locking
 
-import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.util.ToBeImplemented
 import spock.lang.Unroll
 
-class LockingInteractionsIntegrationTest extends AbstractDependencyResolutionTest {
+class LockingInteractionsIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def lockfileFixture = new LockfileFixture(testDirectory: testDirectory)
 
@@ -139,12 +140,14 @@ dependencies {
     }
 
     @Unroll
-    def "can write lock when using latest.#level"() {
+    def "can write lock when using #version"() {
         mavenRepo.module('org', 'bar', '1.0').publish()
-        mavenRepo.module('org', 'bar', '1.0-SNAPSHOT').withNonUniqueSnapshots().publish()
+        mavenRepo.module('org', 'bar', '1.0-SNAPSHOT').publish()
         mavenRepo.module('org', 'bar', '1.1').publish()
-        mavenRepo.module('org', 'bar', '1.1-SNAPSHOT').publish()
-        mavenRepo.module('org', 'bar', '1.2-SNAPSHOT').publish()
+        mavenRepo.module('org', 'bar', '2.0').publish()
+        mavenRepo.module('org', 'bar', '2.1-SNAPSHOT').publish()
+        mavenRepo.module('org', 'bar', '2.1').publish()
+        mavenRepo.module('org', 'bar', '2.2-SNAPSHOT').publish()
 
         buildFile << """
 dependencyLocking {
@@ -162,7 +165,7 @@ configurations {
 }
 
 dependencies {
-    lockedConf 'org:bar:latest.$level'
+    lockedConf 'org:bar:$version'
 }
 """
 
@@ -170,15 +173,19 @@ dependencies {
         succeeds 'dependencies', '--write-locks'
 
         then:
-        outputContains("org:bar:latest.$level -> $resolvedVersion")
+        outputContains("org:bar:$version -> $expectedVersion")
 
         and:
-        lockfileFixture.verifyLockfile('lockedConf', ["org:bar:$resolvedVersion"])
+        lockfileFixture.verifyLockfile('lockedConf', ["org:bar:$expectedVersion"])
 
         where:
-        level         | resolvedVersion
-        'release'     | '1.1'
-        'integration' | '1.2-SNAPSHOT'
+        version              | expectedVersion
+        '[1.0, 2.0)'         | '1.1'
+        '1.+'                | '1.1'
+        '[1.0,)'             | '2.2-SNAPSHOT'
+        '+'                  | '2.2-SNAPSHOT'
+        'latest.release'     | '2.1'
+        'latest.integration' | '2.2-SNAPSHOT'
 
     }
 
@@ -211,7 +218,7 @@ dependencies {
 
         then:
         lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0-SNAPSHOT'])
-        outputContains('Dependency lock state for configuration \'lockedConf\' contains changing modules: [org:bar:1.0-SNAPSHOT]. This means that dependencies content may still change over time.')
+        outputContains('Dependency lock state for configuration \':lockedConf\' contains changing modules: [org:bar:1.0-SNAPSHOT]. This means that dependencies content may still change over time.')
 
         when:
         mavenRepo.module('org', 'bar', '1.0-SNAPSHOT').publish()
@@ -224,10 +231,14 @@ dependencies {
     def "can update a single lock entry when using #version"() {
         mavenRepo.module('org', 'bar', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.1').publish()
-        mavenRepo.module('org', 'bar', '1.2-SNAPSHOT').withNonUniqueSnapshots().publish()
+        mavenRepo.module('org', 'bar', '2.0').publish()
+        mavenRepo.module('org', 'bar', '2.1').publish()
+        mavenRepo.module('org', 'bar', '2.2-SNAPSHOT').withNonUniqueSnapshots().publish()
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
-        mavenRepo.module('org', 'foo', '1.2-SNAPSHOT').withNonUniqueSnapshots().publish()
+        mavenRepo.module('org', 'foo', '2.0').publish()
+        mavenRepo.module('org', 'foo', '2.1').publish()
+        mavenRepo.module('org', 'foo', '2.2-SNAPSHOT').withNonUniqueSnapshots().publish()
 
         buildFile << """
 dependencyLocking {
@@ -257,11 +268,12 @@ dependencies {
 
         where:
         version              | expectedVersion
-        '[1.0, 2.0)'         | '1.2-SNAPSHOT'
-        '1.+'                | '1.2-SNAPSHOT'
-        '+'                  | '1.2-SNAPSHOT'
-        'latest.release'     | '1.1'
-        'latest.integration' | '1.2-SNAPSHOT'
+        '[1.0, 2.0)'         | '1.1'
+        '1.+'                | '1.1'
+        '[1.0,)'             | '2.2-SNAPSHOT'
+        '+'                  | '2.2-SNAPSHOT'
+        'latest.release'     | '2.1'
+        'latest.integration' | '2.2-SNAPSHOT'
     }
 
     def 'locking works with default dependency action'() {
@@ -301,6 +313,42 @@ task copyFiles(type: Copy) {
         and:
         succeeds 'copyFiles'
 
+    }
+
+    @ToBeImplemented
+    def "avoids HTTP requests for dynamic version when lock exists"() {
+        def module1 = mavenHttpRepo.module('org', 'foo', '1.0').publish()
+        mavenHttpRepo.module('org', 'foo', '1.1').publish()
+        mavenHttpRepo.module('org', 'foo', '2.0').publish()
+
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'])
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenHttpRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:[1.0,2.0)'
+}
+"""
+        when:
+        // TODO:DAZ Should not need to load the maven-metadata to get the version list
+        module1.rootMetaData.expectGet()
+        module1.pom.expectGet()
+
+        then:
+        succeeds 'dependencies'
     }
 
 }

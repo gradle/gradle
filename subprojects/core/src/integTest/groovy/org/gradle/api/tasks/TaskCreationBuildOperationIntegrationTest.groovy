@@ -168,6 +168,7 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         replace('baz')
 
         when:
+        executer.expectDeprecationWarning()
         run 'foo'
 
         then:

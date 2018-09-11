@@ -89,6 +89,11 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
         backingSet.addLater(provider);
     }
 
+    @Override
+    public void addAllLater(Provider<? extends Iterable<T>> provider) {
+        backingSet.addAllLater(provider);
+    }
+
     public boolean add(T o) {
         return backingSet.add(o);
     }

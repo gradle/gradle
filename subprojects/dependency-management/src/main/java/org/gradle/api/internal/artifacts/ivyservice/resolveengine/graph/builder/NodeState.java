@@ -72,6 +72,7 @@ class NodeState implements DependencyGraphNode {
     ModuleExclusion previousTraversalExclusions;
     // In opposite to outgoing edges, virtual edges are for now pretty rare, so they are created lazily
     private List<EdgeState> virtualEdges;
+    private boolean queued;
 
     NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
         this.resultId = resultId;
@@ -81,6 +82,21 @@ class NodeState implements DependencyGraphNode {
         this.metaData = md;
         this.isTransitive = metaData.isTransitive();
         component.addConfiguration(this);
+    }
+
+    // the enqueue and dequeue methods are used for performance reasons
+    // in order to avoid tracking the set of enqueued nodes
+    boolean enqueue() {
+        if (queued) {
+            return false;
+        }
+        queued = true;
+        return true;
+    }
+
+    NodeState dequeue() {
+        queued = false;
+        return this;
     }
 
     ComponentState getComponent() {
@@ -149,9 +165,8 @@ class NodeState implements DependencyGraphNode {
      * The {@link #outgoingEdges} collection is populated, as is the `discoveredEdges` parameter.
      *
      * @param discoveredEdges A collector for visited edges.
-     * @param pendingDependenciesHandler Handler for pending dependencies.
      */
-    public void visitOutgoingDependencies(Collection<EdgeState> discoveredEdges, PendingDependenciesHandler pendingDependenciesHandler) {
+    public void visitOutgoingDependencies(Collection<EdgeState> discoveredEdges) {
         // If this configuration's version is in conflict, do not traverse.
         // If none of the incoming edges are transitive, remove previous state and do not traverse.
         // If not traversed before, simply add all selected outgoing edges (either hard or pending edges)
@@ -165,7 +180,6 @@ class NodeState implements DependencyGraphNode {
         }
 
         // Check if this node is still included in the graph, by looking at incoming edges.
-        boolean hasIncomingEdges = !incomingEdges.isEmpty();
         List<EdgeState> transitiveIncoming = getTransitiveIncomingEdges();
 
         // Check if there are any transitive incoming edges at all. Don't traverse if not.
@@ -174,6 +188,7 @@ class NodeState implements DependencyGraphNode {
             if (previousTraversalExclusions != null) {
                 removeOutgoingEdges();
             }
+            boolean hasIncomingEdges = !incomingEdges.isEmpty();
             if (hasIncomingEdges) {
                 LOGGER.debug("{} has no transitive incoming edges. ignoring outgoing edges.", this);
             } else {
@@ -183,7 +198,7 @@ class NodeState implements DependencyGraphNode {
         }
 
         // Determine the net exclusion for this node, by inspecting all transitive incoming edges
-        ModuleExclusion resolutionFilter = getModuleResolutionFilter(transitiveIncoming);
+        ModuleExclusion resolutionFilter = getModuleResolutionFilter(incomingEdges);
 
         // Check if the was previously traversed with the same net exclusion
         if (previousTraversalExclusions != null && previousTraversalExclusions.excludesSameModulesAs(resolutionFilter)) {
@@ -199,7 +214,7 @@ class NodeState implements DependencyGraphNode {
             removeOutgoingEdges();
         }
 
-        visitDependencies(resolutionFilter, pendingDependenciesHandler, discoveredEdges);
+        visitDependencies(resolutionFilter, discoveredEdges);
         visitOwners(discoveredEdges);
     }
 
@@ -207,15 +222,15 @@ class NodeState implements DependencyGraphNode {
      * Iterate over the dependencies originating in this node, adding them either as a 'pending' dependency
      * or adding them to the `discoveredEdges` collection (and `this.outgoingEdges`)
      */
-    private void visitDependencies(ModuleExclusion resolutionFilter, PendingDependenciesHandler pendingDependenciesHandler, Collection<EdgeState> discoveredEdges) {
-        PendingDependenciesHandler.Visitor pendingDepsVisitor = pendingDependenciesHandler.start();
+    private void visitDependencies(ModuleExclusion resolutionFilter, Collection<EdgeState> discoveredEdges) {
+        PendingDependenciesVisitor pendingDepsVisitor = resolveState.newPendingDependenciesVisitor();
         try {
             for (DependencyMetadata dependency : metaData.getDependencies()) {
                 DependencyState dependencyState = new DependencyState(dependency, resolveState.getComponentSelectorConverter());
                 if (isExcluded(resolutionFilter, dependencyState)) {
                     continue;
                 }
-                dependencyState = maybeSubstitute(dependencyState);
+                dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
                 if (!pendingDepsVisitor.maybeAddAsPendingDependency(this, dependencyState)) {
                     EdgeState dependencyEdge = new EdgeState(this, dependencyState, resolutionFilter, resolveState);
                     outgoingEdges.add(dependencyEdge);
@@ -240,6 +255,7 @@ class NodeState implements DependencyGraphNode {
     private void visitOwners(Collection<EdgeState> discoveredEdges) {
         ImmutableList<? extends ComponentIdentifier> owners = component.getMetadata().getPlatformOwners();
         if (!owners.isEmpty()) {
+            PendingDependenciesVisitor visitor = resolveState.newPendingDependenciesVisitor();
             for (ComponentIdentifier owner : owners) {
                 if (owner instanceof ModuleComponentIdentifier) {
                     ModuleComponentIdentifier platformId = (ModuleComponentIdentifier) owner;
@@ -249,8 +265,10 @@ class NodeState implements DependencyGraphNode {
                     // 1. the "platform" referenced is a real module, in which case we directly add it to the graph
                     // 2. the "platform" is a virtual, constructed thing, in which case we add virtual edges to the graph
                     addPlatformEdges(discoveredEdges, platformId, cs);
+                    visitor.markNotPending(platformId.getModuleIdentifier());
                 }
             }
+            visitor.complete();
         }
     }
 
@@ -264,7 +282,7 @@ class NodeState implements DependencyGraphNode {
         }
         if (metadata == null) {
             // the platform doesn't exist, so we're building a lenient one
-            metadata = new LenientPlatformResolveMetadata(platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState);
+            metadata = new LenientPlatformResolveMetadata(platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState, this, resolveState);
             potentialEdge.component.setMetadata(metadata);
         }
         if (virtualEdges == null) {
@@ -282,8 +300,8 @@ class NodeState implements DependencyGraphNode {
      *
      * This may be better done as a decorator on ConfigurationMetadata.getDependencies()
      */
-    private DependencyState maybeSubstitute(DependencyState dependencyState) {
-        DependencySubstitutionApplicator.SubstitutionResult substitutionResult = resolveState.getDependencySubstitutionApplicator().apply(dependencyState.getDependency());
+    static DependencyState maybeSubstitute(DependencyState dependencyState, DependencySubstitutionApplicator dependencySubstitutionApplicator) {
+        DependencySubstitutionApplicator.SubstitutionResult substitutionResult = dependencySubstitutionApplicator.apply(dependencyState.getDependency());
         if (substitutionResult.hasFailure()) {
             dependencyState.failure = new ModuleVersionResolveException(dependencyState.getRequested(), substitutionResult.getFailure());
             return dependencyState;
@@ -351,12 +369,40 @@ class NodeState implements DependencyGraphNode {
         if (incomingEdges.isEmpty()) {
             return nodeExclusions;
         }
-        ModuleExclusion edgeExclusions = incomingEdges.get(0).getExclusions();
-        for (int i = 1; i < incomingEdges.size(); i++) {
-            EdgeState dependencyEdge = incomingEdges.get(i);
-            edgeExclusions = moduleExclusions.union(edgeExclusions, dependencyEdge.getExclusions());
+
+        ModuleExclusion edgeExclusions = null;
+
+        for (EdgeState dependencyEdge : incomingEdges) {
+            if (dependencyEdge.isTransitive()) {
+                // Transitive dependency
+                edgeExclusions = excludedByBoth(edgeExclusions, dependencyEdge.getExclusions());
+            } else if (dependencyEdge.getDependencyMetadata().isConstraint()) {
+                // Constraint: only consider explicit exclusions declared for this constraint
+                ModuleExclusion constraintExclusions = dependencyEdge.getEdgeExclusions();
+                nodeExclusions = excludedByEither(nodeExclusions, constraintExclusions);
+            }
         }
-        return moduleExclusions.intersect(edgeExclusions, nodeExclusions);
+        return excludedByEither(edgeExclusions, nodeExclusions);
+    }
+
+    private ModuleExclusion excludedByBoth(ModuleExclusion one, ModuleExclusion two) {
+        if (one == null) {
+            return two;
+        }
+        if (two == null) {
+            return one;
+        }
+        return resolveState.getModuleExclusions().union(one, two);
+    }
+
+    private ModuleExclusion excludedByEither(ModuleExclusion one, ModuleExclusion two) {
+        if (one == null) {
+            return two;
+        }
+        if (two == null) {
+            return one;
+        }
+        return resolveState.getModuleExclusions().intersect(one, two);
     }
 
     private void removeOutgoingEdges() {
@@ -364,6 +410,7 @@ class NodeState implements DependencyGraphNode {
             for (EdgeState outgoingDependency : outgoingEdges) {
                 outgoingDependency.removeFromTargetConfigurations();
                 outgoingDependency.getSelector().release();
+                outgoingDependency.maybeDecreaseHardEdgeCount();
             }
         }
         outgoingEdges.clear();
@@ -407,10 +454,12 @@ class NodeState implements DependencyGraphNode {
     }
 
     void resetSelectionState() {
-        previousTraversalExclusions = null;
-        outgoingEdges.clear();
-        virtualEdges = null;
-        resolveState.onMoreSelected(this);
+        if (previousTraversalExclusions != null) {
+            previousTraversalExclusions = null;
+            outgoingEdges.clear();
+            virtualEdges = null;
+            resolveState.onFewerSelected(this);
+        }
     }
 
     public ImmutableAttributesFactory getAttributesFactory() {

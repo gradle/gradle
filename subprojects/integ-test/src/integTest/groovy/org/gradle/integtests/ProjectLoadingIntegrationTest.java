@@ -257,13 +257,16 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         subDirectory.file("build.gradle").write("");
 
         ExecutionResult result = inDirectory(subDirectory).withTasks("help").expectDeprecationWarning().run();
-        result.assertOutputContains("Support for nested build without a settings file was deprecated. This is scheduled to be removed in Gradle 5.0. You should create a empty settings file in " + subDirectory.getAbsolutePath());
+        result.assertOutputContains("Support for nested build without a settings file was deprecated.");
+        result.assertOutputContains("You should create a empty settings file in " + subDirectory.getAbsolutePath());
 
         result = usingBuildFile(subBuildFile).inDirectory(subDirectory).withTasks("help").expectDeprecationWarning().run();
-        result.assertOutputContains("Support for nested build without a settings file was deprecated. This is scheduled to be removed in Gradle 5.0. You should create a empty settings file in " + subDirectory.getAbsolutePath());
+        result.assertOutputContains("Support for nested build without a settings file was deprecated.");
+        result.assertOutputContains("You should create a empty settings file in " + subDirectory.getAbsolutePath());
 
         result = usingProjectDir(subDirectory).withTasks("help").expectDeprecationWarning().run();
-        result.assertOutputContains("Support for nested build without a settings file was deprecated. This is scheduled to be removed in Gradle 5.0. You should create a empty settings file in " + subDirectory.getAbsolutePath());
+        result.assertOutputContains("Support for nested build without a settings file was deprecated.");
+        result.assertOutputContains("You should create a empty settings file in " + subDirectory.getAbsolutePath());
     }
 
     @Test

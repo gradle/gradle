@@ -30,7 +30,7 @@ import spock.lang.IgnoreIf
 @TargetGradleVersion("current")
 class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecification {
 
-    public static final String EXPECTED_JAVA7_DEPRECATION_MESSAGE = "Support for running Gradle using Java 7 has been deprecated. This is scheduled to be removed in Gradle 5.0."
+    public static final String EXPECTED_JAVA7_DEPRECATION_MESSAGE = "Support for running Gradle using Java 7 has been deprecated."
 
     def setup() {
         toolingApi.requireDaemons()

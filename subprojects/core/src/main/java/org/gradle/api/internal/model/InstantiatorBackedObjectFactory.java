@@ -16,6 +16,10 @@
 package org.gradle.api.internal.model;
 
 import org.gradle.api.Named;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.provider.DefaultPropertyState;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
@@ -32,12 +36,24 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
 
     @Override
     public <T extends Named> T named(Class<T> type, String name) throws ObjectInstantiationException {
-        throw new UnsupportedOperationException("Instantiator does not support constructing named objects");
+        throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing named objects");
+    }
+
+    @Override
+    public SourceDirectorySet sourceDirectorySet(String name, String displayName) {
+        throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing source directory sets");
     }
 
     @Override
     public <T> Property<T> property(Class<T> valueType) {
-        return broken();
+        return new DefaultPropertyState<T>(valueType);
+    }
+
+    @Override
+    public <T> Property<T> property(Class<T> valueType, T initialValue) {
+        Property<T> property = property(valueType);
+        property.set(initialValue);
+        return property;
     }
 
     @Override
@@ -50,8 +66,18 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
         return broken();
     }
 
+    @Override
+    public DirectoryProperty directoryProperty() {
+        return broken();
+    }
+
+    @Override
+    public RegularFileProperty fileProperty() {
+        return broken();
+    }
+
     private <T> T broken() {
-        throw new UnsupportedOperationException("Instantiator does not support constructing property objects");
+        throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing property objects");
     }
 
     @Override

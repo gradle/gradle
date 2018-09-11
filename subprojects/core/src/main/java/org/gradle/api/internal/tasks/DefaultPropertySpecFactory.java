@@ -33,19 +33,28 @@ public class DefaultPropertySpecFactory implements PropertySpecFactory {
     }
 
     @Override
-    public DeclaredTaskInputFileProperty createInputFileSpec(ValidatingValue paths, ValidationAction validationAction) {
+    public DeclaredTaskInputFileProperty createInputFileSpec(ValidatingValue paths) {
+        return createInputFilesSpec(paths, ValidationActions.INPUT_FILE_VALIDATOR);
+    }
+
+    @Override
+    public DeclaredTaskInputFileProperty createInputFilesSpec(ValidatingValue paths) {
+        return createInputFilesSpec(paths, ValidationActions.NO_OP);
+    }
+
+    @Override
+    public DeclaredTaskInputFileProperty createInputDirSpec(ValidatingValue dirPath) {
+        FileTreeInternal fileTree = resolver.resolveFilesAsTree(dirPath);
+        return createInputFilesSpec(new FileTreeValue(dirPath, fileTree), ValidationActions.INPUT_DIRECTORY_VALIDATOR);
+    }
+
+    private DeclaredTaskInputFileProperty createInputFilesSpec(ValidatingValue paths, ValidationAction validationAction) {
         return new DefaultTaskInputFilePropertySpec(task.getName(), resolver, paths, validationAction);
     }
 
     @Override
-    public DeclaredTaskInputFileProperty createInputDirSpec(ValidatingValue dirPath, ValidationAction validator) {
-        FileTreeInternal fileTree = resolver.resolveFilesAsTree(dirPath);
-        return createInputFileSpec(new FileTreeValue(dirPath, fileTree), validator);
-    }
-
-    @Override
     public DefaultTaskInputPropertySpec createInputPropertySpec(String name, ValidatingValue value) {
-        return new DefaultTaskInputPropertySpec(task.getInputs(), name, value);
+        return new DefaultTaskInputPropertySpec(name, value);
     }
 
     @Override
@@ -84,6 +93,12 @@ public class DefaultPropertySpecFactory implements PropertySpecFactory {
         @Nullable
         @Override
         public Object call() {
+            return fileTree;
+        }
+
+        @Nullable
+        @Override
+        public Object getContainerValue() {
             return fileTree;
         }
 

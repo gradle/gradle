@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -317,17 +316,6 @@ public class Signature extends AbstractPublishArtifact {
     }
 
     /**
-     * Set the file for the generated signature.
-     *
-     * @param file ignored
-     * @deprecated changing the output file is not supported.
-     */
-    @Deprecated
-    public void setFile(@SuppressWarnings("unused") File file) {
-        DeprecationLogger.nagUserOfDeprecated("Using Signature.setFile()");
-    }
-
-    /**
      * The file for the generated signature, which may not yet exist.
      *
      * <p>The file will be placed alongside the {@link #getToSign() file to sign} with the extension of the {@link #getSignatureType() signature type}.
@@ -367,16 +355,6 @@ public class Signature extends AbstractPublishArtifact {
 
     public SignatureSpec getSignatureSpec() {
         return signatureSpec;
-    }
-
-    /**
-     * Get the artifact that this signature is for, if available.
-     *
-     * @deprecated do not use; should have been internal
-     */
-    @Deprecated
-    public final PublishArtifact getToSignArtifact() {
-        return source instanceof PublishArtifact ? (PublishArtifact) source : null;
     }
 
     Buildable getSource() {

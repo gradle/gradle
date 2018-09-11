@@ -116,7 +116,7 @@ class DependencyInsightReporterSpec extends Specification {
         sorted.size() == 5
 
         sorted[0].name == 'a:x:2.0'
-        sorted[0].description == 'conflict resolution'
+        sorted[0].description == 'by conflict resolution'
 
         sorted[1].name == 'a:x:2.0'
         sorted[1].description == null

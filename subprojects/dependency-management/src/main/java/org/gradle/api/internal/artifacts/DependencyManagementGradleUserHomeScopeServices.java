@@ -22,13 +22,13 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheLockingM
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformedFileCache;
 import org.gradle.api.internal.artifacts.transform.TransformedFileCache;
-import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
+import org.gradle.internal.snapshot.FileSystemSnapshotter;
 
 public class DependencyManagementGradleUserHomeScopeServices {
     DefaultArtifactCacheMetadata createArtifactCacheMetaData(CacheScopeMapping cacheScopeMapping) {

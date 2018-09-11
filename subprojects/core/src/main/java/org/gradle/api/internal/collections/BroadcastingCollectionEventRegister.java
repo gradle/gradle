@@ -17,7 +17,6 @@ package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
 import org.gradle.internal.ImmutableActionSet;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -49,21 +48,6 @@ public class BroadcastingCollectionEventRegister<T> implements CollectionEventRe
             }
         }
         return false;
-    }
-
-    /**
-     * Used by the Nebula plugin.
-     * @deprecated Will be removed in Gradle 5.0, with no replacement
-     */
-    @Deprecated
-    public Action<T> getAddAction() {
-        DeprecationLogger.nagUserOfDeprecated("Internal method BroadcastingCollectionEventRegister.getAddAction()");
-        return new Action<T>() {
-            @Override
-            public void execute(T t) {
-                fireObjectAdded(t);
-            }
-        };
     }
 
     @Override

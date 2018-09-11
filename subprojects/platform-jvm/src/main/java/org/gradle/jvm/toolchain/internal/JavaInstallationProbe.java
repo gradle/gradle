@@ -25,6 +25,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecActionFactory;
@@ -48,6 +49,9 @@ public class JavaInstallationProbe {
     private final LoadingCache<File, EnumMap<SysProp, String>> cache = CacheBuilder.newBuilder().build(new CacheLoader<File, EnumMap<SysProp, String>>() {
         @Override
         public EnumMap<SysProp, String> load(File javaHome) throws Exception {
+            if(Jvm.current().getJavaHome().equals(javaHome)) {
+                return getCurrentJvmMetadata();
+            }
             return getMetadataInternal(javaHome);
         }
     });
@@ -143,6 +147,16 @@ public class JavaInstallationProbe {
             return ProbeResult.success(InstallType.IS_JDK, metadata);
         }
         return ProbeResult.success(InstallType.IS_JRE, metadata);
+    }
+
+    private EnumMap<SysProp, String> getCurrentJvmMetadata() {
+        EnumMap<SysProp, String> result = new EnumMap<SysProp, String>(SysProp.class);
+        for (SysProp type : SysProp.values()) {
+            if (type != SysProp.Z_ERROR) {
+                result.put(type, System.getProperty(type.sysProp, "unknown"));
+            }
+        }
+        return result;
     }
 
     private EnumMap<SysProp, String> getMetadataInternal(File jdkPath) {

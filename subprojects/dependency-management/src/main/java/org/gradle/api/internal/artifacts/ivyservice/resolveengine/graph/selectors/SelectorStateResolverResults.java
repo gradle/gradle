@@ -17,6 +17,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selecto
 
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
@@ -24,16 +27,19 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 class SelectorStateResolverResults {
+    private static final VersionParser VERSION_PARSER = new VersionParser();
+    private static final Comparator<Version> VERSION_COMPARATOR = new DefaultVersionComparator().asVersionComparator();
     private final List<Registration> results;
 
     public SelectorStateResolverResults(int size) {
         results = Lists.newArrayListWithCapacity(size);
     }
 
-    public <T extends ComponentResolutionState> List<T> getResolved(ComponentStateFactory<T> componentFactory) {
+    public <T extends ComponentResolutionState> List<T> getResolved(ComponentStateFactory<T> componentFactory, List<ResolvableSelectorState> emptySelectors) {
         ModuleVersionResolveException failure = null;
         List<T> resolved = null;
         for (Registration entry : results) {
@@ -62,10 +68,19 @@ class SelectorStateResolverResults {
         }
 
         if (resolved == null && failure != null) {
+            recordFailureInEmptySelectors(emptySelectors, failure);
             throw failure;
         }
 
         return resolved == null ? Collections.<T>emptyList() : resolved;
+    }
+
+    private void recordFailureInEmptySelectors(List<ResolvableSelectorState> emptySelectors, ModuleVersionResolveException failure) {
+        if (emptySelectors != null) {
+            for (ResolvableSelectorState emptySelector : emptySelectors) {
+                emptySelector.failed(failure);
+            }
+        }
     }
 
     public static <T extends ComponentResolutionState> T componentForIdResolveResult(ComponentStateFactory<T> componentFactory, ComponentIdResolveResult idResolveResult, ResolvableSelectorState selector) {
@@ -82,32 +97,51 @@ class SelectorStateResolverResults {
     /**
      * Check already resolved results for a compatible version, and use it for this dependency rather than re-resolving.
      */
-    boolean alreadyHaveResolution(ResolvableSelectorState dep) {
+    boolean alreadyHaveResolutionForSelector(ResolvableSelectorState selector) {
         for (Registration registration : results) {
             ComponentIdResolveResult discovered = registration.result;
-            if (included(dep, discovered)) {
-                results.add(new Registration(dep, discovered));
+            if (included(selector, discovered)) {
+                register(selector, discovered);
+                selector.markResolved();
                 return true;
             }
         }
         return false;
     }
 
-    void registerResolution(ResolvableSelectorState dep, ComponentIdResolveResult resolveResult) {
-        if (resolveResult.getFailure() != null) {
-            results.add(new Registration(dep, resolveResult));
-            return;
-        }
-
+    boolean replaceExistingResolutionsWithBetterResult(ComponentIdResolveResult resolveResult) {
         // Check already-resolved dependencies and use this version if it's compatible
+        boolean replaces = false;
         for (Registration registration : results) {
-            ResolvableSelectorState other = registration.selector;
-            if (included(other, resolveResult)) {
+            if (sameVersion(registration.result, resolveResult) ||
+                (included(registration.selector, resolveResult) && lowerVersion(registration.result, resolveResult))) {
                 registration.result = resolveResult;
+                replaces = true;
             }
         }
+        return replaces;
+    }
 
-        results.add(new Registration(dep, resolveResult));
+    void register(ResolvableSelectorState selector, ComponentIdResolveResult resolveResult) {
+        results.add(new Registration(selector, resolveResult));
+    }
+
+    private boolean sameVersion(ComponentIdResolveResult existing, ComponentIdResolveResult resolveResult) {
+        if (existing.getFailure() == null && resolveResult.getFailure() == null) {
+            return existing.getId().equals(resolveResult.getId());
+        }
+        return false;
+    }
+
+    private boolean lowerVersion(ComponentIdResolveResult existing, ComponentIdResolveResult resolveResult) {
+        if (existing.getFailure() == null && resolveResult.getFailure() == null) {
+            Version existingVersion = VERSION_PARSER.transform(existing.getModuleVersionId().getVersion());
+            Version candidateVersion = VERSION_PARSER.transform(resolveResult.getModuleVersionId().getVersion());
+
+            int comparison = VERSION_COMPARATOR.compare(candidateVersion, existingVersion);
+            return comparison < 0;
+        }
+        return false;
     }
 
     private boolean included(ResolvableSelectorState dep, ComponentIdResolveResult candidate) {
@@ -123,6 +157,10 @@ class SelectorStateResolverResults {
             return false;
         }
         return preferredSelector.accept(candidate.getModuleVersionId().getVersion());
+    }
+
+    public boolean isEmpty() {
+        return results.isEmpty();
     }
 
     private static class Registration {

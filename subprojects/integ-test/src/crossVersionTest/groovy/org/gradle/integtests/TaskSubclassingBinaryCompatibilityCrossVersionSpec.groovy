@@ -33,6 +33,7 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.plugins.ear.Ear
 import org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath
 import org.gradle.plugins.ide.eclipse.GenerateEclipseJdt
@@ -44,11 +45,12 @@ import org.gradle.plugins.ide.idea.GenerateIdeaProject
 import org.gradle.plugins.ide.idea.GenerateIdeaWorkspace
 import org.gradle.plugins.signing.Sign
 import org.gradle.util.GradleVersion
-import org.junit.Assume
 /**
  * Tests that task classes compiled against earlier versions of Gradle are still compatible.
  */
+@TargetVersions("3.0+")
 class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationSpec {
+    @SuppressWarnings("UnnecessaryQualifiedReference")
     def "can use task subclass compiled using previous Gradle version"() {
         given:
         def taskClasses = [
@@ -86,10 +88,10 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
         // Task types added after 1.0
 
         if (previous.version >= GradleVersion.version("2.4")) {
-            taskClasses << org.gradle.jvm.application.tasks.CreateStartScripts
+            taskClasses += org.gradle.jvm.application.tasks.CreateStartScripts
         }
         if (previous.version >= GradleVersion.version("2.3")) {
-            taskClasses << org.gradle.jvm.tasks.Jar
+            taskClasses += org.gradle.jvm.tasks.Jar
         }
 
         // Some breakages that were not detected prior to release. Please do not add any more exceptions
@@ -118,12 +120,11 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
             import org.gradle.api.Project
 
             class SomePlugin implements Plugin<Project> {
-                void apply(Project p) { """ <<
+                void apply(Project p) { """ << \
             subclasses.collect { "p.tasks.create('${it.key}', ${it.key})" }.join("\n") << """
                 }
             }
-            """ <<
-
+            """ << \
             subclasses.collect {
                 def className = it.key
                 """class ${className} extends ${it.value} {
@@ -150,9 +151,6 @@ apply plugin: SomePlugin
     }
 
     def "task can use all methods declared by Task interface that AbstractTask specialises"() {
-        // Don't run these for RC 3, as stuff did change during the RCs
-        Assume.assumeFalse(previous.version == GradleVersion.version("2.14-rc-3"))
-
         file("someFile").touch()
         file("anotherFile").touch()
         file("yetAnotherFile").touch()

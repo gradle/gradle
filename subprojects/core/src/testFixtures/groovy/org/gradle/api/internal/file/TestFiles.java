@@ -108,14 +108,6 @@ public class TestFiles {
         return new DefaultFileCollectionFactory();
     }
 
-    public static SourceDirectorySetFactory sourceDirectorySetFactory() {
-        return new DefaultSourceDirectorySetFactory(resolver(), new DefaultDirectoryFileTreeFactory());
-    }
-
-    public static SourceDirectorySetFactory sourceDirectorySetFactory(File baseDir) {
-        return new DefaultSourceDirectorySetFactory(resolver(baseDir), new DefaultDirectoryFileTreeFactory());
-    }
-
     public static ExecFactory execFactory() {
         return EXEC_FACTORY;
     }

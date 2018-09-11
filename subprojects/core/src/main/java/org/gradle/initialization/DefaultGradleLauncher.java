@@ -363,9 +363,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
         public BuildOperationDescriptor.Builder description() {
             BuildOperationDescriptor.Builder builder = BuildOperationDescriptor.displayName(gradle.contextualize("Run tasks"));
             if (gradle.getParent() == null) {
-                builder.operationType(BuildOperationCategory.RUN_TASKS_ROOT_BUILD);
+                builder.operationType(BuildOperationCategory.RUN_WORK_ROOT_BUILD);
             } else {
-                builder.operationType(BuildOperationCategory.RUN_TASKS);
+                builder.operationType(BuildOperationCategory.RUN_WORK);
             }
             builder.totalProgress(gradle.getTaskGraph().size());
             return builder;

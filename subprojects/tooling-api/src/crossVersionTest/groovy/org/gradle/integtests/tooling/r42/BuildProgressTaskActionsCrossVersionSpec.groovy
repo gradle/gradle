@@ -111,7 +111,7 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
     def "task actions defined in doFirst and doLast blocks of Kotlin build scripts have informative names"() {
         given:
         buildFileKts << """
-            tasks { "custom" { 
+            tasks { create("custom") { 
                 doFirst {}
                 doLast {}
             }}
@@ -148,7 +148,7 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
     def "task actions defined in doFirst and doLast blocks of Kotlin build scripts can be named"() {
         given:
         buildFileKts << """
-            tasks { "custom" { 
+            tasks { create("custom") { 
                 doFirst("A first step") {}
                 doLast("One last thing...") {}
             }}

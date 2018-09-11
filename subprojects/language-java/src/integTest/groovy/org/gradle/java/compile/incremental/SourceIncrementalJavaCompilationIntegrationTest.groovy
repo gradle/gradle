@@ -980,4 +980,48 @@ dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
         file("build/headers/java/main/Foo.h").assertDoesNotExist()
         file("build/headers/java/main/Bar.h").assertExists()
     }
+
+    def "recompiles all dependents when no jar analysis is present"() {
+        given:
+        java """class A {
+            com.google.common.base.Splitter splitter;
+        }"""
+        java """class B {}"""
+
+        buildFile << """
+        ${jcenterRepository()}
+dependencies { compile 'com.google.guava:guava:21.0' }
+"""
+        outputs.snapshot { succeeds 'compileJava' }
+
+        when:
+        executer.requireOwnGradleUserHomeDir()
+        java """class B {
+            //some change
+        }"""
+
+        then:
+        succeeds "compileJava"
+        outputs.recompiledClasses("A", "B")
+    }
+
+    def "does not recompile when a resource changes"() {
+        given:
+        buildFile << """
+            compileJava.inputs.dir 'src/main/resources'
+        """
+        java("class A {}")
+        java("class B {}")
+        def resource = file("src/main/resources/foo.txt")
+        resource.text = 'foo'
+
+        outputs.snapshot { succeeds 'compileJava' }
+
+        when:
+        resource.text = 'bar'
+
+        then:
+        succeeds 'compileJava'
+        outputs.noneRecompiled()
+    }
 }

@@ -18,6 +18,7 @@ package org.gradle.platform.base.internal.registry
 
 import org.gradle.internal.Factory
 import org.gradle.internal.reflect.MethodDescription
+import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
@@ -66,7 +67,7 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRe
                     getSubject() >> action.subject
                     getInputs() >> action.inputs
                     execute(_, _) >> { MutableModelNode node, List<ModelView<?>> inputs ->
-                        action.execute(new DefaultModelRuleInvoker(rule.ruleDefinition.method, { rule.ruleDefinition.method.method.declaringClass.newInstance() } as Factory), node, inputs) }
+                        action.execute(new DefaultModelRuleInvoker(rule.ruleDefinition.method, { JavaReflectionUtil.newInstance(rule.ruleDefinition.method.method.declaringClass) } as Factory), node, inputs) }
                 }
             }
             getScope() >> ModelPath.ROOT

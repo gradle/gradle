@@ -43,6 +43,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
     def scriptFile = file('script.gradle')
 
     Long initScriptAppId
+    Long initOtherScriptAppId
     Long settingsScriptAppId
     Long rootProjectScriptAppId
     Long rootOtherScriptAppId
@@ -63,7 +64,10 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         sanityCheckApplicationIds()
 
         if (notEmpty(initFile)) {
-            initScriptAppId = findScriptApplicationId(targetsGradle())
+            initScriptAppId = findScriptApplicationId(targetsGradle(), scriptFile(initFile))
+        }
+        if (hasScript(initFile, scriptFile.name)) {
+            initOtherScriptAppId = findScriptApplicationId(targetsGradle(), scriptFile(scriptFile))
         }
         if (notEmpty(settingsFile)) {
             settingsScriptAppId = findScriptApplicationId(targetsSettings())
@@ -113,11 +117,11 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
                 })
             """
         }
-        def expectedGradleOpProgressMessages = [
-            'gradle.projectsLoaded(Action)',
-            'gradle.projectsLoaded(Closure)',
-            'gradle.addListener(BuildListener)',
-            'gradle.addBuildListener(BuildListener)'
+        def expectedGradleOps = [
+            expectedOp('Gradle.projectsLoaded', 'gradle.projectsLoaded(Action)'),
+            expectedOp('Gradle.projectsLoaded', 'gradle.projectsLoaded(Closure)'),
+            expectedOp('Gradle.addListener', 'gradle.addListener(BuildListener)'),
+            expectedOp('Gradle.addBuildListener', 'gradle.addBuildListener(BuildListener)')
         ]
 
         initFile << addGradleListeners('init')
@@ -130,10 +134,43 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
 
         then:
         def projectsLoaded = operations.only(NotifyProjectsLoadedBuildOperationType, { it.details.buildPath == ':' })
-        verifyExpectedNumberOfExecuteListenerChildren(projectsLoaded, expectedGradleOpProgressMessages.size() * 3)
-        verifyHasChildren(projectsLoaded, initScriptAppId, 'init', expectedGradleOpProgressMessages)
-        verifyHasChildren(projectsLoaded, settingsScriptAppId, 'settings', expectedGradleOpProgressMessages)
-        verifyHasChildren(projectsLoaded, settingsPluginAppId, 'settings plugin', expectedGradleOpProgressMessages)
+        verifyExpectedNumberOfExecuteListenerChildren(projectsLoaded, expectedGradleOps.size() * 3)
+        verifyHasChildren(projectsLoaded, initScriptAppId, 'init', expectedGradleOps)
+        verifyHasChildren(projectsLoaded, settingsScriptAppId, 'settings', expectedGradleOps)
+        verifyHasChildren(projectsLoaded, settingsPluginAppId, 'settings plugin', expectedGradleOps)
+    }
+
+    def 'rootProject listeners are attributed to the correct registrant'() {
+        given:
+        def addGradleListeners = { String source ->
+            """
+                gradle.rootProject({
+                    println "gradle.rootProject(Action) from $source"
+                } as Action)
+                gradle.rootProject {
+                    println "gradle.rootProject(Closure) from $source"
+                }
+            """
+        }
+        def expectedGradleOps = [
+            expectedOp('Gradle.rootProject', 'gradle.rootProject(Action)'),
+            expectedOp('Gradle.rootProject', 'gradle.rootProject(Closure)'),
+        ]
+
+        initFile << addGradleListeners('init')
+
+        settingsFile << addGradleListeners('settings')
+        applyInlinePlugin(settingsFile, 'Settings', addGradleListeners('settings plugin'))
+
+        when:
+        run()
+
+        then:
+        def parent = operations.only("Execute 'rootProject {}' action").children.find { it.displayName == 'Cross-configure project :' }
+        verifyExpectedNumberOfExecuteListenerChildren(parent, expectedGradleOps.size() * 3)
+        verifyHasChildren(parent, initScriptAppId, 'init', expectedGradleOps)
+        verifyHasChildren(parent, settingsScriptAppId, 'settings', expectedGradleOps)
+        verifyHasChildren(parent, settingsPluginAppId, 'settings plugin', expectedGradleOps)
     }
 
     def 'projectsEvaluated listeners are attributed to the correct registrant'() {
@@ -158,11 +195,11 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
             })
         """
         }
-        def expectedGradleOpProgressMessages = [
-            'gradle.projectsEvaluated(Action)',
-            'gradle.projectsEvaluated(Closure)',
-            'gradle.addListener(BuildListener)',
-            'gradle.addBuildListener(BuildListener)'
+        def expectedGradleOps = [
+            expectedOp('Gradle.projectsEvaluated', 'gradle.projectsEvaluated(Action)'),
+            expectedOp('Gradle.projectsEvaluated', 'gradle.projectsEvaluated(Closure)'),
+            expectedOp('Gradle.addListener', 'gradle.addListener(BuildListener)'),
+            expectedOp('Gradle.addBuildListener', 'gradle.addBuildListener(BuildListener)')
         ]
 
         and:
@@ -182,13 +219,13 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
 
         then:
         def projectsEvaluated = operations.only(NotifyProjectsEvaluatedBuildOperationType)
-        verifyExpectedNumberOfExecuteListenerChildren(projectsEvaluated, expectedGradleOpProgressMessages.size() * 6)
-        verifyHasChildren(projectsEvaluated, initScriptAppId, 'init', expectedGradleOpProgressMessages)
-        verifyHasChildren(projectsEvaluated, settingsScriptAppId, 'settings', expectedGradleOpProgressMessages)
-        verifyHasChildren(projectsEvaluated, settingsPluginAppId, 'settings plugin', expectedGradleOpProgressMessages)
-        verifyHasChildren(projectsEvaluated, rootProjectScriptAppId, 'project script', expectedGradleOpProgressMessages)
-        verifyHasChildren(projectsEvaluated, rootProjectPluginAppId, 'project plugin', expectedGradleOpProgressMessages)
-        verifyHasChildren(projectsEvaluated, rootOtherScriptAppId, 'other script', expectedGradleOpProgressMessages)
+        verifyExpectedNumberOfExecuteListenerChildren(projectsEvaluated, expectedGradleOps.size() * 6)
+        verifyHasChildren(projectsEvaluated, initScriptAppId, 'init', expectedGradleOps)
+        verifyHasChildren(projectsEvaluated, settingsScriptAppId, 'settings', expectedGradleOps)
+        verifyHasChildren(projectsEvaluated, settingsPluginAppId, 'settings plugin', expectedGradleOps)
+        verifyHasChildren(projectsEvaluated, rootProjectScriptAppId, 'project script', expectedGradleOps)
+        verifyHasChildren(projectsEvaluated, rootProjectPluginAppId, 'project plugin', expectedGradleOps)
+        verifyHasChildren(projectsEvaluated, rootOtherScriptAppId, 'other script', expectedGradleOps)
     }
 
     def 'beforeEvaluate listeners are attributed to the correct registrant'() {
@@ -217,11 +254,11 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
             })
         """
         }
-        def expectedGradleOpProgressMessages = [
-            'gradle.beforeProject(Action)',
-            'gradle.beforeProject(Closure)',
-            'gradle.addListener(ProjectEvaluationListener)',
-            'gradle.addProjectEvaluationListener(ProjectEvaluationListener)'
+        def expectedGradleOps = [
+            expectedOp('Gradle.beforeProject', 'gradle.beforeProject(Action)'),
+            expectedOp('Gradle.beforeProject', 'gradle.beforeProject(Closure)'),
+            expectedOp('Gradle.addListener', 'gradle.addListener(ProjectEvaluationListener)'),
+            expectedOp('Gradle.addProjectEvaluationListener', 'gradle.addProjectEvaluationListener(ProjectEvaluationListener)')
         ]
         def addProjectListeners = { String source, String target = null ->
             """
@@ -235,9 +272,9 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
             ${target == null ? '' : "}"}
         """
         }
-        def expectedProjectOpProgressMessages = [
-            'project.beforeEvaluate(Action)',
-            'project.beforeEvaluate(Closure)',
+        def expectedProjectOps = [
+            expectedOp('Project.beforeEvaluate', 'project.beforeEvaluate(Action)'),
+            expectedOp('Project.beforeEvaluate', 'project.beforeEvaluate(Closure)')
         ]
 
         and:
@@ -266,10 +303,10 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
 
         then:
         def rootBeforeEvaluated = operations.only(NotifyProjectBeforeEvaluatedBuildOperationType, { it.details.projectPath == ':' })
-        verifyExpectedNumberOfExecuteListenerChildren(rootBeforeEvaluated, expectedGradleOpProgressMessages.size() * 3)
-        verifyHasChildren(rootBeforeEvaluated, initScriptAppId, 'init', expectedGradleOpProgressMessages)
-        verifyHasChildren(rootBeforeEvaluated, settingsScriptAppId, 'settings', expectedGradleOpProgressMessages)
-        verifyHasChildren(rootBeforeEvaluated, settingsPluginAppId, 'settings plugin', expectedGradleOpProgressMessages)
+        verifyExpectedNumberOfExecuteListenerChildren(rootBeforeEvaluated, expectedGradleOps.size() * 3)
+        verifyHasChildren(rootBeforeEvaluated, initScriptAppId, 'init', expectedGradleOps)
+        verifyHasChildren(rootBeforeEvaluated, settingsScriptAppId, 'settings', expectedGradleOps)
+        verifyHasChildren(rootBeforeEvaluated, settingsPluginAppId, 'settings plugin', expectedGradleOps)
         // these all execute too late to catch any beforeProject/beforeEvaluate callbacks for itself
         verifyHasNoChildren(rootBeforeEvaluated, rootProjectScriptAppId)
         verifyHasNoChildren(rootBeforeEvaluated, rootProjectPluginAppId)
@@ -280,11 +317,11 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
 
         and:
         def subBeforeEvaluated = operations.only(NotifyProjectBeforeEvaluatedBuildOperationType, { it.details.projectPath == ':sub' })
-        verifyExpectedNumberOfExecuteListenerChildren(subBeforeEvaluated, expectedGradleOpProgressMessages.size() * 4 + expectedProjectOpProgressMessages.size())
-        verifyHasChildren(subBeforeEvaluated, initScriptAppId, 'init', expectedGradleOpProgressMessages)
-        verifyHasChildren(subBeforeEvaluated, settingsScriptAppId, 'settings', expectedGradleOpProgressMessages)
-        verifyHasChildren(subBeforeEvaluated, settingsPluginAppId, 'settings plugin', expectedGradleOpProgressMessages)
-        verifyHasChildren(subBeforeEvaluated, rootProjectScriptAppId, 'root project script', expectedGradleOpProgressMessages + expectedProjectOpProgressMessages)
+        verifyExpectedNumberOfExecuteListenerChildren(subBeforeEvaluated, expectedGradleOps.size() * 4 + expectedProjectOps.size())
+        verifyHasChildren(subBeforeEvaluated, initScriptAppId, 'init', expectedGradleOps)
+        verifyHasChildren(subBeforeEvaluated, settingsScriptAppId, 'settings', expectedGradleOps)
+        verifyHasChildren(subBeforeEvaluated, settingsPluginAppId, 'settings plugin', expectedGradleOps)
+        verifyHasChildren(subBeforeEvaluated, rootProjectScriptAppId, 'root project script', expectedGradleOps + expectedProjectOps)
         // these execute too late to catch any beforeProject/beforeEvaluate callbacks for itself
         verifyHasNoChildren(subBeforeEvaluated, rootProjectPluginAppId)
         verifyHasNoChildren(subBeforeEvaluated, rootOtherScriptAppId)
@@ -325,13 +362,13 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
             })
         """
         }
-        def expectedGradleOpProgressMessages = [
-            'gradle.afterProject(Action)',
-            'gradle.afterProject(Closure(0))',
-            'gradle.afterProject(Closure(1))',
-            'gradle.afterProject(Closure(2))',
-            'gradle.addListener(ProjectEvaluationListener)',
-            'gradle.addProjectEvaluationListener(ProjectEvaluationListener)'
+        def expectedGradleOps = [
+            expectedOp('Gradle.afterProject', 'gradle.afterProject(Action)'),
+            expectedOp('Gradle.afterProject', 'gradle.afterProject(Closure(0))'),
+            expectedOp('Gradle.afterProject', 'gradle.afterProject(Closure(1))'),
+            expectedOp('Gradle.afterProject', 'gradle.afterProject(Closure(2))'),
+            expectedOp('Gradle.addListener', 'gradle.addListener(ProjectEvaluationListener)'),
+            expectedOp('Gradle.addProjectEvaluationListener', 'gradle.addProjectEvaluationListener(ProjectEvaluationListener)')
         ]
         def addProjectListeners = { String source, String target = null ->
             """
@@ -345,9 +382,9 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
             ${target == null ? '' : '}'}
         """
         }
-        def expectedProjectOpProgressMessages = [
-            'project.afterEvaluate(Action)',
-            'project.afterEvaluate(Closure)',
+        def expectedProjectOps = [
+            expectedOp('Project.afterEvaluate', 'project.afterEvaluate(Action)'),
+            expectedOp('Project.afterEvaluate', 'project.afterEvaluate(Closure)')
         ]
 
         and:
@@ -376,29 +413,29 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
 
         then:
         def rootAfterEvaluated = operations.only(NotifyProjectAfterEvaluatedBuildOperationType, { it.details.projectPath == ':' })
-        verifyExpectedNumberOfExecuteListenerChildren(rootAfterEvaluated, expectedGradleOpProgressMessages.size() * 4 + expectedProjectOpProgressMessages.size() * 3)
-        verifyHasChildren(rootAfterEvaluated, initScriptAppId, 'init', expectedGradleOpProgressMessages)
-        verifyHasChildren(rootAfterEvaluated, settingsScriptAppId, 'settings', expectedGradleOpProgressMessages)
-        verifyHasChildren(rootAfterEvaluated, settingsPluginAppId, 'settings plugin', expectedGradleOpProgressMessages)
-        verifyHasChildren(rootAfterEvaluated, rootProjectScriptAppId, 'root project script', expectedGradleOpProgressMessages + expectedProjectOpProgressMessages)
-        verifyHasChildren(rootAfterEvaluated, rootProjectPluginAppId, 'root project plugin', expectedProjectOpProgressMessages)
-        verifyHasChildren(rootAfterEvaluated, rootOtherScriptAppId, 'other script', expectedProjectOpProgressMessages)
+        verifyExpectedNumberOfExecuteListenerChildren(rootAfterEvaluated, expectedGradleOps.size() * 4 + expectedProjectOps.size() * 3)
+        verifyHasChildren(rootAfterEvaluated, initScriptAppId, 'init', expectedGradleOps)
+        verifyHasChildren(rootAfterEvaluated, settingsScriptAppId, 'settings', expectedGradleOps)
+        verifyHasChildren(rootAfterEvaluated, settingsPluginAppId, 'settings plugin', expectedGradleOps)
+        verifyHasChildren(rootAfterEvaluated, rootProjectScriptAppId, 'root project script', expectedGradleOps + expectedProjectOps)
+        verifyHasChildren(rootAfterEvaluated, rootProjectPluginAppId, 'root project plugin', expectedProjectOps)
+        verifyHasChildren(rootAfterEvaluated, rootOtherScriptAppId, 'other script', expectedProjectOps)
         verifyHasNoChildren(rootAfterEvaluated, subProjectScriptAppId) // executed too late to catch any afterProject/afterEvaluate callbacks for earlier evaluated project
         verifyHasNoChildren(rootAfterEvaluated, subProjectPluginAppId) // we don't cross configure the plugin
         verifyHasNoChildren(rootAfterEvaluated, subOtherScriptAppId) // we don't cross configure the script
 
         and:
         def subAfterEvaluated = operations.only(NotifyProjectAfterEvaluatedBuildOperationType, { it.details.projectPath == ':sub' })
-        verifyExpectedNumberOfExecuteListenerChildren(subAfterEvaluated, expectedGradleOpProgressMessages.size() * 5 + expectedProjectOpProgressMessages.size() * 4)
-        verifyHasChildren(subAfterEvaluated, initScriptAppId, 'init', expectedGradleOpProgressMessages)
-        verifyHasChildren(subAfterEvaluated, settingsScriptAppId, 'settings', expectedGradleOpProgressMessages)
-        verifyHasChildren(subAfterEvaluated, settingsPluginAppId, 'settings plugin', expectedGradleOpProgressMessages)
-        verifyHasChildren(subAfterEvaluated, rootProjectScriptAppId, 'root project script', expectedGradleOpProgressMessages + expectedProjectOpProgressMessages)
+        verifyExpectedNumberOfExecuteListenerChildren(subAfterEvaluated, expectedGradleOps.size() * 5 + expectedProjectOps.size() * 4)
+        verifyHasChildren(subAfterEvaluated, initScriptAppId, 'init', expectedGradleOps)
+        verifyHasChildren(subAfterEvaluated, settingsScriptAppId, 'settings', expectedGradleOps)
+        verifyHasChildren(subAfterEvaluated, settingsPluginAppId, 'settings plugin', expectedGradleOps)
+        verifyHasChildren(subAfterEvaluated, rootProjectScriptAppId, 'root project script', expectedGradleOps + expectedProjectOps)
         verifyHasNoChildren(subAfterEvaluated, rootProjectPluginAppId) // we don't cross configure the plugin
         verifyHasNoChildren(subAfterEvaluated, rootOtherScriptAppId) // we don't cross configure the plugin
-        verifyHasChildren(subAfterEvaluated, subProjectScriptAppId, 'sub project script', expectedGradleOpProgressMessages + expectedProjectOpProgressMessages)
-        verifyHasChildren(subAfterEvaluated, subProjectPluginAppId, 'sub project plugin', expectedProjectOpProgressMessages)
-        verifyHasChildren(subAfterEvaluated, subOtherScriptAppId, 'other script', expectedProjectOpProgressMessages)
+        verifyHasChildren(subAfterEvaluated, subProjectScriptAppId, 'sub project script', expectedGradleOps + expectedProjectOps)
+        verifyHasChildren(subAfterEvaluated, subProjectPluginAppId, 'sub project plugin', expectedProjectOps)
+        verifyHasChildren(subAfterEvaluated, subOtherScriptAppId, 'other script', expectedProjectOps)
     }
 
     def 'nested afterEvaluate listeners are attributed to the correct registrant'() {
@@ -416,10 +453,10 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
             }
         """
         }
-        def expectedGradleOpProgressMessages = [
-            'gradle.afterProject(Closure)',
-            'nested gradle.afterProject(Closure)',
-            'nested nested gradle.afterProject(Closure)',
+        def expectedGradleOps = [
+            expectedOp('Gradle.afterProject', 'gradle.afterProject(Closure)'),
+            expectedOp('Project.afterEvaluate', 'nested gradle.afterProject(Closure)'),
+            expectedOp('Project.afterEvaluate', 'nested nested gradle.afterProject(Closure)')
         ]
         def addProjectListeners = { String source ->
             """
@@ -434,10 +471,10 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
             }
         """
         }
-        def expectedProjectOpProgressMessages = [
-            'project.afterEvaluate(Closure)',
-            'nested project.afterEvaluate(Closure)',
-            'nested nested project.afterEvaluate(Closure)',
+        def expectedProjectOps = [
+            expectedOp('Project.afterEvaluate', 'project.afterEvaluate(Closure)'),
+            expectedOp('Project.afterEvaluate', 'nested project.afterEvaluate(Closure)'),
+            expectedOp('Project.afterEvaluate', 'nested nested project.afterEvaluate(Closure)')
         ]
 
         scriptFile << addProjectListeners('other script')
@@ -454,11 +491,11 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
 
         then:
         def rootAfterEvaluated = operations.only(NotifyProjectAfterEvaluatedBuildOperationType, { it.details.projectPath == ':' })
-        verifyExpectedNumberOfExecuteListenerChildren(rootAfterEvaluated, expectedGradleOpProgressMessages.size() * 2 + expectedProjectOpProgressMessages.size() * 3)
-        verifyHasChildren(rootAfterEvaluated, initScriptAppId, 'init', expectedGradleOpProgressMessages)
-        verifyHasChildren(rootAfterEvaluated, rootProjectScriptAppId, 'root project script', expectedGradleOpProgressMessages + expectedProjectOpProgressMessages)
-        verifyHasChildren(rootAfterEvaluated, rootProjectPluginAppId, 'root project plugin', expectedProjectOpProgressMessages)
-        verifyHasChildren(rootAfterEvaluated, rootOtherScriptAppId, 'other script', expectedProjectOpProgressMessages)
+        verifyExpectedNumberOfExecuteListenerChildren(rootAfterEvaluated, expectedGradleOps.size() * 2 + expectedProjectOps.size() * 3)
+        verifyHasChildren(rootAfterEvaluated, initScriptAppId, 'init', expectedGradleOps)
+        verifyHasChildren(rootAfterEvaluated, rootProjectScriptAppId, 'root project script', expectedGradleOps + expectedProjectOps)
+        verifyHasChildren(rootAfterEvaluated, rootProjectPluginAppId, 'root project plugin', expectedProjectOps)
+        verifyHasChildren(rootAfterEvaluated, rootOtherScriptAppId, 'other script', expectedProjectOps)
     }
 
     def 'taskGraph whenReady action listeners are attributed to the correct registrant'() {
@@ -483,11 +520,11 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
             }            
         """
         }
-        def expectedGradleOpProgressMessages = [
-            'gradle.addListener(TaskExecutionGraphListener)',
-            'gradle.taskGraph.addTaskExecutionGraphListener(TaskExecutionGraphListener)',
-            'gradle.taskGraph.whenReady(Action)',
-            'gradle.taskGraph.whenReady(Closure)',
+        def expectedGradleOps = [
+            expectedOp('Gradle.addListener', 'gradle.addListener(TaskExecutionGraphListener)'),
+            expectedOp('TaskExecutionGraph.addTaskExecutionGraphListener', 'gradle.taskGraph.addTaskExecutionGraphListener(TaskExecutionGraphListener)'),
+            expectedOp('TaskExecutionGraph.whenReady', 'gradle.taskGraph.whenReady(Action)'),
+            expectedOp('TaskExecutionGraph.whenReady', 'gradle.taskGraph.whenReady(Closure)')
         ]
 
         scriptFile << addGradleListeners('other script')
@@ -505,12 +542,12 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
 
         then:
         def whenReadyEvaluated = operations.only(NotifyTaskGraphWhenReadyBuildOperationType)
-        verifyExpectedNumberOfExecuteListenerChildren(whenReadyEvaluated, expectedGradleOpProgressMessages.size() * 5)
-        verifyHasChildren(whenReadyEvaluated, initScriptAppId, 'init', expectedGradleOpProgressMessages)
-        verifyHasChildren(whenReadyEvaluated, settingsScriptAppId, 'settings', expectedGradleOpProgressMessages)
-        verifyHasChildren(whenReadyEvaluated, rootProjectScriptAppId, 'root project script', expectedGradleOpProgressMessages)
-        verifyHasChildren(whenReadyEvaluated, rootProjectPluginAppId, 'root project plugin', expectedGradleOpProgressMessages)
-        verifyHasChildren(whenReadyEvaluated, rootOtherScriptAppId, 'other script', expectedGradleOpProgressMessages)
+        verifyExpectedNumberOfExecuteListenerChildren(whenReadyEvaluated, expectedGradleOps.size() * 5)
+        verifyHasChildren(whenReadyEvaluated, initScriptAppId, 'init', expectedGradleOps)
+        verifyHasChildren(whenReadyEvaluated, settingsScriptAppId, 'settings', expectedGradleOps)
+        verifyHasChildren(whenReadyEvaluated, rootProjectScriptAppId, 'root project script', expectedGradleOps)
+        verifyHasChildren(whenReadyEvaluated, rootProjectPluginAppId, 'root project plugin', expectedGradleOps)
+        verifyHasChildren(whenReadyEvaluated, rootOtherScriptAppId, 'other script', expectedGradleOps)
     }
 
     def 'listeners that implement multiple interfaces are decorated correctly'() {
@@ -546,8 +583,8 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
             gradle.addListener(new ComboListener())
         """
         }
-        def expectedGradleOpProgressMessages = [
-            'gradle.addListener(ComboListener)'
+        def expectedGradleOps = [
+            expectedOp('Gradle.addListener', 'gradle.addListener(ComboListener)')
         ]
 
         initFile << addGradleListeners('init')
@@ -558,27 +595,27 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         then:
         def projectsEvaluated = operations.only(NotifyProjectsEvaluatedBuildOperationType)
         verifyExpectedNumberOfExecuteListenerChildren(projectsEvaluated, 1)
-        verifyHasChildren(projectsEvaluated, initScriptAppId, 'init', expectedGradleOpProgressMessages)
+        verifyHasChildren(projectsEvaluated, initScriptAppId, 'init', expectedGradleOps)
 
         and:
         def projectsLoaded = operations.only(NotifyProjectsLoadedBuildOperationType)
         verifyExpectedNumberOfExecuteListenerChildren(projectsLoaded, 1)
-        verifyHasChildren(projectsLoaded, initScriptAppId, 'init', expectedGradleOpProgressMessages)
+        verifyHasChildren(projectsLoaded, initScriptAppId, 'init', expectedGradleOps)
 
         and:
         def rootBeforeEvaluated = operations.only(NotifyProjectBeforeEvaluatedBuildOperationType)
         verifyExpectedNumberOfExecuteListenerChildren(rootBeforeEvaluated, 1)
-        verifyHasChildren(rootBeforeEvaluated, initScriptAppId, 'init', expectedGradleOpProgressMessages)
+        verifyHasChildren(rootBeforeEvaluated, initScriptAppId, 'init', expectedGradleOps)
 
         and:
         def rootAfterEvaluated = operations.only(NotifyProjectAfterEvaluatedBuildOperationType, { it.details.projectPath == ':' })
         verifyExpectedNumberOfExecuteListenerChildren(rootAfterEvaluated, 1)
-        verifyHasChildren(rootAfterEvaluated, initScriptAppId, 'init', expectedGradleOpProgressMessages)
+        verifyHasChildren(rootAfterEvaluated, initScriptAppId, 'init', expectedGradleOps)
 
         and:
         def whenReadyEvaluated = operations.only(NotifyTaskGraphWhenReadyBuildOperationType)
         verifyExpectedNumberOfExecuteListenerChildren(whenReadyEvaluated, 1)
-        verifyHasChildren(whenReadyEvaluated, initScriptAppId, 'init', expectedGradleOpProgressMessages)
+        verifyHasChildren(whenReadyEvaluated, initScriptAppId, 'init', expectedGradleOps)
     }
 
     def 'no extra executions for composite builds'() {
@@ -621,12 +658,17 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         }
 
         and:
+        // put these in different scripts so that we can track that they report the correct registrant,
+        // since allprojects callbacks are executed inside an internal rootProject listener
         initFile << """
             rootProject { project ->
                 ${addBeforeProjectListeners('init file rootProject')}
             }
+            apply from: file('$scriptFile.name')
+        """
+        scriptFile << """
             allprojects { project ->
-                ${addAfterProjectListeners('init file allprojects')}
+                ${addAfterProjectListeners('script file allprojects')}
             }
         """
 
@@ -638,17 +680,17 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         then:
         def rootBeforeEvaluated = operations.only(NotifyProjectBeforeEvaluatedBuildOperationType, { it.details.projectPath == ':' })
         verifyExpectedNumberOfExecuteListenerChildren(rootBeforeEvaluated, 1)
-        verifyHasChildren(rootBeforeEvaluated, initScriptAppId, 'init file rootProject', ['project.beforeEvaluate(Closure)'])
+        verifyHasChildren(rootBeforeEvaluated, initScriptAppId, 'init file rootProject', [expectedOp('Project.beforeEvaluate', 'project.beforeEvaluate(Closure)')])
 
         and:
         def rootAfterEvaluated = operations.only(NotifyProjectAfterEvaluatedBuildOperationType, { it.details.projectPath == ':' })
         verifyExpectedNumberOfExecuteListenerChildren(rootAfterEvaluated, 1)
-        verifyHasChildren(rootAfterEvaluated, initScriptAppId, 'init file allprojects', ['project.afterEvaluate(Closure)'])
+        verifyHasChildren(rootAfterEvaluated, initOtherScriptAppId, 'script file allprojects', [expectedOp('Project.afterEvaluate', 'project.afterEvaluate(Closure)')])
 
         and:
         def subAfterEvaluated = operations.only(NotifyProjectAfterEvaluatedBuildOperationType, { it.details.projectPath == ':sub' })
         verifyExpectedNumberOfExecuteListenerChildren(subAfterEvaluated, 1)
-        verifyHasChildren(subAfterEvaluated, initScriptAppId, 'init file allprojects', ['project.afterEvaluate(Closure)'])
+        verifyHasChildren(subAfterEvaluated, initOtherScriptAppId, 'script file allprojects', [expectedOp('Project.afterEvaluate', 'project.afterEvaluate(Closure)')])
     }
 
     def 'decorated listener can be removed'() {
@@ -691,9 +733,9 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         assert op.children.findAll { it.hasDetailsOfType(ExecuteListenerBuildOperationType.Details) }.size() == expectedChildren
     }
 
-    private static List<BuildOperationRecord> verifyHasChildren(BuildOperationRecord op, long expectedApplicationId, String sourceName, List<String> expectedProgressMessages) {
+    private static List<BuildOperationRecord> verifyHasChildren(BuildOperationRecord op, long expectedApplicationId, String sourceName, List<ExpectedOperation> expectedOps) {
         def matchingChildren = op.children.findAll { it.hasDetailsOfType(ExecuteListenerBuildOperationType.Details) && it.details.applicationId == expectedApplicationId }
-        verifyExpectedOps(matchingChildren, expectedProgressMessages.collect { "$it from $sourceName" })
+        verifyExpectedOps(matchingChildren, addSource(expectedOps, sourceName))
         matchingChildren
     }
 
@@ -701,10 +743,12 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         assert op.children.findAll { it.hasDetailsOfType(ExecuteListenerBuildOperationType.Details) && it.details.applicationId == expectedApplicationId }.empty
     }
 
-    private static void verifyExpectedOps(List<BuildOperationRecord> ops, List<String> expectedProgressMessages) {
-        assert ops.size() == expectedProgressMessages.size()
+    private static void verifyExpectedOps(List<BuildOperationRecord> ops, List<ExpectedOperation> expectedOps) {
+        assert ops.size() == expectedOps.size()
         // no guarantees about listener execution order
-        assert ops.collect { progress(it) } as Set == expectedProgressMessages as Set
+        assert ops.find { op ->
+            expectedOps.find { expectedOperation -> op.details.registrationPoint == expectedOperation.registrationPoint && progress(op) == expectedOperation.progressMessage } != null
+        }
     }
 
     private static String progress(BuildOperationRecord op) {
@@ -724,7 +768,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
     }
 
     private static boolean hasScript(TestFile file, String scriptName) {
-        file.exists() && file.text.indexOf("apply from: rootProject.file('$scriptName')") != -1
+        file.exists() && (file.text.indexOf("apply from: rootProject.file('$scriptName')") != -1 || file.text.indexOf("apply from: file('$scriptName')") != -1)
     }
 
     private Long findOpApplicationId(Class<? extends BuildOperationType<?, ?>> opType, Spec<? super BuildOperationRecord> predicate) {
@@ -795,5 +839,18 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         def pluginAppliedOps = operations.all(ApplyPluginBuildOperationType)
         def scriptAppliedOps = operations.all(ApplyScriptPluginBuildOperationType)
         assert ((pluginAppliedOps + scriptAppliedOps)*.details*.applicationId as Set).size() == pluginAppliedOps.size() + scriptAppliedOps.size()
+    }
+
+    private static expectedOp(String registrationPoint, String progressMessage) {
+        return new ExpectedOperation(registrationPoint: registrationPoint, progressMessage: progressMessage)
+    }
+
+    private static List<ExpectedOperation> addSource(List<ExpectedOperation> tuples, String sourceName) {
+        tuples.collect { expectedOp(it.registrationPoint, "$it.progressMessage from $sourceName") }
+    }
+
+    private static class ExpectedOperation {
+        String registrationPoint
+        String progressMessage
     }
 }

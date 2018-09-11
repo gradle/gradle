@@ -22,9 +22,6 @@ import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskArtifactState
-import org.gradle.api.internal.changedetection.state.FileSystemMirror
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalDirectorySnapshot
-import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.tasks.OutputType
@@ -35,6 +32,9 @@ import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata
+import org.gradle.internal.snapshot.DirectorySnapshot
+import org.gradle.internal.snapshot.FileSystemMirror
+import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.time.Timer
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -77,9 +77,9 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         ] as SortedSet
         def load = commandFactory.createLoad(key, outputProperties, task, taskProperties, taskOutputsGenerationListener, taskArtifactState)
 
-        def outputFileSnapshot = new PhysicalFileSnapshot(outputFile.absolutePath, outputFile.name, HashCode.fromInt(234), 234)
+        def outputFileSnapshot = new RegularFileSnapshot(outputFile.absolutePath, outputFile.name, HashCode.fromInt(234), 234)
         def fileSnapshots = ImmutableMap.of(
-            "outputDir", new PhysicalDirectorySnapshot(outputDir.getAbsolutePath(), outputDir.name, ImmutableList.of(new PhysicalFileSnapshot(outputDirFile.getAbsolutePath(), outputDirFile.name, HashCode.fromInt(123), 123)), HashCode.fromInt(456)),
+            "outputDir", new DirectorySnapshot(outputDir.getAbsolutePath(), outputDir.name, ImmutableList.of(new RegularFileSnapshot(outputDirFile.getAbsolutePath(), outputDirFile.name, HashCode.fromInt(123), 123)), HashCode.fromInt(456)),
             "outputFile", outputFileSnapshot)
 
         when:
@@ -94,21 +94,21 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
 
         then:
         1 * fileSystemMirror.putMetadata(outputDir.absolutePath, DefaultFileMetadata.directory())
-        1 * fileSystemMirror.putSnapshot(_ as PhysicalDirectorySnapshot) >> { args ->
-            PhysicalDirectorySnapshot snapshot = args[0]
+        1 * fileSystemMirror.putSnapshot(_ as DirectorySnapshot) >> { args ->
+            DirectorySnapshot snapshot = args[0]
             assert snapshot.absolutePath == outputDir.absolutePath
             assert snapshot.name == outputDir.name
         }
-        1 * fileSystemMirror.putSnapshot(_ as PhysicalFileSnapshot) >> { args ->
-            PhysicalFileSnapshot snapshot = args[0]
+        1 * fileSystemMirror.putSnapshot(_ as RegularFileSnapshot) >> { args ->
+            RegularFileSnapshot snapshot = args[0]
             assert snapshot.absolutePath == outputFileSnapshot.absolutePath
             assert snapshot.name == outputFileSnapshot.name
             assert snapshot.hash == outputFileSnapshot.hash
         }
         1 * taskArtifactState.snapshotAfterLoadedFromCache(_, originMetadata) >> { ImmutableSortedMap<String, CurrentFileCollectionFingerprint> propertyFingerprints, OriginTaskExecutionMetadata metadata ->
             assert propertyFingerprints.keySet() as List == ["outputDir", "outputFile"]
-            assert propertyFingerprints["outputFile"].snapshots.keySet() == [outputFile.absolutePath] as Set
-            assert propertyFingerprints["outputDir"].snapshots.keySet() == [outputDir, outputDirFile]*.absolutePath as Set
+            assert propertyFingerprints["outputFile"].fingerprints.keySet() == [outputFile.absolutePath] as Set
+            assert propertyFingerprints["outputDir"].fingerprints.keySet() == [outputDir, outputDirFile]*.absolutePath as Set
         }
 
         then:

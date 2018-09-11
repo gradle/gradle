@@ -30,6 +30,7 @@ import org.gradle.model.internal.core.ModelRegistrations;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.util.DeprecationLogger;
 
 public abstract class BridgedCollections {
 
@@ -57,7 +58,7 @@ public abstract class BridgedCollections {
             .action(ModelActionRole.Create, new Action<MutableModelNode>() {
                 @Override
                 public void execute(final MutableModelNode containerNode) {
-                    C container = containerNode.getPrivateData(containerType);
+                    final C container = containerNode.getPrivateData(containerType);
                     container.whenElementKnown(new Action<DefaultNamedDomainObjectCollection.ElementInfo<I>>() {
                         @Override
                         public void execute(DefaultNamedDomainObjectCollection.ElementInfo<I> info) {
@@ -83,10 +84,15 @@ public abstract class BridgedCollections {
                             }
                         }
                     });
-                    container.whenObjectRemoved(new Action<I>() {
-                        public void execute(I item) {
-                            String name = namer.determineName(item);
-                            containerNode.removeLink(name);
+                    DeprecationLogger.whileDisabled(new Runnable() {
+                        @Override
+                        public void run() {
+                            container.whenObjectRemoved(new Action<I>() {
+                                public void execute(I item) {
+                                    String name = namer.determineName(item);
+                                    containerNode.removeLink(name);
+                                }
+                            });
                         }
                     });
                 }

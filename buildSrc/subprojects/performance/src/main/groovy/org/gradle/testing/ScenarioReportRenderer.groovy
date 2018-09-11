@@ -2,9 +2,10 @@ package org.gradle.testing
 
 import groovy.util.slurpersupport.NodeChildren
 import groovy.xml.MarkupBuilder
+import org.openmbee.junit.model.JUnitTestSuite
 
 class ScenarioReportRenderer {
-    void render(Writer writer, String projectName, List<Object> finishedBuilds, Map<String, List<File>> testResultFilesForBuild) {
+    void render(Writer writer, String projectName, List<Object> finishedBuilds, Map<String, List<JUnitTestSuite>> testResultsForBuild) {
         def markup = new MarkupBuilder(writer)
 
         markup.html {
@@ -18,16 +19,16 @@ class ScenarioReportRenderer {
             def otherBuilds = buildsSuccessOrNot.get(false)
             if (otherBuilds) {
                 h3 "${otherBuilds.size()} Failed scenarios"
-                renderResultTable(markup, projectName, otherBuilds, testResultFilesForBuild, true)
+                renderResultTable(markup, projectName, otherBuilds, testResultsForBuild, true)
             }
             if (successfullBuilds) {
                 h3 "${successfullBuilds.size()} Successful scenarios"
-                renderResultTable(markup, projectName, successfullBuilds, testResultFilesForBuild)
+                renderResultTable(markup, projectName, successfullBuilds, testResultsForBuild)
             }
         }
     }
 
-    private renderResultTable(markup, projectName, builds, Map<String, List<File>> testResultFilesForBuild, failed = false) {
+    private renderResultTable(markup, projectName, builds, Map<String, List<JUnitTestSuite>> testResultsForBuild, failed = false) {
         def closure = {
             table {
                 thead {
@@ -42,8 +43,7 @@ class ScenarioReportRenderer {
                 }
                 builds.eachWithIndex { build, idx ->
                     def rowClass = build.@status.toString().toLowerCase()
-                    def testResultFiles = testResultFilesForBuild.get(build.@id.text())
-                    def xmlResultFiles = testResultFiles.findAll { it.name.endsWith('.xml') }
+                    def testResults = testResultsForBuild.get(build.@id.text())
                     tr(class: rowClass) {
                         td("${idx+1}. ${this.getScenarioId(build)}")
                         td {
@@ -59,14 +59,13 @@ class ScenarioReportRenderer {
                         }
                     }
                     if (failed) {
-                        if (xmlResultFiles) {
-                            for (File testResultXmlFile : xmlResultFiles) {
-                                def testresult = new XmlSlurper().parse(testResultXmlFile)
-                                testresult.testcase.failure.each { failure ->
+                        testResults?.each { testSuite ->
+                            testSuite?.testCases?.each { testCase ->
+                                testCase?.failures?.each { failure ->
                                     tr(class: rowClass) {
                                         td(colspan: 4) {
                                             span(class: 'code') {
-                                                pre(failure.text())
+                                                pre(failure.value)
                                             }
                                         }
                                     }

@@ -21,14 +21,13 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.api.tasks.TaskInputs;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer;
 import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
 import org.gradle.internal.fingerprint.RelativePathInputNormalizer;
 
 @NonNullApi
-public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSupport implements DeclaredTaskInputFileProperty {
+public class DefaultTaskInputFilePropertySpec implements DeclaredTaskInputFileProperty {
 
     private final ValidatingValue value;
     private final ValidationAction validationAction;
@@ -39,10 +38,10 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
     private Class<? extends FileNormalizer> normalizer = AbsolutePathInputNormalizer.class;
     private LifecycleAwareTaskProperty lifecycleAware;
 
-    public DefaultTaskInputFilePropertySpec(String taskName, FileResolver resolver, ValidatingValue paths, ValidationAction validationAction) {
-        this.value = paths;
+    public DefaultTaskInputFilePropertySpec(String taskName, FileResolver resolver, ValidatingValue value, ValidationAction validationAction) {
+        this.value = value;
         this.validationAction = validationAction;
-        this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, paths);
+        this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, value);
     }
 
     @Override
@@ -111,11 +110,6 @@ public class DefaultTaskInputFilePropertySpec extends TaskInputsDeprecationSuppo
     @Override
     public void validate(TaskValidationContext context) {
         value.validate(getPropertyName(), optional, validationAction, context);
-    }
-
-    @Override
-    protected TaskInputs getTaskInputs(String method) {
-        throw new UnsupportedOperationException(String.format("Chaining of the TaskInputs.%s method is not supported since Gradle 4.0.", method));
     }
 
     @Override

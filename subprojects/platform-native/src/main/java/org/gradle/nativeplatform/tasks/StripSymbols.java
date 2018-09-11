@@ -55,8 +55,8 @@ public class StripSymbols extends DefaultTask {
     public StripSymbols() {
         ObjectFactory objectFactory = getProject().getObjects();
 
-        this.binaryFile = newInputFile();
-        this.outputFile = newOutputFile();
+        this.binaryFile = objectFactory.fileProperty();
+        this.outputFile = objectFactory.fileProperty();
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
     }

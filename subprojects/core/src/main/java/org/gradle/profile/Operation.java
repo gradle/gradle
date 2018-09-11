@@ -33,6 +33,7 @@ public abstract class Operation {
      */
     public static Comparator<? super Operation> slowestFirst() {
         return new Comparator<Operation>() {
+            @Override
             public int compare(Operation o1, Operation o2) {
                 long byElapsedTime = o2.getElapsedTime() - o1.getElapsedTime();
                 if (byElapsedTime > 0) {

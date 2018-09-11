@@ -20,13 +20,17 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Unroll
 
 import java.util.jar.Manifest
 
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
+@Requires(KOTLIN_SCRIPT)
 class SamplesJavaQuickstartIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
@@ -36,9 +40,10 @@ class SamplesJavaQuickstartIntegrationTest extends AbstractIntegrationSpec {
         useRepositoryMirrors()
     }
 
-    void canBuildAndUploadJar() {
+    @Unroll
+    def "can build and upload jar with #dsl dsl"() {
         given:
-        TestFile javaprojectDir = sample.dir
+        TestFile javaprojectDir = sample.dir.file(dsl)
 
         when: "Build and test projects"
         executer.inDirectory(javaprojectDir).withTasks('clean', 'build', 'uploadArchives').run()
@@ -65,5 +70,8 @@ class SamplesJavaQuickstartIntegrationTest extends AbstractIntegrationSpec {
         assertThat(manifest.mainAttributes.getValue('Manifest-Version'), equalTo('1.0'))
         assertThat(manifest.mainAttributes.getValue('Implementation-Title'), equalTo('Gradle Quickstart'))
         assertThat(manifest.mainAttributes.getValue('Implementation-Version'), equalTo('1.0'))
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 }

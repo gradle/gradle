@@ -244,7 +244,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         def base = events.operation("Apply plugin org.gradle.api.plugins.BasePlugin to root project 'single'")
         def rootProjectAction = rootOperation.descendant("Execute 'rootProject {}' action")
 
-        java.parent == rootProjectAction.child("Cross-configure project :").child('Execute rootProject listener')
+        java.parent == rootProjectAction.child("Cross-configure project :").child('Execute Gradle.rootProject listener')
         javaBase.parent == java
         base.parent == javaBase
     }
@@ -314,10 +314,9 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
 
         java.parent == rootProjectAction.
             child("Cross-configure project :").
-            child('Execute rootProject listener').
+            child('Execute Gradle.allprojects listener').
             child("Execute 'allprojects {}' action").
-            child("Cross-configure project :").
-            child('Execute allprojects listener')
+            child("Cross-configure project :")
         javaBase.parent == java
         base.parent == javaBase
     }

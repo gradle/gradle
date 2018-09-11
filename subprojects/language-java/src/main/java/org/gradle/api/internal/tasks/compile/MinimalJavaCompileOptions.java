@@ -23,8 +23,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.DebugOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
-import org.gradle.internal.Factory;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -53,14 +51,7 @@ public class MinimalJavaCompileOptions implements Serializable {
         this.sourcepath = sourcepath == null ? null : ImmutableList.copyOf(sourcepath.getFiles());
         this.compilerArgs = Lists.newArrayList(compileOptions.getAllCompilerArgs());
         this.encoding = compileOptions.getEncoding();
-        this.bootClasspath = DeprecationLogger.whileDisabled(new Factory<String>() {
-            @Nullable
-            @Override
-            @SuppressWarnings("deprecation")
-            public String create() {
-                return compileOptions.getBootClasspath();
-            }
-        });
+        this.bootClasspath = getAsPath(compileOptions.getBootstrapClasspath());
         this.extensionDirs = compileOptions.getExtensionDirs();
         this.forkOptions = compileOptions.getForkOptions();
         this.debugOptions = compileOptions.getDebugOptions();
@@ -73,6 +64,11 @@ public class MinimalJavaCompileOptions implements Serializable {
         this.annotationProcessorGeneratedSourcesDirectory = compileOptions.getAnnotationProcessorGeneratedSourcesDirectory();
         DirectoryProperty headerOutputDirectory = compileOptions.getHeaderOutputDirectory();
         this.headerOutputDirectory = headerOutputDirectory.isPresent() ? headerOutputDirectory.get().getAsFile() : null;
+    }
+
+    @Nullable
+    private static String getAsPath(@Nullable FileCollection files) {
+        return files == null ? null : files.getAsPath();
     }
 
     public List<File> getSourcepath() {

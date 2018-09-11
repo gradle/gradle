@@ -66,7 +66,7 @@ public class BinaryBreakingChangesRule extends AbstractGradleViolationRule {
             }
             if (member instanceof JApiHasAnnotations) {
                 if (isIncubatingOrDeprecated((JApiHasAnnotations) member)) {
-                    return Violation.warning(member, "Changed public API (@Incubating)");
+                    return Violation.warning(member, "Changed public API (@Incubating/@Deprecated)");
                 }
             }
             return acceptOrReject(member, Violation.notBinaryCompatible(member));

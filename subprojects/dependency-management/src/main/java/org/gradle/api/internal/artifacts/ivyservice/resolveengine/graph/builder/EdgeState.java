@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
@@ -82,6 +83,10 @@ class EdgeState implements DependencyGraphEdge {
         return dependencyMetadata;
     }
 
+    ModuleIdentifier getTargetIdentifier() {
+        return dependencyState.getModuleIdentifier();
+    }
+
     /**
      * Returns the target component, if the edge has been successfully resolved.
      * Returns null if the edge failed to resolve, or has not (yet) been successfully resolved to a target component.
@@ -109,6 +114,18 @@ class EdgeState implements DependencyGraphEdge {
             // The selector failed or the module has been deselected. Do not attach.
             return;
         }
+
+        if (dependencyMetadata.isConstraint()) {
+            // Need to double check that the target still has hard edges to it
+            ModuleResolveState module = targetComponent.getModule();
+            if (module.isPending()) {
+                selector.getTargetModule().removeUnattachedDependency(this);
+                from.getOutgoingEdges().remove(this);
+                module.addPendingNode(from);
+                return;
+            }
+        }
+
         calculateTargetConfigurations(targetComponent);
         for (NodeState targetConfiguration : targetNodes) {
             targetConfiguration.addIncomingEdge(this);
@@ -155,6 +172,7 @@ class EdgeState implements DependencyGraphEdge {
         targetNodeSelectionFailure = null;
         ComponentResolveMetadata targetModuleVersion = targetComponent.getMetadata();
         if (targetModuleVersion == null) {
+            targetComponent.getModule().getPlatformState().addOrphanEdge(this);
             // Broken version
             return;
         }
@@ -185,9 +203,17 @@ class EdgeState implements DependencyGraphEdge {
         return resolveState.getModuleExclusions().intersect(edgeExclusions, transitiveExclusions);
     }
 
+    public ModuleExclusion getEdgeExclusions() {
+        List<ExcludeMetadata> excludes = dependencyMetadata.getExcludes();
+        if (excludes.isEmpty()) {
+            return null;
+        }
+        return resolveState.getModuleExclusions().excludeAny(ImmutableList.copyOf(excludes));
+    }
+
     @Override
     public boolean contributesArtifacts() {
-        return !dependencyMetadata.isPending();
+        return !dependencyMetadata.isConstraint();
     }
 
     @Override
@@ -237,5 +263,11 @@ class EdgeState implements DependencyGraphEdge {
                 return targetConfiguration.artifact(ivyArtifactName);
             }
         });
+    }
+
+    void maybeDecreaseHardEdgeCount() {
+        if (!dependencyMetadata.isConstraint()) {
+            selector.getTargetModule().decreaseHardEdgeCount();
+        }
     }
 }

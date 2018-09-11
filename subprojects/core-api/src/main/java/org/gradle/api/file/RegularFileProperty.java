@@ -25,7 +25,7 @@ import java.io.File;
 /**
  * Represents some configurable regular file location, whose value is mutable and not necessarily currently known until later.
  * <p>
- * <b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created using the {@link ProjectLayout#fileProperty()} method.
+ * <b>Note:</b> This interface is not intended for implementation by build script or plugin authors. An instance of this class can be created using the {@link org.gradle.api.model.ObjectFactory#fileProperty()} method.
  *
  * @since 4.3
  */

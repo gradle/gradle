@@ -24,7 +24,11 @@ import org.gradle.util.GradleVersion;
 import java.io.File;
 import java.net.URL;
 import java.text.DateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class TemplateOperationFactory {
 
@@ -64,6 +68,9 @@ public class TemplateOperationFactory {
 
         public TemplateOperationBuilder withTemplate(final String relativeTemplatePath) {
             this.templateUrl = getClass().getResource(templatepackage + "/" + relativeTemplatePath);
+            if (templateUrl == null) {
+                throw new IllegalArgumentException(String.format("Could not find template '%s' in classpath.", relativeTemplatePath));
+            }
             return this;
         }
 
@@ -86,6 +93,11 @@ public class TemplateOperationFactory {
 
         public TemplateOperationBuilder withBindings(Map<String, String> bindings) {
             this.bindings.putAll(bindings);
+            return this;
+        }
+
+        public TemplateOperationBuilder withBinding(String name, String value) {
+            bindings.put(name, value);
             return this;
         }
 

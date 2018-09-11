@@ -29,6 +29,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
+import org.gradle.api.internal.file.ProducerAwareProperty;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
@@ -38,6 +39,7 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
+import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -46,7 +48,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.*;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.BUILD_CACHE_DISABLED;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.CACHE_IF_SPEC_NOT_SATISFIED;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.DO_NOT_CACHE_IF_SPEC_SATISFIED;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.INVALID_BUILD_CACHE_KEY;
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TREE_OUTPUT;
 
 @NonNullApi
 public class DefaultTaskOutputs implements TaskOutputsInternal {
@@ -105,7 +111,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public TaskOutputCachingState getCachingState(TaskProperties taskProperties) {
+    public TaskOutputCachingState getCachingState(TaskProperties taskProperties, TaskOutputCachingBuildCacheKey buildCacheKey) {
         if (cacheIfSpecs.isEmpty()) {
             return CACHING_NOT_ENABLED;
         }
@@ -122,13 +128,13 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
                     relativePath, overlappingOutputs.getPropertyName()));
         }
 
-        for (TaskPropertySpec spec : taskProperties.getOutputFileProperties()) {
-            if (spec instanceof NonCacheableTaskOutputPropertySpec) {
+        for (TaskOutputFilePropertySpec spec : taskProperties.getOutputFileProperties()) {
+            if (!(spec instanceof CacheableTaskOutputFilePropertySpec)) {
                 return DefaultTaskOutputCachingState.disabled(
-                    PLURAL_OUTPUTS,
-                    "Declares multiple output files for the single output property '"
-                        + ((NonCacheableTaskOutputPropertySpec) spec).getOriginalPropertyName()
-                        + "' via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
+                    NON_CACHEABLE_TREE_OUTPUT,
+                    "Output property '"
+                        + spec.getPropertyName()
+                        + "' contains a file tree"
                 );
             }
         }
@@ -149,6 +155,13 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
                     "'" + selfDescribingSpec.getDisplayName() + "' satisfied"
                 );
             }
+        }
+
+        if (!buildCacheKey.isValid()) {
+            return DefaultTaskOutputCachingState.disabled(
+                INVALID_BUILD_CACHE_KEY,
+                "Invalid build cache key was generated"
+            );
         }
         return ENABLED;
     }
@@ -207,6 +220,9 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.file(Object)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() {
+                if (path instanceof ProducerAwareProperty) {
+                    ((ProducerAwareProperty) path).attachProducer(task);
+                }
                 StaticValue value = new StaticValue(path);
                 DeclaredTaskOutputFileProperty outputFileSpec = specFactory.createOutputFileSpec(value);
                 registeredFileProperties.add(outputFileSpec);
@@ -220,6 +236,9 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.dir(Object)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() {
+                if (path instanceof ProducerAwareProperty) {
+                    ((ProducerAwareProperty) path).attachProducer(task);
+                }
                 StaticValue value = new StaticValue(path);
                 DeclaredTaskOutputFileProperty outputDirSpec = specFactory.createOutputDirSpec(value);
                 registeredFileProperties.add(outputDirSpec);
@@ -310,5 +329,4 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             super.visitDependencies(context);
         }
     }
-
 }

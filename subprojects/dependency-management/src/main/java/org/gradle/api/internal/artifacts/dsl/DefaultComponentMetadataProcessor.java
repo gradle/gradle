@@ -38,6 +38,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyM
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.Actions;
 import org.gradle.internal.action.ConfigurableRule;
 import org.gradle.internal.action.DefaultConfigurableRules;
 import org.gradle.internal.action.InstantiatingAction;
@@ -64,6 +65,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import static org.gradle.api.internal.artifacts.repositories.resolver.VirtualComponentHelper.makeVirtual;
 
 public class DefaultComponentMetadataProcessor implements ComponentMetadataProcessor {
 
@@ -186,7 +189,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
     }
 
     private void processClassRule(final ModuleComponentResolveMetadata metadata, final ComponentMetadataDetails details, ModuleVersionIdentifier id, Instantiator instantiator) {
-        InstantiatingAction<ComponentMetadataContext> action = collectRulesAndCreateAction(id, instantiator);
+        Action<ComponentMetadataContext> action = collectRulesAndCreateAction(id, instantiator);
 
         DefaultComponentMetadataContext componentMetadataContext = new DefaultComponentMetadataContext(details, metadata);
         try {
@@ -199,23 +202,29 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
     }
 
     private ModuleComponentResolveMetadata processClassRuleWithCaching(final ModuleComponentResolveMetadata metadata, MetadataResolutionContext metadataResolutionContext) {
-        InstantiatingAction<ComponentMetadataContext> action = collectRulesAndCreateAction(metadata.getModuleVersionId(), metadataResolutionContext.getInjectingInstantiator());
-        try {
-            return ruleExecutor.execute(metadata, action, DETAILS_TO_RESULT,
-                new Transformer<WrappingComponentMetadataContext, ModuleComponentResolveMetadata>() {
-                    @Override
-                    public WrappingComponentMetadataContext transform(ModuleComponentResolveMetadata moduleVersionIdentifier) {
-                        return new WrappingComponentMetadataContext(metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser);
-                    }
-                }, metadataResolutionContext.getCachePolicy());
-        } catch (InvalidUserCodeException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new InvalidUserCodeException(String.format("There was an error while evaluating a component metadata rule for %s.", metadata.getModuleVersionId()), e);
+        Action<ComponentMetadataContext> action = collectRulesAndCreateAction(metadata.getModuleVersionId(), metadataResolutionContext.getInjectingInstantiator());
+        if (action instanceof InstantiatingAction) {
+            try {
+                return ruleExecutor.execute(metadata, (InstantiatingAction<ComponentMetadataContext>) action, DETAILS_TO_RESULT,
+                    new Transformer<WrappingComponentMetadataContext, ModuleComponentResolveMetadata>() {
+                        @Override
+                        public WrappingComponentMetadataContext transform(ModuleComponentResolveMetadata moduleVersionIdentifier) {
+                            return new WrappingComponentMetadataContext(metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser);
+                        }
+                    }, metadataResolutionContext.getCachePolicy());
+            } catch (InvalidUserCodeException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new InvalidUserCodeException(String.format("There was an error while evaluating a component metadata rule for %s.", metadata.getModuleVersionId()), e);
+            }
         }
+        return metadata;
     }
 
-    private InstantiatingAction<ComponentMetadataContext> collectRulesAndCreateAction(ModuleVersionIdentifier id, Instantiator instantiator) {
+    private Action<ComponentMetadataContext> collectRulesAndCreateAction(ModuleVersionIdentifier id, Instantiator instantiator) {
+        if (classBasedRules.isEmpty()) {
+            return Actions.doNothing();
+        }
         ArrayList<ConfigurableRule<ComponentMetadataContext>> rules = new ArrayList<ConfigurableRule<ComponentMetadataContext>>();
         for (SpecConfigurableRule classBasedRule : classBasedRules) {
             if (classBasedRule.getSpec().isSatisfiedBy(id)) {
@@ -312,7 +321,16 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
 
         @Override
         public void belongsTo(Object notation) {
-            owners.add(componentIdentifierNotationParser.parseNotation(notation));
+            belongsTo(notation, true);
+        }
+
+        @Override
+        public void belongsTo(Object notation, boolean virtual) {
+            ComponentIdentifier id = componentIdentifierNotationParser.parseNotation(notation);
+            if (virtual) {
+                id = makeVirtual(id);
+            }
+            owners.add(id);
         }
 
         @Override

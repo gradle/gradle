@@ -29,11 +29,11 @@ import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
-import org.gradle.api.internal.tasks.ClassLoaderAwareTaskAction;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.DefaultPropertySpecFactory;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -41,16 +41,14 @@ import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskLocalState;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
+import org.gradle.api.internal.tasks.ImplementationAwareTaskAction;
 import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.TaskMutator;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
-import org.gradle.api.internal.tasks.execution.TaskValidator;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -64,6 +62,7 @@ import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.internal.Factory;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.logging.compatbridge.LoggingManagerInternalCompatibilityBridge;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
@@ -94,19 +93,24 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final TaskIdentity<?> identity;
 
-    private final ProjectInternal project;
+    // Weird name to work around https://issues.apache.org/jira/browse/GROOVY-8732
+    private final ProjectInternal _project;
 
     private List<ContextAwareTaskAction> actions;
 
     private boolean enabled = true;
 
-    private final DefaultTaskDependency dependencies;
+    // Weird name to work around https://issues.apache.org/jira/browse/GROOVY-8732
+    private final DefaultTaskDependency _dependencies;
 
-    private final DefaultTaskDependency mustRunAfter;
+    // Weird name to work around https://issues.apache.org/jira/browse/GROOVY-8732
+    private final DefaultTaskDependency _mustRunAfter;
 
-    private final DefaultTaskDependency finalizedBy;
+    // Weird name to work around https://issues.apache.org/jira/browse/GROOVY-8732
+    private final DefaultTaskDependency _finalizedBy;
 
-    private final DefaultTaskDependency shouldRunAfter;
+    // Weird name to work around https://issues.apache.org/jira/browse/GROOVY-8732
+    private final DefaultTaskDependency _shouldRunAfter;
 
     private ExtensibleDynamicObject extensibleDynamicObject;
 
@@ -116,13 +120,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private AndSpec<Task> onlyIfSpec = createNewOnlyIfSpec();
 
-    private TaskExecuter executer;
+    // Weird name to work around https://issues.apache.org/jira/browse/GROOVY-8732
+    private final ServiceRegistry _services;
 
-    private final ServiceRegistry services;
+    // Weird name to work around https://issues.apache.org/jira/browse/GROOVY-8732
+    private final TaskStateInternal _state;
 
-    private final TaskStateInternal state;
-
-    private Logger logger = BUILD_LOGGER;
+    // Weird name to work around https://issues.apache.org/jira/browse/GROOVY-8732
+    private Logger _logger = BUILD_LOGGER;
 
     private final TaskMutator taskMutator;
     private ObservableList observableActionList;
@@ -152,18 +157,18 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
 
         this.identity = taskInfo.identity;
-        this.project = taskInfo.project;
-        assert project != null;
+        this._project = taskInfo.project;
+        assert _project != null;
         assert identity.name != null;
-        state = new TaskStateInternal();
-        TaskContainerInternal tasks = project.getTasks();
-        mustRunAfter = new DefaultTaskDependency(tasks);
-        finalizedBy = new DefaultTaskDependency(tasks);
-        shouldRunAfter = new DefaultTaskDependency(tasks);
-        services = project.getServices();
+        this._state = new TaskStateInternal();
+        TaskContainerInternal tasks = _project.getTasks();
+        this._mustRunAfter = new DefaultTaskDependency(tasks);
+        this._finalizedBy = new DefaultTaskDependency(tasks);
+        this._shouldRunAfter = new DefaultTaskDependency(tasks);
+        this._services = _project.getServices();
 
-        FileResolver fileResolver = project.getFileResolver();
-        PropertyWalker propertyWalker = services.get(PropertyWalker.class);
+        FileResolver fileResolver = _project.getFileResolver();
+        PropertyWalker propertyWalker = _services.get(PropertyWalker.class);
         taskMutator = new TaskMutator(this);
         specFactory = new DefaultPropertySpecFactory(this, fileResolver);
         taskInputs = new DefaultTaskInputs(this, taskMutator, propertyWalker, specFactory);
@@ -171,12 +176,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskDestroyables = new DefaultTaskDestroyables(taskMutator);
         taskLocalState = new DefaultTaskLocalState(taskMutator);
 
-        dependencies = new DefaultTaskDependency(tasks, ImmutableSet.<Object>of(taskInputs.getFiles()));
+        this._dependencies = new DefaultTaskDependency(tasks, ImmutableSet.<Object>of(taskInputs.getFiles()));
     }
 
     private void assertDynamicObject() {
         if (extensibleDynamicObject == null) {
-            extensibleDynamicObject = new ExtensibleDynamicObject(this, identity.type, services.get(Instantiator.class));
+            extensibleDynamicObject = new ExtensibleDynamicObject(this, identity.type, _services.get(Instantiator.class));
         }
     }
 
@@ -191,17 +196,17 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public TaskStateInternal getState() {
-        return state;
+        return _state;
     }
 
     @Override
     public AntBuilder getAnt() {
-        return project.getAnt();
+        return _project.getAnt();
     }
 
     @Override
     public Project getProject() {
-        return project;
+        return _project;
     }
 
     @Override
@@ -254,19 +259,19 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public TaskDependencyInternal getTaskDependencies() {
-        return dependencies;
+        return _dependencies;
     }
 
     @Override
     public Set<Object> getDependsOn() {
-        return dependencies.getMutableValues();
+        return _dependencies.getMutableValues();
     }
 
     @Override
     public void setDependsOn(final Iterable<?> dependsOn) {
         taskMutator.mutate("Task.setDependsOn(Iterable)", new Runnable() {
             public void run() {
-                dependencies.setValues(dependsOn);
+                _dependencies.setValues(dependsOn);
             }
         });
     }
@@ -322,12 +327,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public boolean getDidWork() {
-        return state.getDidWork();
+        return _state.getDidWork();
     }
 
     @Override
     public void setDidWork(boolean didWork) {
-        state.setDidWork(didWork);
+        _state.setDidWork(didWork);
     }
 
     @Internal
@@ -370,56 +375,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public Task deleteAllActions() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("Task.deleteAllActions()");
-        taskMutator.mutate("Task.deleteAllActions()",
-            new Runnable() {
-                public void run() {
-                    getTaskActions().clear();
-                }
-            }
-        );
-        return this;
-    }
-
-    @Override
-    public final void execute() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskInternal.execute()", getReuseTaskLogicAdvice());
-        TaskExecuter executer = DeprecationLogger.whileDisabled(new Factory<TaskExecuter>() {
-            @Override
-            public TaskExecuter create() {
-                return getExecuter();
-            }
-        });
-        executer.execute(this, state, new DefaultTaskExecutionContext());
-        state.rethrowFailure();
-    }
-
-    @Override
-    public TaskExecuter getExecuter() {
-        DeprecationLogger.nagUserOfDiscontinuedProperty("TaskInternal.executer", getReuseTaskLogicAdvice());
-        if (executer == null) {
-            executer = services.get(TaskExecuter.class);
-        }
-        return executer;
-    }
-
-    @Override
-    public void setExecuter(TaskExecuter executer) {
-        DeprecationLogger.nagUserOfDiscontinuedProperty("TaskInternal.executer", getReuseTaskLogicAdvice());
-        this.executer = executer;
-    }
-
-    private String getReuseTaskLogicAdvice() {
-        String reuseTaskLogicUrl = services.get(DocumentationRegistry.class).getDocumentationFor("custom_tasks", "sec:reusing_task_logic");
-        return "There are better ways to re-use task logic, see " + reuseTaskLogicUrl + ".";
-    }
-
-    @Override
     public Task dependsOn(final Object... paths) {
         taskMutator.mutate("Task.dependsOn(Object...)", new Runnable() {
             public void run() {
-                dependencies.add(paths);
+                _dependencies.add(paths);
             }
         });
         return this;
@@ -465,7 +424,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public int compareTo(Task otherTask) {
-        int depthCompare = project.compareTo(otherTask.getProject());
+        int depthCompare = _project.compareTo(otherTask.getProject());
         if (depthCompare == 0) {
             return getPath().compareTo(otherTask.getPath());
         } else {
@@ -483,20 +442,20 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public Logger getLogger() {
-        return logger;
+        return _logger;
     }
 
     @Override
     public LoggingManagerInternal getLogging() {
         if (loggingManager == null) {
-            loggingManager = new LoggingManagerInternalCompatibilityBridge(services.getFactory(org.gradle.internal.logging.LoggingManagerInternal.class).create());
+            loggingManager = new LoggingManagerInternalCompatibilityBridge(_services.getFactory(org.gradle.internal.logging.LoggingManagerInternal.class).create());
         }
         return loggingManager;
     }
 
     @Override
     public void replaceLogger(Logger logger) {
-        this.logger = logger;
+        this._logger = logger;
     }
 
     @Override
@@ -583,21 +542,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Internal
     protected ServiceRegistry getServices() {
-        return services;
-    }
-
-    @Override
-    public boolean dependsOnTaskDidWork() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod(
-            "Task.dependsOnTaskDidWork()",
-            "Instead, check the value of \"didWork()\" for each task, or declare the task inputs and outputs and let Gradle decide what needs to be run.");
-        TaskDependency dependency = getTaskDependencies();
-        for (Task depTask : dependency.getDependencies(this)) {
-            if (depTask.getDidWork()) {
-                return true;
-            }
-        }
-        return false;
+        return _services;
     }
 
     @Override
@@ -666,16 +611,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         };
     }
 
-    @Override
-    public void addValidator(TaskValidator validator) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<TaskValidator> getValidators() {
-        throw new UnsupportedOperationException();
-    }
-
     private ContextAwareTaskAction convertClosureToAction(Closure actionClosure, String actionName) {
         return new ClosureTaskAction(actionClosure, actionName);
     }
@@ -742,13 +677,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
 
         @Override
-        public ClassLoader getClassLoader() {
-            return closure.getClass().getClassLoader();
-        }
-
-        @Override
-        public String getActionClassName() {
-            return AbstractTask.getActionClassName(closure);
+        public ImplementationSnapshot getActionImplementation(ClassLoaderHierarchyHasher hasher) {
+            return ImplementationSnapshot.of(AbstractTask.getActionClassName(closure), hasher.getClassLoaderHash(closure.getClass().getClassLoader()));
         }
 
         @Override
@@ -797,21 +727,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
 
         @Override
-        public ClassLoader getClassLoader() {
-            if (action instanceof ClassLoaderAwareTaskAction) {
-                return ((ClassLoaderAwareTaskAction) action).getClassLoader();
-            } else {
-                return action.getClass().getClassLoader();
+        public ImplementationSnapshot getActionImplementation(ClassLoaderHierarchyHasher hasher) {
+            if (action instanceof ImplementationAwareTaskAction) {
+                return ((ImplementationAwareTaskAction) action).getActionImplementation(hasher);
             }
-        }
-
-        @Override
-        public String getActionClassName() {
-            if (action instanceof ClassLoaderAwareTaskAction) {
-                return ((ClassLoaderAwareTaskAction) action).getActionClassName();
-            } else {
-                return AbstractTask.getActionClassName(action);
-            }
+            return ImplementationSnapshot.of(AbstractTask.getActionClassName(action), hasher.getClassLoaderHash(action.getClass().getClassLoader()));
         }
 
         @Override
@@ -859,7 +779,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     public void setMustRunAfter(final Iterable<?> mustRunAfterTasks) {
         taskMutator.mutate("Task.setMustRunAfter(Iterable)", new Runnable() {
             public void run() {
-                mustRunAfter.setValues(mustRunAfterTasks);
+                _mustRunAfter.setValues(mustRunAfterTasks);
             }
         });
     }
@@ -868,7 +788,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     public Task mustRunAfter(final Object... paths) {
         taskMutator.mutate("Task.mustRunAfter(Object...)", new Runnable() {
             public void run() {
-                mustRunAfter.add(paths);
+                _mustRunAfter.add(paths);
             }
         });
         return this;
@@ -876,14 +796,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public TaskDependency getMustRunAfter() {
-        return mustRunAfter;
+        return _mustRunAfter;
     }
 
     @Override
     public void setFinalizedBy(final Iterable<?> finalizedByTasks) {
         taskMutator.mutate("Task.setFinalizedBy(Iterable)", new Runnable() {
             public void run() {
-                finalizedBy.setValues(finalizedByTasks);
+                _finalizedBy.setValues(finalizedByTasks);
             }
         });
     }
@@ -892,7 +812,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     public Task finalizedBy(final Object... paths) {
         taskMutator.mutate("Task.finalizedBy(Object...)", new Runnable() {
             public void run() {
-                finalizedBy.add(paths);
+                _finalizedBy.add(paths);
             }
         });
         return this;
@@ -900,31 +820,31 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public TaskDependency getFinalizedBy() {
-        return finalizedBy;
+        return _finalizedBy;
     }
 
     @Override
     public TaskDependency shouldRunAfter(final Object... paths) {
         taskMutator.mutate("Task.shouldRunAfter(Object...)", new Runnable() {
             public void run() {
-                shouldRunAfter.add(paths);
+                _shouldRunAfter.add(paths);
             }
         });
-        return shouldRunAfter;
+        return _shouldRunAfter;
     }
 
     @Override
     public void setShouldRunAfter(final Iterable<?> shouldRunAfterTasks) {
         taskMutator.mutate("Task.setShouldRunAfter(Iterable)", new Runnable() {
             public void run() {
-                shouldRunAfter.setValues(shouldRunAfterTasks);
+                _shouldRunAfter.setValues(shouldRunAfterTasks);
             }
         });
     }
 
     @Override
     public TaskDependency getShouldRunAfter() {
-        return shouldRunAfter;
+        return _shouldRunAfter;
     }
 
     private class ObservableActionWrapperList extends ObservableList {

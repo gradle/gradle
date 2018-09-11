@@ -22,6 +22,7 @@ import org.gradle.gradlebuild.packaging.ShadedJarExtension
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.plugins.ide.eclipse.model.Classpath
+import org.gradle.plugins.ide.eclipse.model.SourceFolder
 
 plugins {
     id("gradlebuild.shaded-jar")
@@ -57,6 +58,7 @@ dependencies {
     crossVersionTestRuntime(project(":buildComparison"))
     crossVersionTestRuntime(project(":ivy"))
     crossVersionTestRuntime(project(":maven"))
+    crossVersionTestRuntimeOnly(project(":apiMetadata"))
 }
 
 gradlebuildJava {
@@ -72,10 +74,11 @@ testFixtures {
 
 apply(from = "buildship.gradle")
 
-tasks.named("sourceJar").configureAs<Jar> {
+tasks.named<Jar>("sourceJar") {
     configurations.compile.allDependencies.withType<ProjectDependency>().forEach {
-        from(it.dependencyProject.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].groovy.srcDirs)
-        from(it.dependencyProject.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].java.srcDirs)
+        val sourceSet = it.dependencyProject.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
+        from(sourceSet.groovy.srcDirs)
+        from(sourceSet.java.srcDirs)
     }
 }
 
@@ -83,8 +86,8 @@ eclipse {
     classpath {
         file.whenMerged(Action<Classpath> {
             //**TODO
-            entries.removeAll { path.contains("src/test/groovy") }
-            entries.removeAll { path.contains("src/integTest/groovy") }
+            entries.removeAll { it is SourceFolder && it.path.contains("src/test/groovy") }
+            entries.removeAll { it is SourceFolder && it.path.contains("src/integTest/groovy") }
         })
     }
 }

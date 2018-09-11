@@ -21,22 +21,22 @@ import org.gradle.api.Action
 class TestListenerBuildOperationDecorator implements ListenerBuildOperationDecorator {
 
     @Override
-    <T> Action<T> decorate(String name, Action<T> action) {
+    <T> Action<T> decorate(String registrationPoint, Action<T> action) {
         action
     }
 
     @Override
-    <T> Closure<T> decorate(String name, Closure<T> closure) {
+    <T> Closure<T> decorate(String registrationPoint, Closure<T> closure) {
         return closure
     }
 
     @Override
-    <T> T decorate(Class<T> cls, T listener) {
+    <T> T decorate(String registrationPoint, Class<T> cls, T listener) {
         listener
     }
 
     @Override
-    Object decorateUnknownListener(Object listener) {
+    Object decorateUnknownListener(String registrationPoint, Object listener) {
         listener
     }
 }

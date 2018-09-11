@@ -250,7 +250,7 @@ Gradle provides a report that you can run from the command-line that shows a gra
 .Output of **`gradle dependentComponents`**
 ----
 > gradle dependentComponents
-include::{samplesPath}/native-binaries/cunit/nativeDependentComponentsReport.out[]
+include::{samplesPath}/native-binaries/cunit/dependentComponentsReport.out[]
 ----
 
 [NOTE]
@@ -265,7 +265,7 @@ By default, non-buildable binaries and test suites are hidden from the report. T
 .Output of **`gradle dependentComponents --all`**
 ----
 > gradle dependentComponents --all
-include::{samplesPath}/native-binaries/cunit/nativeDependentComponentsReportAll.out[]
+include::{samplesPath}/native-binaries/cunit/dependentComponentsReportAll.out[]
 ----
 
 Here is the corresponding report for the `operators` component, showing dependents of all its binaries:
@@ -275,7 +275,7 @@ Here is the corresponding report for the `operators` component, showing dependen
 .Output of **`gradle dependentComponents --component operators`**
 ----
 > gradle dependentComponents --component operators
-include::{samplesPath}/native-binaries/cunit/nativeAssembleDependentComponentsReport.out[]
+include::{samplesPath}/native-binaries/cunit/assembleDependentComponentsReport.out[]
 ----
 
 Here is the corresponding report for the `operators` component, showing dependents of all its binaries, including test suites:
@@ -285,7 +285,7 @@ Here is the corresponding report for the `operators` component, showing dependen
 .Output of **`gradle dependentComponents --test-suites --component operators`**
 ----
 > gradle dependentComponents --test-suites --component operators
-include::{samplesPath}/native-binaries/cunit/nativeBuildDependentComponentsReport.out[]
+include::{samplesPath}/native-binaries/cunit/buildDependentComponentsReport.out[]
 ----
 
 
@@ -303,7 +303,7 @@ For example, to assemble the dependents of the "passing" flavor of the "static" 
 .Output of **`gradle assembleDependentsOperatorsPassingStaticLibrary --max-workers=1`**
 ----
 > gradle assembleDependentsOperatorsPassingStaticLibrary --max-workers=1
-include::{samplesPath}/native-binaries/cunit/nativeAssembleDependentComponents.out[]
+include::{samplesPath}/native-binaries/cunit/assembleDependentComponents.out[]
 ----
 
 In the output above, the targeted binary gets assembled as well as the test suite binary that depends on it.
@@ -324,7 +324,7 @@ For example, to build the dependents of the "passing" flavor of the "static" lib
 .Output of **`gradle buildDependentsOperatorsPassingStaticLibrary --max-workers=1`**
 ----
 > gradle buildDependentsOperatorsPassingStaticLibrary --max-workers=1
-include::{samplesPath}/native-binaries/cunit/nativeBuildDependentComponents.out[]
+include::{samplesPath}/native-binaries/cunit/buildDependentComponents.out[]
 ----
 
 In the output above, the targeted binary as well as the test suite binary that depends on it are built and the test suite has run.

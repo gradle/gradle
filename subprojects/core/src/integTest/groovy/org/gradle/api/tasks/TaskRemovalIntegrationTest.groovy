@@ -32,6 +32,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.expectDeprecationWarning()
         fails "foo"
 
         then:
@@ -48,6 +49,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.expectDeprecationWarning()
         fails "foo"
 
         then:
@@ -75,6 +77,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.expectDeprecationWarning()
         fails "dependencies"
 
         then:
@@ -101,8 +104,34 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         """
 
         then:
+        executer.expectDeprecationWarning()
         fails ":bar"
         failure.assertThatCause(Matchers.startsWith("Tried to remove model 'tasks.foo' but it is depended on by: 'tasks.bar'"))
+    }
 
+    @Unroll
+    def "prints deprecation warning when removing a task with #description"() {
+        given:
+        buildFile << """
+            task foo(type: Zip) {}
+            ${code}
+        """
+
+        when:
+        executer.expectDeprecationWarning()
+        succeeds "help"
+
+        then:
+        outputContains("The ${description} method has been deprecated. This is scheduled to become an error in Gradle 6.0. Prefer disabling the task instead, see Task.setEnabled(boolean).")
+
+        where:
+        description                                | code
+        "TaskContainer.remove(Object)"             | "tasks.remove(foo)"
+        "TaskContainer.removeAll(Collection)"      | "tasks.removeAll([foo])"
+        "TaskContainer.clear()"                    | "tasks.clear()"
+        "TaskContainer.retainAll(Collection)"      | "tasks.retainAll([foo])"
+        "TaskContainer.iterator()#remove()"        | "def it = tasks.iterator(); it.next(); it.remove()"
+        "TaskContainer.whenObjectRemoved(Action)"  | "tasks.whenObjectRemoved new Action<Task>() { void execute(Task t) {} }"
+        "TaskContainer.whenObjectRemoved(Closure)" | "tasks.whenObjectRemoved {}"
     }
 }

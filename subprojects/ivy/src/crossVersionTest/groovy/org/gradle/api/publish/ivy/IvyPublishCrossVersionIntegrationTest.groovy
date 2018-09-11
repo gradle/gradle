@@ -94,7 +94,7 @@ repositories {
     if (${previous.fullySupportsIvyRepository}) {
         ivy { url "${repo.uri}" }
     } else {
-        add(Class.forName('org.apache.ivy.plugins.resolver.FileSystemResolver').newInstance()) {
+        add(Class.forName('org.apache.ivy.plugins.resolver.FileSystemResolver').getConstructor().newInstance()) {
             name = 'repo'
             addIvyPattern("${repoPath}/[organisation]/[module]/[revision]/ivy-[revision].xml")
             addArtifactPattern("${repoPath}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")

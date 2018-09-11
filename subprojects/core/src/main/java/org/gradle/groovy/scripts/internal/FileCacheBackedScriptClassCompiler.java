@@ -21,6 +21,7 @@ import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
@@ -217,7 +218,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         private final String contentHash;
 
         public BuildScriptRemapper(ClassVisitor cv, ScriptSource source, String originalClassName, String contentHash) {
-            super(ASM6, cv);
+            super(AsmConstants.ASM_LEVEL, cv);
             this.scriptSource = source;
             this.originalClassName = originalClassName;
             this.contentHash = contentHash;
@@ -340,7 +341,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         class MethodRenamer extends MethodVisitor {
 
             public MethodRenamer(final MethodVisitor mv) {
-                super(ASM6, mv);
+                super(AsmConstants.ASM_LEVEL, mv);
             }
 
             public void visitTypeInsn(int i, String name) {

@@ -17,10 +17,8 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Multimap;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
@@ -256,7 +254,6 @@ public class DefaultTaskProperties implements TaskProperties {
 
     private static class ValidationVisitor extends PropertyVisitor.Adapter {
         private final List<ValidatingTaskPropertySpec> taskPropertySpecs = new ArrayList<ValidatingTaskPropertySpec>();
-        private final Multimap<TaskValidationContext.Severity, String> messages = ArrayListMultimap.create();
 
         @Override
         public void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
@@ -271,10 +268,6 @@ public class DefaultTaskProperties implements TaskProperties {
         @Override
         public void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty) {
             taskPropertySpecs.add((ValidatingTaskPropertySpec) outputFileProperty);
-        }
-
-        public Multimap<TaskValidationContext.Severity, String> getMessages() {
-            return messages;
         }
 
         public List<ValidatingTaskPropertySpec> getTaskPropertySpecs() {

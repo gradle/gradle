@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
@@ -36,17 +37,19 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
     private static final VersionSelectorScheme VERSION_SELECTOR_SCHEME = new DefaultVersionSelectorScheme(VERSION_COMPARATOR, VERSION_PARSER);
 
     private final DependencyToComponentIdResolver resolver;
-    private DefaultResolvedVersionConstraint versionConstraint;
+    private final DefaultResolvedVersionConstraint resolvedVersionConstraint;
+    private final VersionConstraint versionConstraint;
     public ComponentIdResolveResult resolved;
 
     public TestModuleSelectorState(DependencyToComponentIdResolver resolver, VersionConstraint versionConstraint) {
         this.resolver = resolver;
-        this.versionConstraint = new DefaultResolvedVersionConstraint(versionConstraint, VERSION_SELECTOR_SCHEME);
+        this.resolvedVersionConstraint = new DefaultResolvedVersionConstraint(versionConstraint, VERSION_SELECTOR_SCHEME);
+        this.versionConstraint = versionConstraint;
     }
 
     @Override
     public ResolvedVersionConstraint getVersionConstraint() {
-        return versionConstraint;
+        return resolvedVersionConstraint;
     }
 
     @Override
@@ -71,9 +74,14 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
             return resolved;
         }
 
-        ResolvedVersionConstraint mergedConstraint = versionConstraint.withRejectSelector(allRejects);
+        ResolvedVersionConstraint mergedConstraint = resolvedVersionConstraint.withRejectSelector(allRejects);
         resolved = resolveVersion(mergedConstraint);
         return resolved;
+    }
+
+    @Override
+    public void failed(ModuleVersionResolveException failure) {
+        throw new UnsupportedOperationException("To be implemented");
     }
 
     @Override

@@ -58,6 +58,9 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
 
     /**
      * Adds an {@code Action} to be executed when a task is added to this collection.
+     * <p>
+     * Like {@link #all(Action)}, this method will cause all tasks in this container to be realized.
+     * </p>
      *
      * @param action The action to be executed
      * @return the supplied action
@@ -70,6 +73,7 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
      * parameter.
      *
      * @param closure The closure to be called
+     * @see #whenTaskAdded(Action)
      */
     @SuppressWarnings("UnusedDeclaration")
     void whenTaskAdded(Closure closure);

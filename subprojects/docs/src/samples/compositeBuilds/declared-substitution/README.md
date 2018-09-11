@@ -19,7 +19,9 @@ Take for example a single-project build 'unpublished', that produces a java util
 build.gradle:
 
 ```
-apply plugin: 'java'
+plugins {
+    id 'java'
+}
 ```
 
 When this build is included in a composite, it will attempt to substitute for the dependency module `undefined:unpublished` ('undefined' is the default value for `project.group`, and 'unpublished' is the root project name). Clearly this isn't going to be very useful in a composite build.

@@ -18,8 +18,8 @@ package org.gradle.plugins.ide.api;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.PropertiesTransformer;
+import org.gradle.util.ClosureBackedAction;
 
 import java.util.Properties;
 

@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -101,7 +102,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         return new RealisedMavenModuleResolveMetadata(metadata, variants, derivedVariants, configurations);
     }
 
-    private static RealisedConfigurationMetadata createConfiguration(VariantMetadataRules variantMetadataRules, ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> hierarchy, ImmutableList<MavenDependencyDescriptor> dependencies, boolean improvedPomSupport, ImmutableAttributes attributes, ImmutableCapabilities capabilities) {
+    private static RealisedConfigurationMetadata createConfiguration(VariantMetadataRules variantMetadataRules, ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableSet<String> hierarchy, ImmutableList<MavenDependencyDescriptor> dependencies, boolean improvedPomSupport, ImmutableAttributes attributes, ImmutableCapabilities capabilities) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = getArtifactsForConfiguration(componentId, name);
         RealisedConfigurationMetadata configuration = new RealisedConfigurationMetadata(componentId, name, transitive, visible, hierarchy, artifacts, ImmutableList.<ExcludeMetadata>of(), attributes, capabilities);
         ImmutableList<ModuleDependencyMetadata> dependencyMetadata = filterDependencies(componentId, configuration, dependencies, improvedPomSupport);
@@ -132,7 +133,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         for (MavenDependencyDescriptor dependency : dependencies) {
             if (isOptionalConfiguration && includeInOptionalConfiguration(dependency)) {
                 filteredDependencies.add(new DefaultMavenModuleResolveMetadata.OptionalConfigurationDependencyMetadata(config, componentId, dependency));
-            } else if (include(dependency, config.getHierarchy(), improvedPomSupport)) {
+            } else if (include(dependency, config.getHierarchy())) {
                 filteredDependencies.add(contextualize(config, componentId, dependency, improvedPomSupport));
             }
         }
@@ -155,9 +156,9 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
             && dependencyScope != MavenScope.System;
     }
 
-    private static boolean include(MavenDependencyDescriptor dependency, Collection<String> hierarchy, boolean improvedPomSupport) {
+    private static boolean include(MavenDependencyDescriptor dependency, Collection<String> hierarchy) {
         MavenScope dependencyScope = dependency.getScope();
-        if (dependency.isOptional() && !improvedPomSupport) {
+        if (dependency.isOptional()) {
             return false;
         }
         return hierarchy.contains(dependencyScope.getLowerName());

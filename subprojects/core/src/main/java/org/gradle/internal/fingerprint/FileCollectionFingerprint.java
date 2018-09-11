@@ -36,9 +36,9 @@ public interface FileCollectionFingerprint {
     boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, String title, boolean includeAdded, TaskStateChangeVisitor visitor);
 
     /**
-     * The underlying snapshots.
+     * The underlying fingerprints.
      */
-    Map<String, NormalizedFileSnapshot> getSnapshots();
+    Map<String, FileSystemLocationFingerprint> getFingerprints();
 
     /**
      * The Merkle hashes of the roots which make up this file collection fingerprint.

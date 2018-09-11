@@ -23,11 +23,15 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Delete;
+import org.gradle.internal.Factory;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.language.base.internal.plugins.CleanRule;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.concurrent.Callable;
 
@@ -74,7 +78,14 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
         buildOutputCleanupRegistry.registerOutputs(new Callable<FileCollection>() {
             @Override
             public FileCollection call() {
-                return clean.get().getTargetFiles();
+                ProjectState projectState = project.getServices().get(ProjectStateRegistry.class).stateFor(project);
+                return projectState.withMutableState(new Factory<FileCollection>() {
+                    @Nullable
+                    @Override
+                    public FileCollection create() {
+                        return clean.get().getTargetFiles();
+                    }
+                });
             }
         });
     }

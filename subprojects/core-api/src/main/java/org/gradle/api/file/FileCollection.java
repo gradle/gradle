@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Buildable;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.AntBuilderAware;
-import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;
@@ -108,53 +107,12 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
     FileCollection filter(Spec<? super File> filterSpec);
 
     /**
-     * <p>Converts this collection into an object of the specified type. Supported types are: {@code Collection}, {@code
-     * List}, {@code Set}, {@code Object[]}, {@code File[]}, {@code File}, and {@link FileTree}.</p>
-     *
-     * <p>You can call this method in your build script using the {@code as} operator.</p>
-     *
-     * @param type The type to convert to.
-     * @return The converted value.
-     * @throws org.codehaus.groovy.runtime.typehandling.GroovyCastException When an unsupported type is specified.
-     *
-     * @deprecated This method will be removed in Gradle 5.0. Type conversions with the Groovy {@code as} keyword will keep working
-     * for the collection types. For other conversions use {@link #getSingleFile()} and {@link #getAsFileTree()}.
-     */
-    @Deprecated
-    Object asType(Class<?> type);
-
-    /**
-     * <p>Adds another collection to this collection. This is an optional operation.</p>
-     *
-     * @param collection The collection to add.
-     * @return This
-     * @throws UnsupportedOperationException When this collection does not allow modification.
-     *
-     * @deprecated Use {@link ConfigurableFileCollection#from(Object...)} instead. You can create configurable file collections
-     * via {@link org.gradle.api.Project#files(Object...)}.
-     */
-    @Deprecated
-    FileCollection add(FileCollection collection) throws UnsupportedOperationException;
-
-    /**
      * Returns true if this collection is empty. Generally, calling this method is more efficient than calling {@code
      * getFiles().isEmpty()}.
      *
      * @return true if this collection is empty, false otherwise.
      */
     boolean isEmpty();
-
-    /**
-     * Throws a {@link StopExecutionException} if this collection is empty.
-     *
-     * @return this
-     * @throws StopExecutionException When this collection is empty.
-     *
-     * @deprecated You can use {@literal @}{@link org.gradle.api.tasks.SkipWhenEmpty} on a {@code FileCollection} property,
-     * or throw a {@code StopExecutionException} in your code manually instead.
-     */
-    @Deprecated
-    FileCollection stopExecutionIfEmpty() throws StopExecutionException;
 
     /**
      * Converts this collection to a {@link FileTree}. Generally, for each file in this collection, the resulting file

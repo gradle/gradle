@@ -81,4 +81,10 @@
     <suppress checks="ExplicitInitializationCheck"
               files=".*"/>
 
+    <!-- Ignore code from maven subproject under org.apache -->
+    <suppress checks="RegexpSingleline"
+              files=".*[/\\]subprojects[/\\]maven[/\\]src[/\\]main[/\\]java[/\\]org[/\\]apache[/\\].+"/>
+    <suppress checks="RegexpHeader"
+              files=".*[/\\]subprojects[/\\]maven[/\\]src[/\\]main[/\\]java[/\\]org[/\\]apache[/\\].+"/>
+
 </suppressions>

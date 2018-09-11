@@ -58,6 +58,10 @@ public class VersionSelectionReasons {
         return new DefaultComponentSelectionReason(descriptions);
     }
 
+    public static boolean isCauseExpected(ComponentSelectionDescriptor descriptor) {
+        return descriptor.getCause() == ComponentSelectionCause.REQUESTED || descriptor.getCause() == ComponentSelectionCause.ROOT;
+    }
+
     private static class DefaultComponentSelectionReason implements ComponentSelectionReasonInternal {
 
         private final ArrayDeque<ComponentSelectionDescriptorInternal> descriptions;
@@ -97,8 +101,7 @@ public class VersionSelectionReasons {
         }
 
         public boolean isExpected() {
-            ComponentSelectionCause cause = Iterables.getLast(descriptions).getCause();
-            return cause == ComponentSelectionCause.ROOT || cause == ComponentSelectionCause.REQUESTED;
+            return isCauseExpected(Iterables.getLast(descriptions));
         }
 
         public boolean isCompositeSubstitution() {

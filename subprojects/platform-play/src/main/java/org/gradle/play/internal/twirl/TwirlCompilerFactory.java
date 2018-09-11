@@ -30,8 +30,6 @@ public class TwirlCompilerFactory {
         String scalaCompatibilityVersion = playPlatform.getScalaPlatform().getScalaCompatibilityVersion();
         VersionedPlayTwirlAdapter playTwirlAdapter = createPlayTwirlAdapter(playPlatform);
         switch (PlayMajorVersion.forPlatform(playPlatform)) {
-            case PLAY_2_2_X:
-                return new TwirlCompilerAdapterV22X("2.2.6", scalaCompatibilityVersion, playTwirlAdapter);
             case PLAY_2_3_X:
                 return new TwirlCompilerAdapterV10X("1.0.4", scalaCompatibilityVersion, playTwirlAdapter);
             case PLAY_2_4_X:
@@ -47,8 +45,6 @@ public class TwirlCompilerFactory {
     public static VersionedPlayTwirlAdapter createPlayTwirlAdapter(PlayPlatform playPlatform) {
         String playVersion = playPlatform.getPlayVersion();
         switch (PlayMajorVersion.forPlatform(playPlatform)) {
-            case PLAY_2_2_X:
-                return new PlayTwirlAdapterV22X();
             case PLAY_2_3_X:
             case PLAY_2_4_X:
             case PLAY_2_5_X:

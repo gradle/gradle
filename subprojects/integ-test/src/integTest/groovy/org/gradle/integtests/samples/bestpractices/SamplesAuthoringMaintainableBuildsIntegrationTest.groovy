@@ -19,28 +19,37 @@ package org.gradle.integtests.samples.bestpractices
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
+import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.Unroll
 
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
+
+@Requires(KOTLIN_SCRIPT)
 class SamplesAuthoringMaintainableBuildsIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
+    @Unroll
     @UsesSample('userguide/bestPractices/taskDefinition')
-    def "can execute tasks"() {
-        executer.inDirectory(sample.dir)
+    def "can execute tasks with #dsl dsl"() {
+        executer.inDirectory(sample.dir.file(dsl))
 
         when:
         succeeds 'allDocs'
 
         then:
         outputContains('Generating all documentation...')
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample('userguide/bestPractices/taskGroupDescription')
-    def "can render a task's group and description in tasks report"() {
-        executer.inDirectory(sample.dir)
+    def "can render a task's group and description in tasks report with #dsl dsl"() {
+        executer.inDirectory(sample.dir.file(dsl))
 
         when:
         succeeds 'tasks'
@@ -49,12 +58,15 @@ class SamplesAuthoringMaintainableBuildsIntegrationTest extends AbstractSampleIn
         outputContains("""Documentation tasks
 -------------------
 generateDocs - Generates the HTML documentation for this project.""")
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     @Unroll
     @UsesSample('userguide/bestPractices/logicDuringConfiguration')
-    def "can execute logic during #lifecyclePhase"() {
-        executer.inDirectory(new File(sample.dir, subDirName))
+    def "can execute logic during #lifecyclePhase with #dsl dsl"() {
+        executer.inDirectory(sample.dir.file("$subDirName/$dsl"))
 
         when:
         succeeds 'printArtifactNames'
@@ -63,15 +75,17 @@ generateDocs - Generates the HTML documentation for this project.""")
         outputContains('log4j-1.2.17.jar')
 
         where:
-        subDirName | lifecyclePhase
-        'dont'     | 'configuration phase'
-        'do'       | 'execution phase'
+        dsl      | subDirName | lifecyclePhase
+        'groovy' | 'dont'     | 'configuration phase'
+        'kotlin' | 'dont'     | 'configuration phase'
+        'groovy' | 'do'       | 'execution phase'
+        'kotlin' | 'do'       | 'execution phase'
     }
 
     @Unroll
     @UsesSample('userguide/bestPractices/conditionalLogic')
-    def "can execute conditional logic for #exampleName"() {
-        executer.inDirectory(new File(sample.dir, subDirName))
+    def "can execute conditional logic for #exampleName with #dsl dsl"() {
+        executer.inDirectory(sample.dir.file("$subDirName/$dsl"))
         executer.withArgument('-PreleaseEngineer=true')
 
         when:
@@ -81,8 +95,10 @@ generateDocs - Generates the HTML documentation for this project.""")
         outputContains('Releasing to production...')
 
         where:
-        subDirName | exampleName
-        'dont'     | 'negative example'
-        'do'       | 'positive example'
+        dsl      | subDirName | exampleName
+        'groovy' | 'dont'     | 'negative example'
+        'kotlin' | 'dont'     | 'negative example'
+        'groovy' | 'do'       | 'positive example'
+        'kotlin' | 'do'       | 'positive example'
     }
 }

@@ -33,12 +33,16 @@ include::overview.adoc[leveloffset=+2]
 
 include::installation.adoc[leveloffset=+2]
 
+include::upgrading_from_gradle4.adoc[leveloffset=+2]
+
 
 == Using Gradle Builds
 
 include::command_line_interface.adoc[leveloffset=+2]
 
 include::build_environment.adoc[leveloffset=+2]
+
+include::directory_layout.adoc[leveloffset=+2]
 
 include::gradle_daemon.adoc[leveloffset=+2]
 

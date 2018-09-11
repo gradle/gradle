@@ -46,10 +46,12 @@ public class ContinuousOperation extends Operation {
         return start;
     }
 
+    @Override
     public long getElapsedTime() {
         return finish - start;
     }
 
+    @Override
     public String getDescription() {
         return description;
     }

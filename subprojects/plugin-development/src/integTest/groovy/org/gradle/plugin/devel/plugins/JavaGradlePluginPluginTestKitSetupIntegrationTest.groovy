@@ -68,8 +68,6 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
     def "can configure plugin and test source set by extension"() {
         given:
         buildFile << """
-            sourceSets.remove(sourceSets.main)
-
             sourceSets {
                 custom {
                     java {

@@ -321,6 +321,19 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
     }
 
     @Unroll
+    def "resolve prefer pair #permutation"() {
+        given:
+        def candidates = permutation.candidates
+        def expected = permutation.expected
+
+        expect:
+        checkScenarioResolution(expected, candidates)
+
+        where:
+        permutation << VersionRangeResolveTestScenarios.SCENARIOS_PREFER
+    }
+
+    @Unroll
     def "resolve reject pair #permutation"() {
         given:
         def candidates = permutation.candidates

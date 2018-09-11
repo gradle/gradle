@@ -16,17 +16,18 @@
 
 package org.gradle.language.cpp.internal
 
-import org.gradle.api.internal.file.TestFiles
+
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.language.cpp.CppSourceSet
 import org.gradle.nativeplatform.NativeDependencySet
 import org.gradle.nativeplatform.NativeLibraryBinary
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultCppSourceSetTest extends Specification {
-    def sourceSet = BaseLanguageSourceSet.create(CppSourceSet, DefaultCppSourceSet, new DefaultComponentSpecIdentifier("project", "cpp"), TestFiles.sourceDirectorySetFactory())
+    def sourceSet = BaseLanguageSourceSet.create(CppSourceSet, DefaultCppSourceSet, new DefaultComponentSpecIdentifier("project", "cpp"), TestUtil.objectFactory())
 
     def "has useful string representation"() {
         expect:

@@ -17,7 +17,12 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.HashCodeSerializer;
+import org.gradle.internal.serialize.Serializer;
 
 import javax.annotation.Nullable;
 
@@ -25,40 +30,49 @@ import javax.annotation.Nullable;
  * Identifies a type in a classloader hierarchy. The type is identified by its name,
  * the classloader hierarchy by its hash code.
  */
-public class ImplementationSnapshot implements ValueSnapshot {
-    private final String typeName;
-    private final HashCode classLoaderHash;
+public abstract class ImplementationSnapshot implements ValueSnapshot {
+    private static final String GENERATED_LAMBDA_CLASS_SUFFIX = "$$Lambda$";
 
-    public ImplementationSnapshot(String typeName, @Nullable HashCode classLoaderHash) {
+    private final String typeName;
+
+    public static ImplementationSnapshot of(Class<?> type, ClassLoaderHierarchyHasher classLoaderHasher) {
+        String className = type.getName();
+        return of(className, classLoaderHasher.getClassLoaderHash(type.getClassLoader()), type.isSynthetic() && isLambdaClassName(className));
+    }
+
+    public static ImplementationSnapshot of(String className, @Nullable HashCode classLoaderHash) {
+        return of(className, classLoaderHash, isLambdaClassName(className));
+    }
+
+    private static ImplementationSnapshot of(String typeName, @Nullable HashCode classLoaderHash, boolean lambda) {
+        if (classLoaderHash == null) {
+            return new UnknownClassloaderImplementationSnapshot(typeName);
+        }
+        if (lambda) {
+            return new LambdaImplementationSnapshot(typeName);
+        }
+        return new DefaultImplementationSnapshot(typeName, classLoaderHash);
+    }
+
+    private static boolean isLambdaClassName(String className) {
+        return className.contains(GENERATED_LAMBDA_CLASS_SUFFIX);
+    }
+
+    protected ImplementationSnapshot(String typeName) {
         this.typeName = typeName;
-        this.classLoaderHash = classLoaderHash;
     }
 
     public String getTypeName() {
         return typeName;
     }
 
-    public HashCode getClassLoaderHash() {
-        if (classLoaderHash == null) {
-            throw new NullPointerException("classLoaderHash");
-        }
-        return classLoaderHash;
-    }
+    @Nullable
+    public abstract HashCode getClassLoaderHash();
 
-    public boolean hasUnknownClassLoader() {
-        return classLoaderHash == null;
-    }
+    public abstract boolean isUnknown();
 
-    @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
-        if (classLoaderHash == null) {
-            hasher.markAsInvalid();
-        } else {
-            hasher.putString(ImplementationSnapshot.class.getName());
-            hasher.putString(typeName);
-            hasher.putHash(classLoaderHash);
-        }
-    }
+    @Nullable
+    public abstract String getUnknownReason();
 
     @Override
     public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
@@ -69,51 +83,272 @@ public class ImplementationSnapshot implements ValueSnapshot {
         return other;
     }
 
-    private boolean isSameSnapshot(Object o) {
-        if (this == o) {
+    protected abstract boolean isSameSnapshot(Object o);
+
+    private static class DefaultImplementationSnapshot extends ImplementationSnapshot {
+        private final HashCode classLoaderHash;
+
+        public DefaultImplementationSnapshot(String typeName, HashCode classLoaderHash) {
+            super(typeName);
+            this.classLoaderHash = classLoaderHash;
+        }
+
+        @Override
+        public void appendToHasher(BuildCacheHasher hasher) {
+            hasher.putString(ImplementationSnapshot.class.getName());
+            hasher.putString(getTypeName());
+            hasher.putHash(classLoaderHash);
+        }
+
+        @Override
+        protected boolean isSameSnapshot(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            DefaultImplementationSnapshot that = (DefaultImplementationSnapshot) o;
+
+            if (!getTypeName().equals(that.getTypeName())) {
+                return false;
+            }
+            return classLoaderHash.equals(that.classLoaderHash);
+        }
+
+        @Override
+        public HashCode getClassLoaderHash() {
+            return classLoaderHash;
+        }
+
+        @Override
+        public boolean isUnknown() {
+            return false;
+        }
+
+        @Override
+        @Nullable
+        public String getUnknownReason() {
+            return null;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            DefaultImplementationSnapshot that = (DefaultImplementationSnapshot) o;
+            if (this == o) {
+                return true;
+            }
+
+
+            if (!getTypeName().equals(that.getTypeName())) {
+                return false;
+            }
+            return classLoaderHash.equals(that.classLoaderHash);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = super.hashCode();
+            result = 31 * result + classLoaderHash.hashCode();
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return getTypeName() + "@" + classLoaderHash;
+        }
+    }
+
+    private static class LambdaImplementationSnapshot extends ImplementationSnapshot {
+
+        public LambdaImplementationSnapshot(String typeName) {
+            super(typeName);
+        }
+
+        @Override
+        public void appendToHasher(BuildCacheHasher hasher) {
+            hasher.markAsInvalid();
+        }
+
+        @Override
+        protected boolean isSameSnapshot(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            LambdaImplementationSnapshot that = (LambdaImplementationSnapshot) o;
+
+            return getTypeName().equals(that.getTypeName());
+        }
+
+        @Override
+        public HashCode getClassLoaderHash() {
+            return null;
+        }
+
+        @Override
+        public boolean isUnknown() {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+
+        @Override
+        @Nullable
+        public String getUnknownReason() {
+            return "was implemented by a Java lambda";
+        }
+
+        @Override
+        public boolean equals(Object o) {
             return false;
         }
 
-        ImplementationSnapshot that = (ImplementationSnapshot) o;
-
-        if (!typeName.equals(that.typeName)) {
-            return false;
+        @Override
+        public int hashCode() {
+            return getTypeName().hashCode();
         }
-        return classLoaderHash != null ? classLoaderHash.equals(that.classLoaderHash) : that.classLoaderHash == null;
+
+        @Override
+        public String toString() {
+            return getTypeName();
+        }
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) {
-            return false;
+    private static class UnknownClassloaderImplementationSnapshot extends ImplementationSnapshot {
+
+        public UnknownClassloaderImplementationSnapshot(String typeName) {
+            super(typeName);
         }
-        ImplementationSnapshot that = (ImplementationSnapshot) o;
-        if (classLoaderHash == null || that.classLoaderHash == null) {
-            return false;
+
+        @Override
+        public void appendToHasher(BuildCacheHasher hasher) {
+            hasher.markAsInvalid();
         }
-        if (this == o) {
+
+        @Override
+        protected boolean isSameSnapshot(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            UnknownClassloaderImplementationSnapshot that = (UnknownClassloaderImplementationSnapshot) o;
+
+            return getTypeName().equals(that.getTypeName());
+        }
+
+        @Override
+        public HashCode getClassLoaderHash() {
+            return null;
+        }
+
+        @Override
+        public boolean isUnknown() {
             return true;
         }
 
+        @Override
+        @Nullable
+        public String getUnknownReason() {
+            return "was loaded with an unknown classloader";
+        }
 
-        if (!typeName.equals(that.typeName)) {
+        @Override
+        public boolean equals(Object o) {
             return false;
         }
-        return classLoaderHash.equals(that.classLoaderHash);
+
+        @Override
+        public int hashCode() {
+            return getTypeName().hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return getTypeName() + "@" + "<Unknown classloader>";
+        }
     }
 
-    @Override
-    public int hashCode() {
-        int result = typeName.hashCode();
-        result = 31 * result + (classLoaderHash != null ? classLoaderHash.hashCode() : 0);
-        return result;
-    }
+    public static class SerializerImpl implements Serializer<ImplementationSnapshot> {
+        
+        private enum ImplementationSnapshotSerializer implements Serializer<ImplementationSnapshot> {
+            DEFAULT {
+                @Override
+                protected ImplementationSnapshot doRead(String typeName, Decoder decoder) throws Exception {
+                    HashCode classLoaderHash = hashCodeSerializer.read(decoder);
+                    return new DefaultImplementationSnapshot(typeName, classLoaderHash);
+                }
 
-    @Override
-    public String toString() {
-        return typeName + "@" + classLoaderHash;
+                @Override
+                public void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
+                    hashCodeSerializer.write(encoder, implementationSnapshot.getClassLoaderHash());
+                }
+            },
+            UNKNOWN_CLASSLOADER {
+                @Override
+                protected ImplementationSnapshot doRead(String typeName, Decoder decoder) {
+                    return new UnknownClassloaderImplementationSnapshot(typeName);
+                }
+            },
+            LAMBDA {
+                @Override
+                protected ImplementationSnapshot doRead(String typeName, Decoder decoder) {
+                    return new LambdaImplementationSnapshot(typeName);
+                }
+            };
+
+            @Override
+            public void write(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
+                encoder.writeString(implementationSnapshot.getTypeName());
+                writeAdditionalData(encoder, implementationSnapshot);
+            }
+
+            @Override
+            public ImplementationSnapshot read(Decoder decoder) throws Exception {
+                String typeName = decoder.readString();
+                return doRead(typeName, decoder);
+            }
+
+            protected final Serializer<HashCode> hashCodeSerializer = new HashCodeSerializer();
+
+            protected abstract ImplementationSnapshot doRead(String typeName, Decoder decoder) throws Exception;
+
+            protected void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
+            }
+        }
+
+        @Override
+        public ImplementationSnapshot read(Decoder decoder) throws Exception {
+            ImplementationSnapshotSerializer serializer = ImplementationSnapshotSerializer.values()[decoder.readSmallInt()];
+            return serializer.read(decoder);
+        }
+
+        @Override
+        public void write(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
+            ImplementationSnapshotSerializer serializer = determineSerializer(implementationSnapshot);
+            encoder.writeSmallInt(serializer.ordinal());
+            serializer.write(encoder, implementationSnapshot);
+        }
+
+        private ImplementationSnapshotSerializer determineSerializer(ImplementationSnapshot implementationSnapshot) {
+            if (implementationSnapshot instanceof DefaultImplementationSnapshot) {
+                return ImplementationSnapshotSerializer.DEFAULT;
+            }
+            if (implementationSnapshot instanceof UnknownClassloaderImplementationSnapshot) {
+                return ImplementationSnapshotSerializer.UNKNOWN_CLASSLOADER;
+            }
+            if (implementationSnapshot instanceof LambdaImplementationSnapshot) {
+                return ImplementationSnapshotSerializer.LAMBDA;
+            }
+            throw new IllegalArgumentException("Unknown implementation snapshot type: " + implementationSnapshot.getClass().getName());
+        }
     }
 }

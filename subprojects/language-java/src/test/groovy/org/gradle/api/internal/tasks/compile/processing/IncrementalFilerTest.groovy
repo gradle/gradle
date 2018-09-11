@@ -37,20 +37,12 @@ abstract class IncrementalFilerTest extends Specification {
 
     abstract IncrementalProcessingStrategy getStrategy(AnnotationProcessingResult result)
 
-    def "does a full rebuild when trying to read resources"() {
-        when:
-        filer.getResource(StandardLocation.SOURCE_OUTPUT, "", "foo.txt")
-
-        then:
-        result.fullRebuildCause == "incremental annotation processors are not allowed to read resources"
-    }
-
     def "does a full rebuild  when trying to write resources"() {
         when:
         filer.createResource(StandardLocation.SOURCE_OUTPUT, "", "foo.txt")
 
         then:
-        result.fullRebuildCause == "incremental annotation processors are not allowed to create resources"
+        result.fullRebuildCause == "an annotation processor generated a resource"
     }
 
     PackageElement pkg(String packageName) {

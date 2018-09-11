@@ -199,7 +199,6 @@ org:leaf2:2.5
       org.gradle.status = release (not requested)
    ]
    Selection reasons:
-      - Was requested
       - By conflict resolution : between versions 1.5, 2.5 and 1.0
 
 org:leaf2:2.5
@@ -330,7 +329,79 @@ org:leaf2:2.5
       org.gradle.status = release (not requested)
    ]
    Selection reasons:
-      - Was requested
+      - By conflict resolution : between versions 1.5, 2.5 and 1.0
+
+org:leaf2:2.5
+\\--- org:toplevel3:1.0
+     \\--- conf
+
+org:leaf2:1.0 -> 2.5
++--- org:middle1:1.0
+|    \\--- org:toplevel:1.0
+|         \\--- conf
+\\--- org:middle3:1.0
+     \\--- org:toplevel4:1.0
+          \\--- conf
+
+org:leaf2:1.5 -> 2.5
+\\--- org:toplevel2:1.0
+     \\--- conf
+"""
+    }
+
+    def "displays information about conflicting modules when failOnVersionConflict is used and afterResolve is used"() {
+        given:
+        mavenRepo.module("org", "leaf1").publish()
+        mavenRepo.module("org", "leaf2").publish()
+        mavenRepo.module("org", "leaf2", "1.5").publish()
+        mavenRepo.module("org", "leaf2", "2.5").publish()
+        mavenRepo.module("org", "leaf3").publish()
+        mavenRepo.module("org", "leaf4").publish()
+
+        mavenRepo.module("org", "middle1").dependsOnModules('leaf1', 'leaf2').publish()
+        mavenRepo.module("org", "middle2").dependsOnModules('leaf3', 'leaf4').publish()
+        mavenRepo.module("org", "middle3").dependsOnModules('leaf2').publish()
+
+        mavenRepo.module("org", "toplevel").dependsOnModules("middle1", "middle2").publish()
+
+        mavenRepo.module("org", "toplevel2").dependsOn("org", "leaf2", "1.5").publish()
+        mavenRepo.module("org", "toplevel3").dependsOn("org", "leaf2", "2.5").publish()
+
+        mavenRepo.module("org", "toplevel4").dependsOnModules("middle3").publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+
+            configurations {
+                conf {
+                    resolutionStrategy.failOnVersionConflict()
+                    incoming.afterResolve {
+                        // If executed, the below will cause the resolution failure on version conflict to be thrown, breaking dependency insight
+                        it.artifacts.artifacts 
+                    }
+                }
+            }
+            dependencies {
+                conf 'org:toplevel:1.0', 'org:toplevel2:1.0', 'org:toplevel3:1.0', 'org:toplevel4:1.0'
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "leaf2", "--configuration", "conf"
+
+        then:
+        outputContains """Dependency resolution failed because of conflicts between the following modules:
+   - org:leaf2:1.5
+   - org:leaf2:2.5
+   - org:leaf2:1.0
+
+org:leaf2:2.5
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
+   Selection reasons:
       - By conflict resolution : between versions 1.5, 2.5 and 1.0
 
 org:leaf2:2.5
@@ -382,17 +453,19 @@ dependencies {
         succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'
 
         then:
-        outputContains """The dependency locks are out-of-date:
-   - Did not resolve 'org:bar:1.0' which is part of the lock state
-   - Resolved 'org:foo:1.1' which is not part of the lock state
+        outputContains """org:foo:1.1 FAILED
+   Selection reasons:
+      - By constraint : Dependency locking
+   Failures:
+      - Dependency lock state out of date:
+          - Resolved 'org:foo:1.1' which is not part of the dependency lock state
 
-org:foo:1.1
-   variant "default" [
-      org.gradle.status = release (not requested)
-   ]
+org:foo:1.1 FAILED
+\\--- lockedConf
 
 org:foo:1.+ -> 1.1
-\\--- lockedConf"""
+\\--- lockedConf
+"""
     }
 
     def "displays a dependency insight report even if locks are out of date because of new constraint"() {
@@ -417,11 +490,7 @@ configurations {
 
 dependencies {    
     constraints {
-        lockedConf('org:foo') {
-            version {
-                prefer '1.1'
-            }
-        }
+        lockedConf('org:foo:1.1')
     }
     lockedConf 'org:foo:1.+'
 }
@@ -441,13 +510,13 @@ org:foo:1.0 FAILED
       - Could not resolve org:foo:1.0.:
           - Cannot find a version of 'org:foo' that satisfies the version constraints: 
                Dependency path ':insight-test:unspecified' --> 'org:foo:1.+'
-               Constraint path ':insight-test:unspecified' --> 'org:foo' prefers '1.1'
+               Constraint path ':insight-test:unspecified' --> 'org:foo:1.1'
                Constraint path ':insight-test:unspecified' --> 'org:foo' strictly '1.0' because of the following reason: dependency was locked to version '1.0'
 
 org:foo:1.0 FAILED
 \\--- lockedConf
 
-org:foo:1.1 (via constraint) FAILED
+org:foo:1.1 (by constraint) FAILED
    Failures:
       - Could not resolve org:foo:1.1. (already reported)
 
@@ -662,7 +731,6 @@ org.test:bar:2.0
       org.gradle.status = release (not requested)
    ]
    Selection reasons:
-      - Was requested
       - Selected by rule : why not?
 
 org:bar:1.0 -> org.test:bar:2.0
@@ -681,7 +749,6 @@ org:foo:2.0
       org.gradle.status = release (not requested)
    ]
    Selection reasons:
-      - Was requested
       - Selected by rule : because I am in control
 
 org:foo:1.0 -> 2.0
@@ -726,7 +793,6 @@ org:foo:1.0 -> 2.0
       org.gradle.status = release (not requested)
    ]
    Selection reasons:
-      - Was requested
       - Selected by rule : foo superceded by bar
 
 org:foo:1.0 -> org:bar:1.0
@@ -819,7 +885,6 @@ org:leaf:2.0 -> org:new-leaf:77
       org.gradle.status = release (not requested)
    ]
    Selection reasons:
-      - Was requested
       - Selected by rule : I am not sure I want to explain
 
 org:bar:1.0 -> 2.0
@@ -830,7 +895,6 @@ org:foo:2.0
       org.gradle.status = release (not requested)
    ]
    Selection reasons:
-      - Was requested
       - Selected by rule : I want to
 
 org:foo:1.0 -> 2.0
@@ -872,9 +936,6 @@ org:leaf:1.6
    variant "default" [
       org.gradle.status = integration (not requested)
    ]
-   Selection reasons:
-      - Was requested
-      - By conflict resolution : between versions 1.6 and 1.6
 
 org:leaf:1.+ -> 1.6
 \\--- org:top:1.0
@@ -1026,6 +1087,53 @@ org:leaf:1.0
 org:leaf:2.0 -> 1.0
 \\--- org:bar:1.0
      \\--- conf
+"""
+    }
+
+    def "forced version combined with constraint"() {
+        given:
+        mavenRepo.module("org", "leaf", "2.0").publish()
+        mavenRepo.module("org", "foo", "1.0").dependsOn('org', 'leaf', '1.0').publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            configurations.conf.resolutionStrategy.force 'org:leaf:2.0'
+            dependencies {
+                conf 'org:foo:1.0'
+                constraints {
+                    conf('org:leaf:1.4')
+                }
+            }
+            task insight(type: DependencyInsightReportTask) {
+                configuration = configurations.conf
+                setDependencySpec { it.requested.module == 'leaf' }
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        outputContains """
+org:leaf:2.0
+   variant "runtime+default" [
+      org.gradle.status = release (not requested)
+   ]
+   Selection reasons:
+      - Forced
+      - By constraint
+
+org:leaf:1.0 -> 2.0
+\\--- org:foo:1.0
+     \\--- conf
+
+org:leaf:1.4 -> 2.0
+\\--- conf
 """
     }
 
@@ -1804,7 +1912,7 @@ foo:foo:1.0
 
         then:
         if (!rejected) {
-            outputContains """org:foo:$selected (via constraint)
+            outputContains """org:foo:$selected (by constraint)
    variant "default" [
       org.gradle.status = release (not requested)
       Requested attributes not found in the selected variant:
@@ -1822,7 +1930,6 @@ org:foo -> $selected
          org.gradle.usage  = java-api
    ]
    Selection reasons:
-      - Was requested
       - By constraint : $rejected
 
 org:foo -> $selected
@@ -1876,7 +1983,6 @@ org:foo -> $selected
          org.gradle.usage  = java-api
    ]
    Selection reasons:
-      - Was requested
       - By constraint : ${rejected}${reason}
 
 org:foo -> $selected
@@ -2092,7 +2198,6 @@ org:bar:1.0
          org.gradle.usage  = java-api
    ]
    Selection reasons:
-      - Was requested
       - Rejection : 1.2 by rule because version 1.2 is bad
       - Rejection : 1.1 by rule because version 1.1 is bad
 
@@ -2132,7 +2237,7 @@ org:foo:[1.0,) -> 1.1
             }
 
             dependencies {
-                implementation 'org:bom:1.0'
+                implementation platform('org:bom:1.0')
                 implementation 'org:leaf'
             }
         """
@@ -2142,10 +2247,11 @@ org:foo:[1.0,) -> 1.1
 
         then:
         outputContains """
-org:leaf:1.0 (via constraint)
+org:leaf:1.0 (by constraint)
    variant "compile" [
-      org.gradle.status = release (not requested)
-      org.gradle.usage  = java-api
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
    ]
 
 org:leaf:1.0
@@ -2308,7 +2414,7 @@ org:bar:[1.0,) FAILED
 org:bar:[1.0,) FAILED
 \\--- compileClasspath
 
-org:foo: (via constraint) FAILED
+org:foo: (by constraint) FAILED
    Failures:
       - Could not resolve org:foo.:
           - Cannot find a version of 'org:foo' that satisfies the version constraints: 
@@ -2432,7 +2538,6 @@ org:foo:1.0
          org.gradle.usage  = java-api
    ]
    Selection reasons:
-      - Was requested
       - Rejection : version 1.2:
           - Attribute 'color' didn't match. Requested 'blue', was: 'red'
           - Attribute 'org.gradle.usage' didn't match. Requested 'java-api', was: not found
@@ -2446,6 +2551,100 @@ org:foo:[1.0,) -> 1.0
         where:
         type << ['configuration', 'dependency']
     }
+
+    def "reports 2nd level dependency conflicts"() {
+        given:
+        mavenRepo.with {
+            module('planet', 'earth', '3.0.0')
+                .dependsOn('planet', 'venus', '2.0.0')
+                .publish()
+            module('planet', 'jupiter', '5.0.0')
+                .dependsOn('planet', 'mercury', '1.0.2')
+                .dependsOn('planet', 'venus', '1.0')
+                .publish()
+            module('planet', 'mars', '4.0.0')
+                .dependsOn('planet', 'venus', '2.0.1')
+                .publish()
+            module('planet', 'mercury', '1.0.0').publish()
+            module('planet', 'mercury', '1.0.1').publish()
+            module('planet', 'mercury', '1.0.2').publish()
+            module('planet', 'venus', '2.0.0')
+                .dependsOn('planet', 'mercury', '1.0.0')
+                .publish()
+            module('planet', 'venus', '2.0.1')
+                .dependsOn('planet', 'mercury', '1.0.1')
+                .publish()
+        }
+
+        file("build.gradle") << """
+            apply plugin: 'java-library'
+
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+
+            dependencies {
+                implementation 'planet:earth:3.0.0'
+                implementation 'planet:mars:4.0.0'
+                implementation 'planet:jupiter:5.0.0'
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "mercury"
+
+        then:
+        outputContains """> Task :dependencyInsight
+planet:mercury:1.0.2
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+      Requested attributes not found in the selected variant:
+         org.gradle.usage  = java-api
+   ]
+   Selection reasons:
+      - By conflict resolution : between versions 1.0.2 and 1.0.1
+
+planet:mercury:1.0.2
+\\--- planet:jupiter:5.0.0
+     \\--- compileClasspath
+
+planet:mercury:1.0.1 -> 1.0.2
+\\--- planet:venus:2.0.1 (conflict resolution between versions 2.0.0, 2.0.1 and 1.0)
+     +--- planet:earth:3.0.0
+     |    \\--- compileClasspath
+     +--- planet:mars:4.0.0
+     |    \\--- compileClasspath
+     \\--- planet:jupiter:5.0.0
+          \\--- compileClasspath
+"""
+        when:
+        run "dependencyInsight", "--dependency", "venus"
+
+        then:
+        outputContains """> Task :dependencyInsight
+planet:venus:2.0.1
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+      Requested attributes not found in the selected variant:
+         org.gradle.usage  = java-api
+   ]
+   Selection reasons:
+      - By conflict resolution : between versions 2.0.0, 2.0.1 and 1.0
+
+planet:venus:2.0.1
+\\--- planet:mars:4.0.0
+     \\--- compileClasspath
+
+planet:venus:1.0 -> 2.0.1
+\\--- planet:jupiter:5.0.0
+     \\--- compileClasspath
+
+planet:venus:2.0.0 -> 2.0.1
+\\--- planet:earth:3.0.0
+     \\--- compileClasspath
+"""
+    }
+
 
     @CompileStatic
     static String decodeURI(URI uri) {

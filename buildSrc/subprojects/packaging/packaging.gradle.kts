@@ -23,16 +23,16 @@ tasks.withType(Test::class.java).named("test").configure {
 }
 
 gradlePlugin {
-    (plugins) {
-        "minify" {
+    plugins {
+        register("minify") {
             id = "gradlebuild.minify"
             implementationClass = "org.gradle.gradlebuild.packaging.MinifyPlugin"
         }
-        "shadedJar" {
+        register("shadedJar") {
             id = "gradlebuild.shaded-jar"
             implementationClass = "org.gradle.gradlebuild.packaging.ShadedJarPlugin"
         }
-        "apiMetadata" {
+        register("apiMetadata") {
             id = "gradlebuild.api-metadata"
             implementationClass = "org.gradle.gradlebuild.packaging.ApiMetadataPlugin"
         }

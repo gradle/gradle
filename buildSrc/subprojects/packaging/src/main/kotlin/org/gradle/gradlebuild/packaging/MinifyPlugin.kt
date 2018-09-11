@@ -19,6 +19,9 @@ package org.gradle.gradlebuild.packaging
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
+import org.gradle.gradlebuild.packaging.Attributes.artifactType
+import org.gradle.gradlebuild.packaging.Attributes.minified
+
 import org.gradle.kotlin.dsl.*
 
 
@@ -57,7 +60,7 @@ open class MinifyPlugin : Plugin<Project> {
                          */
                         from.attribute(minified, false).attribute(artifactType, "jar")
                         to.attribute(minified, true).attribute(artifactType, "jar")
-                        artifactTransform(MinifyTransform::class.java) {
+                        artifactTransform(MinifyTransform::class) {
                             params(keepPatterns)
                         }
                     }

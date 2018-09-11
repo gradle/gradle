@@ -48,6 +48,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskValidationException;
 import org.gradle.api.tasks.VerificationTask;
 import org.gradle.internal.Cast;
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.ClassPath;
@@ -110,7 +111,7 @@ import java.util.Map;
 public class ValidateTaskProperties extends ConventionTask implements VerificationTask {
     private FileCollection classes;
     private FileCollection classpath;
-    private RegularFileProperty outputFile = newOutputFile();
+    private RegularFileProperty outputFile = getProject().getObjects().fileProperty();
     private boolean ignoreFailures;
     private boolean failOnWarning;
 
@@ -343,7 +344,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
         private final Collection<String> classNames;
 
         public TaskNameCollectorVisitor(Collection<String> classNames) {
-            super(Opcodes.ASM6);
+            super(AsmConstants.ASM_LEVEL);
             this.classNames = classNames;
         }
 

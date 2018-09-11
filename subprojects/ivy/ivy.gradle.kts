@@ -34,6 +34,7 @@ dependencies {
     integTestImplementation(project(":ear"))
     integTestRuntimeOnly(project(":resourcesS3"))
     integTestRuntimeOnly(project(":resourcesSftp"))
+    integTestRuntimeOnly(project(":apiMetadata"))
     testFixturesImplementation(project(":internalIntegTesting"))
 }
 

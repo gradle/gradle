@@ -21,7 +21,6 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
-import org.gradle.execution.TaskExecutionGraphInternal
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -31,31 +30,28 @@ import spock.lang.Specification
 class EventFiringTaskExecuterTest extends Specification {
 
     def buildOperationExecutor = new TestBuildOperationExecutor()
-    def taskExecutionListenerSource = Mock(TaskExecutionListener)
-    def taskExecutionGraph = Stub(TaskExecutionGraphInternal) {
-        getTaskExecutionListenerSource() >> taskExecutionListenerSource
-    }
+    def taskExecutionListener = Mock(TaskExecutionListener)
     def delegate = Mock(TaskExecuter)
     def task = Mock(TaskInternal)
     def state = Mock(TaskStateInternal)
     def executionContext = Mock(TaskExecutionContext)
 
-    def executer = new EventFiringTaskExecuter(buildOperationExecutor, taskExecutionGraph, delegate)
+    def executer = new EventFiringTaskExecuter(buildOperationExecutor, taskExecutionListener, delegate)
 
     def "notifies task listeners"() {
         when:
         executer.execute(task, state, executionContext)
 
         then:
-        1 * taskExecutionListenerSource.beforeExecute(task)
+        1 * taskExecutionListener.beforeExecute(task)
         _ * task.getIdentityPath() >> Path.path(":a")
 
         then:
         1 * delegate.execute(task, state, executionContext)
 
         then:
-        1 * taskExecutionListenerSource.afterExecute(task, state)
-        0 * taskExecutionListenerSource._
+        1 * taskExecutionListener.afterExecute(task, state)
+        0 * taskExecutionListener._
 
         and:
         buildOperationExecutor.operations[0].name == ":a"
@@ -71,14 +67,14 @@ class EventFiringTaskExecuterTest extends Specification {
         executer.execute(task, state, executionContext)
 
         then:
-        1 * taskExecutionListenerSource.beforeExecute(task)
+        1 * taskExecutionListener.beforeExecute(task)
         _ * task.getIdentityPath() >> Path.path(":a")
 
         then:
         1 * delegate.execute(task, state, executionContext)
 
         then:
-        1 * taskExecutionListenerSource.afterExecute(task, state) >> {
+        1 * taskExecutionListener.afterExecute(task, state) >> {
             throw failure
         }
 

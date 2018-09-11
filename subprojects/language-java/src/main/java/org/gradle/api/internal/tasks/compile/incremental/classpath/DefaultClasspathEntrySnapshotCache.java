@@ -17,11 +17,11 @@
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.MinimalPersistentCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.FileSystemSnapshotter;
 
 import java.io.File;
 import java.util.Map;
@@ -40,11 +40,10 @@ public class DefaultClasspathEntrySnapshotCache implements ClasspathEntrySnapsho
         Map<File, ClasspathEntrySnapshot> out = Maps.newLinkedHashMap();
         for (Map.Entry<File, HashCode> entry : fileHashes.entrySet()) {
             ClasspathEntrySnapshotData snapshotData = cache.get(entry.getValue());
-            if (snapshotData == null) {
-                throw new IllegalStateException("No incremental compile snapshot data available for " + entry.getKey() + " with hash " + entry.getValue() + ".");
+            if (snapshotData != null) {
+                ClasspathEntrySnapshot snapshot = new ClasspathEntrySnapshot(snapshotData);
+                out.put(entry.getKey(), snapshot);
             }
-            ClasspathEntrySnapshot snapshot = new ClasspathEntrySnapshot(snapshotData);
-            out.put(entry.getKey(), snapshot);
         }
         return out;
     }

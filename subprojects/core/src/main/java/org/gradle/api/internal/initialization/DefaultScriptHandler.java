@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DynamicObjectAware;
@@ -46,7 +45,6 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     // The following values are relatively expensive to create, so defer creation until required
     private RepositoryHandler repositoryHandler;
     private DependencyHandler dependencyHandler;
-    private DependencyLockingHandler dependencyLockingHandler;
     private ConfigurationContainer configContainer;
     private Configuration classpathConfiguration;
     private DynamicObject dynamicObject;

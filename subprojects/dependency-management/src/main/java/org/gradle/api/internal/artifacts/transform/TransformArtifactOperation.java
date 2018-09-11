@@ -33,19 +33,23 @@ class TransformArtifactOperation implements RunnableBuildOperation {
     private final ComponentArtifactIdentifier artifactId;
     private final File file;
     private final ArtifactTransformer transform;
-    private final BuildOperationCategory category;
+    private final ArtifactTransformListener transformListener;
     private Throwable failure;
     private List<File> result;
 
-    TransformArtifactOperation(ComponentArtifactIdentifier artifactId,  File file, ArtifactTransformer transform, BuildOperationCategory category) {
+    TransformArtifactOperation(ComponentArtifactIdentifier artifactId, File file, ArtifactTransformer transform, ArtifactTransformListener transformListener) {
         this.artifactId = artifactId;
         this.file = file;
         this.transform = transform;
-        this.category = category;
+        this.transformListener = transformListener;
     }
 
     @Override
     public void run(@Nullable BuildOperationContext context) {
+        boolean hasCachedResult = transform.hasCachedResult(file);
+        if (!hasCachedResult) {
+            transformListener.beforeTransform(transform, artifactId, file);
+        }
         try {
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Executing transform {} on artifact {}", transform.getDisplayName(), artifactId.getDisplayName());
@@ -54,6 +58,9 @@ class TransformArtifactOperation implements RunnableBuildOperation {
         } catch (Throwable t) {
             failure = t;
         }
+        if (!hasCachedResult) {
+            transformListener.afterTransform(transform, artifactId, file, failure);
+        }
     }
 
     @Override
@@ -61,7 +68,7 @@ class TransformArtifactOperation implements RunnableBuildOperation {
         String displayName = "Transform " + artifactId.getDisplayName() + " with " + transform.getDisplayName();
         return BuildOperationDescriptor.displayName(displayName)
             .progressDisplayName(displayName)
-            .operationType(category);
+            .operationType(BuildOperationCategory.UNCATEGORIZED);
     }
 
     @Nullable

@@ -16,8 +16,8 @@
 
 package org.gradle.language.nativeplatform.internal.incremental
 
-import org.gradle.api.internal.changedetection.state.TestFileSnapshotter
 import org.gradle.internal.serialize.SerializerSpec
+import org.gradle.internal.snapshot.impl.TestFileSnapshotter
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.IncludeDirectivesSerializer
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

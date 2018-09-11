@@ -64,17 +64,17 @@ open class TestFixturesPlugin : Plugin<Project> {
     fun Project.configureAsProducer() {
 
         configurations {
-            "outputDirs" {}
+            create("outputDirs")
 
-            "testFixturesCompile" { extendsFrom(configurations["compile"]) }
-            "testFixturesImplementation" { extendsFrom(configurations["implementation"]) }
-            "testFixturesRuntime" { extendsFrom(configurations["runtime"]) }
+            create("testFixturesCompile") { extendsFrom(configurations["compile"]) }
+            create("testFixturesImplementation") { extendsFrom(configurations["implementation"]) }
+            create("testFixturesRuntime") { extendsFrom(configurations["runtime"]) }
 
             // Expose configurations that include the test fixture classes for clients to use
-            "testFixturesUsageCompile" {
+            create("testFixturesUsageCompile") {
                 extendsFrom(configurations["testFixturesCompile"], configurations["outputDirs"])
             }
-            "testFixturesUsageRuntime" {
+            create("testFixturesUsageRuntime") {
                 extendsFrom(configurations["testFixturesRuntime"], configurations["testFixturesUsageCompile"])
             }
 
@@ -83,10 +83,10 @@ open class TestFixturesPlugin : Plugin<Project> {
             "testRuntime" { extendsFrom(configurations["testFixturesUsageRuntime"]) }
         }
 
-        val outputDirs by configurations.getting
-        val testFixturesCompile by configurations.getting
-        val testFixturesRuntime by configurations.getting
-        val testFixturesUsageCompile by configurations.getting
+        val outputDirs by configurations
+        val testFixturesCompile by configurations
+        val testFixturesRuntime by configurations
+        val testFixturesUsageCompile by configurations
 
         val main by java.sourceSets
         val testFixtures by java.sourceSets.creating {

@@ -25,7 +25,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.filewatch.FileWatcher;
 import org.gradle.internal.filewatch.FileWatcherEvent;
 import org.gradle.internal.filewatch.FileWatcherListener;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
 
 import java.io.File;
@@ -60,10 +59,10 @@ class WatchServiceRegistrar implements FileWatcherListener {
     private final WatchPointsRegistry watchPointsRegistry;
     private final HashMap<Path, WatchKey> watchKeys = new HashMap<Path, WatchKey>();
 
-    WatchServiceRegistrar(WatchService watchService, FileWatcherListener delegate, FileSystem fileSystem) {
+    WatchServiceRegistrar(WatchService watchService, FileWatcherListener delegate) {
         this.watchService = watchService;
         this.delegate = delegate;
-        this.watchPointsRegistry = new WatchPointsRegistry(!FILE_TREE_WATCHING_SUPPORTED, fileSystem);
+        this.watchPointsRegistry = new WatchPointsRegistry(!FILE_TREE_WATCHING_SUPPORTED);
     }
 
     private static WatchEvent.Modifier[] instantiateWatchModifiers() {

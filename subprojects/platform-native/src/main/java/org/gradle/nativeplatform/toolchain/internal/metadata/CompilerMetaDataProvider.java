@@ -23,7 +23,7 @@ import java.util.List;
 
 public interface CompilerMetaDataProvider<T extends CompilerMetadata> {
 
-    SearchResult<T> getCompilerMetaData(File binary, List<String> additionalArgs);
+    SearchResult<T> getCompilerMetaData(File binary, List<String> additionalArgs, List<File> searchPath);
 
     CompilerType getCompilerType();
 

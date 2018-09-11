@@ -51,7 +51,7 @@ class DefaultFileAccessTimeJournalTest extends Specification {
 
     @Subject FileAccessTimeJournal journal = new DefaultFileAccessTimeJournal(cacheRepository, cacheDecoratorFactory)
 
-    def file = tmpDir.createFile("a/1.txt")
+    def file = tmpDir.createFile("a/1.txt").makeOlder()
 
     def "reads previously written value"() {
         when:
@@ -70,23 +70,6 @@ class DefaultFileAccessTimeJournalTest extends Specification {
         journal.getLastAccessTime(file) == 42
     }
 
-    def "falls back to and stores inception time when no value was written previously"() {
-        given:
-        def startTime = System.currentTimeMillis()
-
-        when:
-        def inceptionTimestamp = loadInceptionTimestamp()
-
-        then:
-        inceptionTimestamp <= startTime
-
-        when:
-        file.makeOlder()
-
-        then:
-        journal.getLastAccessTime(file) == inceptionTimestamp
-    }
-
     def "deletes last access time when asked to do so"() {
         given:
         def inceptionTimestamp = loadInceptionTimestamp()
@@ -99,20 +82,24 @@ class DefaultFileAccessTimeJournalTest extends Specification {
         journal.getLastAccessTime(file) == inceptionTimestamp
     }
 
-    def "loads and uses previously stored inception time"() {
+    def "loads and uses previously stored inception time unless file has a later modification time"() {
         given:
-        journal.stop()
-        writeInceptionTimestamp(42)
-        journal = new DefaultFileAccessTimeJournal(cacheRepository, cacheDecoratorFactory)
+        def inceptionTimestamp = System.currentTimeMillis() - 30_000
+        file.lastModified = inceptionTimestamp - 30_000
 
         when:
-        def inceptionTimestamp = loadInceptionTimestamp()
-
-        then:
-        inceptionTimestamp == 42
+        journal.stop()
+        writeInceptionTimestamp(inceptionTimestamp)
+        journal = new DefaultFileAccessTimeJournal(cacheRepository, cacheDecoratorFactory)
 
         then:
         journal.getLastAccessTime(file) == inceptionTimestamp
+
+        when:
+        file.lastModified = System.currentTimeMillis()
+
+        then:
+        journal.getLastAccessTime(file) == file.lastModified()
     }
 
     private long loadInceptionTimestamp() {

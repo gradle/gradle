@@ -26,26 +26,31 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         "1.6",
         "1.7",
         "1.7.4",
-    ]
-
-    private static final List<String> SUPPORTED = [
         "1.8",
         "1.9",
         // "1.9.1", // https://github.com/gradle/dotcom/issues/1213
         "1.10",
         "1.10.1",
         "1.10.2",
-        "1.10.3",
+        "1.10.3"
+    ]
+
+    private static final List<String> GRACEFULLY_UNSUPPORTED_WITHOUT_FAILURE = [
         "1.11",
         "1.12",
-        "1.12.1",
+        "1.12.1"
+    ]
+
+    private static final List<String> SUPPORTED = [
         "1.13",
         "1.13.1",
         "1.13.2",
         "1.13.3",
         "1.13.4",
         "1.14",
-        "1.15.1"
+        "1.15.1",
+        "1.15.2",
+        "1.16"
     ]
 
     @Unroll
@@ -61,6 +66,18 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     }
 
     @Unroll
+    "gracefully succeeds without capturing scan with unsupported version #version"() {
+        when:
+        usePluginVersion version
+
+        then:
+        build("--scan").output.contains("Build scan data will not be captured due to version $version of the build scan plugin being incompatible with Gradle")
+
+        where:
+        version << GRACEFULLY_UNSUPPORTED_WITHOUT_FAILURE
+    }
+
+    @Unroll
     "gracefully fails with unsupported version #version"() {
         when:
         usePluginVersion version
@@ -68,7 +85,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         then:
         buildAndFail("--scan").output.contains("""
 > Failed to apply plugin [id 'com.gradle.build-scan']
-   > This version of Gradle requires version 1.8.0 of the build scan plugin or later.
+   > This version of Gradle requires version 1.13.0 of the build scan plugin or later.
      Please see https://gradle.com/scans/help/gradle-incompatible-plugin-version for more information.
 """)
 

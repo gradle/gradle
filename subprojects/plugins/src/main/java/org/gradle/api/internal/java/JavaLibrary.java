@@ -31,19 +31,14 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
-import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
-import org.gradle.api.internal.model.DefaultObjectFactory;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -58,9 +53,6 @@ import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_N
  * A SoftwareComponent representing a library that runs on a java virtual machine.
  */
 public class JavaLibrary implements SoftwareComponentInternal {
-
-    // This must ONLY be used in the deprecated constructor, for backwards compatibility
-    private final static ObjectFactory DEPRECATED_OBJECT_FACTORY = new DefaultObjectFactory(DirectInstantiator.INSTANCE, NamedObjectInstantiator.INSTANCE);
 
     private final Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
     private final UsageContext runtimeUsage;
@@ -79,22 +71,6 @@ public class JavaLibrary implements SoftwareComponentInternal {
         if (artifact != null) {
             this.artifacts.add(artifact);
         }
-    }
-
-    /**
-     * This constructor should not be used, and is maintained only for backwards
-     * compatibility with the widely used Shadow plugin.
-     */
-    @Deprecated
-    public JavaLibrary(PublishArtifact jarArtifact, DependencySet runtimeDependencies) {
-        DeprecationLogger.nagUserOfDeprecatedThing("A constructor for `org.gradle.api.internal.java.JavaLibrary` is used by Shadow plugin v1.2.x, and has been preserved for compatibility",
-            "If you're using the Shadow plugin, try upgrading to v2.x");
-        this.artifacts.add(jarArtifact);
-        this.objectFactory = DEPRECATED_OBJECT_FACTORY;
-        this.attributesFactory = new DefaultImmutableAttributesFactory(new BackwardsCompatibilityIsolatableFactory(), NamedObjectInstantiator.INSTANCE);
-        this.runtimeUsage = new BackwardsCompatibilityUsageContext(Usage.JAVA_RUNTIME, runtimeDependencies);
-        this.compileUsage = new BackwardsCompatibilityUsageContext(Usage.JAVA_API, runtimeDependencies);
-        this.configurations = null;
     }
 
     @VisibleForTesting

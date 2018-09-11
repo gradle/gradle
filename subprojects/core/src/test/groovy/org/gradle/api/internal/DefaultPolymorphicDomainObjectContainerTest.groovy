@@ -20,12 +20,11 @@ import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.internal.reflect.DirectInstantiator
 
-import spock.lang.Specification
-
-class DefaultPolymorphicDomainObjectContainerTest extends Specification {
+class DefaultPolymorphicDomainObjectContainerTest extends AbstractNamedDomainObjectContainerSpec<Person> {
     def fred = new DefaultPerson(name: "fred")
     def barney = new DefaultPerson(name: "barney")
     def agedFred = new DefaultAgeAwarePerson(name: "fred", age: 42)
@@ -33,9 +32,25 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
 
     def container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, DirectInstantiator.INSTANCE)
 
+    @Override
+    final NamedDomainObjectContainer<Person> getContainer() {
+        return container
+    }
+
+    Person a = new DefaultPerson(name: "a")
+    Person b = new DefaultPerson(name: "b")
+    Person c = new DefaultPerson(name: "c")
+    Person d = new DefaultCtorNamedPerson("d")
+    boolean externalProviderAllowed = true
+
+    @Override
+    List<Person> iterationOrder(Person... elements) {
+        return elements.sort { it.name }
+    }
+
     interface Person extends Named {}
 
-    static class DefaultPerson implements Person {
+    static abstract class AbstractPerson implements Person {
         String name
         String toString() { name }
 
@@ -49,11 +64,14 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
         }
     }
 
+    static class DefaultPerson extends AbstractPerson {
+    }
+
     interface AgeAwarePerson extends Person {
         int getAge()
     }
 
-    static class DefaultAgeAwarePerson extends DefaultPerson implements AgeAwarePerson {
+    static class DefaultAgeAwarePerson extends AbstractPerson implements AgeAwarePerson {
         int age
 
         boolean equals(DefaultAgeAwarePerson other) {
@@ -71,7 +89,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
 
     interface CtorNamedPerson extends Person {}
 
-    static class DefaultCtorNamedPerson extends DefaultPerson implements CtorNamedPerson {
+    static class DefaultCtorNamedPerson extends AbstractPerson implements CtorNamedPerson {
         DefaultCtorNamedPerson(String name) {
             this.name = name
         }
@@ -328,6 +346,31 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
             fred: "DefaultPolymorphicDomainObjectContainerTest.Person",
             bob: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson"
         )
+    }
+
+    def "can find elements added by rules"() {
+        given:
+        container.registerFactory(Person, { new DefaultPerson(name: it) } as NamedDomainObjectFactory)
+        container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it) } as NamedDomainObjectFactory)
+
+        container.addRule("adds people") { elementName ->
+            if (elementName == "fred") {
+                container.register("fred", Person)
+            } else if (elementName == "bob") {
+                container.create("bob", AgeAwarePerson)
+            }
+        }
+        when:
+        def fred = container.named("fred")
+        def bob = container.named("bob")
+        bob.configure {
+            it.age = 50
+        }
+        then:
+        fred.present
+        fred.get().name == "fred"
+        bob.present
+        bob.get().age == 50
     }
 
     protected void assertSchemaIs(Map<String, String> expectedSchema) {

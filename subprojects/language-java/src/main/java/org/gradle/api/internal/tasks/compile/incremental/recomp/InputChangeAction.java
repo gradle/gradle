@@ -19,17 +19,21 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
+import java.io.File;
+
 import static org.gradle.internal.FileUtils.hasExtension;
 
 class InputChangeAction implements Action<InputFileDetails> {
     private final RecompilationSpec spec;
     private final JavaChangeProcessor javaChangeProcessor;
     private final AnnotationProcessorChangeProcessor annotationProcessorChangeProcessor;
+    private final ResourceChangeProcessor resourceChangeProcessor;
 
-    InputChangeAction(RecompilationSpec spec, JavaChangeProcessor javaChangeProcessor, AnnotationProcessorChangeProcessor annotationProcessorChangeProcessor) {
+    InputChangeAction(RecompilationSpec spec, JavaChangeProcessor javaChangeProcessor, AnnotationProcessorChangeProcessor annotationProcessorChangeProcessor, ResourceChangeProcessor resourceChangeProcessor) {
         this.spec = spec;
         this.javaChangeProcessor = javaChangeProcessor;
         this.annotationProcessorChangeProcessor = annotationProcessorChangeProcessor;
+        this.resourceChangeProcessor = resourceChangeProcessor;
     }
 
     @Override
@@ -38,10 +42,13 @@ class InputChangeAction implements Action<InputFileDetails> {
             return;
         }
 
-        annotationProcessorChangeProcessor.processChange(input, spec);
-
-        if (hasExtension(input.getFile(), ".java")) {
+        File file = input.getFile();
+        if (hasExtension(file, ".java")) {
             javaChangeProcessor.processChange(input, spec);
+        } else if (hasExtension(file, ".jar") || hasExtension(file, ".class")) {
+            annotationProcessorChangeProcessor.processChange(input, spec);
+        } else {
+            resourceChangeProcessor.processChange(input, spec);
         }
     }
 }

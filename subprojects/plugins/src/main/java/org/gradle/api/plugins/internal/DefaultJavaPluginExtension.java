@@ -19,7 +19,6 @@ package org.gradle.api.plugins.internal;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.tasks.SourceSetContainer;
 
 public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private final JavaPluginConvention convention;
@@ -46,10 +45,5 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     @Override
     public void setTargetCompatibility(JavaVersion value) {
         convention.setTargetCompatibility(value);
-    }
-
-    @Override
-    public SourceSetContainer getSourceSets() {
-        return convention.getSourceSets();
     }
 }

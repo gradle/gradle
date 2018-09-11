@@ -24,8 +24,8 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.specs.Spec;
+import org.gradle.util.ClosureBackedAction;
 
 import javax.annotation.Nullable;
 import java.io.FilterReader;
@@ -63,7 +63,7 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
-    public void setDuplicatesStrategy(@Nullable DuplicatesStrategy strategy) {
+    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
         getDelegateCopySpec().setDuplicatesStrategy(strategy);
     }
 

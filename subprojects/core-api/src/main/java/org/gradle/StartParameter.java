@@ -37,6 +37,7 @@ import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -855,9 +856,11 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Returns true when console is interactive.
      *
      * @since 4.3
+     * @deprecated This flag is no longer used and simply defaults to 'false'.
      */
-    @Incubating
+    @Deprecated
     public boolean isInteractive() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("StartParameter.isInteractive()");
         return interactive;
     }
 
@@ -865,9 +868,11 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Specifies whether console is interactive.
      *
      * @since 4.3
+     * @deprecated This flag is no longer used.
      */
-    @Incubating
+    @Deprecated
     public void setInteractive(boolean interactive) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("StartParameter.setInteractive()");
         this.interactive = interactive;
     }
 

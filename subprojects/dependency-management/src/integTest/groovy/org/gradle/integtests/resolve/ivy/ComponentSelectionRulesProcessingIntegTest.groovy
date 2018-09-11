@@ -275,7 +275,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         // because of the IvyModuleDescriptor rule
         @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy"),
         // because of branch
-        @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="false"),
+        @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="false")
     ])
     def "changed component metadata becomes visible when module is refreshed" () {
 
@@ -404,7 +404,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             }
             configurations.add(configurations.conf.copy())
 
-            task('checkDeps', overwrite: true) {
+            task('assertDeps') {
                 doLast {
                     assert configurations.conf.files*.name == ['api-1.1.jar']
                     assert configurations.confCopy.files*.name == ['api-1.1.jar']
@@ -427,7 +427,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         }
 
         then:
-        checkDependencies()
+        checkDependencies("assertDeps")
     }
 
     def "can provide component selection rule as closure" () {

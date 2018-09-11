@@ -21,10 +21,6 @@ plugins {
 
 apply from: 'templates.gradle'
 
-tasks.named("performanceReport").configure {
-    resultStoreClass = "org.gradle.performance.results.BuildScanResultsStore"
-}
-
 dependencies {
     // so that all Gradle features are available
     performanceTestRuntime allTestRuntimeDependencies
@@ -37,6 +33,7 @@ gradlebuildJava {
 }
 
 tasks.withType(org.gradle.testing.PerformanceTest).configureEach {
+    resultStoreClass = "org.gradle.performance.results.BuildScanResultsStore"
     systemProperties += [incomingArtifactDir: "${rootDir}/incoming/"]
 }
 

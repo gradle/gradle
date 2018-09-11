@@ -17,27 +17,25 @@
 package org.gradle.testkit.runner
 
 import org.gradle.api.Action
-import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
-import org.gradle.testing.internal.util.RetryRule
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.Rule
+import spock.lang.Retry
 import spock.lang.Shared
+
+import static org.gradle.integtests.fixtures.RetryConditions.onIssueWithReleasedGradleVersion
 
 @NonCrossVersion
 @Requires(TestPrecondition.ONLINE)
+@Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, count = 2)
 class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrationTest {
     public static final String VERSION = determineMinimumVersionThatRunsOnCurrentJavaVersion("4.1")
 
     @Shared
     DistributionLocator locator = new DistributionLocator()
-
-    @Rule
-    RetryRule retryRule = RetryRuleUtil.retryCrossVersionTestOnIssueWithReleasedGradleVersion(this)
 
     String getReleasedGradleVersion() {
         VERSION

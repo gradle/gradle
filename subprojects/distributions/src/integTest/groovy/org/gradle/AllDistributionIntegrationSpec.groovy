@@ -44,7 +44,7 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
         contentsDir.file('src/wrapper/org/gradle/wrapper/WrapperExecutor.java').assertIsFile()
 
         // Samples
-        contentsDir.file('samples/java/quickstart/build.gradle').assertIsFile()
+        contentsDir.file('samples/java/quickstart/groovy/build.gradle').assertIsFile()
 
         def buildAndGradleDirs = []
         contentsDir.file('samples').eachFileRecurse(FileType.DIRECTORIES) {

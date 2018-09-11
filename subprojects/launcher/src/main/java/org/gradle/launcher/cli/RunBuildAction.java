@@ -22,6 +22,7 @@ import org.gradle.initialization.DefaultBuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.logging.sink.ConsoleStateUtil;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.cli.action.ExecuteBuildAction;
 import org.gradle.launcher.exec.BuildActionExecuter;
@@ -51,7 +52,7 @@ public class RunBuildAction implements Runnable {
         try {
             executer.execute(
                     new ExecuteBuildAction(startParameter),
-                    new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(clientMetaData, startTime), new DefaultBuildCancellationToken(), new NoOpBuildEventConsumer()),
+                    new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(clientMetaData, startTime, ConsoleStateUtil.isInteractive()), new DefaultBuildCancellationToken(), new NoOpBuildEventConsumer()),
                     buildActionParameters,
                     sharedServices);
         } finally {

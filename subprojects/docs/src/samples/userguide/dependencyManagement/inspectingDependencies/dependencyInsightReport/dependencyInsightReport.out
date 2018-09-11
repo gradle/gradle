@@ -3,7 +3,6 @@ commons-codec:commons-codec:1.7
       org.gradle.status = release (not requested)
    ]
    Selection reasons:
-      - Was requested
       - By conflict resolution : between versions 1.7 and 1.6
 
 commons-codec:commons-codec:1.7

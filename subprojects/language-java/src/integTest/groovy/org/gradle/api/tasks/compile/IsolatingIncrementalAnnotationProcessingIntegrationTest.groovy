@@ -237,23 +237,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputContains("Full recompilation is required because the generated type 'AThing' must have exactly one originating element, but had 0.")
     }
 
-    def "processors can't read resources"() {
-        given:
-        withProcessor(new NonIncrementalProcessorFixture().readingResources().withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
-        def a = java "@Thing class A {}"
-        outputs.snapshot { succeeds "compileJava" }
-
-        when:
-        a.text = "@Thing class A { void foo() {} }"
-
-        then:
-        succeeds "compileJava", "--info"
-
-        and:
-        outputContains("Full recompilation is required because incremental annotation processors are not allowed to read resources.")
-    }
-
-    def "processors can't write resources"() {
+    def "writing resources triggers a full recompilation"() {
         given:
         withProcessor(new NonIncrementalProcessorFixture().writingResources().withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
         def a = java "@Thing class A {}"
@@ -266,7 +250,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         succeeds "compileJava", "--info"
 
         and:
-        outputContains("Full recompilation is required because incremental annotation processors are not allowed to create resources.")
+        outputContains("Full recompilation is required because an annotation processor generated a resource.")
     }
 
     def "processors cannot provide multiple originating elements"() {
