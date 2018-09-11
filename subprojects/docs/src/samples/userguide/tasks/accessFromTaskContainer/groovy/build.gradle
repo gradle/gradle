@@ -1,0 +1,8 @@
+task hello
+task copy(type: Copy)
+
+println tasks['hello'].name
+println tasks.hello.name
+
+println tasks['copy'].destinationDir
+println tasks.copy.destinationDir
