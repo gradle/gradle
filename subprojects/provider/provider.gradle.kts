@@ -38,9 +38,9 @@ val publishedPluginsVersion: String by rootProject.extra
 tasks {
 
     val generateKotlinDependencyExtensions by registering(GenerateKotlinDependencyExtensions::class) {
-        outputFile = File(apiExtensionsOutputDir, "org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt")
-        embeddedKotlinVersion = kotlinVersion
-        kotlinDslPluginsVersion = publishedPluginsVersion
+        outputFile.set(apiExtensionsOutputDir.resolve("org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt"))
+        embeddedKotlinVersion.set(kotlinVersion)
+        kotlinDslPluginsVersion.set(publishedPluginsVersion)
     }
 
     val generateExtensions by registering {

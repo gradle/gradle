@@ -63,7 +63,7 @@ afterEvaluate {
 // classpath manifest
 val generatedResourcesDir = file("$buildDir/generate-resources/main")
 val generateClasspathManifest by tasks.registering(GenerateClasspathManifest::class) {
-    outputDirectory = generatedResourcesDir
+    outputDirectory.set(generatedResourcesDir)
 }
 val main by sourceSets
 main.output.dir(
