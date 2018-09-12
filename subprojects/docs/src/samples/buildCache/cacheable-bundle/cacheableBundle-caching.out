@@ -1,4 +1,1 @@
-> Task :compileJava FROM-CACHE
-> Task :processResources NO-SOURCE
-> Task :classes UP-TO-DATE
 > Task :bundle FROM-CACHE

@@ -1,23 +1,33 @@
 plugins {
-    id 'java'
+    id 'base'
+}
+
+// Fake NPM task that would normally execute npm with its provided arguments
+class NpmTask extends DefaultTask {
+
+    List<String> args
+
+    @TaskAction
+    void run() {
+        project.file("$project.buildDir/bundle.js").withOutputStream { stream ->
+            project.file("scripts").listFiles().sort().each {
+                stream.write(it.bytes)
+            }
+        }
+    }
 }
 
 // tag::bundle-task[]
-task bundle(type: JavaExec) {
-    File scripts = file("scripts")
-    File bundle = file("$buildDir/bundle.js")
+task bundle(type: NpmTask) {
+    args = ['run', 'bundle']
 
     outputs.cacheIf { true }
 
-    inputs.dir(scripts)
+    inputs.dir(file("scripts"))
         .withPropertyName("scripts")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    outputs.file(bundle)
+    outputs.file(file("$buildDir/bundle.js"))
         .withPropertyName("bundle")
-
-    main = "org.gradle.sample.Bundle"
-    classpath = project.sourceSets.main.runtimeClasspath
-    args projectDir.toPath().relativize(scripts.toPath()).toString(), projectDir.toPath().relativize(bundle.toPath()).toString()
 }
 // end::bundle-task[]
 
