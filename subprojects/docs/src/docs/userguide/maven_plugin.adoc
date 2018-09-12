@@ -35,7 +35,8 @@ To use the Maven plugin, include the following in your build script:
 
 .Using the Maven plugin
 ====
-include::sample[dir="maven/quickstart",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="maven/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="maven/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
 ====
 
 
