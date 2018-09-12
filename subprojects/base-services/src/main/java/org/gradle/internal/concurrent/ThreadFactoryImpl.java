@@ -54,6 +54,7 @@ public class ThreadFactoryImpl implements ThreadFactory {
 
         @Override
         public void run() {
+            Printer.print("Run thread " + Thread.currentThread().getName());
             GradleThread.setManaged();
             delegate.run();
         }
