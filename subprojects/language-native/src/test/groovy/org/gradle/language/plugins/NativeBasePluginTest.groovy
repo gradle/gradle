@@ -19,6 +19,7 @@ package org.gradle.language.plugins
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.component.ComponentWithVariants
+import org.gradle.api.component.PublishableComponent
 import org.gradle.api.component.SoftwareComponent
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
@@ -35,7 +36,6 @@ import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.ComponentWithBinaries
 import org.gradle.language.ComponentWithOutputs
 import org.gradle.language.ProductionComponent
-import org.gradle.api.component.PublishableComponent
 import org.gradle.language.internal.DefaultBinaryCollection
 import org.gradle.language.nativeplatform.internal.ComponentWithNames
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable
@@ -373,6 +373,7 @@ class NativeBasePluginTest extends Specification {
         component.name >> "debugWindows"
         component.names >> Names.of("debugWindows")
         component.implementationDependencies >> Stub(ConfigurationInternal)
+        component.linkFile >> project.objects.fileProperty()
 
         given:
         project.pluginManager.apply(NativeBasePlugin)

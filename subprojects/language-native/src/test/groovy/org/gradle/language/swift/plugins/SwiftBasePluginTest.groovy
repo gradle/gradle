@@ -123,6 +123,7 @@ class SwiftBasePluginTest extends Specification {
         library.targetPlatform >> Stub(SwiftPlatformInternal)
         library.sourceCompatibility >> Stub(LockableProperty) { getType() >> null }
         library.platformToolProvider >> new TestPlatformToolProvider()
+        library.linkFile >> project.objects.fileProperty()
         library.implementationDependencies >> Stub(ConfigurationInternal)
 
         when:

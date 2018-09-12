@@ -16,7 +16,9 @@
 
 package org.gradle.integtests.fixtures;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
+import org.gradle.test.fixtures.dsl.GradleDsl;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.junit.rules.TestRule;
@@ -94,9 +96,25 @@ public class Sample implements TestRule {
             return testFile(testSampleDirName);
         }
         if (sampleName != null) {
-            return testFile(sampleName);
+            return testFile(dirNameFor(sampleName));
         }
         return null;
+    }
+
+    /**
+     * Shortens path as much as possible to prevent long path issues on Windows
+     * by keeping the last segment only, ignoring /groovy or /kotlin suffix.
+     */
+    @VisibleForTesting
+    static String dirNameFor(String sampleName) {
+        String dirName = sampleName.endsWith("/") ? sampleName.substring(0, sampleName.length() - 1) : sampleName;
+        for (String dslLanguageCodeName : GradleDsl.languageCodeNames()) {
+            String dslPathFragment = '/' + dslLanguageCodeName;
+            if (dirName.endsWith(dslPathFragment)) {
+                dirName = dirName.substring(0, dirName.lastIndexOf(dslPathFragment));
+            }
+        }
+        return dirName.substring(dirName.lastIndexOf('/') + 1);
     }
 
     private TestFile testFile(String testSampleDirName) {

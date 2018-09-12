@@ -58,7 +58,7 @@ project(':impl') {
     }
 
     @ToolingApiVersion(">=2.0 !3.0") // broken on 3.0
-    @TargetGradleVersion(">=1.8")
+    @TargetGradleVersion(">=2.6")
     def "can query dependencies for model produced from BuildAction"() {
         def fakeRepo = new MavenFileRepository(file("repo"))
         def dependency = fakeRepo.module("foo.bar", "coolLib", "1.0")
