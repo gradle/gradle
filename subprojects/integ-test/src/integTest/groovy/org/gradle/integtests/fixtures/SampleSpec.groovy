@@ -32,8 +32,7 @@ class SampleSpec extends Specification {
         // Sample.dir is named after sample, test method and test class
         expect:
         sample.dir.name == 'multiproject'
-        sample.dir.parentFile.name == 'java'
-        sample.dir.parentFile.parentFile.parentFile.name == 'sample_dir'
-        sample.dir.parentFile.parentFile.parentFile.parentFile.name == 'SampleSpec'
+        sample.dir.parentFile.parentFile.name == 'sample_dir'
+        sample.dir.parentFile.parentFile.parentFile.name == 'SampleSpec'
     }
 }

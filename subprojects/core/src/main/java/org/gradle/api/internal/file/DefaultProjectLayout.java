@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollectio
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.provider.AbstractMappingProvider;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.provider.Provider;
 import org.gradle.util.DeprecationLogger;
@@ -97,7 +98,7 @@ public class DefaultProjectLayout extends DefaultFilePropertyFactory implements 
 
     @Override
     public Provider<RegularFile> file(Provider<File> provider) {
-        return new AbstractMappingProvider<RegularFile, File>(RegularFile.class, provider) {
+        return new AbstractMappingProvider<RegularFile, File>(RegularFile.class, Providers.internal(provider)) {
             @Override
             protected RegularFile map(File file) {
                 return new FixedFile(projectDir.fileResolver.resolve(file));

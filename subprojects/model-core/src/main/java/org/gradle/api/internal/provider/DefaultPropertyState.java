@@ -17,16 +17,16 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
 public class DefaultPropertyState<T> implements PropertyInternal<T>, Property<T>, ProviderInternal<T> {
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
-    private Provider<? extends T> provider = Providers.notDefined();
+    private ProviderInternal<? extends T> provider = Providers.notDefined();
 
     public DefaultPropertyState(Class<T> type) {
         this.type = type;
@@ -61,7 +61,7 @@ public class DefaultPropertyState<T> implements PropertyInternal<T>, Property<T>
         this.provider = Providers.of(value);
     }
 
-    protected Provider<? extends T> getProvider() {
+    protected ProviderInternal<? extends T> getProvider() {
         return provider;
     }
 
@@ -70,7 +70,7 @@ public class DefaultPropertyState<T> implements PropertyInternal<T>, Property<T>
         if (provider == null) {
             throw new IllegalArgumentException("Cannot set the value of a property using a null provider.");
         }
-        ProviderInternal<T> p = Cast.uncheckedCast(provider);
+        ProviderInternal<? extends T> p = Providers.internal(provider);
         if (p.getType() != null && !type.isAssignableFrom(p.getType())) {
             throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using a provider of type %s.", type.getName(), p.getType().getName()));
         } else if (p.getType() == null) {
@@ -106,6 +106,11 @@ public class DefaultPropertyState<T> implements PropertyInternal<T>, Property<T>
             return defaultValue;
         }
         return t;
+    }
+
+    @Override
+    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+        return false;
     }
 
     @Override
