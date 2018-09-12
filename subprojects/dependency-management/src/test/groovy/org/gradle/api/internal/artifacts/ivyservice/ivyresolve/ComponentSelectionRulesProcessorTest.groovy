@@ -17,6 +17,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
+import org.gradle.api.Action
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ComponentSelection
@@ -31,6 +32,7 @@ import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.rules.ClosureBackedRuleAction
+import org.gradle.internal.rules.NoInputsRuleAction
 import org.gradle.internal.rules.SpecRuleAction
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -40,19 +42,18 @@ class ComponentSelectionRulesProcessorTest extends Specification {
     def processor = new ComponentSelectionRulesProcessor()
     def rules = []
     ComponentSelectionInternal componentSelection
+    def metadataProvider = Mock(MetadataProvider)
 
     def setup() {
         def componentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
-        componentSelection = new DefaultComponentSelection(componentIdentifier)
+        componentSelection = new DefaultComponentSelection(componentIdentifier, metadataProvider)
     }
 
     def "all non-rejecting rules are evaluated"() {
-        def metadataProvider = Mock(MetadataProvider) {
-            isUsable() >> true
-            getComponentMetadata() >> Mock(ComponentMetadata)
-            getIvyModuleDescriptor() >> Mock(IvyModuleDescriptor)
+        metadataProvider.isUsable() >> true
+        metadataProvider.getComponentMetadata() >> Mock(ComponentMetadata)
+        metadataProvider.getIvyModuleDescriptor() >> Mock(IvyModuleDescriptor)
 
-        }
         def closureCalled = []
         when:
         rule { ComponentSelection cs -> closureCalled << 0 }
@@ -73,12 +74,10 @@ class ComponentSelectionRulesProcessorTest extends Specification {
     }
 
     def "all non-rejecting targeted rules are evaluated"() {
-        def metadataProvider = Mock(MetadataProvider) {
-            isUsable() >> true
-            getComponentMetadata() >> Mock(ComponentMetadata)
-            getIvyModuleDescriptor() >> Mock(IvyModuleDescriptor)
+        metadataProvider.isUsable() >> true
+        metadataProvider.getComponentMetadata() >> Mock(ComponentMetadata)
+        metadataProvider.getIvyModuleDescriptor() >> Mock(IvyModuleDescriptor)
 
-        }
         def closureCalled = []
         when:
         targetedRule("group", "module") { ComponentSelection cs -> closureCalled << 0 }
@@ -99,12 +98,10 @@ class ComponentSelectionRulesProcessorTest extends Specification {
     }
 
     def "can call both targeted and untargeted rules"() {
-        def metadataProvider = Mock(MetadataProvider) {
-            isUsable() >> true
-            getComponentMetadata() >> Mock(ComponentMetadata)
-            getIvyModuleDescriptor() >> Mock(IvyModuleDescriptor)
+        metadataProvider.isUsable() >> true
+        metadataProvider.getComponentMetadata() >> Mock(ComponentMetadata)
+        metadataProvider.getIvyModuleDescriptor() >> Mock(IvyModuleDescriptor)
 
-        }
         def closureCalled = []
         when:
         rule { ComponentSelection cs -> closureCalled << 0 }
@@ -192,7 +189,6 @@ class ComponentSelectionRulesProcessorTest extends Specification {
     }
 
     def "metadata is not requested for rules that don't require it"() {
-        def metadataProvider = Mock(DefaultMetadataProvider)
         def closuresCalled = []
 
         when:
@@ -210,7 +206,6 @@ class ComponentSelectionRulesProcessorTest extends Specification {
     }
 
     def "metadata is not requested for non-targeted components"() {
-        def metadataProvider = Mock(DefaultMetadataProvider)
         def closuresCalled = []
 
         when:
@@ -229,7 +224,6 @@ class ComponentSelectionRulesProcessorTest extends Specification {
     }
 
     def "produces sensible error when rule action throws exception"() {
-        def metadataProvider = Mock(DefaultMetadataProvider)
         def failure = new Exception("From test")
 
         when:
@@ -302,6 +296,24 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         closuresCalled == [0]
     }
 
+    def "does invoke Action based rules even when metadata cannot be resolved"() {
+        given:
+        metadataProvider.usable >> false
+        def closuresCalled = []
+        rule(new Action<ComponentSelection>() {
+            @Override
+            void execute(ComponentSelection componentSelection) {
+                closuresCalled << 1
+            }
+        })
+
+        when:
+        apply(metadataProvider)
+
+        then:
+        closuresCalled == [1]
+    }
+
     @Unroll
     def "rule can have access to component metadata attributes"() {
         def id = Mock(ModuleVersionIdentifier)
@@ -333,6 +345,13 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         where:
         attributeValue << ['ok', 'ko']
         match << [true, false]
+    }
+
+    def rule(Action<ComponentSelection> action) {
+        rules << new SpecRuleAction<ComponentSelection>(
+            new NoInputsRuleAction<ComponentSelection>(action),
+            Specs.<ComponentSelection> satisfyAll()
+        )
     }
 
     def rule(Closure<?> closure) {

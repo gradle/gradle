@@ -16,19 +16,40 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.MetadataProvider;
+
+import javax.annotation.Nullable;
 
 public class DefaultComponentSelection implements ComponentSelectionInternal {
-    private ModuleComponentIdentifier candidate;
+    private final ModuleComponentIdentifier candidate;
+    private final MetadataProvider metadataProvider;
     private boolean rejected;
     private String rejectionReason;
 
-    public DefaultComponentSelection(ModuleComponentIdentifier candidate) {
+    public DefaultComponentSelection(ModuleComponentIdentifier candidate, MetadataProvider metadataProvider) {
         this.candidate = candidate;
+        this.metadataProvider = metadataProvider;
     }
 
     public ModuleComponentIdentifier getCandidate() {
         return candidate;
+    }
+
+    @Override
+    public ComponentMetadata getMetadata() {
+        return metadataProvider.getComponentMetadata();
+    }
+
+    @Nullable
+    @Override
+    public <T> T getDescriptor(Class<T> descriptorClass) {
+        if (IvyModuleDescriptor.class.isAssignableFrom(descriptorClass)) {
+            return descriptorClass.cast(metadataProvider.getIvyModuleDescriptor());
+        }
+        return null;
     }
 
     public void reject(String reason) {
