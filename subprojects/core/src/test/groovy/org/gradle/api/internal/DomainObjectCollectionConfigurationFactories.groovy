@@ -24,6 +24,7 @@ import org.gradle.api.Transformer
 import org.gradle.api.internal.provider.CollectionProviderInternal
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.Providers
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 
 abstract class DomainObjectCollectionConfigurationFactories {
     abstract static class AbstractConfigurationFactory<T, F> {
@@ -107,6 +108,11 @@ abstract class DomainObjectCollectionConfigurationFactories {
                 @Override
                 Class getType() {
                     return List
+                }
+
+                @Override
+                boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+                    return false
                 }
 
                 @Override
