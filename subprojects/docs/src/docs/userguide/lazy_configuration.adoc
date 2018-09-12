@@ -1,4 +1,4 @@
-// Copyright 2017 the original author or authors.
+// Copyright 2018 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,14 +38,15 @@ Gradle represents lazy properties with two interfaces:
 * link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider] represents a value that can only be queried and cannot be changed.
 ** Properties with these types are read-only.
 ** The method link:{javadocPath}/org/gradle/api/provider/Provider.html#get--[Provider.get()] returns the current value of the property.
-** A `Provider` can be created by the factory method link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#provider-java.util.concurrent.Callable-[ProviderFactory.provider(java.util.concurrent.Callable)].
-** Many other types extend `Provider` and can be used where-ever a lazy value is required.
+** A `Provider` can be created by the factory method link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#provider-java.util.concurrent.Callable-[ProviderFactory.provider(Callable)].
+** A `Provider` can be created from another `Provider` using link:{javadocPath}/org/gradle/api/provider/Provider.html#map-org.gradle.api.Transformer-[Provider.map(Transformer)].
+** Many other types extend `Provider` and can be used where-ever a `Provider` is required.
 * link:{javadocPath}/org/gradle/api/provider/Property.html[Property] represents a value that can be queried and also changed.
 ** Properties with these types are configurable.
-** `Property` implements the `Provider` interface.
+** `Property` extends the `Provider` interface.
 ** The method link:{javadocPath}/org/gradle/api/provider/Property.html#set-T-[Property.set(T)] specifies a value for the property, overwriting whatever value may have been present.
-** The method link:{javadocPath}/org/gradle/api/provider/Property.html#set-org.gradle.api.provider.Provider-[Property.set(org.gradle.api.provider.Provider)] specifies a `Provider` for the value for the property, overwriting whatever value may have been present. This allows you to wire together `Provider` and `Property` instances before the values are configured.
-** A `Property` can be created by the factory method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#property-java.lang.Class-[ObjectFactory.property(java.lang.Class)].
+** The method link:{javadocPath}/org/gradle/api/provider/Property.html#set-org.gradle.api.provider.Provider-[Property.set(Provider)] specifies a `Provider` for the value for the property, overwriting whatever value may have been present. This allows you to wire together `Provider` and `Property` instances before the values are configured.
+** A `Property` can be created by the factory method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#property-java.lang.Class-[ObjectFactory.property(Class)].
 
 Neither of these types nor their subtypes are intended to be implemented by a build script or plugin author.  Gradle provides several factory methods to create instances of these types. See the <<#sec:lazy_configuration_reference,Quick Reference>> for all of the types and factories available.
 
@@ -66,7 +67,7 @@ include::sample[dir="providers/propertyAndProvider/kotlin",files="build.gradle.k
 include::{samplesPath}/providers/propertyAndProvider/usePropertyAndProvider.out[]
 ----
 
-The `Greeting` task has a property of type `Property<String>` for the configurable part of the message and a property of type `Provider<String>` for the calculated, read-only, message.
+The `Greeting` task has a property of type `Property<String>` for the configurable part of the greeting and a property of type `Provider<String>` for the calculated, read-only, message. The calculated message is created from the greeting using the `map` method.
 
 [NOTE]
 ====
@@ -82,13 +83,15 @@ Kotlin DSL conveniences will be added in a future release.
 
 If provider types are not intended to be implemented directly by build script or plugin authors, how do you create a new one? Gradle provides various factory APIs to create new instances of both link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider] and link:{javadocPath}/org/gradle/api/provider/Property.html[Property]:
 
-- link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#provider-java.util.concurrent.Callable-[ProviderFactory.provider(java.util.concurrent.Callable)] instantiates a new `Provider`. An instance of the link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html[ProviderFactory] can be referenced from link:{javadocPath}/org/gradle/api/Project.html#getProviders--[Project.getProviders()] or by injecting `ProviderFactory` through a constructor or method.
+- link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#provider-java.util.concurrent.Callable-[ProviderFactory.provider(Callable)] instantiates a new `Provider`. An instance of the link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html[ProviderFactory] can be referenced from link:{javadocPath}/org/gradle/api/Project.html#getProviders--[Project.getProviders()] or by injecting `ProviderFactory` through a constructor or method.
 - link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#property-java.lang.Class-[ObjectFactory.property(java.lang.Class)] instantiates a new `Property`. An instance of the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] can be referenced from link:{javadocPath}/org/gradle/api/Project.html#getObjects--[Project.getObjects()] or by injecting `ObjectFactory` through a constructor or method.
 
 [NOTE]
 ====
 
 There are no specific methods for creating a provider from a `groovy.lang.Closure`. When writing a plugin with Groovy, you can use the method that accepts a `java.util.concurrent.Callable` parameter. Groovy's `Closure` type extends `Callable`.
+
+Similarly, when writing a plugin with Kotlin, the Kotlin compiler will take care of converting a Kotlin function into a `Callable`.
 
 ====
 
@@ -111,11 +114,11 @@ In <<working_with_files.adoc#working_with_files,Working with Files>>, we introdu
 
 All of these types are also considered lazy types.
 
-In this section, we are going to introduce more strongly typed models for a link:{javadocPath}/org/gradle/api/file/FileSystemLocation.html[FileSystemLocation]: link:{javadocPath}/org/gradle/api/file/Directory.html[Directory] and link:{javadocPath}/org/gradle/api/file/RegularFile.html[RegularFile]. These types shouldn't be confused with the standard Java https://docs.oracle.com/javase/7/docs/api/java/io/File.html[java.io.File] type as they tell Gradle to expect more specific values (a directory or a non-directory, regular file).
+In this section, we are going to introduce more strongly typed models for a link:{javadocPath}/org/gradle/api/file/FileSystemLocation.html[FileSystemLocation]: link:{javadocPath}/org/gradle/api/file/Directory.html[Directory] and link:{javadocPath}/org/gradle/api/file/RegularFile.html[RegularFile]. These types shouldn't be confused with the standard Java https://docs.oracle.com/javase/7/docs/api/java/io/File.html[File] type as they tell Gradle to expect more specific values (a directory or a non-directory, regular file).
 
 Gradle provides two specialized `Property` subtypes for dealing with these types: link:{javadocPath}/org/gradle/api/file/RegularFileProperty.html[RegularFileProperty] and link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty]. link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] has methods to create these: link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#fileProperty--[ObjectFactory.fileProperty()] and link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#directoryProperty--[ObjectFactory.directoryProperty()].
 
-A `DirectoryProperty` can also be used to create a lazily evaluated `Provider` for a `Directory` and `RegularFile` via link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#dir-java.lang.String-[DirectoryProperty.dir(java.lang.String)] and link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#file-java.lang.String-[DirectoryProperty.file(java.lang.String)] respectively. These methods create providers whose values are calculated relative to the location for the `DirectoryProperty` they were created from. The values returned from these providers will reflect changes to the `DirectoryProperty`.
+A `DirectoryProperty` can also be used to create a lazily evaluated `Provider` for a `Directory` and `RegularFile` via link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#dir-java.lang.String-[DirectoryProperty.dir(String)] and link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#file-java.lang.String-[DirectoryProperty.file(String)] respectively. These methods create providers whose values are calculated relative to the location for the `DirectoryProperty` they were created from. The values returned from these providers will reflect changes to the `DirectoryProperty`.
 
 .Using file and directory property
 ====
@@ -136,14 +139,14 @@ include::{samplesPath}/providers/fileAndDirectoryProperty/workingWithFilesGroovy
 include::{samplesPath}/providers/fileAndDirectoryProperty/workingWithFilesKotlin.out[]
 ----
 
-This example shows how `Provider` types can be used inside an extension. Lazy values for link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:buildDir[Project.getBuildDir()] and link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:projectDir[Project.getProjectDir()] can be accessed through link:{javadocPath}/org/gradle/api/Project.html#getLayout--[Project.getLayout()] with link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getBuildDirectory--[ProjectLayout.getBuildDirectory()] and link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getProjectDirectory--[ProjectLayout.getProjectDirectory()].
+This example shows how `Provider` types can be used inside an extension. Lazy properties that represent the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:buildDir[Project.getBuildDir()] and link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:projectDir[Project.getProjectDir()] can be accessed through link:{javadocPath}/org/gradle/api/Project.html#getLayout--[Project.getLayout()] with link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getBuildDirectory--[ProjectLayout.getBuildDirectory()] and link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getProjectDirectory--[ProjectLayout.getProjectDirectory()].
 
 [[sec:working_with_task_dependencies_in_lazy_properties]]
 == Working with task input and outputs and Providers
 
-Many builds have several tasks that depend on each other. This usually means that one task processes the outputs of another task as an input. For these outputs and inputs, we need to know their locations on the file system and appropriately configure each task to know where to look. This can be cumbersome if any of these values are configurable by a user or configured by multiple plugins.
+Many builds have several tasks connected together, where one task processes the outputs of another task as an input. For these outputs and inputs, we need to know their locations on the file system and appropriately configure each task to know where to look. This can be cumbersome if any of these values are configurable by a user or configured by multiple plugins.
 
-To make this easier, Gradle offers convenient APIs for defining files or directories as task inputs and outputs in a descriptive way. As an example consider the following plugin with a producer and consumer task, which are wired together via inputs and outputs:
+The `Property` API makes this easier. As an example consider the following plugin with a producer and consumer task, which are wired together via inputs and outputs:
 
 .Implicit task dependency
 ====
@@ -166,21 +169,21 @@ include::{samplesPath}/providers/implicitTaskDependency/implicitTaskDependencyKo
 
 In the example above, the task outputs and inputs are connected before any location is defined. This is possible because the input and output properties use the `Provider` API. The output property and input property are created with link:{javadocPath}/org/gradle/api/mode/ObjectFactory.html#fileProperty--[ObjectFactory.fileProperty()] method. Values are only resolved when they are queried during task execution. The setters can be called at any time before the task is executed and the change will automatically affect all related input and output properties.
 
-Another thing to note is the absence of any explicit task dependency. Task outputs represented using `Providers` bring knowledge about which task is generating them, so using them as task inputs will implicitly add the correct task dependencies.
+Another thing to note is the absence of any explicit task dependency. Task outputs represented using `Providers` keep track of which task produces their value, and using them as task inputs will implicitly add the correct task dependencies.
 
 [[sec:working_with_collection]]
 == Working with collection Providers
 
 In this section, we are going to explore lazy collections. They work exactly like any other `Provider` and, just like file providers, they have additional modeling around them. There are two provider interfaces available, one for `List` values and another for `Set` values:
 
-* For `List` values the interface is called link:{javadocPath}/org/gradle/api/provider/ListProperty.html[ListProperty]. You can create a new `ListProperty` using link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#listProperty-java.lang.Class-[ObjectFactory.listProperty(java.lang.Class)] and specifying the element's type.
-* For `Set` values the interface is called link:{javadocPath}/org/gradle/api/provider/SetProperty.html[SetProperty]. You can create a new `SetProperty` using link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#setProperty-java.lang.Class-[ObjectFactory.setProperty(java.lang.Class)] and specifying the element's type.
+* For `List` values the interface is called link:{javadocPath}/org/gradle/api/provider/ListProperty.html[ListProperty]. You can create a new `ListProperty` using link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#listProperty-java.lang.Class-[ObjectFactory.listProperty(Class)] and specifying the element's type.
+* For `Set` values the interface is called link:{javadocPath}/org/gradle/api/provider/SetProperty.html[SetProperty]. You can create a new `SetProperty` using link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#setProperty-java.lang.Class-[ObjectFactory.setProperty(Class)] and specifying the element's type.
 
-This type of property allows you to overwrite the entire collection value with link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#set-java.lang.Iterable-[HasMultipleValues.set(java.lang.Iterable)] and link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#set-org.gradle.api.provider.Provider-[HasMultipleValues.set(org.gradle.api.provider.Provider)] or add new elements through the various `add` methods:
+This type of property allows you to overwrite the entire collection value with link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#set-java.lang.Iterable-[HasMultipleValues.set(Iterable)] and link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#set-org.gradle.api.provider.Provider-[HasMultipleValues.set(Provider)] or add new elements through the various `add` methods:
 
 * link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#add-T-[HasMultipleValues.add(T)]: Add a single concrete element to the collection
-* link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#add-org.gradle.api.provider.Provider-[HasMultipleValues.add(org.gradle.api.provider.Provider)]: Add a lazily evaluated element to the collection
-* link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#addAll-org.gradle.api.provider.Provider-[HasMultipleValues.addAll(org.gradle.api.provider.Provider)]: Add a lazily evaluated collection of elements to the list
+* link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#add-org.gradle.api.provider.Provider-[HasMultipleValues.add(Provider)]: Add a lazily evaluated element to the collection
+* link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#addAll-org.gradle.api.provider.Provider-[HasMultipleValues.addAll(Provider)]: Add a lazily evaluated collection of elements to the list
 
 Just like every `Provider`, the collection is calculated when link:{javadocPath}/org/gradle/api/provider/Provider.html#get--[Provider.get()] is called. The following example show the link:{javadocPath}/org/gradle/api/provider/ListProperty.html[ListProperty] in action:
 
@@ -225,21 +228,21 @@ Use these types for _read-only_ values:
 link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider]<link:{javadocPath}/org/gradle/api/file/RegularFile.html[RegularFile]>:: File on disk
   Factories;;
     * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#fileProperty--[ObjectFactory.fileProperty()]
-    * link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#file-java.lang.String-[DirectoryProperty.file(java.lang.String)]
+    * link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#file-java.lang.String-[DirectoryProperty.file(String)]
 
 link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider]<link:{javadocPath}/org/gradle/api/file/Directory.html[Directory]>:: Directory on disk
   Factories;;
     * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#directoryProperty--[ObjectFactory.directoryProperty()]
-    * link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#dir-java.lang.String-[DirectoryProperty.dir(java.lang.String)]
+    * link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#dir-java.lang.String-[DirectoryProperty.dir(String)]
 
 link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection]:: Unstructured collection of files
   Factories;;
-    * link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object++[]++)]
-    * link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object++...++-[ProjectLayout.files(java.lang.Object++...++)]
+    * link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(Object++[]++)]
+    * link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object++...++-[ProjectLayout.files(Object++...++)]
 
 link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree]:: Hierarchy of files
   Factories;;
-    * link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[Project.fileTree(java.lang.Object)] will produce a link:{javadocPath}/org/gradle/api/file/ConfigurableFileTree.html[ConfigurableFileTree], or you can use link:{javadocPath}/org/gradle/api/Project.html#zipTree-java.lang.Object-[Project.zipTree(Object)] and link:{javadocPath}/org/gradle/api/Project.html#tarTree-java.lang.Object-[Project.tarTree(Object)]
+    * link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[Project.fileTree(Object)] will produce a link:{javadocPath}/org/gradle/api/file/ConfigurableFileTree.html[ConfigurableFileTree], or you can use link:{javadocPath}/org/gradle/api/Project.html#zipTree-java.lang.Object-[Project.zipTree(Object)] and link:{javadocPath}/org/gradle/api/Project.html#tarTree-java.lang.Object-[Project.tarTree(Object)]
 
 == Property Files API Reference
 
@@ -248,26 +251,24 @@ Use these types for _mutable_ values:
 link:{javadocPath}/org/gradle/api/file/RegularFileProperty.html[RegularFileProperty]:: File on disk
   Factories;;
     * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#fileProperty--[ObjectFactory.fileProperty()]
-    * link:{javadocPath}/org/gradle/api/file/Directory.html#file-java.lang.String-[Directory.file(java.lang.String)]
 
 link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty]:: Directory on disk
   Factories;;
     * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#directoryProperty--[ObjectFactory.directoryProperty()]
-    * link:{javadocPath}/org/gradle/api/file/Directory.html#dir-java.lang.String-[Directory.dir(java.lang.String)]
 
 link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[ConfigurableFileCollection]:: Unstructured collection of files
   Factories;;
-    * link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#configurableFiles-java.lang.Object++...++-[ProjectLayout.configurableFiles(java.lang.Object++...++)]
+    * link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#configurableFiles-java.lang.Object++...++-[ProjectLayout.configurableFiles(Object++...++)]
 
 link:{javadocPath}/org/gradle/api/file/ConfigurableFileTree.html[ConfigurableFileTree]:: Hierarchy of files
   Factories;;
-    * link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[Project.fileTree(java.lang.Object)]
+    * link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[Project.fileTree(Object)]
 
 == Lazy Collections API Reference
 
-* For lists, use link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#listProperty-java.lang.Class-[ObjectFactory.listProperty(java.lang.Class)] to get a link:{javadocPath}/org/gradle/api/provider/ListProperty.html[ListProperty] which is also a `Provider<List<T>>`
-* For sets, use link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#setProperty-java.lang.Class-[ObjectFactory.setProperty(java.lang.Class)] to get a link:{javadocPath}/org/gradle/api/provider/SetProperty.html[SetProperty] which is a `Provider<Set<T>>`
+* For lists, use link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#listProperty-java.lang.Class-[ObjectFactory.listProperty(Class)] to get a link:{javadocPath}/org/gradle/api/provider/ListProperty.html[ListProperty] which is also a `Provider<List<T>>`
+* For sets, use link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#setProperty-java.lang.Class-[ObjectFactory.setProperty(Class)] to get a link:{javadocPath}/org/gradle/api/provider/SetProperty.html[SetProperty] which is a `Provider<Set<T>>`
 
 == Lazy Objects API Reference
 
-Use link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#property-java.lang.Class-[ObjectFactory.property(java.lang.Class)] to construct a `Property<T>` which is a `Provider<T>`.
+Use link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#property-java.lang.Class-[ObjectFactory.property(Class)] to construct a `Property<T>` which is a `Provider<T>`.

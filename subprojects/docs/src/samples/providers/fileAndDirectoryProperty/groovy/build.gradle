@@ -1,35 +1,58 @@
-class FooExtension {
-    // A directory
-    final DirectoryProperty someDirectory
-    //  A file
-    final RegularFileProperty someFile
-    // A collection of files or directories
-    final ConfigurableFileCollection someFiles
+// A project extension
+class SourceGenerationExtension {
+    // The directory to write the generated source files to
+    final DirectoryProperty sourceDir
 
-    FooExtension(ObjectFactory objects, ProjectLayout layout) {
-        someDirectory = objects.directoryProperty()
-        someFile = objects.fileProperty()
-        someFiles = layout.configurableFiles()
+    // The configuration file to use for source generation
+    final RegularFileProperty configFile
+
+    @javax.inject.Inject
+    SourceGenerationExtension(ObjectFactory objects) {
+        sourceDir = objects.directoryProperty()
+        configFile = objects.fileProperty()
     }
 }
 
-project.extensions.create('foo', FooExtension, project.objects, project.layout)
+// A task that generates a source file and writes the result to an output directory
+class GenerateSource extends DefaultTask {
+    @InputFile
+    final RegularFileProperty configFile = project.objects.fileProperty()
 
-foo {
+    @OutputDirectory
+    final DirectoryProperty outputDir = project.objects.directoryProperty()
+
+    @TaskAction
+    def compile() {
+        def inFile = configFile.get().asFile
+        logger.quiet("configuration file = " + inFile)
+        def dir = outputDir.get().asFile
+        logger.quiet("output dir = " + dir)
+        def srcFile = new File(dir, "UsefulThing.java")
+        srcFile.text = "public class UsefulThing { }"
+    }
+}
+
+// Create the project extension
+project.extensions.create('source', SourceGenerationExtension, project.objects)
+
+// Create the source generation task
+task generate(type: GenerateSource) {
+    // Attach configuration from the project extension
+    // Note that the values of the project extension have not been configured yet
+    configFile = project.source.configFile
+    outputDir = project.source.sourceDir
+}
+
+source {
     // Configure the locations
-    someDirectory = project.layout.projectDirectory.dir('some-directory')
-    someFile = project.layout.buildDirectory.file('some-file')
-    someFiles.from(someDirectory, someFile)
+    // Don't need to reconfigure the task's properties. These are automatically updated as the extension properties change
+    sourceDir = project.layout.buildDirectory.dir('generated-source')
+    configFile = project.layout.projectDirectory.file('src/main/config.txt')
+
+    // Note that a `File` instance can be used as a convenience to set a location
+    configFile = file('src/config.txt')
 }
 
-task print {
-    doLast {
-        def someDirectory = foo.someDirectory.get().asFile
-        logger.quiet("foo.someDirectory = " + someDirectory)
-        logger.quiet("foo.someFiles contains someDirectory? " + foo.someFiles.contains(someDirectory))
-
-        def someFile = foo.someFile.get().asFile
-        logger.quiet("foo.someFile = " + someFile)
-        logger.quiet("foo.someFiles contains someFile? " + foo.someFiles.contains(someFile))
-    }
-}
+// Change the build directory
+// Don't need to reconfigure the extension or task properties. These are automatically updated as the build directory changes
+buildDir = 'output'
