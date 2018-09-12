@@ -18,7 +18,7 @@ package org.gradle.api.publish.ivy.internal.artifact;
 
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
@@ -101,10 +101,7 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
 
         public void convert(Object notation, NotationConvertResult<? super IvyArtifact> result) throws TypeConversionException {
             File file = fileResolverNotationParser.parseNotation(notation);
-            IvyArtifact ivyArtifact = instantiator.newInstance(FileBasedIvyArtifact.class, file, publicationIdentity);
-            if (notation instanceof TaskDependencyContainer) {
-                ivyArtifact.builtBy(notation);
-            }
+            IvyArtifact ivyArtifact = instantiator.newInstance(FileBasedIvyArtifact.class, file, publicationIdentity, notation instanceof ProviderInternal ? notation : null);
             result.converted(ivyArtifact);
         }
 
