@@ -48,10 +48,12 @@ import org.gradle.process.internal.health.memory.OsMemoryInfo;
 import org.gradle.process.internal.worker.WorkerJvmMemoryInfoSerializer;
 import org.gradle.process.internal.worker.WorkerLoggingSerializer;
 
+import javax.sound.midi.SysexMessage;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.ObjectInputStream;
+import java.io.PrintStream;
 import java.util.concurrent.Callable;
 
 /**
@@ -74,6 +76,9 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
             Thread.sleep(30000);
             return null;
         }
+
+        System.setOut(new PrintStream(new File("C:/out.txt")));
+        System.setErr(new PrintStream(new File("C:/err.txt")));
 
         Decoder decoder = new InputStreamBackedDecoder(configInputStream);
 
