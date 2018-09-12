@@ -194,6 +194,9 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         workerImplementationFactory.prepareJavaCommand(id, displayName, this, implementationClassPath, localAddress, javaCommand, shouldPublishJvmMemoryInfo);
 
         javaCommand.args("'" + displayName + "'");
+        if (System.getProperty("worker.debug") != null) {
+            javaCommand.jvmArgs("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + System.getProperty("worker.debug"));
+        }
         ExecHandle execHandle = javaCommand.build();
 
         workerProcess.setExecHandle(execHandle);
