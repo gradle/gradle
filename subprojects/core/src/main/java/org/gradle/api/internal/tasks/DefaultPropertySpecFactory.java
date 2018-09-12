@@ -49,7 +49,7 @@ public class DefaultPropertySpecFactory implements PropertySpecFactory {
     }
 
     private DeclaredTaskInputFileProperty createInputFilesSpec(ValidatingValue paths, ValidationAction validationAction) {
-        return new DefaultTaskInputFilePropertySpec(task.getName(), resolver, paths, validationAction);
+        return new DefaultTaskInputFilePropertySpec(task.toString(), resolver, paths, validationAction);
     }
 
     @Override
@@ -69,16 +69,16 @@ public class DefaultPropertySpecFactory implements PropertySpecFactory {
 
     @Override
     public DeclaredTaskOutputFileProperty createOutputFilesSpec(ValidatingValue paths) {
-        return new CompositeTaskOutputPropertySpec(task.getName(), resolver, OutputType.FILE, paths, ValidationActions.OUTPUT_FILES_VALIDATOR);
+        return new CompositeTaskOutputPropertySpec(task.toString(), resolver, OutputType.FILE, paths, ValidationActions.OUTPUT_FILES_VALIDATOR);
     }
 
     @Override
     public DeclaredTaskOutputFileProperty createOutputDirsSpec(ValidatingValue paths) {
-        return new CompositeTaskOutputPropertySpec(task.getName(), resolver, OutputType.DIRECTORY, paths, ValidationActions.OUTPUT_DIRECTORIES_VALIDATOR);
+        return new CompositeTaskOutputPropertySpec(task.toString(), resolver, OutputType.DIRECTORY, paths, ValidationActions.OUTPUT_DIRECTORIES_VALIDATOR);
     }
 
     private DefaultCacheableTaskOutputFilePropertySpec createOutputFilePropertySpec(ValidatingValue path, OutputType file, ValidationAction outputFileValidator) {
-        return new DefaultCacheableTaskOutputFilePropertySpec(task.getName(), resolver, file, path, outputFileValidator);
+        return new DefaultCacheableTaskOutputFilePropertySpec(task.toString(), resolver, file, path, outputFileValidator);
     }
 
     private static class FileTreeValue implements ValidatingValue {

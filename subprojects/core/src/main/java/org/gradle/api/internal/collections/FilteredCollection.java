@@ -16,6 +16,7 @@
 package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.WithEstimatedSize;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
@@ -94,6 +95,11 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
     @Override
     public int estimatedSize() {
         return collection.estimatedSize();
+    }
+
+    @Override
+    public MutationGuard getMutationGuard() {
+        return collection.getMutationGuard();
     }
 
     private static class FilteringIterator<T, S extends T> implements Iterator<S>, WithEstimatedSize {
