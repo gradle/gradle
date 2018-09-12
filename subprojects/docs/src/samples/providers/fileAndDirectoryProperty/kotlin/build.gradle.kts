@@ -1,30 +1,49 @@
-open class FooExtension(objects: ObjectFactory, layout: ProjectLayout) {
-    // A directory
-    val someDirectory: DirectoryProperty = objects.directoryProperty()
-    //  A file
-    val someFile: RegularFileProperty = objects.fileProperty()
-    // A collection of files or directories
-    val someFiles: ConfigurableFileCollection = layout.configurableFiles()
+// A project extension
+open class SourceGenerationExtension(objects: ObjectFactory) {
+    // The directory to write the generated source files to
+    val sourceDir: DirectoryProperty = objects.directoryProperty()
+
+    // The configuration file to use for source generation
+    val configFile: RegularFileProperty = objects.fileProperty()
 }
 
-project.extensions.create("foo", FooExtension::class, project.objects, project.layout)
+// A task that generates a source file and writes the result to an output directory
+open class GenerateSource @javax.inject.Inject constructor(objects: ObjectFactory): DefaultTask() {
+    @InputFile
+    val configFile: RegularFileProperty = objects.fileProperty()
 
-configure<FooExtension> {
-    // Configure the locations
-    someDirectory.set(project.layout.projectDirectory.dir("some-directory"))
-    someFile.set(project.layout.buildDirectory.file("some-file"))
-    someFiles.from(someDirectory, someFile)
-}
+    @OutputDirectory
+    val outputDir: DirectoryProperty = objects.directoryProperty()
 
-task("print") {
-    doLast {
-        val foo = project.the<FooExtension>()
-        val someDirectory = foo.someDirectory.get().asFile
-        logger.quiet("foo.someDirectory = " + someDirectory)
-        logger.quiet("foo.someFiles contains someDirectory? " + foo.someFiles.contains(someDirectory))
-
-        val someFile = foo.someFile.get().asFile
-        logger.quiet("foo.someFile = " + someFile)
-        logger.quiet("foo.someFiles contains someFile? " + foo.someFiles.contains(someFile))
+    @TaskAction
+    fun compile() {
+        val inFile = configFile.get().asFile
+        logger.quiet("configuration file = " + inFile)
+        val dir = outputDir.get().asFile
+        logger.quiet("output dir = " + dir)
+        val srcFile = File(dir, "UsefulThing.java")
+        srcFile.writeText("public class UsefulThing { }")
     }
 }
+
+// Create the project extension
+val source = project.extensions.create("source", SourceGenerationExtension::class, project.objects)
+
+// Create the source generation task
+task<GenerateSource>("generate") {
+    // Attach configuration from the project extension
+    // Note that the values of the project extension have not been configured yet
+    configFile.set(source.configFile)
+    outputDir.set(source.sourceDir)
+}
+
+configure<SourceGenerationExtension> {
+    // Configure the locations
+    // Don't need to reconfigure the task's properties. These are automatically updated as the extension properties change
+    sourceDir.set(project.layout.buildDirectory.dir("generated-source"))
+    configFile.set(project.layout.projectDirectory.file("src/config.txt"))
+}
+
+// Change the build directory
+// Don't need to reconfigure the extension or task properties. These are automatically updated as the build directory changes
+buildDir = file("output")
