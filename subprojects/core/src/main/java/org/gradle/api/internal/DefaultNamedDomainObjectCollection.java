@@ -107,6 +107,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     @Override
     public boolean add(final T o) {
+        assertMutable("add(T)");
         return add(o, getEventRegister().getAddActions());
     }
 
@@ -145,6 +146,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     @Override
     public void addLater(final Provider<? extends T> provider) {
+        assertMutable("addLater(Provider)");
         super.addLater(provider);
         if (provider instanceof Named) {
             final Named named = (Named) provider;

@@ -77,6 +77,7 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
 
     private static class MergedTaskDetails implements TaskDetails {
         private final TaskDetails task;
+        private Path cachedPath;
 
         public MergedTaskDetails(TaskDetails task) {
             this.task = task;
@@ -84,7 +85,10 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
 
         @Override
         public Path getPath() {
-            return Path.path(task.getPath().getName());
+            if (cachedPath == null) {
+                cachedPath = Path.path(task.getPath().getName());
+            }
+            return cachedPath;
         }
 
         @Override
