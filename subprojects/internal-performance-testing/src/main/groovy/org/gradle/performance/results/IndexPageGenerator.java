@@ -37,7 +37,8 @@ import static java.util.Comparator.comparing;
 import static java.util.Comparator.comparingDouble;
 
 public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
-    public static final int DANGEROUS_REGRESSION_THRESHOLD = 90;
+    public static final int DANGEROUS_REGRESSION_CONFIDENCE_THRESHOLD = 90;
+    public static final int REGRESSION_CONFIDENCE_THRESHOLD = 99;
     private final Set<ScenarioBuildResultData> scenarios;
     private final ResultsStore resultsStore;
 
@@ -68,9 +69,9 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
         List<? extends PerformanceTestExecution> recentExecutions = history.getExecutions();
         List<? extends PerformanceTestExecution> currentCommitExecutions = filterForRequestedCommit(recentExecutions);
         if (currentCommitExecutions.isEmpty()) {
-            scenario.setCurrentCommitExecutions(recentExecutions.stream().map(this::extractExecutionData).collect(Collectors.toList()));
+            scenario.setRecentExecutions(recentExecutions.stream().map(this::extractExecutionData).collect(Collectors.toList()));
         } else {
-            scenario.setRecentExecutions(currentCommitExecutions.stream().map(this::extractExecutionData).collect(Collectors.toList()));
+            scenario.setCurrentCommitExecutions(currentCommitExecutions.stream().map(this::extractExecutionData).collect(Collectors.toList()));
         }
 
         return scenario;
@@ -113,14 +114,10 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
 
             private void renderHeader() {
                 long successCount = scenarios.stream().filter(ScenarioBuildResultData::isSuccessful).count();
-                long failureCount = scenarios.stream().filter(ScenarioBuildResultData::isBuildFailed).count();
-                long regressedCount = scenarios.size() - successCount - failureCount;
+                long failureCount = scenarios.size() - successCount;
                 div().classAttr("row alert alert-primary m-0");
                     div().classAttr("col-10 p-0");
                         text("Scenarios (" + successCount + " successful");
-                        if (regressedCount > 0) {
-                            text(", " + regressedCount + " regressed");
-                        }
                         if (failureCount > 0) {
                             text(", " + failureCount + " failed");
                         }
@@ -137,32 +134,34 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
             }
 
             private String determineScenarioCss(ScenarioBuildResultData scenario) {
-                if(scenario.isSuccessful()) {
-                    return "success";
-                } else if(scenario.isBuildFailed()) {
+                if (!scenario.isSuccessful()) {
                     return "danger";
-                } else {
+                } else if (scenario.isAboutToRegress()) {
                     return "warning";
+                } else {
+                    return "success";
                 }
             }
 
-            private String getDangerousCss(ScenarioBuildResultData.ExecutionData executionData) {
-                if (executionData.getRegressionPercentage() > 0 && executionData.getConfidencePercentage() > DANGEROUS_REGRESSION_THRESHOLD) {
-                    return "text-danger";
+            private String getTextColorCss(ScenarioBuildResultData.ExecutionData executionData) {
+                if (executionData.getRegressionPercentage() <= 0 || executionData.getConfidencePercentage() < DANGEROUS_REGRESSION_CONFIDENCE_THRESHOLD) {
+                    return "text-success";
+                } else if (executionData.getConfidencePercentage() < REGRESSION_CONFIDENCE_THRESHOLD) {
+                    return "text-warning";
                 } else {
-                    return "";
+                    return "text-danger";
                 }
             }
 
             private void renderScenario(int index, ScenarioBuildResultData scenario) {
-                div().classAttr("card m-0 p-0 alert alert-"+determineScenarioCss(scenario));
+                div().classAttr("card m-0 p-0 alert alert-" + determineScenarioCss(scenario));
                     div().id("heading" + index).classAttr("card-header");
                         div().classAttr("row align-items-center");
                             div().classAttr("col-10");
                                 big().text(scenario.getScenarioName()).end();
-                                a().classAttr("btn btn-primary").href(scenario.getWebUrl()).text("To the build").end();
-                                a().classAttr("btn btn-primary").href("tests/" + urlEncode(scenario.getScenarioName().replaceAll("\\s+", "-"))).text("See the graph").end();
-                                a().classAttr("btn btn-primary collapsed").href("#").attr("data-toggle", "collapse", "data-target", "collapse" + index).text("Show more details").end();
+                                a().target("_blank").classAttr("btn btn-primary").href(scenario.getWebUrl()).text("To the build").end();
+                                a().target("_blank").classAttr("btn btn-primary").href("tests/" + urlEncode(scenario.getScenarioName().replaceAll("\\s+", "-"))).text("See the graph").end();
+                                a().classAttr("btn btn-primary collapsed").href("#").attr("data-toggle", "collapse", "data-target", "#collapse" + index).text("Show more details").end();
                             end();
                             div().classAttr("col-2");
                                 if(scenario.isBuildFailed()) {
@@ -172,8 +171,8 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                                 } else {
                                     scenario.getExecutions().forEach(execution -> {
                                         div().classAttr("row");
-                                        div().classAttr("col " + getDangerousCss(execution)).text(execution.getFormattedRegression()).end();
-                                        div().classAttr("col " + getDangerousCss(execution)).text(execution.getFormattedConfidence()).end();
+                                        div().classAttr("col " + getTextColorCss(execution)).text(execution.getFormattedRegression()).end();
+                                        div().classAttr("col " + getTextColorCss(execution)).text(execution.getFormattedConfidence()).end();
                                         end();
                                     });
                                 }
@@ -199,17 +198,16 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         th().text("Date").end();
                         th().colspan("2").text(scenario.getExecutions().get(0).getBaseVersion().getName()).end();
                         th().colspan("2").text(scenario.getExecutions().get(0).getCurrentVersion().getName()).end();
-                        th().text("Data").end();
                     end();
                     scenario.getExecutions().forEach(execution -> {
                         tr();
                             DataSeries<Duration> baseVersion = execution.getBaseVersion().getTotalTime();
                             DataSeries<Duration> currentVersion = execution.getCurrentVersion().getTotalTime();
                             td().text(format.timestamp(execution.getTime())).end();
-                            td().text(baseVersion.getMedian().format()).classAttr(baseVersion.getMedian().compareTo(currentVersion.getMedian()) < 0 ? "text-success" : "text-danger").end();
-                            td().text("se: " + baseVersion.getStandardError().format()).classAttr("text-muted").end();
-                            td().text(currentVersion.getMedian().format()).classAttr(baseVersion.getMedian().compareTo(currentVersion.getMedian()) >= 0 ? "text-success" : "text-danger").end();
-                            td().text("se: " + currentVersion.getStandardError().format()).classAttr("text-muted").end();
+                            td().classAttr(baseVersion.getMedian().compareTo(currentVersion.getMedian()) < 0 ? "text-success" : "text-danger").text(baseVersion.getMedian().format()).end();
+                            td().classAttr("text-muted").text("se: " + baseVersion.getStandardError().format()).end();
+                            td().classAttr(baseVersion.getMedian().compareTo(currentVersion.getMedian()) >= 0 ? "text-success" : "text-danger").text(currentVersion.getMedian().format()).end();
+                            td().classAttr("text-muted").text("se: " + currentVersion.getStandardError().format()).end();
                         end();
                 });
                 end();
