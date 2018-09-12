@@ -19,13 +19,14 @@ package org.gradle.api;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.util.UUID;
 
 public class Printer {
     public static PrintStream ps;
 
     static {
         try {
-            ps = new PrintStream(new File("C:/output.txt"));
+            ps = new PrintStream(new File("C:/output-" + UUID.randomUUID().toString() + ".txt"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
