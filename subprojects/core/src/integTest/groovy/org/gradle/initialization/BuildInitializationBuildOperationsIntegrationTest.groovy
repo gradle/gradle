@@ -139,6 +139,7 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
         }
 
         when:
+        executer.noDeprecationChecks()
         succeeds('build', '--include-build', 'nested-cli')
 
         then:
