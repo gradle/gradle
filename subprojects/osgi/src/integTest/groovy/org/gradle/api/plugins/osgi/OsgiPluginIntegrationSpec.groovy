@@ -29,6 +29,11 @@ import java.util.jar.Manifest
 
 @TestReproducibleArchives
 class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
+    def setup() {
+        executer.beforeExecute {
+            expectDeprecationWarning()
+        }
+    }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2237")
     def "can set modelled manifest properties with instruction"() {
