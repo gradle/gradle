@@ -17,7 +17,6 @@
 package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterators;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.BuildDependenciesOnlyFileCollectionResolveContext;
@@ -60,7 +59,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
         List<? extends FileCollectionInternal> sourceCollections = getSourceCollections();
         switch (sourceCollections.size()) {
             case 0:
-                return Iterators.emptyIterator();
+                return Collections.emptyIterator();
             case 1:
                 return sourceCollections.get(0).iterator();
             default:

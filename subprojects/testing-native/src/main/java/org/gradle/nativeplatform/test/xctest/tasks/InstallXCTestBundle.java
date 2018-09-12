@@ -114,11 +114,11 @@ public class InstallXCTestBundle extends DefaultTask {
 
         File outputFile = new File(bundleDir, "Contents/Info.plist");
 
-        Files.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+        Files.asCharSink(outputFile, Charset.forName("UTF-8")).write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
             + "<plist version=\"1.0\">\n"
             + "<dict/>\n"
-            + "</plist>", outputFile, Charset.forName("UTF-8"));
+            + "</plist>");
 
         getProject().exec(new Action<ExecSpec>() {
             @Override

@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins.quality.internal.findbugs;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -52,6 +52,6 @@ public class FindBugsSpec implements Serializable {
     }
 
     public String toString() {
-        return Objects.toStringHelper(this).add("arguments", arguments).add("debugEnabled", debugEnabled).add("jvmArgs", jvmArgs).toString();
+        return MoreObjects.toStringHelper(this).add("arguments", arguments).add("debugEnabled", debugEnabled).add("jvmArgs", jvmArgs).toString();
     }
 }

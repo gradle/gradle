@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.util.internal;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -81,7 +82,7 @@ public class CachingPatternSpecFactory extends PatternSpecFactory {
 
         @Override
         public String toString() {
-            return Objects.toStringHelper(this)
+            return MoreObjects.toStringHelper(this)
                 .add("spec", spec)
                 .toString();
         }
@@ -123,7 +124,7 @@ public class CachingPatternSpecFactory extends PatternSpecFactory {
 
         @Override
         public String toString() {
-            return Objects.toStringHelper(this)
+            return MoreObjects.toStringHelper(this)
                 .add("patterns", patterns)
                 .add("include", include)
                 .add("caseSensitive", caseSensitive)

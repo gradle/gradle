@@ -170,7 +170,7 @@ public class DefaultUserInputHandler implements UserInputHandler {
     }
 
     private String sanitizeInput(String input) {
-        return CharMatcher.JAVA_ISO_CONTROL.removeFrom(StringUtils.trim(input));
+        return CharMatcher.javaIsoControl().removeFrom(StringUtils.trim(input));
     }
 
     private class BooleanParser implements Transformer<Boolean, String> {
