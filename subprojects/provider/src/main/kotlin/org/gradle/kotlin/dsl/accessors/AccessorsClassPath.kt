@@ -572,6 +572,7 @@ fun writeAccessorsTo(writer: BufferedWriter, accessors: Sequence<String>, import
     writer.apply {
         write(fileHeader)
         newLine()
+        appendln("import org.gradle.api.Incubating")
         appendln("import org.gradle.api.Project")
         appendln("import org.gradle.api.artifacts.Configuration")
         appendln("import org.gradle.api.artifacts.ConfigurationContainer")

@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Incubating
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
@@ -26,6 +27,7 @@ import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
  *
  * @see [DependencyConstraintHandler]
  */
+@Incubating
 class DependencyConstraintHandlerScope(val constraints: DependencyConstraintHandler) : DependencyConstraintHandler by constraints {
 
     /**

@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Incubating
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
@@ -147,6 +148,7 @@ class ScriptHandlerScope(scriptHandler: ScriptHandler) : ScriptHandler by script
      *
      * @see [DependencyConstraintHandler.add]
      */
+    @Incubating
     fun DependencyConstraintHandler.classpath(dependencyConstraintNotation: Any): DependencyConstraint? =
         add(CLASSPATH_CONFIGURATION, dependencyConstraintNotation)
 
@@ -160,6 +162,7 @@ class ScriptHandlerScope(scriptHandler: ScriptHandler) : ScriptHandler by script
      *
      * @see [DependencyConstraintHandler.add]
      */
+    @Incubating
     fun DependencyConstraintHandler.classpath(dependencyConstraintNotation: Any, configuration: DependencyConstraint.() -> Unit): DependencyConstraint? =
         add(CLASSPATH_CONFIGURATION, dependencyConstraintNotation, configuration)
 }

@@ -295,6 +295,7 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
              *
              * @see [DependencyConstraintHandler.add]
              */
+            @Incubating
             fun DependencyConstraintHandler.`$kotlinIdentifier`(constraintNotation: Any): DependencyConstraint? =
                 add("$stringLiteral", constraintNotation)
 
@@ -308,6 +309,7 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
              *
              * @see [DependencyConstraintHandler.add]
              */
+            @Incubating
             fun DependencyConstraintHandler.`$kotlinIdentifier`(constraintNotation: Any, block: DependencyConstraint.() -> Unit): DependencyConstraint? =
                 add("$stringLiteral", constraintNotation, block)
 

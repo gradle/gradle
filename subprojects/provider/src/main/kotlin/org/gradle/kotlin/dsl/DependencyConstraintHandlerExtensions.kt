@@ -16,11 +16,13 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Incubating
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 
 
 /**
  * Configures the dependency constraints.
  */
+@Incubating
 operator fun DependencyConstraintHandler.invoke(configuration: DependencyConstraintHandlerScope.() -> Unit) =
     DependencyConstraintHandlerScope(this).configuration()
