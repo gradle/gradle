@@ -55,9 +55,6 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 withModule("org.jmock:jmock-legacy", ReplaceCglibNodepWithCglibRule::class.java)
                 withModule("cglib:cglib", NoAntRule::class.java)
 
-                withModule("org.junit.jupiter:junit-jupiter-api", DowngradeOpentest4jRule::class.java)
-                withModule("org.junit.platform:junit-platform-engine", DowngradeOpentest4jRule::class.java)
-
                 withModule("jaxen:jaxen", DowngradeXmlApisRule::class.java)
                 withModule("jdom:jdom", DowngradeXmlApisRule::class.java)
                 withModule("xalan:xalan", DowngradeXmlApisRule::class.java)
@@ -226,20 +223,6 @@ fun ComponentMetadataHandler.withLibraryDependencies(module: String, kClass: KCl
     withModule(module, kClass.java, {
         params(modulesToRemove)
     })
-}
-
-
-open class DowngradeOpentest4jRule : ComponentMetadataRule {
-    override fun execute(context: ComponentMetadataContext) {
-        context.details.allVariants {
-            withDependencies {
-                filter { it.group == "org.opentest4j" }.forEach {
-                    it.version { strictly("1.0.0") }
-                    it.because("1.1.0 has has issue https://github.com/ota4j-team/opentest4j/issues/49")
-                }
-            }
-        }
-    }
 }
 
 
