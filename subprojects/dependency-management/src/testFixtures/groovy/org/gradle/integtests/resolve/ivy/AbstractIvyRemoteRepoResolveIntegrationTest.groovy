@@ -85,7 +85,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
                 ivy {
                     url "${remoteIvyRepo.uri}"
                     $server.validCredentials
-                    layout "pattern", {
+                    patternLayout {
                         artifact "${remoteIvyRepo.baseArtifactPattern}"
                         ivy "${remoteIvyRepo.baseIvyPattern}"
                         m2compatible = $m2Compatible

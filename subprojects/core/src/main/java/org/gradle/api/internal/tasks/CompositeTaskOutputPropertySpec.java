@@ -42,11 +42,11 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
     private final OutputType outputType;
     private final ValidatingValue value;
     private final ValidationAction validationAction;
-    private final String taskName;
+    private final String taskDisplayName;
     private final FileResolver resolver;
 
-    public CompositeTaskOutputPropertySpec(String taskName, FileResolver resolver, OutputType outputType, ValidatingValue value, ValidationAction validationAction) {
-        this.taskName = taskName;
+    public CompositeTaskOutputPropertySpec(String taskDisplayName, FileResolver resolver, OutputType outputType, ValidatingValue value, ValidationAction validationAction) {
+        this.taskDisplayName = taskDisplayName;
         this.resolver = resolver;
         this.outputType = outputType;
         this.value = value;
@@ -133,6 +133,6 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
 
     @Override
     public FileCollection getPropertyFiles() {
-        return new TaskPropertyFileCollection(taskName, "output", this, resolver, value);
+        return new TaskPropertyFileCollection(taskDisplayName, "output", this, resolver, value);
     }
 }

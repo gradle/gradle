@@ -16,6 +16,8 @@
 package org.gradle.api.internal.model;
 
 import org.gradle.api.Named;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.provider.DefaultPropertyState;
 import org.gradle.api.model.ObjectFactory;
@@ -48,12 +50,29 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
     }
 
     @Override
+    public <T> Property<T> property(Class<T> valueType, T initialValue) {
+        Property<T> property = property(valueType);
+        property.set(initialValue);
+        return property;
+    }
+
+    @Override
     public <T> ListProperty<T> listProperty(Class<T> elementType) {
         return broken();
     }
 
     @Override
     public <T> SetProperty<T> setProperty(Class<T> elementType) {
+        return broken();
+    }
+
+    @Override
+    public DirectoryProperty directoryProperty() {
+        return broken();
+    }
+
+    @Override
+    public RegularFileProperty fileProperty() {
         return broken();
     }
 

@@ -29,7 +29,7 @@ class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Unroll
     def "clean assemble on #testProject with 4 parallel workers"() {
-        when:
+        given:
         runner.testGroup = "parallel builds"
         runner.buildSpec {
             warmUpCount = warmUpRuns
@@ -46,8 +46,11 @@ class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
             }
         }
 
+        when:
+        def results = runner.run()
+
         then:
-        runner.run()
+        results
 
         where:
         testProject                   | warmUpRuns | runs

@@ -52,9 +52,9 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         this.task = task;
         this.taskMutator = taskMutator;
         this.propertyWalker = propertyWalker;
-        String taskName = task.getName();
-        this.allInputFiles = new TaskInputUnionFileCollection(taskName, "input", false, task, propertyWalker);
-        this.allSourceFiles = new TaskInputUnionFileCollection(taskName, "source", true, task, propertyWalker);
+        String taskDisplayName = task.toString();
+        this.allInputFiles = new TaskInputUnionFileCollection(taskDisplayName, "input", false, task, propertyWalker);
+        this.allSourceFiles = new TaskInputUnionFileCollection(taskDisplayName, "source", true, task, propertyWalker);
         this.deprecatedThis = new TaskInputsDeprecationSupport();
         this.specFactory = specFactory;
     }
@@ -177,13 +177,13 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     private static class TaskInputUnionFileCollection extends CompositeFileCollection implements Describable {
         private final boolean skipWhenEmptyOnly;
-        private final String taskName;
+        private final String taskDisplayName;
         private final String type;
         private final TaskInternal task;
         private final PropertyWalker propertyWalker;
 
-        public TaskInputUnionFileCollection(String taskName, String type, boolean skipWhenEmptyOnly, TaskInternal task, PropertyWalker propertyWalker) {
-            this.taskName = taskName;
+        TaskInputUnionFileCollection(String taskDisplayName, String type, boolean skipWhenEmptyOnly, TaskInternal task, PropertyWalker propertyWalker) {
+            this.taskDisplayName = taskDisplayName;
             this.type = type;
             this.skipWhenEmptyOnly = skipWhenEmptyOnly;
             this.task = task;
@@ -192,7 +192,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
         @Override
         public String getDisplayName() {
-            return "task '" + taskName + "' " + type + " files";
+            return taskDisplayName + " " + type + " files";
         }
 
         @Override

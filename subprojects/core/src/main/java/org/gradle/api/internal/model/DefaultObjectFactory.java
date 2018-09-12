@@ -17,14 +17,18 @@
 package org.gradle.api.internal.model;
 
 import org.gradle.api.Named;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
+import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.provider.DefaultListProperty;
 import org.gradle.api.internal.provider.DefaultPropertyState;
 import org.gradle.api.internal.provider.DefaultSetProperty;
-import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
@@ -37,18 +41,22 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Set;
 
 public class DefaultObjectFactory implements ObjectFactory {
     private final Instantiator instantiator;
     private final NamedObjectInstantiator namedObjectInstantiator;
     private final FileResolver fileResolver;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
+    private final FilePropertyFactory filePropertyFactory;
 
-    public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory) {
         this.instantiator = instantiator;
         this.namedObjectInstantiator = namedObjectInstantiator;
         this.fileResolver = fileResolver;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
+        this.filePropertyFactory = filePropertyFactory;
     }
 
     @Override
@@ -73,6 +81,16 @@ public class DefaultObjectFactory implements ObjectFactory {
     }
 
     @Override
+    public DirectoryProperty directoryProperty() {
+        return filePropertyFactory.newDirectoryProperty();
+    }
+
+    @Override
+    public RegularFileProperty fileProperty() {
+        return filePropertyFactory.newFileProperty();
+    }
+
+    @Override
     public <T> Property<T> property(Class<T> valueType) {
         if (valueType == null) {
             throw new IllegalArgumentException("Class cannot be null");
@@ -82,27 +100,23 @@ public class DefaultObjectFactory implements ObjectFactory {
             // Kotlin passes these types for its own basic types
             return Cast.uncheckedCast(property(JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType)));
         }
-
-        Property<T> property = new DefaultPropertyState<T>(valueType);
-
-        if (valueType == Boolean.class) {
-            ((Property<Boolean>) property).set(Providers.FALSE);
-        } else if (valueType == Byte.class) {
-            ((Property<Byte>) property).set(Providers.BYTE_ZERO);
-        } else if (valueType == Short.class) {
-            ((Property<Short>) property).set(Providers.SHORT_ZERO);
-        } else if (valueType == Integer.class) {
-            ((Property<Integer>) property).set(Providers.INTEGER_ZERO);
-        } else if (valueType == Long.class) {
-            ((Property<Long>) property).set(Providers.LONG_ZERO);
-        } else if (valueType == Float.class) {
-            ((Property<Float>) property).set(Providers.FLOAT_ZERO);
-        } else if (valueType == Double.class) {
-            ((Property<Double>) property).set(Providers.DOUBLE_ZERO);
-        } else if (valueType == Character.class) {
-            ((Property<Character>) property).set(Providers.CHAR_ZERO);
+        if (List.class.isAssignableFrom(valueType)) {
+            DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() to create a property of type List<T>", "ObjectFactory.listProperty()");
+        } else if (Set.class.isAssignableFrom(valueType)) {
+            DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() method to create a property of type Set<T>", "ObjectFactory.setProperty()");
+        } else if (Directory.class.isAssignableFrom(valueType)) {
+            DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() method to create a property of type Directory", "ObjectFactory.directoryProperty()");
+        } else if (RegularFile.class.isAssignableFrom(valueType)) {
+            DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() method to create a property of type RegularFile", "ObjectFactory.fileProperty()");
         }
 
+        return new DefaultPropertyState<T>(valueType);
+    }
+
+    @Override
+    public <T> Property<T> property(Class<T> valueType, T initialValue) {
+        Property<T> property = property(valueType);
+        property.set(initialValue);
         return property;
     }
 

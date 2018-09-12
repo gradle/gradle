@@ -146,7 +146,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
                             username 'sftp'
                             password 'sftp'
                         }
-                        layout "pattern", {
+                        patternLayout {
                             artifact "${ivySftpRepo.baseArtifactPattern}"
                             ivy "${ivySftpRepo.baseIvyPattern}"
                             m2compatible = $m2Compatible

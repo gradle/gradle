@@ -7,6 +7,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.testing.junit.JUnitOptions
@@ -204,17 +205,25 @@ class PerformanceTestPlugin : Plugin<Project> {
         tasks.register("prepareSamples") {
             group = "Project Setup"
             description = "Generates all sample projects for automated performance tests"
-            dependsOn(tasks.withType<ProjectGeneratorTask>())
-            dependsOn(tasks.withType<RemoteProject>())
-            dependsOn(tasks.withType<JavaExecProjectGeneratorTask>())
+            configureSampleGenerators {
+                this@register.dependsOn(this)
+            }
         }
+
+    private
+    fun Project.configureSampleGenerators(action: TaskCollection<*>.() -> Unit) {
+        tasks.withType<ProjectGeneratorTask>().action()
+        tasks.withType<RemoteProject>().action()
+        tasks.withType<JavaExecProjectGeneratorTask>().action()
+    }
+
 
     private
     fun Project.createCleanSamplesTask() =
         tasks.register("cleanSamples", Delete::class) {
-            delete(deferred { tasks.withType<ProjectGeneratorTask>().map { it.outputs } })
-            delete(deferred { tasks.withType<RemoteProject>().map { it.outputDirectory } })
-            delete(deferred { tasks.withType<JavaExecProjectGeneratorTask>().map { it.outputs } })
+            configureSampleGenerators {
+                this@register.delete(deferred { map { it.outputs } })
+            }
         }
 
 
@@ -289,7 +298,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             configure<IdeaModel> {
                 module {
                     testSourceDirs = testSourceDirs + performanceTestSourceSet.groovy.srcDirs
-                    testSourceDirs = testSourceDirs + performanceTestSourceSet.resources.srcDirs
+                    testResourceDirs = testResourceDirs + performanceTestSourceSet.resources.srcDirs
                     scopes["TEST"]!!["plus"]!!.apply {
                         add(performanceTestCompile)
                         add(performanceTestRuntime)
@@ -411,9 +420,9 @@ class PerformanceTestPlugin : Plugin<Project> {
 
             registerTemplateInputsToPerformanceTest()
 
-            mustRunAfter(tasks.withType<ProjectGeneratorTask>())
-            mustRunAfter(tasks.withType<RemoteProject>())
-            mustRunAfter(tasks.withType<JavaExecProjectGeneratorTask>())
+            configureSampleGenerators {
+                this@apply.mustRunAfter(this)
+            }
         }
     }
 
@@ -426,11 +435,13 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun PerformanceTest.registerTemplateInputsToPerformanceTest() {
         val registerInputs: (Task) -> Unit = { prepareSampleTask ->
             val prepareSampleTaskInputs = prepareSampleTask.inputs.properties.mapKeys { entry -> "${prepareSampleTask.name}_${entry.key}" }
-            inputs.properties(prepareSampleTaskInputs)
+            prepareSampleTaskInputs.forEach { key, value ->
+                inputs.property(key, value).optional(true)
+            }
         }
-        project.tasks.withType<ProjectGeneratorTask>().forEach(registerInputs)
-        project.tasks.withType<RemoteProject>().forEach(registerInputs)
-        project.tasks.withType<JavaExecProjectGeneratorTask>().forEach(registerInputs)
+        project.configureSampleGenerators {
+            configureEach(registerInputs)
+        }
     }
 
     private

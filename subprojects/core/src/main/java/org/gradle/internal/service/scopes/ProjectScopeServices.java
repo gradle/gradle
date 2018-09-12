@@ -35,6 +35,7 @@ import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.DefaultSourceDirectorySetFactory;
 import org.gradle.api.internal.file.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.FileLookup;
+import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -298,9 +299,9 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return ConfigurationTargetIdentifier.of(project);
     }
 
-    protected ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    protected ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory) {
         Instantiator instantiator = instantiatorFactory.injectAndDecorate(ProjectScopeServices.this);
-        return new DefaultObjectFactory(instantiator, NamedObjectInstantiator.INSTANCE, fileResolver, directoryFileTreeFactory);
+        return new DefaultObjectFactory(instantiator, NamedObjectInstantiator.INSTANCE, fileResolver, directoryFileTreeFactory, filePropertyFactory);
     }
 
 }

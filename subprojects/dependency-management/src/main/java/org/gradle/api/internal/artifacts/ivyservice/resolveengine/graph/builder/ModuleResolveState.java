@@ -56,6 +56,7 @@ class ModuleResolveState implements CandidateModule {
     private final ImmutableAttributesFactory attributesFactory;
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
+    private final PendingDependencies pendingDependencies;
     private ComponentState selected;
     private ImmutableAttributes mergedAttributes = ImmutableAttributes.EMPTY;
     private AttributeMergingException attributeMergingError;
@@ -75,6 +76,7 @@ class ModuleResolveState implements CandidateModule {
         this.attributesFactory = attributesFactory;
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
+        this.pendingDependencies = new PendingDependencies();
     }
 
     @Override
@@ -291,4 +293,21 @@ class ModuleResolveState implements CandidateModule {
         }
         return platformState;
     }
+
+    void decreaseHardEdgeCount() {
+        pendingDependencies.decreaseHardEdgeCount();
+    }
+
+    boolean isPending() {
+        return pendingDependencies.isPending();
+    }
+
+    PendingDependencies getPendingDependencies() {
+        return pendingDependencies;
+    }
+
+    void addPendingNode(NodeState node) {
+        pendingDependencies.addNode(node);
+    }
+
 }

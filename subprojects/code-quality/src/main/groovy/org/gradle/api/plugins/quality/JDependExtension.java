@@ -19,6 +19,8 @@ package org.gradle.api.plugins.quality;
  * Configuration options for the JDepend plugin.
  *
  * @see JDependPlugin
+ * @deprecated JDepend is unmaintained and does not support bytecode compiled for Java 8 and above.
  */
+@Deprecated
 public class JDependExtension extends CodeQualityExtension {
 }

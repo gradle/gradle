@@ -105,7 +105,8 @@ open class TestFixturesPlugin : Plugin<Project> {
         plugins.withType<IdeaPlugin> {
             configure<IdeaModel> {
                 module {
-                    testSourceDirs = testSourceDirs + testFixtures.groovy.srcDirs + testFixtures.resources.srcDirs
+                    testSourceDirs = testSourceDirs + testFixtures.groovy.srcDirs
+                    testResourceDirs = testResourceDirs + testFixtures.resources.srcDirs
                 }
             }
         }

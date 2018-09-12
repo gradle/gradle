@@ -1,0 +1,18 @@
+Evaluation of root project 'buildProjectEvaluateEvents' succeeded
+Evaluation of project ':projectA' succeeded
+Evaluation of project ':projectB' FAILED
+
+FAILURE: Build failed with an exception.
+
+* Where:
+Build file '/home/user/gradle/samples/kotlin/projectB.gradle.kts' line: 1
+
+* What went wrong:
+broken
+
+* Try:
+Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output. Run with --scan to get full insights.
+
+* Get more help at https://help.gradle.org
+
+BUILD FAILED in 0s

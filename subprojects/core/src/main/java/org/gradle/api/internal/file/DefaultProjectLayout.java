@@ -22,35 +22,28 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.provider.AbstractCombiningProvider;
 import org.gradle.api.internal.provider.AbstractMappingProvider;
-import org.gradle.api.internal.provider.AbstractProvider;
-import org.gradle.api.internal.provider.DefaultPropertyState;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.util.DeprecationLogger;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
-public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
+public class DefaultProjectLayout extends DefaultFilePropertyFactory implements ProjectLayout, TaskFileVarFactory {
     private final FixedDirectory projectDir;
     private final DefaultDirectoryVar buildDir;
     private final TaskResolver taskResolver;
     private final FileResolver fileResolver;
 
     public DefaultProjectLayout(File projectDir, FileResolver resolver, TaskResolver taskResolver) {
+        super(resolver);
         this.taskResolver = taskResolver;
         this.fileResolver = resolver;
         this.projectDir = new FixedDirectory(projectDir, resolver);
@@ -69,7 +62,8 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
     @Override
     public DirectoryProperty directoryProperty() {
-        return new DefaultDirectoryVar(projectDir.fileResolver);
+        DeprecationLogger.nagUserOfReplacedMethod("ProjectLayout.directoryProperty()", "ObjectFactory.directoryProperty()");
+        return newDirectoryProperty();
     }
 
     @Override
@@ -81,7 +75,8 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
     @Override
     public RegularFileProperty fileProperty() {
-        return new DefaultRegularFileVar(projectDir.fileResolver);
+        DeprecationLogger.nagUserOfReplacedMethod("ProjectLayout.fileProperty()", "ObjectFactory.fileProperty()");
+        return newFileProperty();
     }
 
     @Override
@@ -89,44 +84,6 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         RegularFileProperty result = fileProperty();
         result.set(initialProvider);
         return result;
-    }
-
-    @Override
-    public DirectoryProperty newOutputDirectory(Task producer) {
-        DefaultDirectoryVar property = new DefaultDirectoryVar(projectDir.fileResolver);
-        property.attachProducer(producer);
-        return property;
-    }
-
-    @Override
-    public RegularFileProperty newOutputFile(Task producer) {
-        DefaultRegularFileVar property = new DefaultRegularFileVar(projectDir.fileResolver);
-        property.attachProducer(producer);
-        return property;
-    }
-
-    @Override
-    public RegularFileProperty newInputFile(final Task consumer) {
-        final DefaultRegularFileVar fileVar = new DefaultRegularFileVar(projectDir.fileResolver);
-        consumer.dependsOn(new AbstractTaskDependency() {
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                fileVar.visitDependencies(context);
-            }
-        });
-        return fileVar;
-    }
-
-    @Override
-    public DirectoryProperty newInputDirectory(final Task consumer) {
-        final DefaultDirectoryVar directoryVar = new DefaultDirectoryVar(projectDir.fileResolver);
-        consumer.dependsOn(new AbstractTaskDependency() {
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                directoryVar.visitDependencies(context);
-            }
-        });
-        return directoryVar;
     }
 
     @Override
@@ -141,7 +98,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
     @Override
     public Provider<RegularFile> file(Provider<File> provider) {
-        return new AbstractMappingProvider<RegularFile, File>(RegularFile.class, provider) {
+        return new AbstractMappingProvider<RegularFile, File>(RegularFile.class, Providers.internal(provider)) {
             @Override
             protected RegularFile map(File file) {
                 return new FixedFile(projectDir.fileResolver.resolve(file));
@@ -164,289 +121,5 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
      */
     public void setBuildDirectory(Object value) {
         buildDir.resolveAndSet(value);
-    }
-
-    private static class FixedDirectory implements Directory, FileSystemLocation {
-        private final File value;
-        private final FileResolver fileResolver;
-
-        FixedDirectory(File value, FileResolver fileResolver) {
-            this.value = value;
-            this.fileResolver = fileResolver;
-        }
-
-        @Override
-        public String toString() {
-            return value.toString();
-        }
-
-        @Override
-        public File getAsFile() {
-            return value;
-        }
-
-        @Override
-        public Directory dir(String path) {
-            File newDir = fileResolver.resolve(path);
-            return new FixedDirectory(newDir, fileResolver.newResolver(newDir));
-        }
-
-        @Override
-        public FileTree getAsFileTree() {
-            return fileResolver.resolveFilesAsTree(this);
-        }
-
-        @Override
-        public Provider<Directory> dir(Provider<? extends CharSequence> path) {
-            return new ResolvingDirectory(fileResolver, path);
-        }
-
-        @Override
-        public RegularFile file(String path) {
-            return new FixedFile(fileResolver.resolve(path));
-        }
-
-        @Override
-        public Provider<RegularFile> file(Provider<? extends CharSequence> path) {
-            return new ResolvingFile(fileResolver, path);
-        }
-    }
-
-    private static class FixedFile implements RegularFile, FileSystemLocation {
-        private final File file;
-
-        FixedFile(File file) {
-            this.file = file;
-        }
-
-        @Override
-        public String toString() {
-            return file.toString();
-        }
-
-        @Override
-        public File getAsFile() {
-            return file;
-        }
-    }
-
-    private static class ResolvingFile extends AbstractMappingProvider<RegularFile, CharSequence> implements TaskDependencyContainer {
-        private final PathToFileResolver resolver;
-
-        ResolvingFile(PathToFileResolver resolver, Provider<? extends CharSequence> path) {
-            super(RegularFile.class, path);
-            this.resolver = resolver;
-        }
-
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            // No dependencies
-        }
-
-        @Override
-        protected RegularFile map(CharSequence path) {
-            return new FixedFile(resolver.resolve(path));
-        }
-    }
-
-    private static class DefaultRegularFileVar extends DefaultPropertyState<RegularFile> implements RegularFileProperty, TaskDependencyContainer, ProducerAwareProperty {
-        private Task producer;
-        private final PathToFileResolver fileResolver;
-
-        DefaultRegularFileVar(PathToFileResolver fileResolver) {
-            super(RegularFile.class);
-            this.fileResolver = fileResolver;
-        }
-
-        @Override
-        public void attachProducer(Task task) {
-            if (this.producer != null && this.producer != task) {
-                throw new IllegalStateException("This property already has a producer task associated with it.");
-            }
-            this.producer = task;
-        }
-
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            if (producer != null) {
-                context.add(producer);
-            } else if (getProvider() instanceof TaskDependencyContainer) {
-                context.add(getProvider());
-            }
-        }
-
-        @Override
-        public void setFromAnyValue(Object object) {
-            if (object instanceof File) {
-                set((File) object);
-            } else {
-                super.setFromAnyValue(object);
-            }
-        }
-
-        @Override
-        public Provider<File> getAsFile() {
-            return new ToFileProvider(this);
-        }
-
-        @Override
-        public void set(File file) {
-            set(new FixedFile(fileResolver.resolve(file)));
-        }
-    }
-
-    private static class ResolvingDirectory extends AbstractProvider<Directory> implements TaskDependencyContainer {
-        private final FileResolver resolver;
-        private final Provider<?> valueProvider;
-
-        ResolvingDirectory(FileResolver resolver, Provider<?> valueProvider) {
-            this.resolver = resolver;
-            this.valueProvider = valueProvider;
-        }
-
-        @Nullable
-        @Override
-        public Class<Directory> getType() {
-            return Directory.class;
-        }
-
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            // No dependencies
-        }
-
-        @Override
-        public boolean isPresent() {
-            return valueProvider.isPresent();
-        }
-
-        @Override
-        public Directory getOrNull() {
-            if (!isPresent()) {
-                return null;
-            }
-            File dir = resolver.resolve(valueProvider);
-            return new FixedDirectory(dir, resolver.newResolver(dir));
-        }
-
-        @Override
-        public String toString() {
-            return String.format("provider(%s, %s)", getType(), valueProvider);
-        }
-    }
-
-    private static class DefaultDirectoryVar extends DefaultPropertyState<Directory> implements DirectoryProperty, TaskDependencyContainer, ProducerAwareProperty {
-        private final FileResolver resolver;
-        private Task producer;
-
-        DefaultDirectoryVar(FileResolver resolver) {
-            super(Directory.class);
-            this.resolver = resolver;
-        }
-
-        DefaultDirectoryVar(FileResolver resolver, Object value) {
-            super(Directory.class);
-            this.resolver = resolver;
-            resolveAndSet(value);
-        }
-
-        @Override
-        public void attachProducer(Task producer) {
-            if (this.producer != null && this.producer != producer) {
-                throw new IllegalStateException("This property already has a producer task associated with it.");
-            }
-            this.producer = producer;
-        }
-
-        @Override
-        public void setFromAnyValue(Object object) {
-            if (object instanceof File) {
-                File file = (File) object;
-                set(file);
-            } else {
-                super.setFromAnyValue(object);
-            }
-        }
-
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            if (producer != null) {
-                context.add(producer);
-            } else if (getProvider() instanceof TaskDependencyContainer) {
-                context.add(getProvider());
-            }
-        }
-
-        @Override
-        public FileTree getAsFileTree() {
-            return resolver.resolveFilesAsTree(this);
-        }
-
-        @Override
-        public Provider<File> getAsFile() {
-            return new ToFileProvider(this);
-        }
-
-        void resolveAndSet(Object value) {
-            File resolved = resolver.resolve(value);
-            set(new FixedDirectory(resolved, resolver.newResolver(resolved)));
-        }
-
-        @Override
-        public void set(File dir) {
-            File resolved = resolver.resolve(dir);
-            set(new FixedDirectory(resolved, resolver.newResolver(resolved)));
-        }
-
-        @Override
-        public Provider<Directory> dir(final String path) {
-            return new AbstractMappingProvider<Directory, Directory>(Directory.class, this) {
-                @Override
-                protected Directory map(Directory dir) {
-                    return dir.dir(path);
-                }
-            };
-        }
-
-        @Override
-        public Provider<Directory> dir(final Provider<? extends CharSequence> path) {
-            return new AbstractCombiningProvider<Directory, Directory, CharSequence>(Directory.class, this, path) {
-                @Override
-                protected Directory map(Directory b, CharSequence v) {
-                    return b.dir(v.toString());
-                }
-            };
-        }
-
-        @Override
-        public Provider<RegularFile> file(final String path) {
-            return new AbstractMappingProvider<RegularFile, Directory>(RegularFile.class, this) {
-                @Override
-                protected RegularFile map(Directory dir) {
-                    return dir.file(path);
-                }
-            };
-        }
-
-        @Override
-        public Provider<RegularFile> file(final Provider<? extends CharSequence> path) {
-            return new AbstractCombiningProvider<RegularFile, Directory, CharSequence>(RegularFile.class, this, path) {
-                @Override
-                protected RegularFile map(Directory b, CharSequence v) {
-                    return b.file(v.toString());
-                }
-            };
-        }
-    }
-
-    private static class ToFileProvider extends AbstractMappingProvider<File, FileSystemLocation> {
-        ToFileProvider(Provider<? extends FileSystemLocation> provider) {
-            super(File.class, provider);
-        }
-
-        @Override
-        protected File map(FileSystemLocation provider) {
-            return provider.getAsFile();
-        }
     }
 }

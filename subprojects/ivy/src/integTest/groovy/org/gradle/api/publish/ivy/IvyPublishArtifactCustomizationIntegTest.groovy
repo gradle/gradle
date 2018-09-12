@@ -411,7 +411,8 @@ The following types/formats are supported:
             }
 
             task regularFileTask {
-                ext.outputFile = newOutputFile()
+                ext.outputFile = project.objects.fileProperty()
+                outputs.file(outputFile)
                 outputFile.set(file('regularFile-1.0.reg'))
                 doLast {
                     outputFile.get().getAsFile() << 'foo'

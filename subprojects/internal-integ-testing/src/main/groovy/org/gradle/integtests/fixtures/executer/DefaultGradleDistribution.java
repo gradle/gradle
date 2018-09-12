@@ -77,6 +77,10 @@ public class DefaultGradleDistribution implements GradleDistribution {
         if (isVersion("0.9-rc-1") && javaVersion == JavaVersion.VERSION_1_5) {
             return false;
         }
+        
+        if (isSameOrOlder("1.0")) {
+            return javaVersion.compareTo(JavaVersion.VERSION_1_5) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_7) <= 0;
+        }
 
         // 1.x works on Java 5 - 8
         if (isSameOrOlder("1.12")) {
@@ -93,7 +97,11 @@ public class DefaultGradleDistribution implements GradleDistribution {
             return javaVersion.compareTo(JavaVersion.VERSION_1_7) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_8) <= 0;
         }
 
-        return javaVersion.compareTo(JavaVersion.VERSION_1_7) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_10) <= 0;
+        if (isSameOrOlder("4.10")) {
+            return javaVersion.compareTo(JavaVersion.VERSION_1_7) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_10) <= 0;
+        }
+
+        return javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_10) <= 0;
     }
 
     public boolean worksWith(OperatingSystem os) {

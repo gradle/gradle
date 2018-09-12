@@ -48,7 +48,7 @@ import java.util.concurrent.Callable;
  */
 public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
-    public static final String DEFAULT_PMD_VERSION = "5.6.1";
+    public static final String DEFAULT_PMD_VERSION = "6.7.0";
     private PmdExtension extension;
 
     @Override
@@ -65,7 +65,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("pmd", PmdExtension.class, project);
         extension.setToolVersion(DEFAULT_PMD_VERSION);
-        extension.setRuleSets(new ArrayList<String>(Arrays.asList("java-basic")));
+        extension.setRuleSets(new ArrayList<String>(Arrays.asList("category/java/errorprone.xml")));
         extension.setRuleSetFiles(project.getLayout().files());
         conventionMappingOf(extension).map("targetJdk", new Callable<Object>() {
             @Override

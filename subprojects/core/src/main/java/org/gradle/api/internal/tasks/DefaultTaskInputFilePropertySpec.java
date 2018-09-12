@@ -38,10 +38,10 @@ public class DefaultTaskInputFilePropertySpec implements DeclaredTaskInputFilePr
     private Class<? extends FileNormalizer> normalizer = AbsolutePathInputNormalizer.class;
     private LifecycleAwareTaskProperty lifecycleAware;
 
-    public DefaultTaskInputFilePropertySpec(String taskName, FileResolver resolver, ValidatingValue value, ValidationAction validationAction) {
+    public DefaultTaskInputFilePropertySpec(String taskDisplayName, FileResolver resolver, ValidatingValue value, ValidationAction validationAction) {
         this.value = value;
         this.validationAction = validationAction;
-        this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, value);
+        this.files = new TaskPropertyFileCollection(taskDisplayName, "input", this, resolver, value);
     }
 
     @Override

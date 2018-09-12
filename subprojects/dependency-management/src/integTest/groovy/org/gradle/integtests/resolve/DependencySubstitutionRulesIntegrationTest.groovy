@@ -1492,4 +1492,32 @@ configurations.all {
             }
         }
     }
+
+    def "should fail not crash if empty selector skipped"() {
+        given:
+        buildFile << """
+            configurations {
+                conf {
+                    resolutionStrategy.dependencySubstitution {
+                        all { DependencySubstitution dependency ->
+                            throw new RuntimeException('Substitution exception')
+                        }
+                    }
+                }
+            }
+            dependencies {
+                conf 'org:foo:1.0'
+                constraints {
+                    conf 'org:foo'
+                }
+            }                       
+        """
+
+        when:
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("Substitution exception")
+
+    }
 }

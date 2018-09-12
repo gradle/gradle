@@ -20,21 +20,21 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.GradleVersion
-import org.gradle.util.TextUtil
 import org.gradle.util.UsesNativeServices
 import spock.lang.FailsWith
 import spock.lang.Issue
+
+import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 // TODO: This needs a better home - Possibly in the test kit package in the future
 
 @UsesNativeServices
 class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
+
     def testProjectPath
-    def gradleUserHome
 
     def setup() {
-        testProjectPath = TextUtil.normaliseFileSeparators(file("test-project-dir").absolutePath)
-        gradleUserHome = TextUtil.normaliseFileSeparators(buildContext.gradleUserHomeDir.absolutePath)
+        testProjectPath = normalisedPathOf(file("test-project-dir"))
     }
 
     @Issue("GRADLE-2358")
@@ -118,6 +118,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
 
     def "generated Gradle API JAR in custom Gradle user home is reused across multiple invocations"() {
         requireGradleDistribution()
+        requireOwnGradleUserHomeDir()
 
         given:
         file("src/test/groovy/org/acme/ProjectBuilderTest.groovy") << """
@@ -212,4 +213,13 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
             }
         """
     }
+
+    private String getGradleUserHome() {
+        normalisedPathOf(executer.gradleUserHomeDir)
+    }
+
+    static String normalisedPathOf(File file) {
+        normaliseFileSeparators(file.absolutePath)
+    }
+
 }

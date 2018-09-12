@@ -70,24 +70,5 @@ public class DefaultClientModule extends AbstractExternalModuleDependency implem
 
         ClientModule that = (ClientModule) dependency;
         return isContentEqualsFor(that) && dependencies.equals(that.getDependencies());
-
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        ClientModule that = (ClientModule) o;
-        return isContentEqualsFor(that);
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
     }
 }

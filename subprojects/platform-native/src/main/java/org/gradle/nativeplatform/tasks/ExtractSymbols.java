@@ -55,8 +55,8 @@ public class ExtractSymbols extends DefaultTask {
     public ExtractSymbols() {
         ObjectFactory objectFactory = getProject().getObjects();
 
-        this.binaryFile = newInputFile();
-        this.symbolFile = newOutputFile();
+        this.binaryFile = objectFactory.fileProperty();
+        this.symbolFile = objectFactory.fileProperty();
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
     }

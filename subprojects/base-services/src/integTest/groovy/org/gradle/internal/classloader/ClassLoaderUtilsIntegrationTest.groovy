@@ -16,7 +16,7 @@
 
 package org.gradle.internal.classloader
 
-import org.apache.commons.io.IOUtils
+import com.google.common.io.Files
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -90,7 +90,7 @@ class ClassLoaderUtilsIntegrationTest extends AbstractIntegrationSpec {
         mv.visitEnd()
         cw.visitEnd()
 
-        IOUtils.write(cw.toByteArray(), new FileOutputStream(file('MyClass.class')))
+        Files.write(cw.toByteArray(), file('MyClass.class'))
     }
 
 }

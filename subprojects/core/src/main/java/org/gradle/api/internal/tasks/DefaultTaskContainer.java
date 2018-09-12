@@ -691,7 +691,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         private final TaskIdentity<I> identity;
         private Object[] constructorArgs;
 
-
         public TaskCreatingProvider(TaskIdentity<I> identity, @Nullable Action<? super I> configureAction, Object... constructorArgs) {
             super(identity.name, identity.type, configureAction);
             this.identity = identity;
@@ -701,6 +700,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         public ImmutableActionSet<I> getOnCreateActions() {
             return onCreate;
+        }
+
+        @Override
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            context.add(get());
+            return true;
         }
 
         @Override
@@ -765,14 +770,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Deprecated
     @Override
     public boolean add(Task o) {
-        DeprecationLogger.nagUserOfReplacedMethodWithCustomRemoval("add()", "create() or register()", "This method will cause an error in Gradle 6.0.");
+        DeprecationLogger.nagUserOfReplacedMethodInvocation("TaskContainer.add()", "TaskContainer.register()");
         return addInternal(o);
     }
 
     @Deprecated
     @Override
     public boolean addAll(Collection<? extends Task> c) {
-        DeprecationLogger.nagUserOfReplacedMethodWithCustomRemoval("addAll()", "create() or register()", "This method will cause an error in Gradle 6.0.");
+        DeprecationLogger.nagUserOfDiscontinuedMethodInvocation("TaskContainer.addAll()");
         return addAllInternal(c);
     }
 

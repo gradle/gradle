@@ -41,6 +41,9 @@ abstract class PmdInvoker {
         def prePmd5 = pmdClasspath.any {
             it.name ==~ /pmd-([1-4]\.[0-9\.]+)\.jar/
         }
+        def prePmd6 = prePmd5 || pmdClasspath.any {
+            it.name ==~ /pmd-(java-)?(5\.[0-9\.]+)\.jar/
+        }
         def antPmdArgs = [failOnRuleViolation: false, failuresPropertyName: "pmdFailureCount"]
         if (prePmd5) {
             // NOTE: PMD 5.0.2 apparently introduces an element called "language" that serves the same purpose
@@ -49,8 +52,13 @@ abstract class PmdInvoker {
             antPmdArgs["targetjdk"] = targetJdk.name
 
             // fallback to basic on pre 5.0 for backwards compatible
-            if (ruleSets == ["java-basic"]) {
+            if (ruleSets == ["java-basic"] || ruleSets == ["category/java/errorprone.xml"]) {
                 ruleSets = ['basic']
+                pmdTask.setRuleSets(ruleSets)
+            }
+        } else if (prePmd6) {
+            if (ruleSets == ["category/java/errorprone.xml"]) {
+                ruleSets = ['java-basic']
                 pmdTask.setRuleSets(ruleSets)
             }
         }
