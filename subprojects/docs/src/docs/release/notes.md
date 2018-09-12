@@ -140,6 +140,10 @@ TBD - The `ObjectFactory.property(type)` method no longer sets a default value f
 
 See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
 
+### Deprecated announce plugins
+
+The [announce](userguide/announce_plugin.html) and [build announcements](userguide/build_announcements_plugin.html) plugins have been deprecated.
+
 ### Deprecated code quality plugins
 
 - The JDepend plugin has been deprecated because the project is unmaintained and does not work with bytecode compiled for Java 8 and above.

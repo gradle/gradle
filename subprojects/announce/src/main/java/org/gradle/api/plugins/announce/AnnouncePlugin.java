@@ -18,12 +18,17 @@ package org.gradle.api.plugins.announce;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.util.SingleMessageLogger;
 
 /**
  * This plugin allows to send announce messages to Twitter.
+ *
+ * @deprecated This plugin will be removed in the next major version.
  */
+@Deprecated
 public class AnnouncePlugin implements Plugin<Project> {
     public void apply(Project project) {
+        SingleMessageLogger.nagUserOfDeprecatedPlugin("Announce");
         project.getExtensions().create("announce", AnnouncePluginExtension.class, project);
     }
 }
