@@ -21,29 +21,29 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 
 import java.io.File;
 import java.util.Date;
 
 public class LazyPublishArtifact implements PublishArtifact {
-    private final Provider<?> provider;
+    private final ProviderInternal<?> provider;
     private final String version;
     private PublishArtifact delegate;
 
     public LazyPublishArtifact(Provider<?> provider) {
-        this.provider = provider;
+        this.provider = Providers.internal(provider);
         this.version = null;
     }
 
     public LazyPublishArtifact(Provider<?> provider, String version) {
-        this.provider = provider;
+        this.provider = Providers.internal(provider);
         this.version = version;
     }
 
@@ -104,12 +104,7 @@ public class LazyPublishArtifact implements PublishArtifact {
         return new AbstractTaskDependency() {
             @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
-                if (provider instanceof TaskDependencyContainer) {
-                    context.add(provider);
-                }
-                if (provider instanceof TaskProvider) {
-                    context.add(provider.get());
-                }
+                provider.maybeVisitBuildDependencies(context);
             }
         };
     }

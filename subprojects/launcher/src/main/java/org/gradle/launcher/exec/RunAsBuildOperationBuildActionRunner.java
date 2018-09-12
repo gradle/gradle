@@ -21,7 +21,6 @@ import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
-import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -59,9 +58,6 @@ public class RunAsBuildOperationBuildActionRunner implements BuildActionRunner {
     }
 
     private void checkDeprecations(StartParameterInternal startParameter) {
-        UnsupportedJavaRuntimeException.javaDeprecationWarning();
-
-        // This must be done here because DeprecationLogger needs to be initialized properly
         startParameter.checkDeprecation();
     }
 }

@@ -27,7 +27,8 @@ import org.gradle.api.internal.provider.AbstractCombiningProvider;
 import org.gradle.api.internal.provider.AbstractMappingProvider;
 import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.internal.provider.DefaultPropertyState;
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
@@ -94,7 +95,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
 
         @Override
         public Provider<RegularFile> file(Provider<? extends CharSequence> path) {
-            return new ResolvingFile(fileResolver, path);
+            return new ResolvingFile(fileResolver, Providers.internal(path));
         }
     }
 
@@ -116,17 +117,18 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
     }
 
-    static class ResolvingFile extends AbstractMappingProvider<RegularFile, CharSequence> implements TaskDependencyContainer {
+    static class ResolvingFile extends AbstractMappingProvider<RegularFile, CharSequence> {
         private final PathToFileResolver resolver;
 
-        ResolvingFile(PathToFileResolver resolver, Provider<? extends CharSequence> path) {
+        ResolvingFile(PathToFileResolver resolver, ProviderInternal<? extends CharSequence> path) {
             super(RegularFile.class, path);
             this.resolver = resolver;
         }
 
         @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             // No dependencies
+            return true;
         }
 
         @Override
@@ -135,7 +137,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
     }
 
-    static class DefaultRegularFileVar extends DefaultPropertyState<RegularFile> implements RegularFileProperty, TaskDependencyContainer, ProducerAwareProperty {
+    static class DefaultRegularFileVar extends DefaultPropertyState<RegularFile> implements RegularFileProperty, ProducerAwareProperty {
         private Task producer;
         private final PathToFileResolver fileResolver;
 
@@ -153,12 +155,12 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
 
         @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             if (producer != null) {
                 context.add(producer);
-            } else if (getProvider() instanceof TaskDependencyContainer) {
-                context.add(getProvider());
+                return true;
             }
+            return getProvider().maybeVisitBuildDependencies(context);
         }
 
         @Override
@@ -181,7 +183,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
     }
 
-    static class ResolvingDirectory extends AbstractProvider<Directory> implements TaskDependencyContainer {
+    static class ResolvingDirectory extends AbstractProvider<Directory> {
         private final FileResolver resolver;
         private final Provider<?> valueProvider;
 
@@ -197,8 +199,9 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
 
         @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             // No dependencies
+            return true;
         }
 
         @Override
@@ -221,7 +224,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
     }
 
-    static class DefaultDirectoryVar extends DefaultPropertyState<Directory> implements DirectoryProperty, TaskDependencyContainer, ProducerAwareProperty {
+    static class DefaultDirectoryVar extends DefaultPropertyState<Directory> implements DirectoryProperty, ProducerAwareProperty {
         private final FileResolver resolver;
         private Task producer;
 
@@ -255,12 +258,12 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
 
         @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             if (producer != null) {
                 context.add(producer);
-            } else if (getProvider() instanceof TaskDependencyContainer) {
-                context.add(getProvider());
+                return true;
             }
+            return getProvider().maybeVisitBuildDependencies(context);
         }
 
         @Override
@@ -326,7 +329,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
     }
 
     static class ToFileProvider extends AbstractMappingProvider<File, FileSystemLocation> {
-        ToFileProvider(Provider<? extends FileSystemLocation> provider) {
+        ToFileProvider(ProviderInternal<? extends FileSystemLocation> provider) {
             super(File.class, provider);
         }
 

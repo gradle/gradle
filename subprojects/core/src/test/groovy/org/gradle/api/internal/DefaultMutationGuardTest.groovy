@@ -20,72 +20,51 @@ import com.google.common.util.concurrent.Runnables
 import org.gradle.api.Action
 import org.gradle.internal.Actions
 import org.gradle.internal.Factories
-import org.gradle.testing.internal.util.Specification
+import org.spockframework.runtime.UnallowedExceptionThrownError
+import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
 @Subject(DefaultMutationGuard)
 class DefaultMutationGuardTest extends Specification {
-    def target = Stub(Object)
-    def guard = new DefaultMutationGuard()
-    def element = Stub(Object)
+    final MutationGuard guard = new DefaultMutationGuard()
 
-    def called = false
-    def actionCallingDisallowedMethod = new Action<Object>() {
-        @Override
-        void execute(Object obj) {
-            called = true
-            disallowedMethod()
-        }
-    }
-
-    def runnableCallingDisallowedMethod = new Runnable() {
-        @Override
-        void run() {
-            called = true
-            disallowedMethod()
-        }
-    }
-
-    def factoryCallingDisallowedMethod = new org.gradle.internal.Factory<Object>() {
-        @Override
-        Object create() {
-            called = true
-            disallowedMethod()
-            return null
-        }
-    }
+    def target = new Object()
 
     @Unroll
-    def "does not throw exception when calling a disallowed method when allowed using #description"() {
+    def "does not throw exception when calling a disallowed method when allowed using #methodUnderTest(#callableClass.type)"() {
+        def callable = callableClass.newInstance(this)
+
         when:
-        closure(this)
+        ensureExecuted(guard."${methodUnderTest}"(callable))
 
         then:
         noExceptionThrown()
-        called
+        callable.called
 
         where:
-        description                      | closure
-        "withMutationEnabled(Action)"    | { it.guard.withMutationEnabled(it.actionCallingDisallowedMethod).execute(new Object()) }
-        "whileMutationEnabled(Runnable)" | { it.guard.whileMutationEnabled(it.runnableCallingDisallowedMethod) }
-        "whileMutationEnabled(Factory)"  | { it.guard.whileMutationEnabled(it.factoryCallingDisallowedMethod) }
+        methodUnderTest        | callableClass
+        "withMutationEnabled"  | ActionCallingDisallowedMethod
+        "whileMutationEnabled" | RunnableCallingDisallowedMethod
+        "whileMutationEnabled" | FactoryCallingDisallowedMethod
     }
 
     @Unroll
-    def "throws IllegalStateException when calling a disallowed method when disallowed using #description"() {
+    def "throws IllegalStateException when calling a disallowed method when disallowed using #methodUnderTest(#callableClass.type)"() {
+        def callable = callableClass.newInstance(this)
+
         when:
-        closure(this)
+        ensureExecuted(guard."${methodUnderTest}"(callable))
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "${element.class.simpleName}#someProtectedMethod() on ${target.toString()} cannot be executed in the current context."
+        ex.message == "${target.class.simpleName}#someProtectedMethod() on ${target.toString()} cannot be executed in the current context."
 
         where:
-        description                      | closure
-        "withMutationDisabled(Action)"    | { it.guard.withMutationDisabled(it.actionCallingDisallowedMethod).execute(new Object()) }
-        "whileMutationDisabled(Runnable)" | { it.guard.whileMutationDisabled(it.runnableCallingDisallowedMethod) }
-        "whileMutationDisabled(Factory)"  | { it.guard.whileMutationDisabled(it.factoryCallingDisallowedMethod) }
+        methodUnderTest         | callableClass
+        "withMutationDisabled"  | ActionCallingDisallowedMethod
+        "whileMutationDisabled" | RunnableCallingDisallowedMethod
+        "whileMutationDisabled" | FactoryCallingDisallowedMethod
     }
 
     def "doesn't throw exception when calling disallowed method when allowed"() {
@@ -97,94 +76,98 @@ class DefaultMutationGuardTest extends Specification {
     }
 
     @Unroll
-    def "call to #description inside withMutationDisabled(Action) does not disable disallow check"() {
-        def c = closure
+    def "call to #methodUnderTest(#callableType) inside withMutationDisabled(Action) does not disable disallow check"() {
+        def aMethodUnderTest = methodUnderTest
+        def aCallable = callable
 
         when:
-        guard.withMutationDisabled(new Action<Object>() {
+        guard.withMutationDisabled(new Action<Void>() {
             @Override
-            void execute(Object obj) {
-                c(guard)
+            void execute(Void aVoid) {
+                ensureExecuted(guard."${aMethodUnderTest}"(aCallable))
                 disallowedMethod()
             }
-        }).execute(element)
+        }).execute(null)
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "${element.class.simpleName}#someProtectedMethod() on ${target.toString()} cannot be executed in the current context."
+        ex.message == "${target.class.simpleName}#someProtectedMethod() on ${target.toString()} cannot be executed in the current context."
 
         where:
-        description                       | closure
-        "withMutationDisabled(Action)"    | { it.withMutationDisabled(Actions.doNothing()).execute(new Object()) }
-        "whileMutationDisabled(Runnable)" | { it.whileMutationDisabled(Runnables.doNothing()) }
-        "whileMutationDisabled(Factory)"  | { it.whileMutationDisabled(Factories.toFactory(Runnables.doNothing())) }
-        "withMutationEnabled(Action)"     | { it.withMutationEnabled(Actions.doNothing()).execute(new Object()) }
-        "whileMutationEnabled(Runnable)"  | { it.whileMutationEnabled(Runnables.doNothing()) }
-        "whileMutationEnabled(Factory)"   | { it.whileMutationEnabled(Factories.toFactory(Runnables.doNothing())) }
+        methodUnderTest         | callableType | callable
+        "withMutationDisabled"  | "Action"     | Actions.doNothing()
+        "whileMutationDisabled" | "Runnable"   | Runnables.doNothing()
+        "whileMutationDisabled" | "Factory"    | Factories.toFactory(Runnables.doNothing())
+        "withMutationEnabled"   | "Action"     | Actions.doNothing()
+        "whileMutationEnabled"  | "Runnable"   | Runnables.doNothing()
+        "whileMutationEnabled"  | "Factory"    | Factories.toFactory(Runnables.doNothing())
     }
 
     @Unroll
-    def "call to #description inside withMutationEnabled(Action) does enable disallow check outside scope"() {
-        def c = closure
+    def "call to #methodUnderTest(#callableType) inside withMutationEnabled(Action) does enable disallow check outside scope"() {
+        def aMethodUnderTest = methodUnderTest
+        def aCallable = callable
 
         when:
-        guard.withMutationEnabled(new Action<Object>() {
+        guard.withMutationEnabled(new Action<Void>() {
             @Override
-            void execute(Object obj) {
-                c(guard)
+            void execute(Void aVoid) {
+                ensureExecuted(guard."${aMethodUnderTest}"(aCallable))
                 disallowedMethod()
             }
-        }).execute(element)
+        }).execute(null)
 
         then:
         noExceptionThrown()
 
         where:
-        description                       | closure
-        "withMutationDisabled(Action)"    | { it.withMutationDisabled(Actions.doNothing()).execute(new Object()) }
-        "whileMutationDisabled(Runnable)" | { it.whileMutationDisabled(Runnables.doNothing()) }
-        "whileMutationDisabled(Factory)"  | { it.whileMutationDisabled(Factories.toFactory(Runnables.doNothing())) }
-        "withMutationEnabled(Action)"     | { it.withMutationEnabled(Actions.doNothing()).execute(new Object()) }
-        "whileMutationEnabled(Runnable)"  | { it.whileMutationEnabled(Runnables.doNothing()) }
-        "whileMutationEnabled(Factory)"   | { it.whileMutationEnabled(Factories.toFactory(Runnables.doNothing())) }
+        methodUnderTest         | callableType | callable
+        "withMutationDisabled"  | "Action"     | Actions.doNothing()
+        "whileMutationDisabled" | "Runnable"   | Runnables.doNothing()
+        "whileMutationDisabled" | "Factory"    | Factories.toFactory(Runnables.doNothing())
+        "withMutationEnabled"   | "Action"     | Actions.doNothing()
+        "whileMutationEnabled"  | "Runnable"   | Runnables.doNothing()
+        "whileMutationEnabled"  | "Factory"    | Factories.toFactory(Runnables.doNothing())
     }
 
     @Unroll
-    def "call to #description inside whileMutationDisabled(Runnable) does not disable disallow check"() {
-        def c = closure
+    def "call to #methodUnderTest(#callableType) inside whileMutationDisabled(Runnable) does not disable disallow check"() {
+        def aMethodUnderTest = methodUnderTest
+        def aCallable = callable
 
         when:
         guard.whileMutationDisabled(new Runnable() {
             @Override
             void run() {
-                c(guard)
+                ensureExecuted(guard."${aMethodUnderTest}"(aCallable))
                 disallowedMethod()
             }
         })
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "${element.class.simpleName}#someProtectedMethod() on ${target.toString()} cannot be executed in the current context."
+        ex.message == "${target.class.simpleName}#someProtectedMethod() on ${target.toString()} cannot be executed in the current context."
 
         where:
-        description                       | closure
-        "withMutationDisabled(Action)"    | { it.withMutationDisabled(Actions.doNothing()).execute(new Object()) }
-        "whileMutationDisabled(Runnable)" | { it.whileMutationDisabled(Runnables.doNothing()) }
-        "whileMutationDisabled(Factory)"  | { it.whileMutationDisabled(Factories.toFactory(Runnables.doNothing())) }
-        "withMutationEnabled(Action)"     | { it.withMutationEnabled(Actions.doNothing()).execute(new Object()) }
-        "whileMutationEnabled(Runnable)"  | { it.whileMutationEnabled(Runnables.doNothing()) }
-        "whileMutationEnabled(Factory)"   | { it.whileMutationEnabled(Factories.toFactory(Runnables.doNothing())) }
+        methodUnderTest         | callableType | callable
+        "withMutationDisabled"  | "Action"     | Actions.doNothing()
+        "whileMutationDisabled" | "Runnable"   | Runnables.doNothing()
+        "whileMutationDisabled" | "Factory"    | Factories.toFactory(Runnables.doNothing())
+        "withMutationEnabled"   | "Action"     | Actions.doNothing()
+        "whileMutationEnabled"  | "Runnable"   | Runnables.doNothing()
+        "whileMutationEnabled"  | "Factory"    | Factories.toFactory(Runnables.doNothing())
     }
 
     @Unroll
-    def "call to #description inside whileMutationEnabled(Runnable) does enable disallow check outside scope"() {
-        def c = closure
+    def "call to #methodUnderTest(#callableType) inside whileMutationEnabled(Runnable) does enable disallow check outside scope"() {
+        def aMethodUnderTest = methodUnderTest
+        def aCallable = callable
 
         when:
         guard.whileMutationEnabled(new Runnable() {
             @Override
             void run() {
-                c(guard)
+                ensureExecuted(guard."${aMethodUnderTest}"(aCallable))
                 disallowedMethod()
             }
         })
@@ -193,24 +176,25 @@ class DefaultMutationGuardTest extends Specification {
         noExceptionThrown()
 
         where:
-        description                       | closure
-        "withMutationDisabled(Action)"    | { it.withMutationDisabled(Actions.doNothing()).execute(new Object()) }
-        "whileMutationDisabled(Runnable)" | { it.whileMutationDisabled(Runnables.doNothing()) }
-        "whileMutationDisabled(Factory)"  | { it.whileMutationDisabled(Factories.toFactory(Runnables.doNothing())) }
-        "withMutationEnabled(Action)"     | { it.withMutationEnabled(Actions.doNothing()).execute(new Object()) }
-        "whileMutationEnabled(Runnable)"  | { it.whileMutationEnabled(Runnables.doNothing()) }
-        "whileMutationEnabled(Factory)"   | { it.whileMutationEnabled(Factories.toFactory(Runnables.doNothing())) }
+        methodUnderTest         | callableType | callable
+        "withMutationDisabled"  | "Action"     | Actions.doNothing()
+        "whileMutationDisabled" | "Runnable"   | Runnables.doNothing()
+        "whileMutationDisabled" | "Factory"    | Factories.toFactory(Runnables.doNothing())
+        "withMutationEnabled"   | "Action"     | Actions.doNothing()
+        "whileMutationEnabled"  | "Runnable"   | Runnables.doNothing()
+        "whileMutationEnabled"  | "Factory"    | Factories.toFactory(Runnables.doNothing())
     }
 
     @Unroll
-    def "call to #description inside whileMutationDisabled(Factory) does not disable disallow check"() {
-        def c = closure
+    def "call to #methodUnderTest(#callableType) inside whileMutationDisabled(Factory) does not disable disallow check"() {
+        def aMethodUnderTest = methodUnderTest
+        def aCallable = callable
 
         when:
-        guard.whileMutationDisabled(new org.gradle.internal.Factory<Object>() {
+        guard.whileMutationDisabled(new org.gradle.internal.Factory<Void>() {
             @Override
-            Object create() {
-                c(guard)
+            Void create() {
+                ensureExecuted(guard."${aMethodUnderTest}"(aCallable))
                 disallowedMethod()
                 return null
             }
@@ -218,27 +202,28 @@ class DefaultMutationGuardTest extends Specification {
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "${element.class.simpleName}#someProtectedMethod() on ${target.toString()} cannot be executed in the current context."
+        ex.message == "${target.class.simpleName}#someProtectedMethod() on ${target.toString()} cannot be executed in the current context."
 
         where:
-        description                       | closure
-        "withMutationDisabled(Action)"    | { it.withMutationDisabled(Actions.doNothing()).execute(new Object()) }
-        "whileMutationDisabled(Runnable)" | { it.whileMutationDisabled(Runnables.doNothing()) }
-        "whileMutationDisabled(Factory)"  | { it.whileMutationDisabled(Factories.toFactory(Runnables.doNothing())) }
-        "withMutationEnabled(Action)"     | { it.withMutationEnabled(Actions.doNothing()).execute(new Object()) }
-        "whileMutationEnabled(Runnable)"  | { it.whileMutationEnabled(Runnables.doNothing()) }
-        "whileMutationEnabled(Factory)"   | { it.whileMutationEnabled(Factories.toFactory(Runnables.doNothing())) }
+        methodUnderTest         | callableType | callable
+        "withMutationDisabled"  | "Action"     | Actions.doNothing()
+        "whileMutationDisabled" | "Runnable"   | Runnables.doNothing()
+        "whileMutationDisabled" | "Factory"    | Factories.toFactory(Runnables.doNothing())
+        "withMutationEnabled"   | "Action"     | Actions.doNothing()
+        "whileMutationEnabled"  | "Runnable"   | Runnables.doNothing()
+        "whileMutationEnabled"  | "Factory"    | Factories.toFactory(Runnables.doNothing())
     }
 
     @Unroll
-    def "call to #description inside whileMutationEnabled(Factory) does enable disallow check outside scope"() {
-        def c = closure
+    def "call to #methodUnderTest(#callableType) inside whileMutationEnabled(Factory) does enable disallow check outside scope"() {
+        def aMethodUnderTest = methodUnderTest
+        def aCallable = callable
 
         when:
         guard.whileMutationEnabled(new org.gradle.internal.Factory<Object>() {
             @Override
             Object create() {
-                c(guard)
+                ensureExecuted(guard."${aMethodUnderTest}"(aCallable))
                 disallowedMethod()
                 return null
             }
@@ -248,29 +233,25 @@ class DefaultMutationGuardTest extends Specification {
         noExceptionThrown()
 
         where:
-        description                       | closure
-        "withMutationDisabled(Action)"    | { it.withMutationDisabled(Actions.doNothing()).execute(new Object()) }
-        "whileMutationDisabled(Runnable)" | { it.whileMutationDisabled(Runnables.doNothing()) }
-        "whileMutationDisabled(Factory)"  | { it.whileMutationDisabled(Factories.toFactory(Runnables.doNothing())) }
-        "withMutationEnabled(Action)"     | { it.withMutationEnabled(Actions.doNothing()).execute(new Object()) }
-        "whileMutationEnabled(Runnable)"  | { it.whileMutationEnabled(Runnables.doNothing()) }
-        "whileMutationEnabled(Factory)"   | { it.whileMutationEnabled(Factories.toFactory(Runnables.doNothing())) }
+        methodUnderTest         | callableType | callable
+        "withMutationDisabled"  | "Action"     | Actions.doNothing()
+        "whileMutationDisabled" | "Runnable"   | Runnables.doNothing()
+        "whileMutationDisabled" | "Factory"    | Factories.toFactory(Runnables.doNothing())
+        "withMutationEnabled"   | "Action"     | Actions.doNothing()
+        "whileMutationEnabled"  | "Runnable"   | Runnables.doNothing()
+        "whileMutationEnabled"  | "Factory"    | Factories.toFactory(Runnables.doNothing())
     }
 
     def "doesn't protect across thread boundaries"() {
         given:
-        def catchedException = null
-        def action = guard.withMutationDisabled(new Action<Object>() {
+        def callable = new ActionCallingDisallowedMethod()
+        def action = guard.withMutationDisabled(new Action<Void>() {
             @Override
-            void execute(Object obj) {
+            void execute(Void aVoid) {
                 def thread = new Thread(new Runnable() {
                     @Override
                     void run() {
-                        try {
-                            actionCallingDisallowedMethod.execute(obj)
-                        } catch (Throwable t) {
-                            catchedException = t
-                        }
+                        callable.execute(aVoid)
                     }
                 })
                 thread.start()
@@ -279,15 +260,81 @@ class DefaultMutationGuardTest extends Specification {
         })
 
         when:
-        action.execute(element)
+        action.execute(null)
 
         then:
         noExceptionThrown()
-        called
-        catchedException == null
+        callable.noExceptionThrown()
+        callable.called
     }
 
     private void disallowedMethod() {
         guard.assertMutationAllowed("someProtectedMethod()", target)
+    }
+
+    protected void ensureExecuted(def callable) {
+        if (callable instanceof Action) {
+            callable.execute(null)
+        }
+    }
+
+    abstract class AbstractCallingDisallowedMethod {
+        private boolean called = false
+        private Throwable thrown = null
+
+        protected void call() {
+            try {
+                called = true
+                disallowedMethod()
+            } catch (Throwable ex) {
+                thrown = ex
+                throw thrown
+            }
+        }
+
+        void noExceptionThrown() {
+            if (thrown == null) {
+                return
+            }
+            throw new UnallowedExceptionThrownError(null, thrown)
+        }
+
+        boolean isCalled() {
+            return called
+        }
+    }
+
+    class ActionCallingDisallowedMethod extends AbstractCallingDisallowedMethod implements Action<Void> {
+        static String getType() {
+            return "Action"
+        }
+
+        @Override
+        void execute(Void aVoid) {
+            call()
+        }
+    }
+
+    class RunnableCallingDisallowedMethod extends AbstractCallingDisallowedMethod implements Runnable {
+        static String getType() {
+            return "Runnable"
+        }
+
+        @Override
+        void run() {
+            call()
+        }
+    }
+
+    class FactoryCallingDisallowedMethod extends AbstractCallingDisallowedMethod implements org.gradle.internal.Factory<Void> {
+        static String getType() {
+            return "Factory"
+        }
+
+        @Override
+        Void create() {
+            call()
+            return null
+        }
     }
 }

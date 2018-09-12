@@ -114,6 +114,18 @@ class EdgeState implements DependencyGraphEdge {
             // The selector failed or the module has been deselected. Do not attach.
             return;
         }
+
+        if (dependencyMetadata.isConstraint()) {
+            // Need to double check that the target still has hard edges to it
+            ModuleResolveState module = targetComponent.getModule();
+            if (module.isPending()) {
+                selector.getTargetModule().removeUnattachedDependency(this);
+                from.getOutgoingEdges().remove(this);
+                module.addPendingNode(from);
+                return;
+            }
+        }
+
         calculateTargetConfigurations(targetComponent);
         for (NodeState targetConfiguration : targetNodes) {
             targetConfiguration.addIncomingEdge(this);
@@ -251,5 +263,11 @@ class EdgeState implements DependencyGraphEdge {
                 return targetConfiguration.artifact(ivyArtifactName);
             }
         });
+    }
+
+    void maybeDecreaseHardEdgeCount() {
+        if (!dependencyMetadata.isConstraint()) {
+            selector.getTargetModule().decreaseHardEdgeCount();
+        }
     }
 }

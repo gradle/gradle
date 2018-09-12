@@ -1677,7 +1677,8 @@ task checkDeps(dependsOn: configurations.compile) {
 
     }
 
-    def 'optional dependency marked as no longer pending reverts to pending if hard edge disappears'() {
+    @Unroll
+    def 'optional dependency marked as no longer pending reverts to pending if hard edge disappears (remover depends on optional #dependsOptional)'() {
         given:
         def optional = mavenRepo.module('org', 'optional', '1.0').publish()
         def main = mavenRepo.module('org', 'main', '1.0').dependsOn(optional, optional: true).publish()
@@ -1686,6 +1687,9 @@ task checkDeps(dependsOn: configurations.compile) {
         def bom = mavenRepo.module("org", "bom", "1.0")
         bom.hasPackaging('pom')
         bom.dependencyConstraint(root11)
+        if (dependsOptional) {
+            bom.dependencyConstraint(optional)
+        }
         bom.publish()
 
         settingsFile << """
@@ -1716,6 +1720,9 @@ dependencies {
 
         then:
         outputDoesNotContain('org:optional')
+
+        where:
+        dependsOptional << [true, false]
     }
 
 }

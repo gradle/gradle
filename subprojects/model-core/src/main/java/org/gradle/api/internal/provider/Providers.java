@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
@@ -49,6 +50,11 @@ public class Providers {
         }
 
         @Override
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            return false;
+        }
+
+        @Override
         public <S> ProviderInternal<S> map(Transformer<? extends S, ? super Object> transformer) {
             return Cast.uncheckedCast(this);
         }
@@ -66,20 +72,17 @@ public class Providers {
 
     public static final Provider<Boolean> TRUE = of(true);
     public static final Provider<Boolean> FALSE = of(false);
-    public static final Provider<Character> CHAR_ZERO = of((char) 0);
-    public static final Provider<Byte> BYTE_ZERO = of((byte) 0);
-    public static final Provider<Short> SHORT_ZERO = of((short) 0);
-    public static final Provider<Integer> INTEGER_ZERO = of(0);
-    public static final Provider<Long> LONG_ZERO = of(0L);
-    public static final Provider<Float> FLOAT_ZERO = of(0f);
-    public static final Provider<Double> DOUBLE_ZERO = of(0d);
 
-    public static <T> Provider<T> notDefined() {
+    public static <T> ProviderInternal<T> notDefined() {
         return Cast.uncheckedCast(NULL_PROVIDER);
     }
 
-    public static <T> Provider<T> of(final T value) {
+    public static <T> ProviderInternal<T> of(T value) {
         return new FixedValueProvider<T>(value);
+    }
+
+    public static <T> ProviderInternal<T> internal(final Provider<T> value) {
+        return Cast.uncheckedCast(value);
     }
 
     private static class FixedValueProvider<T> implements ProviderInternal<T> {
@@ -112,6 +115,12 @@ public class Providers {
 
         @Override
         public boolean isPresent() {
+            return true;
+        }
+
+        @Override
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            context.maybeAdd(value);
             return true;
         }
 
@@ -170,6 +179,11 @@ public class Providers {
         @Override
         public S getOrNull() {
             return get();
+        }
+
+        @Override
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            return false;
         }
 
         @Override

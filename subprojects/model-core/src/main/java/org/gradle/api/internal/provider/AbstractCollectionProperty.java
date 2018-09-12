@@ -26,7 +26,6 @@ import org.gradle.api.internal.provider.Collectors.EmptyCollection;
 import org.gradle.api.internal.provider.Collectors.NoValueCollector;
 import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -156,7 +155,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (provider == null) {
             throw new IllegalArgumentException("Cannot set the value of a property using a null provider.");
         }
-        ProviderInternal<T> p = Cast.uncheckedCast(provider);
+        ProviderInternal<?> p = Providers.internal(provider);
         if (p.getType() != null && !Iterable.class.isAssignableFrom(p.getType())) {
             throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using a provider of type %s.", collectionType.getName(), p.getType().getName()));
         }

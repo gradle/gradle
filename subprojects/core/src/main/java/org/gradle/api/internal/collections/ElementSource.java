@@ -17,11 +17,12 @@
 package org.gradle.api.internal.collections;
 
 import org.gradle.api.internal.WithEstimatedSize;
+import org.gradle.api.internal.WithMutationGuard;
 
 import java.util.Collection;
 import java.util.Iterator;
 
-public interface ElementSource<T> extends Iterable<T>, WithEstimatedSize, PendingSource<T> {
+public interface ElementSource<T> extends Iterable<T>, WithEstimatedSize, PendingSource<T>, WithMutationGuard {
     /**
      * Iterates over and realizes each of the elements of this source.
      */

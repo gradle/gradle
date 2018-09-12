@@ -96,5 +96,11 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         public ExistingTaskProvider(String name) {
             super(name);
         }
+
+        @Override
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            context.add(get());
+            return true;
+        }
     }
 }

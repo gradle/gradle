@@ -298,7 +298,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             configure<IdeaModel> {
                 module {
                     testSourceDirs = testSourceDirs + performanceTestSourceSet.groovy.srcDirs
-                    testSourceDirs = testSourceDirs + performanceTestSourceSet.resources.srcDirs
+                    testResourceDirs = testResourceDirs + performanceTestSourceSet.resources.srcDirs
                     scopes["TEST"]!!["plus"]!!.apply {
                         add(performanceTestCompile)
                         add(performanceTestRuntime)

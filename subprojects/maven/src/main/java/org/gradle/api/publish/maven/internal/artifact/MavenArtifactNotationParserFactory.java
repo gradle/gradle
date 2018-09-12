@@ -18,7 +18,7 @@ package org.gradle.api.publish.maven.internal.artifact;
 
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.Factory;
@@ -99,10 +99,7 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
 
         public void convert(Object notation, NotationConvertResult<? super MavenArtifact> result) throws TypeConversionException {
             File file = fileResolverNotationParser.parseNotation(notation);
-            MavenArtifact mavenArtifact = instantiator.newInstance(FileBasedMavenArtifact.class, file);
-            if (notation instanceof TaskDependencyContainer) {
-                mavenArtifact.builtBy(notation);
-            }
+            MavenArtifact mavenArtifact = instantiator.newInstance(FileBasedMavenArtifact.class, file, notation instanceof ProviderInternal ? notation: null);
             result.converted(mavenArtifact);
         }
 

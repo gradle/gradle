@@ -33,12 +33,12 @@ public class DefaultCacheableTaskOutputFilePropertySpec extends AbstractTaskOutp
     private final ValidatingValue value;
     private final ValidationAction validationAction;
 
-    public DefaultCacheableTaskOutputFilePropertySpec(String taskName, PathToFileResolver resolver, OutputType outputType, ValidatingValue value, ValidationAction validationAction) {
+    public DefaultCacheableTaskOutputFilePropertySpec(String taskDisplayName, PathToFileResolver resolver, OutputType outputType, ValidatingValue value, ValidationAction validationAction) {
         this.resolver = resolver;
         this.outputType = outputType;
         this.value = value;
         this.validationAction = validationAction;
-        this.files = new TaskPropertyFileCollection(taskName, "output", this, resolver, value);
+        this.files = new TaskPropertyFileCollection(taskDisplayName, "output", this, resolver, value);
     }
 
     @Override
