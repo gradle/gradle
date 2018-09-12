@@ -33,7 +33,7 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 class DefaultBinaryStore implements BinaryStore, Closeable {
     private File file;
     private StringDeduplicatingKryoBackedEncoder encoder;
-    private int offset = -1;
+    private long offset = -1;
 
     public DefaultBinaryStore(File file) {
         this.file = file;
@@ -104,14 +104,14 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
     }
 
     private static class SimpleBinaryData implements BinaryStore.BinaryData {
-        private final int offset;
+        private final long offset;
         private final File inputFile;
         private final String sourceDescription;
 
         private Decoder decoder;
         private CompositeStoppable resources;
 
-        public SimpleBinaryData(File inputFile, int offset, String sourceDescription) {
+        public SimpleBinaryData(File inputFile, long offset, String sourceDescription) {
             this.inputFile = inputFile;
             this.offset = offset;
             this.sourceDescription = sourceDescription;
