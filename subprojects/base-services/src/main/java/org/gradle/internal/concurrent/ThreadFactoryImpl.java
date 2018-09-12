@@ -58,8 +58,9 @@ public class ThreadFactoryImpl implements ThreadFactory {
             try {
                 GradleThread.setManaged();
                 delegate.run();
-            } catch (Throwable t) {
                 Printer.print("Run thread " + Thread.currentThread().getName() + " finished");
+            } catch (Throwable t) {
+                Printer.print("Run thread catch " + Thread.currentThread().getName() + " finished");
                 t.printStackTrace(Printer.ps);
             }
         }
