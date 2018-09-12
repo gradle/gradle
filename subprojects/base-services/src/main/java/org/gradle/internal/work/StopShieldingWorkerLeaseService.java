@@ -82,8 +82,8 @@ public class StopShieldingWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    public ResourceLock getProjectLock(Path gradlePath, Path projectPath) {
-        return delegate.getProjectLock(gradlePath, projectPath);
+    public ResourceLock getProjectLock(Path buildIdentityPath, Path projectPath) {
+        return delegate.getProjectLock(buildIdentityPath, projectPath);
     }
 
     @Override

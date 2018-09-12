@@ -135,8 +135,8 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
     }
 
     @Override
-    public ResourceLock getProjectLock(Path gradleIdentityPath, Path projectIdentityPath) {
-        return projectLockRegistry.getResourceLock(gradleIdentityPath, projectIdentityPath);
+    public ResourceLock getProjectLock(Path buildIdentityPath, Path projectIdentityPath) {
+        return projectLockRegistry.getResourceLock(buildIdentityPath, projectIdentityPath);
     }
 
     @Override

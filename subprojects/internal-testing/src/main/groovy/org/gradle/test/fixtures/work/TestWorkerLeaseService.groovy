@@ -27,7 +27,7 @@ import java.util.concurrent.Callable
 
 class TestWorkerLeaseService implements WorkerLeaseService {
     @Override
-    ResourceLock getProjectLock(Path gradlePath, Path projectPath) {
+    ResourceLock getProjectLock(Path buildIdentityPath, Path projectPath) {
         return null
     }
 
