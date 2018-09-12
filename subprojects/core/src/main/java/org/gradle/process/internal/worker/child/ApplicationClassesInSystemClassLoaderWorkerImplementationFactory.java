@@ -155,8 +155,11 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory im
 
     private List<String> writeOptionsFile(Collection<File> workerMainClassPath, Collection<File> applicationClasspath, File optionsFile) {
         List<File> classpath = new ArrayList<File>(workerMainClassPath.size() + applicationClasspath.size());
-        classpath.addAll(workerMainClassPath);
-        classpath.addAll(applicationClasspath);
+        String repeatTime = System.getProperty("classpath.repeat.times", "1");
+        for (int i = 0; i < Integer.valueOf(repeatTime); ++i) {
+            classpath.addAll(workerMainClassPath);
+            classpath.addAll(applicationClasspath);
+        }
         List<String> argumentList = Arrays.asList("-cp", Joiner.on(File.pathSeparator).join(classpath));
         return ArgWriter.argsFileGenerator(optionsFile, ArgWriter.javaStyleFactory()).transform(argumentList);
     }
