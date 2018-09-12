@@ -55,8 +55,8 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 withModule("org.jmock:jmock-legacy", ReplaceCglibNodepWithCglibRule::class.java)
 
                 //TODO check if we can upgrade the following dependencies and remove the rules
-                withModule("org.codehaus.groovy:groovy", DowngradeIvyRule::class.java)
-                withModule("org.codehaus.groovy:groovy", DowngradeTestNGRule::class.java)
+                withModule("org.codehaus.groovy:groovy-testng", DowngradeTestNGRule::class.java)
+                withModule("org.testng:testng", UpgradeBshRule::class.java)
 
                 withModule("org.junit.jupiter:junit-jupiter-api", DowngradeOpentest4jRule::class.java)
                 withModule("org.junit.platform:junit-platform-engine", DowngradeOpentest4jRule::class.java)
@@ -249,11 +249,26 @@ open class DowngradeIvyRule : ComponentMetadataRule {
 open class DowngradeTestNGRule : ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         context.details.allVariants {
-            withDependencyConstraints {
+            withDependencies {
                 filter { it.group == "org.testng" }.forEach {
                     it.version { prefer("6.3.1") }
                     it.because("6.3.1 is required by Gradle and part of the distribution")
                 }
+            }
+        }
+    }
+}
+
+
+open class UpgradeBshRule : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
+            withDependencies {
+                filter { it.group == "org.beanshell" }.forEach {
+                    add("org.apache-extras.beanshell:bsh:2.0b6")
+                    it.because("Workaround for late conflict resolution with org.apache-extras.beanshell:bsh in core")
+                }
+                removeAll { it.group == "org.beanshell" }
             }
         }
     }

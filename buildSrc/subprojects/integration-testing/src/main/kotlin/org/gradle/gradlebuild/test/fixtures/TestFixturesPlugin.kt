@@ -100,7 +100,6 @@ open class TestFixturesPlugin : Plugin<Project> {
             testFixturesUsageCompile(project(path))
             testFixturesCompile(library("junit"))
             testFixturesCompile(testLibrary("spock"))
-            testFixturesCompile(library("groovy_test"))
             testLibraries("jmock").forEach { testFixturesCompile(it) }
 
             components {

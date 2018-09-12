@@ -24,8 +24,7 @@ plugins {
 }
 
 dependencies {
-    compile(library("groovy"))
-    compile(library("groovy_xml"))
+    compile(library("groovy_all"))
 
     compile(project(":baseServices"))
     compile(project(":native"))

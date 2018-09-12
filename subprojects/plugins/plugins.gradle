@@ -34,7 +34,6 @@ dependencies {
     compile libraries.asm.coordinates
     compile libraries.commons_io.coordinates
     compile libraries.commons_lang.coordinates
-    compile libraries.groovy_templates.coordinates
     compile libraries.slf4j_api.coordinates
 
     runtime libraries.commons_cli.coordinates

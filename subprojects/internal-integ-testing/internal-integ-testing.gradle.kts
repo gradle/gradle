@@ -19,7 +19,6 @@ import java.util.Properties
 
 dependencies {
     compile(library("groovy"))
-    compile(library("groovy_json"))
     compile(project(":internalTesting"))
     compile(project(":cli"))
     compile(project(":launcher"))

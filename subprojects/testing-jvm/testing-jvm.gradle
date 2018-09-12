@@ -29,7 +29,6 @@ dependencies {
 
     implementation libraries.asm.coordinates
     implementation libraries.commons_io.coordinates
-    implementation libraries.groovy_xml.coordinates
     implementation libraries.junit.coordinates
     implementation libraries.testng.coordinates
     implementation libraries.bsh.coordinates

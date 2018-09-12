@@ -45,7 +45,7 @@ dependencies {
     api project(":processServices")
     api project(":jvmServices")
     api project(":modelCore")
-    api libraries.groovy.coordinates
+    api libraries.groovy_all.coordinates
     api libraries.ant.coordinates
     api libraries.guava.coordinates
     api libraries.inject.coordinates
@@ -57,10 +57,6 @@ dependencies {
     implementation libraries.commons_collections.coordinates
     implementation libraries.commons_io.coordinates
     implementation libraries.commons_lang.coordinates
-    implementation libraries.groovy_json.coordinates
-    implementation libraries.groovy_templates.coordinates
-    implementation libraries.groovy_test.coordinates
-    implementation libraries.groovy_xml.coordinates
     implementation libraries.jcip.coordinates
     implementation libraries.nativePlatform.coordinates
     implementation libraries.commons_compress.coordinates
