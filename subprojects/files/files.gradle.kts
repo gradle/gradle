@@ -25,6 +25,7 @@ dependencies {
     api(project(":baseServices"))
     api(project(":baseServicesGroovy"))
     api(project(":coreApi"))
+    api(project(":modelCore"))
     api(library("guava"))
     api(library("jsr305"))
     api(library("inject"))

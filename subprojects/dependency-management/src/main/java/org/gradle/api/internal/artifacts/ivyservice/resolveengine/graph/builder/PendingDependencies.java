@@ -50,11 +50,11 @@ public class PendingDependencies {
         return !affectedComponents.isEmpty();
     }
 
-    void addHardEdge() {
+    void increaseHardEdgeCount() {
         hardEdges++;
     }
 
-    void removeHardEdge() {
+    void decreaseHardEdgeCount() {
         assert hardEdges > 0 : "Cannot remove a hard edge when none recorded";
         hardEdges--;
     }

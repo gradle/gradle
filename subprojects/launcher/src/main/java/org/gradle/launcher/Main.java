@@ -32,7 +32,7 @@ public class Main extends EntryPoint {
     }
 
     protected void doAction(String[] args, ExecutionListener listener) {
-        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_7);
+        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_8);
         createActionFactory().convert(Arrays.asList(args)).execute(listener);
     }
 

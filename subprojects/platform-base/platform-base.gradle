@@ -11,7 +11,6 @@ dependencies {
     compile project(':workers')
     compile libraries.commons_collections.coordinates
     compile libraries.commons_lang.coordinates
-    testFixturesCompile project(path: ':modelCore', configuration: 'testFixturesUsageRuntime')
 }
 
 gradlebuildJava {
@@ -20,7 +19,9 @@ gradlebuildJava {
 
 testFixtures {
     from(':core')
+    from(':coreApi')
     from(':core', 'testFixtures')
+    from(':modelCore', 'testFixtures')
     from(':diagnostics', 'testFixtures')
 }
 
