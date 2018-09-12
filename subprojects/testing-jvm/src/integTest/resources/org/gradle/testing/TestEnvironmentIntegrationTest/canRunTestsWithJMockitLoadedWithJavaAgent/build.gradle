@@ -15,5 +15,15 @@ dependencies {
 }
 
 test {
-    jvmArgumentProviders.add({ ["-javaagent:${configurations.jmockit.singleFile.absolutePath}".toString()] } as CommandLineArgumentProvider)
+    jvmArgumentProviders.add(new JMockitAgent(jmockitClasspath: configurations.jmockit))
+}
+
+class JMockitAgent implements CommandLineArgumentProvider {
+    @Classpath
+    FileCollection jmockitClasspath
+
+    @Override
+    List<String> asArguments() {
+        ["-javaagent:${jmockitClasspath.singleFile.absolutePath}".toString()]
+    }
 }
