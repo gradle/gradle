@@ -27,6 +27,7 @@ import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.collections.FilteredCollection;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -263,7 +264,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     @Override
     public void addLater(Provider<? extends T> provider) {
         assertMutable();
-        ProviderInternal<? extends T> providerInternal = Cast.uncheckedCast(provider);
+        ProviderInternal<? extends T> providerInternal = Providers.internal(provider);
         store.addPending(providerInternal);
         if (eventRegister.isSubscribed(providerInternal.getType())) {
             doAddRealized(provider.get(), eventRegister.getAddActions());

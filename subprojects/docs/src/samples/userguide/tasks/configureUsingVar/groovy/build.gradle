@@ -1,0 +1,8 @@
+task myCopy(type: Copy)
+
+// tag::configure[]
+Copy myCopy = tasks.getByName("myCopy")
+myCopy.from 'resources'
+myCopy.into 'target'
+myCopy.include('**/*.txt', '**/*.xml', '**/*.properties')
+// end::configure[]

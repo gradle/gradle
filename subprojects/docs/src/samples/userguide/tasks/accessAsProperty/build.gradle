@@ -1,4 +1,0 @@
-task hello
-
-println hello.name
-println project.hello.name

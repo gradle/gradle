@@ -22,8 +22,8 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
-import static org.gradle.api.JavaVersion.VERSION_1_7
 import static org.gradle.api.JavaVersion.VERSION_1_8
+import static org.gradle.api.JavaVersion.VERSION_1_9
 
 @Unroll
 class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
@@ -57,34 +57,34 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         newScalaVersion | newZincVersion
-        '2.11.8'       | '0.3.12'
-        '2.11.9'        | '0.3.13'
-        defaultScalaVersion = '2.11.8'
-        defaultZincVersion = '0.3.13'
+        '2.11.12'       | '0.3.13'
+        '2.12.6'        | '0.3.15'
+        defaultScalaVersion = '2.11.12'
+        defaultZincVersion = '0.3.15'
         changedVersion = defaultScalaVersion != newScalaVersion ? 'scala' : 'zinc'
     }
 
-    @Requires(adhoc = { AvailableJavaHomes.getJdk(VERSION_1_7) && AvailableJavaHomes.getJdk(VERSION_1_8) })
+    @Requires(adhoc = { AvailableJavaHomes.getJdk(VERSION_1_8) && AvailableJavaHomes.getJdk(VERSION_1_9) })
     def "compile is out of date when changing the java version"() {
-        def jdk7 = AvailableJavaHomes.getJdk(VERSION_1_7)
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
+        def jdk9 = AvailableJavaHomes.getJdk(VERSION_1_9)
 
-        buildScript(scalaProjectBuildScript('0.3.13', '2.11.8'))
+        buildScript(scalaProjectBuildScript('0.3.15', '2.12.6'))
         when:
-        executer.withJavaHome(jdk7.javaHome)
+        executer.withJavaHome(jdk8.javaHome)
         run 'compileScala'
 
         then:
         executedAndNotSkipped(':compileScala')
 
         when:
-        executer.withJavaHome(jdk7.javaHome)
+        executer.withJavaHome(jdk8.javaHome)
         run 'compileScala'
         then:
         skipped ':compileScala'
 
         when:
-        executer.withJavaHome(jdk8.javaHome)
+        executer.withJavaHome(jdk9.javaHome)
         run 'compileScala', '--info'
         then:
         executedAndNotSkipped(':compileScala')

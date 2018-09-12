@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
@@ -29,6 +30,12 @@ public interface ProviderInternal<T> extends Provider<T> {
      */
     @Nullable
     Class<T> getType();
+
+    /**
+     * Visits the build dependencies of this provider, if possible.
+     * @return true if the dependencies added (possibly none), false if the build dependencies are unknown.
+     */
+    boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context);
 
     @Override
     <S> ProviderInternal<S> map(Transformer<? extends S, ? super T> transformer);
