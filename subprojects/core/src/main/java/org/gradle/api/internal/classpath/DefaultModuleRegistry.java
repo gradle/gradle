@@ -229,6 +229,8 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
         suffixes.add(("/out/production/" + projectName).replace('/', File.separatorChar));
         suffixes.add(("/out/production/gradle-" + projectName).replace('/', File.separatorChar));
 
+        suffixes.add(("/" + projectDirName + "/out/production/classes").replace('/', File.separatorChar));
+        suffixes.add(("/" + projectDirName + "/out/production/resources").replace('/', File.separatorChar));
         suffixes.add(("/" + projectDirName + "/bin").replace('/', File.separatorChar));
 
         suffixes.add(("/" + projectDirName + "/src/main/resources").replace('/', File.separatorChar));
