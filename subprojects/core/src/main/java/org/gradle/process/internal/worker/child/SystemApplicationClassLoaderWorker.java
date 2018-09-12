@@ -17,6 +17,7 @@
 package org.gradle.process.internal.worker.child;
 
 import org.gradle.api.Action;
+import org.gradle.api.Printer;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.UncheckedException;
@@ -77,15 +78,8 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
             return null;
         }
 
-        System.setOut(new PrintStream(new File("C:/out.txt")));
-        System.setErr(new PrintStream(new File("C:/err.txt")));
-        System.out.print("Replaced!");
-        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-            @Override
-            public void uncaughtException(Thread t, Throwable e) {
-                e.printStackTrace(System.err);
-            }
-        });
+        System.setErr(Printer.ps);
+        System.setOut(Printer.ps);
 
         Decoder decoder = new InputStreamBackedDecoder(configInputStream);
 

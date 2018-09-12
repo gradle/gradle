@@ -16,6 +16,7 @@
 
 package org.gradle.internal.concurrent;
 
+import org.gradle.api.Printer;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,6 +81,7 @@ public interface ExecutorPolicy {
         }
 
         public void onFailure(String message, Throwable throwable) {
+            throwable.printStackTrace(Printer.ps);
             // Capture or log all failures
             if (!failure.compareAndSet(null, throwable)) {
                 LOGGER.error(message, throwable);

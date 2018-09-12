@@ -17,14 +17,15 @@
 package org.gradle.process.internal.worker.request;
 
 import org.gradle.api.Action;
+import org.gradle.api.Printer;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.DefaultInstantiatorFactory;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.event.DefaultListenerManager;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
 import org.gradle.process.internal.worker.WorkerProcessContext;
@@ -49,7 +50,6 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
 
     @Override
     public void execute(WorkerProcessContext workerProcessContext) {
-        System.out.println("execute!");
         completed = new CountDownLatch(1);
         try {
             if (instantiatorFactory == null) {
@@ -57,13 +57,13 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
             }
             workerImplementation = Class.forName(workerImplementationName);
             implementation = instantiatorFactory.inject(workerProcessContext.getServiceRegistry()).newInstance(workerImplementation);
-            System.out.println("This finished!");
         } catch (Throwable e) {
             e.printStackTrace(System.err);
             failure = e;
         }
 
         ObjectConnection connection = workerProcessContext.getServerConnection();
+        Printer.print("before incoming!");
         connection.addIncoming(RequestProtocol.class, this);
         responder = connection.addOutgoing(ResponseProtocol.class);
         connection.connect();

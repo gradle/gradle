@@ -16,9 +16,6 @@
 
 package org.gradle.internal.concurrent;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 

@@ -17,6 +17,7 @@
 package org.gradle.internal.remote.internal.hub;
 
 import org.gradle.api.Action;
+import org.gradle.api.Printer;
 import org.gradle.internal.concurrent.AsyncStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -128,6 +129,7 @@ public class MessageHub implements AsyncStoppable {
             }
             ChannelIdentifier identifier = new ChannelIdentifier(channelName);
             EndPointQueue queue = incomingQueue.getChannel(identifier).newEndpoint();
+            Printer.print("Before worker.execute!");
             workers.execute(new Handler(queue, dispatch, boundedDispatch, rejectedMessageListener, streamFailureHandler));
         } finally {
             lock.unlock();
