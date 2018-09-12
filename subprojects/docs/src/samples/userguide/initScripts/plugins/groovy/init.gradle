@@ -1,9 +1,7 @@
-import org.gradle.api.artifacts.repositories.ArtifactRepository
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 
 // tag::init-script-plugin[]
 
-apply plugin:EnterpriseRepositoryPlugin
+apply plugin: EnterpriseRepositoryPlugin
 
 class EnterpriseRepositoryPlugin implements Plugin<Gradle> {
 
@@ -11,7 +9,7 @@ class EnterpriseRepositoryPlugin implements Plugin<Gradle> {
 
     void apply(Gradle gradle) {
         // ONLY USE ENTERPRISE REPO FOR DEPENDENCIES
-        gradle.allprojects{ project ->
+        gradle.allprojects { project ->
             project.repositories {
 
                 // Remove all repositories not pointing to the enterprise repository url
