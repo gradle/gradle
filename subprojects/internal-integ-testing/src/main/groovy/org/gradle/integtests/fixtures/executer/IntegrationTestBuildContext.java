@@ -19,6 +19,7 @@ package org.gradle.integtests.fixtures.executer;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -53,8 +54,9 @@ public class IntegrationTestBuildContext {
         return file("integTest.gradleUserHomeDir", "intTestHomeDir").file("worker-1");
     }
 
+    @Nullable
     public TestFile getGradleGeneratedApiJarCacheDir() {
-        return file("integTest.gradleGeneratedApiJarCacheDir", null);
+        return optionalFile("integTest.gradleGeneratedApiJarCacheDir");
     }
 
     public TestFile getTmpDir() {
@@ -102,14 +104,20 @@ public class IntegrationTestBuildContext {
     }
 
     protected static TestFile file(String propertyName, String defaultPath) {
-        String path = System.getProperty(propertyName);
-        if (path != null) {
-            return new TestFile(new File(path));
+        TestFile testFile = optionalFile(propertyName);
+        if (testFile != null) {
+            return testFile;
         }
         if (defaultPath == null) {
             throw new RuntimeException("You must set the '" + propertyName + "' property to run the integration tests.");
         }
         return testFile(defaultPath);
+    }
+
+    @Nullable
+    private static TestFile optionalFile(String propertyName) {
+        String path = System.getProperty(propertyName);
+        return path != null ? new TestFile(new File(path)) : null;
     }
 
     private static TestFile testFile(String path) {

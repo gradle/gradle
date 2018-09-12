@@ -156,6 +156,11 @@ When a dependency constraint matched a real dependency, it was made part of the 
 However if for some reason the dependency was later evicted from the graph, the constraint remained present.
 Now when the last non-constraint edge to a dependency disappears, all constraints for that dependency will be properly removed from the graph.
 
+### Gradle requires Java 8
+
+Gradle can no longer be run on Java 7, but requires Java 8 as the minimum build JVM version. 
+However, you can still use forked compilation and testing to build and test software for Java 6 and above.
+
 ### Java Library Distribution Plugin utilizes Java Library Plugin
 
 The [Java Library Distribution Plugin](userguide/java_library_distribution_plugin.html) is now based on the
@@ -284,13 +289,14 @@ We would like to thank the following community members for making contributions 
 - [Georg Friedrich](https://github.com/GFriedrich) - Base Java Library Distribution Plugin on Java Library Plugin (gradle/gradle#5695)
 - [Stefan M.](https://github.com/StefMa) — Include Kotlin DSL samples in Gradle Wrapper, Java Gradle Plugin, and OSGI Plugin user manual chapters (gradle/gradle#5923, gradle/gradle#6485, gradle/gradle#6539)
 - [Stefan M.](https://github.com/StefMa) - Fix incoherent task name in the Authoring Tasks user manual chapter (gradle/gradle#6581)
-- [Jean-Baptiste Nizet](https://github.com/jnizet) — Include Kotlin DSL samples in Announcements, ANTLR, Base, EAR, Java Library Plugins, JaCoCo Plugins, Building Java Projects, Declaring Repositories, Dependency Locking, Dependency Types, Java Library, Java Testing, Artifact Management, IDEA Plugin, Application Plugin, Build Cache, Build Lifecycle, Declaring Dependencies, Inspecting Dependencies, Dependency Management for Java Projects, Working With Files, Working With Dependencies, Building Java Projects, Java Quickstart, Eclipse Plugin, Custom Tasks, Java Plugin, Signing Plugin, Composite Builds, TestKit and Multi Projects Builds user manual chapters (gradle/gradle#6488, gradle/gradle#6500, gradle/gradle#6514, gradle/gradle#6518, gradle/gradle#6521, gradle/gradle#6540, gradle/gradle#6560, gradle/gradle#6559, gradle/gradle#6569, gradle/gradle#6556, gradle/gradle#6512, gradle/gradle#6501, gradle/gradle#6497, gradle/gradle#6571, gradle/gradle#6575, gradle/gradle#6586, gradle/gradle#6590, gradle/gradle#6591, gradle/gradle#6593, gradle/gradle#6597, gradle/gradle#6598, gradle/gradle#6602, gradle/gradle#6613, gradle/gradle#6618, gradle/gradle#6578, gradle/gradle#6660, gradle/gradle#6663, gradle/gradle#6678, gradle/gradle#6687)
+- [Jean-Baptiste Nizet](https://github.com/jnizet) — Include Kotlin DSL samples in Announcements, ANTLR, Base, EAR, Java Library Plugins, JaCoCo Plugins, Building Java Projects, Declaring Repositories, Dependency Locking, Dependency Types, Java Library, Java Testing, Artifact Management, IDEA Plugin, Application Plugin, Build Cache, Build Lifecycle, Declaring Dependencies, Inspecting Dependencies, Dependency Management for Java Projects, Working With Files, Working With Dependencies, Building Java Projects, Java Quickstart, Eclipse Plugin, Custom Tasks, Java Plugin, Signing Plugin, Composite Builds, TestKit, Multi Projects Builds, Managing Transitive Dependencies, Custom Plugins, Init Scripts and Scala Plugin user manual chapters (gradle/gradle#6488, gradle/gradle#6500, gradle/gradle#6514, gradle/gradle#6518, gradle/gradle#6521, gradle/gradle#6540, gradle/gradle#6560, gradle/gradle#6559, gradle/gradle#6569, gradle/gradle#6556, gradle/gradle#6512, gradle/gradle#6501, gradle/gradle#6497, gradle/gradle#6571, gradle/gradle#6575, gradle/gradle#6586, gradle/gradle#6590, gradle/gradle#6591, gradle/gradle#6593, gradle/gradle#6597, gradle/gradle#6598, gradle/gradle#6602, gradle/gradle#6613, gradle/gradle#6618, gradle/gradle#6578, gradle/gradle#6660, gradle/gradle#6663, gradle/gradle#6678, gradle/gradle#6687, gradle/gradle#6588, gradle/gradle#6633, gradle/gradle#6637, gradle/gradle#6689)
 - [Jean-Baptiste Nizet](https://github.com/jnizet) — Use proper subtype for useTestNG() (gradle/gradle#6520)
 - [Xiang Li](https://github.com/lixiangconan) and [Theodore Ni](https://github.com/tjni) - Make FileUtils#calculateRoots more efficient (gradle/gradle#6455)
 - [James Justinic](https://github.com/jjustinic) Include Kotlin DSL samples in Ant, WAR Plugin, Checkstyle plugin, CodeNarc plugin, FindBugs plugin, JDepend plugin, PMD plugin user manual chapters (gradle/gradle#6492, gradle/gradle#6510, gradle/gradle#6522)
 - [James Justinic](https://github.com/jjustinic) Support type-safe configuration for Checkstyle/FindBugs HTML report stylesheet (gradle/gradle#6551)
 - [Mike Kobit](https://github.com/mkobit) - Include Kotlin DSL samples in Lazy Configuration user manual chapter (gradle/gradle#6528)
 - [Kevin Macksamie](https://github.com/k-mack) - Switch distribution plugin to use configuration avoidance APIs (gradle/gradle#6443)
+- [Cliffred van Velzen](https://github.com/cliffred) - Allow logging null value (gradle/gradle#6665)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

@@ -63,7 +63,7 @@ gradlebuildJava {
 testFixtures {
     from(":core")
     from(":messaging")
-    from(":modelCore")
+    from(":coreApi")
     from(":versionControl")
     from(":resourcesHttp")
 }

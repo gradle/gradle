@@ -16,17 +16,19 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.provider.Provider;
-
 import javax.annotation.Nullable;
 
 public abstract class AbstractMappingProvider<OUT, IN> extends AbstractProvider<OUT> {
     private final Class<OUT> type;
-    private final Provider<? extends IN> provider;
+    private final ProviderInternal<? extends IN> provider;
 
-    public AbstractMappingProvider(Class<OUT> type, Provider<? extends IN> provider) {
+    public AbstractMappingProvider(Class<OUT> type, ProviderInternal<? extends IN> provider) {
         this.type = type;
         this.provider = provider;
+    }
+
+    ProviderInternal<? extends IN> getProvider() {
+        return provider;
     }
 
     @Nullable

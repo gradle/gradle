@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.util.GUtil;
 
 import static org.gradle.api.internal.provider.Providers.NULL_VALUE;
@@ -51,6 +52,11 @@ public abstract class AbstractProvider<T> implements ProviderInternal<T> {
     @Override
     public boolean isPresent() {
         return getOrNull() != null;
+    }
+
+    @Override
+    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+        return false;
     }
 
     @Override

@@ -125,7 +125,7 @@ open class ParameterNamesResourceTask : DefaultTask() {
 
     @OutputFile
     @PathSensitive(PathSensitivity.NONE)
-    val destinationFile = project.layout.fileProperty()
+    val destinationFile = project.objects.fileProperty()
 
     @TaskAction
     fun generate() {

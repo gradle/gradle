@@ -65,4 +65,19 @@ class LogEventSerializerTest extends LogSerializerSpec {
         result.throwable == null
         result.buildOperationId == null
     }
+
+    def "can serialize null value"() {
+        when:
+        def event = new LogEvent(TIMESTAMP, CATEGORY, LogLevel.LIFECYCLE, null, null, null)
+        def result = serialize(event, serializer)
+
+        then:
+        result instanceof LogEvent
+        result.timestamp == TIMESTAMP
+        result.category == CATEGORY
+        result.logLevel == LogLevel.LIFECYCLE
+        result.message == null
+        result.throwable == null
+        result.buildOperationId == null
+    }
 }
