@@ -17,20 +17,27 @@
 package org.gradle.api.publish.ivy.internal.artifact;
 
 import com.google.common.io.Files;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class FileBasedIvyArtifact extends AbstractIvyArtifact {
     private final File file;
     private final String extension;
     private final IvyPublicationIdentity identity;
+    @Nullable
+    private final ProviderInternal<?> provider;
 
-    public FileBasedIvyArtifact(File file, IvyPublicationIdentity identity) {
+    public FileBasedIvyArtifact(File file, IvyPublicationIdentity identity, @Nullable ProviderInternal<?> provider) {
         this.file = file;
         extension = Files.getFileExtension(file.getName());
         this.identity = identity;
+        this.provider = provider;
     }
 
     @Override
@@ -60,7 +67,14 @@ public class FileBasedIvyArtifact extends AbstractIvyArtifact {
 
     @Override
     protected TaskDependencyInternal getDefaultBuildDependencies() {
-        return TaskDependencyInternal.EMPTY;
+        return new AbstractTaskDependency() {
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                if (provider != null) {
+                    provider.maybeVisitBuildDependencies(context);
+                }
+            }
+        };
     }
 
     @Override

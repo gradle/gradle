@@ -34,6 +34,7 @@ import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.specs.Spec;
@@ -147,7 +148,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         super.addLater(provider);
         if (provider instanceof Named) {
             final Named named = (Named) provider;
-            index.putPending(named.getName(), (ProviderInternal<? extends T>) provider);
+            index.putPending(named.getName(), Providers.internal(provider));
             deferredElementKnown(named.getName(), provider);
         }
     }
@@ -166,7 +167,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected final void deferredElementKnown(String name, Provider<? extends T> provider) {
-        whenKnown.execute(new ProviderBackedElementInfo<T>(name, provider));
+        whenKnown.execute(new ProviderBackedElementInfo<T>(name, Providers.internal(provider)));
     }
 
     @Override
@@ -741,9 +742,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     private static class ProviderBackedElementInfo<T> implements ElementInfo<T> {
         private final String name;
-        private final Provider<? extends T> provider;
+        private final ProviderInternal<? extends T> provider;
 
-        ProviderBackedElementInfo(String name, Provider<? extends T> provider) {
+        ProviderBackedElementInfo(String name, ProviderInternal<? extends T> provider) {
             this.name = name;
             this.provider = provider;
         }
@@ -755,7 +756,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Override
         public Class<?> getType() {
-            return ((ProviderInternal<?>) provider).getType();
+            return provider.getType();
         }
     }
 

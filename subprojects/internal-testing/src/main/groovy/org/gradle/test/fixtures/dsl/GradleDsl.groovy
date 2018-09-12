@@ -32,4 +32,12 @@ enum GradleDsl {
     String fileNameFor(String fileNameWithoutExtension) {
         return fileNameWithoutExtension + fileExtension;
     }
+
+    String getLanguageCodeName() {
+        return name().toLowerCase(Locale.US)
+    }
+
+    static List<String> languageCodeNames() {
+        return values().collect { GradleDsl val -> val.languageCodeName }
+    }
 }
