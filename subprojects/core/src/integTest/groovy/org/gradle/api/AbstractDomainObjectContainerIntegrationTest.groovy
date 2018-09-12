@@ -28,19 +28,21 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
 
     Map<String, Object> getQueryCodeUnderTest() {
         [
-            "getByName(String)":    "${containerUnderTest}.getByName('b')",
-            "named(String)":        "${containerUnderTest}.named('b')",
-            "findAll(Closure)":     "${containerUnderTest}.findAll { it.name == 'b' }",
-            "findByName(String)":   "${containerUnderTest}.findByName('b')",
-            "TaskProvider.get()":   "b.get()",
+            "getByName(String)":    "${containerUnderTest}.getByName('unrealized')",
+            "named(String)":        "${containerUnderTest}.named('unrealized')",
+            "findAll(Closure)":     "${containerUnderTest}.findAll { it.name == 'unrealized' }",
+            "findByName(String)":   "${containerUnderTest}.findByName('unrealized')",
+            "TaskProvider.get()":   "unrealized.get()",
             "iterator()":           "for ($baseElementType element : ${containerUnderTest}) { println element.name }",
         ]
     }
 
     List<Object> getConfigurationHookUnderTest() {
         [
-            "configureEach",
-            "withType($baseElementType).configureEach",
+            "${containerUnderTest}.configureEach",
+            "${containerUnderTest}.withType($baseElementType).configureEach",
+            "toBeRealized.configure",
+            "realized.configure",
         ]
     }
 
@@ -66,12 +68,13 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
     @Unroll
     def "can execute query method #description from #configurationHookUnderTest(Closure) configuration action"() {
         buildFile << """
-            def a = ${containerUnderTest}.register('a')
-            def b = ${containerUnderTest}.register('b')
-            ${containerUnderTest}.${configurationHookUnderTest} {
+            def toBeRealized = ${containerUnderTest}.register('toBeRealized')
+            def unrealized = ${containerUnderTest}.register('unrealized')
+            def realized = ${containerUnderTest}.register('realized'); realized.get()
+            ${configurationHookUnderTest} {
                 ${codeUnderTest}
             }
-            a.get()
+            toBeRealized.get()
         """
 
         expect:
@@ -84,12 +87,13 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
     @Unroll
     def "cannot execute mutation method #description from #configurationHookUnderTest(Closure) configuration action"() {
         buildFile << """
-            def a = ${containerUnderTest}.register('a')
-            def b = ${containerUnderTest}.register('b')
-            ${containerUnderTest}.${configurationHookUnderTest} {
+            def toBeRealized = ${containerUnderTest}.register('toBeRealized')
+            def unrealized = ${containerUnderTest}.register('unrealized')
+            def realized = ${containerUnderTest}.register('realized'); realized.get()
+            ${configurationHookUnderTest} {
                 ${codeUnderTest}
             }
-            a.get()
+            toBeRealized.get()
         """
 
         expect:

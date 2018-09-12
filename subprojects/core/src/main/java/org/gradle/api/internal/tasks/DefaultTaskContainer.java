@@ -709,8 +709,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
 
         @Override
-        protected Action<? super I> wrap(Action action) {
-            return MutationGuards.of(crossProjectConfigurator).withMutationDisabled(action);
+        protected Action<? super I> withMutationDisabled(Action action) {
+            return MutationGuards.of(crossProjectConfigurator).withMutationDisabled(super.withMutationDisabled(action));
         }
 
         @Override

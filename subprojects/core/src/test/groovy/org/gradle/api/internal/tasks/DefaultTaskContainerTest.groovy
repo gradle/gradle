@@ -24,7 +24,7 @@ import org.gradle.api.NamedDomainObjectCollection
 import org.gradle.api.Rule
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
-import org.gradle.api.internal.AbstractNamedDomainObjectCollectionSpec
+import org.gradle.api.internal.AbstractPolymorphicDomainObjectContainerSpec
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
@@ -48,7 +48,7 @@ import org.gradle.util.Path
 import static java.util.Collections.singletonMap
 import static org.gradle.util.WrapUtil.toList
 
-class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<Task> {
+class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerSpec<Task> {
 
     private taskFactory = Mock(ITaskFactory)
     def modelRegistry = Mock(ModelRegistry)
@@ -1552,6 +1552,14 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
 
     final Class<SomeTask> type = SomeTask
     final Class<SomeOtherTask> otherType = SomeOtherTask
+
+    @Override
+    void behaveLikeNamedContainer() {
+        taskFactory.create(_ as TaskIdentity) >> { args ->
+            def taskIdentity = args[0]
+            task(taskIdentity.name, taskIdentity.type)
+        }
+    }
 
     @Override
     List<Task> iterationOrder(Task... elements) {
