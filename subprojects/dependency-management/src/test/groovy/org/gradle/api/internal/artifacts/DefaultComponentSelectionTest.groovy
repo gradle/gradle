@@ -17,13 +17,16 @@
 package org.gradle.api.internal.artifacts
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.MetadataProvider
 import spock.lang.Specification
 
 class DefaultComponentSelectionTest extends Specification {
     DefaultComponentSelection selection
+    MetadataProvider metadataProvider = Mock()
 
     def setup() {
-        selection = new DefaultComponentSelection(Stub(ModuleComponentIdentifier))
+        selection = new DefaultComponentSelection(Stub(ModuleComponentIdentifier), metadataProvider)
     }
 
     def "accepted by default"() {
@@ -49,5 +52,29 @@ class DefaultComponentSelectionTest extends Specification {
         then:
         selection.rejected
         selection.rejectionReason == "worse"
+    }
+
+    def 'delegates to metadata provider for metadata access'() {
+        when:
+        selection.getMetadata()
+
+        then:
+        1 * metadataProvider.componentMetadata
+    }
+
+    def 'delegates to metadata provider for ivy module descriptor access'() {
+        when:
+        selection.getDescriptor(IvyModuleDescriptor.class)
+
+        then:
+        1 * metadataProvider.ivyModuleDescriptor
+    }
+
+    def 'ignores non ivy descriptor requests'() {
+        when:
+        selection.getDescriptor(Object.class)
+
+        then:
+        0 * metadataProvider._
     }
 }
