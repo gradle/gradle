@@ -18,6 +18,9 @@ package org.gradle.internal.dispatch;
 
 import org.gradle.internal.UncheckedException;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -34,9 +37,21 @@ public class ReflectionDispatch implements Dispatch<MethodInvocation> {
             method.setAccessible(true);
             method.invoke(target, message.getArguments());
         } catch (InvocationTargetException e) {
+            printError(e);
             throw UncheckedException.throwAsUncheckedException(e.getCause());
         } catch (Throwable throwable) {
+            printError(throwable);
             throw UncheckedException.throwAsUncheckedException(throwable);
+        }
+    }
+
+    public void printError(Throwable throwable) {
+        try {
+            PrintStream ps = new PrintStream(new File("C:/error.txt"));
+            throwable.printStackTrace(ps);
+            ps.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
