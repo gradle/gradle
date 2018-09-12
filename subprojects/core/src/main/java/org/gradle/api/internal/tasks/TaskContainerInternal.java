@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
 import org.gradle.api.tasks.TaskContainer;
@@ -32,8 +31,6 @@ public interface TaskContainerInternal extends TaskContainer, TaskResolver, Poly
     ModelType<TaskContainerInternal> MODEL_TYPE = ModelType.of(TaskContainerInternal.class);
 
     DynamicObject getTasksAsDynamicObject();
-
-    <T extends Task> void addPlaceholderAction(String placeholderName, Class<T> type, Action<? super T> configure);
 
     /**
      * Force the task graph to come into existence.

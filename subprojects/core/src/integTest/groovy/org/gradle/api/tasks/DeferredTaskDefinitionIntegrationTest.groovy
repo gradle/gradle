@@ -264,7 +264,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             
             gradle.buildFinished {
                 assert configureCount == 1
-                assert tasksAllCount == 2 // help + task1
+                assert tasksAllCount == 1
             }
         """
 

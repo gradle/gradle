@@ -92,15 +92,15 @@ public class TaskConfiguration {
         wrapper.setDescription("Generates Gradle wrapper files.");
     }
 
-    public static void addInitPlaceholder(final ProjectInternal projectInternal) {
+    public static void addInitTask(final ProjectInternal projectInternal) {
         if (projectInternal.getParent() == null) {
-            projectInternal.getTasks().addPlaceholderAction(INIT_BUILD_TASK_NAME, InitBuild.class, new InitBuildAction());
+            projectInternal.getTasks().register(INIT_BUILD_TASK_NAME, InitBuild.class, new InitBuildAction());
         }
     }
 
-    public static void addWrapperPlaceholder(ProjectInternal projectInternal) {
+    public static void addWrapperTask(ProjectInternal projectInternal) {
         if (projectInternal.getParent() == null) {
-            projectInternal.getTasks().addPlaceholderAction("wrapper", Wrapper.class, new WrapperAction());
+            projectInternal.getTasks().register("wrapper", Wrapper.class, new WrapperAction());
         }
     }
 
