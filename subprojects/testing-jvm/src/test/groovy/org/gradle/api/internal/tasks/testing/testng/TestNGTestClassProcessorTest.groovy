@@ -30,6 +30,7 @@ import org.junit.Rule
 import org.testng.ITestContext
 import org.testng.ITestListener
 import org.testng.ITestResult
+import org.testng.TestNG
 import org.testng.annotations.AfterClass
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeClass
@@ -38,6 +39,8 @@ import org.testng.annotations.Factory
 import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Subject
+
+import java.lang.reflect.Proxy
 
 class TestNGTestClassProcessorTest extends Specification {
 
@@ -242,12 +245,17 @@ class TestNGTestClassProcessorTest extends Specification {
         0 * processor._
     }
 
-    void "custom test listeners can change test status"() {
-        options.listeners << FailSkippedTestsListener.class.name
+    void "custom test listeners are registered before Gradle's listener"() {
+        given:
+        def testNG = Mock(TestNG)
+        options.listeners << CustomTestListener.class.name
+        classProcessor.startProcessing(processor)
 
-        when: process(ATestNGClassWithSkippedTest)
+        when:
+        classProcessor.configure(testNG)
 
-        then: 1 * processor.completed(_, { it.resultType == ResultType.FAILURE})
+        then: 1 * testNG.addListener({ it instanceof CustomTestListener }) >> null
+        then: 1 * testNG.addListener({ Proxy.isProxyClass(it.class) && it.toString().contains(TestNGTestResultProcessorAdapter.class.name) })
     }
 
     void "executes test from suite"() {
@@ -345,15 +353,11 @@ class TestNGTestClassProcessorTest extends Specification {
     }
 }
 
-public class FailSkippedTestsListener implements ITestListener {
+public class CustomTestListener implements ITestListener {
     void onTestStart(ITestResult result) {}
-    void onTestSuccess(ITestResult result) {
-        result.setStatus(ITestResult.FAILURE)
-    }
+    void onTestSuccess(ITestResult result) {}
     void onTestFailure(ITestResult result) {}
-    void onTestSkipped(ITestResult result) {
-
-    }
+    void onTestSkipped(ITestResult result) {}
     void onTestFailedButWithinSuccessPercentage(ITestResult result) {}
     void onStart(ITestContext context) {}
     void onFinish(ITestContext context) {}
