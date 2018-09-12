@@ -16,6 +16,8 @@
 
 package org.gradle.internal.concurrent;
 
+import org.gradle.api.Printer;
+
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -39,6 +41,7 @@ public class ThreadFactoryImpl implements ThreadFactory {
         } else {
             thread.setName(displayName + " Thread " + count);
         }
+        Printer.print("Create thread " + thread.getName());
         return thread;
     }
 
