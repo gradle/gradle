@@ -49,6 +49,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
 
     @Override
     public void execute(WorkerProcessContext workerProcessContext) {
+        System.out.println("execute!");
         completed = new CountDownLatch(1);
         try {
             if (instantiatorFactory == null) {
@@ -56,6 +57,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
             }
             workerImplementation = Class.forName(workerImplementationName);
             implementation = instantiatorFactory.inject(workerProcessContext.getServiceRegistry()).newInstance(workerImplementation);
+            System.out.println("This finished!");
         } catch (Throwable e) {
             e.printStackTrace(System.err);
             failure = e;

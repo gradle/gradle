@@ -79,6 +79,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
         System.setOut(new PrintStream(new File("C:/out.txt")));
         System.setErr(new PrintStream(new File("C:/err.txt")));
+        System.out.print("Replaced!");
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(Thread t, Throwable e) {
