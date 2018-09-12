@@ -17,93 +17,64 @@
 package org.gradle.performance.results
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.databind.ObjectMapper
+import org.gradle.performance.measure.DataSeries
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class ScenarioBuildResultData {
     String scenarioName
     String webUrl
+    String testStderr
     boolean successful
-    List<ExperimentData> experimentData = []
+    List<ExecutionData> currentCommitExecutions = []
+    List<ExecutionData> recentExecutions = []
 
-    static class ExperimentData {
-        String buildId
-        String gitCommitId
-        String controlGroupName
-        String experimentGroupName
-        String controlGroupMedian
-        String experimentGroupMedian
-        String controlGroupStandardError
-        String experimentGroupStandardError
-        String confidence
-        double regressionPercentage
+    boolean isAboutToRegress() {
+        return executions.any { it.regressionPercentage > 0 && it.confidencePercentage > IndexPageGenerator.DANGEROUS_REGRESSION_THRESHOLD }
     }
 
-    String getGitCommitId(int experimentIndex) {
-        return experimentData.size() > experimentIndex ? experimentData[experimentIndex].gitCommitId : "N/A"
+    boolean isBuildFailed() {
+        return !successful && currentCommitExecutions.empty
     }
 
-    String getBuildId(int experimentIndex) {
-        return experimentData.size() > experimentIndex ? experimentData[experimentIndex].buildId : "N/A"
+    boolean isFromCache() {
+        return successful && currentCommitExecutions.empty
     }
 
-    String getControlGroupName(int experimentIndex) {
-        return experimentData.size() > experimentIndex ? experimentData[experimentIndex].controlGroupName : "N/A"
+    double getConfidencePercentage() {
+        return executions.empty ? 0.0 : executions[0].regressionPercentage
     }
 
-    String getExperimentGroupName(int experimentIndex) {
-        return experimentData.size() > experimentIndex ? experimentData[experimentIndex].experimentGroupName : "N/A"
+    List<ExecutionData> getExecutions() {
+        return currentCommitExecutions.isEmpty() ? recentExecutions : currentCommitExecutions
     }
 
-    String getControlGroupMedian(int experimentIndex) {
-        return experimentData.size() > experimentIndex ? experimentData[experimentIndex].controlGroupMedian : "N/A"
-    }
+    static class ExecutionData {
+        Date time
+        MeasuredOperationList baseVersion
+        MeasuredOperationList currentVersion
 
-    String getExperimentGroupMedian(int experimentIndex) {
-        return experimentData.size() > experimentIndex ? experimentData[experimentIndex].experimentGroupMedian : "N/A"
-    }
-
-    String getControlGroupStandardError(int experimentIndex) {
-        return experimentData.size() > experimentIndex ? experimentData[experimentIndex].controlGroupStandardError : "N/A"
-    }
-
-    String getExperimentGroupStandardError(int experimentIndex) {
-        return experimentData.size() > experimentIndex ? experimentData[experimentIndex].experimentGroupStandardError : "N/A"
-    }
-
-    String getConfidence(int experimentIndex) {
-        return experimentData.size() > experimentIndex ? experimentData[experimentIndex].confidence : "N/A"
-    }
-
-    String getFormattedRegression(int experimentIndex) {
-        return experimentData.size() > experimentIndex ? String.format("%.2f%%", experimentData[experimentIndex].regressionPercentage) : "N/A"
-    }
-
-    double getRegressionPercentage() {
-        return experimentData.empty ? 0.0 : experimentData[0].regressionPercentage
-    }
-
-    boolean isRegressed() {
-        return !successful && !experimentData.empty
-    }
-
-    void setResult(String junitSystemOut) {
-        if(!junitSystemOut) {
-            return
+        ExecutionData(long time, MeasuredOperationList baseVersion, MeasuredOperationList currentVersion) {
+            this.time = new Date(time)
+            this.baseVersion = baseVersion
+            this.currentVersion = currentVersion
         }
 
-        List<String> lines = junitSystemOut.readLines()
-        List<Integer> startAndEndIndices = lines.findIndexValues { it.startsWith(BaselineVersion.MACHINE_DATA_SEPARATOR) }
-        if (!startAndEndIndices.empty) {
-            assert startAndEndIndices.size() <= 6
-            for (int i = 0; i < startAndEndIndices.size(); i += 2) {
-                int startIndex = startAndEndIndices[i].intValue()
-                int endIndex = startAndEndIndices[i + 1].intValue()
-                assert startIndex + 2 == endIndex
-                String json = lines[startIndex + 1]
-                experimentData.add(new ObjectMapper().readValue(json, ExperimentData))
-            }
+        double getRegressionPercentage() {
+            double base = baseVersion.totalTime.median.value.doubleValue()
+            double current = baseVersion.totalTime.median.value.doubleValue()
+            return 100.0 * (current - base) / base
+        }
+
+        double getConfidencePercentage() {
+            return 100.0 * DataSeries.confidenceInDifference(baseVersion.totalTime, currentVersion.totalTime)
+        }
+
+        String getFormattedRegression() {
+            String.format("%.2f%%", regressionPercentage)
+        }
+
+        String getFormattedConfidence() {
+            String.format("%.2f%%", formattedConfidence)
         }
     }
-
 }

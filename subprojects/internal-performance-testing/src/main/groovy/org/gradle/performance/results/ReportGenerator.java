@@ -42,7 +42,7 @@ public class ReportGenerator {
             TestPageGenerator testHtmlRenderer = new TestPageGenerator();
             TestDataGenerator testDataRenderer = new TestDataGenerator();
 
-            fileRenderer.render(store, new IndexPageGenerator(resultJson), new File(outputDirectory, "index.html"));
+            fileRenderer.render(store, new IndexPageGenerator(store, resultJson), new File(outputDirectory, "index.html"));
 
             File testsDir = new File(outputDirectory, "tests");
             for (String testName : store.getTestNames()) {

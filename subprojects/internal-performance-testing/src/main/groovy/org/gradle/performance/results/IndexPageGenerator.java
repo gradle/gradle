@@ -19,7 +19,8 @@ package org.gradle.performance.results;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.performance.util.Git;
+import org.gradle.performance.measure.DataSeries;
+import org.gradle.performance.measure.Duration;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,32 +30,62 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.comparingDouble;
 
 public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
+    public static final int DANGEROUS_REGRESSION_THRESHOLD = 90;
     private final Set<ScenarioBuildResultData> scenarios;
-    private final String gitCommitId;
+    private final ResultsStore resultsStore;
 
-    public IndexPageGenerator(File resultJson) {
+    public IndexPageGenerator(ResultsStore resultsStore, File resultJson) {
+        this.resultsStore = resultsStore;
         this.scenarios = readBuildResultData(resultJson);
-        this.gitCommitId = Git.current().getCommitId();
     }
 
     @VisibleForTesting
     Set<ScenarioBuildResultData> readBuildResultData(File resultJson) {
         try {
-            Comparator<ScenarioBuildResultData> comparator = comparing(ScenarioBuildResultData::isSuccessful)
-                .thenComparing(ScenarioBuildResultData::isRegressed)
-                .thenComparing(comparingDouble(ScenarioBuildResultData::getRegressionPercentage).reversed())
+            Comparator<ScenarioBuildResultData> comparator = comparing(ScenarioBuildResultData::isBuildFailed)
+                .thenComparing(ScenarioBuildResultData::isSuccessful)
+                .thenComparing(ScenarioBuildResultData::isAboutToRegress)
+                .thenComparing(comparingDouble(ScenarioBuildResultData::getConfidencePercentage).reversed())
                 .thenComparing(ScenarioBuildResultData::getScenarioName);
 
             List<ScenarioBuildResultData> list = new ObjectMapper().readValue(resultJson, new TypeReference<List<ScenarioBuildResultData>>() {
             });
-            return list.stream().collect(() -> new TreeSet<>(comparator), TreeSet::add, TreeSet::addAll);
+            return list.stream().map(this::queryExecutionData).collect(() -> new TreeSet<>(comparator), TreeSet::add, TreeSet::addAll);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        }
+    }
+
+    private ScenarioBuildResultData queryExecutionData(ScenarioBuildResultData scenario) {
+        PerformanceTestHistory history = resultsStore.getTestResults(scenario.getScenarioName(), 3, 2, ResultsStoreHelper.determineChannel());
+        List<? extends PerformanceTestExecution> recentExecutions = history.getExecutions();
+        List<? extends PerformanceTestExecution> currentCommitExecutions = filterForRequestedCommit(recentExecutions);
+        if (currentCommitExecutions.isEmpty()) {
+            scenario.setCurrentCommitExecutions(recentExecutions.stream().map(this::extractExecutionData).collect(Collectors.toList()));
+        } else {
+            scenario.setRecentExecutions(currentCommitExecutions.stream().map(this::extractExecutionData).collect(Collectors.toList()));
+        }
+
+        return scenario;
+    }
+
+    private ScenarioBuildResultData.ExecutionData extractExecutionData(PerformanceTestExecution performanceTestExecution) {
+        List<MeasuredOperationList> nonEmptyExecutions = performanceTestExecution
+            .getScenarios()
+            .stream()
+            .filter(testExecution -> !testExecution.getTotalTime().isEmpty())
+            .collect(Collectors.toList());
+        if (nonEmptyExecutions.size() > 1) {
+            return new ScenarioBuildResultData.ExecutionData(performanceTestExecution.getStartTime(), nonEmptyExecutions.get(0), nonEmptyExecutions.get(1));
+        } else {
+            return null;
         }
     }
 
@@ -67,114 +98,123 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     head();
                         headSection(this);
                         link().rel("stylesheet").type("text/css").href("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css").end();
+                        script().src("https://code.jquery.com/jquery-3.2.1.slim.min.js").end();
+                        script().src("https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js").end();
                         title().text("Profile report for channel " + ResultsStoreHelper.determineChannel()).end();
                     end();
                     body();
-                        div().id("content");
-                        renderSummary();
+                        div().id("acoordion").classAttr("w-75 mx-auto");
+                        renderHeader();
                         renderTable();
                     end();
                 footer(this);
                 endAll();
             }
 
-            private void renderTable() {
-                table().classAttr("table table-condensed table-striped table-bordered");
-                    renderHeaders();
-                    scenarios.forEach(this::renderScenario);
+            private void renderHeader() {
+                long successCount = scenarios.stream().filter(ScenarioBuildResultData::isSuccessful).count();
+                long failureCount = scenarios.stream().filter(ScenarioBuildResultData::isBuildFailed).count();
+                long regressedCount = scenarios.size() - successCount - failureCount;
+                div().classAttr("row alert alert-primary m-0");
+                    div().classAttr("col-10 p-0");
+                        text("Scenarios (" + successCount + " successful");
+                        if (regressedCount > 0) {
+                            text(", " + regressedCount + " regressed");
+                        }
+                        if (failureCount > 0) {
+                            text(", " + failureCount + " failed");
+                        }
+                        text(")");
+                    end();
+                    div().classAttr("col").text("Regression").end();
+                    div().classAttr("col").text("Confidence").end();
                 end();
             }
 
-            private void renderHeaders() {
-                tr();
-                    th().text("Scenario").end();
-                    th().colspan("2").text("Control Group").end();
-                    th().colspan("2").text("Experiment Group").end();
-                    th().colspan("2").text("Regression").end();
-                end();
+            private void renderTable() {
+                AtomicInteger index = new AtomicInteger(0);
+                scenarios.forEach(scenario -> renderScenario(index.incrementAndGet(), scenario));
             }
 
             private String determineScenarioCss(ScenarioBuildResultData scenario) {
                 if(scenario.isSuccessful()) {
                     return "success";
-                } else if(scenario.isRegressed()) {
-                    return "warning";
-                } else {
+                } else if(scenario.isBuildFailed()) {
                     return "danger";
-                }
-            }
-
-            private void renderScenario(ScenarioBuildResultData scenario) {
-                if (scenario.getExperimentData().isEmpty()) {
-                    renderScenario(scenario, 0);
                 } else {
-                    for (int i = 0; i < scenario.getExperimentData().size(); i++) {
-                        renderScenario(scenario, i);
-                    }
+                    return "warning";
                 }
             }
 
-            private void renderScenario(ScenarioBuildResultData scenario, int experimentIndex) {
-                tr().classAttr(determineScenarioCss(scenario));
-
-                if (experimentIndex == 0) {
-                    td().rowspan(scenario.getExperimentData().isEmpty() ? "1" : "" + scenario.getExperimentData().size());
-                        a().href(scenario.getWebUrl()).classAttr("label label-" + determineScenarioCss(scenario));
-                            big().u().text(scenario.getScenarioName()).end().end();
-                        end();
-                        a().href("tests/" + urlEncode(scenario.getScenarioName().replaceAll("\\s+", "-")) + ".html").classAttr("label label-info");
-                            big().u().text("details...").end().end();
-                        end();
-                    if (!gitCommitId.equals(scenario.getGitCommitId(experimentIndex)) && !"N/A".equals(scenario.getBuildId(experimentIndex))) {
-                        a().href("https://builds.gradle.org/viewLog.html?buildId=" + scenario.getBuildId(experimentIndex)).classAttr("label label-info");
-                            big().u().text("original build").end().end();
-                        end();
-                    }
-                    end();
+            private String getDangerousCss(ScenarioBuildResultData.ExecutionData executionData) {
+                if (executionData.getRegressionPercentage() > 0 && executionData.getConfidencePercentage() > DANGEROUS_REGRESSION_THRESHOLD) {
+                    return "text-danger";
+                } else {
+                    return "";
                 }
+            }
 
-                    td();
-                        strong().text(scenario.getControlGroupName(experimentIndex)).end();
-                    end();
-
-                    td();
-                        span().classAttr(scenario.getRegressionPercentage() > 0 ? "text-success" : "text-danger").text(scenario.getControlGroupMedian(experimentIndex));
-                            small().classAttr("text-muted").text("se: " + scenario.getControlGroupStandardError(experimentIndex)).end();
+            private void renderScenario(int index, ScenarioBuildResultData scenario) {
+                div().classAttr("card m-0 p-0 alert alert-"+determineScenarioCss(scenario));
+                    div().id("heading" + index).classAttr("card-header");
+                        div().classAttr("row align-items-center");
+                            div().classAttr("col-10");
+                                big().text(scenario.getScenarioName()).end();
+                                a().classAttr("btn btn-primary").href(scenario.getWebUrl()).text("To the build").end();
+                                a().classAttr("btn btn-primary").href("tests/" + urlEncode(scenario.getScenarioName().replaceAll("\\s+", "-"))).text("See the graph").end();
+                                a().classAttr("btn btn-primary collapsed").href("#").attr("data-toggle", "collapse", "data-target", "collapse" + index).text("Show more details").end();
+                            end();
+                            div().classAttr("col-2");
+                                if(scenario.isBuildFailed()) {
+                                    text("N/A");
+                                } else if(scenario.isFromCache()) {
+                                    text("FROM-CACHE");
+                                } else {
+                                    scenario.getExecutions().forEach(execution -> {
+                                        div().classAttr("row");
+                                        div().classAttr("col " + getDangerousCss(execution)).text(execution.getFormattedRegression()).end();
+                                        div().classAttr("col " + getDangerousCss(execution)).text(execution.getFormattedConfidence()).end();
+                                        end();
+                                    });
+                                }
+                            end();
                         end();
                     end();
 
-                    td();
-                        strong().text(scenario.getExperimentGroupName(experimentIndex)).end();
-                    end();
-
-                    td();
-                        span().classAttr(scenario.getRegressionPercentage() <= 0 ? "text-success" : "text-danger").text(scenario.getExperimentGroupMedian(experimentIndex));
-                            small().classAttr("text-muted").text("se: " + scenario.getExperimentGroupStandardError(experimentIndex)).end();
+                    div().id("collapse" + index).classAttr("collapse");
+                        div().classAttr("card-body");
+                            if(scenario.isBuildFailed()) {
+                                pre().text(scenario.getTestStderr()).end();
+                            } else {
+                                renderDetailsTable(scenario);
+                            }
                         end();
                     end();
+                end();
+            }
 
-                    td();
-                        span().classAttr(scenario.getRegressionPercentage() <= 0 ? "text-success": "text-danger").text(scenario.getFormattedRegression(experimentIndex));
-                            small().classAttr("text-muted").text("conf: " + scenario.getConfidence(experimentIndex)).end();
-                        end();
+            private void renderDetailsTable(ScenarioBuildResultData scenario) {
+                table().classAttr("table table-condensed table-bordered");
+                    tr();
+                        th().text("Date").end();
+                        th().colspan("2").text(scenario.getExecutions().get(0).getBaseVersion().getName()).end();
+                        th().colspan("2").text(scenario.getExecutions().get(0).getCurrentVersion().getName()).end();
+                        th().text("Data").end();
                     end();
+                    scenario.getExecutions().forEach(execution -> {
+                        tr();
+                            DataSeries<Duration> baseVersion = execution.getBaseVersion().getTotalTime();
+                            DataSeries<Duration> currentVersion = execution.getCurrentVersion().getTotalTime();
+                            td().text(format.timestamp(execution.getTime())).end();
+                            td().text(baseVersion.getMedian().format()).classAttr(baseVersion.getMedian().compareTo(currentVersion.getMedian()) < 0 ? "text-success" : "text-danger").end();
+                            td().text("se: " + baseVersion.getStandardError().format()).classAttr("text-muted").end();
+                            td().text(currentVersion.getMedian().format()).classAttr(baseVersion.getMedian().compareTo(currentVersion.getMedian()) >= 0 ? "text-success" : "text-danger").end();
+                            td().text("se: " + currentVersion.getStandardError().format()).classAttr("text-muted").end();
+                        end();
+                });
                 end();
             }
             // @formatter:on
-
-            private void renderSummary() {
-                long successCount = scenarios.stream().filter(ScenarioBuildResultData::isSuccessful).count();
-                long regressedCount = scenarios.stream().filter(ScenarioBuildResultData::isRegressed).count();
-                long failureCount = scenarios.size() - successCount - regressedCount;
-                h3().text("" + successCount + " successful scenarios");
-                if (regressedCount > 0) {
-                    text(", " + regressedCount + " regressed scenarios");
-                }
-                if (failureCount > 0) {
-                    text(", " + failureCount + " failed scenarios");
-                }
-                end();
-            }
         };
     }
 }

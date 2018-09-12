@@ -16,13 +16,9 @@
 
 package org.gradle.performance.results
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import groovy.transform.CompileStatic
-import org.apache.commons.math3.stat.inference.MannWhitneyUTest
-import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataSeries
 import org.gradle.performance.measure.Duration
-import org.gradle.performance.util.Git
 
 import static PrettyCalculator.toMillis
 
@@ -37,7 +33,6 @@ import static PrettyCalculator.toMillis
 @CompileStatic
 class BaselineVersion implements VersionResults {
     private static final double MINIMUM_CONFIDENCE = 0.99
-    static final String MACHINE_DATA_SEPARATOR = "---------------Machine-readable data for performance test coordinator----------------"
 
     final String version
     final MeasuredOperationList results = new MeasuredOperationList()
@@ -59,39 +54,19 @@ class BaselineVersion implements VersionResults {
             } else {
                 sb.append "Speed $displayName: Results were inconclusive"
             }
-            Number regressionPercentage = PrettyCalculator.percentChange(currentVersionMean, thisVersionMean)
-            String confidence = "${confidenceInDifference(results.totalTime, current.totalTime) * 100 as int}%"
-            sb.append(" with $confidence confidence.\n")
+            String confidencePercent = DataSeries.confidenceInDifference(results.totalTime, current.totalTime) * 100 as int
+            sb.append(" with " + confidencePercent + "% confidence.\n")
 
             def diff = currentVersionMean - thisVersionMean
             def desc = diff > Duration.millis(0) ? "slower" : "faster"
-            sb.append("Difference: ${diff.abs().format()} $desc (${toMillis(diff.abs())}), ${regressionPercentage}%\n")
+            sb.append("Difference: ${diff.abs().format()} $desc (${toMillis(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionMean, thisVersionMean)}%\n")
             sb.append(current.speedStats)
             sb.append(results.speedStats)
             sb.append("\n")
-            sb.append(dataForMachine(current, results, regressionPercentage.doubleValue(), confidence))
+            sb.toString()
         } else {
             sb.append("Speed measurement is not available (probably due to a build failure)")
         }
-        sb.toString()
-    }
-
-    String dataForMachine(MeasuredOperationList experimentGroup, MeasuredOperationList controlGroup, double regressionPercentage, String confidence) {
-        StringBuilder sb = new StringBuilder("$MACHINE_DATA_SEPARATOR\n")
-        sb.append(new ObjectMapper().writeValueAsString(new ScenarioBuildResultData.ExperimentData(
-            controlGroupName: controlGroup.name,
-            experimentGroupName: experimentGroup.name,
-            controlGroupMedian: controlGroup.totalTime.median.format(),
-            experimentGroupMedian: experimentGroup.totalTime.median.format(),
-            controlGroupStandardError: controlGroup.totalTime.standardError.format(),
-            experimentGroupStandardError: experimentGroup.totalTime.standardError.format(),
-            regressionPercentage: regressionPercentage,
-            confidence: confidence,
-            buildId: System.getProperty("org.gradle.performance.build.id"),
-            gitCommitId: Git.current().getCommitId()
-        )))
-        sb.append("\n$MACHINE_DATA_SEPARATOR\n")
-        return sb.toString()
     }
 
     boolean significantlyFasterThan(MeasuredOperationList other) {
@@ -107,15 +82,7 @@ class BaselineVersion implements VersionResults {
     }
 
     private static boolean differenceIsSignificant(DataSeries<Duration> myTime, DataSeries<Duration> otherTime) {
-        confidenceInDifference(myTime, otherTime) > MINIMUM_CONFIDENCE
+        DataSeries.confidenceInDifference(myTime, otherTime) > MINIMUM_CONFIDENCE
     }
 
-    private static double confidenceInDifference(DataSeries first, DataSeries second) {
-        def p = new MannWhitneyUTest().mannWhitneyUTest(asDoubleArray(first), asDoubleArray(second))
-        1 - p
-    }
-
-    private static double[] asDoubleArray(DataSeries series) {
-        series.collect { Amount value -> value.value.doubleValue() } as double[]
-    }
 }

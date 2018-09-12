@@ -17,6 +17,7 @@
 package org.gradle.performance.measure;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.math3.stat.inference.MannWhitneyUTest;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -102,5 +103,17 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
 
     public Amount<Q> getStandardError() {
         return standardError;
+    }
+
+    public static double confidenceInDifference(DataSeries first, DataSeries second) {
+        return 1 - new MannWhitneyUTest().mannWhitneyUTest(first.asDoubleArray(), second.asDoubleArray());
+    }
+
+    private double[] asDoubleArray() {
+        double[] result = new double[this.size()];
+        for (int i = 0; i < this.size(); ++i) {
+            result[i] = this.get(i).getValue().doubleValue();
+        }
+        return result;
     }
 }
