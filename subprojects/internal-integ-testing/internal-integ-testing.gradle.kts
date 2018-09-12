@@ -32,7 +32,7 @@ dependencies {
     compile(library("jackson_annotations"))
     compile(library("jackson_databind"))
     compile(library("ivy"))
-    compile(gradle5Platform(testLibrary("sshd")))
+    testLibraries("sshd").forEach { compile(gradle5Platform(it)) }
     compile(library("gson"))
     compile(library("joda"))
     compile(library("jsch"))
