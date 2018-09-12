@@ -26,8 +26,8 @@ testLibraries.sshd =    'org.apache.sshd:sshd-core:1.2.0'
 testLibraries.jmock = [
     'org.hamcrest:hamcrest-core',
     'org.hamcrest:hamcrest-library:1.3',
-    'org.jmock:jmock:2.5.1',
-    'org.jmock:jmock-junit4:2.5.1',
-    'org.jmock:jmock-legacy:2.5.1'
+    'org.jmock:jmock:2.8.4',
+    'org.jmock:jmock-junit4:2.8.4',
+    'org.jmock:jmock-legacy:2.8.4'
 ]
 testLibraries.sampleCheck = 'org.gradle:sample-check:0.4.2'
