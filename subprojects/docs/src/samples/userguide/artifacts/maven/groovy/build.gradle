@@ -1,6 +1,10 @@
-apply plugin: 'java'
 // tag::upload-file[]
-apply plugin: 'maven'
+plugins {
+// end::upload-file[]
+    id 'java'
+// tag::upload-file[]
+    id 'maven'
+}
 
 // tag::builder[]
 // tag::customize-pom[]
