@@ -41,7 +41,6 @@ public class ThreadFactoryImpl implements ThreadFactory {
         } else {
             thread.setName(displayName + " Thread " + count);
         }
-        Printer.print("Create thread " + thread.getName());
         return thread;
     }
 
@@ -63,6 +62,7 @@ public class ThreadFactoryImpl implements ThreadFactory {
                 Printer.print("Run thread catch " + Thread.currentThread().getName() + " finished");
                 t.printStackTrace(Printer.ps);
             }
+            Printer.print("Run thread " + Thread.currentThread().getName() + " exit");
         }
     }
 }

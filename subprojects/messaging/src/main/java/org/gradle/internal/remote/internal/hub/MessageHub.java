@@ -397,8 +397,10 @@ public class MessageHub implements AsyncStoppable {
                             lock.unlock();
                         }
                         for (InterHubMessage message : messages) {
+                            Printer.print("handler message: " + message);
                             if (message instanceof EndOfStream) {
                                 boundedDispatch.endStream();
+                                Printer.print("Handler end of stream!");
                                 return;
                             }
                             if (message instanceof ChannelMessage) {
@@ -411,6 +413,7 @@ public class MessageHub implements AsyncStoppable {
                                 StreamFailureMessage streamFailureMessage = (StreamFailureMessage) message;
                                 streamFailureHandler.handleStreamFailure(streamFailureMessage.getFailure());
                             } else {
+                                Printer.print("Handler don't know!" + message);
                                 throw new IllegalArgumentException(String.format("Don't know how to handle message %s", message));
                             }
                         }
@@ -420,12 +423,16 @@ public class MessageHub implements AsyncStoppable {
                     Printer.print("Handler exit!");
                     lock.lock();
                     try {
+                        Printer.print("Handler about to stop!");
                         queue.stop();
+                        Printer.print("Handler stopped!");
                     } finally {
                         lock.unlock();
                     }
+                    Printer.print("Handler unlocked!");
                 }
             } catch (Throwable t) {
+                Printer.print(t.toString());
                 t.printStackTrace(Printer.ps);
                 errorHandler.execute(t);
             }
