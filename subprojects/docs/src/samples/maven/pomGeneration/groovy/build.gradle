@@ -1,12 +1,16 @@
-apply plugin: 'war'
 // tag::use-plugin[]
-apply plugin: 'maven'
+plugins {
+// end::use-plugin[]
+    id 'war'
+// tag::use-plugin[]
+    id 'maven'
+}
 // end::use-plugin[]
 
 group = 'gradle'
 version = '1.0'
 archivesBaseName = 'mywar'
-buildDir = 'target'
+buildDir = file('target')
 
 repositories {
     flatDir {
@@ -14,9 +18,7 @@ repositories {
     }
 }
 
-configurations {
-  runtime.exclude group: 'excludeGroup2', module: 'excludeArtifact2'
-}
+configurations.runtime.exclude group: 'excludeGroup2', module: 'excludeArtifact2'
 
 dependencies {
     compile("group1:compile:1.0") {
