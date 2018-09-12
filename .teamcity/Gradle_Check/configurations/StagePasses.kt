@@ -17,7 +17,7 @@ import projects.FunctionalTestProject
 class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, containsDeferredTests: Boolean, rootProjectUuid: String) : BaseGradleBuildType(model, init = {
     uuid = "${model.projectPrefix}Stage_${stage.id}_Trigger"
     id = AbsoluteId(uuid)
-    name = stage.name + " (Trigger)"
+    name = stage.stageName.stageName + " (Trigger)"
 
     applyDefaultSettings(this)
     artifactRules = "build/build-receipt.properties"

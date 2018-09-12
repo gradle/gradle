@@ -17,8 +17,8 @@ import model.TestType
 class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boolean, rootProjectUuid: String) : Project({
     this.uuid = "${model.projectPrefix}Stage_${stage.id}"
     this.id = AbsoluteId(uuid)
-    this.name = stage.name
-    this.description = stage.description
+    this.name = stage.stageName.stageName
+    this.description = stage.stageName.description
 
     features {
         if (stage.specificBuilds.contains(SpecificBuild.SanityCheck)) {

@@ -8,6 +8,18 @@ import configurations.SanityCheck
 import configurations.SmokeTests
 import jetbrains.buildServer.configs.kotlin.v2018_1.BuildType
 
+
+enum class StageNames(override val stageName: String, override val description: String) : StageName{
+    QUICK_FEEDBACK_LINUX_ONLY("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer)"),
+    QUICK_FEEDBACK("Quick Feedback", "Run checks and functional tests (embedded executer)"),
+    BRANCH_BUILD_ACCEPT("Branch Build Accept", "Run performance and functional tests (against distribution)"),
+    MASTER_ACCEPT("Master Accept", "Rerun tests in different environments / 3rd party components"),
+    RELEASE_ACCEPT("Release Accept", "Once a day: Rerun tests in more environments"),
+    HISTORICAL_PERFORMANCE("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions"),
+    EXPERIMENTAL("Experimental", "On demand: Run experimental tests"),
+}
+
+
 data class CIBuildModel (
         val projectPrefix: String = "Gradle_Check_",
         val rootProjectName: String = "Check",
@@ -18,18 +30,18 @@ data class CIBuildModel (
         val childBuildCache: BuildCache = RemoteBuildCache("%gradle.cache.remote.url%"),
         val buildScanTags: List<String> = emptyList(),
         val stages: List<Stage> = listOf(
-            Stage("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer)",
+            Stage(StageNames.QUICK_FEEDBACK_LINUX_ONLY,
                     specificBuilds = listOf(
                             SpecificBuild.CompileAll, SpecificBuild.SanityCheck),
                     functionalTests = listOf(
                             TestCoverage(TestType.quick, OS.linux, JvmVersion.java10)), omitsSlowProjects = true),
-            Stage("Quick Feedback", "Run checks and functional tests (embedded executer)",
+            Stage(StageNames.QUICK_FEEDBACK,
                     functionalTests = listOf(
                             TestCoverage(TestType.quick, OS.windows, JvmVersion.java8)),
                     functionalTestsDependOnSpecificBuilds = true,
                     omitsSlowProjects = true,
                     dependsOnSanityCheck = true),
-            Stage("Branch Build Accept", "Run performance and functional tests (against distribution)",
+            Stage(StageNames.BRANCH_BUILD_ACCEPT,
                     specificBuilds = listOf(
                             SpecificBuild.BuildDistributions,
                             SpecificBuild.Gradleception,
@@ -39,7 +51,7 @@ data class CIBuildModel (
                             TestCoverage(TestType.platform, OS.windows, JvmVersion.java10)),
                     performanceTests = listOf(PerformanceTestType.test),
                     omitsSlowProjects = true),
-            Stage("Master Accept", "Rerun tests in different environments / 3rd party components",
+            Stage(StageNames.MASTER_ACCEPT,
                     trigger = Trigger.eachCommit,
                     functionalTests = listOf(
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java8),
@@ -47,7 +59,7 @@ data class CIBuildModel (
                             TestCoverage(TestType.platform, OS.linux, JvmVersion.java10),
                             TestCoverage(TestType.parallel, OS.linux, JvmVersion.java8, JvmVendor.ibm))
             ),
-            Stage("Release Accept", "Once a day: Rerun tests in more environments",
+            Stage(StageNames.RELEASE_ACCEPT,
                     trigger = Trigger.daily,
                     functionalTests = listOf(
                             TestCoverage(TestType.soak, OS.linux, JvmVersion.java10),
@@ -59,11 +71,11 @@ data class CIBuildModel (
                             TestCoverage(TestType.platform, OS.macos, JvmVersion.java8)),
                     performanceTests = listOf(
                             PerformanceTestType.experiment)),
-            Stage("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions",
+            Stage(StageNames.HISTORICAL_PERFORMANCE,
                     trigger = Trigger.weekly,
                     performanceTests = listOf(
                             PerformanceTestType.historical)),
-            Stage("Experimental", "On demand: Run experimental tests",
+            Stage(StageNames.EXPERIMENTAL,
                     trigger = Trigger.never,
                     runsIndependent = true,
                     functionalTests = listOf(TestCoverage(TestType.platform, OS.linux, JvmVersion.java11)))
@@ -188,8 +200,13 @@ object NoBuildCache : BuildCache {
     }
 }
 
-data class Stage(val name: String, val description: String, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never, val functionalTestsDependOnSpecificBuilds: Boolean = false, val runsIndependent: Boolean = false, val omitsSlowProjects : Boolean = false, val dependsOnSanityCheck: Boolean = false) {
-    val id = name.replace(" ", "").replace("-", "")
+interface StageName {
+    val stageName: String
+    val description: String
+}
+
+data class Stage(val stageName: StageName, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never, val functionalTestsDependOnSpecificBuilds: Boolean = false, val runsIndependent: Boolean = false, val omitsSlowProjects : Boolean = false, val dependsOnSanityCheck: Boolean = false) {
+    val id = stageName.stageName.replace(" ", "").replace("-", "")
 }
 
 data class TestCoverage(val testType: TestType, val os: OS, val testJvmVersion: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle, val buildJvmVersion: JvmVersion = JvmVersion.java9) {

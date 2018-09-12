@@ -8,6 +8,7 @@ import model.NoBuildCache
 import model.OS
 import model.SpecificBuild
 import model.Stage
+import model.StageNames
 import model.TestCoverage
 import model.TestType
 import projects.RootProject
@@ -52,7 +53,7 @@ val buildModel = CIBuildModel(
         publishStatusToGitHub = false,
         buildScanTags = listOf("AgentTest"),
         stages = listOf(
-                Stage("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer)",
+                Stage(StageNames.QUICK_FEEDBACK_LINUX_ONLY,
                         runsIndependent = true,
                         specificBuilds = listOf(SpecificBuild.CompileAll, SpecificBuild.SanityCheck),
                         functionalTests = listOf(TestCoverage(TestType.quick, OS.linux, JvmVersion.java8)))
