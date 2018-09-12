@@ -26,7 +26,7 @@ import org.gradle.util.Requires
 @NonCrossVersion
 class GradleRunnerSupportedBuildJvmIntegrationTest extends BaseGradleRunnerIntegrationTest {
     @NoDebug
-    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.5", "1.6") })
+    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.5", "1.6", "1.7") })
     def "fails when build is configured to use Java 6 or earlier"() {
         given:
         testDirectory.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
@@ -38,9 +38,9 @@ class GradleRunnerSupportedBuildJvmIntegrationTest extends BaseGradleRunnerInteg
         IllegalStateException e = thrown()
         e.message.startsWith("An error occurred executing build with no args in directory ")
         e.cause instanceof GradleConnectionException
-        e.cause.cause.message == "Gradle ${GradleVersion.current().version} requires Java 7 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
+        e.cause.cause.message == "Gradle ${GradleVersion.current().version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
 
         where:
-        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
+        jdk << AvailableJavaHomes.getJdks("1.5", "1.6", "1.7")
     }
 }
