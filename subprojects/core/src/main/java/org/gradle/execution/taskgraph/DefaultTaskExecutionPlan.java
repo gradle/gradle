@@ -652,9 +652,9 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private ResourceLock getOrCreateProjectLock(Project project) {
-        Path gradlePath = ((GradleInternal) project.getGradle()).getIdentityPath();
+        Path buildPath = ((ProjectInternal) project).getMutationState().getOwner().getIdentityPath();
         Path projectPath = ((ProjectInternal) project).getIdentityPath();
-        return workerLeaseService.getProjectLock(gradlePath, projectPath);
+        return workerLeaseService.getProjectLock(buildPath, projectPath);
     }
 
     private boolean canRunWithCurrentlyExecutedTasks(WorkInfo taskInfo, MutationInfo mutations) {
