@@ -21,6 +21,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.internal.filewatch.FileWatcher;
@@ -116,7 +117,7 @@ public class WatchServiceFileWatcherBacking {
                 public void onFailure(Throwable t) {
                     running.set(false);
                 }
-            });
+            }, MoreExecutors.directExecutor());
             return fileWatcher;
         } else {
             throw new IllegalStateException("file watcher is started");

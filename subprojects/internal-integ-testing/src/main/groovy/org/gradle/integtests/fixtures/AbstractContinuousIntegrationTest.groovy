@@ -27,6 +27,8 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import spock.lang.Retry
 
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 import static org.gradle.integtests.fixtures.RetryConditions.onBuildTimeout
@@ -265,8 +267,9 @@ $lastOutput
                 gradle.abort()
             } else {
                 gradle.cancel()
+                ExecutorService executorService = Executors.newCachedThreadPool()
                 try {
-                    new SimpleTimeLimiter().callWithTimeout(
+                    SimpleTimeLimiter.create(executorService).callWithTimeout(
                         { gradle.waitForExit() },
                         shutdownTimeout, TimeUnit.SECONDS, false
                     )
@@ -275,6 +278,8 @@ $lastOutput
                     if (!ignoreShutdownTimeoutException) {
                         throw e
                     }
+                } finally {
+                    executorService.shutdownNow()
                 }
             }
         }

@@ -32,6 +32,7 @@ import org.gradle.internal.MutableBoolean;
 import org.gradle.util.DeferredUtil;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +61,7 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
     public Iterator<TaskOutputFilePropertySpec> resolveToOutputProperties() {
         Object unpackedValue = DeferredUtil.unpack(value);
         if (unpackedValue == null) {
-            return Iterators.emptyIterator();
+            return Collections.emptyIterator();
         } else if (unpackedValue instanceof Map) {
             final Iterator<? extends Map.Entry<?, ?>> iterator = ((Map<?, ?>) unpackedValue).entrySet().iterator();
             return new AbstractIterator<TaskOutputFilePropertySpec>() {

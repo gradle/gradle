@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.core
 
-import com.google.common.collect.Iterators
 import org.gradle.api.DomainObjectCollection
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
@@ -39,7 +38,7 @@ class DomainObjectCollectionBackedModelMapTest extends Specification {
         then:
         1 * instantiator.create("alma", SomeType) >>  { new SomeType(name: "alma") }
         1 * backingCollection.add({ item -> item.name == "alma" })
-        1 * backingCollection.iterator() >> { Iterators.emptyIterator() }
+        1 * backingCollection.iterator() >> { Collections.emptyIterator() }
         0 * _
     }
 
