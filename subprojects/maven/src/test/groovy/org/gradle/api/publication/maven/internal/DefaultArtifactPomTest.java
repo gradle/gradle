@@ -36,13 +36,14 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -250,7 +251,7 @@ public class DefaultArtifactPomTest {
         context.checking(new Expectations() {{
             allowing(mavenPomMock).getArtifactId();
             will(returnValue("artifactId"));
-            oneOf(mavenPomMock).writeTo(with(any(FileOutputStream.class)));
+            oneOf(mavenPomMock).writeTo(with(any(File.class)));
         }});
 
         PublishArtifact artifact = artifactPom.writePom(somePomFile);
