@@ -20,15 +20,14 @@ import org.gradle.api.Action
 
 
 class IterationOrderRetainingSetElementSourceTest extends AbstractIterationOrderRetainingElementSourceTest {
-    IterationOrderRetainingSetElementSource<CharSequence> source = new IterationOrderRetainingSetElementSource<>()
+    final ElementSource<CharSequence> source = new IterationOrderRetainingSetElementSource<>()
 
-    def setup() {
-        source.onRealize(new Action<CharSequence>() {
-            @Override
-            void execute(CharSequence t) {
-                source.addRealized(t)
-            }
-        })
+    final Action<CharSequence> realizeAction = new Action<CharSequence>() {
+        @Override
+        void execute(CharSequence t) {
+            realize.execute(t.toString())
+            source.addRealized(t)
+        }
     }
 
     def "can add the same provider twice"() {

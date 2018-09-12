@@ -50,6 +50,19 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
         }
     }
 
+    @Override
+    public void realizePending(ProviderInternal<?> provider) {
+        if (!pending.isEmpty()) {
+            List<TypedCollector<T>> copied = Lists.newArrayList();
+            for (TypedCollector<T> collector : pending) {
+                if (collector.isProvidedBy(provider)) {
+                    copied.add(collector);
+                }
+            }
+            realize(copied);
+        }
+    }
+
     private void realize(Iterable<TypedCollector<T>> collectors) {
         for (TypedCollector<T> collector : collectors) {
             if (flushAction != null) {
@@ -98,8 +111,10 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
     }
 
     @Override
-    public void onRealize(Action<T> action) {
+    public Action<T> onRealize(Action<T> action) {
+        Action<T> result = this.flushAction;
         this.flushAction = action;
+        return result;
     }
 
     @Override

@@ -37,6 +37,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
@@ -518,7 +519,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         // @formatter:off
         for (Iterator<TaskProvider<?>> iterator = placeholders.values().iterator(); iterator.hasNext();) {
             // @formatter:on
-            iterator.next().get();
+            doRealizePlaceholder((ProviderInternal<?>) iterator.next());
             iterator.remove();
         }
     }
@@ -537,7 +538,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private boolean maybeCreateTasks(String name) {
         TaskProvider<?> placeholder = placeholders.remove(name);
         if (placeholder != null) {
-            placeholder.get();
+            doRealizePlaceholder((ProviderInternal<? extends Task>)placeholder);
             return true;
         }
         if (modelNode != null && modelNode.hasLink(name)) {
@@ -686,6 +687,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         DeprecationLogger.nagUserWith(String.format("The TaskContainer.%s method has been deprecated.", methodName), "This is scheduled to become an error in Gradle 6.0.", "Prefer disabling the task instead, see Task.setEnabled(boolean).", "");
     }
 
+    private void doRealizePlaceholder(ProviderInternal<?> provider) {
+        getStore().addPending((ProviderInternal<? extends Task>) provider);
+        doRealize(provider);
+    }
+
     // Cannot be private due to reflective instantiation
     public class TaskCreatingProvider<I extends Task> extends AbstractDomainObjectCreatingProvider<I> implements TaskProvider<I> {
         private final TaskIdentity<I> identity;
@@ -720,6 +726,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                 public void run(BuildOperationContext context) {
                     try {
                         TaskCreatingProvider.super.tryCreate();
+                        statistics.lazyTaskRealized(getType());
                         // TODO removing this stuff from the store should be handled through some sort of decoration
                         context.setResult(REALIZE_RESULT);
                     } finally {
@@ -737,11 +744,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         @Override
         protected I createDomainObject() {
             return createTask(identity, constructorArgs);
-        }
-
-        @Override
-        protected void onLazyDomainObjectRealized() {
-            statistics.lazyTaskRealized(getType());
         }
 
         @Override

@@ -16,15 +16,7 @@
 
 package org.gradle.api.internal.collections
 
-import org.gradle.api.Action
-import org.gradle.api.internal.provider.AbstractProvider
-import org.gradle.api.internal.provider.ChangingValue
-import org.gradle.api.internal.provider.ChangingValueHandler
-import org.gradle.api.internal.provider.CollectionProviderInternal
-import org.gradle.api.internal.provider.ProviderInternal
-import spock.lang.Specification
-
-abstract class AbstractElementSourceTest extends Specification {
+abstract class AbstractElementSourceTest extends AbstractPendingSourceSpec {
     abstract ElementSource<CharSequence> getSource()
 
     abstract List<CharSequence> iterationOrder(CharSequence... values)
@@ -38,22 +30,24 @@ abstract class AbstractElementSourceTest extends Specification {
         source.contains("foo")
     }
 
-    def "can add a provider"() {
-        when:
+    def "can query existance of value provided"() {
+        given:
         source.addPending(provider("foo"))
 
-        then:
-        source.size() == 1
+        expect:
+        source.iteratorNoFlush().collect() == []
         source.contains("foo")
+        source.iteratorNoFlush().collect() == ["foo"]
     }
 
-    def "can add a provider of iterable"() {
-        when:
+    def "can query existance of values provided"() {
+        given:
         source.addPendingCollection(setProvider("foo", "bar"))
 
-        then:
-        source.size() == 2
+        expect:
+        source.iteratorNoFlush().collect() == []
         source.containsAll("foo", "bar")
+        source.iteratorNoFlush().collect() == iterationOrder("foo", "bar")
     }
 
     def "iterates elements in the correct order"() {
@@ -69,6 +63,33 @@ abstract class AbstractElementSourceTest extends Specification {
 
         and:
         source.iterator().collect() == iterationOrder("foo", "bar", "baz", "fizz", "fuzz", "bazz")
+    }
+
+    def "can realize specific providers"() {
+        def provider1 = provider("foo")
+        def provider2 = setProvider("fuzz", "bazz")
+
+        when:
+        source.addPending(provider1)
+        source.add("bar")
+        source.add("baz")
+        source.addPending(provider("fizz"))
+        source.addPendingCollection(provider2)
+
+        then:
+        source.iteratorNoFlush().collect() == iterationOrder("bar", "baz")
+
+        when:
+        source.realizePending(provider1)
+
+        then:
+        source.iteratorNoFlush().collect() == iterationOrder("foo", "bar", "baz")
+
+        when:
+        source.realizePending(provider2)
+
+        then:
+        source.iteratorNoFlush().collect() == iterationOrder("foo", "bar", "baz", "fuzz", "bazz")
     }
 
     def "once realized, provided values appear like realized values"() {
@@ -257,90 +278,5 @@ abstract class AbstractElementSourceTest extends Specification {
 
         then:
         thrown(ConcurrentModificationException)
-    }
-
-    ProviderInternal<? extends String> provider(String value) {
-        return new TypedProvider(String, value)
-    }
-
-    ProviderInternal<? extends StringBuffer> provider(StringBuffer value) {
-        return new TypedProvider(StringBuffer, value)
-    }
-
-    CollectionProviderInternal<? extends String, Set<? extends String>> setProvider(String... values) {
-        return new TypedProviderOfSet(String, values as LinkedHashSet)
-    }
-
-    CollectionProviderInternal<? extends StringBuffer, Set<? extends StringBuffer>> setProvider(StringBuffer... values) {
-        return new TypedProviderOfSet(StringBuffer, values as LinkedHashSet)
-    }
-
-    private static class TypedProvider<T> extends AbstractProvider<T> implements ChangingValue<T> {
-        final Class<T> type
-        T value
-        final ChangingValueHandler<T> changingValue = new ChangingValueHandler<T>()
-
-        TypedProvider(Class<T> type, T value) {
-            this.type = type
-            this.value = value
-        }
-
-        @Override
-        Class<T> getType() {
-            return type
-        }
-
-        @Override
-        T getOrNull() {
-            return value
-        }
-
-        void setValue(T value) {
-            T previousValue = this.value
-            this.value = value
-            changingValue.handle(previousValue)
-        }
-
-        @Override
-        void onValueChange(Action<T> action) {
-            changingValue.onValueChange(action)
-        }
-    }
-
-    private static class TypedProviderOfSet<T> extends AbstractProvider<Set<T>> implements CollectionProviderInternal<T, Set<T>>, ChangingValue<Iterable<T>> {
-        final Class<T> type
-        Set<T> value
-        final ChangingValueHandler<Iterable<T>> changingValue = new ChangingValueHandler<Iterable<T>>()
-
-        TypedProviderOfSet(Class<T> type, Set<T> value) {
-            this.type = type
-            this.value = value
-        }
-
-        @Override
-        Class<? extends T> getElementType() {
-            return type
-        }
-
-        @Override
-        Set<T> getOrNull() {
-            return value
-        }
-
-        @Override
-        int size() {
-            return value.size()
-        }
-
-        void setValue(Set<T> value) {
-            Set<T> previousValue = this.value
-            this.value = value
-            changingValue.handle(previousValue)
-        }
-
-        @Override
-        void onValueChange(Action<Iterable<T>> action) {
-            changingValue.onValueChange(action)
-        }
     }
 }

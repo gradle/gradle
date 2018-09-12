@@ -290,11 +290,17 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractNamedDomainObj
         def bob = container.register("bob", AgeAwarePerson) {
             it.age = 50
         }
+        def john = container.register("john", AgeAwarePerson)
+        john.configure {
+            it.age = 42
+        }
         then:
         fred.present
         fred.get().name == "fred"
         bob.present
         bob.get().age == 50
+        john.present
+        john.get().age == 42
     }
 
     def "can look up objects by name"() {

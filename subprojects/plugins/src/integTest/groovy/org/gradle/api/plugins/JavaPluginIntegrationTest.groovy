@@ -98,4 +98,27 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.groupedOutput.task(':printArtifacts').output.contains("jar task created")
     }
+
+    def "can support eager realization of artifacts for archives configuration"() {
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << '''
+            apply plugin: 'base'
+
+            configurations.archives.artifacts.all {
+                println "Realizing eagerly '${it.name}' (${it.class.simpleName}) of type '${it.type}'"
+            }
+
+            apply plugin: 'java'
+
+            task printArchivesArtifacts {
+                doLast {
+                    assert configurations.archives.artifacts.collect { it.type } == ['jar']
+                }
+            }
+        '''
+
+        expect:
+        succeeds "printArchivesArtifacts"
+        outputContains("Realizing eagerly 'root' (LazyPublishArtifact) of type 'jar'")
+    }
 }

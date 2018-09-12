@@ -278,6 +278,11 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
 
         @Override
+        public void realizePending(ProviderInternal<?> provider) {
+
+        }
+
+        @Override
         public boolean addPending(ProviderInternal<? extends T> provider) {
             throw new UnsupportedOperationException();
         }
@@ -298,8 +303,8 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
 
         @Override
-        public void onRealize(Action<T> action) {
-
+        public Action<T> onRealize(Action<T> action) {
+            return null;
         }
 
         @Override

@@ -18,9 +18,9 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
-import org.gradle.api.DomainObjectCollection
 import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.NamedDomainObjectCollection
 import org.gradle.api.Rule
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
@@ -78,7 +78,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
     ).create()
 
     @Override
-    final DomainObjectCollection<Task> getContainer() {
+    final NamedDomainObjectCollection<Task> getContainer() {
         return container
     }
 
