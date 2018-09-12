@@ -19,16 +19,13 @@ import groovy.text.SimpleTemplateEngine
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Resources
 import org.hamcrest.Matchers
 import org.junit.Assert
-import org.junit.Before
 import org.junit.Rule
-import org.junit.Test
 import spock.lang.Unroll
 
 class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegrationTest {
