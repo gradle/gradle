@@ -54,9 +54,7 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                     setOf("groovy-groovysh", "groovy-json", "groovy-macro", "groovy-nio", "groovy-sql", "groovy-templates", "groovy-test", "groovy-xml"))
                 withModule("org.jmock:jmock-legacy", ReplaceCglibNodepWithCglibRule::class.java)
 
-                //TODO check if we can upgrade the following dependencies and remove the rules
-                withModule("org.codehaus.groovy:groovy-testng", DowngradeTestNGRule::class.java)
-                withModule("org.testng:testng", UpgradeBshRule::class.java)
+                all(RemoveGroovyThirdPartyDependenciesRule::class.java)
 
                 withModule("org.junit.jupiter:junit-jupiter-api", DowngradeOpentest4jRule::class.java)
                 withModule("org.junit.platform:junit-platform-engine", DowngradeOpentest4jRule::class.java)
@@ -194,6 +192,22 @@ open class DependencyRemovalByNameRule @Inject constructor(
 }
 
 
+open class RemoveGroovyThirdPartyDependenciesRule : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        if (context.details.id.group == "org.codehaus.groovy") {
+            context.details.allVariants {
+                withDependencies {
+                    removeAll { it.group != "org.codehaus.groovy" }
+                }
+                withDependencyConstraints {
+                    removeAll { it.group != "org.codehaus.groovy" }
+                }
+            }
+        }
+    }
+}
+
+
 open class DependencyRemovalByGroupRule @Inject constructor(
     val groupsToRemove: Set<String>
 ) : ComponentMetadataRule {
@@ -240,35 +254,6 @@ open class DowngradeIvyRule : ComponentMetadataRule {
                     it.version { prefer("2.2.0") }
                     it.because("Gradle depends on ivy implementation details which changed with newer versions")
                 }
-            }
-        }
-    }
-}
-
-
-open class DowngradeTestNGRule : ComponentMetadataRule {
-    override fun execute(context: ComponentMetadataContext) {
-        context.details.allVariants {
-            withDependencies {
-                filter { it.group == "org.testng" }.forEach {
-                    it.version { prefer("6.3.1") }
-                    it.because("6.3.1 is required by Gradle and part of the distribution")
-                }
-            }
-        }
-    }
-}
-
-
-open class UpgradeBshRule : ComponentMetadataRule {
-    override fun execute(context: ComponentMetadataContext) {
-        context.details.allVariants {
-            withDependencies {
-                filter { it.group == "org.beanshell" }.forEach {
-                    add("org.apache-extras.beanshell:bsh:2.0b6")
-                    it.because("Workaround for late conflict resolution with org.apache-extras.beanshell:bsh in core")
-                }
-                removeAll { it.group == "org.beanshell" }
             }
         }
     }
