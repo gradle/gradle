@@ -1,18 +1,18 @@
+plugins {
+    id 'java'
+}
+
 // tag::bundle-task[]
-task bundle {
-    def scripts = file('scripts')
-    def bundle = file("$buildDir/bundle.js")
+task bundle(type: JavaExec) {
+    File scripts = file("scripts")
+    File bundle = file("$buildDir/bundle.js")
 
     inputs.dir(scripts)
     outputs.file(bundle)
 
-    doLast {
-        bundle.withOutputStream { stream ->
-            scripts.listFiles().sort().each {
-                stream.write(it.bytes)
-            }
-        }
-    }
+    main = "org.gradle.sample.Bundle"
+    classpath = project.sourceSets.main.runtimeClasspath
+    args scripts.toString(), bundle.toString()
 }
 // end::bundle-task[]
 

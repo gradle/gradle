@@ -1,18 +1,18 @@
+plugins {
+    java
+}
+
 // tag::bundle-task[]
-task("bundle") {
+task<JavaExec>("bundle") {
     val scripts = file("scripts")
     val bundle = file("$buildDir/bundle.js")
 
     inputs.dir(scripts)
     outputs.file(bundle)
 
-    doLast {
-        bundle.outputStream().use { stream ->
-            scripts.listFiles().sorted().forEach {
-                stream.write(it.readBytes())
-            }
-        }
-    }
+    main = "org.gradle.sample.Bundle"
+    classpath = project.sourceSets["main"].runtimeClasspath
+    args(scripts.toString(), bundle.toString())
 }
 // end::bundle-task[]
 

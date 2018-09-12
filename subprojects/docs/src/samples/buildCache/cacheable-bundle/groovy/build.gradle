@@ -1,11 +1,11 @@
 plugins {
-    id 'base'
+    id 'java'
 }
 
 // tag::bundle-task[]
-task bundle {
-    def scripts = file('scripts')
-    def bundle = file("$buildDir/bundle.js")
+task bundle(type: JavaExec) {
+    File scripts = file("scripts")
+    File bundle = file("$buildDir/bundle.js")
 
     outputs.cacheIf { true }
 
@@ -15,13 +15,9 @@ task bundle {
     outputs.file(bundle)
         .withPropertyName("bundle")
 
-    doLast {
-        bundle.withOutputStream { stream ->
-            scripts.listFiles().sort().each {
-                stream.write(it.bytes)
-            }
-        }
-    }
+    main = "org.gradle.sample.Bundle"
+    classpath = project.sourceSets.main.runtimeClasspath
+    args projectDir.toPath().relativize(scripts.toPath()).toString(), projectDir.toPath().relativize(bundle.toPath()).toString()
 }
 // end::bundle-task[]
 
