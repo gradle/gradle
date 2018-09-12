@@ -17,7 +17,6 @@
 package org.gradle.process.internal.worker.request;
 
 import org.gradle.api.Action;
-import org.gradle.api.Printer;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.DefaultInstantiatorFactory;
 import org.gradle.api.internal.InstantiatorFactory;
@@ -63,7 +62,6 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
         }
 
         ObjectConnection connection = workerProcessContext.getServerConnection();
-        Printer.print("before incoming!");
         connection.addIncoming(RequestProtocol.class, this);
         responder = connection.addOutgoing(ResponseProtocol.class);
         connection.connect();

@@ -18,7 +18,6 @@ package org.gradle.internal.remote.internal.hub;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.Printer;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -81,7 +80,6 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
             methodParamClassLoaders.add(type.getClassLoader());
         }
         Dispatch<MethodInvocation> handler = new DispatchWrapper<T>(instance);
-        Printer.print("before addhandler!");
         hub.addHandler(type.getName(), handler);
     }
 

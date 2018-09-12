@@ -129,7 +129,6 @@ public class MessageHub implements AsyncStoppable {
             }
             ChannelIdentifier identifier = new ChannelIdentifier(channelName);
             EndPointQueue queue = incomingQueue.getChannel(identifier).newEndpoint();
-            Printer.print("Before worker.execute!");
             workers.execute(new Handler(queue, dispatch, boundedDispatch, rejectedMessageListener, streamFailureHandler));
         } finally {
             lock.unlock();
@@ -387,6 +386,7 @@ public class MessageHub implements AsyncStoppable {
 
         public void run() {
             try {
+                Printer.print("Handler run!");
                 List<InterHubMessage> messages = new ArrayList<InterHubMessage>();
                 try {
                     while (true) {
@@ -417,6 +417,7 @@ public class MessageHub implements AsyncStoppable {
                         messages.clear();
                     }
                 } finally {
+                    Printer.print("Handler exit!");
                     lock.lock();
                     try {
                         queue.stop();
@@ -425,6 +426,7 @@ public class MessageHub implements AsyncStoppable {
                     }
                 }
             } catch (Throwable t) {
+                t.printStackTrace(Printer.ps);
                 errorHandler.execute(t);
             }
         }
