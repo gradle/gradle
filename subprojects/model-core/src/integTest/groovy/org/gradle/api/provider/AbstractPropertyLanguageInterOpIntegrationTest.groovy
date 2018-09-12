@@ -45,12 +45,15 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         if (!hasKotlin) {
             executer.beforeExecute {
                 expectDeprecationWarning()
+                // Run Kotlin compiler in-process to avoid file locking issues
+                executer.withArguments("-Dkotlin.compiler.execution.strategy=in-process")
             }
             hasKotlin = true
         }
     }
 
     def setup() {
+        usePluginRepositoryMirror()
         file("buildSrc/settings.gradle") << """
             include("plugin")
         """
@@ -158,7 +161,6 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         outputContains("message = some new value")
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "can define property in language plugin and set value from Java plugin"() {
         pluginDefinesTask()
 
@@ -222,6 +224,8 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
 
         def otherDir = file("buildSrc/other")
         usesKotlin(file(otherDir))
+        // This is because the Kotlin compiler is run in-process (to avoid issues with the Kotlin compiler daemon) and also keeps jars open
+        executer.requireDaemon().requireIsolatedDaemons()
         otherDir.file("build.gradle.kts") << """
             dependencies {
                 implementation(project(":plugin"))

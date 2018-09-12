@@ -59,10 +59,6 @@ private
 const val oracleJdk9 = "Oracle JDK 9"
 
 
-private
-const val oracleJdk8 = "Oracle JDK 8"
-
-
 open class AvailableJavaInstallations(private val project: Project, private val javaInstallationProbe: JavaInstallationProbe, private val jvmVersionDetector: JvmVersionDetector) {
     private
     val logger = LoggerFactory.getLogger(AvailableJavaInstallations::class.java)
@@ -109,8 +105,8 @@ open class AvailableJavaInstallations(private val project: Project, private val 
 
     private
     fun validateForRemoteCache(): Map<String, Boolean> =
-        mapOf("Remote cache is enabled, which requires Oracle JDK 8/9 to perform this build. It's currently ${currentJavaInstallation.vendorAndMajorVersion} at ${currentJavaInstallation.javaHome}." to
-            (currentJavaInstallation.vendorAndMajorVersion != oracleJdk8 && currentJavaInstallation.vendorAndMajorVersion != oracleJdk9))
+        mapOf("Remote cache is enabled, which requires Oracle JDK 9 to perform this build. It's currently ${currentJavaInstallation.vendorAndMajorVersion} at ${currentJavaInstallation.javaHome}." to
+            (currentJavaInstallation.vendorAndMajorVersion != oracleJdk9))
 
     private
     fun validate(errorMessages: Map<String, Boolean>) {
@@ -137,8 +133,8 @@ open class AvailableJavaInstallations(private val project: Project, private val 
     private
     fun validateProductionJdks(): Map<String, Boolean> =
         mapOf(
-            "Must use Oracle JDK 8/9 to perform this build. Is currently ${currentJavaInstallation.vendorAndMajorVersion} at ${currentJavaInstallation.javaHome}." to
-                (currentJavaInstallation.vendorAndMajorVersion != oracleJdk8 && currentJavaInstallation.vendorAndMajorVersion != oracleJdk9)
+            "Must use Oracle JDK 9 to perform this build. Is currently ${currentJavaInstallation.vendorAndMajorVersion} at ${currentJavaInstallation.javaHome}." to
+                (currentJavaInstallation.vendorAndMajorVersion != oracleJdk9)
         )
 
     private

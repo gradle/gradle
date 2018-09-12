@@ -214,9 +214,9 @@ class IvyDescriptorFileGeneratorTest extends Specification {
 
     def "writes supplied publication artifacts"() {
         when:
-        def artifact1 = new FileBasedIvyArtifact(new File("foo.txt"), new DefaultIvyPublicationIdentity("org", "module", "rev"))
+        def artifact1 = new FileBasedIvyArtifact(new File("foo.txt"), new DefaultIvyPublicationIdentity("org", "module", "rev"), null)
         artifact1.classifier = "classy"
-        def artifact2 = new FileBasedIvyArtifact(new File("foo"), new DefaultIvyPublicationIdentity("", "", ""))
+        def artifact2 = new FileBasedIvyArtifact(new File("foo"), new DefaultIvyPublicationIdentity("", "", ""), null)
         artifact2.setConf("runtime")
         generator.addArtifact(artifact1)
         generator.addArtifact(artifact2)

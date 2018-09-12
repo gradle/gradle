@@ -2237,7 +2237,7 @@ org:foo:[1.0,) -> 1.1
             }
 
             dependencies {
-                implementation 'org:bom:1.0'
+                implementation platform('org:bom:1.0')
                 implementation 'org:leaf'
             }
         """
@@ -2249,8 +2249,9 @@ org:foo:[1.0,) -> 1.1
         outputContains """
 org:leaf:1.0 (by constraint)
    variant "compile" [
-      org.gradle.status = release (not requested)
-      org.gradle.usage  = java-api
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
    ]
 
 org:leaf:1.0

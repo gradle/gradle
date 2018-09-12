@@ -28,15 +28,18 @@ import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
+import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.ReusableAction;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.internal.DefaultJavaPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
 import org.gradle.api.plugins.internal.SourceSetUtil;
 import org.gradle.api.provider.Provider;
@@ -47,12 +50,10 @@ import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.internal.Factory;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.tasks.ProcessResources;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
@@ -100,12 +101,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private JavaPluginConvention addExtensions(final ProjectInternal project) {
-        JavaPluginConvention javaConvention = DeprecationLogger.whileDisabled(new Factory<JavaPluginConvention>() {
-            @Override
-            public JavaPluginConvention create() {
-                return new JavaPluginConvention(project, instantiator);
-            }
-        });
+        JavaPluginConvention javaConvention = new DefaultJavaPluginConvention(project, instantiator);
         project.getConvention().getPlugins().put("java", javaConvention);
         project.getExtensions().add(SourceSetContainer.class, "sourceSets", javaConvention.getSourceSets());
         project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention);
@@ -122,7 +118,8 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureSchema(ProjectInternal project) {
-        AttributeMatchingStrategy<Usage> matchingStrategy = project.getDependencies().getAttributesSchema().attribute(Usage.USAGE_ATTRIBUTE);
+        AttributesSchema attributesSchema = project.getDependencies().getAttributesSchema();
+        AttributeMatchingStrategy<Usage> matchingStrategy = attributesSchema.attribute(Usage.USAGE_ATTRIBUTE);
         matchingStrategy.getCompatibilityRules().add(UsageCompatibilityRules.class);
         matchingStrategy.getDisambiguationRules().add(UsageDisambiguationRules.class, new Action<ActionConfiguration>() {
             @Override
@@ -400,7 +397,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         test.workingDir(project.getProjectDir());
     }
 
-    static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage> {
+    static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage>, ReusableAction {
         final Usage javaApi;
         final Usage javaApiClasses;
         final Usage javaRuntimeJars;
@@ -445,7 +442,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    static class UsageCompatibilityRules implements AttributeCompatibilityRule<Usage> {
+    static class UsageCompatibilityRules implements AttributeCompatibilityRule<Usage>, ReusableAction {
         @Override
         public void execute(CompatibilityCheckDetails<Usage> details) {
             if (details.getConsumerValue().getName().equals(Usage.JAVA_API)) {

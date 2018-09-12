@@ -39,10 +39,10 @@ import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.fixture.OperationTimer
+import org.gradle.performance.fixture.PerformanceTestConditions
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestGradleDistribution
 import org.gradle.performance.fixture.PerformanceTestIdProvider
-import org.gradle.performance.fixture.PerformanceTestRetryRule
 import org.gradle.performance.fixture.Profiler
 import org.gradle.performance.fixture.TestProjectLocator
 import org.gradle.performance.fixture.TestScenarioSelector
@@ -56,7 +56,6 @@ import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testing.internal.util.RetryRule
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GFileUtils
 import org.gradle.util.GradleVersion
@@ -65,10 +64,13 @@ import org.junit.Rule
 import org.junit.experimental.categories.Category
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import spock.lang.Retry
 import spock.lang.Shared
 import spock.lang.Specification
 
 import java.lang.reflect.Proxy
+
+import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 
 /**
  * Base class for all Tooling API performance regression tests. Subclasses can profile arbitrary actions against a {@link ProjectConnection).
@@ -77,6 +79,7 @@ import java.lang.reflect.Proxy
  */
 @Category(PerformanceRegressionTest)
 @CleanupTestDirectory
+@Retry(condition = { PerformanceTestConditions.whenSlowerButNotAdhoc(failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specification {
     protected final static ReleasedVersionDistributions RELEASES = new ReleasedVersionDistributions()
     protected final static GradleDistribution CURRENT = new UnderDevelopmentGradleDistribution()
@@ -93,9 +96,6 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
     @Rule
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
-
-    @Rule
-    RetryRule retry = new PerformanceTestRetryRule()
 
     File repositoryMirrorScript = RepoScriptBlockUtil.createMirrorInitScript()
 

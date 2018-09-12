@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.operations.RunnableBuildOperation;
 
 /**
  * Represents a container of artifacts, possibly made up of several different variants.
@@ -26,6 +28,22 @@ import org.gradle.api.specs.Spec;
  * Instances are retained during the lifetime of a build, so should avoid retaining unnecessary state.
  */
 public interface ArtifactSet {
+    ArtifactSet NO_ARTIFACTS = new ArtifactSet() {
+        @Override
+        public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
+            return new ResolvedArtifactSet() {
+                @Override
+                public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
+                    return EMPTY_RESULT;
+                }
+
+                @Override
+                public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
+                }
+            };
+        }
+    };
+
     /**
      * Selects the artifacts of this set that meet the given criteria. Implementation should be eager where possible, so that selection happens immediately, but may be lazy.
      */

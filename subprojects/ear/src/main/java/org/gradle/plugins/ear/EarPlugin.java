@@ -33,9 +33,8 @@ import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
-import org.gradle.internal.Factory;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.plugins.ear.internal.DefaultEarPluginConvention;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -71,12 +70,7 @@ public class EarPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(BasePlugin.class);
 
-        EarPluginConvention earPluginConvention = DeprecationLogger.whileDisabled(new Factory<EarPluginConvention>() {
-            @Override
-            public EarPluginConvention create() {
-                return objectFactory.newInstance(EarPluginConvention.class, fileResolver, objectFactory);
-            }
-        });
+        EarPluginConvention earPluginConvention = objectFactory.newInstance(DefaultEarPluginConvention.class, fileResolver, objectFactory);
         project.getConvention().getPlugins().put("ear", earPluginConvention);
         earPluginConvention.setLibDirName(DEFAULT_LIB_DIR_NAME);
         earPluginConvention.setAppDirName("src/main/application");
@@ -124,7 +118,7 @@ public class EarPlugin implements Plugin<Project> {
                         task.dependsOn(new Callable<FileCollection>() {
                             public FileCollection call() throws Exception {
                                 return javaPluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME)
-                                        .getRuntimeClasspath();
+                                    .getRuntimeClasspath();
                             }
                         });
                         task.from(new Callable<FileCollection>() {
@@ -199,11 +193,11 @@ public class EarPlugin implements Plugin<Project> {
 
         ConfigurationContainer configurations = project.getConfigurations();
         Configuration moduleConfiguration = configurations.create(DEPLOY_CONFIGURATION_NAME).setVisible(false)
-                .setTransitive(false).setDescription("Classpath for deployable modules, not transitive.");
+            .setTransitive(false).setDescription("Classpath for deployable modules, not transitive.");
         Configuration earlibConfiguration = configurations.create(EARLIB_CONFIGURATION_NAME).setVisible(false)
-                .setDescription("Classpath for module dependencies.");
+            .setDescription("Classpath for module dependencies.");
 
         configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
-                .extendsFrom(moduleConfiguration, earlibConfiguration);
+            .extendsFrom(moduleConfiguration, earlibConfiguration);
     }
 }

@@ -216,10 +216,7 @@ If you need or want more than one compilation task for any reason, you can eithe
 [[sec:java_cross_compilation]]
 === Compiling and testing Java 6/7
 
-Gradle can only run on Java version 7 or higher. However, support for running Gradle on Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0. There are two reasons for deprecating support for Java 7:
-
-* Java 7 reached link:http://www.oracle.com/technetwork/java/javase/eol-135779.html[end of life]. Therefore, Oracle ceased public availability of security fixes and upgrades for Java 7 as of April 2015.
-* Once support for Java 7 has ceased (likely with Gradle 5.0), Gradle's implementation can start to use Java 8 APIs optimized for performance and usability.
+Gradle can only run on Java version 8 or higher.
 
 Gradle still supports compiling, testing, generating Javadoc and executing applications for Java 6 and Java 7. Java 5 is not supported.
 
@@ -352,47 +349,39 @@ The former two "Publish" plugins are the preferred options.
 
 Each instance of the `Jar`, `War` and `Ear` tasks has a `manifest` property that allows you to customize the _MANIFEST.MF_ file that goes into the corresponding archive. The following example demonstrates how to set attributes in the JAR's manifest:
 
-==== Example: Customization of MANIFEST.MF
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tutorial/manifest/build.gradle[tag=add-to-manifest]
-----
+.Customization of MANIFEST.MF
+====
+include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=add-to-manifest]"]
+include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=add-to-manifest]"]
+====
 
 See link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest] for the configuration options it provides.
 
 You can also create standalone instances of `Manifest`. One reason for doing so is to share manifest information between JARs. The following example demonstrates how to share common attributes between JARs:
 
-==== Example: Creating a manifest object.
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tutorial/manifest/build.gradle[tag=custom-manifest]
-----
+.Creating a manifest object.
+====
+include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=custom-manifest]"]
+include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=custom-manifest]"]
+====
 
 Another option available to you is to merge manifests into a single `Manifest` object. Those source manifests can take the form of a text for or another `Manifest` object. In the following example, the source manifests are all text files except for `sharedManifest`, which is the `Manifest` object from the previous example:
 
-==== Example: Separate MANIFEST.MF for a particular archive
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tutorial/manifest/build.gradle[tag=merge]
-----
+.Separate MANIFEST.MF for a particular archive
+====
+include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=merge]"]
+include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=merge]"]
+====
 
 Manifests are merged in the order they are declared in the `from` statement. If the base manifest and the merged manifest both define values for the same key, the merged manifest wins by default. You can fully customize the merge behavior by adding `eachEntry` actions in which you have access to a link:{javadocPath}/org/gradle/api/java/archives/ManifestMergeDetails.html[ManifestMergeDetails] instance for each entry of the resulting manifest. Note that the merge is done lazily, either when generating the JAR or when `Manifest.writeTo()` or `Manifest.getEffectiveManifest()` are called.
 
 Speaking of `writeTo()`, you can use that to easily write a manifest to disk at any time, like so:
 
-==== Example: Saving a MANIFEST.MF to disk
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tutorial/manifest/build.gradle[tag=write]
-----
+.Saving a MANIFEST.MF to disk
+====
+include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=write]"]
+include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=write]"]
+====
 
 [[sec:generating_javadocs]]
 == Generating API documentation

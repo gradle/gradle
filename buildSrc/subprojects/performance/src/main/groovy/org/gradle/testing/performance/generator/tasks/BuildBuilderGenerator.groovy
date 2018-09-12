@@ -39,13 +39,13 @@ class BuildBuilderGenerator extends ProjectGeneratorTask {
      * Installation directory of the build-builder tool.
      */
     @InputDirectory
-    final DirectoryProperty buildBuilderInstall = newInputDirectory()
+    final DirectoryProperty buildBuilderInstall
 
     /**
      * Output directory for the generated project
      */
     @OutputDirectory
-    final DirectoryProperty generatedDir = newOutputDirectory()
+    final DirectoryProperty generatedDir
 
     /**
      * Additional arguments to provide to the build-builder.
@@ -75,6 +75,8 @@ class BuildBuilderGenerator extends ProjectGeneratorTask {
 
     @Inject
     BuildBuilderGenerator(ObjectFactory objectFactory, ProviderFactory providerFactory) {
+        buildBuilderInstall = objectFactory.directoryProperty()
+        generatedDir = objectFactory.directoryProperty()
         generatedDir.set(project.layout.buildDirectory.dir(getName()))
         args = objectFactory.listProperty(String)
         args.addAll(providerFactory.provider(new Callable<Iterable<String>>() {
@@ -83,8 +85,8 @@ class BuildBuilderGenerator extends ProjectGeneratorTask {
                 // TODO: Model the other build builder options
                 return [
                     projectType,
-                    "--projects", projects,
-                    "--source-files", sourceFiles,
+                    "--projects", Integer.toString(projects),
+                    "--source-files", Integer.toString(sourceFiles),
                     "--dir", generatedDir.get().asFile.absolutePath
                 ]
             }
