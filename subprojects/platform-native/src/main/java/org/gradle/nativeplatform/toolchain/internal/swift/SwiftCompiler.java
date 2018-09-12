@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
@@ -43,7 +42,7 @@ import org.gradle.util.GFileUtils;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.HashMap;
@@ -195,14 +194,9 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
         }
 
         public void writeToFile(File outputFile) {
-            try {
-                Writer writer = new PrintWriter(outputFile);
-                try {
-                    toJson(writer);
-                } finally {
-                    IOUtils.closeQuietly(writer);
-                }
-            } catch (FileNotFoundException ex) {
+            try (Writer writer = new PrintWriter(outputFile)) {
+                toJson(writer);
+            } catch (IOException ex) {
                 throw new UncheckedIOException(ex);
             }
         }
