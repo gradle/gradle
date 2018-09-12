@@ -22,6 +22,7 @@ import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
@@ -32,6 +33,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.build.docs.dsl.source.model.ClassMetaData;
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository;
 
+import javax.inject.Inject;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -49,10 +51,11 @@ public class GenerateDefaultImportsTask extends DefaultTask {
     private RegularFileProperty mappingDestFile;
     private Set<String> excludePatterns = new LinkedHashSet<>();
 
-    public GenerateDefaultImportsTask() {
-        metaDataFile = newInputFile();
-        importsDestFile = newOutputFile();
-        mappingDestFile = newOutputFile();
+    @Inject
+    public GenerateDefaultImportsTask(ObjectFactory objectFactory) {
+        metaDataFile = objectFactory.fileProperty();
+        importsDestFile = objectFactory.fileProperty();
+        mappingDestFile = objectFactory.fileProperty();
     }
 
     @PathSensitive(PathSensitivity.NONE)
