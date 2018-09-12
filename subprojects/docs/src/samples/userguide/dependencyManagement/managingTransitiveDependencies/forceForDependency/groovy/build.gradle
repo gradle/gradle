@@ -1,20 +1,19 @@
-apply plugin: 'java-library'
+plugins {
+    id 'java-library'
+}
 
 repositories {
     mavenCentral()
 }
 
-// tag::force-per-configuration[]
-configurations {
-    compileClasspath {
-        resolutionStrategy.force 'commons-codec:commons-codec:1.9'
-    }
-}
-
+// tag::force-per-dependency[]
 dependencies {
     implementation 'org.apache.httpcomponents:httpclient:4.5.4'
+    implementation('commons-codec:commons-codec:1.9') {
+        force = true
+    }
 }
-// end::force-per-configuration[]
+// end::force-per-dependency[]
 
 task copyLibs(type: Copy) {
     from configurations.compileClasspath

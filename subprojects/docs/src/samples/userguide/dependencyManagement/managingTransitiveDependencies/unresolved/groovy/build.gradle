@@ -1,5 +1,7 @@
 // tag::unresolved-transitive-dependencies[]
-apply plugin: 'java'
+plugins {
+    id 'java'
+}
 
 repositories {
     mavenCentral()
