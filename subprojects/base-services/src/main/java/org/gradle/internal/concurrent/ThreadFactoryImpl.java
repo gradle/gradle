@@ -49,7 +49,6 @@ public class ThreadFactoryImpl implements ThreadFactory {
         private final Runnable delegate;
 
         private ManagedThreadRunnable(Runnable delegate) {
-            print(delegate.toString());
             this.delegate = delegate;
         }
 
@@ -57,16 +56,6 @@ public class ThreadFactoryImpl implements ThreadFactory {
         public void run() {
             GradleThread.setManaged();
             delegate.run();
-        }
-    }
-
-    public static void print(String message) {
-        try {
-            PrintStream ps = new PrintStream(new File("C:/log.txt"));
-            ps.println(message);
-            ps.close();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 }

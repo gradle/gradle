@@ -57,6 +57,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
             workerImplementation = Class.forName(workerImplementationName);
             implementation = instantiatorFactory.inject(workerProcessContext.getServiceRegistry()).newInstance(workerImplementation);
         } catch (Throwable e) {
+            e.printStackTrace(System.err);
             failure = e;
         }
 
