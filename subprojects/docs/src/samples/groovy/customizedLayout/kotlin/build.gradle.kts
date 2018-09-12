@@ -24,7 +24,7 @@ sourceSets {
     getByName("test") {
         withConvention(GroovySourceSet::class) {
             groovy {
-                setSrcDirs(listOf("src/groovy"))
+                setSrcDirs(listOf("test/groovy"))
             }
         }
     }
