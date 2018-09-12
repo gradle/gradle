@@ -98,7 +98,8 @@ include::sample[dir="userguide/initScripts/externalDependency/groovy",files="ini
 include::sample[dir="userguide/initScripts/externalDependency/kotlin",files="init.gradle.kts[tags=all]"]
 ====
 
-==== Output when applying the init script
+Output when applying the init script
+
 [source.multi-language-sample,groovy]
 ----
 > gradle --init-script init.gradle -q doNothing
@@ -121,7 +122,8 @@ include::sample[dir="userguide/initScripts/plugins/groovy",files="init.gradle[ta
 include::sample[dir="userguide/initScripts/plugins/kotlin",files="init.gradle.kts[tags=init-script-plugin];build.gradle.kts[tag=show-repos-task]"]
 ====
 
-==== Output when applying the init script
+Output when applying the init script
+
 [source.multi-language-sample,groovy]
 ----
 > gradle --init-script init.gradle -q showRepositories
