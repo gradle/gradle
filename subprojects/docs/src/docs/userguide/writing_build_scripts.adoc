@@ -164,7 +164,7 @@ include::{samplesPath}/userguide/tutorial/extraProperties/extraProperties.out[]
 In this example, an `ext` block adds two extra properties to the `project` object. Additionally, a property named `purpose` is added to each source set by setting `ext.purpose` to `null` (`null` is a permissible value). Once the properties have been added, they can be read and set like predefined properties.
 
 [.multi-language-text.lang-kotlin]
-In this example, two extra properties are added to the `project` object using `by extra`. Additionally, a property named `purpose` is added to each source set by setting `extra["purpose"]` to `null` (`null` is a permissible value). Once the properties have been added, they can be read and set like predefined properties.
+In this example, two extra properties are added to the `project` object using `by extra`. Additionally, a property named `purpose` is added to each source set by setting `extra["purpose"]` to `null` (`null` is a permissible value). Once the properties have been added, they can be read and set on `extra`.
 
 By requiring special syntax for adding a property, Gradle can fail fast when an attempt is made to set a (predefined or extra) property but the property is misspelled or does not exist. Extra properties can be accessed from anywhere their owning object can be accessed, giving them a wider scope than local variables. Extra properties on a project are visible from its subprojects.
 
