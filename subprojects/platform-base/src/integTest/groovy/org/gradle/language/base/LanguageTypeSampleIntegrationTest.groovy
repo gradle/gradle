@@ -28,6 +28,7 @@ class LanguageTypeSampleIntegrationTest extends AbstractIntegrationSpec {
     Sample languageTypeSample = new Sample(temporaryFolder, "customModel/languageType")
 
     def setup() {
+        //  customModel/languageType sample contains buildSrc, which needs global init script to make mirror work
         executer.withGlobalRepositoryMirrors()
     }
 

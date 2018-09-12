@@ -40,6 +40,7 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/multiproject')
 
     def setup() {
+        // java/multiproject sample contains buildSrc, which needs global init script to make mirror work
         executer.withGlobalRepositoryMirrors()
     }
 
