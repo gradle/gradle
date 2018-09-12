@@ -1,22 +1,24 @@
+val sourceSets = the<SourceSetContainer>()
+
 // tag::custom-source-set[]
 sourceSets {
     create("integTest") {
         java.srcDir(file("src/integTest/java"))
         resources.srcDir(file("src/integTest/resources"))
-        compileClasspath += sourceSets.getByName("main").output + configurations.getByName("testRuntimeClasspath")
+        compileClasspath += sourceSets["main"].output + configurations["testRuntimeClasspath"]
         runtimeClasspath += output + compileClasspath
     }
 }
 // end::custom-source-set[]
 
 // tag::test-task[]
-val integTest = task("integTest", Test::class) {
+task<Test>("integTest") {
     description = "Runs the integration tests."
     group = "verification"
-    testClassesDirs = sourceSets.getByName("integTest").output.classesDirs
-    classpath = sourceSets.getByName("integTest").runtimeClasspath
-    mustRunAfter(tasks.getByName("test"))
+    testClassesDirs = sourceSets["integTest"].output.classesDirs
+    classpath = sourceSets["integTest"].runtimeClasspath
+    mustRunAfter(tasks["test"])
 }
 
-tasks.getByName("check").dependsOn(integTest)
+tasks["check"].dependsOn("integTest")
 // end::test-task[]
