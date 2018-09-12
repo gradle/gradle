@@ -133,7 +133,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         for (MavenDependencyDescriptor dependency : dependencies) {
             if (isOptionalConfiguration && includeInOptionalConfiguration(dependency)) {
                 filteredDependencies.add(new DefaultMavenModuleResolveMetadata.OptionalConfigurationDependencyMetadata(config, componentId, dependency));
-            } else if (include(dependency, config.getHierarchy(), improvedPomSupport)) {
+            } else if (include(dependency, config.getHierarchy())) {
                 filteredDependencies.add(contextualize(config, componentId, dependency, improvedPomSupport));
             }
         }
@@ -156,9 +156,9 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
             && dependencyScope != MavenScope.System;
     }
 
-    private static boolean include(MavenDependencyDescriptor dependency, Collection<String> hierarchy, boolean improvedPomSupport) {
+    private static boolean include(MavenDependencyDescriptor dependency, Collection<String> hierarchy) {
         MavenScope dependencyScope = dependency.getScope();
-        if (dependency.isOptional() && !improvedPomSupport) {
+        if (dependency.isOptional()) {
             return false;
         }
         return hierarchy.contains(dependencyScope.getLowerName());

@@ -18,10 +18,10 @@ package org.gradle.api.internal.file.collections
 import org.gradle.api.Buildable
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskOutputs
-import org.gradle.api.tasks.TaskProvider
 import spock.lang.Specification
 
 import java.nio.file.Path
@@ -156,18 +156,31 @@ class BuildDependenciesOnlyFileCollectionResolveContextTest extends Specificatio
         0 * taskContext._
     }
 
-    def taskProvider() {
-        def task = Stub(Task)
-        def taskProvider = Mock(TaskProvider) {
-            get() >> task
-        }
+    def delegatesToProviderToDetermineBuildDependencies() {
+        def provider = Mock(ProviderInternal)
 
         when:
-        context.add(taskProvider)
+        context.add(provider)
 
         then:
-        1 * taskContext.add(task)
+        1 * provider.maybeVisitBuildDependencies(taskContext) >> true
         0 * taskContext._
+        0 * provider._
+    }
+
+    def queuesValueOfProviderThatDoesNotHaveBuildDependencies() {
+        def task = Stub(Task)
+        def provider = Mock(ProviderInternal)
+
+        when:
+        context.add(provider)
+
+        then:
+        1 * provider.maybeVisitBuildDependencies(taskContext) >> false
+        1 * provider.get() >> task
+        1 * taskContext.maybeAdd(task)
+        0 * taskContext._
+        0 * provider._
     }
 
     interface TestFileSet extends MinimalFileSet, Buildable {

@@ -19,7 +19,7 @@ package org.gradle.gradlebuild.test.integrationtests
 import org.gradle.api.Named
 import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.ProjectLayout
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Internal
@@ -45,13 +45,13 @@ open class DistributionTest : Test() {
     }
 
     @Internal
-    val binaryDistributions = BinaryDistributions(project.layout)
+    val binaryDistributions = BinaryDistributions(project.objects)
 
     @Internal
     val gradleInstallationForTest = GradleInstallationForTestEnvironmentProvider(project)
 
     @Internal
-    val libsRepository = LibsRepositoryEnvironmentProvider(project.layout)
+    val libsRepository = LibsRepositoryEnvironmentProvider(project.objects)
 
     init {
         dependsOn(Callable { if (binaryDistributions.distributionsRequired) listOf("all", "bin", "src").map { ":distributions:${it}Zip" } else null })
@@ -60,15 +60,14 @@ open class DistributionTest : Test() {
         jvmArgumentProviders.add(gradleInstallationForTest)
         jvmArgumentProviders.add(BinaryDistributionsEnvironmentProvider(binaryDistributions))
         jvmArgumentProviders.add(libsRepository)
-        systemProperty("java9Home", project.findProperty("java9Home") ?: System.getProperty("java9Home"))
     }
 }
 
 
-class LibsRepositoryEnvironmentProvider(layout: ProjectLayout) : CommandLineArgumentProvider, Named {
+class LibsRepositoryEnvironmentProvider(objects: ObjectFactory) : CommandLineArgumentProvider, Named {
 
     @Internal
-    val dir = layout.directoryProperty()
+    val dir = objects.directoryProperty()
 
     @Input
     var required = false
@@ -85,23 +84,23 @@ class LibsRepositoryEnvironmentProvider(layout: ProjectLayout) : CommandLineArgu
 class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLineArgumentProvider, Named {
 
     @Internal
-    val gradleHomeDir = project.layout.directoryProperty()
+    val gradleHomeDir = project.objects.directoryProperty()
 
     @Internal
-    val gradleUserHomeDir = project.layout.directoryProperty()
+    val gradleUserHomeDir = project.objects.directoryProperty()
 
     @Internal
-    val gradleGeneratedApiJarCacheDir = project.layout.directoryProperty()
+    val gradleGeneratedApiJarCacheDir = project.objects.directoryProperty()
 
     @Internal
-    val toolingApiShadedJarDir = project.layout.directoryProperty()
+    val toolingApiShadedJarDir = project.objects.directoryProperty()
 
     /**
      * The user home dir is not wiped out by clean.
      * Move the daemon working space underneath the build dir so they don't pile up on CI.
      */
     @Internal
-    val daemonRegistry = project.layout.directoryProperty()
+    val daemonRegistry = project.objects.directoryProperty()
 
     @get:Nested
     val gradleDistribution = GradleDistribution(project, gradleHomeDir)
@@ -120,7 +119,7 @@ class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLi
 }
 
 
-class BinaryDistributions(layout: ProjectLayout) {
+class BinaryDistributions(objects: ObjectFactory) {
 
     @Input
     var binZipRequired = false
@@ -130,7 +129,7 @@ class BinaryDistributions(layout: ProjectLayout) {
 
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
-    val distsDir = layout.directoryProperty()
+    val distsDir = objects.directoryProperty()
 
     @Internal
     lateinit var distZipVersion: String

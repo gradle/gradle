@@ -2,7 +2,7 @@
 repositories {
     ivy {
         url 'https://ajax.googleapis.com/ajax/libs'
-        layout 'pattern', {
+        patternLayout {
             artifact '[organization]/[revision]/[module](.[classifier]).[ext]'
         }
     }

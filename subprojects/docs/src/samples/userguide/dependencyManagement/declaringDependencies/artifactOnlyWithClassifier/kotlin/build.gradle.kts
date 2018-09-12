@@ -2,9 +2,9 @@
 repositories {
     ivy {
         url = uri("https://ajax.googleapis.com/ajax/libs")
-        layout("pattern", Action<IvyPatternRepositoryLayout> {
+        patternLayout {
             artifact("[organization]/[revision]/[module](.[classifier]).[ext]")
-        })
+        }
     }
 }
 

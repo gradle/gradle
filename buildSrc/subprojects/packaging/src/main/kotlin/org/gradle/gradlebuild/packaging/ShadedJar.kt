@@ -49,13 +49,13 @@ open class ShadedJar : DefaultTask() {
      * The file will be included in the shaded jar under {@code /org/gradle/build-receipt.properties}.
      */
     @InputFile
-    val buildReceiptFile: RegularFileProperty = project.layout.fileProperty()
+    val buildReceiptFile: RegularFileProperty = project.objects.fileProperty()
 
     /**
       * The output Jar file.
       */
     @OutputFile
-    val jarFile = newOutputFile()
+    val jarFile = project.objects.fileProperty()
 
     @TaskAction
     fun shade() {
