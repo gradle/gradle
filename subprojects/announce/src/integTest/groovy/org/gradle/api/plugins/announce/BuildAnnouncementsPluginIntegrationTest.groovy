@@ -18,9 +18,27 @@ package org.gradle.api.plugins.announce
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class BuildAnnouncementsPluginIntegrationTest extends WellBehavedPluginTest {
+    def setup() {
+        executer.beforeExecute {
+            expectDeprecationWarnings(2)
+        }
+    }
+
     @Override
     String getMainTask() {
         return "tasks"
+    }
+
+    def "emits deprecation warning"() {
+        given:
+        applyPlugin()
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("The Announce plugin has been deprecated")
+        outputContains("The Build Announcements plugin has been deprecated")
     }
 
     def "does not blow up when a local notification mechanism is not available"() {
