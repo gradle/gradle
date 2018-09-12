@@ -14,26 +14,22 @@
  * limitations under the License.
  */
 
-/*
- * Configures a Gradle Kotlin DSL module.
- *
- * The assembled jar will:
- *  - be named after `base.archivesBaseName`
- *  - include all sources
- */
+package org.gradle.kotlin.dsl.accessors
 
-import accessors.sourceSets
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.MatcherAssert.assertThat
 
-plugins {
-    id("kotlin-library")
-}
+import org.junit.Test
 
-// including all sources
-val main by sourceSets
-tasks.named<Jar>("jar") {
-    from(main.allSource)
-    manifest.attributes.apply {
-        put("Implementation-Title", "Gradle Kotlin DSL (${project.name})")
-        put("Implementation-Version", version)
+
+class DefaultPackageTypesTest {
+
+    @Test
+    fun `#defaultPackageTypesIn generic type`() {
+
+        assertThat(
+            defaultPackageTypesIn(listOf("gradle.Container<Extension>")),
+            equalTo(listOf("Extension"))
+        )
     }
 }

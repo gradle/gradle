@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
+import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.withFolders
 
@@ -27,13 +28,189 @@ import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
 
+import java.io.File
+
 
 class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
+    fun `can access extension of internal type made public`() {
+
+        lateinit var extensionSourceFile: File
+
+        withFolders {
+
+            "buildSrc" {
+
+                withPrecompiledPlugins()
+
+                "src/main/kotlin" {
+
+                    extensionSourceFile =
+                        withFile("Extension.kt", """
+                            internal
+                            class Extension
+                        """)
+
+                    withFile("plugin.gradle.kts", """
+                        extensions.add("extension", Extension())
+                    """)
+                }
+            }
+        }
+
+        withBuildScript("""
+
+            plugins { id("plugin") }
+
+            inline fun <reified T> typeOf(value: T) = typeOf<T>()
+
+            println("extension: " + typeOf(extension))
+            extension { println("extension{} " + typeOf(this)) }
+        """)
+
+        // The internal Extension type is not accessible
+        // so the accessors are typed Any (java.lang.Object)
+        assertThat(
+            build("help", "-q").output,
+            containsMultiLineString("""
+                extension: java.lang.Object
+                extension{} java.lang.Object
+            """)
+        )
+
+        // Making the Extension type accessible
+        // should cause the accessors to be regenerated
+        // with the now accessible type
+        extensionSourceFile.writeText("""
+            public
+            class Extension
+        """)
+
+        assertThat(
+            build("help", "-q").output,
+            containsMultiLineString("""
+                extension: Extension
+                extension{} Extension
+            """)
+        )
+    }
+
+    @Test
+    fun `can access extension of default package type`() {
+
+        withFolders {
+
+            "buildSrc" {
+
+                withPrecompiledPlugins()
+
+                "src/main/kotlin" {
+
+                    withFile("Extension.kt", """
+                        class Extension(private val name: String) : org.gradle.api.Named {
+                            override fun getName() = name
+                        }
+                    """)
+
+                    withFile("plugin.gradle.kts", """
+                        extensions.add("extension", Extension("foo"))
+                        extensions.add("beans", container(Extension::class))
+                    """)
+                }
+            }
+        }
+
+        withBuildScript("""
+
+            plugins { id("plugin") }
+
+            inline fun <reified T> typeOf(value: T) = typeOf<T>()
+
+            println("extension: " + typeOf(extension))
+            extension { println("extension{} " + typeOf(this)) }
+
+            println("beans: " + typeOf(beans))
+            beans { println("beans{} " + typeOf(beans)) }
+        """)
+
+        assertThat(
+            build("help", "-q").output,
+            containsMultiLineString("""
+                extension: Extension
+                extension{} Extension
+                beans: org.gradle.api.NamedDomainObjectContainer<Extension>
+                beans{} org.gradle.api.NamedDomainObjectContainer<Extension>
+            """)
+        )
+    }
+
+    @Test
+    fun `can access extension of nested type`() {
+
+        withFolders {
+
+            "buildSrc" {
+
+                withPrecompiledPlugins()
+
+                "src/main/kotlin/my" {
+
+                    withFile("Extension.kt", """
+                        package my
+
+                        class Nested {
+                            class Extension(private val name: String) : org.gradle.api.Named {
+                                override fun getName() = name
+                            }
+                        }
+                    """)
+
+                    withFile("plugin.gradle.kts", """
+                        package my
+
+                        extensions.add("nested", Nested.Extension("foo"))
+                        extensions.add("beans", container(Nested.Extension::class))
+                    """)
+                }
+            }
+        }
+
+
+        withBuildScript("""
+
+            plugins { id("my.plugin") }
+
+            inline fun <reified T> typeOf(value: T) = typeOf<T>()
+
+            println("nested: " + typeOf(nested))
+            nested { println("nested{} " + typeOf(this)) }
+
+            println("beans: " + typeOf(beans))
+            beans { println("beans{} " + typeOf(beans)) }
+
+            // ensure API usage
+            println(beans.create("bar").name)
+            beans.create("baz") { println(name) }
+        """)
+
+        assertThat(
+            build("help", "-q").output,
+            containsMultiLineString("""
+                nested: my.Nested.Extension
+                nested{} my.Nested.Extension
+                beans: org.gradle.api.NamedDomainObjectContainer<my.Nested.Extension>
+                beans{} org.gradle.api.NamedDomainObjectContainer<my.Nested.Extension>
+                bar
+                baz
+            """)
+        )
+    }
+
+    @Test
     fun `multiple generic extension targets`() {
 
-        projectRoot.withFolders {
+        withFolders {
 
             "buildSrc" {
 
@@ -90,7 +267,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `conflicting extensions across build scripts with same body`() {
 
-        projectRoot.withFolders {
+        withFolders {
 
             "buildSrc" {
 
@@ -136,7 +313,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `conflicting extensions across build runs`() {
 
-        projectRoot.withFolders {
+        withFolders {
 
             "buildSrc" {
 
@@ -408,7 +585,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
 
             gradlePlugin {
-                (plugins) {
+                plugins {
                     register("mine") {
                         id = "mine"
                         implementationClass = "foo.FooPlugin"
@@ -462,7 +639,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
 
             gradlePlugin {
-                (plugins) {
+                plugins {
                     register("my-plugin") {
                         id = "my-plugin"
                         implementationClass = "plugins.MyPlugin"
@@ -556,7 +733,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
 
             gradlePlugin {
-                (plugins) {
+                plugins {
                     register("my-plugin") {
                         id = "my-plugin"
                         implementationClass = "plugins.MyPlugin"
@@ -623,4 +800,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             build("help").output,
             containsString("Type of `myConvention` receiver is MyConvention"))
     }
+
+    private
+    fun withFolders(folders: FoldersDslExpression) =
+        projectRoot.withFolders(folders)
 }

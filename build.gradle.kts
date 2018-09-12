@@ -19,11 +19,11 @@ plugins {
 
 allprojects {
     group = "org.gradle"
-    version = "1.0-rc-3"
+    version = "1.0-rc-6"
 }
 
-val publishedPluginsVersion by extra { "1.0-rc-3" }
-val futurePluginsVersion = "1.0-rc-4"
+val publishedPluginsVersion by extra { "1.0-rc-5" }
+val futurePluginsVersion = "1.0-rc-6"
 project(":plugins") {
     group = "org.gradle.kotlin"
     version = futurePluginsVersion
@@ -142,4 +142,4 @@ idea {
 
 // --- Utility functions -----------------------------------------------
 inline fun <reified T : Task> task(noinline configuration: T.() -> Unit) =
-    tasks.creating(T::class, configuration)
+    tasks.registering(T::class, configuration)

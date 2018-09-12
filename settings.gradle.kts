@@ -11,7 +11,8 @@ include(
     "plugins-experiments",
     "test-fixtures",
     "samples-tests",
-    "integ-tests")
+    "integ-tests"
+)
 
 for (project in rootProject.children) {
     project.apply {

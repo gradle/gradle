@@ -24,7 +24,6 @@ import org.gradle.kotlin.dsl.integration.normalisedPath
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 
-import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
@@ -32,7 +31,6 @@ import java.io.File
 
 class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
-    @Ignore("Waiting on a new patch release of the build-scan plugin")
     @Test
     fun `can publish build scan`() {
 

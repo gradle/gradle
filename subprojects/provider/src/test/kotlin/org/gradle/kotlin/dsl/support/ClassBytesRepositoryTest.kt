@@ -21,6 +21,8 @@ import org.gradle.api.tasks.wrapper.Wrapper
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
+import org.gradle.kotlin.dsl.fixtures.LightThought
+import org.gradle.kotlin.dsl.fixtures.ZeroThought
 import org.gradle.kotlin.dsl.fixtures.customInstallation
 
 import org.hamcrest.CoreMatchers.equalTo
@@ -139,6 +141,24 @@ class ClassBytesRepositoryTest : AbstractIntegrationTest() {
                 assertTrue(none { it == "package-info" })
                 assertTrue(none { it.matches(Regex("\\$[0-9]\\.class")) })
             }
+        }
+    }
+
+    @Test
+    fun `ignores invalid classpath entries`() {
+
+        val entries = listOf(
+            withClassJar("some.JAR", DeepThought::class.java),
+            withClassJar("some.zip", LightThought::class.java),
+            withClassJar("some.tar.gz", ZeroThought::class.java),
+            withFile("some.xml")
+        )
+
+        classPathBytesRepositoryFor(entries).use { repository ->
+            assertThat(
+                repository.allSourceNames,
+                equalTo(listOf(canonicalNameOf<DeepThought>(), canonicalNameOf<LightThought>()))
+            )
         }
     }
 

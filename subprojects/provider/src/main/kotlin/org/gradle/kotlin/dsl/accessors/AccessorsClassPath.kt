@@ -72,7 +72,7 @@ fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath) =
     configuredProjectSchemaOf(project)?.let { projectSchema ->
         val cacheDir =
             scriptCacheOf(project)
-                .cacheDirFor(cacheKeyFor(projectSchema)) { baseDir ->
+                .cacheDirFor(cacheKeyFor(projectSchema, classPath)) { baseDir ->
                     buildAccessorsJarFor(projectSchema, classPath, outputDir = baseDir)
                 }
         AccessorsClassPath(
@@ -185,7 +185,8 @@ fun sourceFilesWithAccessorsFor(projectSchema: ProjectSchema<TypeAccessibility>,
     for ((index, schemaSubset) in schemaPerTarget.values.withIndex()) {
         writeAccessorsTo(
             sourceFile("Accessors$index.kt"),
-            schemaSubset.extensionAccessors()
+            schemaSubset.extensionAccessors(),
+            importsRequiredBy(schemaSubset)
         )
     }
 
@@ -196,6 +197,25 @@ fun sourceFilesWithAccessorsFor(projectSchema: ProjectSchema<TypeAccessibility>,
 
     return sourceFiles
 }
+
+
+private
+fun importsRequiredBy(schemaSubset: ProjectSchema<TypeAccessibility>): List<String> =
+    defaultPackageTypesIn(
+        schemaSubset
+            .extensions
+            .flatMap { listOf(it.target, it.type) }
+            .filterIsInstance<TypeAccessibility.Accessible>()
+            .map { it.type }
+    )
+
+
+internal
+fun defaultPackageTypesIn(typeStrings: List<String>): List<String> =
+    typeStrings
+        .flatMap { classNamesFromTypeString(it).all }
+        .filter { '.' !in it }
+        .distinct()
 
 
 internal
@@ -512,8 +532,10 @@ fun classLoaderScopeOf(project: Project) =
 
 
 private
-fun cacheKeyFor(projectSchema: ProjectSchema<String>): CacheKeySpec =
-    CacheKeySpec.withPrefix("gradle-kotlin-dsl-accessors") + projectSchema.toCacheKeyString()
+fun cacheKeyFor(projectSchema: ProjectSchema<String>, classPath: ClassPath): CacheKeySpec =
+    (CacheKeySpec.withPrefix("gradle-kotlin-dsl-accessors")
+        + projectSchema.toCacheKeyString()
+        + classPath)
 
 
 private
@@ -539,14 +561,14 @@ fun enabledJitAccessors(project: Project) =
 
 
 private
-fun writeAccessorsTo(outputFile: File, accessors: Sequence<String>): Unit =
+fun writeAccessorsTo(outputFile: File, accessors: Sequence<String>, imports: List<String> = emptyList()): Unit =
     outputFile.bufferedWriter().use { writer ->
-        writeAccessorsTo(writer, accessors)
+        writeAccessorsTo(writer, accessors, imports)
     }
 
 
 private
-fun writeAccessorsTo(writer: BufferedWriter, accessors: Sequence<String>) {
+fun writeAccessorsTo(writer: BufferedWriter, accessors: Sequence<String>, imports: List<String>) {
     writer.apply {
         write(fileHeader)
         newLine()
@@ -560,6 +582,12 @@ fun writeAccessorsTo(writer: BufferedWriter, accessors: Sequence<String>) {
         newLine()
         appendln("import org.gradle.kotlin.dsl.*")
         newLine()
+        if (imports.isNotEmpty()) {
+            imports.forEach {
+                appendln("import $it")
+            }
+            newLine()
+        }
         accessors.forEach {
             appendln(it)
         }

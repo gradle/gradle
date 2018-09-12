@@ -85,10 +85,10 @@ class ClassBytesRepository(classPath: ClassPath, classPathDependencies: ClassPat
         classBytesIndex.firstNotNullResult { it(classFilePath) }
 
     private
-    fun sourceNamesFrom(jarOrDir: File): Sequence<String> =
+    fun sourceNamesFrom(entry: File): Sequence<String> =
         when {
-            jarOrDir.isFile -> sourceNamesFromJar(jarOrDir)
-            jarOrDir.isDirectory -> sourceNamesFromDir(jarOrDir)
+            entry.isClassPathArchive -> sourceNamesFromJar(entry)
+            entry.isDirectory -> sourceNamesFromDir(entry)
             else -> emptySequence()
         }
 
@@ -107,10 +107,10 @@ class ClassBytesRepository(classPath: ClassPath, classPathDependencies: ClassPat
             .map { kotlinSourceNameOf(normaliseFileSeparators(it.relativeTo(dir).path)) }
 
     private
-    fun classBytesIndexFor(jarOrDir: File): ClassBytesIndex =
+    fun classBytesIndexFor(entry: File): ClassBytesIndex =
         when {
-            jarOrDir.isFile -> jarClassBytesIndexFor(jarOrDir)
-            jarOrDir.isDirectory -> directoryClassBytesIndexFor(jarOrDir)
+            entry.isClassPathArchive -> jarClassBytesIndexFor(entry)
+            entry.isDirectory -> directoryClassBytesIndexFor(entry)
             else -> { _ -> null }
         }
 
@@ -136,6 +136,14 @@ class ClassBytesRepository(classPath: ClassPath, classPathDependencies: ClassPat
         openJars.values.forEach(JarFile::close)
     }
 }
+
+
+/**
+ * See https://docs.oracle.com/javase/8/docs/technotes/tools/findingclasses.html#userclass
+ */
+private
+val File.isClassPathArchive
+    get() = extension.run { equals("jar", ignoreCase = true) || equals("zip", ignoreCase = true) }
 
 
 private
