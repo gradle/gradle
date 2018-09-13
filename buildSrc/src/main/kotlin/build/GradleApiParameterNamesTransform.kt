@@ -75,9 +75,21 @@ const val withParameterNames = "with-parameter-names"
 
 private
 fun Project.resolveGradleApiWithParameterNames(): FileCollection =
-    registerGradleApiParameterNamesTransform().run {
+    withRegisteredGradleApiParameterNamesTransform {
         gradleApiDetachedConfiguration().resolveGradleApiWithParameterNamesArtifactFiles()
     }
+
+
+private
+fun <T> Project.withRegisteredGradleApiParameterNamesTransform(block: () -> T): T {
+    var gradleApiParameterNamesTransformRegistered: Boolean? by project.extra
+    if (gradleApiParameterNamesTransformRegistered != true) {
+        registerGradleApiParameterNamesTransform()
+        @Suppress("unused_value")
+        gradleApiParameterNamesTransformRegistered = true
+    }
+    return block()
+}
 
 
 private
