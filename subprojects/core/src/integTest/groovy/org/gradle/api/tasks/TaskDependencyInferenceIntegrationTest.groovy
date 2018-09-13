@@ -16,7 +16,8 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec;
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll;
 
 class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec {
     def "dependency declared using task provider implies dependency on task"() {
@@ -124,6 +125,75 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecuted(":a", ":b")
     }
 
+    def "dependency declared using provider that returns task name implies dependency on task"() {
+        buildFile << """
+            def a = tasks.create("a")
+            def provider = provider { "a" }
+            tasks.register("b") {
+                dependsOn provider
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksExecuted(":a", ":b")
+    }
+
+    def "dependency declared using mapped provider that returns task name implies dependency on task"() {
+        buildFile << """
+            def a = tasks.create("a")
+            def provider = provider { a }.map { it.name }
+            tasks.register("b") {
+                dependsOn provider
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksExecuted(":a", ":b")
+    }
+
+    @Unroll
+    def "dependency declared using provider that returns #value fails"() {
+        buildFile << """
+            def provider = provider { $value }
+            tasks.register("b") {
+                dependsOn provider
+            }
+        """
+
+        when:
+        fails("b")
+
+        then:
+        failure.assertHasDescription("Could not determine the dependencies of task ':b'.")
+        def val = displayName.call(temporaryFolder)
+        failure.assertHasCause("""Cannot convert ${val} to a task.
+The following types/formats are supported:
+  - A String or CharSequence task name or path
+  - A TaskReference instance
+  - A Task instance
+  - A Buildable instance
+  - A TaskDependency instance
+  - A Provider that represents a task output
+  - A Provider instance that returns any of these types
+  - A Closure instance that returns any of these types
+  - A Callable instance that returns any of these types
+  - An Iterable, Collection, Map or array instance that contains any of these types""")
+
+        where:
+        // the closures are because spock calls these expressions early before the test dir fixture is ready
+        value                               | displayName
+        "12"                                | { "12" }
+        "file('123')"                       | { it.file('123') }
+        "layout.projectDirectory"           | { it.file(".") }
+        "layout.buildDirectory.file('123')" | { it.file('build/123') }
+    }
+
     def "input file collection containing task provider implies dependency on all outputs of the task"() {
         taskTypeWithMultipleOutputFiles()
         taskTypeWithInputFilesProperty()
@@ -190,6 +260,53 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec {
         file("out.txt").text == "1"
     }
 
+    def "input file collection containing mapped task output property implies dependency on a specific output of the task"() {
+        taskTypeWithMultipleOutputFileProperties()
+        taskTypeWithInputFilesProperty()
+        buildFile << """
+            def a = tasks.create("a", OutputFilesTask) {
+                out1 = file("file1.txt")
+                out2 = file("file2.txt")
+            }
+            tasks.register("b", InputFilesTask) {
+                inFiles.from a.out1.map { it }
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksExecuted(":a", ":b")
+        file("out.txt").text == "1"
+    }
+
+    @Unroll
+    def "input file collection containing provider that returns #value does not imply task dependency"() {
+        taskTypeWithInputFilesProperty()
+        buildFile << """
+            tasks.register("b", InputFilesTask) {
+                inFiles.from provider { ${value} }
+                outFile = file("out.txt")
+            }
+        """
+        file("in.txt") << "1"
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksExecuted(":b")
+        file("out.txt").text == "1"
+
+        where:
+        value                                     | _
+        "file('in.txt')"                          | _
+        "layout.projectDirectory.file('in.txt')"  | _
+        "layout.buildDirectory.file('../in.txt')" | _
+    }
+
     def taskTypeWithOutputFileProperty() {
         buildFile << """
             class OutputFileTask extends DefaultTask {
@@ -215,6 +332,22 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec {
                 def go() {
                     out1.text = "1"
                     out2.text = "2"
+                }
+            }
+        """
+    }
+
+    def taskTypeWithMultipleOutputFileProperties() {
+        buildFile << """
+            class OutputFilesTask extends DefaultTask {
+                @OutputFile
+                final RegularFileProperty out1 = project.objects.fileProperty()
+                @OutputFile
+                final RegularFileProperty out2 = project.objects.fileProperty()
+                @TaskAction
+                def go() {
+                    out1.get().asFile.text = "1"
+                    out2.get().asFile.text = "2"
                 }
             }
         """
