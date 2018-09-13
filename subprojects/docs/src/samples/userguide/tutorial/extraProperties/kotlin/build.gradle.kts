@@ -23,7 +23,10 @@ task("printTaskProperties") {
 val springVersion by extra("3.1.0.RELEASE")
 val emailNotification by extra { "build@master.org" }
 
-sourceSets.all { extra["purpose"] = null }
+sourceSets.all {
+    this as ExtensionAware
+    extra["purpose"] = null
+}
 
 sourceSets {
     getByName("main") {
@@ -44,7 +47,10 @@ task("printProperties") {
     doLast {
         println(springVersion)
         println(emailNotification)
-        sourceSets.matching { (it as ExtensionAware).extra["purpose"] == "production" }.forEach { println(it.name) }
+        sourceSets.matching {
+            it as ExtensionAware
+            it.extra["purpose"] == "production"
+        }.forEach { println(it.name) }
     }
 }
 // end::extraProperties[]
