@@ -67,6 +67,8 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import static org.gradle.api.reflect.TypeOf.typeOf;
+
 public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCollection<T> implements NamedDomainObjectCollection<T>, MethodMixIn, PropertyMixIn {
 
     private final Instantiator instantiator;
@@ -441,7 +443,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
                                 @Override
                                 public TypeOf<?> getPublicType() {
-                                    return TypeOf.typeOf(e.getValue().getType());
+                                    return typeOf(e.getValue().getType());
                                 }
                             };
                         }

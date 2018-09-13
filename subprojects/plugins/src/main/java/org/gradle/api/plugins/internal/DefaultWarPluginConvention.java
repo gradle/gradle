@@ -23,6 +23,8 @@ import org.gradle.api.reflect.TypeOf;
 
 import java.io.File;
 
+import static org.gradle.api.reflect.TypeOf.typeOf;
+
 public class DefaultWarPluginConvention extends WarPluginConvention implements HasPublicType {
     private String webAppDirName;
     private final Project project;
@@ -34,7 +36,7 @@ public class DefaultWarPluginConvention extends WarPluginConvention implements H
 
     @Override
     public TypeOf<?> getPublicType() {
-        return TypeOf.typeOf(WarPluginConvention.class);
+        return typeOf(WarPluginConvention.class);
     }
 
     @Override

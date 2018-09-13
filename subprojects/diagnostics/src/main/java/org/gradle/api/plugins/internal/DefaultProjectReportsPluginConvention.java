@@ -26,6 +26,8 @@ import org.gradle.util.WrapUtil;
 import java.io.File;
 import java.util.Set;
 
+import static org.gradle.api.reflect.TypeOf.typeOf;
+
 public class DefaultProjectReportsPluginConvention extends ProjectReportsPluginConvention implements HasPublicType {
     private String projectReportDirName = "project";
     private final Project project;
@@ -36,7 +38,7 @@ public class DefaultProjectReportsPluginConvention extends ProjectReportsPluginC
 
     @Override
     public TypeOf<?> getPublicType() {
-        return TypeOf.typeOf(ProjectReportsPluginConvention.class);
+        return typeOf(ProjectReportsPluginConvention.class);
     }
 
     @Override
