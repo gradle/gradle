@@ -1,4 +1,6 @@
-apply plugin: "groovy"
+plugins {
+    groovy
+}
 
 repositories {
     mavenCentral()
@@ -6,12 +8,12 @@ repositories {
 
 // tag::groovy-test-dependency[]
 dependencies {
-    testCompile 'org.codehaus.groovy:groovy-all:2.4.15'
+    testImplementation("org.codehaus.groovy:groovy-all:2.4.15")
 }
 // end::groovy-test-dependency[]
 
 // tag::bundled-groovy-dependency[]
 dependencies {
-    compile localGroovy()
+    implementation(localGroovy())
 }
 // end::bundled-groovy-dependency[]
