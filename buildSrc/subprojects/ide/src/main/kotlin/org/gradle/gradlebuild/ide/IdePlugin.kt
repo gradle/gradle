@@ -174,6 +174,8 @@ open class IdePlugin : Plugin<Project> {
                             // In doing so, tags in the code style settings are ignored.
                             projectElement.removeBySelector("component[name=ProjectCodeStyleConfiguration]")
                                 .configureCodeStyleSettings()
+                            projectElement.removeBySelector("component[name=InspectionProjectProfileManager]")
+                                .configureInspectionSettings()
 
                             configureFrameworkDetectionExcludes(projectElement)
                             configureBuildSrc(projectElement)
@@ -348,8 +350,8 @@ open class IdePlugin : Plugin<Project> {
         @Suppress("UNCHECKED_CAST")
         val ideaLanguageLevel =
             if (ideaModule.project in projectsRequiringJava8) "1.8"
-            else "1.6"
-        // Force everything to Java 6, pending detangling some int test cycles or switching to project-per-source-set mapping
+            else "1.7"
+        // Force everything to Java 7, pending detangling some int test cycles or switching to project-per-source-set mapping
         ideaModule.languageLevel = IdeaLanguageLevel(ideaLanguageLevel)
         ideaModule.targetBytecodeVersion = JavaVersion.toVersion(ideaLanguageLevel)
     }
@@ -634,6 +636,38 @@ fun Element.configureCodeStyleSettings() {
     ).forEach { (name, value) ->
         javaCodeStyleSettings.option(name, value)
     }
+}
+
+
+private
+fun Element.configureInspectionSettings() {
+    val config = appendElement("component")
+        .attr("name", "InspectionProjectProfileManager")
+
+    val profile = config.appendElement("profile")
+        .attr("version", "1.0")
+    profile.option("myName", "Project Default")
+
+    // Disable Java 7 inspections because some parts of the codebase still need
+    // to run on Java 6
+    profile.inspectionTool("Convert2Diamond", "WARNING")
+    profile.inspectionTool("EqualsReplaceableByObjectsCall", "INFORMATION")
+    profile.inspectionTool("SafeVarargsDetector", "WARNING")
+    profile.inspectionTool("TryFinallyCanBeTryWithResources", "WARNING")
+    profile.inspectionTool("TryWithIdenticalCatches", "WARNING")
+
+    config.appendElement("version")
+        .attr("value", "1.0")
+}
+
+
+private
+fun Element.inspectionTool(clazz: String, level: String, enabled: Boolean = false) {
+    appendElement("inspection_tool")
+        .attr("class", clazz)
+        .attr("enabled", enabled.toString())
+        .attr("level", level)
+        .attr("enabled_by_default", "false")
 }
 
 
