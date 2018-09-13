@@ -54,7 +54,6 @@ dependencies {
         lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'])
 
         when:
-        executer.withStackTraceChecksDisabled()
         succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'
 
         then:
@@ -62,7 +61,6 @@ dependencies {
         outputContains('dependency was locked to version \'1.0\'')
 
         when:
-        executer.withStackTraceChecksDisabled()
         succeeds 'dependencyInsight', '--configuration', 'unlockedConf', '--dependency', 'foo'
 
         then:
@@ -98,7 +96,6 @@ dependencies {
         lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'])
 
         when:
-        executer.withStackTraceChecksDisabled()
         succeeds 'dependencyInsight', '--configuration', 'unlockedConf', '--dependency', 'foo'
 
         then:
@@ -134,7 +131,6 @@ dependencies {
         lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'])
 
         when:
-        executer.withStackTraceChecksDisabled()
         succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'
 
         then:

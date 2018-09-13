@@ -422,7 +422,6 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'b'
 
         when:
-        executer.withStackTraceChecksDisabled()
         run 'dependencyInsight', '--configuration=conf', '--dependency=a'
 
         then:
