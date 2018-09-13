@@ -29,7 +29,7 @@ dependencies {
     api project(":persistentCache")
     api project(":processServices")
     api project(":resources")
-    api libraries.groovy_ant.coordinates
+    api libraries.groovy.coordinates
 
     implementation libraries.ant.coordinates
     implementation libraries.commons_io.coordinates

@@ -45,7 +45,7 @@ dependencies {
     api project(":processServices")
     api project(":jvmServices")
     api project(":modelCore")
-    api libraries.groovy_all.coordinates
+    api libraries.groovy.coordinates
     api libraries.ant.coordinates
     api libraries.guava.coordinates
     api libraries.inject.coordinates

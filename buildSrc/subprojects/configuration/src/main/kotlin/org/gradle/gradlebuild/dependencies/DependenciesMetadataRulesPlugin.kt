@@ -54,8 +54,6 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                     setOf("groovy-groovysh", "groovy-json", "groovy-macro", "groovy-nio", "groovy-sql", "groovy-templates", "groovy-test", "groovy-xml"))
                 withModule("org.jmock:jmock-legacy", ReplaceCglibNodepWithCglibRule::class.java)
 
-                all(RemoveGroovyThirdPartyDependenciesRule::class.java)
-
                 withModule("org.junit.jupiter:junit-jupiter-api", DowngradeOpentest4jRule::class.java)
                 withModule("org.junit.platform:junit-platform-engine", DowngradeOpentest4jRule::class.java)
 
@@ -186,22 +184,6 @@ open class DependencyRemovalByNameRule @Inject constructor(
         context.details.allVariants {
             withDependencies {
                 removeAll { moduleToRemove.contains(it.name) }
-            }
-        }
-    }
-}
-
-
-open class RemoveGroovyThirdPartyDependenciesRule : ComponentMetadataRule {
-    override fun execute(context: ComponentMetadataContext) {
-        if (context.details.id.group == "org.codehaus.groovy") {
-            context.details.allVariants {
-                withDependencies {
-                    removeAll { it.group != "org.codehaus.groovy" }
-                }
-                withDependencyConstraints {
-                    removeAll { it.group != "org.codehaus.groovy" }
-                }
             }
         }
     }
