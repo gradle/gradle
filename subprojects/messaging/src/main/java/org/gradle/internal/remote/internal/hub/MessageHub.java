@@ -127,6 +127,7 @@ public class MessageHub implements AsyncStoppable {
             } else {
                 streamFailureHandler = DISCARD;
             }
+            Printer.print("Channel name: " + channelName);
             ChannelIdentifier identifier = new ChannelIdentifier(channelName);
             EndPointQueue queue = incomingQueue.getChannel(identifier).newEndpoint();
             workers.execute(new Handler(queue, dispatch, boundedDispatch, rejectedMessageListener, streamFailureHandler));

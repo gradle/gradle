@@ -33,6 +33,9 @@ public class Printer {
     }
 
     public static void print(String message) {
+        if (ps == null) {
+            return;
+        }
         ps.println(message);
         new Exception().printStackTrace(ps);
     }
