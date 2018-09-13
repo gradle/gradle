@@ -16,8 +16,6 @@
 
 package org.gradle.internal.concurrent;
 
-import org.gradle.api.Printer;
-
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -53,16 +51,8 @@ public class ThreadFactoryImpl implements ThreadFactory {
 
         @Override
         public void run() {
-            Printer.print("Run thread " + Thread.currentThread().getName());
-            try {
-                GradleThread.setManaged();
-                delegate.run();
-                Printer.print("Run thread " + Thread.currentThread().getName() + " finished");
-            } catch (Throwable t) {
-                Printer.print("Run thread catch " + Thread.currentThread().getName() + " finished");
-                t.printStackTrace(Printer.ps);
-            }
-            Printer.print("Run thread " + Thread.currentThread().getName() + " exit");
+            GradleThread.setManaged();
+            delegate.run();
         }
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.internal.remote.internal.inet;
 
 import com.google.common.base.Objects;
+import org.gradle.api.Printer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.remote.internal.RecoverableMessageIOException;
@@ -77,7 +78,9 @@ public class SocketConnection<T> implements RemoteConnection<T> {
 
     public T receive() throws MessageIOException {
         try {
-            return objectReader.read();
+            T ret = objectReader.read();
+            Printer.print("Read message: " + ret);
+            return ret;
         } catch (EOFException e) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Discarding EOFException: {}", e.toString());
@@ -114,7 +117,8 @@ public class SocketConnection<T> implements RemoteConnection<T> {
 
     public void dispatch(T message) throws MessageIOException {
         try {
-            objectWriter.write(message);
+            Printer.print("Write message: " + message);
+            objectWriter.write(message); // here
         } catch (ObjectStreamException e) {
             throw new RecoverableMessageIOException(String.format("Could not write message %s to '%s'.", message, remoteAddress), e);
         } catch (ClassNotFoundException e) {

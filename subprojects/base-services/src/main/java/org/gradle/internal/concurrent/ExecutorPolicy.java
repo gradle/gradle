@@ -81,7 +81,7 @@ public interface ExecutorPolicy {
         }
 
         public void onFailure(String message, Throwable throwable) {
-            throwable.printStackTrace(Printer.ps);
+            Printer.print(throwable);
             // Capture or log all failures
             if (!failure.compareAndSet(null, throwable)) {
                 LOGGER.error(message, throwable);

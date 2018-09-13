@@ -22,7 +22,7 @@ import java.io.PrintStream;
 import java.util.UUID;
 
 public class Printer {
-    public static PrintStream ps;
+    private static PrintStream ps;
 
     static {
         try {
@@ -38,5 +38,12 @@ public class Printer {
         }
         ps.println(message);
         new Exception().printStackTrace(ps);
+    }
+
+    public static void print(Throwable t) {
+        if (ps == null) {
+            return;
+        }
+        t.printStackTrace(ps);
     }
 }

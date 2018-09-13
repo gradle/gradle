@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.dispatch;
 
-import com.google.common.base.Joiner;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -62,7 +61,7 @@ public class MethodInvocation {
 
     @Override
     public String toString() {
-        return String.format("[MethodInvocation method: %s(%s)]", method.getName(), Joiner.on(", ").join(arguments));
+        return String.format("[MethodInvocation method: %s(%s)]", method.getName(), Arrays.asList(arguments));
     }
 }
 

@@ -263,6 +263,7 @@ public class MessageHub implements AsyncStoppable {
                         InterHubMessage message;
                         try {
                             message = connection.receive();
+                            Printer.print("Receive message " + message);
                         } catch (RecoverableMessageIOException e) {
                             addToIncoming(new StreamFailureMessage(e));
                             continue;
@@ -319,7 +320,8 @@ public class MessageHub implements AsyncStoppable {
                         }
                         for (InterHubMessage message : messages) {
                             try {
-                                connection.dispatch(message);
+                                Printer.print("Send message: " +message);
+                                connection.dispatch(message); // here
                             } catch (RecoverableMessageIOException e) {
                                 addToIncoming(new StreamFailureMessage(e));
                             }
@@ -414,27 +416,22 @@ public class MessageHub implements AsyncStoppable {
                                 StreamFailureMessage streamFailureMessage = (StreamFailureMessage) message;
                                 streamFailureHandler.handleStreamFailure(streamFailureMessage.getFailure());
                             } else {
-                                Printer.print("Handler don't know!" + message);
                                 throw new IllegalArgumentException(String.format("Don't know how to handle message %s", message));
                             }
                         }
                         messages.clear();
                     }
                 } finally {
-                    Printer.print("Handler exit!");
                     lock.lock();
                     try {
-                        Printer.print("Handler about to stop!");
                         queue.stop();
-                        Printer.print("Handler stopped!");
                     } finally {
                         lock.unlock();
                     }
-                    Printer.print("Handler unlocked!");
+                    Printer.print("Handler exit!");
                 }
             } catch (Throwable t) {
-                Printer.print(t.toString());
-                t.printStackTrace(Printer.ps);
+                Printer.print(t.getMessage());
                 errorHandler.execute(t);
             }
         }

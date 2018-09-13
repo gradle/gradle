@@ -78,9 +78,6 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
             return null;
         }
 
-        System.setErr(Printer.ps);
-        System.setOut(Printer.ps);
-
         Decoder decoder = new InputStreamBackedDecoder(configInputStream);
 
         // Read logging config and setup logging
