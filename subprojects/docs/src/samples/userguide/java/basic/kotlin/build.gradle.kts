@@ -59,9 +59,16 @@ dependencies {
     asciidoclet("org.asciidoctor:asciidoclet:1.+")
 }
 
+task("configureJavadoc") {
+    doLast {
+        val javadoc = tasks.getByName<Javadoc>("javadoc")
+        javadoc.options.doclet = "org.asciidoctor.Asciidoclet"
+        javadoc.options.docletpath = asciidoclet.files.toList()
+    }
+}
+
 tasks.getByName<Javadoc>("javadoc") {
-    options.docletpath = asciidoclet.files.toList()
-    options.doclet = "org.asciidoctor.Asciidoclet"
+    dependsOn("configureJavadoc")
 }
 // end::using-custom-doclet[]
 
