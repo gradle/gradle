@@ -18,7 +18,11 @@ repositories {
     }
 }
 
-configurations.runtime.exclude(group = "excludeGroup2", module = "excludeArtifact2")
+configurations {
+    "runtime" {
+        exclude(group = "excludeGroup2", module = "excludeArtifact2")
+    }
+}
 
 dependencies {
     compile("group1:compile:1.0") {
@@ -71,9 +75,9 @@ val deployer = uploadArchives.repositories.withGroovyBuilder { getProperty("mave
 listOf(installer, deployer).forEach {
     it.pom.whenConfigured {
         dependencies.firstOrNull { dep ->
-            dep?.withGroovyBuilder {
+            dep!!.withGroovyBuilder {
                 getProperty("groupId") == "group3" && getProperty("artifactId") == "runtime"
-            } ?: false
+            }
         }?.withGroovyBuilder {
             setProperty("optional", true)
         }
@@ -81,7 +85,9 @@ listOf(installer, deployer).forEach {
 }
 // end::when-configured[]
 
-listOf(installer, deployer).forEach { it.pom.version = "1.0MVN" }
+listOf(installer, deployer).forEach {
+    it.pom.version = "1.0MVN"
+}
 installer.pom.project {
     setProperty("groupId", "installGroup")
 }

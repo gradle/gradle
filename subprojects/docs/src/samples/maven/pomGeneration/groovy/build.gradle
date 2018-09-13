@@ -10,7 +10,7 @@ plugins {
 group = 'gradle'
 version = '1.0'
 archivesBaseName = 'mywar'
-buildDir = file('target')
+buildDir = 'target'
 
 repositories {
     flatDir {
@@ -18,7 +18,9 @@ repositories {
     }
 }
 
-configurations.runtime.exclude group: 'excludeGroup2', module: 'excludeArtifact2'
+configurations {
+    runtime.exclude group: 'excludeGroup2', module: 'excludeArtifact2'
+}
 
 dependencies {
     compile("group1:compile:1.0") {
