@@ -3,6 +3,7 @@ package org.gradle.kotlin.dsl.integration
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.matching
+import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.equalTo

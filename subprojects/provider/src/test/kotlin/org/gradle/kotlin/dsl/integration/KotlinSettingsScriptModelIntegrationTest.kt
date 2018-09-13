@@ -1,10 +1,10 @@
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.util.TextUtil
+import org.gradle.kotlin.dsl.fixtures.normalisedPath
+
 import org.junit.Assert.assertThat
 
 import org.junit.Test
-import java.io.File
 
 
 class KotlinSettingsScriptModelIntegrationTest : ScriptModelIntegrationTest() {
@@ -93,7 +93,3 @@ class KotlinSettingsScriptModelIntegrationTest : ScriptModelIntegrationTest() {
             matchesProjectsSourceRoots(*sourceRoots))
     }
 }
-
-
-val File.normalisedPath
-    get() = TextUtil.normaliseFileSeparators(path)

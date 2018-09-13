@@ -18,8 +18,7 @@ package org.gradle.kotlin.dsl.caching
 
 import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
 import org.gradle.kotlin.dsl.fixtures.containsBuildScanPluginOutput
-
-import org.gradle.kotlin.dsl.integration.normalisedPath
+import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat

@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.caching
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
-import org.gradle.kotlin.dsl.integration.normalisedPath
+import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
 import org.gradle.testkit.runner.BuildResult
 

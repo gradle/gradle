@@ -1,5 +1,7 @@
 package org.gradle.kotlin.dsl.fixtures
 
+import org.gradle.util.TextUtil
+
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -43,3 +45,7 @@ inline fun withClassLoaderFor(vararg classPath: File, action: ClassLoader.() -> 
 fun classLoaderFor(vararg classPath: File): URLClassLoader =
     URLClassLoader.newInstance(
         classPath.map { it.toURI().toURL() }.toTypedArray())
+
+
+val File.normalisedPath
+    get() = TextUtil.normaliseFileSeparators(path)

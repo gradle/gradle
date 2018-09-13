@@ -18,8 +18,10 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
+import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
 import org.hamcrest.CoreMatchers.containsString
+
 import org.junit.Assert.assertThat
 import org.junit.Test
 
@@ -85,7 +87,7 @@ class DependencyManagementIntegrationTest : AbstractIntegrationTest() {
 
             repositories {
                 ivy {
-                    url = uri("${existing("repo")}")
+                    url = uri("${existing("repo").normalisedPath}")
                     layout("pattern") {
                         this as IvyPatternRepositoryLayout
                         artifact("[organisation]/[module]-[revision].[ext]")
