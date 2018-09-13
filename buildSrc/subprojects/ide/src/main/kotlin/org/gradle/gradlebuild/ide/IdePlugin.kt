@@ -45,6 +45,7 @@ import org.jetbrains.gradle.ext.CopyrightConfiguration
 import org.jetbrains.gradle.ext.ForceBraces.FORCE_BRACES_ALWAYS
 import org.jetbrains.gradle.ext.GroovyCompilerConfiguration
 import org.jetbrains.gradle.ext.IdeaCompilerConfiguration
+import org.jetbrains.gradle.ext.Inspection
 import org.jetbrains.gradle.ext.JUnit
 import org.jetbrains.gradle.ext.Make
 import org.jetbrains.gradle.ext.ProjectSettings
@@ -66,6 +67,12 @@ const val ideConfigurationBaseName = "ideConfiguration"
 
 private
 const val javaCompilerHeapSpace = 2048
+
+
+// Disable Java 7 inspections because some parts of the codebase still need
+// to run on Java 6
+private
+val disabledInspections = listOf("Convert2Diamond", "EqualsReplaceableByObjectsCall", "SafeVarargsDetector", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches")
 
 
 object GradleCopyright {
@@ -210,6 +217,7 @@ open class IdePlugin : Plugin<Project> {
                     configureCompilerSettings(rootProject)
                     configureCopyright()
                     configureCodeStyle()
+                    configureInspections()
                     configureRunConfigurations(rootProject)
                     doNotDetectFrameworks("android", "web")
                 }
@@ -555,6 +563,11 @@ fun ProjectSettings.copyright(configuration: CopyrightConfiguration.() -> kotlin
 fun ProjectSettings.codeStyle(configuration: CodeStyleConfig.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
 
 
+fun ProjectSettings.inspections(configuration: NamedDomainObjectContainer<Inspection>.() -> kotlin.Unit) = (this as ExtensionAware).configure<NamedDomainObjectContainer<Inspection>> {
+    this.apply(configuration)
+}
+
+
 fun ProjectSettings.runConfigurations(configuration: PolymorphicDomainObjectContainer<RunConfiguration>.() -> kotlin.Unit) = (this as ExtensionAware).configure<NamedDomainObjectContainer<RunConfiguration>> {
     (this as PolymorphicDomainObjectContainer<RunConfiguration>).apply(configuration)
 }
@@ -648,13 +661,7 @@ fun Element.configureInspectionSettings() {
         .attr("version", "1.0")
     profile.option("myName", "Project Default")
 
-    // Disable Java 7 inspections because some parts of the codebase still need
-    // to run on Java 6
-    profile.inspectionTool("Convert2Diamond", "WARNING")
-    profile.inspectionTool("EqualsReplaceableByObjectsCall", "INFORMATION")
-    profile.inspectionTool("SafeVarargsDetector", "WARNING")
-    profile.inspectionTool("TryFinallyCanBeTryWithResources", "WARNING")
-    profile.inspectionTool("TryWithIdenticalCatches", "WARNING")
+    disabledInspections.forEach { profile.inspectionTool(it) }
 
     config.appendElement("version")
         .attr("value", "1.0")
@@ -662,7 +669,7 @@ fun Element.configureInspectionSettings() {
 
 
 private
-fun Element.inspectionTool(clazz: String, level: String, enabled: Boolean = false) {
+fun Element.inspectionTool(clazz: String, level: String = "INFORMATION", enabled: Boolean = false) {
     appendElement("inspection_tool")
         .attr("class", clazz)
         .attr("enabled", enabled.toString())
@@ -699,6 +706,18 @@ fun ProjectSettings.configureCodeStyle() {
             doWhileForceBraces = FORCE_BRACES_ALWAYS
             whileForceBraces = FORCE_BRACES_ALWAYS
             forForceBraces = FORCE_BRACES_ALWAYS
+        }
+    }
+}
+
+
+private
+fun ProjectSettings.configureInspections() {
+    inspections {
+        disabledInspections.forEach { name ->
+            create(name) {
+                enabled = false
+            }
         }
     }
 }
