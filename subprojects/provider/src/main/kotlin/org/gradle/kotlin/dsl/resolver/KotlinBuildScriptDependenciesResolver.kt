@@ -16,11 +16,9 @@
 
 package org.gradle.kotlin.dsl.resolver
 
-import org.gradle.internal.exceptions.LocationAwareException
 
 import org.gradle.kotlin.dsl.concurrent.EventLoop
 import org.gradle.kotlin.dsl.concurrent.future
-import org.gradle.kotlin.dsl.support.ScriptCompilationException
 
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 
@@ -84,7 +82,6 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
             log(ResolutionFailure(script.file, e))
             if (previousDependencies == null) report.error("Script dependencies resolution failed")
             else report.warning("Script dependencies resolution failed, using previous dependencies")
-            report.exceptions(script.file, listOf(e))
             previousDependencies
         }
     }
@@ -112,13 +109,11 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
                 previousDependencies.also {
                     log(ResolvedToPreviousWithErrors(scriptFile, previousDependencies, response.exceptions))
                     report.warning("There were some errors during script dependencies resolution, using previous dependencies")
-                    report.exceptions(scriptFile, response.exceptions)
                 }
             else ->
                 dependenciesFrom(response).also {
                     log(ResolvedDependenciesWithErrors(scriptFile, it, response.exceptions))
                     report.warning("There were some errors during script dependencies resolution, some dependencies might be missing")
-                    report.exceptions(scriptFile, response.exceptions)
                 }
         }
     }
@@ -227,51 +222,3 @@ object RequestQueue {
         }
     }
 }
-
-
-private
-fun Report.exceptions(scriptFile: File?, exceptions: List<Exception>) =
-    scriptFile?.canonicalFile?.let { canonicalScriptFile ->
-        exceptions
-            .mapNotNull { lineNumberAndMessageOrNullFrom(it, canonicalScriptFile) }
-            .forEach { (lineNumber, message) ->
-                error(message, Position(lineNumber - 1, 1))
-            }
-        }
-
-
-private
-tailrec fun lineNumberAndMessageOrNullFrom(ex: Throwable, scriptFile: File): Pair<Int, String>? {
-    if (ex.isReportedLocationAwareException && ex.appliesTo(scriptFile)) {
-        ex.locationAwareLineNumber?.let { lineNumber ->
-            return Pair(lineNumber, ex.locationAwareMessage)
-        }
-    }
-    val cause = ex.cause ?: return null
-    return lineNumberAndMessageOrNullFrom(cause, scriptFile)
-}
-
-
-private
-val Throwable.isReportedLocationAwareException
-    get() = isNamed<LocationAwareException>() && cause?.isNamed<ScriptCompilationException>() != true
-
-
-private
-inline fun <reified T> Throwable.isNamed() =
-    this::class.java.name == T::class.java.name
-
-
-private
-fun Throwable.appliesTo(scriptFile: File): Boolean =
-    message?.contains(scriptFile.path) == true
-
-
-private
-val Throwable.locationAwareLineNumber
-    get() = this::class.java.getMethod("getLineNumber").invoke(this) as Int?
-
-
-private
-val Throwable.locationAwareMessage
-    get() = cause?.let { it.message ?: it::class.java.name } ?: "Unexpected failure"
