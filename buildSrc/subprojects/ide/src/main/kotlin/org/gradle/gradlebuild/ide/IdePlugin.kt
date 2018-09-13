@@ -153,7 +153,7 @@ open class IdePlugin : Plugin<Project> {
                             withJsoup { document ->
                                 val projectElement = document.getElementsByTag("project").first()
                                 projectElement.createOrEmptyOutChildElement("CompilerWorkspaceConfiguration")
-                                    .option("COMPILER_PROCESS_HEAP_SIZE", "2048")
+                                    .option("COMPILER_PROCESS_HEAP_SIZE", "3072")
                                 val runManagerComponent = projectElement.select("component[name=RunManager]")
                                     .first()
                                 configureJunitRunConfiguration(runManagerComponent)
