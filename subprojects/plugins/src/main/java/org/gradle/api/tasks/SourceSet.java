@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.plugins.ExtensionAware;
 
 import javax.annotation.Nullable;
 
@@ -41,7 +42,7 @@ import javax.annotation.Nullable;
  * }
  * </pre>
  */
-public interface SourceSet {
+public interface SourceSet extends ExtensionAware {
     /**
      * The name of the main source set.
      */
