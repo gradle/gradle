@@ -1,14 +1,17 @@
 package org.gradle.kotlin.dsl.plugins.precompiled
 
+import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.bundling.Jar
 
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.assertFailsWith
@@ -26,8 +29,8 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
-
 import org.hamcrest.MatcherAssert.assertThat
+
 import org.junit.Test
 
 
@@ -131,7 +134,10 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
         """)
 
-        val tasks = mock<TaskContainer>()
+        val task = mock<Jar>()
+        val tasks = mock<TaskContainer> {
+            on { create(any<String>() , any<Class<Task>>()) } doReturn task
+        }
         val project = mock<Project> {
             on { getTasks() } doReturn tasks
         }
@@ -140,7 +146,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
             project,
             "My_project_script_gradle")
 
-        verify(tasks).create("jar", org.gradle.api.tasks.bundling.Jar::class.java)
+        verify(tasks).create("jar", Jar::class.java)
     }
 
     @Test

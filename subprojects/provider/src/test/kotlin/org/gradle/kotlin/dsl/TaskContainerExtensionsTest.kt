@@ -28,7 +28,10 @@ class TaskContainerExtensionsTest {
     @Test
     fun `can create tasks with injected constructor arguments`() {
 
-        val tasks = mock<TaskContainer>()
+        val task = mock<DefaultTask>()
+        val tasks = mock<TaskContainer> {
+            on { create("my", DefaultTask::class.java, "foo", "bar") } doReturn task
+        }
 
         tasks.create<DefaultTask>("my", "foo", "bar")
 
