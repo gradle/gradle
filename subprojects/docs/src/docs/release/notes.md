@@ -69,6 +69,11 @@ When using `@OutputFiles` or `@OutputDirectories` with an `Iterable` type, Gradl
 This is no longer the case, and using such properties doesn't prevent the task from being cached.
 The only remaining reason to disable caching for the task is if the output contains file trees.
 
+### Task timeouts
+
+You can now specify a timeout for a task, after which it will be interrupted. 
+See the user guide section on “[Task timeouts](userguide/more_about_tasks.html#task_timeouts)” for more information.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -139,6 +144,14 @@ TBD - The `ObjectFactory.property(type)` method no longer sets a default value f
 ### The property `append` on `JacocoTaskExtension` has been deprecated
 
 See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
+
+### Deprecated announce plugins
+
+The [announce](userguide/announce_plugin.html) and [build announcements](userguide/build_announcements_plugin.html) plugins have been deprecated.
+
+### Deprecated OSGi plugin
+
+The [osgi](userguide/osgi_plugin.html) plugin has been deprecated. Builds should migrate to the [biz.aQute.bnd plugin](https://github.com/bndtools/bnd/blob/master/biz.aQute.bnd.gradle/README.md). 
 
 ### Deprecated code quality plugins
 
@@ -284,12 +297,13 @@ We would like to thank the following community members for making contributions 
 
 - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Switch Jacoco plugin to use configuration avoidance APIs (gradle/gradle#6245)
 - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Switch build-dashboard plugin to use configuration avoidance APIs (gradle/gradle#6247)
+- [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Fix nullability of the CreateStartScripts task properties (gradle/gradle#6704)
 - [Ben McCann](https://github.com/benmccann) - Remove Play 2.2 support (gradle/gradle#3353)
 - [Björn Kautler](https://github.com/Vampire) - No Deprecated Configurations in Build Init (gradle/gradle#6208)
 - [Georg Friedrich](https://github.com/GFriedrich) - Base Java Library Distribution Plugin on Java Library Plugin (gradle/gradle#5695)
-- [Stefan M.](https://github.com/StefMa) — Include Kotlin DSL samples in Gradle Wrapper, Java Gradle Plugin, and OSGI Plugin user manual chapters (gradle/gradle#5923, gradle/gradle#6485, gradle/gradle#6539)
+- [Stefan M.](https://github.com/StefMa) — Include Kotlin DSL samples in Gradle Wrapper, Java Gradle Plugin, OSGI Plugin and Organizing Gradle Projects user manual chapters (gradle/gradle#5923, gradle/gradle#6485, gradle/gradle#6539, gradle/gradle#6621)
 - [Stefan M.](https://github.com/StefMa) - Fix incoherent task name in the Authoring Tasks user manual chapter (gradle/gradle#6581)
-- [Jean-Baptiste Nizet](https://github.com/jnizet) — Include Kotlin DSL samples in Announcements, ANTLR, Base, EAR, Java Library Plugins, JaCoCo Plugins, Building Java Projects, Declaring Repositories, Dependency Locking, Dependency Types, Java Library, Java Testing, Artifact Management, IDEA Plugin, Application Plugin, Build Cache, Build Lifecycle, Declaring Dependencies, Inspecting Dependencies, Dependency Management for Java Projects, Working With Files, Working With Dependencies, Building Java Projects, Java Quickstart, Eclipse Plugin, Custom Tasks, Java Plugin, Signing Plugin, Composite Builds, TestKit, Multi Projects Builds, Managing Transitive Dependencies, Custom Plugins, Init Scripts and Scala Plugin user manual chapters (gradle/gradle#6488, gradle/gradle#6500, gradle/gradle#6514, gradle/gradle#6518, gradle/gradle#6521, gradle/gradle#6540, gradle/gradle#6560, gradle/gradle#6559, gradle/gradle#6569, gradle/gradle#6556, gradle/gradle#6512, gradle/gradle#6501, gradle/gradle#6497, gradle/gradle#6571, gradle/gradle#6575, gradle/gradle#6586, gradle/gradle#6590, gradle/gradle#6591, gradle/gradle#6593, gradle/gradle#6597, gradle/gradle#6598, gradle/gradle#6602, gradle/gradle#6613, gradle/gradle#6618, gradle/gradle#6578, gradle/gradle#6660, gradle/gradle#6663, gradle/gradle#6678, gradle/gradle#6687, gradle/gradle#6588, gradle/gradle#6633, gradle/gradle#6637, gradle/gradle#6689)
+- [Jean-Baptiste Nizet](https://github.com/jnizet) — Include Kotlin DSL samples in Announcements, ANTLR, Base, EAR, Java Library Plugins, JaCoCo Plugins, Building Java Projects, Declaring Repositories, Dependency Locking, Dependency Types, Java Library, Java Testing, Artifact Management, IDEA Plugin, Application Plugin, Build Cache, Build Lifecycle, Declaring Dependencies, Inspecting Dependencies, Dependency Management for Java Projects, Working With Files, Working With Dependencies, Building Java Projects, Java Quickstart, Eclipse Plugin, Custom Tasks, Java Plugin, Signing Plugin, Composite Builds, TestKit, Multi Projects Builds, Managing Transitive Dependencies, Custom Plugins, Init Scripts, Scala Plugin, Managing Dependency Configurations, Groovy Plugin and Groovy Quickstart user manual chapters (gradle/gradle#6488, gradle/gradle#6500, gradle/gradle#6514, gradle/gradle#6518, gradle/gradle#6521, gradle/gradle#6540, gradle/gradle#6560, gradle/gradle#6559, gradle/gradle#6569, gradle/gradle#6556, gradle/gradle#6512, gradle/gradle#6501, gradle/gradle#6497, gradle/gradle#6571, gradle/gradle#6575, gradle/gradle#6586, gradle/gradle#6590, gradle/gradle#6591, gradle/gradle#6593, gradle/gradle#6597, gradle/gradle#6598, gradle/gradle#6602, gradle/gradle#6613, gradle/gradle#6618, gradle/gradle#6578, gradle/gradle#6660, gradle/gradle#6663, gradle/gradle#6678, gradle/gradle#6687, gradle/gradle#6588, gradle/gradle#6633, gradle/gradle#6637, gradle/gradle#6689, gradle/gradle#6509, gradle/gradle#6645)
 - [Jean-Baptiste Nizet](https://github.com/jnizet) — Use proper subtype for useTestNG() (gradle/gradle#6520)
 - [Xiang Li](https://github.com/lixiangconan) and [Theodore Ni](https://github.com/tjni) - Make FileUtils#calculateRoots more efficient (gradle/gradle#6455)
 - [James Justinic](https://github.com/jjustinic) Include Kotlin DSL samples in Ant, WAR Plugin, Checkstyle plugin, CodeNarc plugin, FindBugs plugin, JDepend plugin, PMD plugin user manual chapters (gradle/gradle#6492, gradle/gradle#6510, gradle/gradle#6522)

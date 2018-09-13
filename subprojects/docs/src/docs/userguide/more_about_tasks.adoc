@@ -420,6 +420,22 @@ include::{samplesPath}/userguide/tutorial/disableTask/disableTask.out[]
 ----
 ====
 
+[[sec:task_timeouts]]
+=== Task timeouts
+
+Every task has a `timeout` property which can be used to limit its execution time.
+When a task reaches its timeout, its task execution thread is interrupted.
+The task will be marked as failed. Finalizer tasks will still be run.
+If `--continue` is used, other tasks can continue running after it.
+Tasks that don't respond to interrupts can't be timed out.
+All of Gradle's built-in tasks respond to timeouts in a timely manner.
+
+.Specifying task timeouts
+====
+include::sample[dir="userguide/tasks/timeout/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/timeout/kotlin",files="build.gradle.kts[]"]
+====
+
 [[sec:up_to_date_checks]]
 == Up-to-date checks (AKA Incremental Build)
 

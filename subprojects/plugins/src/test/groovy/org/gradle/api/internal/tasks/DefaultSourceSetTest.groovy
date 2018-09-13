@@ -41,7 +41,7 @@ class DefaultSourceSetTest extends Specification {
     private final FileResolver fileResolver = TestFiles.resolver(tmpDir.testDirectory)
 
     private DefaultSourceSet sourceSet(String name) {
-        def s = new DefaultSourceSet(name, TestUtil.objectFactory(tmpDir.testDirectory))
+        def s = new DefaultSourceSet(name, TestUtil.objectFactory(tmpDir.testDirectory), TestUtil.instantiatorFactory().decorate())
         s.classes = new DefaultSourceSetOutput(s.displayName, fileResolver, taskResolver)
         return s
     }
@@ -217,5 +217,23 @@ class DefaultSourceSetTest extends Specification {
 
         dirs1.builtBy('c')
         assertThat(dependencies.getDependencies(null)*.name as Set, equalTo(['a', 'b', 'c'] as Set))
+    }
+
+    def "can access extra properties and extensions through the api"() {
+        given:
+        SourceSet sourceSet = sourceSet('set-name')
+
+        expect:
+        sourceSet.extensions.extraProperties.properties.isEmpty()
+        sourceSet.extensions.extensionsSchema.elements.size() == 1
+
+        when:
+        sourceSet.extensions.extraProperties.set("foo", "bar")
+        sourceSet.extensions.add("bazar", "cathedral")
+
+        then:
+        sourceSet.extensions.extraProperties.get("foo") == "bar"
+        sourceSet.extensions.extensionsSchema.elements.size() == 2
+        sourceSet.extensions.getByName("bazar") == "cathedral"
     }
 }

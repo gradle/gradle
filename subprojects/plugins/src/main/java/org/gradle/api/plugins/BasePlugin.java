@@ -153,7 +153,7 @@ public class BasePlugin implements Plugin<Project> {
         ConfigurationContainer configurations = project.getConfigurations();
         project.setStatus("integration");
 
-        Configuration archivesConfiguration = configurations.maybeCreate(Dependency.ARCHIVES_CONFIGURATION).
+        final Configuration archivesConfiguration = configurations.maybeCreate(Dependency.ARCHIVES_CONFIGURATION).
                 setDescription("Configuration for archive artifacts.");
 
         configurations.maybeCreate(Dependency.DEFAULT_CONFIGURATION).
@@ -165,17 +165,19 @@ public class BasePlugin implements Plugin<Project> {
 
         configurations.all(new Action<Configuration>() {
             public void execute(Configuration configuration) {
-                configuration.getArtifacts().configureEach(new Action<PublishArtifact>() {
-                    public void execute(PublishArtifact artifact) {
-                        defaultArtifacts.addCandidate(artifact);
-                    }
-                });
+                if (!configuration.equals(archivesConfiguration)) {
+                    configuration.getArtifacts().configureEach(new Action<PublishArtifact>() {
+                        public void execute(PublishArtifact artifact) {
+                            defaultArtifacts.addCandidate(artifact);
+                        }
+                    });
+                }
             }
         });
     }
 
     private void configureAssemble(final ProjectInternal project) {
-        project.getTasks().named(ASSEMBLE_TASK_NAME).configure(new Action<Task>() {
+        project.getTasks().named(ASSEMBLE_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task task) {
                 task.dependsOn(project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getAllArtifacts().getBuildDependencies());

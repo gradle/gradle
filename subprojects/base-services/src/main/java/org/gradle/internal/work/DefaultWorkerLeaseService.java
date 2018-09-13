@@ -179,7 +179,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
         try {
             return action.call();
         } catch (Exception e) {
-            throw new UncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         } finally {
             if (!coordinationService.withStateLock(tryLock(locks))) {
                 releaseWorkerLeaseAndWaitFor(locks);

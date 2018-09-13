@@ -22,9 +22,11 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInputs;
@@ -34,6 +36,7 @@ import org.gradle.api.tasks.TaskState;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 
@@ -746,4 +749,26 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     @Incubating
     @Internal
     TaskDependency getShouldRunAfter();
+
+    /**
+     * <p>The timeout of this task.</p>
+     *
+     * <pre class='autoTested'>
+     *   task myTask {
+     *       timeout = Duration.ofMinutes(10)
+     *   }
+     * </pre>
+     *
+     * <p>
+     * The Thread executing this task will be interrupted if the task takes longer than the specified amount of time to run.
+     * In order for a task to work properly with this feature, it needs to react to interrupts and must clean up any resources it opened.
+     * </p>
+     * <p>By default, tasks never time out.</p>
+     *
+     * @since 5.0
+     */
+    @Internal
+    @Optional
+    @Incubating
+    Property<Duration> getTimeout();
 }

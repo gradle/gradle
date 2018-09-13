@@ -1,13 +1,17 @@
 {
     "latestReleaseSnapshot": {
-        "version": "4.10.1-20180911164034+0000",
-        "buildTime": "20180911164034+0000"
+        "version": "4.10.1-20180912111717+0000",
+        "buildTime": "20180912111717+0000"
     },
     "latestRc": {
         "version": "4.10-rc-3",
         "buildTime": "20180823120756+0000"
     },
     "finalReleases": [
+        {
+            "version": "4.10.1",
+            "buildTime": "20180912113327+0000"
+        },
         {
             "version": "4.10",
             "buildTime": "20180827183506+0000"

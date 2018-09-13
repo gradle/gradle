@@ -186,7 +186,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                     try {
                         workAvailable.await();
                     } catch (InterruptedException e) {
-                        throw new UncheckedException(e);
+                        throw UncheckedException.throwAsUncheckedException(e);
                     }
                 }
                 return getNextOperation();

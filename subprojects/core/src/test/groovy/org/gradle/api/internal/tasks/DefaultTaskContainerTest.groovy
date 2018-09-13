@@ -18,9 +18,9 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
-import org.gradle.api.DomainObjectCollection
 import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.NamedDomainObjectCollection
 import org.gradle.api.Rule
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
@@ -34,6 +34,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
@@ -62,6 +63,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
             getIdentityPath() >> Path.path(":")
         }
         getServices() >> Mock(ServiceRegistry)
+        getObjects() >> Stub(ObjectFactory)
     }
     private taskCount = 1;
     private accessListener = Mock(ProjectAccessListener)
@@ -78,7 +80,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
     ).create()
 
     @Override
-    final DomainObjectCollection<Task> getContainer() {
+    final NamedDomainObjectCollection<Task> getContainer() {
         return container
     }
 
@@ -1472,8 +1474,9 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
     }
 
     void "can remove eager created task and named provider update his state"() {
+        def task = task("task", CustomTask)
         given:
-        taskFactory.create(_ as TaskIdentity) >> task("task", CustomTask)
+        taskFactory.create(_ as TaskIdentity) >> task
 
         and:
         def customTask = container.create("task", CustomTask)
@@ -1498,7 +1501,7 @@ class DefaultTaskContainerTest extends AbstractNamedDomainObjectCollectionSpec<T
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "The domain object 'task' (Task) for this provider is no longer present in its container."
+        ex.message == "The domain object 'task' (${task.class.simpleName}) for this provider is no longer present in its container."
     }
 
     void "lazy task that is realized and then removed is not recreated on iteration"() {

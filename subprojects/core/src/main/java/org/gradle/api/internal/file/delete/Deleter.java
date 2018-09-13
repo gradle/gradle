@@ -102,7 +102,7 @@ public class Deleter {
         try {
             Thread.sleep(DELETE_RETRY_SLEEP_MILLIS);
         } catch (InterruptedException ex) {
-            // Ignore Exception
+            Thread.currentThread().interrupt();
         }
 
         if (!file.delete() && file.exists()) {

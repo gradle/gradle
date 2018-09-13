@@ -32,6 +32,7 @@ import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.execution.ActionEventFiringTaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter;
 import org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter;
@@ -46,10 +47,14 @@ import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
 import org.gradle.api.internal.tasks.execution.SkipUpToDateTaskExecuter;
+import org.gradle.api.internal.tasks.execution.SnapshotAfterExecutionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
+import org.gradle.api.internal.tasks.execution.TimeoutTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.annotations.FileFingerprintingPropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.timeout.DefaultTimeoutHandler;
+import org.gradle.api.internal.tasks.timeout.TimeoutHandler;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
@@ -114,7 +119,8 @@ public class TaskExecutionServices {
                                     TaskExecutionGraphInternal taskExecutionGraph,
                                     BuildInvocationScopeId buildInvocationScopeId,
                                     BuildCancellationToken buildCancellationToken,
-                                    TaskExecutionListener taskExecutionListener
+                                    TaskExecutionListener taskExecutionListener,
+                                    TimeoutHandler timeoutHandler
     ) {
 
         boolean buildCacheEnabled = buildCacheController.isEnabled();
@@ -122,13 +128,13 @@ public class TaskExecutionServices {
         TaskOutputChangesListener taskOutputChangesListener = listenerManager.getBroadcaster(TaskOutputChangesListener.class);
 
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
-            taskOutputChangesListener,
-            listenerManager.getBroadcaster(TaskActionListener.class),
             buildOperationExecutor,
             asyncWorkTracker,
-            buildInvocationScopeId,
             buildCancellationToken
         );
+        executer = new ActionEventFiringTaskExecuter(executer, taskOutputChangesListener, listenerManager.getBroadcaster(TaskActionListener.class));
+        executer = new TimeoutTaskExecuter(executer, timeoutHandler);
+        executer = new SnapshotAfterExecutionTaskExecuter(executer, buildInvocationScopeId);
         executer = new OutputDirectoryCreatingTaskExecuter(executer);
         if (buildCacheEnabled) {
             executer = new SkipCachedTaskExecuter(
@@ -153,6 +159,10 @@ public class TaskExecutionServices {
         executer = new CatchExceptionTaskExecuter(executer);
         executer = new EventFiringTaskExecuter(buildOperationExecutor, taskExecutionListener, executer);
         return executer;
+    }
+
+    TimeoutHandler createTaskTimeoutHandler(ExecutorFactory executorFactory) {
+        return new DefaultTimeoutHandler(executorFactory.createScheduled("task timeouts", 1));
     }
 
     TaskHistoryStore createCacheAccess(Gradle gradle, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
