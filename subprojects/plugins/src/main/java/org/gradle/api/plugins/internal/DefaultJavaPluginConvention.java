@@ -26,6 +26,8 @@ import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.reflect.HasPublicType;
+import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.Actions;
@@ -36,7 +38,7 @@ import java.io.File;
 
 import static org.gradle.util.ConfigureUtil.configure;
 
-public class DefaultJavaPluginConvention extends JavaPluginConvention {
+public class DefaultJavaPluginConvention extends JavaPluginConvention implements HasPublicType {
     private ProjectInternal project;
 
     private String docsDirName;
@@ -56,6 +58,11 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention {
         docsDirName = "docs";
         testResultsDirName = TestingBasePlugin.TEST_RESULTS_DIR_NAME;
         testReportDirName = TestingBasePlugin.TESTS_DIR_NAME;
+    }
+
+    @Override
+    public TypeOf<?> getPublicType() {
+        return TypeOf.typeOf(JavaPluginConvention.class);
     }
 
     @Override

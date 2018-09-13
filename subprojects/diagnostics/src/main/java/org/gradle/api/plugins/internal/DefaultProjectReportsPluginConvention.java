@@ -18,18 +18,25 @@ package org.gradle.api.plugins.internal;
 
 import org.gradle.api.Project;
 import org.gradle.api.plugins.ProjectReportsPluginConvention;
+import org.gradle.api.reflect.HasPublicType;
+import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
 import java.util.Set;
 
-public class DefaultProjectReportsPluginConvention extends ProjectReportsPluginConvention {
+public class DefaultProjectReportsPluginConvention extends ProjectReportsPluginConvention implements HasPublicType {
     private String projectReportDirName = "project";
     private final Project project;
 
     public DefaultProjectReportsPluginConvention(Project project) {
         this.project = project;
+    }
+
+    @Override
+    public TypeOf<?> getPublicType() {
+        return TypeOf.typeOf(ProjectReportsPluginConvention.class);
     }
 
     @Override
