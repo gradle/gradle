@@ -109,6 +109,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
         @Suppress("unchecked_cast")
         val pluginAdapter =
             loadCompiledKotlinClass("MyProjectScriptPlugin")
+                .getConstructor()
                 .newInstance() as Plugin<Project>
 
         val exception =
