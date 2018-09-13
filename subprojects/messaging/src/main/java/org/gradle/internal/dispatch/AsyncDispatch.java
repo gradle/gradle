@@ -16,11 +16,13 @@
 
 package org.gradle.internal.dispatch;
 
-import org.gradle.internal.UncheckedException;
+import com.google.common.collect.Maps;
 import org.gradle.internal.concurrent.AsyncStoppable;
+import org.gradle.internal.concurrent.InterruptibleRunnable;
 import org.gradle.internal.operations.CurrentBuildOperationPreservingRunnable;
 
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -42,15 +44,11 @@ public class AsyncDispatch<T> implements Dispatch<T>, AsyncStoppable {
     private final LinkedList<T> queue = new LinkedList<T>();
     private final Executor executor;
     private final int maxQueueSize;
-    private int dispatchers;
+    private final Map<Dispatch<?>, InterruptibleRunnable> dispatchers = Maps.newHashMap();
     private State state;
 
     public AsyncDispatch(Executor executor) {
         this(executor, null, MAX_QUEUE_SIZE);
-    }
-
-    public AsyncDispatch(Executor executor, final Dispatch<? super T> dispatch) {
-        this(executor, dispatch, MAX_QUEUE_SIZE);
     }
 
     public AsyncDispatch(Executor executor, final Dispatch<? super T> dispatch, int maxQueueSize) {
@@ -66,34 +64,71 @@ public class AsyncDispatch<T> implements Dispatch<T>, AsyncStoppable {
      * Starts dispatching messages to the given handler. The handler does not need to be thread-safe.
      */
     public void dispatchTo(final Dispatch<? super T> dispatch) {
-        onDispatchThreadStart();
-        executor.execute(new CurrentBuildOperationPreservingRunnable(new Runnable() {
+        final InterruptibleRunnable dispatcher = new InterruptibleRunnable(new Runnable() {
+            @Override
             public void run() {
                 try {
                     dispatchMessages(dispatch);
                 } finally {
-                    onDispatchThreadExit();
+                    onDispatchThreadExit(dispatch);
                 }
             }
-        }));
+        });
+        onDispatchThreadStart(dispatch, dispatcher);
+        executor.execute(new CurrentBuildOperationPreservingRunnable(dispatcher));
     }
 
-    private void onDispatchThreadStart() {
+    private void dispatchMessages(Dispatch<? super T> dispatch) {
+        while (true) {
+            T message = waitForNextMessage();
+            if (message == null) {
+                return;
+            }
+            dispatch.dispatch(message);
+        }
+    }
+
+    private T waitForNextMessage() {
+        lock.lock();
+        try {
+            boolean interrupted = false;
+            while (state != State.Stopped && queue.isEmpty()) {
+                try {
+                    condition.await();
+                } catch (InterruptedException e) {
+                    interrupted = true;
+                }
+            }
+            if (interrupted) {
+                Thread.currentThread().interrupt();
+            }
+            if (!queue.isEmpty()) {
+                T message = queue.remove();
+                condition.signalAll();
+                return message;
+            }
+        } finally {
+            lock.unlock();
+        }
+        return null;
+    }
+
+    private void onDispatchThreadStart(Dispatch<? super T> dispatch, InterruptibleRunnable dispatcher) {
         lock.lock();
         try {
             if (state != State.Init) {
                 throw new IllegalStateException("This dispatch has been stopped.");
             }
-            dispatchers++;
+            dispatchers.put(dispatch, dispatcher);
         } finally {
             lock.unlock();
         }
     }
 
-    private void onDispatchThreadExit() {
+    private void onDispatchThreadExit(Dispatch<? super T> dispatch) {
         lock.lock();
         try {
-            dispatchers--;
+            dispatchers.remove(dispatch);
             condition.signalAll();
         } finally {
             lock.unlock();
@@ -105,44 +140,19 @@ public class AsyncDispatch<T> implements Dispatch<T>, AsyncStoppable {
         condition.signalAll();
     }
 
-    private void dispatchMessages(Dispatch<? super T> dispatch) {
-        while (true) {
-            T message = null;
-            lock.lock();
-            try {
-                while (state != State.Stopped && queue.isEmpty()) {
-                    try {
-                        condition.await();
-                    } catch (InterruptedException e) {
-                        throw new UncheckedException(e);
-                    }
-                }
-                if (!queue.isEmpty()) {
-                    message = queue.remove();
-                    condition.signalAll();
-                }
-            } finally {
-                lock.unlock();
-            }
-
-            if (message == null) {
-                // Have been stopped and nothing to deliver
-                return;
-            }
-
-            dispatch.dispatch(message);
-        }
-    }
-
     public void dispatch(final T message) {
         lock.lock();
         try {
+            boolean interrupted = false;
             while (state != State.Stopped && queue.size() >= maxQueueSize) {
                 try {
                     condition.await();
                 } catch (InterruptedException e) {
-                    throw new UncheckedException(e);
+                    interrupted = true;
                 }
+            }
+            if (interrupted) {
+                Thread.currentThread().interrupt();
             }
             if (state == State.Stopped) {
                 throw new IllegalStateException("Cannot dispatch message, as this message dispatch has been stopped. Message: " + message);
@@ -177,18 +187,30 @@ public class AsyncDispatch<T> implements Dispatch<T>, AsyncStoppable {
         lock.lock();
         try {
             setState(State.Stopped);
-            while (dispatchers > 0) {
-                condition.await();
-            }
-
-            if (!queue.isEmpty()) {
-                throw new IllegalStateException(
-                        "Cannot wait for messages to be dispatched, as there are no dispatch threads running.");
-            }
-        } catch (InterruptedException e) {
-            throw new UncheckedException(e);
+            waitForAllMessages();
         } finally {
             lock.unlock();
+        }
+    }
+
+    private void waitForAllMessages() {
+        boolean interrupted = false;
+        while (!dispatchers.isEmpty()) {
+            try {
+                condition.await();
+            } catch (InterruptedException e) {
+                interrupted = true;
+                for (InterruptibleRunnable dispatcher : dispatchers.values()) {
+                    dispatcher.interrupt();
+                }
+            }
+        }
+        if (interrupted) {
+            Thread.currentThread().interrupt();
+        }
+        if (!queue.isEmpty()) {
+            throw new IllegalStateException(
+                "Cannot wait for messages to be dispatched, as there are no dispatch threads running.");
         }
     }
 }

@@ -33,6 +33,7 @@ public class ExecOutputHandleRunner implements Runnable {
     private final OutputStream outputStream;
     private final int bufferSize;
     private final CountDownLatch completed;
+    private volatile boolean closed;
 
     public ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream, CountDownLatch completed) {
         this(displayName, inputStream, outputStream, 2048, completed);
@@ -57,7 +58,7 @@ public class ExecOutputHandleRunner implements Runnable {
     private void forwardContent() {
         byte[] buffer = new byte[bufferSize];
         try {
-            while (true) {
+            while (!closed) {
                 int nread = inputStream.read(buffer);
                 if (nread < 0) {
                     break;
@@ -67,10 +68,9 @@ public class ExecOutputHandleRunner implements Runnable {
             }
             CompositeStoppable.stoppable(inputStream, outputStream).stop();
         } catch (Throwable t) {
-            if (wasInterrupted(t)) {
-                return;
+            if (!closed && !wasInterrupted(t)) {
+                LOGGER.error(String.format("Could not %s.", displayName), t);
             }
-            LOGGER.error(String.format("Could not %s.", displayName), t);
         }
     }
 
@@ -83,11 +83,16 @@ public class ExecOutputHandleRunner implements Runnable {
     }
 
     public void closeInput() throws IOException {
+        disconnect();
         inputStream.close();
     }
 
     @Override
     public String toString() {
         return displayName;
+    }
+
+    public void disconnect() {
+        closed = true;
     }
 }

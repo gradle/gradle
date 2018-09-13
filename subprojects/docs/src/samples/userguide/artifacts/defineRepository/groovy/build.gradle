@@ -200,7 +200,7 @@ repositories {
 repositories {
     ivy {
         url "http://repo.mycompany.com/repo"
-        layout "pattern", {
+        patternLayout {
             artifact "[module]/[revision]/[type]/[artifact].[ext]"
         }
     }
@@ -211,7 +211,7 @@ repositories {
 repositories {
     ivy {
         url "http://repo.mycompany.com/repo"
-        layout "pattern", {
+        patternLayout {
             artifact "[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
             m2compatible = true
         }
@@ -223,7 +223,7 @@ repositories {
 repositories {
     ivy {
         url "http://repo.mycompany.com/repo"
-        layout "pattern", {
+        patternLayout {
             artifact "3rd-party-artifacts/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
             artifact "company-artifacts/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
             ivy "ivy-files/[organisation]/[module]/[revision]/ivy.xml"

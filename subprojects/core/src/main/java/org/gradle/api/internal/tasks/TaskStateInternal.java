@@ -62,6 +62,11 @@ public class TaskStateInternal implements TaskState {
         this.failure = failure;
     }
 
+    public void setAborted(String message) {
+        this.outcome = TaskExecutionOutcome.EXECUTED;
+        this.failure = new GradleException(message);
+    }
+
     public boolean getExecuting() {
         return executing;
     }

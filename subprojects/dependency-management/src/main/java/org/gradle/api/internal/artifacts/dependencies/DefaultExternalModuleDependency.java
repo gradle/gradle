@@ -49,24 +49,6 @@ public class DefaultExternalModuleDependency extends AbstractExternalModuleDepen
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        DefaultExternalModuleDependency that = (DefaultExternalModuleDependency) o;
-        return isContentEqualsFor(that);
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
-    }
-
-    @Override
     public String toString() {
         return String.format("DefaultExternalModuleDependency{group='%s', name='%s', version='%s', configuration='%s'}",
                 getGroup(), getName(), getVersion(), getTargetConfiguration() != null ? getTargetConfiguration() : Dependency.DEFAULT_CONFIGURATION);

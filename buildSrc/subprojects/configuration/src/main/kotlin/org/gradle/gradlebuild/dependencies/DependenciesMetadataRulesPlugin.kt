@@ -53,6 +53,7 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 withLibraryDependencies("org.spockframework:spock-core", DependencyRemovalByNameRule::class,
                     setOf("groovy-groovysh", "groovy-json", "groovy-macro", "groovy-nio", "groovy-sql", "groovy-templates", "groovy-test", "groovy-xml"))
                 withModule("org.jmock:jmock-legacy", ReplaceCglibNodepWithCglibRule::class.java)
+                withModule("cglib:cglib", NoAntRule::class.java)
 
                 withModule("org.junit.jupiter:junit-jupiter-api", DowngradeOpentest4jRule::class.java)
                 withModule("org.junit.platform:junit-platform-engine", DowngradeOpentest4jRule::class.java)
@@ -275,9 +276,21 @@ open class ReplaceCglibNodepWithCglibRule : ComponentMetadataRule {
         context.details.allVariants {
             withDependencies {
                 filter { it.name == "cglib-nodep" }.forEach {
-                    add("${it.group}:cglib:3.2.6")
+                    add("${it.group}:cglib:3.2.7")
                 }
                 removeAll { it.name == "cglib-nodep" }
+            }
+        }
+    }
+}
+
+
+open class NoAntRule : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
+            withDependencies {
+                // because Gradle requires a different Ant version
+                removeAll { it.name == "ant" }
             }
         }
     }

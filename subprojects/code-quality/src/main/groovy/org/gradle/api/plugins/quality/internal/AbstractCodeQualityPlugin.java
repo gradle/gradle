@@ -193,7 +193,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
 
     private void configureCheckTaskDependents() {
         final String taskBaseName = getTaskBaseName();
-        project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME).configure(new Action<Task>() {
+        project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task task) {
                 task.dependsOn(new Callable() {

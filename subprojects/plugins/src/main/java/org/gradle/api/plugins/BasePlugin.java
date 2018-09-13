@@ -36,14 +36,13 @@ import org.gradle.api.internal.plugins.BuildConfigurationRule;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.plugins.UploadRule;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.plugins.internal.DefaultBasePluginConvention;
 import org.gradle.api.tasks.Upload;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.Describables;
-import org.gradle.internal.Factory;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -74,12 +73,7 @@ public class BasePlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
 
-        BasePluginConvention convention = DeprecationLogger.whileDisabled(new Factory<BasePluginConvention>() {
-            @Override
-            public BasePluginConvention create() {
-                return new BasePluginConvention(project);
-            }
-        });
+        BasePluginConvention convention = new DefaultBasePluginConvention(project);
         project.getConvention().getPlugins().put("base", convention);
 
         configureBuildConfigurationRule(project);
@@ -159,7 +153,7 @@ public class BasePlugin implements Plugin<Project> {
         ConfigurationContainer configurations = project.getConfigurations();
         project.setStatus("integration");
 
-        Configuration archivesConfiguration = configurations.maybeCreate(Dependency.ARCHIVES_CONFIGURATION).
+        final Configuration archivesConfiguration = configurations.maybeCreate(Dependency.ARCHIVES_CONFIGURATION).
                 setDescription("Configuration for archive artifacts.");
 
         configurations.maybeCreate(Dependency.DEFAULT_CONFIGURATION).
@@ -171,17 +165,19 @@ public class BasePlugin implements Plugin<Project> {
 
         configurations.all(new Action<Configuration>() {
             public void execute(Configuration configuration) {
-                configuration.getArtifacts().configureEach(new Action<PublishArtifact>() {
-                    public void execute(PublishArtifact artifact) {
-                        defaultArtifacts.addCandidate(artifact);
-                    }
-                });
+                if (!configuration.equals(archivesConfiguration)) {
+                    configuration.getArtifacts().configureEach(new Action<PublishArtifact>() {
+                        public void execute(PublishArtifact artifact) {
+                            defaultArtifacts.addCandidate(artifact);
+                        }
+                    });
+                }
             }
         });
     }
 
     private void configureAssemble(final ProjectInternal project) {
-        project.getTasks().named(ASSEMBLE_TASK_NAME).configure(new Action<Task>() {
+        project.getTasks().named(ASSEMBLE_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task task) {
                 task.dependsOn(project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getAllArtifacts().getBuildDependencies());

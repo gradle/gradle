@@ -25,7 +25,6 @@ dependencies {
     api project(":baseServicesGroovy")
     api project(":buildCache")
     api project(":logging")
-    api project(":modelCore")
     api project(":persistentCache")
     api project(":processServices")
     api project(":resources")

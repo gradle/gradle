@@ -30,6 +30,7 @@ import org.gradle.kotlin.dsl.*
 
 import accessors.base
 import org.gradle.api.file.FileCollection
+import org.gradle.api.model.ObjectFactory
 import org.gradle.gradlebuild.packaging.ShadedJar
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanUpDaemons
 import org.gradle.internal.classloader.ClasspathHasher
@@ -52,7 +53,7 @@ class DistributionTestingPlugin : Plugin<Project> {
 
             setJvmArgsOfTestJvm()
             setSystemPropertiesOfTestJVM(project)
-            configureGradleTestEnvironment(rootProject.providers, rootProject.layout, rootProject.base)
+            configureGradleTestEnvironment(rootProject.providers, rootProject.layout, rootProject.base, rootProject.objects)
             addSetUpAndTearDownActions(gradle)
         }
     }
@@ -78,13 +79,14 @@ class DistributionTestingPlugin : Plugin<Project> {
     }
 
     private
-    fun DistributionTest.configureGradleTestEnvironment(providers: ProviderFactory, layout: ProjectLayout, basePluginConvention: BasePluginConvention) {
+    fun DistributionTest.configureGradleTestEnvironment(providers: ProviderFactory, layout: ProjectLayout, basePluginConvention: BasePluginConvention, objects: ObjectFactory) {
 
         val projectDirectory = layout.projectDirectory
 
         // TODO: Replace this with something in the Gradle API to make this transition easier
-        fun dirWorkaround(directory: () -> File): Provider<Directory> =
-            layout.directoryProperty(projectDirectory.dir(providers.provider { directory().absolutePath }))
+        fun dirWorkaround(directory: () -> File): Provider<Directory> = objects.directoryProperty().also {
+            it.set(projectDirectory.dir(providers.provider { directory().absolutePath }))
+        }
 
         gradleInstallationForTest.apply {
             val intTestImage: Sync by project.tasks

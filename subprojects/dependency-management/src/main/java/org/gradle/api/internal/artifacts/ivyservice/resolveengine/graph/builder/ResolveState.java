@@ -72,7 +72,6 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     private final VersionSelectorScheme versionSelectorScheme;
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
-    private final DefaultPendingDependenciesHandler pendingDependenciesHandler;
 
     public ResolveState(IdGenerator<Long> idGenerator, ComponentResolveResult rootResult, String rootConfigurationName, DependencyToComponentIdResolver idResolver,
                         ComponentMetaDataResolver metaDataResolver, Spec<? super DependencyMetadata> edgeFilter, AttributesSchemaInternal attributesSchema,
@@ -105,11 +104,6 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         nodes.put(root.getResolvedConfigurationId(), root);
         root.getComponent().getModule().select(root.getComponent());
         this.replaceSelectionWithConflictResultAction = new ReplaceSelectionWithConflictResultAction(this);
-        pendingDependenciesHandler = new DefaultPendingDependenciesHandler();
-    }
-
-    PendingDependenciesHandler getPendingDependenciesHandler() {
-        return pendingDependenciesHandler;
     }
 
     public Collection<ModuleResolveState> getModules() {
@@ -235,5 +229,9 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
 
     public DependencySubstitutionApplicator getDependencySubstitutionApplicator() {
         return dependencySubstitutionApplicator;
+    }
+
+    PendingDependenciesVisitor newPendingDependenciesVisitor() {
+        return new DefaultPendingDependenciesVisitor(this);
     }
 }

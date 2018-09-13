@@ -42,7 +42,7 @@ class SamplesCodeQualityIntegrationTest extends AbstractSampleIntegrationTest {
             .inDirectory(projectDir)
             .requireGradleDistribution()
             .withTasks('check')
-            .expectDeprecationWarning()
+            .expectDeprecationWarnings(2) // jdepend and findbugs are deprecated
             .run()
 
         then:

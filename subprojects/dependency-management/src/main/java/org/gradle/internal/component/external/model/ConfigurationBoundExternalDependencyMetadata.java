@@ -55,7 +55,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         this.dependencyDescriptor = dependencyDescriptor;
         this.reason = reason;
         this.isTransitive = dependencyDescriptor.isTransitive();
-        this.isConstraint = dependencyDescriptor.isConstraint() || dependencyDescriptor.isOptional();
+        this.isConstraint = dependencyDescriptor.isConstraint();
     }
 
     public ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor) {

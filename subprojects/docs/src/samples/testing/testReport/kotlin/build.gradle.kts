@@ -18,7 +18,7 @@ subprojects {
     }
 }
 
-tasks.create<TestReport>("testReport") {
+task<TestReport>("testReport") {
     destinationDir = file("$buildDir/reports/allTests")
     // Include the results from the `test` task in all subprojects
     reportOn(subprojects.map { it.tasks["test"] })

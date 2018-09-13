@@ -110,7 +110,7 @@ public class AntlrPlugin implements Plugin<Project> {
                         });
 
                         // 5) register fact that antlr should be run before compiling
-                        project.getTasks().named(sourceSet.getCompileJavaTaskName()).configure(new Action<Task>() {
+                        project.getTasks().named(sourceSet.getCompileJavaTaskName(), new Action<Task>() {
                             @Override
                             public void execute(Task task) {
                                 task.dependsOn(taskName);

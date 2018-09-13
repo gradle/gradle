@@ -163,7 +163,6 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         return getDependencyProject().hashCode() ^ (getTargetConfiguration() != null ? getTargetConfiguration().hashCode() : 31) ^ (buildProjectDependencies ? 1 : 0);
     }
 
-
     @Override
     public String toString() {
         return "DefaultProjectDependency{" + "dependencyProject='" + dependencyProject + '\'' + ", configuration='"

@@ -30,4 +30,44 @@ task someTask
         expect:
         succeeds("someTask")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/6558")
+    def "can build in parallel with lazy tasks"() {
+        settingsFile << """
+            include 'a', 'b', 'c', 'd'
+        """
+        buildFile << """
+            allprojects {
+                repositories {
+                    ${jcenterRepository()}
+                }
+                plugins.withId("scala") {
+                    dependencies {
+                        compile("org.scala-lang:scala-library:2.12.6")
+                    }
+                }
+            }
+        """
+        ['a', 'b', 'c', 'd'].each { project ->
+            file("${project}/build.gradle") << """
+                plugins {
+                    id 'scala'
+                }
+            """
+            file("${project}/src/main/scala/${project}/${project.toUpperCase()}.scala") << """
+                package ${project}
+                trait ${project.toUpperCase()}
+            """
+        }
+        file("a/build.gradle") << """
+            dependencies {
+              compile(project(":b"))
+              compile(project(":c"))
+              compile(project(":d"))
+            }
+        """
+
+        expect:
+        succeeds(":a:classes", "--parallel")
+    }
 }

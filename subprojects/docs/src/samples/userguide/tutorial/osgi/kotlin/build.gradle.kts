@@ -18,7 +18,7 @@ tasks.withType<Jar> {
         }
     }
 }
-task("fooJar", Jar::class) {
+task<Jar>("fooJar") {
     manifest = osgi.osgiManifest {
         instruction("Bundle-Vendor", "MyCompany")
     }
