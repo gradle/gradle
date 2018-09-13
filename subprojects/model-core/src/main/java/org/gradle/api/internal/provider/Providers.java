@@ -120,8 +120,7 @@ public class Providers {
 
         @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            context.maybeAdd(value);
-            return true;
+            return false;
         }
 
         @Override

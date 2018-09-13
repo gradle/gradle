@@ -187,11 +187,31 @@ The following types/formats are supported:
 
         where:
         // the closures are because spock calls these expressions early before the test dir fixture is ready
-        value                               | displayName
-        "12"                                | { "12" }
-        "file('123')"                       | { it.file('123') }
-        "layout.projectDirectory"           | { it.file(".") }
-        "layout.buildDirectory.file('123')" | { it.file('build/123') }
+        value                                             | displayName
+        "12"                                              | { "12" }
+        "file('123')"                                     | { it.file('123') }
+        "layout.projectDirectory"                         | { it.file(".") }
+        "layout.projectDirectory.file(provider { '123'})" | { it.file("123") }
+        "layout.projectDirectory.dir(provider { '123'})"  | { it.file("123") }
+        "layout.buildDirectory"                           | { it.file('build') }
+        "layout.buildDirectory.file('123')"               | { it.file('build/123') }
+        "layout.buildDirectory.dir('123')"                | { it.file('build/123') }
+    }
+
+    def "dependency declared using provider with no value fails"() {
+        buildFile << """
+            def provider = objects.property(String)
+            tasks.register("b") {
+                dependsOn provider
+            }
+        """
+
+        when:
+        fails("b")
+
+        then:
+        failure.assertHasDescription("Could not determine the dependencies of task ':b'.")
+        failure.assertHasCause("No value has been specified for this provider.")
     }
 
     def "input file collection containing task provider implies dependency on all outputs of the task"() {
@@ -301,10 +321,12 @@ The following types/formats are supported:
         file("out.txt").text == "1"
 
         where:
-        value                                     | _
-        "file('in.txt')"                          | _
-        "layout.projectDirectory.file('in.txt')"  | _
-        "layout.buildDirectory.file('../in.txt')" | _
+        value                                                 | _
+        "file('in.txt')"                                      | _
+        "layout.projectDirectory.file('in.txt')"              | _
+        "layout.projectDirectory.file(provider { 'in.txt' })" | _
+        "layout.buildDirectory.file('../in.txt')"             | _
+        "layout.buildDirectory.file(provider {'../in.txt' })" | _
     }
 
     def taskTypeWithOutputFileProperty() {
