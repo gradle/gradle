@@ -77,7 +77,7 @@ class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildP
 
         where:
         testProject         | memory | warmUpRuns | runs | tasks
-        'largeAndroidBuild' | '4g'   | 0          | 1    | 'clean phthalic:assembleDebug'
+        'largeAndroidBuild' | '4g'   | 2          | 4    | 'clean phthalic:assembleDebug'
     }
 
     private BuildExperimentListenerAdapter cleanTransformsCache() {
