@@ -50,10 +50,11 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
     @VisibleForTesting
     Set<ScenarioBuildResultData> readBuildResultData(File resultJson) {
         try {
-            Comparator<ScenarioBuildResultData> comparator = comparing(ScenarioBuildResultData::isBuildFailed)
+            Comparator<ScenarioBuildResultData> comparator = comparing(ScenarioBuildResultData::isBuildFailed).reversed()
                 .thenComparing(ScenarioBuildResultData::isSuccessful)
                 .thenComparing(ScenarioBuildResultData::isAboutToRegress)
                 .thenComparing(comparingDouble(ScenarioBuildResultData::getConfidencePercentage).reversed())
+                .thenComparing(comparingDouble(ScenarioBuildResultData::getRegressionPercentage).reversed())
                 .thenComparing(ScenarioBuildResultData::getScenarioName);
 
             List<ScenarioBuildResultData> list = new ObjectMapper().readValue(resultJson, new TypeReference<List<ScenarioBuildResultData>>() {
@@ -98,8 +99,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                 html();
                     head();
                         headSection(this);
-                        link().rel("stylesheet").type("text/css").href("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css").end();
-                        script().src("https://code.jquery.com/jquery-3.2.1.slim.min.js").end();
+                        link().rel("stylesheet").type("text/css").href("https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css").end();
                         script().src("https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js").end();
                         title().text("Profile report for channel " + ResultsStoreHelper.determineChannel()).end();
                     end();
@@ -123,8 +123,8 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         }
                         text(")");
                     end();
-                    div().classAttr("col").text("Regression").end();
-                    div().classAttr("col").text("Confidence").end();
+                    div().classAttr("col").small().text("Difference").end().end();
+                    div().classAttr("col").small().text("Confidence").end().end();
                 end();
             }
 
@@ -159,9 +159,9 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         div().classAttr("row align-items-center");
                             div().classAttr("col-10");
                                 big().text(scenario.getScenarioName()).end();
-                                a().target("_blank").classAttr("btn btn-primary").href(scenario.getWebUrl()).text("To the build").end();
-                                a().target("_blank").classAttr("btn btn-primary").href("tests/" + urlEncode(scenario.getScenarioName().replaceAll("\\s+", "-"))).text("See the graph").end();
-                                a().classAttr("btn btn-primary collapsed").href("#").attr("data-toggle", "collapse", "data-target", "#collapse" + index).text("Show more details").end();
+                                a().target("_blank").classAttr("btn btn-primary btn-sm").href(scenario.getWebUrl()).text("To build").end();
+                                a().target("_blank").classAttr("btn btn-primary btn-sm").href("tests/" + urlEncode(scenario.getScenarioName().replaceAll("\\s+", "-") + ".html")).text("See graph").end();
+                                a().classAttr("btn btn-primary btn-sm collapsed").href("#").attr("data-toggle", "collapse", "data-target", "#collapse" + index).text("Show details").end();
                             end();
                             div().classAttr("col-2");
                                 if(scenario.isBuildFailed()) {

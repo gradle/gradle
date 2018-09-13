@@ -136,7 +136,7 @@ class DistributedPerformanceTest extends PerformanceTest {
                 scenarioName: scheduledBuilds.get(workerBuildId).id,
                 webUrl: findWebUrlInXml(scenarioResult.buildResultXml),
                 successful: findStatusInXml(scenarioResult.buildResultXml),
-                testStderr: scenarioResult.testSuite.systemErr
+                testStderr: scenarioResult.testSuite.systemOut
             ] as Map
         }
         resultJson.text = JsonOutput.toJson(resultData)

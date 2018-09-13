@@ -41,6 +41,10 @@ class ScenarioBuildResultData {
     }
 
     double getConfidencePercentage() {
+        return executions.empty ? 0.0 : executions[0].confidencePercentage
+    }
+
+    double getRegressionPercentage() {
         return executions.empty ? 0.0 : executions[0].regressionPercentage
     }
 
@@ -61,7 +65,7 @@ class ScenarioBuildResultData {
 
         double getRegressionPercentage() {
             double base = baseVersion.totalTime.median.value.doubleValue()
-            double current = baseVersion.totalTime.median.value.doubleValue()
+            double current = currentVersion.totalTime.median.value.doubleValue()
             return 100.0 * (current - base) / base
         }
 
@@ -74,7 +78,7 @@ class ScenarioBuildResultData {
         }
 
         String getFormattedConfidence() {
-            String.format("%.2f%%", confidencePercentage)
+            String.format("%d%%", confidencePercentage)
         }
     }
 }
