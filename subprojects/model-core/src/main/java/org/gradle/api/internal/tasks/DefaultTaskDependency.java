@@ -230,7 +230,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
 
         @Override
         public boolean remove(Object o) {
-            DeprecationLogger.nagUserOfDeprecatedBehaviour("removing a task dependency from a Task's dependsOn directly.");
+            DeprecationLogger.nagUserOfDeprecatedBehaviour("Do not remove a task dependency from a Task instance.");
             if (delegate.remove(o)) {
                 return true;
             }
