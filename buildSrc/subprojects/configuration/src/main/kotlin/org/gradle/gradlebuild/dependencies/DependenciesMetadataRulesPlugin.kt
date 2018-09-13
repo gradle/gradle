@@ -64,7 +64,7 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 withModule("jaxen:jaxen", DowngradeXmlApisRule::class.java)
 
                 // Test dependencies - minify: remove unused transitive dependencies
-                withLibraryDependencies("org.littleshoot:littleproxy", DependencyRemovalByNameRule::class,
+                withLibraryDependencies("org.gradle.org.littleshoot:littleproxy", DependencyRemovalByNameRule::class,
                     setOf("barchart-udt-bundle", "guava", "commons-cli"))
             }
         }
