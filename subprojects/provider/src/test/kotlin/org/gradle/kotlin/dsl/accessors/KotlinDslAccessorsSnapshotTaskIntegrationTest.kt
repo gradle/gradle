@@ -176,6 +176,17 @@ val kotlinDslProjectSchema: ProjectSchema<String> =
                     "org.gradle.api.plugins.ExtraPropertiesExtension"),
 
                 ProjectSchemaEntry(
+                    "org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension",
+                    "sourceSets",
+                    "org.gradle.api.NamedDomainObjectContainer<org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet>"
+                ),
+                ProjectSchemaEntry(
+                    "org.gradle.api.NamedDomainObjectContainer<org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet>",
+                    "ext",
+                    "org.gradle.api.plugins.ExtraPropertiesExtension"
+                ),
+
+                ProjectSchemaEntry(
                     "org.gradle.api.Project",
                     "kotlinDslPluginOptions",
                     "org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPluginOptions"),
@@ -199,4 +210,18 @@ val kotlinDslProjectSchema: ProjectSchema<String> =
                     type = "org.gradle.api.plugins.ExtraPropertiesExtension")
             )),
         conventions = javaProjectSchema.conventions,
-        configurations = (javaProjectSchema.configurations + listOf("embeddedKotlin", "kapt", "kaptTest", "kotlinCompilerClasspath", "kotlinCompilerPluginClasspath")).sorted())
+        configurations = (javaProjectSchema.configurations + listOf(
+            "api", "apiDependenciesMetadata",
+            "compileOnlyDependenciesMetadata",
+            "embeddedKotlin",
+            "implementationDependenciesMetadata",
+            "kapt",
+            "kaptTest",
+            "kotlinCompilerClasspath",
+            "kotlinCompilerPluginClasspath",
+            "runtimeOnlyDependenciesMetadata",
+            "testApi", "testApiDependenciesMetadata",
+            "testCompileOnlyDependenciesMetadata",
+            "testImplementationDependenciesMetadata",
+            "testRuntimeOnlyDependenciesMetadata"
+        )).sorted())
