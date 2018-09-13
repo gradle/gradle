@@ -15,6 +15,11 @@
 [[announce_plugin]]
 = The Announce Plugin
 
+[CAUTION]
+====
+This plugin is deprecated and will be removed in the next major Gradle release. New builds should not use this plugin.
+====
+
 The Gradle announce plugin allows you to send custom announcements during a build. The following notification systems are supported:
 
 * https://twitter.com[Twitter]

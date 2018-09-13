@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,25 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class OsgiPluginGoodBehaviourTest extends WellBehavedPluginTest {
+    def setup() {
+        executer.beforeExecute {
+            expectDeprecationWarning()
+        }
+    }
+
     @Override
     String getMainTask() {
         return "build"
+    }
+
+    def "emits deprecation warning"() {
+        given:
+        applyPlugin()
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("The osgi plugin has been deprecated. This is scheduled to be removed in Gradle 6.0. Consider using the biz.aQute.bnd plugin instead.")
     }
 }

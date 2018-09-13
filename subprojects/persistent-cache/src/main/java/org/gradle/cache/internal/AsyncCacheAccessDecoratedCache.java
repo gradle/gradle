@@ -56,30 +56,40 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsy
 
     @Override
     public void putLater(final K key, final V value, final Runnable completion) {
-        asyncCacheAccess.enqueue(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    persistentCache.put(key, value);
-                } finally {
-                    completion.run();
+        try {
+            asyncCacheAccess.enqueue(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        persistentCache.put(key, value);
+                    } finally {
+                        completion.run();
+                    }
                 }
-            }
-        });
+            });
+        } catch (RuntimeException e) {
+            completion.run();
+            throw e;
+        }
     }
 
     @Override
     public void removeLater(final K key, final Runnable completion) {
-        asyncCacheAccess.enqueue(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    persistentCache.remove(key);
-                } finally {
-                    completion.run();
+        try {
+            asyncCacheAccess.enqueue(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        persistentCache.remove(key);
+                    } finally {
+                        completion.run();
+                    }
                 }
-            }
-        });
+            });
+        } catch (RuntimeException e) {
+            completion.run();
+            throw e;
+        }
     }
 
     @Override

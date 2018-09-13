@@ -42,7 +42,7 @@ public class DefaultGitVersionControlSpec extends AbstractVersionControlSpec imp
         try {
             setUrl(new URI(url));
         } catch (URISyntaxException e) {
-            throw new UncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

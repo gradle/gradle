@@ -67,7 +67,15 @@ public class OutputStreamsForwarder implements StreamsHandler {
         try {
             completed.await();
         } catch (InterruptedException e) {
-            throw new UncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    @Override
+    public void disconnect() {
+        standardOutputReader.disconnect();
+        if (readErrorStream) {
+            standardErrorReader.disconnect();
         }
     }
 }
