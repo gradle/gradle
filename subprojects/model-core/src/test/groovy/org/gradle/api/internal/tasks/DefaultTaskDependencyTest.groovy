@@ -224,7 +224,7 @@ The following types/formats are supported:
   - A Task instance
   - A Buildable instance
   - A TaskDependency instance
-  - A RegularFileProperty or DirectoryProperty instance
+  - A Provider that represents a task output
   - A Provider instance that returns any of these types
   - A Closure instance that returns any of these types
   - A Callable instance that returns any of these types
