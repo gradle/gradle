@@ -197,7 +197,7 @@ open class IdePlugin : Plugin<Project> {
                                     .option("COMPILER_PROCESS_HEAP_SIZE", javaCompilerHeapSpace.toString())
                                 val runManagerComponent = projectElement.select("component[name=RunManager]")
                                     .first()
-                                configureJunitRunConfiguration(runManagerComponent)
+                                updateJUnitRunConfigurationsOf(runManagerComponent)
                                 configureGradleRunConfigurations(runManagerComponent)
                             }
                         }
@@ -294,21 +294,37 @@ open class IdePlugin : Plugin<Project> {
     }
 
     private
-    fun Project.configureJunitRunConfiguration(runManagerComponent: org.jsoup.nodes.Element) {
-        val junitConfiguration = runManagerComponent.select("configuration[type=JUnit]").first()
-        val junitVmParametersOption = junitConfiguration.select("option[name=VM_PARAMETERS]").first()
-        junitVmParametersOption.attr("value", getDefaultJunitVmParameter(project("docs")))
-        val lang = System.getenv("LANG") ?: "en_US.UTF-8"
-        junitConfiguration.select("envs").first()
-            .createOrEmptyOutChildElement("env")
-            .attr("name", "LANG")
-            .attr("value", lang)
+    fun Project.updateJUnitRunConfigurationsOf(runManagerComponent: org.jsoup.nodes.Element) {
+        val junitVmParameters = getDefaultJunitVmParameters(docsProject())
+        runManagerComponent.select("configuration[type=JUnit]").forEach {
+            updateJUnitRunConfiguration(it, junitVmParameters)
+        }
     }
+
+    private
+    fun updateJUnitRunConfiguration(junitConfiguration: Element, junitVmParameters: String) {
+        junitConfiguration.apply {
+            select("option[name=VM_PARAMETERS]").first()
+                .attr("value", junitVmParameters)
+            select("envs").first()
+                .createOrEmptyOutChildElement("env")
+                .attr("name", "LANG")
+                .attr("value", lang)
+        }
+    }
+
+    private
+    fun Project.docsProject() =
+        project(":docs")
+
+    private
+    val lang: String
+        get() = System.getenv("LANG") ?: "en_US.UTF-8"
 
     private
     fun Project.configureJUnitDefaults() {
         val rootProject = this
-        val docsProject = project(":docs")
+        val docsProject = docsProject()
         docsProject.afterEvaluate {
             rootProject.idea {
                 project {
@@ -316,8 +332,7 @@ open class IdePlugin : Plugin<Project> {
                         runConfigurations {
                             create<JUnit>("defaults") {
                                 defaults = true
-                                vmParameters = getDefaultJunitVmParameter(docsProject)
-                                val lang = System.getenv("LANG") ?: "en_US.UTF-8"
+                                vmParameters = getDefaultJunitVmParameters(docsProject)
                                 envs = mapOf("LANG" to lang)
                             }
                         }
@@ -495,7 +510,7 @@ open class IdePlugin : Plugin<Project> {
 
     @Suppress("UNCHECKED_CAST")
     private
-    fun getDefaultJunitVmParameter(docsProject: Project): String {
+    fun getDefaultJunitVmParameters(docsProject: Project): String {
         val rootProject = docsProject.rootProject
         val releaseNotesMarkdown: PegDown by docsProject.tasks
         val releaseNotes: Copy by docsProject.tasks
