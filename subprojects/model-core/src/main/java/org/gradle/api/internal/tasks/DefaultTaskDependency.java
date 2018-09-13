@@ -87,16 +87,14 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 context.add(dependency);
             } else if (dependency instanceof TaskDependency) {
                 context.add(dependency);
+            } else if (dependency instanceof TaskDependencyContainer) {
+                ((TaskDependencyContainer) dependency).visitDependencies(context);
             } else if (dependency instanceof Closure) {
                 Closure closure = (Closure) dependency;
                 Object closureResult = closure.call(context.getTask());
                 if (closureResult != null) {
                     queue.addFirst(closureResult);
                 }
-            } else if (dependency instanceof RealizableTaskCollection) {
-                RealizableTaskCollection realizableTaskCollection = (RealizableTaskCollection) dependency;
-                realizableTaskCollection.realizeRuleTaskTypes();
-                addAllFirst(queue, realizableTaskCollection.toArray());
             } else if (dependency instanceof List) {
                 List<?> list = (List) dependency;
                 if (list instanceof RandomAccess) {
@@ -125,12 +123,8 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 if (callableResult != null) {
                     queue.addFirst(callableResult);
                 }
-            } else if (dependency instanceof TaskReferenceInternal) {
-                context.add(((TaskReferenceInternal) dependency).resolveTask());
             } else if (resolver != null && dependency instanceof CharSequence) {
                 context.add(resolver.resolveTask(dependency.toString()));
-            } else if (dependency instanceof TaskDependencyContainer) {
-                ((TaskDependencyContainer) dependency).visitDependencies(context);
             } else if (dependency instanceof ProviderInternal) {
                 ProviderInternal<?> providerInternal = (ProviderInternal) dependency;
                 if (!providerInternal.maybeVisitBuildDependencies(context)) {
@@ -146,7 +140,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 formats.add("A Task instance");
                 formats.add("A Buildable instance");
                 formats.add("A TaskDependency instance");
-                formats.add("A RegularFileProperty or DirectoryProperty instance");
+                formats.add("A Provider that represents a task output");
                 formats.add("A Provider instance that returns any of these types");
                 formats.add("A Closure instance that returns any of these types");
                 formats.add("A Callable instance that returns any of these types");
