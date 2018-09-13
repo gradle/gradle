@@ -39,6 +39,8 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
         plugins.details*.pluginClass == [
             "org.gradle.api.plugins.HelpTasksPlugin",
+            "org.gradle.buildinit.plugins.BuildInitPlugin",
+            "org.gradle.buildinit.plugins.WrapperPlugin",
             "org.gradle.api.plugins.JavaPlugin",
             "org.gradle.api.plugins.JavaBasePlugin",
             "org.gradle.api.plugins.BasePlugin",
@@ -47,6 +49,8 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         ]
         plugins.details*.pluginId == [
             "org.gradle.help-tasks",
+            "org.gradle.build-init",
+            "org.gradle.wrapper",
             "org.gradle.java",
             null,
             null,
