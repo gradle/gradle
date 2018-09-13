@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 import java.util.concurrent.Callable;
 
 /**
- * A factory for creating instances of {@link Provider} and {@link Property}.
+ * A factory for creating instances of {@link Provider}.
  * <p>
  * An instance of the factory can be injected into a task or plugin by annotating a public constructor or method with {@code javax.inject.Inject}.
  *
