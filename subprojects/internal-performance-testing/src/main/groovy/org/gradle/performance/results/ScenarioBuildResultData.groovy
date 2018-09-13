@@ -23,7 +23,7 @@ import org.gradle.performance.measure.DataSeries
 class ScenarioBuildResultData {
     String scenarioName
     String webUrl
-    String testStderr
+    String testFailure
     boolean successful
     List<ExecutionData> currentCommitExecutions = []
     List<ExecutionData> recentExecutions = []
@@ -54,11 +54,13 @@ class ScenarioBuildResultData {
 
     static class ExecutionData {
         Date time
+        String commitId
         MeasuredOperationList baseVersion
         MeasuredOperationList currentVersion
 
-        ExecutionData(long time, MeasuredOperationList baseVersion, MeasuredOperationList currentVersion) {
+        ExecutionData(long time, String commitId, MeasuredOperationList baseVersion, MeasuredOperationList currentVersion) {
             this.time = new Date(time)
+            this.commitId = commitId
             this.baseVersion = baseVersion
             this.currentVersion = currentVersion
         }

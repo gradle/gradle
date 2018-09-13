@@ -41,6 +41,8 @@ import org.gradle.process.JavaExecSpec
 import groovy.transform.CompileStatic
 import org.openmbee.junit.JUnitMarshalling
 import org.openmbee.junit.model.JUnitTestSuite
+import org.openmbee.junit.model.JUnitTestCase
+import org.openmbee.junit.model.JUnitFailure
 import org.apache.commons.io.input.CloseShieldInputStream
 import groovy.json.JsonOutput
 
@@ -136,13 +138,20 @@ class DistributedPerformanceTest extends PerformanceTest {
                 scenarioName: scheduledBuilds.get(workerBuildId).id,
                 webUrl: findWebUrlInXml(scenarioResult.buildResultXml),
                 successful: findStatusInXml(scenarioResult.buildResultXml),
-                testStderr: scenarioResult.testSuite.systemOut
+                testFailure: collectFailures(scenarioResult.testSuite)
             ] as Map
         }
         resultJson.text = JsonOutput.toJson(resultData)
         println("JSON: ${resultJson.text}")
 
         return resultJson
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private String collectFailures(JUnitTestSuite testSuite) {
+        List<JUnitTestCase> testCases = testSuite.testCases ?: []
+        List<JUnitFailure> failures = testCases.collect { it.failures ?: [] }.flatten()
+        return failures.collect { it.value }.join("\n")
     }
 
     private void generatePerformanceReport() {
