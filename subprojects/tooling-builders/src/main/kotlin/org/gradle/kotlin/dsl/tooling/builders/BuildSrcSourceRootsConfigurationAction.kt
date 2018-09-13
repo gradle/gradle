@@ -100,7 +100,7 @@ open class GenerateSourceRootsFile : DefaultTask() {
     @get:OutputFile
     @get:PathSensitive(PathSensitivity.RELATIVE)
     @Suppress("LeakingThis")
-    val destinationFile = newOutputFile()
+    val destinationFile = project.objects.fileProperty()
 
     @TaskAction
     @Suppress("unused")
