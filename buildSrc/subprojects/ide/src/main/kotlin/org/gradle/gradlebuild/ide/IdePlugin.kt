@@ -217,7 +217,9 @@ open class IdePlugin : Plugin<Project> {
                     configureCompilerSettings(rootProject)
                     configureCopyright()
                     configureCodeStyle()
-                    configureInspections()
+                    // TODO The idea-ext plugin does not yet support customizing inspections.
+                    // TODO Delete .idea/inspectionProfiles and uncomment the code below when it does
+                    // configureInspections()
                     configureRunConfigurations(rootProject)
                     doNotDetectFrameworks("android", "web")
                 }
