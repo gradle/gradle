@@ -32,7 +32,7 @@ class CIConfigIntegrationTests {
     fun macOSBuildsSubset() {
         val m = CIBuildModel()
         val p = RootProject(m)
-        val releaseAccept = p.subProjects.find { it.name.contains("Release Accept") }!!
+        val releaseAccept = p.subProjects.find { it.name.contains("Ready for Release") }!!
         val macOS = releaseAccept.subProjects.find { it.name.contains("Macos") }!!
 
         macOS.buildTypes.forEach { buildType ->
@@ -84,7 +84,7 @@ class CIConfigIntegrationTests {
                 }
 
                 // hacky way to consider deferred tests
-                val deferredTestCount = if (stage.stageName == StageNames.MASTER_ACCEPT) 10 else 0
+                val deferredTestCount = if (stage.stageName == StageNames.READY_FOR_NIGHTLY) 10 else 0
                 assertEquals(
                stage.specificBuilds.size + functionalTestCount + stage.performanceTests.size + (if (prevStage != null) 1 else 0) + deferredTestCount,
                        it.dependencies.items.size, stage.stageName.stageName)

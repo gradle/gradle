@@ -12,9 +12,9 @@ import jetbrains.buildServer.configs.kotlin.v2018_1.BuildType
 enum class StageNames(override val stageName: String, override val description: String) : StageName{
     QUICK_FEEDBACK_LINUX_ONLY("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer)"),
     QUICK_FEEDBACK("Quick Feedback", "Run checks and functional tests (embedded executer)"),
-    BRANCH_BUILD_ACCEPT("Branch Build Accept", "Run performance and functional tests (against distribution)"),
-    MASTER_ACCEPT("Master Accept", "Rerun tests in different environments / 3rd party components"),
-    RELEASE_ACCEPT("Release Accept", "Once a day: Rerun tests in more environments"),
+    READY_FOR_MERGE("Ready for Merge", "Run performance and functional tests (against distribution)"),
+    READY_FOR_NIGHTLY("Ready for Nightly", "Rerun tests in different environments / 3rd party components"),
+    READY_FOR_RELEASE("Ready for Release", "Once a day: Rerun tests in more environments"),
     HISTORICAL_PERFORMANCE("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions"),
     EXPERIMENTAL("Experimental", "On demand: Run experimental tests"),
 }
@@ -41,7 +41,7 @@ data class CIBuildModel (
                     functionalTestsDependOnSpecificBuilds = true,
                     omitsSlowProjects = true,
                     dependsOnSanityCheck = true),
-            Stage(StageNames.BRANCH_BUILD_ACCEPT,
+            Stage(StageNames.READY_FOR_MERGE,
                     specificBuilds = listOf(
                             SpecificBuild.BuildDistributions,
                             SpecificBuild.Gradleception,
@@ -51,7 +51,7 @@ data class CIBuildModel (
                             TestCoverage(TestType.platform, OS.windows, JvmVersion.java10)),
                     performanceTests = listOf(PerformanceTestType.test),
                     omitsSlowProjects = true),
-            Stage(StageNames.MASTER_ACCEPT,
+            Stage(StageNames.READY_FOR_NIGHTLY,
                     trigger = Trigger.eachCommit,
                     functionalTests = listOf(
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java8),
@@ -59,7 +59,7 @@ data class CIBuildModel (
                             TestCoverage(TestType.platform, OS.linux, JvmVersion.java10),
                             TestCoverage(TestType.parallel, OS.linux, JvmVersion.java8, JvmVendor.ibm))
             ),
-            Stage(StageNames.RELEASE_ACCEPT,
+            Stage(StageNames.READY_FOR_RELEASE,
                     trigger = Trigger.daily,
                     functionalTests = listOf(
                             TestCoverage(TestType.soak, OS.linux, JvmVersion.java10),
