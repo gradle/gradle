@@ -229,20 +229,6 @@ fun ComponentMetadataHandler.withLibraryDependencies(module: String, kClass: KCl
 }
 
 
-open class DowngradeIvyRule : ComponentMetadataRule {
-    override fun execute(context: ComponentMetadataContext) {
-        context.details.allVariants {
-            withDependencyConstraints {
-                filter { it.group == "org.apache.ivy" }.forEach {
-                    it.version { prefer("2.2.0") }
-                    it.because("Gradle depends on ivy implementation details which changed with newer versions")
-                }
-            }
-        }
-    }
-}
-
-
 open class DowngradeOpentest4jRule : ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         context.details.allVariants {
