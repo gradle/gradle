@@ -25,12 +25,12 @@ val emailNotification by extra { "build@master.org" }
 
 sourceSets.all { extra["purpose"] = null }
 
-(sourceSets) {
-    "main" {
+sourceSets {
+    getByName("main") {
         this as ExtensionAware
         extra["purpose"] = "production"
     }
-    "test" {
+    getByName("test") {
         this as ExtensionAware
         extra["purpose"] = "test"
     }
