@@ -247,7 +247,7 @@ data class ScriptCompilationException(val errors: List<ScriptCompilationError>) 
 
     private
     fun indentedErrorMessages() =
-        errors.map(::errorMessage).map(::prependIndent)
+        errors.asSequence().map(::errorMessage).map(::prependIndent).toList()
 
     private
     fun errorMessage(error: ScriptCompilationError): String =
