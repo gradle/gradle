@@ -25,6 +25,8 @@ import org.gradle.api.reflect.TypeOf;
 
 import java.io.File;
 
+import static org.gradle.api.reflect.TypeOf.typeOf;
+
 public class DefaultBasePluginConvention extends BasePluginConvention implements HasPublicType {
     private ProjectInternal project;
 
@@ -48,7 +50,7 @@ public class DefaultBasePluginConvention extends BasePluginConvention implements
 
     @Override
     public TypeOf<?> getPublicType() {
-        return TypeOf.typeOf(BasePluginConvention.class);
+        return typeOf(BasePluginConvention.class);
     }
 
     @Override

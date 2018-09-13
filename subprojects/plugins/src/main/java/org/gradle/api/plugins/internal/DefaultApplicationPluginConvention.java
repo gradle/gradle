@@ -24,6 +24,8 @@ import org.gradle.api.reflect.TypeOf;
 
 import java.util.ArrayList;
 
+import static org.gradle.api.reflect.TypeOf.typeOf;
+
 public class DefaultApplicationPluginConvention extends ApplicationPluginConvention implements HasPublicType {
     private String applicationName;
     private String mainClassName;
@@ -40,7 +42,7 @@ public class DefaultApplicationPluginConvention extends ApplicationPluginConvent
 
     @Override
     public TypeOf<?> getPublicType() {
-        return TypeOf.typeOf(ApplicationPluginConvention.class);
+        return typeOf(ApplicationPluginConvention.class);
     }
 
     @Override

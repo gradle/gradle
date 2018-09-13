@@ -29,6 +29,8 @@ import org.gradle.util.ConfigureUtil;
 import javax.inject.Inject;
 import java.io.File;
 
+import static org.gradle.api.reflect.TypeOf.typeOf;
+
 public class DefaultEarPluginConvention extends EarPluginConvention implements HasPublicType {
 
     private FileResolver fileResolver;
@@ -49,7 +51,7 @@ public class DefaultEarPluginConvention extends EarPluginConvention implements H
 
     @Override
     public TypeOf<?> getPublicType() {
-        return TypeOf.typeOf(EarPluginConvention.class);
+        return typeOf(EarPluginConvention.class);
     }
 
     @Override
