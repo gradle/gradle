@@ -32,8 +32,8 @@ class CIConfigIntegrationTests {
     fun macOSBuildsSubset() {
         val m = CIBuildModel()
         val p = RootProject(m)
-        val releaseAccept = p.subProjects.find { it.name.contains("Ready for Release") }!!
-        val macOS = releaseAccept.subProjects.find { it.name.contains("Macos") }!!
+        val readyForRelease = p.subProjects.find { it.name.contains(StageNames.READY_FOR_RELEASE.stageName) }!!
+        val macOS = readyForRelease.subProjects.find { it.name.contains("Macos") }!!
 
         macOS.buildTypes.forEach { buildType ->
             assertFalse(OS.macos.ignoredSubprojects.any { subproject ->
