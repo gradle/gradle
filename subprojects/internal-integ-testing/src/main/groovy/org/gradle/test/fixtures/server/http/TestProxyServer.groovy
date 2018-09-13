@@ -64,6 +64,11 @@ class TestProxyServer extends ExternalResource {
                 boolean authenticate(String userName, String password) {
                     return userName == expectedUsername && password == expectedPassword
                 }
+
+                @Override
+                String getRealm() {
+                    return null
+                }
             }
         }
 
