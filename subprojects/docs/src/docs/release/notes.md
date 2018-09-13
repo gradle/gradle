@@ -287,6 +287,19 @@ The `IdeaModule` Tooling API model element contains methods to retrieve resource
 - `BasePluginConvention` is now abstract. 
 - `ProjectReportsPluginConvention` is now abstract. 
 
+### Replacing built-in tasks 
+
+In earlier versions of Gradle, builds were allowed to replace tasks that may be automatically created. This was deprecated in [Gradle 4.8](https://docs.gradle.org/4.8/release-notes.html#overwriting-gradle's-built-in-tasks) and has now been turned into an error.
+
+Attempting to replace a built-in task will produce an error similar to the following:
+
+> Cannot add task 'wrapper' as a task with that name already exists.
+
+The full list of built-in tasks that cannot be replaced:
+
+`wrapper`, `init`, `help`, `tasks`, `projects`, `buildEnvironment`, `components`, `dependencies`, `dependencyInsight`, `dependentComponents`, `model`, `properties`
+
+
 ### Changes to internal APIs
 
 - Removed the internal class `SimpleFileCollection`.
