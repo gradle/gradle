@@ -5,7 +5,7 @@ plugins {
 // Fake NPM task that would normally execute npm with its provided arguments
 class NpmTask extends DefaultTask {
 
-    List<String> args
+    final ListProperty<String> args = project.objects.listProperty(String)
 
     @TaskAction
     void run() {
@@ -26,7 +26,12 @@ task bundle(type: NpmTask) {
     inputs.dir(file("scripts"))
         .withPropertyName("scripts")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    outputs.file(file("$buildDir/bundle.js"))
+
+    inputs.files("package.json", "package-lock.json")
+        .withPropertyName("configFiles")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+
+    outputs.file("$buildDir/bundle.js")
         .withPropertyName("bundle")
 }
 // end::bundle-task[]

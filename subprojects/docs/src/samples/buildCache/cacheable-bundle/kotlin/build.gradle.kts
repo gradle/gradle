@@ -5,7 +5,7 @@ plugins {
 // Fake NPM task that would normally execute npm with its provided arguments
 open class NpmTask : DefaultTask() {
 
-    lateinit var args: List<String>
+    val args = project.objects.listProperty<String>()
 
     @TaskAction
     fun run() {
@@ -19,14 +19,19 @@ open class NpmTask : DefaultTask() {
 
 // tag::bundle-task[]
 task<NpmTask>("bundle") {
-    args = listOf("run", "bundle")
+    args.set(listOf("run", "bundle"))
 
     outputs.cacheIf { true }
 
     inputs.dir(file("scripts"))
         .withPropertyName("scripts")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    outputs.file(file("$buildDir/bundle.js"))
+
+    inputs.files("package.json", "package-lock.json")
+        .withPropertyName("configFiles")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+
+    outputs.file("$buildDir/bundle.js")
         .withPropertyName("bundle")
 }
 // end::bundle-task[]
