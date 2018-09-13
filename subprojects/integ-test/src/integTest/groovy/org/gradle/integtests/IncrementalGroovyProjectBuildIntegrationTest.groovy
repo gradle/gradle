@@ -16,9 +16,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
-@Ignore("Need Groovydoc discovery fixed, ignore for now")
 class IncrementalGroovyProjectBuildIntegrationTest extends AbstractIntegrationSpec {
 
     def "does not rebuild Groovydoc if source has not changed"() {

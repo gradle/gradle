@@ -17,19 +17,15 @@ package org.gradle.api.tasks;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import groovy.lang.GroovySystem;
 import org.gradle.api.Buildable;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.plugins.GroovyJarFile;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.util.VersionNumber;
 
 import javax.annotation.Nullable;
@@ -63,11 +59,9 @@ public class GroovyRuntime {
     private static final VersionNumber GROOVY_VERSION_WITH_SEPARATE_ANT = VersionNumber.parse("2.0");
     private static final VersionNumber GROOVY_VERSION_REQUIRING_TEMPLATES = VersionNumber.parse("2.5");
     private final Project project;
-    private final ModuleRegistry moduleRegistry;
 
-    public GroovyRuntime(Project project, ModuleRegistry moduleRegistry) {
+    public GroovyRuntime(Project project) {
         this.project = project;
-        this.moduleRegistry = moduleRegistry;
     }
 
     /**
@@ -98,16 +92,6 @@ public class GroovyRuntime {
 
                 if (groovyJar.isGroovyAll()) {
                     return project.getLayout().files(groovyJar.getFile());
-                }
-
-                // If we can serve Groovy from the runtime, let's do that
-                if (groovyJar.getVersion().equals(VersionNumber.parse(GroovySystem.getVersion()))) {
-                    // TODO:lptr Provide full Groovy classpath here like in DependencyClassPathProvider
-                    ClassPath result = DefaultClassPath.of(groovyJar.getFile());
-                    result = result.plus(moduleRegistry.getExternalModule("groovy-ant").getClasspath());
-                    result = result.plus(moduleRegistry.getExternalModule("groovy-groovydoc").getClasspath());
-                    result = result.plus(moduleRegistry.getExternalModule("groovy-templates").getClasspath());
-                    return project.getLayout().files(result.getAsFiles());
                 }
 
                 if (project.getRepositories().isEmpty()) {

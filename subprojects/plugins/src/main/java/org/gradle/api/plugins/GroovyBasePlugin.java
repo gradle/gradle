@@ -72,7 +72,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
     }
 
     private void configureGroovyRuntimeExtension() {
-        groovyRuntime = project.getExtensions().create(GROOVY_RUNTIME_EXTENSION_NAME, GroovyRuntime.class, project, moduleRegistry);
+        groovyRuntime = project.getExtensions().create(GROOVY_RUNTIME_EXTENSION_NAME, GroovyRuntime.class, project);
     }
 
     private void configureCompileDefaults() {

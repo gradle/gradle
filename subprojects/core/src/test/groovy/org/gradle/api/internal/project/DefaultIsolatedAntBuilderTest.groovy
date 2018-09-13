@@ -35,7 +35,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.not
+import static org.hamcrest.Matchers.sameInstance
 import static org.junit.Assert.assertThat
 import static org.junit.Assert.fail
 
@@ -50,7 +53,7 @@ class DefaultIsolatedAntBuilderTest {
 
     @Before
     void attachAppender() {
-        classpath = moduleRegistry.getExternalModule("groovy-ant").getClasspath().asFiles
+        classpath = moduleRegistry.getExternalModule("groovy-all").getClasspath().asFiles
     }
 
     @After

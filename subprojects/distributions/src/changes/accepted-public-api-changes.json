@@ -45,11 +45,6 @@
             "changes": [
                 "Method added to interface"
             ]
-        },
-        {
-            "type": "org.gradle.api.tasks.GroovyRuntime",
-            "member": "Constructor org.gradle.api.tasks.GroovyRuntime(org.gradle.api.Project,org.gradle.api.internal.classpath.ModuleRegistry)",
-            "acceptation": "Changed constructor of incubating type that users should not instantiate themselves"
         }
     ]
 }

@@ -22,6 +22,7 @@ import groovy.transform.CompileStatic
  * By using this subclass, IDEA knows the closure delegate type when using Mock() or Stub().
  * This means that you get editing assistance in said blocks WRT the type being mocked/stubbed.
  */
+// TODO:lptr Either remove this class, or fix the two methods with Groovy 2.5
 @CompileStatic
 class Specification extends spock.lang.Specification {
 
