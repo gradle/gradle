@@ -25,7 +25,7 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
  * should not be required.
  */
 class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends AbstractIntegrationSpec {
-    private final ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf")
+    private final ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
 
     def setup() {
         settingsFile << "rootProject.name = 'test'"
@@ -64,7 +64,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         resolve.expectGraph {
             root(":", ":test:") {
                 edgeFromConstraint("org:foo:1.1","org:foo:1.0")
-                module("org:bar:1.0:runtime") {
+                module("org:bar:1.0") {
                     edge("org:foo:1.0","org:foo:1.0")
                 }
             }
@@ -117,7 +117,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         resolve.expectGraph {
             root(":", ":test:") {
                 edgeFromConstraint("org:foo:1.1","org:foo:1.0")
-                module("org:bar:1.0:runtime") {
+                module("org:bar:1.0") {
                     edge("org:foo:1.0","org:foo:1.0")
                 }
             }
@@ -149,7 +149,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         resolve.expectGraph {
             root(":", ":test:") {
                 edgeFromConstraint("org:foo:1.1","org:foo:1.0")
-                module("org:bar:1.0:runtime") {
+                module("org:bar:1.0") {
                     edge("org:foo:1.0","org:foo:1.0")
                 }
             }
@@ -178,7 +178,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("org:bar:1.0:runtime") {
+                module("org:bar:1.0") {
                     edge("org:foo:1.0","org:foo:1.0")
                 }
             }

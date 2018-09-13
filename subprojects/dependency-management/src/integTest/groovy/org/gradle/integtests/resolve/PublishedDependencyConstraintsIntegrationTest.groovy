@@ -58,11 +58,11 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
         run 'checkDeps'
 
         then:
-        def expectedVariant = useMaven()?'runtime':'default'
-        resolve.expectGraph {
+        def expectedVariant = useMaven() ? 'runtime' : 'default'
+        resolve.expectDefaultConfiguration(expectedVariant).expectGraph {
             root(":", ":test:") {
-                module("org:first-level:1.0:${expectedVariant}")
-                module("org:foo:1.0:${expectedVariant}")
+                module("org:first-level:1.0")
+                module("org:foo:1.0")
             }
         }
     }

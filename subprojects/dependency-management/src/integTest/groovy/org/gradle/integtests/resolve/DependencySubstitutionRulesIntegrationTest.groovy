@@ -23,7 +23,7 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec {
-    def resolve = new ResolveTestFixture(buildFile, "conf")
+    def resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
 
     def setup() {
         settingsFile << "rootProject.name='depsub'\n"
@@ -71,16 +71,16 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":", ":depsub:") {
-                module("org.stuff:foo:2.0:runtime") {
+                module("org.stuff:foo:2.0") {
                     edge("org.utils:api:1.5", "org.utils:api:1.5") {
                         selectedByRule()
                     }
                 }
-                edge("org.utils:impl:1.3", "org.utils:impl:1.5:runtime") {
+                edge("org.utils:impl:1.3", "org.utils:impl:1.5") {
                     selectedByRule()
                     module("org.utils:api:1.5")
                 }
-                module("org.utils:optional-lib:5.0:runtime")
+                module("org.utils:optional-lib:5.0")
             }
         }
     }
@@ -119,10 +119,10 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":", ":depsub:") {
-                module("org.stuff:foo:2.0:runtime") {
+                module("org.stuff:foo:2.0") {
                     edge("org.utils:impl:1.3", "org.utils:impl:1.5") {
                         selectedByRule()
-                        module("org.utils:api:1.5:runtime").selectedByRule()
+                        module("org.utils:api:1.5").selectedByRule()
                     }
                 }
             }
@@ -170,9 +170,9 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":", ":depsub:") {
-                edge("org.utils:impl:1.3", "org.utils:impl:1.5:runtime") {
+                edge("org.utils:impl:1.3", "org.utils:impl:1.5") {
                     selectedByRule()
-                    module("org.utils:api:1.5:runtime").selectedByRule()
+                    module("org.utils:api:1.5").selectedByRule()
                 }
             }
         }
@@ -221,7 +221,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":", ":depsub:") {
-                edge("org.utils:impl:1.3", "org.utils:impl:1.5:runtime") {
+                edge("org.utils:impl:1.3", "org.utils:impl:1.5") {
                     selectedByRule()
                     module("org.utils:api:1.5").selectedByRule()
                 }
@@ -261,9 +261,9 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":", ":depsub:") {
-                edge("org.utils:impl:1.3", "org.utils:impl:1.3:runtime") {
+                edge("org.utils:impl:1.3", "org.utils:impl:1.3") {
                     selectedByRule()
-                    module("org.utils:api:1.3:runtime").selectedByRule()
+                    module("org.utils:api:1.3").selectedByRule()
                 }
             }
         }
@@ -299,9 +299,9 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":", ":depsub:") {
-                edge("org.utils:impl:1.3", "org.utils:impl:1.5:runtime") {
+                edge("org.utils:impl:1.3", "org.utils:impl:1.5") {
                     forced()
-                    edge("org.utils:api:1.5", "org.utils:api:1.6:runtime").selectedByRule()
+                    edge("org.utils:api:1.5", "org.utils:api:1.6").selectedByRule()
                 }
             }
         }
@@ -342,7 +342,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":", ":depsub:") {
-                edge("org.utils:api:1.3", "org.utils:api:1.5:runtime").selectedByRule()
+                edge("org.utils:api:1.3", "org.utils:api:1.5").selectedByRule()
             }
         }
     }
@@ -449,7 +449,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
             project(":impl") {
                 dependencies {
-                    conf project(path: ":api", configuration: "default")
+                    conf project(path: ":api")
                 }
 
                 configurations.conf.resolutionStrategy.dependencySubstitution {
@@ -507,7 +507,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":test", "depsub:test:") {
-                module("org.utils:impl:1.5:runtime") {
+                module("org.utils:impl:1.5") {
                     edge("org.utils:api:1.5", "project :api", "depsub:api:") {
                         configuration = "conf"
                         selectedByRule()
@@ -560,6 +560,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         resolve.expectGraph {
             root(":impl", "depsub:impl:") {
                 edge("org.utils:api:1.5", "project :api", "depsub:api:") {
+                    variant "default"
                     selectedByRule()
                 }
             }
@@ -593,8 +594,9 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":impl", "depsub:impl:") {
-                module("org.utils:bela:1.5") {
+                module("org.utils:bela:1.5:default") {
                     edge("org.utils:api:1.5", "project :api", "depsub:api:") {
+                        variant "default"
                         selectedByRule()
                     }
                 }
@@ -634,6 +636,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         resolve.expectGraph {
             root(":impl", "depsub:impl:") {
                 edge("org.utils:api:1.5", "project :api", "depsub:api:") {
+                    variant("default")
                     selectedByRule()
                 }
             }
@@ -669,6 +672,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         resolve.expectGraph {
             root(":impl", "depsub:impl:") {
                 edge("org.utils:api:1.5", "project :api", "depsub:api:") {
+                    variant("default")
                     selectedByRule()
                 }
             }
@@ -763,6 +767,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         resolve.expectGraph {
             root(":test", "depsub:test:") {
                 edge("org.utils:impl:1.5", "project :impl", "depsub:impl:") {
+                    variant "default"
                     selectedByRule()
                 }
             }
@@ -823,8 +828,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":impl", "depsub:impl:") {
-                module("org.utils:api:2.0:runtime")
-                edge("project :api", "org.utils:api:2.0:runtime").byConflictResolution("between versions 1.6 and 2.0").selectedByRule()
+                module("org.utils:api:2.0")
+                edge("project :api", "org.utils:api:2.0").byConflictResolution("between versions 1.6 and 2.0").selectedByRule()
             }
         }
     }
@@ -872,10 +877,11 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":impl", "depsub:impl:") {
-                edge("org.utils:dep1:1.5", "org.utils:dep1:2.0:runtime").byConflictResolution("between versions 1.6 and 2.0")
-                edge("org.utils:dep1:2.0", "org.utils:dep1:2.0:runtime")
+                edge("org.utils:dep1:1.5", "org.utils:dep1:2.0").byConflictResolution("between versions 1.6 and 2.0")
+                edge("org.utils:dep1:2.0", "org.utils:dep1:2.0")
 
                 edge("org.utils:dep2:1.5", "project :dep2", "org.utils:dep2:3.0") {
+                    variant "default"
                     selectedByRule().byConflictResolution("between versions 3.0 and 2.0")
                 }
                 edge("org.utils:dep2:2.0", "org.utils:dep2:3.0")
@@ -909,10 +915,10 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":", ":depsub:") {
-                module("org.utils:b:1.3:runtime") {
-                    edge("org.utils:a:1.3", "org.utils:a:1.4:runtime").selectedByRule().byConflictResolution("between versions 1.4 and 1.3")
+                module("org.utils:b:1.3") {
+                    edge("org.utils:a:1.3", "org.utils:a:1.4").selectedByRule().byConflictResolution("between versions 1.4 and 1.3")
                 }
-                edge("org.utils:a:1.2", "org.utils:a:1.4:runtime")
+                edge("org.utils:a:1.2", "org.utils:a:1.4")
 
             }
         }
@@ -942,10 +948,10 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":", ":depsub:") {
-                module("org.utils:b:1.3:runtime") {
-                    module("org.utils:a:1.3:runtime")
+                module("org.utils:b:1.3") {
+                    module("org.utils:a:1.3")
                 }
-                edge("org.utils:a:1.2", "org.utils:a:1.3:runtime").byConflictResolution("between versions 1.2.1 and 1.3")
+                edge("org.utils:a:1.2", "org.utils:a:1.3").byConflictResolution("between versions 1.2.1 and 1.3")
             }
         }
     }
@@ -974,7 +980,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":", ":depsub:") {
-                edge("org.utils:api:default", "org.utils:api:1.3:runtime").selectedByRule()
+                edge("org.utils:api:default", "org.utils:api:1.3").selectedByRule()
             }
         }
     }
@@ -1004,8 +1010,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":", ":depsub:") {
-                module("org.utils:impl:1.3:runtime") {
-                    edge("org.utils:api:default", "org.utils:api:1.3:runtime").selectedByRule()
+                module("org.utils:impl:1.3") {
+                    edge("org.utils:api:default", "org.utils:api:1.3").selectedByRule()
                 }
             }
         }
@@ -1235,8 +1241,8 @@ Required by:
         then:
         resolve.expectGraph {
             root(":", ":depsub:") {
-                edge("org.utils:a:1.2", "org.utils:b:2.1:runtime").selectedByRule().byConflictResolution("between versions 2.1 and 2.0")
-                edge("org.utils:b:2.0", "org.utils:b:2.1:runtime")
+                edge("org.utils:a:1.2", "org.utils:b:2.1").selectedByRule().byConflictResolution("between versions 2.1 and 2.0")
+                edge("org.utils:b:2.0", "org.utils:b:2.1")
             }
         }
     }
@@ -1270,13 +1276,13 @@ Required by:
         then:
         resolve.expectGraph {
             root(":", ":depsub:") {
-                edge("org:a:1.0", "org:a:2.0:runtime") {
+                edge("org:a:1.0", "org:a:2.0") {
                     byConflictResolution("between versions 1.0 and 2.0")
                     module("org:c:1.0")
                 }
-                edge("foo:b:1.0", "org:b:1.0:runtime") {
+                edge("foo:b:1.0", "org:b:1.0") {
                     selectedByRule()
-                    module("org:a:2.0:runtime")
+                    module("org:a:2.0")
                 }
             }
         }
@@ -1310,13 +1316,13 @@ Required by:
         then:
         resolve.expectGraph {
             root(":", ":depsub:") {
-                edge("org:a:1.0", "org:a:2.0:runtime") {
+                edge("org:a:1.0", "org:a:2.0") {
                     byConflictResolution("between versions 1.0 and 2.0")
                     module("org:c:1.0")
                 }
-                edge("foo:bar:baz", "org:b:1.0:runtime") {
+                edge("foo:bar:baz", "org:b:1.0") {
                     selectedByRule()
-                    module("org:a:2.0:runtime")
+                    module("org:a:2.0")
                 }
             }
         }
@@ -1369,12 +1375,12 @@ Required by:
         then:
         resolve.expectGraph {
             root(":", ":depsub:") {
-                edge("org:a:1.0", "org:c:2.0:runtime") {
+                edge("org:a:1.0", "org:c:2.0") {
                     byConflictResolution("between versions 1.1 and 2.0")
                 }
-                module("org:a:2.0:runtime") {
-                    module("org:b:2.0:runtime") {
-                        module("org:c:2.0:runtime")
+                module("org:a:2.0") {
+                    module("org:b:2.0") {
+                        module("org:c:2.0")
                     }
                 }
             }
@@ -1440,13 +1446,13 @@ Required by:
         then:
         resolve.expectGraph {
             root(":", ":depsub:") {
-                edge("org:a:1.0", "org:a:2.0:runtime") {
+                edge("org:a:1.0", "org:a:2.0") {
                     byConflictResolution("between versions 1.0 and 2.0")
                     module("org:c:1.0")
                 }
-                edge("foo:bar:baz", "org:b:1.0:runtime") {
+                edge("foo:bar:baz", "org:b:1.0") {
                     selectedByRule('we need integration tests')
-                    module("org:a:2.0:runtime")
+                    module("org:a:2.0")
                 }
             }
         }

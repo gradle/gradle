@@ -22,7 +22,7 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
     ResolveTestFixture resolve
 
     def setup() {
-        resolve = new ResolveTestFixture(buildFile)
+        resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
 
         mavenRepo.module("org", "foo").publish()
         mavenRepo.module("org", "bar").publish()
@@ -61,8 +61,8 @@ configurations.compile.withDependencies { deps ->
 
         then:
         resolvedGraph {
-            module("org:foo:1.0:runtime")
-            module("org:bar:1.0:runtime")
+            module("org:foo:1.0")
+            module("org:bar:1.0")
         }
     }
 
@@ -84,8 +84,8 @@ configurations.conf.withDependencies { deps ->
 
         then:
         resolvedGraph {
-            module("org:foo:1.0:runtime")
-            module("org:bar:1.0:runtime")
+            module("org:foo:1.0")
+            module("org:bar:1.0")
         }
     }
 
@@ -108,8 +108,8 @@ configurations.compile.withDependencies { DependencySet deps ->
 
         then:
         resolvedGraph {
-            module("org:foo:1.0:runtime")
-            module("org:bar:1.0:runtime")
+            module("org:foo:1.0")
+            module("org:bar:1.0")
         }
     }
 
@@ -127,8 +127,8 @@ configurations.compile.defaultDependencies { DependencySet deps ->
 
         then:
         resolvedGraph {
-            module("org:foo:1.0:runtime")
-            module("org:bar:1.0:runtime")
+            module("org:foo:1.0")
+            module("org:bar:1.0")
         }
     }
 
@@ -157,8 +157,8 @@ configurations.compile.withDependencies { deps ->
 
         then:
         resolvedGraph {
-            module("org:foo:1.0:runtime")
-            module("org:bar:1.0:runtime")
+            module("org:foo:1.0")
+            module("org:bar:1.0")
         }
     }
 

@@ -199,7 +199,7 @@ task resolve {
 }
 """
 
-        def resolve = new ResolveTestFixture(buildFile)
+        def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
         resolve.prepare()
 
         when:
@@ -208,11 +208,11 @@ task resolve {
         then:
         resolve.expectGraph {
             root(":", "org:test:1.0") {
-                module("org:bar:1.0:runtime") {
-                    edge("org:foo:1.3.3", "org:foo:1.4.4:runtime").byConflictResolution("between versions 1.3.3 and 1.4.4")
+                module("org:bar:1.0") {
+                    edge("org:foo:1.3.3", "org:foo:1.4.4").byConflictResolution("between versions 1.3.3 and 1.4.4")
                 }
-                module("org:baz:1.0:runtime") {
-                    module("org:foo:1.4.4:runtime").byConflictResolution("between versions 1.3.3 and 1.4.4")
+                module("org:baz:1.0") {
+                    module("org:foo:1.4.4").byConflictResolution("between versions 1.3.3 and 1.4.4")
                 }
             }
         }
@@ -237,7 +237,7 @@ dependencies {
 }
 """
 
-        def resolve = new ResolveTestFixture(buildFile)
+        def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
         resolve.prepare()
 
         when:
@@ -246,9 +246,9 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("org:external:1.2:runtime").byConflictResolution("between versions 1.2 and 1.0")
-                module("org:dep:2.2:runtime") {
-                    edge("org:external:1.0", "org:external:1.2:runtime")
+                module("org:external:1.2").byConflictResolution("between versions 1.2 and 1.0")
+                module("org:dep:2.2") {
+                    edge("org:external:1.0", "org:external:1.2")
                 }
             }
         }
@@ -675,7 +675,7 @@ dependencies {
 }
 """
 
-        def resolve = new ResolveTestFixture(buildFile)
+        def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
         resolve.prepare()
 
         when:
@@ -684,8 +684,8 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", "org:test:1.3") {
-                module("org:other:1.7:runtime") {
-                    edge("org:test:1.2", "org:test:1.3:runtime")
+                module("org:other:1.7") {
+                    edge("org:test:1.2", "org:test:1.3")
                 }
             }
         }
@@ -713,7 +713,7 @@ dependencies {
 }
 """
 
-        def resolve = new ResolveTestFixture(buildFile)
+        def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
         resolve.prepare()
 
         when:
@@ -722,8 +722,8 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", "org:test:1.3") {
-                module("org:other:1.7:runtime") {
-                    module("org:test:2.1:runtime").byConflictResolution("between versions 2.1 and 1.3")
+                module("org:other:1.7") {
+                    module("org:test:2.1").byConflictResolution("between versions 2.1 and 1.3")
                 }
             }
         }
@@ -1568,7 +1568,7 @@ task checkDeps(dependsOn: configurations.compile) {
         mavenRepo.module('org', 'baz', '1.2').dependsOn(foo12).publish()
         mavenRepo.module('org', 'bar', '1.1').dependsOn(baz11).publish()
 
-        ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf")
+        ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
         buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
@@ -1595,13 +1595,13 @@ task checkDeps(dependsOn: configurations.compile) {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module('org:bar:1.1:runtime') {
-                    module('org:baz:1.1:runtime') {
-                        module('org:foo:1.1:runtime')
+                module('org:bar:1.1') {
+                    module('org:baz:1.1') {
+                        module('org:foo:1.1')
                     }
                 }
-                edge("org:foo:[1.0,2.0)", 'org:foo:1.1:runtime')
-                edge('org:baz:[1.0,2.0)', 'org:baz:1.1:runtime')
+                edge("org:foo:[1.0,2.0)", 'org:foo:1.1')
+                edge('org:baz:[1.0,2.0)', 'org:baz:1.1')
             }
         }
 

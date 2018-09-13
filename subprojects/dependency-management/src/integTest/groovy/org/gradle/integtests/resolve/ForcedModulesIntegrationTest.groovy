@@ -385,7 +385,7 @@ task checkDeps {
             }
 
         """
-        def resolve = new ResolveTestFixture(buildFile, "conf")
+        def resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
         resolve.prepare()
 
 
@@ -395,8 +395,8 @@ task checkDeps {
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                edge('org:foo:1.1', 'org:foo:1.0:runtime').forced()
-                module('org:foo:1.0:runtime')
+                edge('org:foo:1.1', 'org:foo:1.0').forced()
+                module('org:foo:1.0')
             }
         }
 
