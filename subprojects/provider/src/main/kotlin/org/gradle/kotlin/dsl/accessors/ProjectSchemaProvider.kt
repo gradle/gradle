@@ -48,7 +48,7 @@ data class ProjectSchema<out T>(
             configurations.toList())
 
     fun isNotEmpty(): Boolean =
-        extensions.isNotEmpty() && conventions.isNotEmpty() && configurations.isNotEmpty()
+        extensions.isNotEmpty() || conventions.isNotEmpty() || configurations.isNotEmpty()
 }
 
 
