@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-    testFixturesCompile project(':internalIntegTesting')
+    testFixturesApi project(':internalIntegTesting')
 }
 
 gradlebuildJava {
