@@ -10,8 +10,8 @@ import jetbrains.buildServer.configs.kotlin.v2018_1.BuildType
 
 
 enum class StageNames(override val stageName: String, override val description: String) : StageName{
-    QUICK_FEEDBACK_LINUX_ONLY("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer)"),
-    QUICK_FEEDBACK("Quick Feedback", "Run checks and functional tests (embedded executer)"),
+    QUICK_FEEDBACK_LINUX_ONLY("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer, Linux)"),
+    QUICK_FEEDBACK("Quick Feedback", "Run checks and functional tests (embedded executer, Windows)"),
     READY_FOR_MERGE("Ready for Merge", "Run performance and functional tests (against distribution)"),
     READY_FOR_NIGHTLY("Ready for Nightly", "Rerun tests in different environments / 3rd party components"),
     READY_FOR_RELEASE("Ready for Release", "Once a day: Rerun tests in more environments"),
