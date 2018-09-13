@@ -36,10 +36,10 @@ tasks.getByName<Upload>("uploadArchives") {
 // end::builder[]
 // tag::multiple-poms[]
             "addFilter"("api") {
-                delegate.withGroovyBuilder { setProperty("name", "api") }
+                getProperty("artifact").withGroovyBuilder { setProperty("name", "api") }
             }
             "addFilter"("service") {
-                delegate.withGroovyBuilder { setProperty("name", "service") }
+                getProperty("artifact").withGroovyBuilder { setProperty("name", "service") }
             }
             "pom"("api")?.withGroovyBuilder { setProperty("version", "mySpecialMavenVersion") }
 // tag::customize-pom[]
