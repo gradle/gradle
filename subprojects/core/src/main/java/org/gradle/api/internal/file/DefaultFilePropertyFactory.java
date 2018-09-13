@@ -126,12 +126,6 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
 
         @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            // No dependencies
-            return true;
-        }
-
-        @Override
         protected RegularFile map(CharSequence path) {
             return new FixedFile(resolver.resolve(path));
         }
@@ -196,12 +190,6 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         @Override
         public Class<Directory> getType() {
             return Directory.class;
-        }
-
-        @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            // No dependencies
-            return true;
         }
 
         @Override
