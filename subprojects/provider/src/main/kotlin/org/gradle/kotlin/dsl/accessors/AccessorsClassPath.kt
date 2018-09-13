@@ -101,7 +101,7 @@ fun jitProjectSchemaOf(project: Project) =
         require(classLoaderScopeOf(project).isLocked) {
             "project.classLoaderScope must be locked before querying the project schema"
         }
-        schemaFor(project).withKotlinTypeStrings()
+        schemaFor(project).takeIf { it.isNotEmpty() }?.withKotlinTypeStrings()
     }
 
 

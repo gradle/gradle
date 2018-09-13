@@ -46,6 +46,9 @@ data class ProjectSchema<out T>(
             extensions.map { it.map(f) },
             conventions.map { it.map(f) },
             configurations.toList())
+
+    fun isNotEmpty(): Boolean =
+        extensions.isNotEmpty() || conventions.isNotEmpty() || configurations.isNotEmpty()
 }
 
 
