@@ -74,7 +74,7 @@ class ScenarioBuildResultData {
         }
 
         String getFormattedConfidence() {
-            String.format("%.2f%%", formattedConfidence)
+            String.format("%.2f%%", confidencePercentage)
         }
     }
 }
