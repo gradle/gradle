@@ -119,6 +119,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
         try {
             Printer.print("Write message: " + message);
             objectWriter.write(message); // here
+            Printer.print("Write message: " + message + "Finished");
         } catch (ObjectStreamException e) {
             throw new RecoverableMessageIOException(String.format("Could not write message %s to '%s'.", message, remoteAddress), e);
         } catch (ClassNotFoundException e) {
