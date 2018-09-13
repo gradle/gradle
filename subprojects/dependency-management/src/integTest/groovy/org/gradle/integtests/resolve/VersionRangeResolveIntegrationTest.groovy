@@ -39,7 +39,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
 
     def baseBuild
     def baseSettings
-    def resolve = new ResolveTestFixture(buildFile, "conf")
+    def resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
 
     def setup() {
         (9..13).each {
@@ -79,8 +79,8 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:bar:${dep1}", "org:bar:${lenientResult}:runtime")
-                edge("org:bar:${dep2}", "org:bar:${lenientResult}:runtime")
+                edge("org:bar:${dep1}", "org:bar:${lenientResult}")
+                edge("org:bar:${dep2}", "org:bar:${lenientResult}")
             }
         }
         when:
@@ -96,8 +96,8 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:bar:${dep1}", "org:bar:${lenientResult}:runtime")
-                edge("org:bar:${dep2}", "org:bar:${lenientResult}:runtime")
+                edge("org:bar:${dep1}", "org:bar:${lenientResult}")
+                edge("org:bar:${dep2}", "org:bar:${lenientResult}")
             }
         }
 
@@ -122,8 +122,8 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
             succeeds(":checkDeps")
             resolve.expectGraph {
                 root(":", ":test:") {
-                    edge("org:bar:${dep1}", "org:bar:${strictResult}:runtime")
-                    edge("org:bar:${dep2}", "org:bar:${strictResult}:runtime")
+                    edge("org:bar:${dep1}", "org:bar:${strictResult}")
+                    edge("org:bar:${dep2}", "org:bar:${strictResult}")
                 }
             }
         }
@@ -145,8 +145,8 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
             succeeds(":checkDeps")
             resolve.expectGraph {
                 root(":", ":test:") {
-                    edge("org:bar:${dep1}", "org:bar:${strictResult}:runtime")
-                    edge("org:bar:${dep2}", "org:bar:${strictResult}:runtime")
+                    edge("org:bar:${dep1}", "org:bar:${strictResult}")
+                    edge("org:bar:${dep2}", "org:bar:${strictResult}")
                 }
             }
         }
@@ -204,8 +204,8 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
             run ':checkDeps'
             resolve.expectGraph {
                 root(":", ":test:") {
-                    edge("org:bar:${dep1}", "org:bar:${lenientResult}:runtime")
-                    edge("org:bar", "org:bar:${lenientResult}:runtime")
+                    edge("org:bar:${dep1}", "org:bar:${lenientResult}")
+                    edge("org:bar", "org:bar:${lenientResult}")
                 }
             }
         }
@@ -228,8 +228,8 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
             run ':checkDeps'
             resolve.expectGraph {
                 root(":", ":test:") {
-                    edge("org:bar:${dep1}", "org:bar:${lenientResult}:runtime")
-                    edge("org:bar", "org:bar:${lenientResult}:runtime")
+                    edge("org:bar:${dep1}", "org:bar:${lenientResult}")
+                    edge("org:bar", "org:bar:${lenientResult}")
                 }
             }
         }
@@ -254,8 +254,8 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
             run ':checkDeps'
             resolve.expectGraph {
                 root(":", ":test:") {
-                    edge("org:bar:${dep1}", "org:bar:${lenientResult}:runtime")
-                    edge("org:bar", "org:bar:${lenientResult}:runtime")
+                    edge("org:bar:${dep1}", "org:bar:${lenientResult}")
+                    edge("org:bar", "org:bar:${lenientResult}")
                 }
             }
         }
@@ -280,8 +280,8 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
             succeeds(":checkDeps")
             resolve.expectGraph {
                 root(":", ":test:") {
-                    edge("org:bar:${dep1}", "org:bar:${strictResult}:runtime")
-                    edge("org:bar", "org:bar:${strictResult}:runtime")
+                    edge("org:bar:${dep1}", "org:bar:${strictResult}")
+                    edge("org:bar", "org:bar:${strictResult}")
                 }
             }
         }

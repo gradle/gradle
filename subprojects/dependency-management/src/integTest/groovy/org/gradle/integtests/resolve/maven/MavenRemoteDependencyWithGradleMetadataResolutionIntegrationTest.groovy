@@ -24,7 +24,7 @@ import spock.lang.Unroll
 import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser.FORMAT_VERSION
 
 class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    def resolve = new ResolveTestFixture(buildFile)
+    def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
 
     def setup() {
         resolve.prepare()
@@ -60,7 +60,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2:runtime")
+                module("test:a:1.2")
             }
         }
 
@@ -71,7 +71,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2:runtime")
+                module("test:a:1.2")
             }
         }
 
@@ -86,7 +86,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2:runtime")
+                module("test:a:1.2")
             }
         }
     }
@@ -117,7 +117,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2:runtime")
+                module("test:a:1.2")
             }
         }
 
@@ -128,7 +128,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2:runtime")
+                module("test:a:1.2")
             }
         }
 
@@ -144,7 +144,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2:runtime")
+                module("test:a:1.2")
             }
         }
     }
@@ -688,7 +688,7 @@ Required by:
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2:runtime")
+                module("test:a:1.2")
             }
         }
     }
@@ -729,7 +729,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module("test:a:1.2:runtime")
+                module("test:a:1.2")
             }
         }
     }
