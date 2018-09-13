@@ -136,7 +136,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
         val task = mock<Jar>()
         val tasks = mock<TaskContainer> {
-            on { create(any<String>() , any<Class<Task>>()) } doReturn task
+            on { create(any<String>(), any<Class<Task>>()) } doReturn task
         }
         val project = mock<Project> {
             on { getTasks() } doReturn tasks
