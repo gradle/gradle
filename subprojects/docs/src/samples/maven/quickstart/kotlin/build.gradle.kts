@@ -12,10 +12,12 @@ version = "1.0"
 
 // Configure the repository
 
-tasks.getByName<Upload>("uploadArchives") {
-    repositories.withGroovyBuilder {
-        "mavenDeployer" {
-            "repository"("url" to uri("pomRepo"))
+tasks {
+    "uploadArchives"(Upload::class) {
+        repositories.withGroovyBuilder {
+            "mavenDeployer" {
+                "repository"("url" to uri("pomRepo"))
+            }
         }
     }
 }
