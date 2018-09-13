@@ -33,13 +33,11 @@ You can define configurations yourself, so-called _custom configurations_. A cus
 
 Let's say you wanted to declare a dependency on the link:https://tomcat.apache.org/tomcat-9.0-doc/jasper-howto.html[Jasper Ant task] for the purpose of pre-compiling JSP files that should _not_ end up in the classpath for compiling your source code. It's fairly simple to achieve that goal by introducing a custom configuration and using it in a task.
 
-=== Example: Declaring and using a custom configuration
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/definingUsingConfigurations/custom/build.gradle[tag=custom-configuration]
-----
+.Declaring and using a custom configuration
+====
+include::sample[dir="userguide/dependencyManagement/definingUsingConfigurations/custom/groovy",files="build.gradle[tags=custom-configuration]"]
+include::sample[dir="userguide/dependencyManagement/definingUsingConfigurations/custom/kotlin",files="build.gradle.kts[tags=custom-configuration]"]
+====
 
 A project's configurations are managed by a `configurations` object. Configurations have a name and can extend each other. To learn more about this API have a look at link:{groovyDslPath}/org.gradle.api.artifacts.ConfigurationContainer.html[ConfigurationContainer].
 
@@ -57,10 +55,9 @@ Under the covers the `testImplementation` and `implementation` configurations fo
 
 Let's say you wanted to write a suite of smoke tests. Each smoke test makes a HTTP call to verify a web service endpoint. As the underlying test framework the project already uses JUnit. You can define a new configuration named `smokeTest` that extends from the `testImplementation` configuration to reuse the existing test framework dependency.
 
-=== Example: Extending a configuration from another configuration
+.Extending a configuration from another configuration
+====
+include::sample[dir="userguide/dependencyManagement/definingUsingConfigurations/inheritance/groovy",files="build.gradle[tags=configuration-definition]"]
+include::sample[dir="userguide/dependencyManagement/definingUsingConfigurations/inheritance/kotlin",files="build.gradle.kts[tags=configuration-definition]"]
+====
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/dependencyManagement/definingUsingConfigurations/inheritance/build.gradle[tag=configuration-definition]
-----

@@ -54,6 +54,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.provider.Property;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
@@ -79,6 +80,7 @@ import javax.annotation.Nullable;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -117,6 +119,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private String description;
 
     private String group;
+
+    private final Property<Duration> timeout;
 
     private AndSpec<Task> onlyIfSpec = createNewOnlyIfSpec();
 
@@ -177,6 +181,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskLocalState = new DefaultTaskLocalState(taskMutator);
 
         this._dependencies = new DefaultTaskDependency(tasks, ImmutableSet.<Object>of(taskInputs.getFiles()));
+
+        this.timeout = _project.getObjects().property(Duration.class);
     }
 
     private void assertDynamicObject() {
@@ -922,5 +928,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public boolean isHasCustomActions() {
         return hasCustomActions;
+    }
+
+    @Override
+    public Property<Duration> getTimeout() {
+        return timeout;
     }
 }

@@ -16,31 +16,33 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Before
+import org.gradle.util.Requires
 import org.junit.Rule
-import org.junit.Test
+import spock.lang.Unroll
 
-class SamplesScalaCustomizedLayoutIntegrationTest extends AbstractIntegrationTest {
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
-    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'scala/customizedLayout')
+@Requires(KOTLIN_SCRIPT)
+class SamplesScalaCustomizedLayoutIntegrationTest extends AbstractSampleIntegrationTest {
+
     @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, testDirectoryProvider)
 
-    @Before
-    void setup() {
-        useRepositoryMirrors()
-    }
+    @Rule
+    Sample sample = new Sample(testDirectoryProvider)
 
-    @Test
-    void canBuildJar() {
-        TestFile projectDir = sample.dir
+    @Unroll
+    @UsesSample("scala/customizedLayout")
+    def "can build jar with #dsl dsl"() {
+        TestFile projectDir = sample.dir.file(dsl)
 
         // Build and test projects
-        executer.inDirectory(projectDir).withTasks('clean', 'build').run()
+        executer.inDirectory(projectDir).requireGradleDistribution().withTasks('clean', 'build').run()
 
         // Check tests have run
         def result = new DefaultTestExecutionResult(projectDir)
@@ -54,5 +56,8 @@ class SamplesScalaCustomizedLayoutIntegrationTest extends AbstractIntegrationTes
                 'org/gradle/sample/Named.class',
                 'org/gradle/sample/Person.class'
         )
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 }

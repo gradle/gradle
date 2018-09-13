@@ -107,6 +107,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     @Override
     public boolean add(final T o) {
+        assertMutable("add(T)");
         return add(o, getEventRegister().getAddActions());
     }
 
@@ -145,6 +146,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     @Override
     public void addLater(final Provider<? extends T> provider) {
+        assertMutable("addLater(Provider)");
         super.addLater(provider);
         if (provider instanceof Named) {
             final Named named = (Named) provider;
@@ -356,6 +358,34 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             throw createNotFoundException(name);
         }
         return Cast.uncheckedCast(provider);
+    }
+
+    @Override
+    public NamedDomainObjectProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownDomainObjectException {
+        NamedDomainObjectProvider<T> provider = named(name);
+        provider.configure(configurationAction);
+        return provider;
+    }
+
+    @Override
+    public <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type) throws UnknownDomainObjectException {
+        AbstractNamedDomainObjectProvider<S> provider = Cast.uncheckedCast(named(name));
+        Class<S> actual = provider.type;
+        if (!type.isAssignableFrom(actual)) {
+            throw createWrongTypeException(name, type, actual);
+        }
+        return provider;
+    }
+
+    protected InvalidUserDataException createWrongTypeException(String name, Class expected, Class actual) {
+        return new InvalidUserDataException(String.format("The domain object '%s' (%s) is not a subclass of the given type (%s).", name, actual.getCanonicalName(), expected.getCanonicalName()));
+    }
+
+    @Override
+    public <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownDomainObjectException {
+        NamedDomainObjectProvider<S> provider = named(name, type);
+        provider.configure(configurationAction);
+        return provider;
     }
 
     @Override
@@ -828,7 +858,11 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     protected class ExistingNamedDomainObjectProvider<I extends T> extends AbstractNamedDomainObjectProvider<I> {
         public ExistingNamedDomainObjectProvider(String name) {
-            super(name, (Class<I>) DefaultNamedDomainObjectCollection.this.getType());
+            this(name, (Class<I>) DefaultNamedDomainObjectCollection.this.getType());
+        }
+
+        public ExistingNamedDomainObjectProvider(String name, Class type) {
+           super(name, type);
         }
 
         public void configure(Action<? super I> action) {

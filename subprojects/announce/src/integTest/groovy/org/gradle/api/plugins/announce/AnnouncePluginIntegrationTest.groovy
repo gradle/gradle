@@ -18,8 +18,25 @@ package org.gradle.api.plugins.announce
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class AnnouncePluginIntegrationTest extends WellBehavedPluginTest {
+    def setup() {
+        executer.beforeExecute {
+            expectDeprecationWarning()
+        }
+    }
+
     @Override
     String getMainTask() {
         return "tasks"
+    }
+
+    def "emits deprecation warning"() {
+        given:
+        applyPlugin()
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("The Announce plugin has been deprecated")
     }
 }
