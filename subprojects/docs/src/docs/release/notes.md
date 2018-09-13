@@ -69,6 +69,11 @@ When using `@OutputFiles` or `@OutputDirectories` with an `Iterable` type, Gradl
 This is no longer the case, and using such properties doesn't prevent the task from being cached.
 The only remaining reason to disable caching for the task is if the output contains file trees.
 
+### Task timeouts
+
+You can now specify a timeout for a task, after which it will be interrupted. 
+See the user guide section on “[Task timeouts](userguide/more_about_tasks.html#task_timeouts)” for more information.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

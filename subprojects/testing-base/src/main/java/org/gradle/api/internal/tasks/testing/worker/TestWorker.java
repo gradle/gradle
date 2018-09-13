@@ -70,7 +70,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
             try {
                 completed.await();
             } catch (InterruptedException e) {
-                throw new UncheckedException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         } finally {
             LOGGER.info("{} finished executing tests.", workerProcessContext.getDisplayName());

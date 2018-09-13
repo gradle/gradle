@@ -17,6 +17,7 @@
 package org.gradle.internal.work;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.InterruptibleRunnable;
 import org.gradle.internal.resources.ResourceLock;
 
 import java.util.concurrent.Callable;
@@ -24,14 +25,14 @@ import java.util.concurrent.CountDownLatch;
 
 public class AbstractConditionalExecution<T> implements ConditionalExecution<T> {
     private final CountDownLatch finished = new CountDownLatch(1);
-    private final Runnable runnable;
+    private final InterruptibleRunnable runnable;
     private final ResourceLock resourceLock;
 
     private T result;
     private Throwable failure;
 
     public AbstractConditionalExecution(final Callable<T> callable, ResourceLock resourceLock) {
-        this.runnable = new Runnable() {
+        this.runnable = new InterruptibleRunnable(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -40,7 +41,7 @@ public class AbstractConditionalExecution<T> implements ConditionalExecution<T> 
                     registerFailure(t);
                 }
             }
-        };
+        });
         this.resourceLock = resourceLock;
     }
 
@@ -56,15 +57,23 @@ public class AbstractConditionalExecution<T> implements ConditionalExecution<T> 
 
     @Override
     public T await() {
-        try {
-            finished.await();
-            if (failure != null) {
-                throw UncheckedException.throwAsUncheckedException(failure);
-            } else {
-                return result;
+        boolean interrupted = false;
+        while (true) {
+            try {
+                finished.await();
+                break;
+            } catch (InterruptedException e) {
+                runnable.interrupt();
+                interrupted = true;
             }
-        } catch(InterruptedException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+        }
+        if (interrupted) {
+            Thread.currentThread().interrupt();
+        }
+        if (failure != null) {
+            throw UncheckedException.throwAsUncheckedException(failure);
+        } else {
+            return result;
         }
     }
 
@@ -82,4 +91,5 @@ public class AbstractConditionalExecution<T> implements ConditionalExecution<T> 
     public void registerFailure(Throwable t) {
         this.failure = t;
     }
+
 }

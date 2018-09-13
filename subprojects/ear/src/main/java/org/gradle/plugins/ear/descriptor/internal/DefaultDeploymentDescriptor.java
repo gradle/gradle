@@ -257,7 +257,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
             }
             return parser;
         } catch (Exception ex) {
-            throw new UncheckedException(ex);
+            throw UncheckedException.throwAsUncheckedException(ex);
         }
     }
 
@@ -327,7 +327,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         } catch (SAXException ex) {
-            throw new UncheckedException(ex);
+            throw UncheckedException.throwAsUncheckedException(ex);
         } finally {
             IOUtils.closeQuietly(reader);
         }
