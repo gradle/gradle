@@ -17,8 +17,11 @@
 package org.gradle.performance.regression.android
 
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
+import org.gradle.performance.fixture.BuildExperimentInvocationInfo
+import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.fixture.GradleInvocationSpec
 import org.gradle.performance.results.BaselineVersion
+import org.gradle.util.GFileUtils
 import spock.lang.Unroll
 
 class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildPerformanceTest {
@@ -35,6 +38,7 @@ class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildP
             displayName(dexingTransform)
             warmUpCount warmUpRuns
             invocationCount runs
+            listener(cleanTransformsCache())
             invocation {
                 defaultInvocation(tasks, memory, delegate)
                 args("-Pandroid.enableDexingArtifactTransform=true")
@@ -46,6 +50,7 @@ class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildP
             displayName(dexingTask)
             warmUpCount warmUpRuns
             invocationCount runs
+            listener(cleanTransformsCache())
             invocation {
                 defaultInvocation(tasks, memory, delegate)
                 args("-Pandroid.enableDexingArtifactTransform=false")
@@ -75,13 +80,22 @@ class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildP
         'largeAndroidBuild' | '4g'   | 0          | 1    | 'clean phthalic:assembleDebug'
     }
 
+    private BuildExperimentListenerAdapter cleanTransformsCache() {
+        new BuildExperimentListenerAdapter() {
+            @Override
+            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+                GFileUtils.deleteDirectory(new File(invocationInfo.gradleUserHome, "caches/transforms-1/files-1.1"))
+            }
+        }
+    }
+
     void defaultInvocation(String tasks, String memory, GradleInvocationSpec.InvocationBuilder builder) {
         with(builder) {
             tasksToRun(tasks.split(' '))
             cleanTasks("clean")
             gradleOpts("-Xms${memory}", "-Xmx${memory}")
             useDaemon()
-            args("-Dorg.gradle.parallel=true", '-Dcom.android.build.gradle.overrideVersionCheck=true')
+            args("-Dorg.gradle.parallel=true", "-Pandroid.enableBuildCache=false", '-Dcom.android.build.gradle.overrideVersionCheck=true')
         }
 
     }
