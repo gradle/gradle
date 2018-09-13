@@ -78,6 +78,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
 
     public T receive() throws MessageIOException {
         try {
+            Printer.print("Starts to read");
             T ret = objectReader.read();
             Printer.print("Read message: " + ret);
             return ret;
@@ -87,12 +88,16 @@ public class SocketConnection<T> implements RemoteConnection<T> {
             }
             return null;
         } catch (ObjectStreamException e) {
+            Printer.print(e);
             throw new RecoverableMessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
         } catch (ClassNotFoundException e) {
+            Printer.print(e);
             throw new RecoverableMessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
         } catch (IOException e) {
+            Printer.print(e);
             throw new RecoverableMessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
-        } catch (Exception e) {
+        } catch (Throwable e) {
+            Printer.print(e);
             throw new MessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
         }
     }
