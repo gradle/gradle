@@ -241,7 +241,11 @@ dependencies {
 configurations {
     staticVersions {
         // Force load the metadata
-        resolutionStrategy.componentSelection.all { ComponentSelection s, ComponentMetadata d -> if (d.status != 'release') { s.reject('nope') } }
+        resolutionStrategy.componentSelection.all { ComponentSelection s -> 
+            if (s.metadata.status != 'release') { 
+                s.reject('nope') 
+            } 
+        }
     }
     compile
 }

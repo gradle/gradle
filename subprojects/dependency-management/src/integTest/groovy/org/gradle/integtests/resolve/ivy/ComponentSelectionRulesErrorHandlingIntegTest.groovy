@@ -228,7 +228,8 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
 configurations {
     conf {
         resolutionStrategy.componentSelection {
-            all { ComponentSelection selection, ComponentMetadata metadata ->
+            all { ComponentSelection selection ->
+                selection.metadata // Access the metadata
             }
         }
     }
@@ -281,7 +282,8 @@ Required by:
 configurations {
     conf {
         resolutionStrategy.componentSelection {
-            all { ComponentSelection selection, ComponentMetadata metadata ->
+            all { ComponentSelection selection ->
+                selection.metadata // Access the metadata
             }
         }
     }

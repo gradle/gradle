@@ -37,9 +37,9 @@ import org.gradle.internal.HasInternalProtocol;
  *                             selection.reject("bad version '1.1' for 'someModule'")
  *                         }
  *                     }
- *                     all { ComponentSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata -&gt;
- *                         if (selection.candidate.module == 'someModule' &amp;&amp; descriptor.branch == 'testing') {
- *                             if (metadata.status != 'milestone') {
+ *                     all { ComponentSelection selection -&gt;
+ *                         if (selection.candidate.module == 'someModule' &amp;&amp; selection.getDescriptor(IvyModuleDescriptor)?.branch == 'testing') {
+ *                             if (selection.metadata == null || selection.metadata.status != 'milestone') {
  *                                 selection.reject("only use milestones for someModule:testing")
  *                             }
  *                         }
@@ -70,11 +70,11 @@ public interface ComponentSelectionRules {
     /**
      * Adds a component selection rule that will apply to all resolved components.
      *
-     * Each rule will receive a {@link ComponentSelection} object as an argument
-     * as well as any other arguments specified for the closure.
-     * Allowable closure arguments are {@link ComponentSelection} (required),
-     * {@link org.gradle.api.artifacts.ComponentMetadata} and/or
-     * {@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor}.
+     * Each rule will receive a {@link ComponentSelection} object as an argument.
+     *
+     * Injection of other arguments has been deprecated in favor of the added methods
+     * on {@code ComponentSelection}, namely {@link ComponentSelection#getMetadata()}
+     * and {@link ComponentSelection#getDescriptor(Class)}.
      *
      * @param closure the Closure that implements a rule to be applied
      * @return this
@@ -90,8 +90,11 @@ public interface ComponentSelectionRules {
      * <ul>
      *     <li>must return void.</li>
      *     <li>must have {@link org.gradle.api.artifacts.ComponentSelection} as the first parameter.</li>
-     *     <li>may have additional parameters of type {@link org.gradle.api.artifacts.ComponentMetadata} and/or {@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor}.</li>
      * </ul>
+     *
+     * Injection of other arguments has been deprecated in favor of the added methods
+     * on {@code ComponentSelection}, namely {@link ComponentSelection#getMetadata()}
+     * and {@link ComponentSelection#getDescriptor(Class)}.
      *
      * @param ruleSource an instance providing a rule implementation
      * @return this
@@ -111,11 +114,11 @@ public interface ComponentSelectionRules {
     /**
      * Adds a component selection rule that will apply to the specified module.
      *
-     * Each rule will receive a {@link ComponentSelection} object as an argument
-     * as well as any other arguments specified for the closure.
-     * Allowable closure arguments are {@link ComponentSelection} (required),
-     * {@link org.gradle.api.artifacts.ComponentMetadata} and/or
-     * {@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor}.
+     * Each rule will receive a {@link ComponentSelection} object as an argument.
+     *
+     * Injection of other arguments has been deprecated in favor of the added methods
+     * on {@code ComponentSelection}, namely {@link ComponentSelection#getMetadata()}
+     * and {@link ComponentSelection#getDescriptor(Class)}.
      *
      * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
      * @param closure the Closure that implements a rule to be applied
@@ -132,8 +135,11 @@ public interface ComponentSelectionRules {
      * <ul>
      *     <li>must return void.</li>
      *     <li>must have {@link org.gradle.api.artifacts.ComponentSelection} as the first parameter.</li>
-     *     <li>may have additional parameters of type {@link org.gradle.api.artifacts.ComponentMetadata} and/or {@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor}.</li>
      * </ul>
+     *
+     * Injection of other arguments has been deprecated in favor of the added methods
+     * on {@code ComponentSelection}, namely {@link ComponentSelection#getMetadata()}
+     * and {@link ComponentSelection#getDescriptor(Class)}.
      *
      * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
      * @param ruleSource an instance providing a rule implementation

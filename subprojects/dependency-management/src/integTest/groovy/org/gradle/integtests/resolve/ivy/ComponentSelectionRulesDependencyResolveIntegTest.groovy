@@ -323,8 +323,9 @@ Required by:
             configurations.all {
                 resolutionStrategy {
                     componentSelection {
-                        all { ComponentSelection selection, IvyModuleDescriptor ivy ->
-                            if (ivy.branch != "other") {
+                        all { ComponentSelection selection ->
+                            def ivy = selection.getDescriptor(IvyModuleDescriptor)
+                            if (ivy != null && ivy.branch != "other") {
                                 selection.reject("looking for other")
                             }
                         }
@@ -391,9 +392,6 @@ Required by:
                         withModule("some.other:module") { ComponentSelection cs ->
                             throw new RuntimeException()
                         }
-                        withModule("some.other:module") { ComponentSelection cs, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
-                            throw new RuntimeException()
-                        }
                     }
                 }
             }
@@ -431,7 +429,7 @@ Required by:
 
     @Issue("GRADLE-3236")
     def "can select a different component for the same selector in different configurations"() {
-        def descriptorArg = GradleMetadataResolveRunner.useIvy() ? 'IvyModuleDescriptor ivy' : 'ComponentMetadata md'
+        def descriptorArg = GradleMetadataResolveRunner.useIvy() ? 'selection.getDescriptor(IvyModuleDescriptor)' : 'selection.metadata'
         buildFile << """
             configurations {
                 modules
@@ -439,9 +437,11 @@ Required by:
                     extendsFrom modules
                     resolutionStrategy {
                         componentSelection {
-                            all { ComponentSelection selection, $descriptorArg ->
-                                println "A is evaluating \$selection.candidate"
-                                if (selection.candidate.version != "1.1") { selection.reject("Rejected by A") }
+                            all { ComponentSelection selection ->
+                                if ($descriptorArg != null) {
+                                    println "A is evaluating \$selection.candidate"
+                                    if (selection.candidate.version != "1.1") { selection.reject("Rejected by A") }
+                                }
                             }
                         }
                     }
@@ -450,9 +450,11 @@ Required by:
                     extendsFrom modules
                     resolutionStrategy {
                         componentSelection {
-                            all { ComponentSelection selection, $descriptorArg ->
-                                println "B is evaluating \$selection.candidate"
-                                if (selection.candidate.version != "1.0") { selection.reject("Rejected by B") }
+                            all { ComponentSelection selection ->
+                                if ($descriptorArg != null) {
+                                    println "B is evaluating \$selection.candidate"
+                                    if (selection.candidate.version != "1.0") { selection.reject("Rejected by B") }
+                                }
                             }
                         }
                     }

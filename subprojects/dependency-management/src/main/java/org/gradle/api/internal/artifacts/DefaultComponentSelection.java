@@ -40,14 +40,21 @@ public class DefaultComponentSelection implements ComponentSelectionInternal {
 
     @Override
     public ComponentMetadata getMetadata() {
-        return metadataProvider.getComponentMetadata();
+        if (metadataProvider.isUsable()) {
+            return metadataProvider.getComponentMetadata();
+        } else {
+            return null;
+        }
+
     }
 
     @Nullable
     @Override
     public <T> T getDescriptor(Class<T> descriptorClass) {
-        if (IvyModuleDescriptor.class.isAssignableFrom(descriptorClass)) {
-            return descriptorClass.cast(metadataProvider.getIvyModuleDescriptor());
+        if (metadataProvider.isUsable()) {
+            if (IvyModuleDescriptor.class.isAssignableFrom(descriptorClass)) {
+                return descriptorClass.cast(metadataProvider.getIvyModuleDescriptor());
+            }
         }
         return null;
     }
