@@ -23,9 +23,7 @@ task("printTaskProperties") {
 val springVersion by extra("3.1.0.RELEASE")
 val emailNotification by extra { "build@master.org" }
 
-sourceSets.all {
-    extra["purpose"] = null
-}
+sourceSets.all { extra["purpose"] = null }
 
 sourceSets {
     getByName("main") {
