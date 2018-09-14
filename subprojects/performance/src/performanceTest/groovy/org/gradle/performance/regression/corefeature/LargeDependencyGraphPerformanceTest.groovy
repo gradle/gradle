@@ -23,8 +23,8 @@ import spock.lang.Unroll
 class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
 
     private final static TEST_PROJECT_NAME = 'excludeRuleMergingBuild'
-    public static final String MIN_MEMORY = "-Xms512m"
-    public static final String MAX_MEMORY = "-Xmx512m"
+    public static final String MIN_MEMORY = "-Xms800m"
+    public static final String MAX_MEMORY = "-Xmx800m"
 
     def setup() {
         runner.minimumVersion = '4.6'
