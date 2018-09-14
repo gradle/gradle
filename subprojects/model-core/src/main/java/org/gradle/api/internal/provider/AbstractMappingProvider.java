@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+
 import javax.annotation.Nullable;
 
 public abstract class AbstractMappingProvider<OUT, IN> extends AbstractProvider<OUT> {
@@ -27,7 +29,7 @@ public abstract class AbstractMappingProvider<OUT, IN> extends AbstractProvider<
         this.provider = provider;
     }
 
-    ProviderInternal<? extends IN> getProvider() {
+    protected ProviderInternal<? extends IN> getProvider() {
         return provider;
     }
 
@@ -57,6 +59,11 @@ public abstract class AbstractMappingProvider<OUT, IN> extends AbstractProvider<
     }
 
     protected abstract OUT map(IN v);
+
+    @Override
+    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+        return provider.maybeVisitBuildDependencies(context);
+    }
 
     @Override
     public String toString() {

@@ -71,12 +71,12 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
     }
 
     @Override
-    public void visitDependencies(TaskDependencyResolveContext context) {
+    public void visitDependencies(final TaskDependencyResolveContext context) {
         Set<Object> mutableValues = getMutableValues();
         if (mutableValues.isEmpty() && immutableValues.isEmpty()) {
             return;
         }
-        Deque<Object> queue = new ArrayDeque<Object>(mutableValues.size() + immutableValues.size());
+        final Deque<Object> queue = new ArrayDeque<Object>(mutableValues.size() + immutableValues.size());
         queue.addAll(immutableValues);
         queue.addAll(mutableValues);
         while (!queue.isEmpty()) {
@@ -88,7 +88,17 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
             } else if (dependency instanceof TaskDependency) {
                 context.add(dependency);
             } else if (dependency instanceof TaskDependencyContainer) {
-                ((TaskDependencyContainer) dependency).visitDependencies(context);
+                ((TaskDependencyContainer) dependency).visitDependencies(new AbstractTaskDependencyResolveContext() {
+                    @Override
+                    public void add(Object dependency) {
+                        queue.addFirst(dependency);
+                    }
+
+                    @Override
+                    public Task getTask() {
+                        return context.getTask();
+                    }
+                });
             } else if (dependency instanceof Closure) {
                 Closure closure = (Closure) dependency;
                 Object closureResult = closure.call(context.getTask());
@@ -125,12 +135,6 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 }
             } else if (resolver != null && dependency instanceof CharSequence) {
                 context.add(resolver.resolveTask(dependency.toString()));
-            } else if (dependency instanceof ProviderInternal) {
-                ProviderInternal<?> providerInternal = (ProviderInternal) dependency;
-                if (!providerInternal.maybeVisitBuildDependencies(context)) {
-                    // Provider does not know its build dependencies, so unpack the value
-                    queue.addFirst(providerInternal.get());
-                }
             } else {
                 List<String> formats = new ArrayList<String>();
                 if (resolver != null) {

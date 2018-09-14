@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,28 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
-class TransformBackedProvider<OUT, IN> extends AbstractMappingProvider<OUT, IN> implements TaskDependencyContainer {
-    private final Transformer<? extends OUT, ? super IN> transformer;
-
-    public TransformBackedProvider(Transformer<? extends OUT, ? super IN> transformer, ProviderInternal<? extends IN> provider) {
-        super(null, provider);
-        this.transformer = transformer;
+public abstract class AbstractProperty<T> implements PropertyInternal<T>, TaskDependencyContainer {
+    @Override
+    public T getOrElse(T defaultValue) {
+        T value = getOrNull();
+        if (value == null) {
+            return defaultValue;
+        }
+        return value;
     }
 
     @Override
-    protected OUT map(IN v) {
-        OUT result = transformer.transform(v);
-        if (result == null) {
-            throw new IllegalStateException(Providers.NULL_TRANSFORMER_RESULT);
+    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+        return false;
+    }
+
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        if (!maybeVisitBuildDependencies(context)) {
+            context.maybeAdd(get());
         }
-        return result;
     }
 }

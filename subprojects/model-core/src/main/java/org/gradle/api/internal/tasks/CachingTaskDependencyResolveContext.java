@@ -48,7 +48,7 @@ import java.util.Set;
  * </ul>
  */
 @NonNullApi
-public class CachingTaskDependencyResolveContext<T> implements TaskDependencyResolveContext {
+public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependencyResolveContext {
     private final Deque<Object> queue = new ArrayDeque<Object>();
     private final CachingDirectedGraphWalker<Object, T> walker;
     private Task task;
@@ -81,12 +81,6 @@ public class CachingTaskDependencyResolveContext<T> implements TaskDependencyRes
         queue.add(dependency);
     }
 
-    @Override
-    public void maybeAdd(Object dependency) {
-        if (dependency instanceof Buildable || dependency instanceof TaskDependencyContainer) {
-            queue.add(dependency);
-        }
-    }
 
     private class TaskGraphImpl implements DirectedGraph<Object, T> {
         private final Collection<? extends WorkDependencyResolver<T>> workResolvers;

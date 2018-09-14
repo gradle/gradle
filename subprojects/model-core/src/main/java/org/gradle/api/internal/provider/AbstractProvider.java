@@ -17,12 +17,16 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.util.GUtil;
 
 import static org.gradle.api.internal.provider.Providers.NULL_VALUE;
 
-public abstract class AbstractProvider<T> implements ProviderInternal<T> {
+/**
+ * A basic {@link org.gradle.api.provider.Provider} implementation. Subclasses need to provide a {@link #getOrNull()} implementation.
+ */
+public abstract class AbstractProvider<T> implements ProviderInternal<T>, TaskDependencyContainer {
 
     @Override
     public T get() {
@@ -52,6 +56,13 @@ public abstract class AbstractProvider<T> implements ProviderInternal<T> {
     @Override
     public boolean isPresent() {
         return getOrNull() != null;
+    }
+
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        if (!maybeVisitBuildDependencies(context)) {
+            context.maybeAdd(get());
+        }
     }
 
     @Override

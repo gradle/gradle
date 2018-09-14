@@ -42,7 +42,7 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "can resolve directory relative to project directory"() {
-        def pathProvider = Stub(Provider)
+        def pathProvider = Stub(ProviderInternal)
         _ * pathProvider.get() >>> ["a", "b"]
         _ * pathProvider.present >> true
 
@@ -86,8 +86,9 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "directory is not present when path provider is not present"() {
-        def pathProvider = Stub(Provider)
+        def pathProvider = Stub(ProviderInternal)
         _ * pathProvider.present >> false
+        _ * pathProvider.getOrNull() >> null
 
         expect:
         def provider = layout.projectDirectory.dir(pathProvider)
@@ -122,7 +123,7 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "can create directory property"() {
-        def pathProvider = Stub(Provider)
+        def pathProvider = Stub(ProviderInternal)
         _ * pathProvider.get() >> { "../other-dir" }
         _ * pathProvider.present >> true
         def otherDir = tmpDir.file("other-dir")

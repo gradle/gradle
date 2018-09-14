@@ -55,6 +55,12 @@ public class Providers {
         }
 
         @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            // Fails with an exception
+            get();
+        }
+
+        @Override
         public <S> ProviderInternal<S> map(Transformer<? extends S, ? super Object> transformer) {
             return Cast.uncheckedCast(this);
         }
@@ -124,6 +130,11 @@ public class Providers {
         }
 
         @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            context.maybeAdd(get());
+        }
+
+        @Override
         public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
             return new MappedFixedValueProvider<S, T>(transformer, this);
         }
@@ -183,6 +194,11 @@ public class Providers {
         @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             return false;
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            context.maybeAdd(get());
         }
 
         @Override
