@@ -134,7 +134,7 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
                         break;
                     case MAVEN_DEPENDENCY_METADATA:
                         MavenDependencyDescriptor mavenDependencyDescriptor = readMavenDependency(decoder);
-                        ModuleDependencyMetadata dependencyMetadata = RealisedMavenModuleResolveMetadata.contextualize(configurationMetadata, metadata.getId(), mavenDependencyDescriptor, metadata.isImprovedPomSupportEnabled());
+                        ModuleDependencyMetadata dependencyMetadata = RealisedMavenModuleResolveMetadata.contextualize(configurationMetadata, metadata.getId(), mavenDependencyDescriptor);
                         builder.add(dependencyMetadata.withReason(decoder.readNullableString()));
                         break;
                     case IVY_DEPENDENCY_METADATA:

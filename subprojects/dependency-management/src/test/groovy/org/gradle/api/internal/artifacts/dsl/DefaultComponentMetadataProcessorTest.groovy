@@ -52,7 +52,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
     private static final String MODULE = "module"
 
     MetadataResolutionContext context = Mock()
-    def executor = new ComponentMetadataRuleExecutor(Stub(CacheRepository), Stub(InMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), new BuildCommencedTimeProvider(), Stub(Serializer), false)
+    def executor = new ComponentMetadataRuleExecutor(Stub(CacheRepository), Stub(InMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), new BuildCommencedTimeProvider(), Stub(Serializer))
     def instantiator = DirectInstantiator.INSTANCE
     def stringInterner = SimpleMapInterner.notThreadSafe()
     def mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())

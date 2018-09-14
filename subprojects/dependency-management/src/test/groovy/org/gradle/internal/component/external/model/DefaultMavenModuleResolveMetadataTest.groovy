@@ -140,11 +140,11 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentR
     }
 
     @Unroll
-    def "recognises java library for packaging=#packaging and improvedPomSupport=#improvedPomSupport"() {
+    def "recognises java library for packaging=#packaging"() {
         given:
         def stringUsageAttribute = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class)
         def componentTypeAttribute = PlatformSupport.COMPONENT_CATEGORY
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], TestUtil.attributesFactory(), TestUtil.objectInstantiator(), improvedPomSupport)
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], TestUtil.attributesFactory(), TestUtil.objectInstantiator())
         metadata.packaging = packaging
 
         when:
@@ -180,15 +180,11 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentR
         }
 
         where:
-        packaging      | improvedPomSupport | isJavaLibrary
-        "pom"          | false              | false
-        "jar"          | false              | false
-        "maven-plugin" | false              | false
-        "war"          | false              | false
-        "pom"          | true               | true
-        "jar"          | true               | true
-        "maven-plugin" | true               | true
-        "war"          | true               | false
+        packaging      | isJavaLibrary
+        "pom"          | true
+        "jar"          | true
+        "maven-plugin" | true
+        "war"          | false
     }
 
     def dependency(String org, String module, String version, String scope) {

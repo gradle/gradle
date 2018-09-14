@@ -1,3 +1,2 @@
 rootProject.name = "dependency-on-bom"
 
-enableFeaturePreview("IMPROVED_POM_SUPPORT")
