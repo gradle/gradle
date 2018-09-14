@@ -286,6 +286,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public <T extends Task> T create(String name, Class<T> type) {
+        assertMutable("create(String, Class)");
         return doCreate(name, type, NO_ARGS, Actions.doNothing());
     }
 
@@ -328,10 +329,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public Task create(String name) {
+        assertMutable("create(String)");
         return doCreate(name, DefaultTask.class, NO_ARGS, Actions.doNothing());
     }
 
     public Task create(String name, Action<? super Task> configureAction) throws InvalidUserDataException {
+        assertMutable("create(String, Action)");
         return doCreate(name, DefaultTask.class, NO_ARGS, configureAction);
     }
 
@@ -348,10 +351,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public Task create(String name, Closure configureClosure) {
+        assertMutable("create(String, Closure)");
         return doCreate(name, DefaultTask.class, NO_ARGS, ConfigureUtil.configureUsing(configureClosure));
     }
 
     public <T extends Task> T create(String name, Class<T> type, Action<? super T> configuration) throws InvalidUserDataException {
+        assertMutable("create(String, Class, Action)");
         T task = create(name, type);
         configuration.execute(task);
         return task;
@@ -359,21 +364,25 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public TaskProvider<Task> register(String name, Action<? super Task> configurationAction) throws InvalidUserDataException {
+        assertMutable("register(String, Action)");
         return Cast.uncheckedCast(register(name, DefaultTask.class, configurationAction));
     }
 
     @Override
     public <T extends Task> TaskProvider<T> register(String name, Class<T> type, Action<? super T> configurationAction) throws InvalidUserDataException {
+        assertMutable("register(String, Class, Action)");
         return registerTask(name, type, configurationAction, NO_ARGS);
     }
 
     @Override
     public <T extends Task> TaskProvider<T> register(String name, Class<T> type) throws InvalidUserDataException {
+        assertMutable("register(String, Class)");
         return register(name, type, NO_ARGS);
     }
 
     @Override
     public TaskProvider<Task> register(String name) throws InvalidUserDataException {
+        assertMutable("register(String)");
         return Cast.uncheckedCast(register(name, DefaultTask.class));
     }
 

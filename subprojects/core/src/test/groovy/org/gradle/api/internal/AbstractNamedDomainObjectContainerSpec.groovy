@@ -16,10 +16,26 @@
 
 package org.gradle.api.internal
 
+
 import org.gradle.api.NamedDomainObjectCollection
+import org.gradle.internal.Actions
 
 abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDomainObjectCollectionSpec<T> {
     abstract NamedDomainObjectCollection<T> getContainer()
+
+    @Override
+    protected List<MethodUnderTest> getMutationMethodsUnderTest() {
+        def result = []
+        result.addAll(super.getMutationMethodsUnderTest())
+        result.addAll([
+            methodUnderTest("create(String)") { container.create("b") },
+            methodUnderTest("create(String, Closure)") { container.create("b") {} },
+            methodUnderTest("create(String, Action)") { container.create("b", Actions.doNothing()) },
+            methodUnderTest("register(String)") { container.register("b") },
+            methodUnderTest("register(String, Action)") { container.register("b", Actions.doNothing()) },
+        ])
+        return result
+    }
 
     @Override
     List<ConfigurationUnderTest> getLazyConfigurationsUnderTest() {
