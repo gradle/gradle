@@ -32,11 +32,7 @@ public class DefaultMavenDependency implements MavenDependencyInternal {
     private final List<ExcludeRule> excludeRules = new ArrayList<ExcludeRule>(); //exclude rules for a dependency specified in gradle DSL
 
     public DefaultMavenDependency(String groupId, String artifactId, String version) {
-        this.groupId = groupId;
-        this.artifactId = artifactId;
-        this.version = version;
-        // Default type value, matching a `jar` default in Maven
-        this.type = null;
+        this(groupId, artifactId, version, (String) null);
     }
 
     public DefaultMavenDependency(String groupId, String artifactId, String version, Collection<DependencyArtifact> artifacts) {
@@ -47,6 +43,13 @@ public class DefaultMavenDependency implements MavenDependencyInternal {
     public DefaultMavenDependency(String groupId, String artifactId, String version, Collection<DependencyArtifact> artifacts, Collection<ExcludeRule> excludeRules) {
         this(groupId, artifactId, version, artifacts);
         this.excludeRules.addAll(excludeRules);
+    }
+
+    public DefaultMavenDependency(String groupId, String artifactId, String version, String type) {
+        this.groupId = groupId;
+        this.artifactId = artifactId;
+        this.version = version;
+        this.type = type;
     }
 
     public String getGroupId() {

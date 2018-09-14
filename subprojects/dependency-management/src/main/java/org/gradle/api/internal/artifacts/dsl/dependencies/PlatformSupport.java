@@ -33,6 +33,11 @@ public abstract class PlatformSupport {
     public static final String REGULAR_PLATFORM = "platform";
     public static final String ENFORCED_PLATFORM = "enforced-platform";
 
+    public static boolean isTargettingPlatform(HasConfigurableAttributes<?> target) {
+        String category = target.getAttributes().getAttribute(COMPONENT_CATEGORY);
+        return REGULAR_PLATFORM.equals(category) || ENFORCED_PLATFORM.equals(category);
+    }
+
     public static void configureSchema(AttributesSchema attributesSchema) {
         AttributeMatchingStrategy<String> componentTypeMatchingStrategy = attributesSchema.attribute(PlatformSupport.COMPONENT_CATEGORY);
         componentTypeMatchingStrategy.getDisambiguationRules().add(PlatformSupport.ComponentCategoryDisambiguationRule.class);
