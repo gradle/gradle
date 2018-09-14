@@ -147,10 +147,11 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         attributes = attributesFactory.concat(attributes, PlatformSupport.COMPONENT_CATEGORY, componentType);
         String prefix = enforcedPlatform ? "enforced-platform-" : "platform-";
         DefaultConfigurationMetadata metadata = conf.withAttributes(prefix + conf.getName(), attributes);
+        metadata = metadata.withConstraintsOnly();
         if (enforcedPlatform) {
             metadata = metadata.withForcedDependencies();
         }
-        return metadata.withConstraintsOnly();
+        return metadata;
     }
 
     private ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(String name) {
@@ -167,17 +168,23 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         if (dependencies.isEmpty()) {
             return ImmutableList.of();
         }
-        ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = ImmutableList.builder();
+        ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = null;
         boolean isOptionalConfiguration = "optional".equals(config.getName());
         ImmutableSet<String> hierarchy = config.getHierarchy();
         for (MavenDependencyDescriptor dependency : dependencies) {
             if (isOptionalConfiguration && includeInOptionalConfiguration(dependency)) {
+                if (filteredDependencies == null) {
+                    filteredDependencies = ImmutableList.builder();
+                }
                 filteredDependencies.add(new OptionalConfigurationDependencyMetadata(config, getId(), dependency));
             } else if (include(dependency, hierarchy)) {
+                if (filteredDependencies == null) {
+                    filteredDependencies = ImmutableList.builder();
+                }
                 filteredDependencies.add(contextualize(config, getId(), dependency));
             }
         }
-        return filteredDependencies.build();
+        return filteredDependencies == null ? ImmutableList.<ModuleDependencyMetadata>of() : filteredDependencies.build();
     }
 
     private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming) {
