@@ -91,8 +91,9 @@ class OverviewPageRenderer extends PageRenderer<AllTestResults> {
         for (PackageTestResults testPackage : getResults().getPackages()) {
             for (ClassTestResults testClass : testPackage.getClasses()) {
                 htmlWriter.startElement("tr");
-                htmlWriter.startElement("td").attribute("class", testClass.getStatusClass()).endElement();
+                htmlWriter.startElement("td").attribute("class", testClass.getStatusClass());
                 htmlWriter.startElement("a").attribute("href", asHtmlLinkEncoded(testClass.getBaseUrl())).characters(testClass.getName()).endElement();
+                htmlWriter.endElement();
                 htmlWriter.startElement("td").characters(Integer.toString(testClass.getTestCount())).endElement();
                 htmlWriter.startElement("td").characters(Integer.toString(testClass.getFailureCount())).endElement();
                 htmlWriter.startElement("td").characters(Integer.toString(testClass.getIgnoredCount())).endElement();
