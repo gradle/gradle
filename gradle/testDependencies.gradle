@@ -30,4 +30,4 @@ testLibraries.jmock = [
     'org.jmock:jmock-junit4:2.5.1',
     'org.jmock:jmock-legacy:2.5.1'
 ]
-testLibraries.sampleCheck = 'org.gradle:sample-check:0.4.2'
+testLibraries.sampleCheck = 'org.gradle:sample-check:0.6.1'
