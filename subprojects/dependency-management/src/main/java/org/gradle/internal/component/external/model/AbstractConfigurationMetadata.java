@@ -108,7 +108,7 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
     }
 
     @Override
-    public List<? extends ModuleComponentArtifactMetadata> getArtifacts() {
+    public ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifacts() {
         return artifacts;
     }
 
