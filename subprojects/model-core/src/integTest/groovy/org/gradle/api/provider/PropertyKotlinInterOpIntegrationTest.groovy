@@ -21,12 +21,14 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.TaskAction
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 import javax.inject.Inject
 
 @Requires(TestPrecondition.KOTLIN_SCRIPT)
+@LeaksFileHandles
 class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyLanguageInterOpIntegrationTest {
     def setup() {
         usesKotlin(pluginDir)

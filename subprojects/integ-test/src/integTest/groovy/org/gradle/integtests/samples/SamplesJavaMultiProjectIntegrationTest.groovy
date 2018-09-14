@@ -21,6 +21,7 @@ package org.gradle.integtests.samples
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.junit.Rule
@@ -30,6 +31,7 @@ import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.hamcrest.Matchers.containsString
 
 @Requires(KOTLIN_SCRIPT)
+@LeaksFileHandles
 class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationSpec {
     static final String SHARED_NAME = 'shared'
     static final String API_NAME = 'api'
