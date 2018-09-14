@@ -1,6 +1,10 @@
-apply plugin: 'war'
 // tag::use-plugin[]
-apply plugin: 'maven'
+plugins {
+// end::use-plugin[]
+    id 'war'
+// tag::use-plugin[]
+    id 'maven'
+}
 // end::use-plugin[]
 
 group = 'gradle'
@@ -15,7 +19,7 @@ repositories {
 }
 
 configurations {
-  runtime.exclude group: 'excludeGroup2', module: 'excludeArtifact2'
+    runtime.exclude group: 'excludeGroup2', module: 'excludeArtifact2'
 }
 
 dependencies {
