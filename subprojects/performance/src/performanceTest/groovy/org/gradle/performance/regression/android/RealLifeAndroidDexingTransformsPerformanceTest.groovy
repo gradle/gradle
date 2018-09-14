@@ -140,7 +140,7 @@ class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildP
         BaselineVersion taskResults = dexingTaskResult(results)
         def speedStats = taskResults.getSpeedStatsAgainst(DEXING_TRANSFORM, transformResults)
         println(speedStats)
-        if (taskResults.significantlySlowerThan(transformResults)) {
+        if (taskResults.significantlyFasterThan(transformResults)) {
             throw new AssertionError(speedStats)
         }
 
