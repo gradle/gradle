@@ -95,7 +95,6 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     private DefaultWorkResult executeInWorkerClassLoader(ActionExecutionSpec spec, DaemonForkOptions forkOptions) {
         ClassLoader actionClasspathLoader = createActionClasspathLoader(forkOptions);
         GroovySystemLoader actionClasspathGroovy = groovySystemLoaderFactory.forClassLoader(actionClasspathLoader);
-
         ClassLoader workerClassLoader = createWorkerClassLoader(actionClasspathLoader, forkOptions.getSharedPackages(), spec.getClass());
 
         ClassLoader previousContextLoader = Thread.currentThread().getContextClassLoader();
@@ -107,7 +106,6 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
-            // Eventually shutdown any leaky groovy runtime loaded from action classpath loader
             actionClasspathGroovy.shutdown();
             Thread.currentThread().setContextClassLoader(previousContextLoader);
         }

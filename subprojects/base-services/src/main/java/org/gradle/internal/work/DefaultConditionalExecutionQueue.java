@@ -213,8 +213,6 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
         private void runExecution(ConditionalExecution execution) {
             try {
                 execution.getExecution().run();
-            } catch (Throwable t) {
-                execution.registerFailure(t);
             } finally {
                 coordinationService.withStateLock(unlock(execution.getResourceLock()));
                 execution.complete();

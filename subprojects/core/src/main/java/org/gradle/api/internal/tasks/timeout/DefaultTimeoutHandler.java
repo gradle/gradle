@@ -34,7 +34,7 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
     public Timeout start(Thread taskExecutionThread, Duration timeout) {
         InterruptOnTimeout interrupter = new InterruptOnTimeout(taskExecutionThread);
         ScheduledFuture<?> timeoutTask = executor.schedule(interrupter, timeout.toMillis(), TimeUnit.MILLISECONDS);
-        return new DefaultTimeout(timeoutTask);
+        return new DefaultTimeout(timeoutTask, interrupter);
     }
 
     @Override
@@ -44,9 +44,11 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
 
     private static final class DefaultTimeout implements Timeout {
         private final ScheduledFuture<?> timeoutTask;
+        private final InterruptOnTimeout interrupter;
 
-        private DefaultTimeout(ScheduledFuture<?> timeoutTask) {
+        private DefaultTimeout(ScheduledFuture<?> timeoutTask, InterruptOnTimeout interrupter) {
             this.timeoutTask = timeoutTask;
+            this.interrupter = interrupter;
         }
 
         @Override
@@ -56,12 +58,13 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
 
         @Override
         public boolean timedOut() {
-            return timeoutTask.isDone() && !timeoutTask.isCancelled();
+            return interrupter.interrupted;
         }
     }
 
     private static class InterruptOnTimeout implements Runnable {
         private final Thread thread;
+        private volatile boolean interrupted;
 
         private InterruptOnTimeout(Thread thread) {
             this.thread = thread;
@@ -69,6 +72,7 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
 
         @Override
         public void run() {
+            interrupted = true;
             thread.interrupt();
         }
     }
