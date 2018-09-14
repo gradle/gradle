@@ -24,6 +24,8 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
@@ -170,6 +172,12 @@ public class ScalaBasePlugin implements Plugin<Project> {
                     @Override
                     public void execute(ArtifactView.ViewConfiguration viewConfiguration) {
                         viewConfiguration.lenient(true);
+                        viewConfiguration.componentFilter(new Spec<ComponentIdentifier>() {
+                            @Override
+                            public boolean isSatisfiedBy(ComponentIdentifier element) {
+                                return element instanceof ProjectComponentIdentifier;
+                            }
+                        });
                     }
                 }).getFiles());
             }

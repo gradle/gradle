@@ -72,7 +72,6 @@ task someTask
         succeeds(":a:classes", "--parallel")
     }
 
-    @Ignore
     @Issue("https://github.com/gradle/gradle/issues/6735")
     def "can depend on the source set of another Java project"() {
         settingsFile << """
