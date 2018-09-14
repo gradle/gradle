@@ -17,56 +17,27 @@
 package org.gradle.api.internal
 
 import org.gradle.api.NamedDomainObjectCollection
-import spock.lang.Unroll
-
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.*
 
 abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomainObjectCollectionSpec<T> {
     abstract NamedDomainObjectCollection<T> getContainer()
 
     @Override
-    protected def getValidCallFromLazyConfiguration() {
+    protected List<MethodUnderTest> getQueryMethodsUnderTest() {
         def result = []
-        result.addAll(super.getValidCallFromLazyConfiguration())
-        result.add(["getByName(String)", CallGetByNameFactory.AsAction])
-        result.add(["getByName(String)", CallGetByNameFactory.AsClosure])
+        result.addAll(super.getQueryMethodsUnderTest())
+        result.addAll([
+            methodUnderTest("getByName(String)") { container.getByName("a") },
+        ])
         return result
     }
 
-    @Unroll
-    def "disallow mutating when NamedDomainObjectProvider.configure(#factoryClass.configurationType.simpleName) calls #description"() {
-        def factory = factoryClass.newInstance()
-        if (factory.isUseExternalProviders()) {
-            containerAllowsExternalProviders()
-        }
-
-        when:
-        container.add(a)
-        container.named("a").configure(factory.create(container, b))
-
-        then:
-        def ex = thrown(IllegalStateException)
-        ex.message == "${containerPublicType.simpleName}#${description} on ${container.toString()} cannot be executed in the current context."
-
-        where:
-        [description, factoryClass] << getInvalidCallFromLazyConfiguration()
-    }
-
-    @Unroll
-    def "allow querying when NamedDomainObjectProvider.configure(#factoryClass.configurationType.simpleName) calls #description"() {
-        def factory = factoryClass.newInstance()
-        if (factory.isUseExternalProviders()) {
-            containerAllowsExternalProviders()
-        }
-
-        when:
-        container.add(a)
-        container.named("a").configure(factory.create(container, b))
-
-        then:
-        noExceptionThrown()
-
-        where:
-        [description, factoryClass] << getValidCallFromLazyConfiguration()
+    @Override
+    List<ConfigurationUnderTest> getLazyConfigurationsUnderTest() {
+        List<ConfigurationUnderTest> result = []
+        result.addAll(super.getLazyConfigurationsUnderTest())
+        result.addAll([
+            configurationUnderTest("existing NamedDomainObjectProvider.configure") { container.add(a); container.named("a").configure(it) }
+        ])
+        return result
     }
 }

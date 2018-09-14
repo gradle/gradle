@@ -17,51 +17,17 @@
 package org.gradle.api.internal
 
 import org.gradle.api.NamedDomainObjectCollection
-import spock.lang.Unroll
 
 abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDomainObjectCollectionSpec<T> {
     abstract NamedDomainObjectCollection<T> getContainer()
 
-    abstract void behaveLikeNamedContainer()
-
-    @Unroll
-    def "disallow mutating when creating NamedDomainObjectProvider.configure(#factoryClass.configurationType.simpleName) calls #description"() {
-        behaveLikeNamedContainer()
-        def factory = factoryClass.newInstance()
-        if (factory.isUseExternalProviders()) {
-            containerAllowsExternalProviders()
-        }
-
-        when:
-        def a = container.register("a")
-        a.configure(factory.create(container, b))
-        a.get()
-
-        then:
-        def ex = thrown(RuntimeException)
-        ex.cause.message == "${containerPublicType.simpleName}#${description} on ${container.toString()} cannot be executed in the current context."
-
-        where:
-        [description, factoryClass] << getInvalidCallFromLazyConfiguration()
-    }
-
-    @Unroll
-    def "allow querying when creating NamedDomainObjectProvider.configure(#factoryClass.configurationType.simpleName) calls #description"() {
-        behaveLikeNamedContainer()
-        def factory = factoryClass.newInstance()
-        if (factory.isUseExternalProviders()) {
-            containerAllowsExternalProviders()
-        }
-
-        when:
-        def a = container.register("a")
-        a.configure(factory.create(container, b))
-        a.get()
-
-        then:
-        noExceptionThrown()
-
-        where:
-        [description, factoryClass] << getValidCallFromLazyConfiguration()
+    @Override
+    List<ConfigurationUnderTest> getLazyConfigurationsUnderTest() {
+        List<ConfigurationUnderTest> result = []
+        result.addAll(super.getLazyConfigurationsUnderTest())
+        result.addAll([
+            configurationUnderTest("creating NamedDomainObjectProvider.configure") { def a = container.register("a"); a.configure(it); a.get() }
+        ])
+        return result
     }
 }

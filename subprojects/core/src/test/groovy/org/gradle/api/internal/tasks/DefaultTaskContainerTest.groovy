@@ -1554,10 +1554,10 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     final Class<SomeOtherTask> otherType = SomeOtherTask
 
     @Override
-    void behaveLikeNamedContainer() {
+    void setupContainerDefaults() {
         taskFactory.create(_ as TaskIdentity) >> { args ->
             def taskIdentity = args[0]
-            task(taskIdentity.name, taskIdentity.type)
+            task(taskIdentity.name)
         }
     }
 
