@@ -228,15 +228,6 @@ public class DefaultFileLockManager implements FileLockManager {
             CompositeStoppable stoppable = new CompositeStoppable();
             stoppable.add(new Stoppable() {
                 public void stop() {
-                    try {
-                        fileLockContentionHandler.stop(lockId);
-                    } catch (Exception e) {
-                        throw new RuntimeException("Unable to stop listening for file lock requests for " + displayName, e);
-                    }
-                }
-            });
-            stoppable.add(new Stoppable() {
-                public void stop() {
                     if (lockFileAccess == null) {
                         return;
                     }
@@ -264,6 +255,15 @@ public class DefaultFileLockManager implements FileLockManager {
                         }
                     } catch (Exception e) {
                         throw new RuntimeException("Failed to release lock on " + displayName, e);
+                    }
+                }
+            });
+            stoppable.add(new Stoppable() {
+                public void stop() {
+                    try {
+                        fileLockContentionHandler.stop(lockId);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Unable to stop listening for file lock requests for " + displayName, e);
                     }
                 }
             });

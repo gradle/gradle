@@ -573,14 +573,6 @@
             ]
         },
         {
-            "type": "org.gradle.api.plugins.quality.FindBugsReports",
-            "member": "Method org.gradle.api.plugins.quality.FindBugsReports.getHtml()",
-            "acceptation": "Support type-safe configuration for FindBugs HTML report stylesheet when using Kotlin DSL",
-            "changes": [
-                "Method return type has changed"
-            ]
-        },
-        {
             "type": "org.gradle.api.java.archives.Manifest",
             "member": "Method org.gradle.api.java.archives.Manifest.from(java.lang.Object,org.gradle.api.Action)",
             "acceptation": "Support type-safe manifest merging",

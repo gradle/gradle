@@ -63,7 +63,7 @@ public class ClasspathUtil {
                         try {
                             implementationClassPath.add(new File(toURI(url)));
                         } catch (URISyntaxException e) {
-                            throw new UncheckedException(e);
+                            throw UncheckedException.throwAsUncheckedException(e);
                         }
                     }
                 }
@@ -151,7 +151,7 @@ public class ClasspathUtil {
                                url.getPort(),
                                url.getFile().replace(" ", "%20")).toURI();
             } catch (MalformedURLException e1) {
-                throw new UncheckedException(e1);
+                throw UncheckedException.throwAsUncheckedException(e1);
             }
         }
     }

@@ -306,5 +306,10 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         public void realizeExternal(ProviderInternal<? extends T> provider) {
 
         }
+
+        @Override
+        public MutationGuard getMutationGuard() {
+            throw new UnsupportedOperationException();
+        }
     }
 }

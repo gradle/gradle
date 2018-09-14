@@ -169,7 +169,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
             }
         });
 
-        project.getTasks().named(sourceSet.getClassesTaskName()).configure(new Action<Task>() {
+        project.getTasks().named(sourceSet.getClassesTaskName(), new Action<Task>() {
             @Override
             public void execute(Task task) {
                 task.dependsOn(scalaCompile);

@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.execution;
 import com.google.common.collect.Lists;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.GradleException;
-import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -36,11 +35,10 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.work.AsyncWorkTracker;
 
 import java.util.ArrayList;
@@ -51,27 +49,17 @@ import java.util.List;
  */
 public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(ExecuteActionsTaskExecuter.class);
-    private final TaskOutputChangesListener outputsGenerationListener;
-    private final TaskActionListener listener;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
-    private final BuildInvocationScopeId buildInvocationScopeId;
     private final BuildCancellationToken buildCancellationToken;
 
-    public ExecuteActionsTaskExecuter(TaskOutputChangesListener outputsGenerationListener, TaskActionListener taskActionListener, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, BuildInvocationScopeId buildInvocationScopeId, BuildCancellationToken buildCancellationToken) {
-        this.outputsGenerationListener = outputsGenerationListener;
-        this.listener = taskActionListener;
+    public ExecuteActionsTaskExecuter(BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, BuildCancellationToken buildCancellationToken) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
-        this.buildInvocationScopeId = buildInvocationScopeId;
         this.buildCancellationToken = buildCancellationToken;
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        listener.beforeActions(task);
-        if (task.hasTaskActions()) {
-            outputsGenerationListener.beforeTaskOutputChanged();
-        }
         state.setExecuting(true);
         try {
             GradleException failure = executeActions(task, state, context);
@@ -82,10 +70,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                     state.getDidWork() ? TaskExecutionOutcome.EXECUTED : TaskExecutionOutcome.UP_TO_DATE
                 );
             }
-            context.getTaskArtifactState().snapshotAfterTaskExecution(failure, buildInvocationScopeId.getId(), context);
         } finally {
             state.setExecuting(false);
-            listener.afterActions(task);
         }
     }
 

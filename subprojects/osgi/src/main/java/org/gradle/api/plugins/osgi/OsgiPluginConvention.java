@@ -34,6 +34,7 @@ import static org.gradle.util.ConfigureUtil.configure;
 /**
  * Is mixed into the project when applying the {@link org.gradle.api.plugins.osgi.OsgiPlugin}.
  */
+@Deprecated
 public class OsgiPluginConvention {
     private final ProjectInternal project;
 

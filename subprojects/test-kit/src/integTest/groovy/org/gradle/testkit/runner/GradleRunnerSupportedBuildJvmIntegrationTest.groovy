@@ -27,7 +27,7 @@ import org.gradle.util.Requires
 class GradleRunnerSupportedBuildJvmIntegrationTest extends BaseGradleRunnerIntegrationTest {
     @NoDebug
     @Requires(adhoc = { AvailableJavaHomes.getJdks("1.5", "1.6", "1.7") })
-    def "fails when build is configured to use Java 6 or earlier"() {
+    def "fails when build is configured to use Java 7 or earlier"() {
         given:
         testDirectory.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
 
