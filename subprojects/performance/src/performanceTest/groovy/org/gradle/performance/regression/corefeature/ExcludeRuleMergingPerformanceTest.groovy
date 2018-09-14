@@ -34,7 +34,7 @@ class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceT
 
         given:
         runner.tasksToRun = ['resolveDependencies']
-        runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
+        runner.gradleOpts = ["-Xms512m", "-Xmx512m"]
         runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}"]
 
         when:
@@ -53,7 +53,7 @@ class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceT
 
         given:
         runner.tasksToRun = ['resolveDependencies']
-        runner.gradleOpts = ["-Xms512m", "-Xmx512m"]
+        runner.gradleOpts = ["-Xms800m", "-Xmx800m"]
         runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", "--parallel"]
         when:
         def result = runner.run()
