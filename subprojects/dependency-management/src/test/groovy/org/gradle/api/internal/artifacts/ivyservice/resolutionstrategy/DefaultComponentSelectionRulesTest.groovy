@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.artifacts.ComponentSelection
-import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
@@ -36,10 +35,9 @@ import static org.gradle.api.internal.artifacts.configurations.MutationValidator
 class DefaultComponentSelectionRulesTest extends Specification {
     static final GROUP = "group"
     static final MODULE = "module"
-    static final ModuleIdentifier MID = DefaultModuleIdentifier.newId(GROUP, MODULE)
 
     RuleActionAdapter adapter = Mock(RuleActionAdapter)
-    DefaultComponentSelectionRules rules = new DefaultComponentSelectionRules(new DefaultImmutableModuleIdentifierFactory(), adapter)
+    DefaultComponentSelectionRules rules = new DefaultComponentSelectionRules(new DefaultImmutableModuleIdentifierFactory(), adapter, adapter)
     def ruleAction = Mock(RuleAction)
     def ruleSource = new Object()
 
@@ -75,7 +73,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
     }
 
     def "add action rule that applies to all components"() {
-        def Action<ComponentSelection> action = Mock(Action)
+        Action<ComponentSelection> action = Mock()
 
         when:
         rules.all action
@@ -90,7 +88,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
     }
 
     def "add action rule that applies to module"() {
-        def Action<ComponentSelection> action = Mock(Action)
+        Action<ComponentSelection> action = Mock()
         String notation = "${GROUP}:${MODULE}"
 
         when:
@@ -277,12 +275,4 @@ class DefaultComponentSelectionRulesTest extends Specification {
         then: 1 * checker.validateMutation(STRATEGY)
     }
 
-    private class TestComponentSelectionAction implements Action<ComponentSelection> {
-        boolean called = false
-
-        @Override
-        void execute(ComponentSelection componentSelection) {
-            called = true
-        }
-    }
 }
