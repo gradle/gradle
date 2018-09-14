@@ -110,9 +110,9 @@ val benchmark by task<integration.Benchmark> {
 // -- IntelliJ IDEA configuration --------------------------------------
 idea {
     project {
-        (this as ExtensionAware)
+        this as ExtensionAware
         configure<ProjectSettings> {
-            (this as ExtensionAware)
+            this as ExtensionAware
             doNotDetectFrameworks("android", "web")
             configure<CopyrightConfiguration> {
                 useDefault = "ASL2"
