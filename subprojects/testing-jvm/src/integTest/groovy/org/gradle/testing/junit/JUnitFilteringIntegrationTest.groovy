@@ -24,19 +24,24 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.testing.fixture.JUnitCoverage.*
+import static org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec.*
 
 @TargetCoverage({ LARGE_COVERAGE + JUNIT_VINTAGE})
 class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
 
-    void configureFramework() {
+    String imports = "org.junit.*"
+    String framework = version.toString().startsWith('Vintage') ? "JUnitPlatform" : "JUnit"
+
+    @Override
+    String getDependencies() {
         if (version.toString().startsWith('Vintage')) {
-            framework = "JUnitPlatform"
-            dependency = "org.junit.vintage:junit-vintage-engine"
+            """
+                testCompileOnly 'junit:junit:4.12'
+                testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:${dependencyVersion}'
+"""
         } else {
-            framework = "JUnit"
-            dependency = "junit:junit"
+            "junit:junit:${dependencyVersion}"
         }
-        imports = "org.junit.*"
     }
 
     void theParameterizedFiles() {
