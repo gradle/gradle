@@ -86,7 +86,7 @@ tasks.getByName<JavaCompile>("compileJava") {
 // end::java-compiler-options[]
 
 // tag::integ-test-task[]
-val integrationTest = task("integrationTest", Test::class) {
+val integrationTest = task<Test>("integrationTest") {
     description = "Runs integration tests."
     group = "verification"
 
@@ -99,7 +99,7 @@ tasks["check"].dependsOn(integrationTest)
 // end::integ-test-task[]
 
 // tag::defining-sources-jar-task[]
-task("sourcesJar", Jar::class) {
+task<Jar>("sourcesJar") {
     classifier = "sources"
     from(sourceSets["main"].allJava)
 }
@@ -107,7 +107,7 @@ task("sourcesJar", Jar::class) {
 
 
 // tag::defining-custom-javadoc-task[]
-task("testJavadoc", Javadoc::class) {
+task<Javadoc>("testJavadoc") {
     source = sourceSets["test"].allJava
 }
 // end::defining-custom-javadoc-task[]

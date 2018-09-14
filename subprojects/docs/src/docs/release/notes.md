@@ -155,6 +155,8 @@ The [osgi](userguide/osgi_plugin.html) plugin has been deprecated. Builds should
 
 ### Deprecated code quality plugins
 
+- The FindBugs plugin has been deprecated because the project is unmaintained and does not work with bytecode compiled for Java 9 and above.
+  Please consider using the [SpotBugs plugin](https://plugins.gradle.org/plugin/com.github.spotbugs) instead.
 - The JDepend plugin has been deprecated because the project is unmaintained and does not work with bytecode compiled for Java 8 and above.
 
 ## Potential breaking changes
@@ -311,6 +313,7 @@ We would like to thank the following community members for making contributions 
 - [Mike Kobit](https://github.com/mkobit) - Include Kotlin DSL samples in Lazy Configuration user manual chapter (gradle/gradle#6528)
 - [Kevin Macksamie](https://github.com/k-mack) - Switch distribution plugin to use configuration avoidance APIs (gradle/gradle#6443)
 - [Cliffred van Velzen](https://github.com/cliffred) - Allow logging null value (gradle/gradle#6665)
+- [Artem Zinnatullin](https://github.com/artem-zinnatullin) - Update HttpCore from 4.4.9 to 4.4.10 and HttpClient from 4.5.5 to 4.5.6 (gradle/gradle#6709)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

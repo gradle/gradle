@@ -67,6 +67,8 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import static org.gradle.api.reflect.TypeOf.typeOf;
+
 public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCollection<T> implements NamedDomainObjectCollection<T>, MethodMixIn, PropertyMixIn {
 
     private final Instantiator instantiator;
@@ -441,7 +443,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
                                 @Override
                                 public TypeOf<?> getPublicType() {
-                                    return TypeOf.typeOf(e.getValue().getType());
+                                    return typeOf(e.getValue().getType());
                                 }
                             };
                         }
@@ -866,7 +868,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         public void configure(Action<? super I> action) {
-            action.execute(get());
+            withMutationDisabled(action).execute(get());
         }
 
         @Override
@@ -886,6 +888,10 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         public I getOrNull() {
             return Cast.uncheckedCast(findByNameWithoutRules(getName()));
         }
+
+        protected Action<? super I> withMutationDisabled(Action<? super I> action) {
+            return getMutationGuard().withMutationDisabled(action);
+        }
     }
 
     public abstract class AbstractDomainObjectCreatingProvider<I extends T> extends AbstractNamedDomainObjectProvider<I> {
@@ -899,7 +905,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             this.onCreate = ImmutableActionSet.<I>empty().mergeFrom(getEventRegister().getAddActions());
 
             if (configureAction != null) {
-                configure(configureAction);
+                configure(getMutationGuard().withMutationEnabled(configureAction));
             }
         }
 
@@ -910,7 +916,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Override
         public void configure(final Action<? super I> action) {
-            Action<? super I> wrappedAction = wrap(action);
+            Action<? super I> wrappedAction = withMutationDisabled(action);
             if (object != null) {
                 // Already realized, just run the action now
                 wrappedAction.execute(object);
@@ -920,9 +926,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             onCreate = onCreate.mergeFrom(getEventRegister().getAddActions()).add(wrappedAction);
         }
 
-        protected Action<? super I> wrap(Action<? super I> action) {
-            // Do nothing.
-            return action;
+        protected Action<? super I> withMutationDisabled(Action<? super I> action) {
+            return getMutationGuard().withMutationDisabled(action);
         }
 
         @Override

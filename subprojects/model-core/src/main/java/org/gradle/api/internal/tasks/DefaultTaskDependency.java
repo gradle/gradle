@@ -230,7 +230,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
 
         @Override
         public boolean remove(Object o) {
-            DeprecationLogger.nagUserWith("Do not remove a task dependency from a Task instance.", "This behaviour has been deprecated and is scheduled to become an error in Gradle 6.0.", "", "");
+            DeprecationLogger.nagUserOfDeprecatedBehaviour("Do not remove a task dependency from a Task instance.");
             if (delegate.remove(o)) {
                 return true;
             }

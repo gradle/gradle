@@ -20,10 +20,14 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePluginConvention;
+import org.gradle.api.reflect.HasPublicType;
+import org.gradle.api.reflect.TypeOf;
 
 import java.io.File;
 
-public class DefaultBasePluginConvention extends BasePluginConvention {
+import static org.gradle.api.reflect.TypeOf.typeOf;
+
+public class DefaultBasePluginConvention extends BasePluginConvention implements HasPublicType {
     private ProjectInternal project;
 
     private String distsDirName;
@@ -42,6 +46,11 @@ public class DefaultBasePluginConvention extends BasePluginConvention {
         archivesBaseName = project.getName();
         distsDirName = "distributions";
         libsDirName = "libs";
+    }
+
+    @Override
+    public TypeOf<?> getPublicType() {
+        return typeOf(BasePluginConvention.class);
     }
 
     @Override
