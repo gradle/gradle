@@ -16,8 +16,10 @@
 package org.gradle.api.plugins.scala;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Action;
+import org.gradle.api.ActionConfiguration;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -26,6 +28,9 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.attributes.AttributeDisambiguationRule;
+import org.gradle.api.attributes.AttributeMatchingStrategy;
+import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
@@ -86,7 +91,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
         configureScaladoc(project, scalaRuntime);
     }
 
-    private void configureConfigurations(final Project project, Usage incrementalAnalysisUsage) {
+    private void configureConfigurations(final Project project, final Usage incrementalAnalysisUsage) {
         project.getConfigurations().create(ZINC_CONFIGURATION_NAME).setVisible(false).setDescription("The Zinc incremental compiler to be used for this Scala project.")
             .defaultDependencies(new Action<DependencySet>() {
                 @Override
@@ -101,6 +106,16 @@ public class ScalaBasePlugin implements Plugin<Project> {
         incrementalAnalysisElements.setCanBeResolved(false);
         incrementalAnalysisElements.setCanBeConsumed(true);
         incrementalAnalysisElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, incrementalAnalysisUsage);
+
+        AttributeMatchingStrategy<Usage> matchingStrategy = project.getDependencies().getAttributesSchema().attribute(Usage.USAGE_ATTRIBUTE);
+        matchingStrategy.getDisambiguationRules().add(UsageDisambiguationRules.class, new Action<ActionConfiguration>() {
+            @Override
+            public void execute(ActionConfiguration actionConfiguration) {
+                actionConfiguration.params(incrementalAnalysisUsage);
+                actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_API));
+                actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_JARS));
+            }
+        });
     }
 
     private static void configureSourceSetDefaults(final Project project, final Usage incrementalAnalysisUsage, final SourceDirectorySetFactory sourceDirectorySetFactory) {
@@ -236,5 +251,25 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 });
             }
         });
+    }
+
+    static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage> {
+        private final ImmutableSet<Usage> expectedUsages;
+        private final Usage javaRuntimeJars;
+
+        @Inject
+        UsageDisambiguationRules(Usage incrementalAnalysis, Usage javaApi, Usage javaRuntimeJars) {
+            this.javaRuntimeJars = javaRuntimeJars;
+            this.expectedUsages = ImmutableSet.of(incrementalAnalysis, javaApi, javaRuntimeJars);
+        }
+
+        @Override
+        public void execute(MultipleCandidatesDetails<Usage> details) {
+            if (details.getConsumerValue() == null) {
+                if (details.getCandidateValues().equals(expectedUsages)) {
+                    details.closestMatch(javaRuntimeJars);
+                }
+            }
+        }
     }
 }
