@@ -287,6 +287,12 @@ The `IdeaModule` Tooling API model element contains methods to retrieve resource
 - `BasePluginConvention` is now abstract. 
 - `ProjectReportsPluginConvention` is now abstract. 
 
+### System properties `test.single` and `test.debug` have been removed
+
+The `test.single` filter mechanism has been removed. You must select tests from the command-line with [`--tests`](userguide/java_testing.html#simple_name_pattern).
+
+The `test.debug` mechanism to enable debugging of JVM tests from the command-line has been removed.  You must use [`--debug-jvm`](userguide/java_testing.html#sec:debugging_java_tests) to enable debugging of test execution.  
+
 ### Changes to internal APIs
 
 - Removed the internal class `SimpleFileCollection`.
