@@ -17,6 +17,7 @@
 package org.gradle.api.internal
 
 import org.gradle.api.NamedDomainObjectCollection
+import spock.lang.Unroll
 
 import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.*
 
@@ -30,5 +31,42 @@ abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomain
         result.add(["getByName(String)", CallGetByNameFactory.AsAction])
         result.add(["getByName(String)", CallGetByNameFactory.AsClosure])
         return result
+    }
+
+    @Unroll
+    def "disallow mutating when NamedDomainObjectProvider.configure(#factoryClass.configurationType.simpleName) calls #description"() {
+        def factory = factoryClass.newInstance()
+        if (factory.isUseExternalProviders()) {
+            containerAllowsExternalProviders()
+        }
+
+        when:
+        container.add(a)
+        container.named("a").configure(factory.create(container, b))
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "${containerPublicType.simpleName}#${description} on ${container.toString()} cannot be executed in the current context."
+
+        where:
+        [description, factoryClass] << getInvalidCallFromLazyConfiguration()
+    }
+
+    @Unroll
+    def "allow querying when NamedDomainObjectProvider.configure(#factoryClass.configurationType.simpleName) calls #description"() {
+        def factory = factoryClass.newInstance()
+        if (factory.isUseExternalProviders()) {
+            containerAllowsExternalProviders()
+        }
+
+        when:
+        container.add(a)
+        container.named("a").configure(factory.create(container, b))
+
+        then:
+        noExceptionThrown()
+
+        where:
+        [description, factoryClass] << getValidCallFromLazyConfiguration()
     }
 }

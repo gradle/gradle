@@ -24,7 +24,7 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.internal.reflect.DirectInstantiator
 
-class DefaultPolymorphicDomainObjectContainerTest extends AbstractNamedDomainObjectContainerSpec<Person> {
+class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDomainObjectContainerSpec<Person> {
     def fred = new DefaultPerson(name: "fred")
     def barney = new DefaultPerson(name: "barney")
     def agedFred = new DefaultAgeAwarePerson(name: "fred", age: 42)
@@ -42,6 +42,11 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractNamedDomainObj
     Person c = new DefaultPerson(name: "c")
     Person d = new DefaultCtorNamedPerson("d")
     boolean externalProviderAllowed = true
+
+    @Override
+    void behaveLikeNamedContainer() {
+        container.registerDefaultFactory({ new DefaultPerson(name: it) } as NamedDomainObjectFactory )
+    }
 
     @Override
     List<Person> iterationOrder(Person... elements) {
