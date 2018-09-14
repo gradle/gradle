@@ -43,7 +43,7 @@ tasks.named('performanceReport').configure {
         project.javaexec(new Action<JavaExecSpec>() {
             void execute(JavaExecSpec spec) {
                 spec.setMain("org.gradle.performance.results.ReportGenerator")
-                spec.args("org.gradle.performance.results.BuildScanResultsStore", "build/reports/performances")
+                spec.args("org.gradle.performance.results.BuildScanResultsStore", "build/reports/performance")
                 spec.systemProperties(performanceTest.databaseParameters)
                 spec.systemProperty("org.gradle.performance.execution.channel", "commits")
                 spec.setClasspath(performanceTest.classpath)
