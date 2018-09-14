@@ -54,7 +54,6 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
             Comparator<ScenarioBuildResultData> comparator = comparing(ScenarioBuildResultData::isBuildFailed).reversed()
                 .thenComparing(ScenarioBuildResultData::isSuccessful)
                 .thenComparing(comparing(ScenarioBuildResultData::isAboutToRegress).reversed())
-                .thenComparing(ScenarioBuildResultData::isFromCache)
                 .thenComparing(comparingDouble(ScenarioBuildResultData::getConfidencePercentage).reversed())
                 .thenComparing(comparingDouble(ScenarioBuildResultData::getRegressionPercentage).reversed())
                 .thenComparing(ScenarioBuildResultData::getScenarioName);
@@ -171,19 +170,27 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                             div().classAttr("col").text(String.valueOf(index)).end();
                             div().classAttr("col-7");
                                 big().text(scenario.getScenarioName()).end();
+                                if(scenario.isFromCache()) {
+                                    span().classAttr("badge badge-info").text("FROM-CACHE").end();
+                                }
+                                if(scenario.isAboutToRegress()) {
+                                    span().classAttr("badge badge-danger").text("DANGEROUS").end();
+                                }
                             end();
                             div().classAttr("col-2");
                                 a().target("_blank").classAttr("btn btn-primary btn-sm").href(scenario.getWebUrl()).text("Build").end();
                                 a().target("_blank").classAttr("btn btn-primary btn-sm").href("tests/" + urlEncode(scenario.getScenarioName().replaceAll("\\s+", "-") + ".html")).text("Graph").end();
-                                a().classAttr("btn btn-primary btn-sm collapsed").href("#").attr("data-toggle", "collapse", "data-target", "#collapse" + index).text("Detail").end();
+                                a().classAttr("btn btn-primary btn-sm collapsed").href("#").attr("data-toggle", "collapse", "data-target", "#collapse" + index).text("Detail ▼").end();
                             end();
                             div().classAttr("col-2");
                                 if(scenario.isBuildFailed()) {
                                     text("N/A");
-                                } else if(scenario.isFromCache()) {
-                                    text("FROM-CACHE");
                                 } else {
-                                    scenario.getExecutions().forEach(execution -> {
+                                    List<ScenarioBuildResultData.ExecutionData> executions = scenario.getExecutions();
+                                    if (scenario.isFromCache()) {
+                                        executions = executions.subList(0, Math.min(1, executions.size()));
+                                    }
+                                    executions.forEach(execution -> {
                                         div().classAttr("row");
                                         div().classAttr("col " + getTextColorCss(execution)).text(execution.getFormattedRegression()).end();
                                         div().classAttr("col " + getTextColorCss(execution)).text(execution.getFormattedConfidence()).end();
@@ -221,6 +228,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                             DataSeries<Duration> baseVersion = execution.getBaseVersion().getTotalTime();
                             DataSeries<Duration> currentVersion = execution.getCurrentVersion().getTotalTime();
                             td().text(format.timestamp(execution.getTime())).end();
+                            td().a().target("_blank").href("https://github.com/gradle/gradle/commits/" + execution.getCommitId()).text(execution.getCommitId()).end().end();
                             td().text(execution.getCommitId()).end();
                             td().classAttr(baseVersion.getMedian().compareTo(currentVersion.getMedian()) < 0 ? "text-success" : "text-danger").text(baseVersion.getMedian().format()).end();
                             td().classAttr("text-muted").text("se: " + baseVersion.getStandardError().format()).end();
