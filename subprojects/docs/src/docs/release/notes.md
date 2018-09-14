@@ -291,6 +291,7 @@ We would like to thank the following community members for making contributions 
 - [James Justinic](https://github.com/jjustinic) Support type-safe configuration for Checkstyle/FindBugs HTML report stylesheet (gradle/gradle#6551)
 - [Mike Kobit](https://github.com/mkobit) - Include Kotlin DSL samples in Lazy Configuration user manual chapter (gradle/gradle#6528)
 - [Kevin Macksamie](https://github.com/k-mack) - Switch distribution plugin to use configuration avoidance APIs (gradle/gradle#6443)
+- [Artem Zinnatullin](https://github.com/artem-zinnatullin) - Update HttpCore from 4.4.9 to 4.4.10 and HttpClient from 4.5.5 to 4.5.6 (gradle/gradle#6709)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
