@@ -34,8 +34,6 @@ public interface TaskContainerInternal extends TaskContainer, TaskResolver, Poly
 
     /**
      * Force the task graph to come into existence.
-     *
-     * As part of this, all placeholder actions are materialized to show up in 'tasks' and 'tasks --all' overview.
      */
     void realize();
 
