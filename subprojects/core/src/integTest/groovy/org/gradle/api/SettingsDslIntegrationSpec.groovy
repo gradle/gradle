@@ -32,4 +32,67 @@ class SettingsDslIntegrationSpec extends AbstractIntegrationSpec {
         then:
         succeeds('help')
     }
+
+    def "Can access ExtensionAware in Groovy 'Settings'"() {
+        when:
+        settingsFile << """
+        extensions.testValue = "aValue"
+        
+        assert(extensions.testValue == "aValue")
+        """
+        then:
+        succeeds('help')
+    }
+
+    def "Can access ExtensionAware in Kotlin 'Settings'"() {
+        when:
+        // Need to use settings.extra because Kotlin DSL needs to be re-compiled
+        settingsKotlinFile << """
+        val testValue by settings.extra { "someValue" }
+
+        assert(testValue == "someValue")
+        """
+        then:
+        succeeds('help')
+    }
+
+    def "Can set extension value in Kotlin buildscript and access externally"() {
+        when:
+        // Need to use settings because Kotlin DSL needs to be re-compiled
+        settingsKotlinFile << """
+        buildscript {
+            val aValue by settings.extra {
+                "To be or not to be"
+            }
+        }
+        
+        val aValue: String by settings.extra
+        
+        assert(aValue == "To be or not to be")
+        """
+        then:
+        succeeds('help')
+    }
+
+    def "Can access extension applied from external scripts"() {
+        when:
+        def answerFile = "answerHolder.settings.gradle.kts"
+
+        // Need to use settings because Kotlin DSL needs to be re-compiled
+        testDirectory.file(answerFile) << """
+        val theAnswer: () -> Int by settings.extra {
+            { 42 }
+        }
+        """
+
+        settingsKotlinFile << """
+        apply(from = "$answerFile")
+
+        val theAnswer: () -> Int by settings.extra
+
+        assert(42 == theAnswer())
+        """
+        then:
+        succeeds('help')
+    }
 }
