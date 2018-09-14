@@ -15,8 +15,8 @@ import model.Stage
 import model.TestType
 
 class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boolean, rootProjectUuid: String) : Project({
-    this.uuid = "${model.projectPrefix}Stage_${stage.id}"
-    this.id = AbsoluteId(uuid)
+    this.uuid = "${model.projectPrefix}Stage_${stage.stageName.uuid}"
+    this.id = AbsoluteId("${model.projectPrefix}Stage_${stage.stageName.id}")
     this.name = stage.stageName.stageName
     this.description = stage.stageName.description
 

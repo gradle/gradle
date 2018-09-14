@@ -9,14 +9,14 @@ import configurations.SmokeTests
 import jetbrains.buildServer.configs.kotlin.v2018_1.BuildType
 
 
-enum class StageNames(override val stageName: String, override val description: String) : StageName{
-    QUICK_FEEDBACK_LINUX_ONLY("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer, Linux)"),
-    QUICK_FEEDBACK("Quick Feedback", "Run checks and functional tests (embedded executer, Windows)"),
-    READY_FOR_MERGE("Ready for Merge", "Run performance and functional tests (against distribution)"),
-    READY_FOR_NIGHTLY("Ready for Nightly", "Rerun tests in different environments / 3rd party components"),
-    READY_FOR_RELEASE("Ready for Release", "Once a day: Rerun tests in more environments"),
-    HISTORICAL_PERFORMANCE("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions"),
-    EXPERIMENTAL("Experimental", "On demand: Run experimental tests"),
+enum class StageNames(override val stageName: String, override val description: String, override val uuid: String) : StageName{
+    QUICK_FEEDBACK_LINUX_ONLY("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer, Linux)", "QuickFeedbackLinuxOnly"),
+    QUICK_FEEDBACK("Quick Feedback", "Run checks and functional tests (embedded executer, Windows)", "QuickFeedback"),
+    READY_FOR_MERGE("Ready for Merge", "Run performance and functional tests (against distribution)", "BranchBuildAccept"),
+    READY_FOR_NIGHTLY("Ready for Nightly", "Rerun tests in different environments / 3rd party components", "MasterAccept"),
+    READY_FOR_RELEASE("Ready for Release", "Once a day: Rerun tests in more environments", "ReleaseAccept"),
+    HISTORICAL_PERFORMANCE("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions", "HistoricalPerformance"),
+    EXPERIMENTAL("Experimental", "On demand: Run experimental tests", "Experimental"),
 }
 
 
@@ -203,10 +203,14 @@ object NoBuildCache : BuildCache {
 interface StageName {
     val stageName: String
     val description: String
+    val uuid: String
+        get() = id
+    val id: String
+        get() = stageName.replace(" ", "").replace("-", "")
 }
 
 data class Stage(val stageName: StageName, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never, val functionalTestsDependOnSpecificBuilds: Boolean = false, val runsIndependent: Boolean = false, val omitsSlowProjects : Boolean = false, val dependsOnSanityCheck: Boolean = false) {
-    val id = stageName.stageName.replace(" ", "").replace("-", "")
+    val id = stageName.id
 }
 
 data class TestCoverage(val testType: TestType, val os: OS, val testJvmVersion: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle, val buildJvmVersion: JvmVersion = JvmVersion.java9) {
