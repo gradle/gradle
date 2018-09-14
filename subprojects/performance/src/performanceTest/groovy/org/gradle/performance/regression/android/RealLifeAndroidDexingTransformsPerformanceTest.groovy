@@ -21,16 +21,63 @@ import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.fixture.GradleInvocationSpec
 import org.gradle.performance.results.BaselineVersion
+import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.util.GFileUtils
 import spock.lang.Unroll
 
 class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
+    private static final String DEXING_TRANSFORM = "dexing transform"
+    public static final String DEXING_TASK = "dexing task"
+
     @Unroll
     def "#tasks on #testProject without (android/transform) cache"() {
         given:
-        def dexingTransform = "dexing transform"
-        def dexingTask = "dexing task"
+        def invocationOptions = [tasks: tasks, memory: memory, enableAndroidBuildCache: false]
+
+        runner.testGroup = "Android dexing"
+        runner.buildSpec {
+            projectName(testProject)
+            displayName(DEXING_TRANSFORM)
+            warmUpCount warmUpRuns
+            invocationCount runs
+            listener(cleanTransformsCache())
+            invocation {
+                defaultInvocation(*:invocationOptions, dexingTransforms: true, delegate)
+            }
+        }
+
+        runner.baseline {
+            projectName(testProject)
+            displayName(DEXING_TASK)
+            warmUpCount warmUpRuns
+            invocationCount runs
+            listener(cleanTransformsCache())
+            invocation {
+                defaultInvocation(*:invocationOptions, dexingTransforms: false, delegate)
+            }
+        }
+
+        when:
+        def results = runner.run()
+
+        then:
+        results.assertEveryBuildSucceeds()
+        and:
+        assertDexingTransformIsFaster(results)
+
+        where:
+        testProject         | memory | warmUpRuns | runs | tasks
+        'largeAndroidBuild' | '5g'   | 2          | 4    | 'clean assembleDebug'
+    }
+
+    @Unroll
+    def "#tasks on #testProject"() {
+        given:
+        def dexingTransform = DEXING_TRANSFORM
+        def dexingTask = DEXING_TASK
+
+        def invocationOptions = [tasks: tasks, memory: memory, enableAndroidBuildCache: true]
 
         runner.testGroup = "Android dexing"
         runner.buildSpec {
@@ -38,10 +85,8 @@ class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildP
             displayName(dexingTransform)
             warmUpCount warmUpRuns
             invocationCount runs
-            listener(cleanTransformsCache())
             invocation {
-                defaultInvocation(tasks, memory, delegate)
-                args("-Pandroid.enableDexingArtifactTransform=true")
+                defaultInvocation(*:invocationOptions, dexingTransforms: true, delegate)
             }
         }
 
@@ -50,37 +95,25 @@ class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildP
             displayName(dexingTask)
             warmUpCount warmUpRuns
             invocationCount runs
-            listener(cleanTransformsCache())
             invocation {
-                defaultInvocation(tasks, memory, delegate)
-                args("-Pandroid.enableDexingArtifactTransform=false")
+                defaultInvocation(*:invocationOptions, dexingTransforms: false, delegate)
             }
         }
 
         when:
-        def result = runner.run()
+        def results = runner.run()
 
         then:
-        result.assertEveryBuildSucceeds()
+        results.assertEveryBuildSucceeds()
         and:
-        def transformResults = result.buildResult(dexingTransform)
-        def taskResults = new BaselineVersion("")
-        taskResults.with {
-            results.name = dexingTask
-            results.addAll(result.buildResult(dexingTask))
-        }
-        def speedStats = taskResults.getSpeedStatsAgainst(dexingTransform, transformResults)
-        println(speedStats)
-        if (taskResults.significantlySlowerThan(transformResults)) {
-            throw new AssertionError(speedStats)
-        }
+        assertDexingTransformIsFaster(results)
 
         where:
         testProject         | memory | warmUpRuns | runs | tasks
-        'largeAndroidBuild' | '4g'   | 2          | 4    | 'clean phthalic:assembleDebug'
+        'largeAndroidBuild' | '5g'   | 2          | 4    | 'clean assembleDebug'
     }
 
-    private BuildExperimentListenerAdapter cleanTransformsCache() {
+    private static BuildExperimentListenerAdapter cleanTransformsCache() {
         new BuildExperimentListenerAdapter() {
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
@@ -89,14 +122,36 @@ class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildP
         }
     }
 
-    void defaultInvocation(String tasks, String memory, GradleInvocationSpec.InvocationBuilder builder) {
+    void defaultInvocation(Map options, GradleInvocationSpec.InvocationBuilder builder) {
+        String memory = options.memory
+        String[] tasks = options.tasks.toString().split(' ')
         with(builder) {
-            tasksToRun(tasks.split(' '))
+            tasksToRun(tasks)
             cleanTasks("clean")
             gradleOpts("-Xms${memory}", "-Xmx${memory}")
             useDaemon()
-            args("-Dorg.gradle.parallel=true", "-Pandroid.enableBuildCache=false", '-Dcom.android.build.gradle.overrideVersionCheck=true')
+            args("-Dorg.gradle.parallel=true", "-Pandroid.enableBuildCache=${options.enableAndroidBuildCache ?: true}", "-Pandroid.enableDexingArtifactTransform=${options.dexingTransforms}", '-Dcom.android.build.gradle.overrideVersionCheck=true')
         }
 
+    }
+
+    private static void assertDexingTransformIsFaster(CrossBuildPerformanceResults results) {
+        def transformResults = results.buildResult(DEXING_TRANSFORM)
+        BaselineVersion taskResults = dexingTaskResult(results)
+        def speedStats = taskResults.getSpeedStatsAgainst(DEXING_TRANSFORM, transformResults)
+        println(speedStats)
+        if (taskResults.significantlySlowerThan(transformResults)) {
+            throw new AssertionError(speedStats)
+        }
+
+    }
+
+    private static BaselineVersion dexingTaskResult(CrossBuildPerformanceResults result) {
+        def taskResults = new BaselineVersion("")
+        taskResults.with {
+            results.name = DEXING_TASK
+            results.addAll(result.buildResult(DEXING_TASK))
+        }
+        taskResults
     }
 }
