@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.attributes;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
@@ -267,6 +268,22 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
             return attributes;
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            MergedSchema that = (MergedSchema) o;
+            return producerSchema.equals(that.producerSchema);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(producerSchema);
+        }
     }
 
     /**
