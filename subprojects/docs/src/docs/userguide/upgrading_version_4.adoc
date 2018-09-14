@@ -15,7 +15,7 @@
 [[upgrading_version_4]]
 = Upgrading your build from Gradle 4.x to 5.0
 
-This chapter provides the information you need to migrate your older Gradle 4.x builds to Gradle 5.0. In most cases, you will need to apply the changes from all versions that come after the one you're upgrading from. For example, if you're upgrading from Gradle 4.3, you will also need to apply the changes from 4.4, 4.5, etc.
+This chapter provides the information you need to migrate your older Gradle 4.x builds to Gradle 5.0. In most cases, you will need to apply the changes from all versions that come after the one you're upgrading from. For example, if you're upgrading from Gradle 4.3, you will also need to apply the changes since 4.4, 4.5, etc.
 
 First, a few pointers about upgrading:
 
@@ -46,7 +46,7 @@ Other notable changes to be aware of that may break your build include:
 Read the sections relevant to the version of Gradle you're upgrading from in order to get a comprehensive overview of the changes you might need to make to your build.
 
 [[changes_5.0]]
-== Changes in 5.0
+== Upgrading from 4.10 and earlier
 
  * The `enableFeaturePreview('IMPROVED_POM_SUPPORT')` flag is no longer necessary
 
@@ -139,7 +139,7 @@ Miscellaneous::
 Ideally you shouldn't use classes from this package, but, as a quick fix, you can add explicit imports to your build scripts for those classes.
 
 [[changes_4.10]]
-== Changes in 4.10
+== Upgrading from 4.9 and earlier
 
 === Deprecated classes, methods and properties
 
@@ -157,7 +157,7 @@ Follow the API links to learn how to deal with these deprecations (if no extra i
 Use the link:{javadocPath}/org/gradle/api/provider/Property.html#set-T-[Property.set()] method to modify their values rather than using standard property assignment syntax, unless you are doing so in a Groovy build script. Standard property assignment still works in that one case.
 
 [[changes_4.9]]
-== Changes in 4.9
+== Upgrading from 4.8 and earlier
 
  * <<#rel4.9:lazy_task_creation,Consider trying the lazy API for task creation and configuration>>
 
@@ -168,7 +168,7 @@ Use the link:{javadocPath}/org/gradle/api/provider/Property.html#set-T-[Property
 Use http://docs.groovy-lang.org/latest/html/documentation/#_spread_operator[Groovy's spread operator] instead. For example, you would replace `tasks.withType(JavaCompile).name` with `tasks.withType(JavaCompile)*.name`.
 
 [[changes_4.8]]
-== Changes in 4.8
+== Upgrading from 4.7 and earlier
 
  * <<#rel4.8:switch_to_publishing_plugins,Switch to the Maven Publish and Ivy Publish plugins>>
  * <<#rel4.8:deferred_configuration,Use deferred configuration with the publishing plugins>>
@@ -187,7 +187,7 @@ This will lead to some types annotated according to JSR-305 being treated as nul
  * Error messages will be directed to standard error rather than standard output now, unless a console is attached to both standard output and standard error. This may affect tools that scrape a build's plain console output. Ignore this change if you're upgrading from an earlier version of Gradle.
 
 [[changes_4.7]]
-== Changes in 4.7
+== Upgrading from 4.6 and earlier
 
 === Potential breaking changes
 
@@ -204,7 +204,7 @@ Checkstyle configuration files in subprojects — the old by-convention location
  * link:{javadocPath}/org/gradle/StartParameter.html#getProjectProperties--[StartParameter.projectProperties] and link:{javadocPath}/org/gradle/StartParameter.html#getSystemPropertiesArgs--[StartParameter.systemPropertiesArgs] now return immutable maps.
 
 [[changes_4.6]]
-== Changes in 4.6
+== Upgrading from 4.5 and earlier
 
 There is now improved POM support in Gradle that includes the following:
 
@@ -230,7 +230,7 @@ They should be added to the `annotationProcessor` configuration instead. If you 
  * Gradle now bundles the `kotlin-stdlib-jdk8` artifact instead of `kotlin-stdlib-jre8`. This may affect your build. Please see the http://kotlinlang.org/docs/reference/whatsnew12.html#kotlin-standard-library-artifacts-and-split-packages[Kotlin documentation] for more details.
 
 [[changes_4.5]]
-== Changes in 4.5
+== Upgrading from 4.4 and earlier
 
  * Make sure you have a _settings.gradle_ file: it avoids a performance penalty and allows you to set the root project's name.
  * Gradle now ignores the build cache configuration of included builds (<<composite_builds.adoc#composite_builds,composite builds>>) and instead uses the root build's configuration for all the builds.
@@ -245,7 +245,7 @@ They should be added to the `annotationProcessor` configuration instead. If you 
  * link:{javadocPath}/org/gradle/api/provider/ListProperty.html[ListProperty] no longer extends link:{javadocPath}/org/gradle/api/provider/Property.html[Property].
 
 [[changes_4.4]]
-== Changes in 4.4
+== Upgrading from 4.3 and earlier
 
 === Potential breaking changes
 
@@ -262,7 +262,7 @@ You can bypass the toolchain discovery by specifying the installation directory 
  * <<#rel4.4:security_library_upgrades,Several third-party libraries used by Gradle have been upgraded>> to fix security issues.
 
 [[changes_4.3]]
-== Changes in 4.3
+== Upgrading from 4.2 and earlier
 
  * The `plugins {}` block can now be <<plugins.adoc#sec:subprojects_plugins_dsl,used in subprojects>> and for <<plugins.adoc#sec:buildsrc_plugins_dsl,plugins in the _buildSrc_ directory>>.
 
@@ -291,7 +291,7 @@ Prefer using separate properties with `@OutputFile`/`@OutputDirectory` annotatio
  * Gradle will no longer ignore dependency resolution errors from a repository when there is another repository it can check. Dependency resolution will fail instead. This results in more deterministic behavior with respect to resolution results.
 
 [[changes_4.2]]
-== Changes in 4.2
+== Upgrading from 4.1 and earlier
 
 === Potential breaking changes
 
@@ -300,7 +300,7 @@ Prefer using separate properties with `@OutputFile`/`@OutputDirectory` annotatio
  * The FindBugs Plugin no longer renders progress information from its analysis. If you rely on that output in any way, you can enable it with link:{groovyDslPath}/org.gradle.api.plugins.quality.FindBugs.html#org.gradle.api.plugins.quality.FindBugs:showProgress[FindBugs.showProgress].
 
 [[changes_4.1]]
-== Changes in 4.1
+== Upgrading from 4.0
 
  * Consider using the new <<custom_tasks.adoc#worker_api,Worker API>> to enable units of work within your build to run in parallel.
 
