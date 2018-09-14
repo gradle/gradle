@@ -125,11 +125,14 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
     private class ExecutionRunner implements Runnable {
         @Override
         public void run() {
-            ConditionalExecution operation;
-            while ((operation = waitForNextOperation()) != null) {
-                runBatch(operation);
+            try {
+                ConditionalExecution operation;
+                while ((operation = waitForNextOperation()) != null) {
+                    runBatch(operation);
+                }
+            } finally {
+                shutDown();
             }
-            shutDown();
         }
 
         private ConditionalExecution waitForNextOperation() {
