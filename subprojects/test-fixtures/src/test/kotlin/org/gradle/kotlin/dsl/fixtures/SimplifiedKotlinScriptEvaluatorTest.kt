@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.execution
+package org.gradle.kotlin.dsl.fixtures
 
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
@@ -22,8 +22,6 @@ import com.nhaarman.mockito_kotlin.verify
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
-
-import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 
 import org.junit.Test
 

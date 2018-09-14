@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.execution
+package org.gradle.kotlin.dsl.fixtures
 
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 
 import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.initialization.ClassLoaderScope
 
 import org.gradle.configuration.DefaultImportsReader
 
 import org.gradle.groovy.scripts.ScriptSource
 
+import org.gradle.internal.classloader.ClasspathUtil.getClasspathForClass
+
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
@@ -36,7 +40,12 @@ import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 
-import org.gradle.kotlin.dsl.fixtures.classLoaderFor
+import org.gradle.kotlin.dsl.KotlinSettingsScript
+
+import org.gradle.kotlin.dsl.execution.Interpreter
+import org.gradle.kotlin.dsl.execution.ProgramId
+import org.gradle.kotlin.dsl.execution.ProgramTarget
+
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 
@@ -161,4 +170,12 @@ class SimplifiedKotlinScriptEvaluator(
         override val implicitImports: List<String>
             get() = ImplicitImports(DefaultImportsReader()).list
     }
+}
+
+
+val testCompilationClassPath: ClassPath by lazy {
+    DefaultClassPath.of(
+        getClasspathForClass(Unit::class.java),
+        getClasspathForClass(Settings::class.java),
+        getClasspathForClass(KotlinSettingsScript::class.java))
 }

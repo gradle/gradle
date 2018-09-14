@@ -36,6 +36,7 @@ import org.gradle.internal.service.ServiceRegistry
 
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
+import org.gradle.kotlin.dsl.fixtures.testCompilationClassPath
 
 import org.junit.Test
 
