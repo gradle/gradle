@@ -28,7 +28,7 @@ dependencies {
     compile project(':testingNative')
     compile libraries.plist.coordinates
 
-    testFixturesCompile project(':internalTesting')
+    testFixturesApi project(':internalTesting')
 }
 
 gradlebuildJava {
