@@ -125,6 +125,46 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecuted(":a", ":b")
     }
 
+    def "dependency declared using property whose value is a task output provider implies dependency on task"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            def task = tasks.create("a", OutputFileTask) {
+                outFile = file("a.txt")
+            }
+            def property = objects.fileProperty()
+            property.set(task.outFile)
+            tasks.register("b") {
+                dependsOn property
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksExecuted(":a", ":b")
+    }
+
+    def "dependency declared using property whose value is a mapped task output provider implies dependency on task and does not run mapping function"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            def task = tasks.create("a", OutputFileTask) {
+                outFile = file("a.txt")
+            }
+            def property = objects.fileProperty()
+            property.set(task.outFile.map { throw new RuntimeException() })
+            tasks.register("b") {
+                dependsOn property
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksExecuted(":a", ":b")
+    }
+
     def "dependency declared using provider that returns task name implies dependency on task"() {
         buildFile << """
             def a = tasks.create("a")
@@ -171,8 +211,7 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':b'.")
-        def val = displayName.call(temporaryFolder)
-        failure.assertHasCause("""Cannot convert ${val} to a task.
+        failure.assertHasCause("""Cannot convert ${displayName} to a task.
 The following types/formats are supported:
   - A String or CharSequence task name or path
   - A TaskReference instance
@@ -186,16 +225,54 @@ The following types/formats are supported:
   - An Iterable, Collection, Map or array instance that contains any of these types""")
 
         where:
-        // the closures are because spock calls these expressions early before the test dir fixture is ready
-        value                                             | displayName
-        "12"                                              | { "12" }
-        "file('123')"                                     | { it.file('123') }
-        "layout.projectDirectory"                         | { it.file(".") }
-        "layout.projectDirectory.file(provider { '123'})" | { it.file("123") }
-        "layout.projectDirectory.dir(provider { '123'})"  | { it.file("123") }
-        "layout.buildDirectory"                           | { it.file('build') }
-        "layout.buildDirectory.file('123')"               | { it.file('build/123') }
-        "layout.buildDirectory.dir('123')"                | { it.file('build/123') }
+        value     | displayName
+        "12"      | "12"
+        "false"   | "false"
+        "[false]" | "false"
+    }
+
+    @Unroll
+    def "dependency declared using file provider with value #value implies no task dependencies"() {
+        buildFile << """
+            def provider = provider { $value }
+            tasks.register("b") {
+                dependsOn provider
+            }
+        """
+
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksExecuted(":b")
+
+        where:
+        value                                             | _
+        "file('123')"                                     | _
+        "file('123').toPath()"                            | _
+        "layout.projectDirectory"                         | _
+        "layout.projectDirectory.file('123')"             | _
+        "layout.projectDirectory.dir('123')"              | _
+        "layout.projectDirectory.file(provider { '123'})" | _
+        "layout.projectDirectory.dir(provider { '123'})"  | _
+        "layout.buildDirectory"                           | _
+        "layout.buildDirectory.file('123')"               | _
+        "layout.buildDirectory.dir('123')"                | _
+    }
+
+    def "dependency declared using file collection implies no task dependencies"() {
+        buildFile << """
+            tasks.register("b") {
+                dependsOn files(file('123'))
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksExecuted(":b")
     }
 
     def "dependency declared using provider with no value fails"() {
@@ -323,6 +400,7 @@ The following types/formats are supported:
         where:
         value                                                 | _
         "file('in.txt')"                                      | _
+        "file('in.txt').toPath()"                             | _
         "layout.projectDirectory.file('in.txt')"              | _
         "layout.projectDirectory.file(provider { 'in.txt' })" | _
         "layout.buildDirectory.file('../in.txt')"             | _

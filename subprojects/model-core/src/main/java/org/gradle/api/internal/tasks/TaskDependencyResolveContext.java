@@ -20,7 +20,7 @@ import org.gradle.api.Task;
 
 public interface TaskDependencyResolveContext {
     /**
-     * Adds a dependency to the result. Supported types:
+     * Adds an object that can contribute tasks to the result. Supported types:
      *
      * <ul>
      *
@@ -35,7 +35,7 @@ public interface TaskDependencyResolveContext {
     void add(Object dependency);
 
     /**
-     * Adds the given dependency to the result, if it is one of the supported types. Otherwise ignore the value.
+     * Adds an object that <em>may</em> be able to contribute tasks to the result.
      */
     void maybeAdd(Object dependency);
 

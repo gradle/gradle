@@ -62,7 +62,7 @@ class DefaultTaskDependencyTest extends Specification {
         dependency.add(otherTask)
 
         then:
-        dependency.getDependencies(task)== toSet(otherTask)
+        dependency.getDependencies(task) == toSet(otherTask)
     }
 
     def "can depend on a task dependency"() {
@@ -80,7 +80,7 @@ class DefaultTaskDependencyTest extends Specification {
 
     def "can depend on a closure"() {
         when:
-        dependency.add({Task suppliedTask ->
+        dependency.add({ Task suppliedTask ->
             assert suppliedTask == task
             otherTask
         })
@@ -149,11 +149,11 @@ class DefaultTaskDependencyTest extends Specification {
         dependency.getDependencies(task) == emptySet()
     }
 
-    def "delegates to Provider to determine build dependencies"() {
-        def dep = Mock(ProviderInternal)
+    def "delegates to TaskDependencyContainer to determine build dependencies"() {
+        def dep = Mock(TaskDependencyContainer)
 
         given:
-        1 * dep.maybeVisitBuildDependencies(_) >> { args -> args[0].add(otherTask); true }
+        1 * dep.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(otherTask) }
 
         when:
         dependency.add(dep)
@@ -162,14 +162,13 @@ class DefaultTaskDependencyTest extends Specification {
         dependency.getDependencies(task) == toSet(otherTask)
     }
 
-    def "can depend on a Provider whose value is a provider"() {
-        def dep = Mock(ProviderInternal)
-        def nested = Mock(ProviderInternal)
+    def "delegates to nested TaskDependencyContainer to determine build dependencies"() {
+        def dep = Mock(TaskDependencyContainer)
+        def nested = Mock(TaskDependencyContainer)
 
         given:
-        1 * dep.maybeVisitBuildDependencies(_) >> false
-        1 * dep.get() >> nested
-        1 * nested.maybeVisitBuildDependencies(_) >> { args -> args[0].add(otherTask); true }
+        1 * dep.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(nested) }
+        1 * nested.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(otherTask) }
 
         when:
         dependency.add(dep)
@@ -178,26 +177,11 @@ class DefaultTaskDependencyTest extends Specification {
         dependency.getDependencies(task) == toSet(otherTask)
     }
 
-    def "can depend on a Provider whose value can be resolved to a task"() {
-        def dep = Mock(ProviderInternal)
+    def "fails when a TaskDependencyContainer has an unsupported value"() {
+        def dep = Mock(TaskDependencyContainer)
 
         given:
-        1 * dep.maybeVisitBuildDependencies(_) >> false
-        1 * dep.get() >> otherTask
-
-        when:
-        dependency.add(dep)
-
-        then:
-        dependency.getDependencies(task) == toSet(otherTask)
-    }
-
-    def "fails when a Provider has an unsupported value"() {
-        def dep = Mock(ProviderInternal)
-
-        given:
-        1 * dep.maybeVisitBuildDependencies(_) >> false
-        1 * dep.get() >> 123
+        1 * dep.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(123) }
         dependency.add(dep)
 
         when:
@@ -311,13 +295,13 @@ The following types/formats are supported:
     def "can nest iterables and maps and closures and callables"() {
         Map nestedMap = [task: otherTask]
         Iterable nestedCollection = [nestedMap]
-        Callable nestedCallable = {nestedCollection} as Callable
-        Closure nestedClosure = {nestedCallable}
+        Callable nestedCallable = { nestedCollection } as Callable
+        Closure nestedClosure = { nestedCallable }
         List collection = [nestedClosure]
-        Closure closure = {collection}
+        Closure closure = { collection }
         Object[] array = [closure] as Object[]
         Map map = [key: array]
-        Callable callable = {map} as Callable
+        Callable callable = { map } as Callable
 
         when:
         dependency.add(callable)

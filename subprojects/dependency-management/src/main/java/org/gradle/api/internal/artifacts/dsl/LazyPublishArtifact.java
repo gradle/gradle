@@ -104,7 +104,7 @@ public class LazyPublishArtifact implements PublishArtifact {
         return new AbstractTaskDependency() {
             @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
-                provider.maybeVisitBuildDependencies(context);
+                context.add(provider);
             }
         };
     }

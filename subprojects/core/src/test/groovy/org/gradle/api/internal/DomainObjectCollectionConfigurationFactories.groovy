@@ -116,6 +116,11 @@ abstract class DomainObjectCollectionConfigurationFactories {
                 }
 
                 @Override
+                void visitDependencies(TaskDependencyResolveContext context) {
+                    throw new UnsupportedOperationException()
+                }
+
+                @Override
                 ProviderInternal<T> map(Transformer transformer) {
                     throw new UnsupportedOperationException()
                 }

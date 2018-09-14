@@ -18,7 +18,7 @@ package org.gradle.api.internal.file.collections
 import org.gradle.api.Buildable
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskOutputs
@@ -156,31 +156,48 @@ class BuildDependenciesOnlyFileCollectionResolveContextTest extends Specificatio
         0 * taskContext._
     }
 
-    def delegatesToProviderToDetermineBuildDependencies() {
-        def provider = Mock(ProviderInternal)
+    def delegatesToDependencyContainerToDetermineBuildDependencies() {
+        def container = Mock(TaskDependencyContainer)
+        def task = Mock(Task)
 
         when:
-        context.add(provider)
+        context.add(container)
 
         then:
-        1 * provider.maybeVisitBuildDependencies(taskContext) >> true
+        1 * container.visitDependencies(_) >> { TaskDependencyResolveContext nestedContext -> nestedContext.add(task) }
+        1 * taskContext.add(task)
         0 * taskContext._
-        0 * provider._
+        0 * container._
     }
 
-    def queuesValueOfProviderThatDoesNotHaveBuildDependencies() {
-        def task = Stub(Task)
-        def provider = Mock(ProviderInternal)
+    def delegatesToNestedDependencyContainer() {
+        def container = Mock(TaskDependencyContainer)
+        def nested = Mock(TaskDependencyContainer)
+        def task = Mock(Task)
 
         when:
-        context.add(provider)
+        context.add(container)
 
         then:
-        1 * provider.maybeVisitBuildDependencies(taskContext) >> false
-        1 * provider.get() >> task
-        1 * taskContext.maybeAdd(task)
+        1 * container.visitDependencies(_) >> { TaskDependencyResolveContext nestedContext -> nestedContext.add(nested) }
+        1 * nested.visitDependencies(_) >> { TaskDependencyResolveContext nestedContext -> nestedContext.add(task) }
+        1 * taskContext.add(task)
         0 * taskContext._
-        0 * provider._
+        0 * container._
+    }
+
+    def ignoresTaskDependencyContainerElementThatCannotBeConverted() {
+        def container = Mock(TaskDependencyContainer)
+
+        when:
+        context.add(container)
+
+        then:
+        1 * container.visitDependencies(_) >> { TaskDependencyResolveContext nestedContext ->
+            nestedContext.add("thing")
+        }
+        0 * taskContext._
+        0 * container._
     }
 
     interface TestFileSet extends MinimalFileSet, Buildable {
