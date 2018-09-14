@@ -17,14 +17,17 @@
 package org.gradle.performance.regression.android
 
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
+import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.fixture.GradleInvocationSpec
 import org.gradle.performance.results.BaselineVersion
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.util.GFileUtils
+import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
+@Category(PerformanceExperiment)
 class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     private static final String DEXING_TRANSFORM = "dexing transform"

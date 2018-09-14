@@ -16,7 +16,6 @@
 
 package org.gradle.performance.regression.android
 
-
 import spock.lang.Unroll
 
 class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest {
