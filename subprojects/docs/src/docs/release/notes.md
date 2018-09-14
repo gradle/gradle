@@ -98,6 +98,11 @@ The following are the features that have been promoted in this Gradle release.
 
 ## Fixed issues
 
+### Reporting of TestNG classes/methods
+
+When using a recent version of TestNG (6.9.13.3 or newer), classes were reported to `TestListeners` as sibling `TestDescriptors` of test method `TestDescriptors`.
+Now, `TestDescriptors` of classes are parents of their enclosing method `TestDescriptors`.
+
 ## Deprecations
 
 Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed

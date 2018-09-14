@@ -97,6 +97,9 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
             testInternal = new DefaultTestClassDescriptor(idGenerator.generateId(), testClass.getName());
             testClassId.put(testClass, testInternal.getId());
             parentId = xmlTestIds.get(testClass.getXmlTest());
+            for (ITestNGMethod method : testClass.getTestMethods()) {
+                testMethodParentId.put(method, testInternal.getId());
+            }
         }
         resultProcessor.started(testInternal, new TestStartEvent(clock.getCurrentTime(), parentId));
     }
@@ -267,9 +270,10 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
             }
         }
         // Synthesise a test for the broken configuration method
-        TestDescriptorInternal test = new DefaultTestMethodDescriptor(idGenerator.generateId(),
-            testResult.getMethod().getTestClass().getName(), testResult.getMethod().getMethodName());
-        resultProcessor.started(test, new TestStartEvent(testResult.getStartMillis()));
+        ITestNGMethod testMethod = testResult.getMethod();
+        ITestClass testClass = testMethod.getTestClass();
+        TestDescriptorInternal test = new DefaultTestMethodDescriptor(idGenerator.generateId(), testClass.getName(), testMethod.getMethodName());
+        resultProcessor.started(test, new TestStartEvent(testResult.getStartMillis(), testClassId.get(testClass)));
         resultProcessor.failure(test.getId(), testResult.getThrowable());
         resultProcessor.completed(test.getId(), new TestCompleteEvent(testResult.getEndMillis(), TestResult.ResultType.FAILURE));
     }
