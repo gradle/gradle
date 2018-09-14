@@ -34,6 +34,7 @@ import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.specs.Spec;
@@ -65,6 +66,8 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
+import static org.gradle.api.reflect.TypeOf.typeOf;
 
 public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCollection<T> implements NamedDomainObjectCollection<T>, MethodMixIn, PropertyMixIn {
 
@@ -106,6 +109,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     @Override
     public boolean add(final T o) {
+        assertMutable("add(T)");
         return add(o, getEventRegister().getAddActions());
     }
 
@@ -144,10 +148,11 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     @Override
     public void addLater(final Provider<? extends T> provider) {
+        assertMutable("addLater(Provider)");
         super.addLater(provider);
         if (provider instanceof Named) {
             final Named named = (Named) provider;
-            index.putPending(named.getName(), (ProviderInternal<? extends T>) provider);
+            index.putPending(named.getName(), Providers.internal(provider));
             deferredElementKnown(named.getName(), provider);
         }
     }
@@ -166,7 +171,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected final void deferredElementKnown(String name, Provider<? extends T> provider) {
-        whenKnown.execute(new ProviderBackedElementInfo<T>(name, provider));
+        whenKnown.execute(new ProviderBackedElementInfo<T>(name, Providers.internal(provider)));
     }
 
     @Override
@@ -358,6 +363,34 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Override
+    public NamedDomainObjectProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownDomainObjectException {
+        NamedDomainObjectProvider<T> provider = named(name);
+        provider.configure(configurationAction);
+        return provider;
+    }
+
+    @Override
+    public <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type) throws UnknownDomainObjectException {
+        AbstractNamedDomainObjectProvider<S> provider = Cast.uncheckedCast(named(name));
+        Class<S> actual = provider.type;
+        if (!type.isAssignableFrom(actual)) {
+            throw createWrongTypeException(name, type, actual);
+        }
+        return provider;
+    }
+
+    protected InvalidUserDataException createWrongTypeException(String name, Class expected, Class actual) {
+        return new InvalidUserDataException(String.format("The domain object '%s' (%s) is not a subclass of the given type (%s).", name, actual.getCanonicalName(), expected.getCanonicalName()));
+    }
+
+    @Override
+    public <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownDomainObjectException {
+        NamedDomainObjectProvider<S> provider = named(name, type);
+        provider.configure(configurationAction);
+        return provider;
+    }
+
+    @Override
     public MethodAccess getAdditionalMethods() {
         return getElementsAsDynamicObject();
     }
@@ -410,7 +443,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
                                 @Override
                                 public TypeOf<?> getPublicType() {
-                                    return TypeOf.typeOf(e.getValue().getType());
+                                    return typeOf(e.getValue().getType());
                                 }
                             };
                         }
@@ -741,9 +774,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     private static class ProviderBackedElementInfo<T> implements ElementInfo<T> {
         private final String name;
-        private final Provider<? extends T> provider;
+        private final ProviderInternal<? extends T> provider;
 
-        ProviderBackedElementInfo(String name, Provider<? extends T> provider) {
+        ProviderBackedElementInfo(String name, ProviderInternal<? extends T> provider) {
             this.name = name;
             this.provider = provider;
         }
@@ -755,7 +788,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Override
         public Class<?> getType() {
-            return ((ProviderInternal<?>) provider).getType();
+            return provider.getType();
         }
     }
 
@@ -827,11 +860,15 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     protected class ExistingNamedDomainObjectProvider<I extends T> extends AbstractNamedDomainObjectProvider<I> {
         public ExistingNamedDomainObjectProvider(String name) {
-            super(name, (Class<I>) DefaultNamedDomainObjectCollection.this.getType());
+            this(name, (Class<I>) DefaultNamedDomainObjectCollection.this.getType());
+        }
+
+        public ExistingNamedDomainObjectProvider(String name, Class type) {
+           super(name, type);
         }
 
         public void configure(Action<? super I> action) {
-            action.execute(get());
+            withMutationDisabled(action).execute(get());
         }
 
         @Override
@@ -851,6 +888,10 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         public I getOrNull() {
             return Cast.uncheckedCast(findByNameWithoutRules(getName()));
         }
+
+        protected Action<? super I> withMutationDisabled(Action<? super I> action) {
+            return getMutationGuard().withMutationDisabled(action);
+        }
     }
 
     public abstract class AbstractDomainObjectCreatingProvider<I extends T> extends AbstractNamedDomainObjectProvider<I> {
@@ -864,7 +905,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             this.onCreate = ImmutableActionSet.<I>empty().mergeFrom(getEventRegister().getAddActions());
 
             if (configureAction != null) {
-                configure(configureAction);
+                configure(getMutationGuard().withMutationEnabled(configureAction));
             }
         }
 
@@ -875,7 +916,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Override
         public void configure(final Action<? super I> action) {
-            Action<? super I> wrappedAction = wrap(action);
+            Action<? super I> wrappedAction = withMutationDisabled(action);
             if (object != null) {
                 // Already realized, just run the action now
                 wrappedAction.execute(object);
@@ -885,9 +926,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             onCreate = onCreate.mergeFrom(getEventRegister().getAddActions()).add(wrappedAction);
         }
 
-        protected Action<? super I> wrap(Action<? super I> action) {
-            // Do nothing.
-            return action;
+        protected Action<? super I> withMutationDisabled(Action<? super I> action) {
+            return getMutationGuard().withMutationDisabled(action);
         }
 
         @Override

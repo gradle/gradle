@@ -52,7 +52,9 @@ import java.util.Collection;
  * </pre>
  *
  * @see FindBugsPlugin
+ * @deprecated FindBugs is unmaintained and does not support bytecode compiled for Java 9 and above.
  */
+@Deprecated
 public class FindBugsExtension extends CodeQualityExtension {
 
     private final Project project;

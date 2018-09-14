@@ -200,14 +200,10 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     }
 
     private boolean include(MavenDependencyDescriptor dependency, Collection<String> hierarchy) {
-        if (dependency.isOptional() && ignoreOptionalDependencies()) {
+        if (dependency.isOptional()) {
             return false;
         }
         return hierarchy.contains(dependency.getScope().getLowerName());
-    }
-
-    private boolean ignoreOptionalDependencies() {
-        return !improvedPomSupportEnabled;
     }
 
     @Override

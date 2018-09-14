@@ -55,21 +55,21 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     }
 
     @Unroll
-    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.6") })
+    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.6", "1.7") })
     def 'provides reasonable failure message when attempting to run current Version with previous wrapper under java #jdk.javaVersion'() {
         when:
         GradleExecuter executor = prepareWrapperExecuter(previous, current).withJavaHome(jdk.javaHome)
 
         then:
         def result = executor.usingExecutable('gradlew').withArgument('help').runWithFailure()
-        result.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. You are currently using Java ${jdk.javaVersion.majorVersion}.")
+        result.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 8 or later to run. You are currently using Java ${jdk.javaVersion.majorVersion}.")
 
         where:
-        jdk << AvailableJavaHomes.getJdks("1.6")
+        jdk << AvailableJavaHomes.getJdks("1.6", "1.7")
     }
 
     @Unroll
-    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.6") })
+    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.6", "1.7") })
     def 'provides reasonable failure message when attempting to run with previous wrapper and the build is configured to use Java #jdk.javaVersion'() {
         when:
         GradleExecuter executor = prepareWrapperExecuter(previous, current)
@@ -77,10 +77,10 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
 
         then:
         def result = executor.usingExecutable('gradlew').withArgument('help').runWithFailure()
-        result.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}.")
+        result.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}.")
 
         where:
-        jdk << AvailableJavaHomes.getJdks("1.6")
+        jdk << AvailableJavaHomes.getJdks("1.6", "1.7")
     }
 
     private GradleExecuter prepareWrapperExecuter(GradleDistribution wrapperVersion, GradleDistribution executionVersion) {

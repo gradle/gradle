@@ -151,11 +151,14 @@ class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAcces
         try {
             onClose.execute(fileLock);
         } finally {
-            fileLock.close();
-            fileLock = null;
-            if (lockReleaseSignal != null) {
-                lockReleaseSignal.trigger();
-                lockReleaseSignal = null;
+            try {
+                fileLock.close();
+                fileLock = null;
+            } finally {
+                if (lockReleaseSignal != null) {
+                    lockReleaseSignal.trigger();
+                    lockReleaseSignal = null;
+                }
             }
         }
     }

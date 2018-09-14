@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 import org.gradle.internal.Pair;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
-import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.launcher.daemon.client.DaemonStartupMessage;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.launcher.daemon.server.health.LowTenuredSpaceDaemonExpirationStrategy;
@@ -137,12 +136,6 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
             } else if (line.contains(LoggingDeprecatedFeatureHandler.WARNING_SUMMARY)) {
                 // Remove the "Deprecated Gradle features..." message and "See https://docs.gradle.org..."
                 i+=2;
-            } else if (line.contains(UnsupportedJavaRuntimeException.JAVA7_DEPRECATION_WARNING)) {
-                // Remove the Java 7 deprecation warning. This should be removed after 5.0
-                i++;
-                while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
-                    i++;
-                }
             } else if (BUILD_RESULT_PATTERN.matcher(line).matches()) {
                 result.add(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("BUILD $1 in 0s"));
                 i++;

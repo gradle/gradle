@@ -70,8 +70,4 @@ public class OrSpec<T> extends CompositeSpec<T> {
         return uncheckedCast(EMPTY);
     }
 
-    @Override
-    public int hashCode() {
-        return 13 * super.hashCode();
-    }
 }

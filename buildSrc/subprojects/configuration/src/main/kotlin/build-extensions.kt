@@ -54,16 +54,14 @@ fun Project.testLibrary(name: String): String =
 val gradle5CategoryAttribute = Attribute.of("org.gradle.component.category", String::class.java)
 
 
-fun DependencyHandler.gradle5Platform(name: Any) = if (GradleVersion.current().baseVersion >= GradleVersion.version("5.0")) {
-    val dep = create(name)
-    if (dep is HasConfigurableAttributes<*>) {
-        dep.attributes {
-            attribute(gradle5CategoryAttribute, "platform")
+fun DependencyHandler.gradle5Platform(name: Any) = create(name).apply {
+    if (GradleVersion.current().baseVersion >= GradleVersion.version("5.0")) {
+        if (this is HasConfigurableAttributes<*>) {
+            attributes {
+                attribute(gradle5CategoryAttribute, "platform")
+            }
         }
     }
-    dep
-} else {
-    create(name)
 }
 
 

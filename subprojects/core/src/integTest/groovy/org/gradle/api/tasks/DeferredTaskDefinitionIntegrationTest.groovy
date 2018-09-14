@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -1162,5 +1163,90 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         """
         expect:
         succeeds("help")
+    }
+
+    @Ignore
+    @Issue("https://github.com/gradle/gradle/issues/6558")
+    def "can register tasks in multi-project build that iterates over allprojects and tasks in task action"() {
+        settingsFile << """
+            include 'a', 'b', 'c', 'd'
+        """
+        buildFile << """
+            class MyTask extends DefaultTask {
+                @TaskAction
+                void doIt() {
+                    for (Project subproject : project.rootProject.getAllprojects()) {
+                        for (MyTask myTask : subproject.tasks.withType(MyTask)) {
+                            println "Looking at " + myTask.path
+                        }
+                    }
+                }
+            }
+            
+            allprojects {
+                (1..10).each {
+                    def mytask = tasks.register("mytask" + it, MyTask)
+                }
+            }
+        """
+        expect:
+        succeeds("mytask0", "--parallel")
+    }
+
+    @Issue("https://github.com/gradle/gradle-native/issues/814")
+    def "can locate task by name and type with named"() {
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                String message
+                int number
+                
+                @TaskAction
+                void print() {
+                    println message + " " + number
+                }
+            }
+            task foo(type: CustomTask)
+            tasks.register("bar", CustomTask)
+            
+            tasks.named("foo", CustomTask).configure {
+                message = "foo named(String, Class)"
+            }
+            tasks.named("foo", CustomTask) {
+                number = 100
+            }
+            tasks.named("foo") {
+                number = number * 2
+            }
+            tasks.named("bar", CustomTask) {
+                message = "bar named(String, Class, Action)"
+            }
+            tasks.named("bar", CustomTask).configure {
+                number = 12345
+            }
+        """
+        expect:
+        succeeds("foo", "bar")
+        outputContains("foo named(String, Class) 200")
+        outputContains("bar named(String, Class, Action) 12345")
+    }
+
+    @Unroll
+    def "gets useful message when using improper type for named using #api"() {
+        buildFile << """
+            class CustomTask extends DefaultTask {
+            }
+            class AnotherTask extends DefaultTask {
+            }
+
+            tasks.${api}("foo", CustomTask)
+            
+            tasks.named("foo", AnotherTask) // should fail
+        """
+        expect:
+        fails("help")
+        failure.assertHasCause("The task 'foo' (CustomTask) is not a subclass of the given type (AnotherTask).")
+
+        where:
+        api << ["create", "register"]
     }
 }

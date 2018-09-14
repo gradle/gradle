@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.attributes.Usage
-import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
@@ -75,7 +74,7 @@ open class ShadedJarPlugin : Plugin<Project> {
 
     private
     fun Project.createShadedJarExtension(configurationToShade: Configuration) =
-        extensions.create<ShadedJarExtension>("shadedJar", layout, objects, configurationToShade)
+        extensions.create<ShadedJarExtension>("shadedJar", objects, configurationToShade)
 
     private
     fun Project.registerTransforms(shadedJarExtension: ShadedJarExtension) {
@@ -161,14 +160,14 @@ open class ShadedJarPlugin : Plugin<Project> {
 }
 
 
-open class ShadedJarExtension(layout: ProjectLayout, objects: ObjectFactory, val shadedConfiguration: Configuration) {
+open class ShadedJarExtension(objects: ObjectFactory, val shadedConfiguration: Configuration) {
 
     /**
      * The build receipt properties file.
      *
      * The file will be included in the shaded jar under {@code /org/gradle/build-receipt.properties}.
      */
-    val buildReceiptFile = layout.fileProperty()
+    val buildReceiptFile = objects.fileProperty()
 
     /**
      * Retain only those classes in the keep package hierarchies, plus any classes that are reachable from these classes.

@@ -26,6 +26,7 @@ plugins {
 
 dependencies {
     api project(':baseServices')
+    api project(":coreApi")
     api libraries.groovy.coordinates
 
     implementation project(':baseServicesGroovy')
@@ -50,12 +51,14 @@ gradlebuildJava {
 
 testFixtures {
     from(':core')
+    from(':coreApi')
     from(':diagnostics', 'testFixtures')
 }
 
 classycle {
     excludePatterns = ['org/gradle/model/internal/core/**',
                        'org/gradle/model/internal/inspect/**',
+                       'org/gradle/api/internal/tasks/**',
                        'org/gradle/model/internal/manage/schema/**',
                        'org/gradle/model/internal/type/**']
 }

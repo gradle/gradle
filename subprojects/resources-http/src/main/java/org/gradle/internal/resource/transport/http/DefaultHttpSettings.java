@@ -150,7 +150,7 @@ public class DefaultHttpSettings implements HttpSettings {
                     sslcontext.init(null, allTrustingTrustManager, null);
                     return sslcontext;
                 } catch (GeneralSecurityException e) {
-                    throw new UncheckedException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
         });

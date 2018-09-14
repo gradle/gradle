@@ -235,9 +235,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (replaceExisting) {
             Task existing = findByNameWithoutRules(name);
             if (existing != null) {
-                DeprecationLogger.nagUserWith("Replacing a task that may have been used by other plugins can cause problems.",
-                    "This behavior has been deprecated and is scheduled to become an error in Gradle 6.0.",
-                    "",
+                DeprecationLogger.nagUserOfDeprecated("Replacing a task that may have been used by other plugins",
                     "Use a different name for this task ('" + name + "') or avoid creating the original task you are trying to replace.");
                 removeInternal(existing);
             } else {
@@ -247,10 +245,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
                     final Action<? super T> onCreate;
                     if (!taskProvider.getType().isAssignableFrom(task.getClass())) {
-                        DeprecationLogger.nagUserWith(
-                            "Replacing an existing task with an incompatible type.",
-                            "This behavior has been deprecated and is scheduled to become an error in Gradle 6.0.",
-                            "",
+                        DeprecationLogger.nagUserOfDeprecated(
+                            "Replacing an existing task with an incompatible type",
                             "Use a different name for this task ('" + name + "'), use a compatible type (" + ((TaskInternal)task).getTaskIdentity().type.getName() + ") or avoid creating the original task you are trying to replace.");
                         onCreate = getEventRegister().getAddActions();
                     } else {
@@ -260,11 +256,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                     add(task, onCreate);
                     return; // Exit early as we are reusing the create actions from the provider
                 } else {
-                    DeprecationLogger.nagUserWith(
-                        "Unnecessarily replacing a task that does not exist.",
-                        "This behavior has been deprecated and is scheduled to become an error in Gradle 6.0.",
-                        "Try using create() or register() directly instead.",
-                        "You attempted to replace a task named '" + name + "', but no task exists with that name already.");
+                    DeprecationLogger.nagUserOfDeprecated(
+                        "Unnecessarily replacing a task that does not exist",
+                        "Try using create() or register() directly instead. You attempted to replace a task named '" + name + "', but no task exists with that name already.");
                 }
             }
         } else if (hasWithName(name)) {
@@ -683,14 +677,13 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     private void warnAboutRemoveMethodDeprecation(String methodName) {
-        DeprecationLogger.nagUserWith(String.format("The TaskContainer.%s method has been deprecated.", methodName), "This is scheduled to become an error in Gradle 6.0.", "Prefer disabling the task instead, see Task.setEnabled(boolean).", "");
+        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskContainer." + methodName, "Prefer disabling the task instead, see Task.setEnabled(boolean).");
     }
 
     // Cannot be private due to reflective instantiation
     public class TaskCreatingProvider<I extends Task> extends AbstractDomainObjectCreatingProvider<I> implements TaskProvider<I> {
         private final TaskIdentity<I> identity;
         private Object[] constructorArgs;
-
 
         public TaskCreatingProvider(TaskIdentity<I> identity, @Nullable Action<? super I> configureAction, Object... constructorArgs) {
             super(identity.name, identity.type, configureAction);
@@ -704,8 +697,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
 
         @Override
-        protected Action<? super I> wrap(Action action) {
-            return MutationGuards.of(crossProjectConfigurator).withMutationDisabled(action);
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            context.add(get());
+            return true;
+        }
+
+        @Override
+        protected Action<? super I> withMutationDisabled(Action action) {
+            return MutationGuards.of(crossProjectConfigurator).withMutationDisabled(super.withMutationDisabled(action));
         }
 
         @Override

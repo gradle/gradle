@@ -38,10 +38,10 @@ import javax.inject.Inject
 open class EmptyDirectoryCheck @Inject constructor(objects: ObjectFactory) : DefaultTask() {
 
     @get:InputFiles
-    val targetDirectory: DirectoryProperty = newInputDirectory()
+    val targetDirectory: DirectoryProperty = objects.directoryProperty()
 
     @get:OutputFile
-    val reportFile: RegularFileProperty = newOutputFile()
+    val reportFile: RegularFileProperty = objects.fileProperty()
 
     @get:Input
     val policy: Property<WhenNotEmpty> = objects.property()

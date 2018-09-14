@@ -116,7 +116,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
 
                 // TODO: `classes` should be a little more tied to the classesDirs for a SourceSet so every plugin
                 // doesn't need to do this.
-                project.getTasks().named(sourceSet.getClassesTaskName()).configure(new Action<Task>() {
+                project.getTasks().named(sourceSet.getClassesTaskName(), new Action<Task>() {
                     @Override
                     public void execute(Task task) {
                         task.dependsOn(compileTask);

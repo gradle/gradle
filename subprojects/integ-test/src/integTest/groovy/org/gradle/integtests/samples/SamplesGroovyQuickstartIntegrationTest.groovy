@@ -16,42 +16,45 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Before
 import org.junit.Rule
-import org.junit.Test
+import spock.lang.Unroll
 
-class SamplesGroovyQuickstartIntegrationTest extends AbstractIntegrationTest {
+class SamplesGroovyQuickstartIntegrationTest extends AbstractSampleIntegrationTest {
 
-    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'groovy/quickstart')
+    @Rule
+    public final Sample sample = new Sample(testDirectoryProvider, 'groovy/quickstart')
 
-    @Before
-    void setup() {
-        useRepositoryMirrors()
-    }
+    @Unroll
+    def "groovy project quickstart sample with #dsl dsl"() {
+        given:
+        TestFile groovyProjectDir = sample.dir.file(dsl)
 
-    @Test
-    void groovyProjectQuickstartSample() {
-        TestFile groovyProjectDir = sample.dir
+        when:
         executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').run()
 
+        then:
         // Check tests have run
         def result = new DefaultTestExecutionResult(groovyProjectDir)
         result.assertTestClassesExecuted('org.gradle.PersonTest')
 
+        and:
         // Check contents of jar
         TestFile tmpDir = file('jarContents')
         groovyProjectDir.file('build/libs/quickstart.jar').unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
-                'META-INF/MANIFEST.MF',
-                'org/gradle/Person.class',
-                'org/gradle/Person$_closure1.class',
-                'org/gradle/Person$_closure2.class',
-                'resource.txt',
-                'script.groovy'
+            'META-INF/MANIFEST.MF',
+            'org/gradle/Person.class',
+            'org/gradle/Person$_closure1.class',
+            'org/gradle/Person$_closure2.class',
+            'resource.txt',
+            'script.groovy'
         )
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 }

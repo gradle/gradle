@@ -19,6 +19,8 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.reflect.HasPublicType;
+import org.gradle.api.reflect.TypeOf;
 import org.gradle.plugins.ear.EarPluginConvention;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
@@ -27,7 +29,9 @@ import org.gradle.util.ConfigureUtil;
 import javax.inject.Inject;
 import java.io.File;
 
-public class DefaultEarPluginConvention extends EarPluginConvention {
+import static org.gradle.api.reflect.TypeOf.typeOf;
+
+public class DefaultEarPluginConvention extends EarPluginConvention implements HasPublicType {
 
     private FileResolver fileResolver;
     private ObjectFactory objectFactory;
@@ -43,6 +47,11 @@ public class DefaultEarPluginConvention extends EarPluginConvention {
         deploymentDescriptor = objectFactory.newInstance(DefaultDeploymentDescriptor.class, fileResolver, objectFactory);
         deploymentDescriptor.readFrom("META-INF/application.xml");
         deploymentDescriptor.readFrom(appDirName + "/META-INF/" + deploymentDescriptor.getFileName());
+    }
+
+    @Override
+    public TypeOf<?> getPublicType() {
+        return typeOf(EarPluginConvention.class);
     }
 
     @Override
