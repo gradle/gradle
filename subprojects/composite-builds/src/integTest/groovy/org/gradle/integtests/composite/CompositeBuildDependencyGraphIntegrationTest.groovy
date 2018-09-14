@@ -31,7 +31,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
     def setup() {
         mavenRepo.module("org.test", "buildB", "1.0").publish()
 
-        resolve = new ResolveTestFixture(buildA.buildFile)
+        resolve = new ResolveTestFixture(buildA.buildFile).expectDefaultConfiguration("runtime")
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
