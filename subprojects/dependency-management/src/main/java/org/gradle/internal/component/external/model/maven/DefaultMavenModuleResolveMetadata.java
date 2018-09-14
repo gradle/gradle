@@ -71,6 +71,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     private ImmutableList<? extends ConfigurationMetadata> derivedVariants;
 
     private boolean filterConstraints = true;
+    private MavenDependencyDescriptor[] dependenciesAsArray;
 
     DefaultMavenModuleResolveMetadata(DefaultMutableMavenModuleResolveMetadata metadata) {
         super(metadata);
@@ -168,20 +169,35 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         if (dependencies.isEmpty()) {
             return ImmutableList.of();
         }
+        int size = dependencies.size();
+        // If we're reaching this point, we're very likely going to iterate on the dependencies
+        // several times. It appears that iterating using `dependencies` is expensive because of
+        // the creation of an iterator and checking bounds. Iterating an array is faster.
+        if (dependenciesAsArray == null) {
+            dependenciesAsArray = dependencies.toArray(new MavenDependencyDescriptor[0]);
+        }
         ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = null;
         boolean isOptionalConfiguration = "optional".equals(config.getName());
         ImmutableSet<String> hierarchy = config.getHierarchy();
-        for (MavenDependencyDescriptor dependency : dependencies) {
+        for (MavenDependencyDescriptor dependency : dependenciesAsArray) {
             if (isOptionalConfiguration && includeInOptionalConfiguration(dependency)) {
+                ModuleDependencyMetadata element = new OptionalConfigurationDependencyMetadata(config, getId(), dependency);
+                if (size == 1) {
+                    return ImmutableList.of(element);
+                }
                 if (filteredDependencies == null) {
                     filteredDependencies = ImmutableList.builder();
                 }
-                filteredDependencies.add(new OptionalConfigurationDependencyMetadata(config, getId(), dependency));
+                filteredDependencies.add(element);
             } else if (include(dependency, hierarchy)) {
+                ModuleDependencyMetadata element = contextualize(config, getId(), dependency);
+                if (size == 1) {
+                    return ImmutableList.of(element);
+                }
                 if (filteredDependencies == null) {
                     filteredDependencies = ImmutableList.builder();
                 }
-                filteredDependencies.add(contextualize(config, getId(), dependency));
+                filteredDependencies.add(element);
             }
         }
         return filteredDependencies == null ? ImmutableList.<ModuleDependencyMetadata>of() : filteredDependencies.build();
