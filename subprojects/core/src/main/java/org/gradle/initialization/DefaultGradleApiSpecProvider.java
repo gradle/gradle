@@ -36,6 +36,7 @@ public class DefaultGradleApiSpecProvider extends GradleApiSpecProvider.SpecAdap
             "org.gradle",
             "org.apache.tools.ant",
             "groovy",
+            "org.apache.groovy",
             "org.codehaus.groovy",
             "groovyjarjarantlr",
             "org.slf4j",
@@ -55,6 +56,7 @@ public class DefaultGradleApiSpecProvider extends GradleApiSpecProvider.SpecAdap
     @Override
     public Set<String> getExportedResources() {
         return ImmutableSet.of(
+            "META-INF/groovy/org.codehaus.groovy.runtime.ExtensionModule",
             "META-INF/services/org.apache.groovy.json.FastStringServiceFactory"
         );
     }
