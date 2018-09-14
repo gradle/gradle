@@ -26,8 +26,8 @@ import static org.gradle.util.GUtil.uncheckedCall;
 
 public class DeferredUtil {
     /**
-     * Successively unpacks a path that may be deferred by a Callable or Factory
-     * until it's resolved to null or something other than a Callable or Factory.
+     * Successively unpacks a path that may be deferred by a Callable, Factory or Kotlin function
+     * until it's resolved to null or something other than a Callable, Factory or Kotlin function.
      */
     @Nullable
     public static Object unpack(@Nullable Object path) {
@@ -39,6 +39,8 @@ public class DeferredUtil {
                 return ((Provider<?>) current).get();
             } else if (current instanceof Factory) {
                 return ((Factory) current).create();
+            } else if (current instanceof kotlin.jvm.functions.Function0) {
+                current = ((kotlin.jvm.functions.Function0) current).invoke();
             } else {
                 return current;
             }
@@ -49,6 +51,7 @@ public class DeferredUtil {
     public static boolean isDeferred(Object value) {
         return value instanceof Callable
             || value instanceof Provider
-            || value instanceof Factory;
+            || value instanceof Factory
+            || value instanceof kotlin.jvm.functions.Function0;
     }
 }

@@ -28,6 +28,7 @@ dependencies {
     api project(':baseServices')
     api project(":coreApi")
     api libraries.groovy.coordinates
+    implementation libraries.kotlin.coordinates
 
     implementation project(':baseServicesGroovy')
     implementation libraries.slf4j_api.coordinates
