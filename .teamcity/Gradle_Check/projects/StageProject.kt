@@ -61,7 +61,7 @@ class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boo
         val deferredTestsProject = Project {
             uuid = "${rootProjectUuid}_deferred_tests"
             id = AbsoluteId(uuid)
-            name = "Test coverage deferred from Quick Feedback and Build Branch accept"
+            name = "Test coverage deferred from Quick Feedback and Ready for Merge"
             model.subProjects
                 .filter(GradleSubproject::containsSlowTests)
                 .forEach { subProject ->
