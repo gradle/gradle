@@ -33,49 +33,35 @@ class SettingsDslIntegrationSpec extends AbstractIntegrationSpec {
         succeeds('help')
     }
 
-    def "Can access ExtensionAware in Groovy 'Settings'"() {
+    def "Can type-safely use ExtensionAware with the Groovy DSL"() {
         when:
+        def answerFile = "answerHolder.gradle"
+        testDirectory.file(answerFile) << """
+        extensions["theAnswer"] = {
+            42
+        }
+        """
+
         settingsFile << """
-        extensions.testValue = "aValue"
-        
-        assert(extensions.testValue == "aValue")
+        buildscript {
+            extensions["aValue"] = "hello"
+
+            assert extensions["aValue"] == "hello" : "Can access inside buildscript"
+        }
+
+        assert extensions["aValue"] == "hello" : "Can access outside buildscript"
+
+        apply from: '$answerFile'
+
+        assert(extensions["theAnswer"]() == 42) : "Can access from applied file"
         """
         then:
         succeeds('help')
     }
 
-    def "Can access ExtensionAware in Kotlin 'Settings'"() {
+    def "Can type-safely use ExtensionAware with the Kotlin DSL"() {
         when:
         // Need to use settings.extra because Kotlin DSL needs to be re-compiled
-        settingsKotlinFile << """
-        val testValue by settings.extra { "someValue" }
-
-        assert(testValue == "someValue")
-        """
-        then:
-        succeeds('help')
-    }
-
-    def "Can set extension value in Kotlin buildscript and access externally"() {
-        when:
-        // Need to use settings because Kotlin DSL needs to be re-compiled
-        settingsKotlinFile << """
-        buildscript {
-            val aValue by settings.extra {
-                "To be or not to be"
-            }
-        }
-        
-        val aValue: String by settings.extra
-        
-        assert(aValue == "To be or not to be")
-        """
-        then:
-        succeeds('help')
-    }
-
-    def "Can access extension applied from external scripts"() {
-        when:
         def answerFile = "answerHolder.settings.gradle.kts"
 
         // Need to use settings because Kotlin DSL needs to be re-compiled
@@ -86,13 +72,42 @@ class SettingsDslIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         settingsKotlinFile << """
+        buildscript {
+            settings.extra["aValue"] = "hello"
+
+            assert(settings.extra["aValue"] == "hello") {
+                "Can access inside buildscript"
+            }
+
+            val hamlet by settings.extra {
+                "To be or not to be"
+            }
+
+            assert(hamlet == "To be or not to be") {
+                "Can access inside buildscript"
+            }
+        }
+        
+        assert(settings.extra["aValue"] == "hello") {
+            "Can access outside buildscript"
+        }
+        
+        val hamlet: String by settings.extra
+        
+        assert(hamlet == "To be or not to be") {
+            "Can access delegate outside buildscript"
+        }
+        
         apply(from = "$answerFile")
 
         val theAnswer: () -> Int by settings.extra
 
-        assert(42 == theAnswer())
+        assert(theAnswer() == 42) {
+            "Can access from applied file"
+        }
         """
         then:
         succeeds('help')
     }
+
 }
