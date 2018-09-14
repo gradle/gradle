@@ -451,7 +451,7 @@ open class IdePlugin : Plugin<Project> {
         val compilerConfiguration = root.select("component[name=CompilerConfiguration]").first()
         compilerConfiguration.createOrEmptyOutChildElement("excludeFromCompile")
         compilerConfiguration.removeBySelector("option[name=BUILD_PROCESS_HEAP_SIZE]")
-            .option("BUILD_PROCESS_HEAP_SIZE", "2048")
+            .option("BUILD_PROCESS_HEAP_SIZE", javaCompilerHeapSpace.toString())
         compilerConfiguration.removeBySelector("option[name=USE_RELEASE_OPTION]")
             .option("USE_RELEASE_OPTION", "false")
     }
