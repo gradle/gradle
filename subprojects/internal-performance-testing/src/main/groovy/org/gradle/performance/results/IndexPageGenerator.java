@@ -173,8 +173,12 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                                 if(scenario.isFromCache()) {
                                     span().classAttr("badge badge-info").text("FROM-CACHE").end();
                                 }
-                                if(scenario.isAboutToRegress()) {
-                                    span().classAttr("badge badge-danger").text("DANGEROUS").end();
+                                if(scenario.isBuildFailed()) {
+                                    span().classAttr("badge badge-danger").text("FAILED").end();
+                                } else if(!scenario.isSuccessful()) {
+                                    span().classAttr("badge badge-danger").text("REGRESSED").end();
+                                } else if(scenario.isAboutToRegress()) {
+                                    span().classAttr("badge badge-warning").text("DANGEROUS").end();
                                 }
                             end();
                             div().classAttr("col-2");
@@ -229,13 +233,12 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                             DataSeries<Duration> currentVersion = execution.getCurrentVersion().getTotalTime();
                             td().text(format.timestamp(execution.getTime())).end();
                             td().a().target("_blank").href("https://github.com/gradle/gradle/commits/" + execution.getCommitId()).text(execution.getCommitId()).end().end();
-                            td().text(execution.getCommitId()).end();
                             td().classAttr(baseVersion.getMedian().compareTo(currentVersion.getMedian()) < 0 ? "text-success" : "text-danger").text(baseVersion.getMedian().format()).end();
                             td().classAttr("text-muted").text("se: " + baseVersion.getStandardError().format()).end();
                             td().classAttr(baseVersion.getMedian().compareTo(currentVersion.getMedian()) >= 0 ? "text-success" : "text-danger").text(currentVersion.getMedian().format()).end();
                             td().classAttr("text-muted").text("se: " + currentVersion.getStandardError().format()).end();
-                            td().classAttr(baseVersion.getMedian().compareTo(currentVersion.getMedian()) < 0 ? "text-danger" : "text-success").text(execution.getFormattedRegression()).end();
-                            td().classAttr(baseVersion.getMedian().compareTo(currentVersion.getMedian()) < 0 ? "text-danger" : "text-success").text(execution.getFormattedConfidence()).end();
+                            td().classAttr(getTextColorCss(execution)).text(execution.getFormattedRegression()).end();
+                            td().classAttr(getTextColorCss(execution)).text(execution.getFormattedConfidence()).end();
                         end();
                 });
                 end();
