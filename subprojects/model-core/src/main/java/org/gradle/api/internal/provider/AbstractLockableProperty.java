@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 import javax.annotation.Nullable;
@@ -65,11 +64,6 @@ public abstract class AbstractLockableProperty<T> extends AbstractProperty<T> {
     @Override
     public T getOrNull() {
         return locked ? value : delegate.getOrNull();
-    }
-
-    @Override
-    public <S> ProviderInternal<S> map(Transformer<? extends S, ? super T> transformer) {
-        return new TransformBackedProvider<S, T>(transformer, this);
     }
 
     @Override

@@ -109,6 +109,20 @@ public interface Provider<T> {
     <S> Provider<S> map(Transformer<? extends S, ? super T> transformer);
 
     /**
+     * Returns a new {@link Provider} from the value of this provider transformed using the given function.
+     *
+     * <p>The new provider will be live, so that each time it is queried, it queries this provider and applies the transformation to the result. Whenever this provider has no value, the new provider will also have no value.
+     *
+     * <p>Note that the new provider may cache the result of the transformations and so there is no guarantee that the transformer will be called on every query of the new provider. The new provider will apply the transformation lazily, and calculate the value for the new provider when queried.
+     *
+     * <p>Any task details associated with this provider are ignored. The new provider will use whatever task details are associated with the return value of the function.</p>
+     *
+     * @param transformer The transformer to apply to values. Should not return {@code null}.
+     * @since 5.0
+     */
+    <S> Provider<S> flatMap(Transformer<? extends Provider<? extends S>, ? super T> transformer);
+
+    /**
      * Returns {@code true} if there is a value present, otherwise {@code false}.
      *
      * @return {@code true} if there is a value present, otherwise {@code false}

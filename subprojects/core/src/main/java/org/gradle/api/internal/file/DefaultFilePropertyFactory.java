@@ -210,12 +210,6 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
             File dir = resolver.resolve(path);
             return new FixedDirectory(dir, resolver.newResolver(dir));
         }
-
-        @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            // No dependencies
-            return true;
-        }
     }
 
     static class DefaultDirectoryVar extends AbstractFileVar<Directory> implements DirectoryProperty {
