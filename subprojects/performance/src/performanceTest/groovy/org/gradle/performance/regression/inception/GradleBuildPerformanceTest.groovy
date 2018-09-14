@@ -73,8 +73,8 @@ class GradleBuildPerformanceTest extends Specification {
 
     CrossBuildPerformanceTestRunner runner
 
-    def warmupBuilds = 20
-    def measuredBuilds = 40
+    def warmupBuilds = 1
+    def measuredBuilds = 1
 
     def setup() {
         runner = new CrossBuildPerformanceTestRunner(

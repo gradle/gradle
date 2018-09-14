@@ -1692,9 +1692,6 @@ task checkDeps(dependsOn: configurations.compile) {
         }
         bom.publish()
 
-        settingsFile << """
-enableFeaturePreview('IMPROVED_POM_SUPPORT')
-"""
         buildFile << """
 plugins {
     id 'java'

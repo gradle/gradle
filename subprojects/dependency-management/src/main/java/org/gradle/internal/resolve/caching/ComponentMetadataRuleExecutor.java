@@ -32,11 +32,11 @@ import java.io.Serializable;
 
 public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor<ModuleComponentResolveMetadata, ComponentMetadataContext, ModuleComponentResolveMetadata> {
 
-    private static Transformer<Serializable, ModuleComponentResolveMetadata> getKeyToSnapshotableTransformer(final boolean improvedPomSupport) {
+    private static Transformer<Serializable, ModuleComponentResolveMetadata> getKeyToSnapshotableTransformer() {
         return new Transformer<Serializable, ModuleComponentResolveMetadata>() {
             @Override
             public Serializable transform(ModuleComponentResolveMetadata moduleMetadata) {
-                return moduleMetadata.getOriginalContentHash().asHexString() + improvedPomSupport;
+                return moduleMetadata.getOriginalContentHash().asHexString();
             }
         };
     }
@@ -47,8 +47,8 @@ public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor
                                          InMemoryCacheDecoratorFactory cacheDecoratorFactory,
                                          ValueSnapshotter snapshotter,
                                          BuildCommencedTimeProvider timeProvider,
-                                         Serializer<ModuleComponentResolveMetadata> componentMetadataContextSerializer, boolean improvedPomSupport) {
-        super("md-rule", cacheRepository, cacheDecoratorFactory, snapshotter, timeProvider, createValidator(timeProvider), getKeyToSnapshotableTransformer(improvedPomSupport), componentMetadataContextSerializer);
+                                         Serializer<ModuleComponentResolveMetadata> componentMetadataContextSerializer) {
+        super("md-rule", cacheRepository, cacheDecoratorFactory, snapshotter, timeProvider, createValidator(timeProvider), getKeyToSnapshotableTransformer(), componentMetadataContextSerializer);
         this.componentMetadataContextSerializer = componentMetadataContextSerializer;
     }
 

@@ -47,7 +47,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
     }
 
     @Unroll
-    def "resolve large dependency graph (improvedPomSupport = #improvedPomSupport, parallel = #parallel)"() {
+    def "resolve large dependency graph (parallel = #parallel)"() {
         runner.testProject = TEST_PROJECT_NAME
         startServer()
 
@@ -57,9 +57,6 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
         runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", '-PnoExcludes']
         if (parallel) {
             runner.args += '--parallel'
-        }
-        if (improvedPomSupport) {
-            runner.args += '-PimprovedPomSupport=true'
         }
 
         when:
@@ -72,11 +69,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
         stopServer()
 
         where:
-        parallel | improvedPomSupport
-        true     | true
-        true     | false
-        false    | true
-        false    | false
+        parallel << [false, true]
     }
 
 }

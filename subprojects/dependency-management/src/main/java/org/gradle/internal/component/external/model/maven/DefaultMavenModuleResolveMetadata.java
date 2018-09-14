@@ -61,7 +61,6 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     // We need to work with the 'String' version of the usage attribute, since this is expected for all providers by the `PreferJavaRuntimeVariant` schema
     static final Attribute<String> USAGE_ATTRIBUTE = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class);
 
-    private final boolean improvedPomSupportEnabled;
     private final NamedObjectInstantiator objectInstantiator;
 
     private final ImmutableList<MavenDependencyDescriptor> dependencies;
@@ -75,7 +74,6 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
 
     DefaultMavenModuleResolveMetadata(DefaultMutableMavenModuleResolveMetadata metadata) {
         super(metadata);
-        this.improvedPomSupportEnabled = metadata.isImprovedPomSupportEnabled();
         this.objectInstantiator = metadata.getObjectInstantiator();
         packaging = metadata.getPackaging();
         relocated = metadata.isRelocated();
@@ -85,7 +83,6 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
 
     private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSource source) {
         super(metadata, source);
-        this.improvedPomSupportEnabled = metadata.improvedPomSupportEnabled;
         this.objectInstantiator = metadata.objectInstantiator;
         packaging = metadata.packaging;
         relocated = metadata.relocated;
@@ -185,9 +182,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
 
     private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming) {
         ConfigurationBoundExternalDependencyMetadata dependency = new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming);
-        if (improvedPomSupportEnabled) {
-            dependency.alwaysUseAttributeMatching();
-        }
+        dependency.alwaysUseAttributeMatching();
         return dependency;
     }
 
@@ -213,7 +208,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
 
     @Override
     public MutableMavenModuleResolveMetadata asMutable() {
-        return new DefaultMutableMavenModuleResolveMetadata(this, objectInstantiator, improvedPomSupportEnabled);
+        return new DefaultMutableMavenModuleResolveMetadata(this, objectInstantiator);
     }
 
     public String getPackaging() {
@@ -232,16 +227,12 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         return JAR_PACKAGINGS.contains(packaging);
     }
 
-    boolean isImprovedPomSupportEnabled() {
-        return improvedPomSupportEnabled;
-    }
-
     public NamedObjectInstantiator getObjectInstantiator() {
         return objectInstantiator;
     }
 
     private boolean isJavaLibrary() {
-        return improvedPomSupportEnabled && (isKnownJarPackaging() || isPomPackaging());
+        return isKnownJarPackaging() || isPomPackaging();
     }
 
     @Nullable
