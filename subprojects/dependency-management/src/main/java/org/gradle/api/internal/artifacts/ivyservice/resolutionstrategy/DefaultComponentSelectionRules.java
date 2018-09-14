@@ -43,7 +43,7 @@ import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -114,7 +114,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     public ComponentSelectionRules addRule(SpecRuleAction<? super ComponentSelection> specRuleAction) {
         mutationValidator.validateMutation(STRATEGY);
         if (rules == null) {
-            rules = new HashSet<SpecRuleAction<? super ComponentSelection>>();
+            rules = new LinkedHashSet<SpecRuleAction<? super ComponentSelection>>();
         }
         rules.add(specRuleAction);
         return this;
