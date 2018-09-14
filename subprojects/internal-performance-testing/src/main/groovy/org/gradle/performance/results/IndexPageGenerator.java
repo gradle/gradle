@@ -54,6 +54,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
             Comparator<ScenarioBuildResultData> comparator = comparing(ScenarioBuildResultData::isBuildFailed).reversed()
                 .thenComparing(ScenarioBuildResultData::isSuccessful)
                 .thenComparing(comparing(ScenarioBuildResultData::isAboutToRegress).reversed())
+                .thenComparing(ScenarioBuildResultData::isFromCache)
                 .thenComparing(comparingDouble(ScenarioBuildResultData::getConfidencePercentage).reversed())
                 .thenComparing(comparingDouble(ScenarioBuildResultData::getRegressionPercentage).reversed())
                 .thenComparing(ScenarioBuildResultData::getScenarioName);
@@ -168,11 +169,13 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     div().id("heading" + index).classAttr("card-header");
                         div().classAttr("row align-items-center");
                             div().classAttr("col").text(String.valueOf(index)).end();
-                            div().classAttr("col-9");
+                            div().classAttr("col-7");
                                 big().text(scenario.getScenarioName()).end();
-                                a().target("_blank").classAttr("btn btn-primary btn-sm").href(scenario.getWebUrl()).text("To build").end();
-                                a().target("_blank").classAttr("btn btn-primary btn-sm").href("tests/" + urlEncode(scenario.getScenarioName().replaceAll("\\s+", "-") + ".html")).text("See graph").end();
-                                a().classAttr("btn btn-primary btn-sm collapsed").href("#").attr("data-toggle", "collapse", "data-target", "#collapse" + index).text("Show details").end();
+                            end();
+                            div().classAttr("col-2");
+                                a().target("_blank").classAttr("btn btn-primary btn-sm").href(scenario.getWebUrl()).text("Build").end();
+                                a().target("_blank").classAttr("btn btn-primary btn-sm").href("tests/" + urlEncode(scenario.getScenarioName().replaceAll("\\s+", "-") + ".html")).text("Graph").end();
+                                a().classAttr("btn btn-primary btn-sm collapsed").href("#").attr("data-toggle", "collapse", "data-target", "#collapse" + index).text("Detail").end();
                             end();
                             div().classAttr("col-2");
                                 if(scenario.isBuildFailed()) {
@@ -210,6 +213,8 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         th().text("Commit").end();
                         th().colspan("2").text(scenario.getExecutions().get(0).getBaseVersion().getName()).end();
                         th().colspan("2").text(scenario.getExecutions().get(0).getCurrentVersion().getName()).end();
+                        th().text("Difference").end();
+                        th().text("Confidence").end();
                     end();
                     scenario.getExecutions().forEach(execution -> {
                         tr();
@@ -221,6 +226,8 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                             td().classAttr("text-muted").text("se: " + baseVersion.getStandardError().format()).end();
                             td().classAttr(baseVersion.getMedian().compareTo(currentVersion.getMedian()) >= 0 ? "text-success" : "text-danger").text(currentVersion.getMedian().format()).end();
                             td().classAttr("text-muted").text("se: " + currentVersion.getStandardError().format()).end();
+                            td().classAttr(baseVersion.getMedian().compareTo(currentVersion.getMedian()) < 0 ? "text-danger" : "text-success").text(execution.getFormattedRegression()).end();
+                            td().classAttr(baseVersion.getMedian().compareTo(currentVersion.getMedian()) < 0 ? "text-danger" : "text-success").text(execution.getFormattedConfidence()).end();
                         end();
                 });
                 end();
