@@ -24,21 +24,17 @@ val springVersion by extra("3.1.0.RELEASE")
 val emailNotification by extra { "build@master.org" }
 
 sourceSets.all {
-    this as ExtensionAware
     extra["purpose"] = null
 }
 
 sourceSets {
     getByName("main") {
-        this as ExtensionAware
         extra["purpose"] = "production"
     }
     getByName("test") {
-        this as ExtensionAware
         extra["purpose"] = "test"
     }
     create("plugin") {
-        this as ExtensionAware
         extra["purpose"] = "production"
     }
 }
@@ -47,10 +43,7 @@ task("printProperties") {
     doLast {
         println(springVersion)
         println(emailNotification)
-        sourceSets.matching {
-            it as ExtensionAware
-            it.extra["purpose"] == "production"
-        }.forEach { println(it.name) }
+        sourceSets.matching { it.extra["purpose"] == "production" }.forEach { println(it.name) }
     }
 }
 // end::extraProperties[]
