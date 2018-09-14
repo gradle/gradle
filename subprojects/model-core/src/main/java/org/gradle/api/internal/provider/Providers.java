@@ -17,7 +17,6 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
@@ -27,7 +26,7 @@ public class Providers {
     public static final String NULL_TRANSFORMER_RESULT = "Transformer for this provider returned a null value.";
     public static final String NULL_VALUE = "No value has been specified for this provider.";
 
-    private static final Provider<Object> NULL_PROVIDER = new ProviderInternal<Object>() {
+    private static final Provider<Object> NULL_PROVIDER = new AbstractMinimalProvider<Object>() {
         @Override
         public Object get() {
             throw new IllegalStateException(NULL_VALUE);
@@ -47,17 +46,6 @@ public class Providers {
         @Override
         public Object getOrElse(Object defaultValue) {
             return defaultValue;
-        }
-
-        @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return false;
-        }
-
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            // Fails with an exception
-            get();
         }
 
         @Override
@@ -91,7 +79,7 @@ public class Providers {
         return Cast.uncheckedCast(value);
     }
 
-    private static class FixedValueProvider<T> implements ProviderInternal<T> {
+    private static class FixedValueProvider<T> extends AbstractMinimalProvider<T> {
         private final T value;
 
         FixedValueProvider(T value) {
@@ -125,16 +113,6 @@ public class Providers {
         }
 
         @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return false;
-        }
-
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            context.maybeAdd(get());
-        }
-
-        @Override
         public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
             return new MappedFixedValueProvider<S, T>(transformer, this);
         }
@@ -145,7 +123,7 @@ public class Providers {
         }
     }
 
-    private static class MappedFixedValueProvider<S, T> implements ProviderInternal<S> {
+    private static class MappedFixedValueProvider<S, T> extends AbstractMinimalProvider<S> {
         private final Transformer<? extends S, ? super T> transformer;
         private final Provider<T> provider;
         private S value;
@@ -189,16 +167,6 @@ public class Providers {
         @Override
         public S getOrNull() {
             return get();
-        }
-
-        @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return false;
-        }
-
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            context.maybeAdd(get());
         }
 
         @Override

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
 import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollection;
@@ -180,11 +179,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             valueState = "defined";
         }
         return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, valueState);
-    }
-
-    @Override
-    public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super C> transformer) {
-        return new TransformBackedProvider<S, C>(transformer, this);
     }
 
     private static class ValidatingValueCollector<T> implements ValueCollector<T> {

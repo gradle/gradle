@@ -16,31 +16,18 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.internal.UncheckedException;
+import static org.gradle.api.internal.provider.Providers.NULL_VALUE;
 
-import javax.annotation.Nullable;
-import java.util.concurrent.Callable;
-
-public class DefaultProvider<T> extends AbstractReadOnlyProvider<T> {
-    private final Callable<? extends T> value;
-
-    public DefaultProvider(Callable<? extends T> value) {
-        this.value = value;
-    }
-
-    @Nullable
+/**
+ * A basic {@link org.gradle.api.provider.Provider} implementation. Subclasses need to provide a {@link #getOrNull()} implementation.
+ */
+public abstract class AbstractReadOnlyProvider<T> extends AbstractMinimalProvider<T> implements ProviderInternal<T> {
     @Override
-    public Class<T> getType() {
-        // We could do a better job of figuring this out
-        return null;
-    }
-
-    @Override
-    public T getOrNull() {
-        try {
-            return value.call();
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+    public T get() {
+        T evaluatedValue = getOrNull();
+        if (evaluatedValue == null) {
+            throw new IllegalStateException(NULL_VALUE);
         }
+        return evaluatedValue;
     }
 }

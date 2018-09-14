@@ -20,7 +20,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 import javax.annotation.Nullable;
 
-public abstract class AbstractMappingProvider<OUT, IN> extends AbstractProvider<OUT> {
+public abstract class AbstractMappingProvider<OUT, IN> extends AbstractMinimalProvider<OUT> {
     private final Class<OUT> type;
     private final ProviderInternal<? extends IN> provider;
 
@@ -67,6 +67,6 @@ public abstract class AbstractMappingProvider<OUT, IN> extends AbstractProvider<
 
     @Override
     public String toString() {
-        return "transform(" + provider + ")";
+        return "map(" + provider + ")";
     }
 }

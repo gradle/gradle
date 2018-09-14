@@ -20,11 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.DomainObjectCollection
 import org.gradle.api.NamedDomainObjectCollection
 import org.gradle.api.NamedDomainObjectList
-import org.gradle.api.Transformer
-import org.gradle.api.internal.provider.CollectionProviderInternal
-import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.Providers
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 
 abstract class DomainObjectCollectionConfigurationFactories {
     abstract static class AbstractConfigurationFactory<T, F> {
@@ -94,57 +90,7 @@ abstract class DomainObjectCollectionConfigurationFactories {
 
         @Override
         void doCall(DomainObjectCollection<T> container, T element) {
-            container.addAllLater(new CollectionProviderInternal<T, Collection<T>>() {
-                @Override
-                Class getElementType() {
-                    return type
-                }
-
-                @Override
-                int size() {
-                    return 1
-                }
-
-                @Override
-                Class getType() {
-                    return List
-                }
-
-                @Override
-                boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-                    return false
-                }
-
-                @Override
-                void visitDependencies(TaskDependencyResolveContext context) {
-                    throw new UnsupportedOperationException()
-                }
-
-                @Override
-                ProviderInternal<T> map(Transformer transformer) {
-                    throw new UnsupportedOperationException()
-                }
-
-                @Override
-                Collection<T> get() {
-                    return [element]
-                }
-
-                @Override
-                Collection<T> getOrNull() {
-                    return get()
-                }
-
-                @Override
-                Collection<T> getOrElse(Collection<T> defaultValue) {
-                    return get()
-                }
-
-                @Override
-                boolean isPresent() {
-                    return true
-                }
-            })
+            container.addAllLater(Providers.of([element]))
         }
 
         static class AsAction<T> extends CallAddAllLaterFactory<T, Action<T>> {

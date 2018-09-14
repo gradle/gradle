@@ -16,28 +16,5 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-
-public abstract class AbstractProperty<T> implements PropertyInternal<T>, TaskDependencyContainer {
-    @Override
-    public T getOrElse(T defaultValue) {
-        T value = getOrNull();
-        if (value == null) {
-            return defaultValue;
-        }
-        return value;
-    }
-
-    @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        return false;
-    }
-
-    @Override
-    public void visitDependencies(TaskDependencyResolveContext context) {
-        if (!maybeVisitBuildDependencies(context)) {
-            context.maybeAdd(get());
-        }
-    }
+public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
 }
