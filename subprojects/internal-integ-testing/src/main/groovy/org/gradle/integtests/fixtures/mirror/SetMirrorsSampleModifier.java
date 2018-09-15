@@ -28,6 +28,10 @@ import java.util.List;
 public class SetMirrorsSampleModifier implements SampleModifier {
     @Override
     public Sample modify(Sample sample) {
+        if (sample.getId().contains("usePluginsInInitScripts")) {
+            // usePluginsInInitScripts asserts using https://repo.gradle.org/gradle/repo
+            return sample;
+        }
         List<Command> commands = sample.getCommands();
         List<Command> modifiedCommands = new ArrayList<Command>();
         File initScript = RepoScriptBlockUtil.createMirrorInitScript();
