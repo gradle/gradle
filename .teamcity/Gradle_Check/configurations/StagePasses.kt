@@ -15,9 +15,9 @@ import model.Trigger
 import projects.FunctionalTestProject
 
 class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, containsDeferredTests: Boolean, rootProjectUuid: String) : BaseGradleBuildType(model, init = {
-    uuid = "${model.projectPrefix}Stage_${stage.id}_Trigger"
-    id = AbsoluteId(uuid)
-    name = stage.name + " (Trigger)"
+    uuid = stageTriggerUuid(model, stage)
+    id = stageTriggerId(model, stage)
+    name = stage.stageName.stageName + " (Trigger)"
 
     applyDefaultSettings(this)
     artifactRules = "build/build-receipt.properties"
@@ -90,7 +90,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
 
     dependencies {
         if (!stage.runsIndependent && prevStage != null) {
-            dependency(AbsoluteId("${model.projectPrefix}Stage_${prevStage.id}_Trigger")) {
+            dependency(stageTriggerId(model, prevStage)) {
                 snapshot {
                     onDependencyFailure = FailureAction.ADD_PROBLEM
                 }
@@ -151,3 +151,6 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
         }
     }
 })
+
+fun stageTriggerUuid(model: CIBuildModel, stage: Stage) = "${model.projectPrefix}Stage_${stage.stageName.uuid}_Trigger"
+fun stageTriggerId(model: CIBuildModel, stage: Stage) = AbsoluteId("${model.projectPrefix}Stage_${stage.stageName.id}_Trigger")

@@ -8,6 +8,8 @@ import model.NoBuildCache
 import model.OS
 import model.SpecificBuild
 import model.Stage
+import model.StageName
+import model.StageNames
 import model.TestCoverage
 import model.TestType
 import org.junit.Test
@@ -30,8 +32,8 @@ class CIConfigIntegrationTests {
     fun macOSBuildsSubset() {
         val m = CIBuildModel()
         val p = RootProject(m)
-        val releaseAccept = p.subProjects.find { it.name.contains("Release Accept") }!!
-        val macOS = releaseAccept.subProjects.find { it.name.contains("Macos") }!!
+        val readyForRelease = p.subProjects.find { it.name.contains(StageNames.READY_FOR_RELEASE.stageName) }!!
+        val macOS = readyForRelease.subProjects.find { it.name.contains("Macos") }!!
 
         macOS.buildTypes.forEach { buildType ->
             assertFalse(OS.macos.ignoredSubprojects.any { subproject ->
@@ -82,10 +84,10 @@ class CIConfigIntegrationTests {
                 }
 
                 // hacky way to consider deferred tests
-                val deferredTestCount = if (stage.name.contains("Master Accept")) 10 else 0
+                val deferredTestCount = if (stage.stageName == StageNames.READY_FOR_NIGHTLY) 10 else 0
                 assertEquals(
                stage.specificBuilds.size + functionalTestCount + stage.performanceTests.size + (if (prevStage != null) 1 else 0) + deferredTestCount,
-                       it.dependencies.items.size, stage.name)
+                       it.dependencies.items.size, stage.stageName.stageName)
             } else {
                 assertEquals(2, it.dependencies.items.size) //Individual Performance Worker
             }
@@ -99,7 +101,7 @@ class CIConfigIntegrationTests {
                 parentBuildCache = NoBuildCache,
                 childBuildCache = NoBuildCache,
                 stages = listOf(
-                        Stage("Quick Feedback", "Runs all checks and functional tests with an embedded test executer",
+                        Stage(StageNames.QUICK_FEEDBACK,
                             specificBuilds = listOf(
                                     SpecificBuild.CompileAll,
                                     SpecificBuild.SanityCheck,
@@ -117,27 +119,31 @@ class CIConfigIntegrationTests {
 
     @Test
     fun canDeferSlowTestsToLaterStage() {
+
+        data class DefaultStageName(override val stageName: String, override val description: String) : StageName
+
+
         val m = CIBuildModel(
             projectPrefix = "",
             parentBuildCache = NoBuildCache,
             childBuildCache = NoBuildCache,
             stages = listOf(
-                Stage("Stage1", "Stage1 description",
+                Stage(DefaultStageName("Stage1", "Stage1 description"),
                     functionalTests = listOf(
                         TestCoverage(TestType.quick, OS.linux, JvmVersion.java8),
                         TestCoverage(TestType.quick, OS.windows, JvmVersion.java8)),
                     omitsSlowProjects = true),
-                Stage("Stage2", "Stage2 description",
+                Stage(DefaultStageName("Stage2", "Stage2 description"),
                     functionalTests = listOf(
                         TestCoverage(TestType.noDaemon, OS.linux, JvmVersion.java8),
                         TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java8)),
                     omitsSlowProjects = true),
-                Stage("Stage3", "Stage3 description",
+                Stage(DefaultStageName("Stage3", "Stage3 description"),
                     functionalTests = listOf(
                         TestCoverage(TestType.platform, OS.linux, JvmVersion.java8),
                        TestCoverage(TestType.platform, OS.windows, JvmVersion.java8)),
                     omitsSlowProjects = false),
-                Stage("Stage4", "Stage4 description",
+                Stage(DefaultStageName("Stage4", "Stage4 description"),
                     functionalTests = listOf(
                         TestCoverage(TestType.parallel, OS.linux, JvmVersion.java8),
                         TestCoverage(TestType.parallel, OS.windows, JvmVersion.java8)),

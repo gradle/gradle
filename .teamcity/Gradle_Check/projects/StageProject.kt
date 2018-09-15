@@ -15,10 +15,10 @@ import model.Stage
 import model.TestType
 
 class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boolean, rootProjectUuid: String) : Project({
-    this.uuid = "${model.projectPrefix}Stage_${stage.id}"
-    this.id = AbsoluteId(uuid)
-    this.name = stage.name
-    this.description = stage.description
+    this.uuid = "${model.projectPrefix}Stage_${stage.stageName.uuid}"
+    this.id = AbsoluteId("${model.projectPrefix}Stage_${stage.stageName.id}")
+    this.name = stage.stageName.stageName
+    this.description = stage.stageName.description
 
     features {
         if (stage.specificBuilds.contains(SpecificBuild.SanityCheck)) {
@@ -61,7 +61,7 @@ class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boo
         val deferredTestsProject = Project {
             uuid = "${rootProjectUuid}_deferred_tests"
             id = AbsoluteId(uuid)
-            name = "Test coverage deferred from Quick Feedback and Build Branch accept"
+            name = "Test coverage deferred from Quick Feedback and Ready for Merge"
             model.subProjects
                 .filter(GradleSubproject::containsSlowTests)
                 .forEach { subProject ->
