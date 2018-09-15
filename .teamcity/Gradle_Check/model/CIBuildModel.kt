@@ -56,8 +56,7 @@ data class CIBuildModel (
                     functionalTests = listOf(
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java8),
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java8),
-                            TestCoverage(TestType.platform, OS.linux, JvmVersion.java10),
-                            TestCoverage(TestType.parallel, OS.linux, JvmVersion.java8, JvmVendor.ibm))
+                            TestCoverage(TestType.parallel, OS.linux, JvmVersion.java10))
             ),
             Stage(StageNames.READY_FOR_RELEASE,
                     trigger = Trigger.daily,
