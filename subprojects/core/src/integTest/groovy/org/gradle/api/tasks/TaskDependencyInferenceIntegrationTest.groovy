@@ -145,6 +145,24 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecuted(":a", ":b")
     }
 
+    def "dependency declared using flat map provider whose value is a task output property implies dependency on task"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            def provider = tasks.register("a", OutputFileTask) {
+                outFile = file("a.txt")
+            }
+            tasks.register("b") {
+                dependsOn provider.flatMap { it.outFile }
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksExecuted(":a", ":b")
+    }
+
     def "dependency declared using property whose value is a mapped task output provider implies dependency on task and does not run mapping function"() {
         taskTypeWithOutputFileProperty()
         buildFile << """
@@ -367,6 +385,50 @@ The following types/formats are supported:
             }
             tasks.register("b", InputFilesTask) {
                 inFiles.from a.out1.map { it }
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksExecuted(":a", ":b")
+        file("out.txt").text == "1"
+    }
+
+    def "input file property with value of flat map task provider implies dependency on a specific output of the task"() {
+        taskTypeWithMultipleOutputFileProperties()
+        taskTypeWithInputFileProperty()
+        buildFile << """
+            def provider = tasks.register("a", OutputFilesTask) {
+                out1 = file("file1.txt")
+                out2 = file("file2.txt")
+            }
+            tasks.register("b", InputFileTask) {
+                inFile = provider.flatMap { it.out1 }
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksExecuted(":a", ":b")
+        file("out.txt").text == "1"
+    }
+
+    def "input file collection containing flat map task provider implies dependency on a specific output of the task"() {
+        taskTypeWithMultipleOutputFileProperties()
+        taskTypeWithInputFilesProperty()
+        buildFile << """
+            def a = tasks.register("a", OutputFilesTask) {
+                out1 = file("file1.txt")
+                out2 = file("file2.txt")
+            }
+            tasks.register("b", InputFilesTask) {
+                inFiles.from a.flatMap { it.out1 }
                 outFile = file("out.txt")
             }
         """

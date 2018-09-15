@@ -70,7 +70,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T> 
         private final Provider<? extends T> provider;
         private final Transformer<? extends Provider<? extends S>, ? super T> transformer;
 
-        FlatMapProvider(Provider<? extends T> provider, Transformer<? extends Provider<? extends S>, ? super T> transformer) {
+        FlatMapProvider(ProviderInternal<? extends T> provider, Transformer<? extends Provider<? extends S>, ? super T> transformer) {
             this.provider = provider;
             this.transformer = transformer;
         }
@@ -112,6 +112,11 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T> 
                 throw new IllegalStateException(Providers.NULL_TRANSFORMER_RESULT);
             }
             return result;
+        }
+
+        @Override
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            return Providers.internal(map(provider.get())).maybeVisitBuildDependencies(context);
         }
 
         @Override
