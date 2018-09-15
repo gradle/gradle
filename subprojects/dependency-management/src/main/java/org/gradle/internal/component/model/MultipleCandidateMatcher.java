@@ -208,18 +208,23 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
 
     private void disambiguateWithAttribute(int a) {
         Set<Object> candidateValues = getCandidateValues(a);
-        if (candidateValues.size() == 1) {
+        if (candidateValues.size() <= 1) {
             return;
         }
 
         Set<Object> matches = schema.disambiguate(getAttribute(a), getRequestedValue(a), candidateValues);
-        removeCandidatesWithValueNotIn(a, matches);
+        if (matches.size() < candidateValues.size()) {
+            removeCandidatesWithValueNotIn(a, matches);
+        }
     }
 
     private Set<Object> getCandidateValues(int a) {
         Set<Object> candidateValues = Sets.newHashSetWithExpectedSize(compatible.cardinality());
         for (int c = compatible.nextSetBit(0); c >= 0; c = compatible.nextSetBit(c + 1)) {
-            candidateValues.add(getCandidateValue(c, a));
+            Object candidateValue = getCandidateValue(c, a);
+            if (candidateValue != null) {
+                candidateValues.add(candidateValue);
+            }
         }
         return candidateValues;
     }
