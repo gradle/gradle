@@ -18,8 +18,6 @@ package org.gradle.plugin.use.resolve.internal;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -92,7 +90,7 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
         ModuleVersionSelector moduleSelector = pluginRequest.getModule();
         if (validateVersion(moduleSelector.getVersion(), result)) {
             ModuleDependency moduleDependency = moduleDependencyFor(moduleSelector);
-            if (exists(moduleDependency)) {
+            if (moduleDependencyExists(moduleDependency)) {
                 handleFound(pluginRequest, moduleDependency, result);
             } else {
                 handleNotFound(moduleDependency, result);
@@ -151,11 +149,15 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
         return moduleDependencyFor(resolvedPlugin.getSelected().getModuleVersion());
     }
 
-    private boolean exists(ModuleDependency dependency) {
-        ConfigurationContainer configurations = resolution.getConfigurationContainer();
-        Configuration configuration = configurations.detachedConfiguration(dependency);
-        configuration.setTransitive(false);
-        return !configuration.getResolvedConfiguration().hasError();
+    private boolean moduleDependencyExists(ModuleDependency moduleDependency) {
+        ResolutionResult resolutionResult = resolution
+            .getConfigurationContainer()
+            .detachedConfiguration(moduleDependency)
+            .setTransitive(false)
+            .getIncoming()
+            .getResolutionResult();
+        DependencyResult moduleResult = getOnlyElement(resolutionResult.getRoot().getDependencies());
+        return moduleResult instanceof ResolvedDependencyResult;
     }
 
     private ModuleDependency pluginMarkerDependencyFor(PluginRequestInternal pluginRequest) {
