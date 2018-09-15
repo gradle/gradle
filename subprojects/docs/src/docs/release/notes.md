@@ -41,7 +41,18 @@ While the `init` task does not automatically create a Git repository, the `init`
 
 The `SourceDirectorySet` type is often used by plugins to represent some set of source directories and files. Previously, it was only possible to create instances of `SourceDirectorySet` using internal types. This is problematic because when a plugin uses internal types it can often break when new versions of Gradle are released because internal types may change in breaking ways between releases.
 
-In this release of Gradle, the `ObjectFactory` service, which is part of the public API, now includes a method to create `SourceDirectorySet` instances. A plugin can now use this method instead of the internal types.
+In this release of Gradle, the `ObjectFactory` service, which is part of the public API, now includes a method to create `SourceDirectorySet` instances. Plugins can now use this method instead of the internal types.
+
+### Added Provider.flatMap() method
+
+TBD - why this is useful
+
+### Provider implementations track their producer task 
+
+TBD - More provider implementations track the task that produces the value of the provider:
+- Any provider returned by `TaskContainer`
+- Any property marked with `@OutputFile` or `@OutputDirectory`
+- Any provider returned by `Provider.map()` that matches these criteria (including this one)
 
 ### Changes to file and directory property construction
 
