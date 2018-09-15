@@ -111,6 +111,11 @@ public class TaskReportTask extends AbstractReportTask {
         });
     }
 
+    /**
+     * Injects a {@code ProjectStateRegistry} service.
+     *
+     * @since 5.0
+     */
     @Inject
     protected ProjectStateRegistry getProjectStateRegistry() {
         throw new UnsupportedOperationException();
