@@ -29,6 +29,9 @@ public class DefaultMultipleCandidateResult<T> implements MultipleCandidatesResu
 
     public DefaultMultipleCandidateResult(@Nullable T consumerValue, Set<T> candidateValues) {
         assert candidateValues.size() > 1;
+        for (T candidateValue : candidateValues) {
+            assert candidateValue != null;
+        }
         this.candidateValues = candidateValues;
         this.consumerValue = consumerValue;
     }
