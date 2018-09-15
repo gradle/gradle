@@ -27,7 +27,7 @@ class SampleScalaLanguageIntegrationTest extends AbstractIntegrationSpec {
     Sample sample = new Sample(temporaryFolder, "jvmComponents/scala")
 
     def setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
     def "can build scala based jvm component"() {

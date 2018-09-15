@@ -31,7 +31,7 @@ class IncrementalTestIntegrationTest extends MultiVersionIntegrationSpec {
 
     def setup() {
         executer.noExtraLogging()
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
     def doesNotRunStaleTests() {

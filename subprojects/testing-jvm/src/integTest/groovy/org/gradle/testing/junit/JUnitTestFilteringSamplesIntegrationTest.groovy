@@ -32,7 +32,7 @@ class JUnitTestFilteringSamplesIntegrationTest extends MultiVersionIntegrationSp
     @Rule Sample sample = new Sample(temporaryFolder, 'testing/filtering/groovy')
 
     def setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
     def "uses test filter"() {

@@ -17,7 +17,7 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.util.Requires
@@ -27,7 +27,7 @@ import spock.lang.Unroll
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 @Requires(KOTLIN_SCRIPT)
-class SamplesCompositeBuildIntegrationTest extends AbstractSampleIntegrationTest {
+class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     public final Sample sample = new Sample(temporaryFolder)
@@ -39,6 +39,9 @@ class SamplesCompositeBuildIntegrationTest extends AbstractSampleIntegrationTest
     @Unroll
     @UsesSample('compositeBuilds/basic')
     def "can run app with command-line composite with #dsl dsl"() {
+        given:
+        executer.withRepositoryMirrors()
+
         when:
         executer.inDirectory(sample.dir.file("$dsl/my-app")).withArguments("--include-build", "../my-utils")
         succeeds(':run')
@@ -54,6 +57,9 @@ class SamplesCompositeBuildIntegrationTest extends AbstractSampleIntegrationTest
     @Unroll
     @UsesSample('compositeBuilds/basic')
     def "can run app when modified to be a composite with #dsl dsl"() {
+        given:
+        executer.withRepositoryMirrors()
+
         when:
         executer.inDirectory(sample.dir.file("$dsl/my-app"))
             .withArguments("--settings-file", "settings-composite.$extension")
@@ -72,6 +78,9 @@ class SamplesCompositeBuildIntegrationTest extends AbstractSampleIntegrationTest
     @Unroll
     @UsesSample('compositeBuilds/basic')
     def "can run app when included in a composite with #dsl dsl"() {
+        given:
+        executer.withRepositoryMirrors()
+
         when:
         executer.inDirectory(sample.dir.file("$dsl/composite"))
         succeeds(':run')
@@ -87,6 +96,9 @@ class SamplesCompositeBuildIntegrationTest extends AbstractSampleIntegrationTest
     @Unroll
     @UsesSample('compositeBuilds/hierarchical-multirepo')
     def "can run app in hierarchical composite with #dsl dsl"() {
+        given:
+        executer.withRepositoryMirrors()
+
         when:
         executer.inDirectory(sample.dir.file("multirepo-app/$dsl"))
         succeeds(':run')
@@ -104,6 +116,7 @@ class SamplesCompositeBuildIntegrationTest extends AbstractSampleIntegrationTest
     def "can publish locally and remove submodule from hierarchical composite with #dsl dsl"() {
         given:
         def multiRepoAppDir = sample.dir.file("multirepo-app/$dsl")
+        executer.withRepositoryMirrors()
 
         when:
         executer.inDirectory(multiRepoAppDir)

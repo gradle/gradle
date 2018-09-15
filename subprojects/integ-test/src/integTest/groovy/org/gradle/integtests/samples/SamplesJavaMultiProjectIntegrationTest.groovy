@@ -18,9 +18,10 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.junit.Rule
@@ -30,9 +31,8 @@ import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.hamcrest.Matchers.containsString
 
 @Requires(KOTLIN_SCRIPT)
-class SamplesJavaMultiProjectIntegrationTest extends AbstractSampleIntegrationTest {
-
-    static final String JAVA_PROJECT_NAME = 'java/multiproject'
+@LeaksFileHandles
+class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationSpec {
     static final String SHARED_NAME = 'shared'
     static final String API_NAME = 'api'
     static final String WEBAPP_NAME = 'webservice'
@@ -40,6 +40,11 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractSampleIntegrationTe
     static final String WEBAPP_PATH = "$SERVICES_NAME/$WEBAPP_NAME" as String
 
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/multiproject')
+
+    def setup() {
+        // java/multiproject sample contains buildSrc, which needs global init script to make mirror work
+        executer.withGlobalRepositoryMirrors()
+    }
 
     @Unroll
     def "multi project Java project sample with #dsl dsl"() {

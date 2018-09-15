@@ -31,10 +31,10 @@ class OsgiProjectSampleIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'osgi/groovy')
 
     def setup() {
-        useRepositoryMirrors()
         executer.beforeExecute {
             expectDeprecationWarning()
         }
+        executer.withRepositoryMirrors()
     }
 
     def "OSGi project samples"() {

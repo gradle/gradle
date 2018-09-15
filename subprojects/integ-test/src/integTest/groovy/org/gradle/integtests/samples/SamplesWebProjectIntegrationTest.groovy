@@ -27,7 +27,7 @@ class SamplesWebProjectIntegrationTest extends AbstractIntegrationSpec {
     @Rule ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 
     def setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
     def "can build war"() {

@@ -26,7 +26,7 @@ class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
     final def targetDir = testDirectory.createDir("some-thing")
 
     def setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
         executer.beforeExecute {
             executer.inDirectory(targetDir)
         }
