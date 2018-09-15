@@ -274,6 +274,9 @@ The `IdeaModule` Tooling API model element contains methods to retrieve resource
 - Removed the type `RegularFileVar`.
 - Removed the type `DirectoryVar`.
 - Removed the type `PropertyState`.
+- Removed `JavaBasePlugin.configureForSourceSet`
+- Removed `JDepend.classesDir`
+- Removed `IdeaPlugin.performPostEvaluationActions` and `EclipsePlugin.performPostEvaluationActions`
 - Forbid passing `null` as configuration action to the methods `from` and `to` on `CopySpec`.
 - Removed the property `bootClasspath` from `CompileOptions`.
 - Validation problems for inputs or outputs registered via the runtime API now fail the build.
