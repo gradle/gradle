@@ -56,7 +56,7 @@ TBD - More provider implementations track the task that produces the value of th
 
 ### Changes to file and directory property construction
 
-`ObjectFactory` is now used to create file and directory `Property` instances, similar to other `Property` types. Previously, this was done using either the methods on `DefaulTask`, which was available only for `DefaultTask` subclasses, or using `ProjectLayout`, only available for projects. Now a single type, `ObjectFactory` can be used to create all property instances in a Gradle model object.
+`ObjectFactory` is now used to create file and directory `Property` instances, similar to other `Property` types. Previously, this was done using either the methods on `DefaulTask`, which was available only for `DefaultTask` subclasses, or using `ProjectLayout`, only available for projects. Now a single type `ObjectFactory` can be used to create all property instances in a Gradle model object.
 
 These other methods have been deprecated and will be removed in Gradle 6.0.
 
@@ -150,7 +150,7 @@ At the moment, we are not planning to provide an alternative. In most cases, tas
 
 TBD - The methods on `DefaultTask` and `ProjectLayout` that create file and directory `Property` instances have been deprecated and replaced by methods on `ObjectFactory`. These deprecated methods will be removed in Gradle 6.0.
 
-TBD - The `ObjectFactory.property(type)` method no longer sets a default value for the property. There is an overload `property(type, initialValue)` that can be used instead.
+TBD - The `ObjectFactory.property(type)`, `listProperty(type)` and `setProperty(type)` methods no longer set an initial value for the property. Instead, you can use the `value()` or `empty()` methods, or any other mutation method, on the property instances to set an initial value, if required.
 
 ### The property `append` on `JacocoTaskExtension` has been deprecated
 
@@ -182,7 +182,7 @@ When a dependency constraint matched a real dependency, it was made part of the 
 However if for some reason the dependency was later evicted from the graph, the constraint remained present.
 Now when the last non-constraint edge to a dependency disappears, all constraints for that dependency will be properly removed from the graph.
 
-### Gradle requires Java 8
+### Gradle 5.0 requires Java 8
 
 Gradle can no longer be run on Java 7, but requires Java 8 as the minimum build JVM version. 
 However, you can still use forked compilation and testing to build and test software for Java 6 and above.
