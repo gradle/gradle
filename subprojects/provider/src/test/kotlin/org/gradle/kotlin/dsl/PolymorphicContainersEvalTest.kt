@@ -84,11 +84,9 @@ class PolymorphicContainersEvalTest : TestWithTempFiles() {
             tasks.getByName("bar") {
                 description += "!"
             }
-            /* TODO missing extension
             tasks.getByName("bar", Copy::class) {
                 description += "!"
             }
-            */
             tasks.getByName<Copy>("bar") {
                 description += "!"
             }
@@ -155,11 +153,9 @@ class PolymorphicContainersEvalTest : TestWithTempFiles() {
                 getByName("bar") {
                     description += "!"
                 }
-                /* TODO UNSUPPORTED
                 getByName("bar", Copy::class) {
                     description += "!"
                 }
-                */
                 getByName<Copy>("bar") {
                     description += "!"
                 }

@@ -287,6 +287,22 @@ fun <T : Any> NamedDomainObjectCollection<out Any>.getByName(name: String, type:
 
 
 /**
+ * Locates an object by name and casts it to the expected [type] then configures it.
+ *
+ * If an object with the given [name] is not found, [UnknownDomainObjectException] is thrown.
+ * If the object is found but cannot be cast to the expected [type], [IllegalArgumentException] is thrown.
+ *
+ * @param name object name
+ * @param configure configuration action to apply to the object before returning it
+ * @return the object, never null
+ * @throws [UnknownDomainObjectException] When the given object is not found.
+ * @throws [IllegalArgumentException] When the given object cannot be cast to the expected type.
+ */
+fun <T : Any> NamedDomainObjectCollection<out Any>.getByName(name: String, type: KClass<T>, configure: T.() -> Unit): T =
+    getByName(name, type).also(configure)
+
+
+/**
  * Locates an object by name and casts it to the expected type [T] then configures it.
  *
  * If an object with the given [name] is not found, [UnknownDomainObjectException] is thrown.
