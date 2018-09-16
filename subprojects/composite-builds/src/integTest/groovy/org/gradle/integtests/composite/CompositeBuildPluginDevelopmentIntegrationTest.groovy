@@ -17,6 +17,7 @@
 package org.gradle.integtests.composite
 
 import groovy.transform.NotYetImplemented
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.util.Matchers
 import spock.lang.Ignore
@@ -47,11 +48,10 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         includeBuild pluginBuild
 
         when:
-        execute(buildA, "tasks")
+        execute(buildA, "taskFromPluginBuild")
 
         then:
-        executed ":pluginBuild:jar"
-        outputContains("taskFromPluginBuild")
+        executed ":pluginBuild:jar", ":taskFromPluginBuild"
     }
 
     def "can co-develop plugin and consumer with both plugin and consumer as included builds"() {
@@ -63,17 +63,18 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
                 compile "org.test:pluginDependencyA:1.0"
             }
         """
-
-        includeBuild pluginDependencyA, """
-            substitute module("org.test:pluginDependencyA") with project(":")
+        pluginDependencyA.buildFile << """
+            tasks.jar.dependsOn(tasks.taskFromPluginBuild)
         """
+
         includeBuild pluginBuild
+        includeBuild pluginDependencyA
 
         when:
         execute(buildA, "assemble")
 
         then:
-        executed ":pluginBuild:jar", ":pluginDependencyA:jar", ":jar"
+        executed ":pluginBuild:jar", ":pluginDependencyA:taskFromPluginBuild", ":pluginDependencyA:jar", ":jar"
     }
 
     @NotYetImplemented
@@ -135,11 +136,10 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         includeBuild pluginBuild
 
         when:
-        execute(buildA, "tasks")
+        execute(buildA, "taskFromPluginBuild")
 
         then:
-        executed ":pluginBuild:jar"
-        outputContains("taskFromPluginBuild")
+        executed ":pluginBuild:jar", ":taskFromPluginBuild"
     }
 
     def "can develop a transitive plugin dependency as included build"() {
@@ -261,7 +261,9 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 
     private void publishPluginWithDependency() {
         dependency pluginBuild, 'org.test:pluginDependencyA:1.0'
+        FeaturePreviewsFixture.enableStablePublishing(pluginBuild.settingsFile)
         pluginBuild.buildFile << """
+            apply plugin: 'maven-publish'
             publishing {
                 repositories {
                     maven {
@@ -274,7 +276,9 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
     }
 
     private void publishPlugin() {
+        FeaturePreviewsFixture.enableStablePublishing(pluginBuild.settingsFile)
         pluginBuild.buildFile << """
+            apply plugin: 'maven-publish'
             publishing {
                 repositories {
                     maven {
