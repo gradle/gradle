@@ -1,3 +1,4 @@
+// A task that displays a greeting
 open class Greeting : DefaultTask() {
     // Configurable by the user
     @Input
