@@ -122,7 +122,7 @@ public interface ObjectFactory {
     <T> Property<T> property(Class<T> valueType, T initialValue);
 
     /**
-     * Creates a {@link ListProperty} implementation to hold a {@link List} of the given element type {@code T}. The property will have an empty list as its initial value.
+     * Creates a {@link ListProperty} implementation to hold a {@link List} of the given element type {@code T}. The property has no initial value.
      *
      * <p>The implementation will return immutable {@link List} values from its query methods.</p>
      *
@@ -134,7 +134,7 @@ public interface ObjectFactory {
     <T> ListProperty<T> listProperty(Class<T> elementType);
 
     /**
-     * Creates a {@link SetProperty} implementation to hold a {@link Set} of the given element type {@code T}. The property will have an empty set as its initial value.
+     * Creates a {@link SetProperty} implementation to hold a {@link Set} of the given element type {@code T}. The property has no initial value.
      *
      * <p>The implementation will return immutable {@link Set} values from its query methods.</p>
      *

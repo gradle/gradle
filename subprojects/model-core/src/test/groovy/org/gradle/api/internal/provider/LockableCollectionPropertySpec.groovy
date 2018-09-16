@@ -49,6 +49,21 @@ abstract class LockableCollectionPropertySpec<C extends Collection<String>> exte
         1 * target.add(provider)
     }
 
+    def "cannot make empty after property is locked"() {
+        given:
+        property.lockNow()
+
+        when:
+        property.empty()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'This property is locked and cannot be changed.'
+
+        and:
+        0 * target._
+    }
+
     def "cannot add element after property is locked"() {
         given:
         property.lockNow()
