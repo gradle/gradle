@@ -1,11 +1,11 @@
 // tag::use-plugin[]
 // tag::publish-distribution[]
 plugins {
-// end::publish-distribution[]
-    id 'distribution'
+    // end::publish-distribution[]
+    distribution
 // end::use-plugin[]
 // tag::publish-distribution[]
-    id 'maven'
+    maven
 // tag::use-plugin[]
 }
 // end::use-plugin[]
@@ -13,10 +13,10 @@ plugins {
 
 // tag::configure-distribution[]
 distributions {
-    main {
-        baseName = 'someName'
+    getByName("main") {
+        baseName = "someName"
         contents {
-            from 'src/readme'
+            from("src/readme")
         }
     }
 }
@@ -24,10 +24,10 @@ distributions {
 
 // tag::publish-distribution[]
 
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: "file://some/repo")
+tasks.getByName<Upload>("uploadArchives") {
+    repositories.withGroovyBuilder {
+        "mavenDeployer" {
+            "repository"("url" to "file://some/repo")
         }
     }
 }
@@ -35,7 +35,7 @@ uploadArchives {
 
 // tag::custom-distribution[]
 distributions {
-    custom {
+    create("custom") {
         // configure custom distribution
     }
 }
