@@ -117,7 +117,8 @@ To publish a distribution to an Ivy repository with the <<publishing_ivy.adoc#pu
 
 .Adding distribution archives to an Ivy publication
 ====
-include::sample[dir="ivy-publish/distribution",files="build.gradle[tags=publishing]"]
+include::sample[dir="ivy-publish/distribution/groovy",files="build.gradle[tags=publishing]"]
+include::sample[dir="ivy-publish/distribution/kotlin",files="build.gradle.kts[tags=publishing]"]
 ====
 
 Similarly, to publish a distribution to a Maven repository using the <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>>, add one or both of its archive tasks to a link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication] as follows:
