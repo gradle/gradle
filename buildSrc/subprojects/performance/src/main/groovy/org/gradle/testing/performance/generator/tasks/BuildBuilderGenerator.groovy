@@ -79,7 +79,7 @@ class BuildBuilderGenerator extends ProjectGeneratorTask {
         generatedDir = objectFactory.directoryProperty()
         generatedDir.set(project.layout.buildDirectory.dir(getName()))
         args = objectFactory.listProperty(String)
-        args.addAll(providerFactory.provider(new Callable<Iterable<String>>() {
+        args.set(providerFactory.provider(new Callable<Iterable<String>>() {
             @Override
             Iterable<String> call() throws Exception {
                 // TODO: Model the other build builder options
