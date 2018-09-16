@@ -35,7 +35,7 @@ import java.io.File;
  * @since 4.3
  */
 @Incubating
-public interface DirectoryProperty extends Provider<Directory>, Property<Directory> {
+public interface DirectoryProperty extends Property<Directory> {
     /**
      * Views the location of this directory as a {@link File}.
      */
@@ -50,6 +50,12 @@ public interface DirectoryProperty extends Provider<Directory>, Property<Directo
      * Sets the location of this directory.
      */
     void set(File dir);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    DirectoryProperty value(Directory value);
 
     /**
      * Returns a {@link Directory} whose value is the given path resolved relative to the value of this directory.

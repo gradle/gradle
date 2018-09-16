@@ -35,7 +35,7 @@ import java.io.File;
  * @since 4.3
  */
 @Incubating
-public interface RegularFileProperty extends Provider<RegularFile>, Property<RegularFile> {
+public interface RegularFileProperty extends Property<RegularFile> {
     /**
      * Views the location of this file as a {@link File}.
      */
@@ -45,4 +45,10 @@ public interface RegularFileProperty extends Provider<RegularFile>, Property<Reg
      * Sets the location of this file.
      */
     void set(File file);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    RegularFileProperty value(RegularFile value);
 }
