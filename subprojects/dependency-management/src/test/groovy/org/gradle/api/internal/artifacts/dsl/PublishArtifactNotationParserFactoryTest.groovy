@@ -161,6 +161,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
         def file1 = new File("classes-1.zip")
 
         _ * provider.get() >> file1
+        _ * provider.visitDependencies(_)
 
         when:
         def publishArtifact = publishArtifactNotationParser.parseNotation(provider)
@@ -188,7 +189,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
 
         _ * provider.get() >> value
         _ * value.getAsFile() >> file1
-        _ * provider.maybeVisitBuildDependencies(_) >> { TaskDependencyResolveContext context -> context.add(task1); context.add(task2); true }
+        _ * provider.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(task1); context.add(task2) }
 
         when:
         def publishArtifact = publishArtifactNotationParser.parseNotation(provider)
@@ -216,7 +217,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
 
         _ * provider.get() >> value
         _ * value.getAsFile() >> file1
-        _ * provider.maybeVisitBuildDependencies(_) >> { TaskDependencyResolveContext context -> context.add(task1); context.add(task2); true }
+        _ * provider.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(task1); context.add(task2) }
 
         when:
         def publishArtifact = publishArtifactNotationParser.parseNotation(provider)

@@ -165,6 +165,11 @@ class RepoScriptBlockUtil {
     static File createMirrorInitScript() {
         File mirrors = File.createTempFile("mirrors", ".gradle")
         mirrors.deleteOnExit()
+        mirrors << mirrorInitScript()
+        return mirrors
+    }
+
+    static String mirrorInitScript() {
         def mirrorConditions = MirroredRepository.values().collect { MirroredRepository mirror ->
             """
                 if (normalizeUrl(repo.url) == normalizeUrl('${mirror.originalUrl}')) {
@@ -172,7 +177,7 @@ class RepoScriptBlockUtil {
                 }
             """
         }.join("")
-        mirrors << """
+        return """
             import groovy.transform.CompileStatic
             import groovy.transform.CompileDynamic
             
@@ -227,6 +232,5 @@ class RepoScriptBlockUtil {
                 }
             }
         """
-        mirrors
     }
 }

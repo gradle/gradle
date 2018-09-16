@@ -33,6 +33,7 @@ import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
 import org.gradle.initialization.BuildLayoutParameters;
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil;
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
@@ -74,6 +75,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY;
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.DAEMON;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.FOREGROUND;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NOT_DEFINED;
@@ -779,6 +782,41 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     @Override
     public GradleExecuter withWelcomeMessageEnabled() {
         renderWelcomeMessage = true;
+        return this;
+    }
+
+    @Override
+    public GradleExecuter withRepositoryMirrors() {
+        beforeExecute(new Action<GradleExecuter>() {
+            @Override
+            public void execute(GradleExecuter gradleExecuter) {
+                usingInitScript(RepoScriptBlockUtil.createMirrorInitScript());
+            }
+        });
+        return this;
+    }
+
+    @Override
+    public GradleExecuter withGlobalRepositoryMirrors() {
+        beforeExecute(new Action<GradleExecuter>() {
+            @Override
+            public void execute(GradleExecuter gradleExecuter) {
+                TestFile userHome = testDirectoryProvider.getTestDirectory().file("user-home");
+                withGradleUserHomeDir(userHome);
+                userHome.file("init.d/mirrors.gradle").write(RepoScriptBlockUtil.mirrorInitScript());
+            }
+        });
+        return this;
+    }
+
+    @Override
+    public GradleExecuter withPluginRepositoryMirror() {
+        beforeExecute(new Action<GradleExecuter>() {
+            @Override
+            public void execute(GradleExecuter gradleExecuter) {
+                withArgument("-D" + PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY + "=" + gradlePluginRepositoryMirrorUrl());
+            }
+        });
         return this;
     }
 

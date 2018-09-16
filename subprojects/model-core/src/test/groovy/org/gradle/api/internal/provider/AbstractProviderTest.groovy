@@ -107,22 +107,7 @@ class AbstractProviderTest extends ProviderSpec<String> {
         e.message == 'No value has been specified for this provider.'
     }
 
-    def "mapped provider fails when transformer returns null"() {
-        def transformer = Stub(Transformer)
-        transformer.transform(_) >> null
-        provider.value("123")
-
-        def mapped = provider.map(transformer)
-
-        when:
-        mapped.get()
-
-        then:
-        def e = thrown(IllegalStateException)
-        e.message == 'Transformer for this provider returned a null value.'
-    }
-
-    static class TestProvider extends AbstractProvider {
+    static class TestProvider extends AbstractReadOnlyProvider {
         String value
 
         void value(String s) {

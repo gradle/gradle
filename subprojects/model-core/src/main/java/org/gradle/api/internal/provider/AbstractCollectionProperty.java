@@ -17,7 +17,6 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
 import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollection;
@@ -33,7 +32,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractProvider<C> implements CollectionPropertyInternal<T, C> {
+public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractProperty<C> implements CollectionPropertyInternal<T, C> {
     private static final EmptyCollection EMPTY_COLLECTION = new EmptyCollection();
     private static final NoValueCollector NO_VALUE_COLLECTOR = new NoValueCollector();
     private final Class<? extends Collection> collectionType;
@@ -180,11 +179,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             valueState = "defined";
         }
         return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, valueState);
-    }
-
-    @Override
-    public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super C> transformer) {
-        return new TransformBackedProvider<S, C>(transformer, this);
     }
 
     private static class ValidatingValueCollector<T> implements ValueCollector<T> {

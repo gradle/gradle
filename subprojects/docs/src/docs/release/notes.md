@@ -41,7 +41,18 @@ While the `init` task does not automatically create a Git repository, the `init`
 
 The `SourceDirectorySet` type is often used by plugins to represent some set of source directories and files. Previously, it was only possible to create instances of `SourceDirectorySet` using internal types. This is problematic because when a plugin uses internal types it can often break when new versions of Gradle are released because internal types may change in breaking ways between releases.
 
-In this release of Gradle, the `ObjectFactory` service, which is part of the public API, now includes a method to create `SourceDirectorySet` instances. A plugin can now use this method instead of the internal types.
+In this release of Gradle, the `ObjectFactory` service, which is part of the public API, now includes a method to create `SourceDirectorySet` instances. Plugins can now use this method instead of the internal types.
+
+### Added Provider.flatMap() method
+
+TBD - why this is useful
+
+### Provider implementations track their producer task 
+
+TBD - More provider implementations track the task that produces the value of the provider:
+- Any provider returned by `TaskContainer`
+- Any property marked with `@OutputFile` or `@OutputDirectory`
+- Any provider returned by `Provider.map()` that matches these criteria (including this one)
 
 ### Changes to file and directory property construction
 
@@ -274,6 +285,9 @@ The `IdeaModule` Tooling API model element contains methods to retrieve resource
 - Removed the type `RegularFileVar`.
 - Removed the type `DirectoryVar`.
 - Removed the type `PropertyState`.
+- Removed `JavaBasePlugin.configureForSourceSet`
+- Removed `JDepend.classesDir`
+- Removed `IdeaPlugin.performPostEvaluationActions` and `EclipsePlugin.performPostEvaluationActions`
 - Forbid passing `null` as configuration action to the methods `from` and `to` on `CopySpec`.
 - Removed the property `bootClasspath` from `CompileOptions`.
 - Validation problems for inputs or outputs registered via the runtime API now fail the build.
@@ -286,6 +300,12 @@ The `IdeaModule` Tooling API model element contains methods to retrieve resource
 - `EarPluginConvention` is now abstract. 
 - `BasePluginConvention` is now abstract. 
 - `ProjectReportsPluginConvention` is now abstract. 
+
+### System properties `test.single` and `test.debug` have been removed
+
+The `test.single` filter mechanism has been removed. You must select tests from the command-line with [`--tests`](userguide/java_testing.html#simple_name_pattern).
+
+The `test.debug` mechanism to enable debugging of JVM tests from the command-line has been removed.  You must use [`--debug-jvm`](userguide/java_testing.html#sec:debugging_java_tests) to enable debugging of test execution.  
 
 ### Changes to internal APIs
 

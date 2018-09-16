@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.provider;
 
-import org.gradle.api.Task;
-import org.gradle.api.tasks.TaskCollection;
-
-public interface RealizableTaskCollection<T extends Task> extends TaskCollection<T> {
-    void realizeRuleTaskTypes();
+public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
 }

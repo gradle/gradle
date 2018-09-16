@@ -82,7 +82,7 @@ class PublishArtifactToFileBuildOutcomeTransformerTest extends AbstractProjectBu
         and:
         _ * task.getArchivePath() >> project.file("file")
         _ * taskProvider.get() >> task
-        _ * taskProvider.maybeVisitBuildDependencies(_) >> { TaskDependencyResolveContext context -> context.add(task); true }
+        _ * taskProvider.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(task) }
 
         when:
         GradleFileBuildOutcome outcome = transformer.transform(artifact, project)

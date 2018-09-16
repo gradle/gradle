@@ -16,9 +16,17 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Task;
-import org.gradle.api.tasks.TaskReference;
+import org.gradle.api.file.FileSystemLocation;
 
-public interface TaskReferenceInternal extends TaskReference {
-    Task resolveTask();
+import java.io.File;
+import java.nio.file.Path;
+
+public abstract class AbstractTaskDependencyResolveContext implements TaskDependencyResolveContext {
+    @Override
+    public void maybeAdd(Object dependency) {
+        if (dependency instanceof File || dependency instanceof FileSystemLocation || dependency instanceof Path) {
+            return;
+        }
+        add(dependency);
+    }
 }

@@ -17,28 +17,27 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
-import spock.lang.Specification
+import org.gradle.api.provider.Provider
 
-class ProvidersTest extends Specification {
-
-    def "can create a null provider"() {
-        expect:
-        def provider = Providers.notDefined()
-        !provider.present
-        provider.getOrNull() == null
-        provider.getOrElse(null) == null
-        provider.getOrElse(12) == 12
-        provider.map(Stub(Transformer)) == provider
+class ProvidersTest extends ProviderSpec<Integer> {
+    @Override
+    Provider providerWithNoValue() {
+        return Providers.notDefined()
     }
 
-    def "can create a provider with fixed value"() {
-        expect:
-        def provider = Providers.of(123)
-        provider.present
-        provider.get() == 123
-        provider.getOrNull() == 123
-        provider.getOrElse(null) == 123
-        provider.getOrElse(456) == 123
+    @Override
+    Provider<Integer> providerWithValue(Integer value) {
+        return Providers.of(value)
+    }
+
+    @Override
+    Integer someValue() {
+        return 12
+    }
+
+    @Override
+    Integer someOtherValue() {
+        return 123
     }
 
     def "mapped fixed value provider calculates transformed value lazily and caches the result"() {
@@ -121,34 +120,4 @@ class ProvidersTest extends Specification {
         then:
         0 * _
     }
-
-    def "mapped provider fails when transformer returns null"() {
-        given:
-        def transform = Mock(Transformer)
-        def provider = Providers.of(123)
-
-        when:
-        def mapped = provider.map(transform)
-
-        then:
-        mapped.present
-        0 * transform._
-
-        when:
-        mapped.get()
-
-        then:
-        def e = thrown(IllegalStateException)
-        e.message == 'Transformer for this provider returned a null value.'
-        1 * transform.transform(123) >> null
-        0 * transform._
-
-        when:
-        mapped.get()
-
-        then:
-        1 * transform.transform(123) >> 12
-        0 * transform._
-    }
-
 }

@@ -17,13 +17,12 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
 
-public class DefaultPropertyState<T> implements PropertyInternal<T>, Property<T>, ProviderInternal<T> {
+public class DefaultPropertyState<T> extends AbstractProperty<T> implements Property<T> {
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
     private ProviderInternal<? extends T> provider = Providers.notDefined();
@@ -106,11 +105,6 @@ public class DefaultPropertyState<T> implements PropertyInternal<T>, Property<T>
             return defaultValue;
         }
         return t;
-    }
-
-    @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        return false;
     }
 
     @Override
