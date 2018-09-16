@@ -17,6 +17,7 @@ package org.gradle.integtests.fixtures
 
 import groovy.transform.EqualsAndHashCode
 import org.gradle.internal.FileUtils
+import org.gradle.util.TextUtil
 import org.hamcrest.Matcher
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -134,7 +135,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         List<String> getFailureMessages(String testmethod) {
-            html.select("div.test:has(a[name=$testmethod]) > span > pre").collect { it.text() }
+            html.select("div.test:has(a[name='$testmethod']) > span > pre").collect { it.text() }
         }
 
         TestClassExecutionResult assertTestsExecuted(String... testNames) {
@@ -244,10 +245,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertStdout(Matcher<? super String> matcher) {
-            def tabs = html.select("div.tab")
-            def tab = tabs.find { it.select("h2").text() == 'Standard output' }
-            assert matcher.matches(tab ? tab.select("span > pre").first().textNodes().first().wholeText : "")
-            return this;
+            return assertOutput('Standard output', matcher)
         }
 
         TestClassExecutionResult assertTestCaseStdout(String testCaseName, Matcher<? super String> matcher) {
@@ -255,10 +253,14 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertStderr(Matcher<? super String> matcher) {
+            return assertOutput('Standard error', matcher)
+        }
+
+        private HtmlTestClassExecutionResult assertOutput(heading, Matcher<? super String> matcher) {
             def tabs = html.select("div.tab")
-            def tab = tabs.find { it.select("h2").text() == 'Standard error' }
-            assert matcher.matches(tab ? tab.select("span > pre").first().textNodes().first().wholeText : "")
-            return this;
+            def tab = tabs.find { it.select("h2").text() == heading }
+            assert matcher.matches(tab ? TextUtil.normaliseLineSeparators(tab.select("span > pre").first().textNodes().first().wholeText) : "")
+            return this
         }
 
         TestClassExecutionResult assertTestCaseStderr(String testCaseName, Matcher<? super String> matcher) {
