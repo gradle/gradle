@@ -75,23 +75,23 @@ class NamedContainersEvalTest : TestWithTempFiles() {
 
         assertConfigurationsExtendsFrom("api", """
 
-            val foo = configurations.getByName("foo")
-            configurations.getByName("bar") {
+            val foo: Configuration = configurations.getByName("foo")
+            val bar: Configuration = configurations.getByName("bar") {
                 extendsFrom(foo)
             }
 
-            val bazar = configurations.create("bazar")
-            configurations.create("cathedral") {
+            val bazar: Configuration = configurations.create("bazar")
+            val cathedral: Configuration = configurations.create("cathedral") {
                 extendsFrom(bazar)
             }
 
-            val cabin = configurations.named("cabin")
-            configurations.named("castle") {
+            val cabin: NamedDomainObjectProvider<Configuration> = configurations.named("cabin")
+            val castle: NamedDomainObjectProvider<Configuration> = configurations.named("castle") {
                 extendsFrom(cabin.get())
             }
 
-            val valley = configurations.register("valley")
-            configurations.register("hill") {
+            val valley: NamedDomainObjectProvider<Configuration> = configurations.register("valley")
+            val hill: NamedDomainObjectProvider<Configuration> = configurations.register("hill") {
                 extendsFrom(valley.get())
             }
         """)
@@ -103,23 +103,23 @@ class NamedContainersEvalTest : TestWithTempFiles() {
         assertConfigurationsExtendsFrom("scope-api", """
             configurations {
 
-                val foo = getByName("foo")
-                getByName("bar") {
+                val foo: Configuration = getByName("foo")
+                val bar: Configuration = getByName("bar") {
                     extendsFrom(foo)
                 }
     
-                val bazar = create("bazar")
-                create("cathedral") {
+                val bazar: Configuration = create("bazar")
+                val cathedral: Configuration = create("cathedral") {
                     extendsFrom(bazar)
                 }
     
-                val cabin = named("cabin")
-                named("castle") {
+                val cabin: NamedDomainObjectProvider<Configuration> = named("cabin")
+                val castle: NamedDomainObjectProvider<Configuration> = named("castle") {
                     extendsFrom(cabin.get())
                 }
     
-                val valley = register("valley")
-                register("hill") {
+                val valley: NamedDomainObjectProvider<Configuration> = register("valley")
+                val hill: NamedDomainObjectProvider<Configuration> = register("hill") {
                     extendsFrom(valley.get())
                 }
             }
@@ -131,23 +131,23 @@ class NamedContainersEvalTest : TestWithTempFiles() {
 
         assertConfigurationsExtendsFrom("delegated-properties", """
 
-            val foo by configurations.getting
-            val bar by configurations.getting {
+            val foo: Configuration by configurations.getting
+            val bar: Configuration by configurations.getting {
                 extendsFrom(foo)
             }
 
-            val bazar by configurations.creating
-            val cathedral by configurations.creating {
+            val bazar: Configuration by configurations.creating
+            val cathedral: Configuration by configurations.creating {
                 extendsFrom(bazar)
             }
 
-            val cabin by configurations.existing
-            val castle by configurations.existing {
+            val cabin: NamedDomainObjectProvider<Configuration> by configurations.existing
+            val castle: NamedDomainObjectProvider<Configuration> by configurations.existing {
                 extendsFrom(cabin.get())
             }
 
-            val valley by configurations.registering
-            val hill by configurations.registering {
+            val valley: NamedDomainObjectProvider<Configuration> by configurations.registering
+            val hill: NamedDomainObjectProvider<Configuration> by configurations.registering {
                 extendsFrom(valley.get())
             }
         """)
@@ -159,23 +159,23 @@ class NamedContainersEvalTest : TestWithTempFiles() {
         assertConfigurationsExtendsFrom("scope-delegated-properties", """
             configurations {
 
-                val foo by getting
-                val bar by getting {
+                val foo: Configuration by getting
+                val bar: Configuration by getting {
                     extendsFrom(foo)
                 }
 
-                val bazar by creating
-                val cathedral by creating {
+                val bazar: Configuration by creating
+                val cathedral: Configuration by creating {
                     extendsFrom(bazar)
                 }
 
-                val cabin by existing
-                val castle by existing {
+                val cabin: NamedDomainObjectProvider<Configuration> by existing
+                val castle: NamedDomainObjectProvider<Configuration> by existing {
                     extendsFrom(cabin.get())
                 }
 
-                val valley by registering
-                val hill by registering {
+                val valley: NamedDomainObjectProvider<Configuration> by registering
+                val hill: NamedDomainObjectProvider<Configuration> by registering {
                     extendsFrom(valley.get())
                 }
             }
@@ -188,13 +188,13 @@ class NamedContainersEvalTest : TestWithTempFiles() {
         assertConfigurationsExtendsFrom("scope-string-invoke", """
             configurations {
 
-                val foo = "foo"()
-                "bar" {
+                val foo: NamedDomainObjectProvider<Configuration> = "foo"()
+                val bar: NamedDomainObjectProvider<Configuration> = "bar" {
                     extendsFrom(foo.get())
                 }
 
-                val cabin  = "cabin"()
-                "castle" {
+                val cabin: NamedDomainObjectProvider<Configuration>  = "cabin"()
+                val castle: NamedDomainObjectProvider<Configuration> = "castle" {
                     extendsFrom(cabin.get())
                 }
             }

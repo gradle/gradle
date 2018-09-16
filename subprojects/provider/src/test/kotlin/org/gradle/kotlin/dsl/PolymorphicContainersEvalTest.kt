@@ -77,63 +77,66 @@ class PolymorphicContainersEvalTest : TestWithTempFiles() {
 
         assertTasksConfiguration("api", """
 
-            tasks.getByName("foo")
-            tasks.getByName("foo", Task::class)
-            tasks.getByName<Task>("foo")
+            val t1: Task = tasks.getByName("foo")
+            val t2: Task = tasks.getByName("foo", Task::class)
+            val t3: Task = tasks.getByName<Task>("foo")
 
-            tasks.getByName("bar") {
+            val t4: Task = tasks.getByName("bar") {
                 description += "!"
             }
-            tasks.getByName("bar", Copy::class) {
+            val t5: Copy = tasks.getByName("bar", Copy::class) {
                 description += "!"
             }
-            tasks.getByName<Copy>("bar") {
+            val t6: Copy = tasks.getByName<Copy>("bar") {
                 description += "!"
             }
 
-            tasks.create("bazar")
+            val t6: Task = tasks.create("bazar")
             // TODO ::class taking overload generated is absent in this context
-            tasks.create("cathedral", Copy::class.java)
-            tasks.create<Copy>("cabin")
+            val t7: Copy = tasks.create("cathedral", Copy::class.java)
+            val t8: Copy = tasks.create<Copy>("cabin")
 
-            tasks.create("castle") {
-                description += "!"
-            }
-            // TODO ::class taking overload generated is absent in this context
-            tasks.create("valley", Copy::class.java) {
-                description += "!"
-            }
-            tasks.create<Copy>("hill") {
-                description += "!"
-            }
-
-            tasks.named("bat")
-            tasks.named("bat", Copy::class)
-            tasks.named<Copy>("bat")
-
-            tasks.named("pipistrelle") {
-                description += "!"
-            }
-            tasks.named("pipistrelle", Copy::class) {
-                description += "!"
-            }
-            tasks.named<Copy>("pipistrelle") {
-                description += "!"
-            }
-
-            tasks.register("yate")
-            // TODO ::class taking overload generated is absent in this context
-            tasks.register("quartern", Copy::class.java)
-            tasks.register<Copy>("veduta")
-
-            tasks.register("vansire") {
+            val t9: Task = tasks.create("castle") {
                 description += "!"
             }
             // TODO ::class taking overload generated is absent in this context
-            tasks.register("koto", Copy::class.java) {
+            val t10: Copy = tasks.create("valley", Copy::class.java) {
                 description += "!"
             }
-            tasks.register<Copy>("diptote") {
+            val t11: Copy = tasks.create<Copy>("hill") {
+                description += "!"
+            }
+
+            val t12: TaskProvider<Task> = tasks.named("bat")
+            val t13: TaskProvider<Copy> = tasks.named("bat", Copy::class)
+            val t14: TaskProvider<Copy> = tasks.named<Copy>("bat")
+
+            val t15: TaskProvider<Task> = tasks.named("pipistrelle") {
+                description += "!"
+            }
+            val t16: TaskProvider<Copy> = tasks.named("pipistrelle", Copy::class) {
+                description += "!"
+            }
+            // TODO wrong return type
+            val t17: NamedDomainObjectProvider<Copy> = tasks.named<Copy>("pipistrelle") {
+                description += "!"
+            }
+
+            val t18: TaskProvider<Task> = tasks.register("yate")
+            // TODO ::class taking overload generated is absent in this context
+            val t19: TaskProvider<Copy> = tasks.register("quartern", Copy::class.java)
+            // TODO wrong return type
+            val t20: NamedDomainObjectProvider<Copy> = tasks.register<Copy>("veduta")
+
+            val t21: TaskProvider<Task> = tasks.register("vansire") {
+                description += "!"
+            }
+            // TODO ::class taking overload generated is absent in this context
+            val t22: TaskProvider<Copy> = tasks.register("koto", Copy::class.java) {
+                description += "!"
+            }
+            // TODO wrong return type
+            val t23: NamedDomainObjectProvider<Copy> = tasks.register<Copy>("diptote") {
                 description += "!"
             }
 
@@ -146,67 +149,66 @@ class PolymorphicContainersEvalTest : TestWithTempFiles() {
 
         assertTasksConfiguration("scope-api", """
             tasks {
-                getByName("foo")
-                getByName("foo", Task::class)
-                getByName<Task>("foo")
+                val t1: Task = getByName("foo")
+                val t2: Task = getByName("foo", Task::class)
+                val t3: Task = getByName<Task>("foo")
     
-                getByName("bar") {
+                val t4: Task = getByName("bar") {
                     description += "!"
                 }
-                getByName("bar", Copy::class) {
+                val t5: Copy = getByName("bar", Copy::class) {
                     description += "!"
                 }
-                getByName<Copy>("bar") {
+                val t6: Copy = getByName<Copy>("bar") {
                     description += "!"
                 }
     
-                create("bazar")
-                /* TODO UNSUPPORTED
-                create("cathedral", Copy::class.java)
-                */
-                create<Copy>("cabin")
+                val t7: Task = create("bazar")
+                // TODO ::class taking overload generated is absent in this context
+                val t8: Copy = create("cathedral", Copy::class.java)
+                val t9: Copy = create<Copy>("cabin")
 
-                create("castle") {
+                val t10: Task = create("castle") {
                     description += "!"
                 }
-                /* TODO UNSUPPORTED
-                create("valley", Copy::class) {
+                // TODO ::class taking overload generated is absent in this context
+                val t11: Copy = tasks.create("valley", Copy::class.java) {
                     description += "!"
                 }
-                */
-                create<Copy>("hill") {
-                    description += "!"
-                }
-    
-                named("bat")
-                named("bat", Copy::class)
-                named<Copy>("bat")
-    
-                named("pipistrelle") {
-                    description += "!"
-                }
-                named("pipistrelle", Copy::class) {
-                    description += "!"
-                }
-                named<Copy>("pipistrelle") {
+                val t12: Copy = create<Copy>("hill") {
                     description += "!"
                 }
     
-                register("yate")
-                /* TODO UNSUPPORTED
-                register("quartern", Copy::class)
-                */
-                register<Copy>("veduta")
+                val t13: TaskProvider<Task> = named("bat")
+                val t14: TaskProvider<Copy> = named("bat", Copy::class)
+                val t15: TaskProvider<Copy> = named<Copy>("bat")
     
-                register("vansire") {
+                val t16: TaskProvider<Task> = named("pipistrelle") {
                     description += "!"
                 }
-                /* TODO UNSUPPORTED
-                register("koto", Copy::class) {
+                val t17: TaskProvider<Copy> = named("pipistrelle", Copy::class) {
                     description += "!"
                 }
-                */
-                register<Copy>("diptote") {
+                // TODO wrong return type
+                val t18: NamedDomainObjectProvider<Copy> = named<Copy>("pipistrelle") {
+                    description += "!"
+                }
+    
+                val t19: TaskProvider<Task> = register("yate")
+                // TODO ::class taking overload generated is absent in this context
+                val t20: TaskProvider<Copy> = register("quartern", Copy::class.java)
+                // TODO wrong return type
+                val t21: NamedDomainObjectProvider<Copy> = register<Copy>("veduta")
+    
+                val t22: TaskProvider<Task> = register("vansire") {
+                    description += "!"
+                }
+                // TODO ::class taking overload generated is absent in this context
+                val t23: TaskProvider<Copy> = register("koto", Copy::class.java) {
+                    description += "!"
+                }
+                // TODO wrong return type
+                val t24: NamedDomainObjectProvider<Copy> = register<Copy>("diptote") {
                     description += "!"
                 }
             }
@@ -222,46 +224,47 @@ class PolymorphicContainersEvalTest : TestWithTempFiles() {
 
             fun untyped() {
 
-                val foo by tasks.getting
-                val bar by tasks.getting {
+                val foo: Task by tasks.getting
+                val bar: Task by tasks.getting {
                     description += "!"
                 }
 
-                val bazar by tasks.creating
-                val castle by tasks.creating {
+                val bazar: Task by tasks.creating
+                val castle: Task by tasks.creating {
                     description += "!"
                 }
 
-                val bat by tasks.existing
-                val pipistrelle by tasks.existing {
+                val bat: TaskProvider<Task> by tasks.existing
+                val pipistrelle: TaskProvider<Task> by tasks.existing {
                     description += "!"
                 }
 
-                val yate by tasks.registering
-                val vansire by tasks.registering {
+                val yate: TaskProvider<Task> by tasks.registering
+                val vansire: TaskProvider<Task> by tasks.registering {
                     description += "!"
                 }
             }
 
             fun typed() {
 
-                val foo by tasks.getting(Task::class)
-                val bar by tasks.getting(Copy::class) {
+                val foo: Task by tasks.getting(Task::class)
+                val bar: Copy by tasks.getting(Copy::class) {
                     description += "!"
                 }
 
-                val cathedral by tasks.creating(Copy::class)
-                val hill by tasks.creating(Copy::class) {
+                val cathedral: Copy by tasks.creating(Copy::class)
+                val hill: Copy by tasks.creating(Copy::class) {
                     description += "!"
                 }
 
-                val bat by tasks.existing(Copy::class)
-                val pipistrelle by tasks.existing(Copy::class) {
+                val bat: TaskProvider<Copy> by tasks.existing(Copy::class)
+                // TODO wrong return type
+                val pipistrelle: NamedDomainObjectProvider<Copy> by tasks.existing(Copy::class) {
                     description += "!"
                 }
 
-                val veduta by tasks.registering(Copy::class)
-                val diptote by tasks.registering(Copy::class) {
+                val veduta: TaskProvider<Copy> by tasks.registering(Copy::class)
+                val diptote: TaskProvider<Copy> by tasks.registering(Copy::class) {
                     description += "!"
                 }
             }
@@ -282,23 +285,23 @@ class PolymorphicContainersEvalTest : TestWithTempFiles() {
 
                 tasks {
     
-                    val foo by getting
-                    val bar by getting {
+                    val foo: Task by getting
+                    val bar: Task by getting {
                         description += "!"
                     }
     
-                    val bazar by creating
-                    val castle by creating {
+                    val bazar: Task by creating
+                    val castle: Task by creating {
                         description += "!"
                     }
     
-                    val bat by existing
-                    val pipistrelle by existing {
+                    val bat: TaskProvider<Task> by existing
+                    val pipistrelle: TaskProvider<Task> by existing {
                         description += "!"
                     }
     
-                    val yate by registering
-                    val vansire by registering {
+                    val yate: TaskProvider<Task> by registering
+                    val vansire: TaskProvider<Task> by registering {
                         description += "!"
                     }
                 }
@@ -307,23 +310,24 @@ class PolymorphicContainersEvalTest : TestWithTempFiles() {
             fun typed() {
                 tasks {
     
-                    val foo by getting(Task::class)
-                    val bar by getting(Copy::class) {
+                    val foo: Task by getting(Task::class)
+                    val bar: Copy by getting(Copy::class) {
                         description += "!"
                     }
     
-                    val cathedral by creating(Copy::class)
-                    val hill by creating(Copy::class) {
+                    val cathedral: Copy by creating(Copy::class)
+                    val hill: Copy by creating(Copy::class) {
                         description += "!"
                     }
     
-                    val bat by existing(Copy::class)
-                    val pipistrelle by existing(Copy::class) {
+                    val bat: TaskProvider<Copy> by existing(Copy::class)
+                    // TODO wrong return type
+                    val pipistrelle: NamedDomainObjectProvider<Copy> by existing(Copy::class) {
                         description += "!"
                     }
     
-                    val veduta by registering(Copy::class)
-                    val diptote by registering(Copy::class) {
+                    val veduta: TaskProvider<Copy> by registering(Copy::class)
+                    val diptote: TaskProvider<Copy> by registering(Copy::class) {
                         description += "!"
                     }
                 }
@@ -343,13 +347,13 @@ class PolymorphicContainersEvalTest : TestWithTempFiles() {
 
             tasks {
 
-                val foo  = "foo"()
-                "bar" {
+                val foo: TaskProvider<Task>  = "foo"()
+                val bar: TaskProvider<Task> = "bar" {
                     description += "!"
                 }
 
-                val bat = "bat"(Task::class)
-                "pipistrelle"(Copy::class) {
+                val bat: TaskProvider<Task> = "bat"(Task::class)
+                val pipistrelle: TaskProvider<Copy> = "pipistrelle"(Copy::class) {
                     description += "!"
                 }
             }
