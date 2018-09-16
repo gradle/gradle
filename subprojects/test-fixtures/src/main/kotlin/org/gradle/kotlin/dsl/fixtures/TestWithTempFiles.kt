@@ -25,4 +25,8 @@ abstract class TestWithTempFiles {
     protected
     fun newFile(fileName: String, text: String): File =
         newFile(fileName).apply { writeText(text) }
+
+    protected
+    fun newFolder(folder: String) =
+        tempFolder.newFolder(folder)
 }

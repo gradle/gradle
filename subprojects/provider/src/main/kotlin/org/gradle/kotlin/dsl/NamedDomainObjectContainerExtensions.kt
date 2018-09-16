@@ -67,7 +67,7 @@ inline val <T : Any, C : NamedDomainObjectContainer<T>> C.registering: Registeri
  * @param C the concrete container type
  * @param action the configuration action
  */
-fun <T : Any, C : PolymorphicDomainObjectContainer<T>> C.registering(action: T.() -> Unit): RegisteringDomainObjectDelegateProviderWithAction<out C, T> =
+fun <T : Any, C : NamedDomainObjectContainer<T>> C.registering(action: T.() -> Unit): RegisteringDomainObjectDelegateProviderWithAction<out C, T> =
     RegisteringDomainObjectDelegateProviderWithAction(this, action)
 
 
@@ -116,7 +116,7 @@ operator fun <T : Any, C : NamedDomainObjectContainer<T>> RegisteringDomainObjec
 /**
  * Registers an element and provides a delegate with the resulting [NamedDomainObjectProvider].
  */
-operator fun <T : Any, C : PolymorphicDomainObjectContainer<T>> RegisteringDomainObjectDelegateProviderWithAction<C, T>.provideDelegate(
+operator fun <T : Any, C : NamedDomainObjectContainer<T>> RegisteringDomainObjectDelegateProviderWithAction<C, T>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
 ) = ExistingDomainObjectDelegate(
