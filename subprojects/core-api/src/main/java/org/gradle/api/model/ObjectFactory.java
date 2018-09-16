@@ -105,23 +105,6 @@ public interface ObjectFactory {
     <T> Property<T> property(Class<T> valueType);
 
     /**
-     * Creates a {@link Property} implementation to hold values of the given type and initial value.
-     *
-     * <p>For certain types, there are more specialized property factory methods available:</p>
-     * <ul>
-     * <li>For {@link List} properties, you should use {@link #listProperty(Class)}.</li>
-     * <li>For {@link Set} properties, you should use {@link #setProperty(Class)}.</li>
-     * <li>For {@link org.gradle.api.file.Directory} properties, you should use {@link #directoryProperty()}.</li>
-     * <li>For {@link org.gradle.api.file.RegularFile} properties, you should use {@link #fileProperty()}.</li>
-     * </ul>
-     *
-     * @param valueType The type of the property.
-     * @return The property. Never returns null.
-     * @since 5.0
-     */
-    <T> Property<T> property(Class<T> valueType, T initialValue);
-
-    /**
      * Creates a {@link ListProperty} implementation to hold a {@link List} of the given element type {@code T}. The property has no initial value.
      *
      * <p>The implementation will return immutable {@link List} values from its query methods.</p>

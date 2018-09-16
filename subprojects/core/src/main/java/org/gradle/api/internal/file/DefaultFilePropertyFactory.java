@@ -195,6 +195,12 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         public void set(File file) {
             set(new FixedFile(fileResolver.resolve(file)));
         }
+
+        @Override
+        public RegularFileProperty value(RegularFile value) {
+            super.value(value);
+            return this;
+        }
     }
 
     static class ResolvingDirectory extends AbstractResolvingProvider<Directory> {
@@ -245,6 +251,12 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         public void set(File dir) {
             File resolved = resolver.resolve(dir);
             set(new FixedDirectory(resolved, resolver.newResolver(resolved)));
+        }
+
+        @Override
+        public DirectoryProperty value(Directory value) {
+            super.value(value);
+            return this;
         }
 
         @Override

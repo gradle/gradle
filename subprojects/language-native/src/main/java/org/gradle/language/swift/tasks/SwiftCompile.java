@@ -104,8 +104,8 @@ public class SwiftCompile extends DefaultTask {
         this.source = getProject().files();
         this.sourceCompatibility = objectFactory.property(SwiftVersion.class);
         this.macros = objectFactory.listProperty(String.class).empty();
-        this.debuggable = objectFactory.property(Boolean.class, false);
-        this.optimize = objectFactory.property(Boolean.class, false);
+        this.debuggable = objectFactory.property(Boolean.class).value(false);
+        this.optimize = objectFactory.property(Boolean.class).value(false);
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
     }
