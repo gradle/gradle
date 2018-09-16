@@ -1,6 +1,7 @@
 task("print") {
     doLast {
         val list: ListProperty<String> = project.objects.listProperty()
+        list.empty()
 
         // Resolve the list
         logger.quiet("The list contains: " + list.get())

@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
 /**
  * Represents a property whose value can be set using multiple elements of type {@link T}, such as a collection property.
  *
- * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors. You can use the factory methods on {@link org.gradle.api.model.ObjectFactory} to create instances of this interface.
+ * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors. You can use the factory methods on {@link org.gradle.api.model.ObjectFactory} to create various subtypes of this interface.
  *
  * @param <T> the type of elements.
  * @since 4.5
@@ -31,7 +31,7 @@ import javax.annotation.Nullable;
 @Incubating
 public interface HasMultipleValues<T> {
     /**
-     * Sets the value of the property the elements of the given iterable. This property will track the value of the iterable and query its value each time the value of this property is queried.
+     * Sets the value of the property to the elements of the given iterable, and replaces any existing value. This property will query the elements of the iterable each time the value of this property is queried.
      *
      * <p>This method can also be used to clear the value of the property, by passing {@code null} as the value.
      *
@@ -40,11 +40,19 @@ public interface HasMultipleValues<T> {
     void set(@Nullable Iterable<? extends T> elements);
 
     /**
-     * Sets the property to have the same value of the given provider. This property will track the value of the provider and query its value each time the value of this property is queried. When the provider has no value, this property will also have no value.
+     * Sets the property to have the same value of the given provider, and replaces any existing value. This property will track the value of the provider and query its value each time the value of this property is queried. When the provider has no value, this property will also have no value.
      *
      * @param provider Provider of the elements.
      */
     void set(Provider<? extends Iterable<? extends T>> provider);
+
+    /**
+     * Sets the value of this property to an empty collection, and replaced any existing value.
+     *
+     * @return this property.
+     * @since 5.0
+     */
+    HasMultipleValues<T> empty();
 
     /**
      * Adds an element to the property value.

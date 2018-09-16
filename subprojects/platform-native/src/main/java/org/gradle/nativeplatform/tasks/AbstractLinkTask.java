@@ -83,7 +83,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
                 return dirProp.get();
             }
         }));
-        this.linkerArgs = getProject().getObjects().listProperty(String.class);
+        this.linkerArgs = getProject().getObjects().listProperty(String.class).empty();
         this.debuggable = objectFactory.property(Boolean.class, false);
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
