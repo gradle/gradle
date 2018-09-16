@@ -401,7 +401,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                     context.details.withVariant("$variantToTest") { 
                         withDependencyConstraints {
                             it.each {
-                                it.version { prefer '1.0' }
+                                it.version { require '1.0' }
                             }
                         }
                     }

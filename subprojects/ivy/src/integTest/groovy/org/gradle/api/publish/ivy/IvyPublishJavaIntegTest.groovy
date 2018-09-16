@@ -470,7 +470,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             }
             configurations.api.withDependencies { deps ->
                 deps.each { dep ->
-                    dep.version { prefer 'X' }
+                    dep.version { require 'X' }
                 }
             }
 """
