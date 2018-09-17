@@ -307,6 +307,18 @@ The `test.single` filter mechanism has been removed. You must select tests from 
 
 The `test.debug` mechanism to enable debugging of JVM tests from the command-line has been removed.  You must use [`--debug-jvm`](userguide/java_testing.html#sec:debugging_java_tests) to enable debugging of test execution.  
 
+### Replacing built-in tasks 
+
+In earlier versions of Gradle, builds were allowed to replace tasks that may be automatically created. This was deprecated in [Gradle 4.8](https://docs.gradle.org/4.8/release-notes.html#overwriting-gradle's-built-in-tasks) and has now been turned into an error.
+
+Attempting to replace a built-in task will produce an error similar to the following:
+
+> Cannot add task 'wrapper' as a task with that name already exists.
+
+The full list of built-in tasks that cannot be replaced:
+
+`wrapper`, `init`, `help`, `tasks`, `projects`, `buildEnvironment`, `components`, `dependencies`, `dependencyInsight`, `dependentComponents`, `model`, `properties`
+
 ### Changes to internal APIs
 
 - Removed the internal class `SimpleFileCollection`.

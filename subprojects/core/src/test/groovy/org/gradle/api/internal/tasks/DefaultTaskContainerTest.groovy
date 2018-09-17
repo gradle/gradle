@@ -536,18 +536,12 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         def bTask = addTask("b")
         aTask.dependsOn(bTask)
 
-        addPlaceholderTask("c")
-        def cTask = this.task("c", DefaultTask)
-
         when:
         container.realize()
 
         then:
-        1 * taskFactory.create(_ as TaskIdentity) >> { cTask }
         0 * aTask.getTaskDependencies()
         0 * bTask.getTaskDependencies()
-        0 * cTask.getTaskDependencies()
-        container.getByName("c") == cTask
     }
 
     void "invokes rule at most once when locating a task"() {
@@ -1265,48 +1259,6 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         0 * action._
     }
 
-    void "can add task via placeholder action"() {
-        when:
-        addPlaceholderTask("task")
-        1 * taskFactory.create(_ as TaskIdentity) >> { TaskIdentity identity, Object[] args -> task(identity.name, identity.type) }
-
-        then:
-        container.getByName("task") != null
-    }
-
-    void "placeholder is ignored when task already exists"() {
-        given:
-        Task task = addTask("task")
-        def placeholderAction = addPlaceholderTask("task")
-
-        when:
-        container.getByName("task") == task
-
-        then:
-        0 * placeholderAction.execute(_)
-    }
-
-    void "placeholder is ignored when task later defined"() {
-        given:
-        def placeholderAction = addPlaceholderTask("task")
-        Task task = addTask("task")
-
-        when:
-        container.getByName("task") == task
-
-        then:
-        0 * placeholderAction.execute(_)
-    }
-
-    void "getNames contains task and placeholder action names"() {
-        when:
-        addTask("task1")
-        def placeholderAction = addPlaceholderTask("task2")
-        0 * placeholderAction.execute(_)
-        then:
-        container.names == ['task1', 'task2'] as SortedSet
-    }
-
     void "maybeCreate creates new task"() {
         given:
         def task = task("task")
@@ -1999,12 +1951,6 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
             getTaskDependency() >> Mock(TaskDependency)
             getTaskIdentity() >> TaskIdentity.create(name, type, project)
         }
-    }
-
-    private Action addPlaceholderTask(String placeholderName) {
-        def action = Mock(Action)
-        container.addPlaceholderAction(placeholderName, DefaultTask, action)
-        action
     }
 
     private Task addTask(String name) {
