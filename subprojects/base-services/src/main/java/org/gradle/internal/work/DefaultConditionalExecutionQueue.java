@@ -141,7 +141,7 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
                     try {
                         workAvailable.await();
                     } catch (InterruptedException e) {
-                        throw new UncheckedException(e);
+                        throw UncheckedException.throwAsUncheckedException(e);
                     }
                 }
 

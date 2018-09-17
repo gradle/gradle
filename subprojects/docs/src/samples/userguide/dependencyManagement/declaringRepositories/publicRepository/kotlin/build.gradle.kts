@@ -10,7 +10,7 @@ dependencies {
     libs("com.google.guava:guava:23.0")
 }
 
-task("copyLibs", Copy::class) {
+task<Copy>("copyLibs") {
     from(libs)
     into("$buildDir/libs")
 }

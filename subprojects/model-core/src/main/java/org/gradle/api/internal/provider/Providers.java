@@ -26,7 +26,7 @@ public class Providers {
     public static final String NULL_TRANSFORMER_RESULT = "Transformer for this provider returned a null value.";
     public static final String NULL_VALUE = "No value has been specified for this provider.";
 
-    private static final Provider<Object> NULL_PROVIDER = new ProviderInternal<Object>() {
+    private static final Provider<Object> NULL_PROVIDER = new AbstractMinimalProvider<Object>() {
         @Override
         public Object get() {
             throw new IllegalStateException(NULL_VALUE);
@@ -66,23 +66,20 @@ public class Providers {
 
     public static final Provider<Boolean> TRUE = of(true);
     public static final Provider<Boolean> FALSE = of(false);
-    public static final Provider<Character> CHAR_ZERO = of((char) 0);
-    public static final Provider<Byte> BYTE_ZERO = of((byte) 0);
-    public static final Provider<Short> SHORT_ZERO = of((short) 0);
-    public static final Provider<Integer> INTEGER_ZERO = of(0);
-    public static final Provider<Long> LONG_ZERO = of(0L);
-    public static final Provider<Float> FLOAT_ZERO = of(0f);
-    public static final Provider<Double> DOUBLE_ZERO = of(0d);
 
-    public static <T> Provider<T> notDefined() {
+    public static <T> ProviderInternal<T> notDefined() {
         return Cast.uncheckedCast(NULL_PROVIDER);
     }
 
-    public static <T> Provider<T> of(final T value) {
+    public static <T> ProviderInternal<T> of(T value) {
         return new FixedValueProvider<T>(value);
     }
 
-    private static class FixedValueProvider<T> implements ProviderInternal<T> {
+    public static <T> ProviderInternal<T> internal(final Provider<T> value) {
+        return Cast.uncheckedCast(value);
+    }
+
+    private static class FixedValueProvider<T> extends AbstractMinimalProvider<T> {
         private final T value;
 
         FixedValueProvider(T value) {
@@ -126,7 +123,7 @@ public class Providers {
         }
     }
 
-    private static class MappedFixedValueProvider<S, T> implements ProviderInternal<S> {
+    private static class MappedFixedValueProvider<S, T> extends AbstractMinimalProvider<S> {
         private final Transformer<? extends S, ? super T> transformer;
         private final Provider<T> provider;
         private S value;

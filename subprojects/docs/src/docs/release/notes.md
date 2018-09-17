@@ -41,11 +41,22 @@ While the `init` task does not automatically create a Git repository, the `init`
 
 The `SourceDirectorySet` type is often used by plugins to represent some set of source directories and files. Previously, it was only possible to create instances of `SourceDirectorySet` using internal types. This is problematic because when a plugin uses internal types it can often break when new versions of Gradle are released because internal types may change in breaking ways between releases.
 
-In this release of Gradle, the `ObjectFactory` service, which is part of the public API, now includes a method to create `SourceDirectorySet` instances. A plugin can now use this method instead of the internal types.
+In this release of Gradle, the `ObjectFactory` service, which is part of the public API, now includes a method to create `SourceDirectorySet` instances. Plugins can now use this method instead of the internal types.
+
+### Added Provider.flatMap() method
+
+TBD - why this is useful
+
+### Provider implementations track their producer task 
+
+TBD - More provider implementations track the task that produces the value of the provider:
+- Any provider returned by `TaskContainer`
+- Any property marked with `@OutputFile` or `@OutputDirectory`
+- Any provider returned by `Provider.map()` that matches these criteria (including this one)
 
 ### Changes to file and directory property construction
 
-`ObjectFactory` is now used to create file and directory `Property` instances, similar to other `Property` types. Previously, this was done using either the methods on `DefaulTask`, which was available only for `DefaultTask` subclasses, or using `ProjectLayout`, only available for projects. Now a single type, `ObjectFactory` can be used to create all property instances in a Gradle model object.
+`ObjectFactory` is now used to create file and directory `Property` instances, similar to other `Property` types. Previously, this was done using either the methods on `DefaulTask`, which was available only for `DefaultTask` subclasses, or using `ProjectLayout`, only available for projects. Now a single type `ObjectFactory` can be used to create all property instances in a Gradle model object.
 
 These other methods have been deprecated and will be removed in Gradle 6.0.
 
@@ -68,6 +79,11 @@ When using `@OutputFiles` or `@OutputDirectories` with an `Iterable` type, Gradl
 
 This is no longer the case, and using such properties doesn't prevent the task from being cached.
 The only remaining reason to disable caching for the task is if the output contains file trees.
+
+### Task timeouts
+
+You can now specify a timeout for a task, after which it will be interrupted. 
+See the user guide section on “[Task timeouts](userguide/more_about_tasks.html#task_timeouts)” for more information.
 
 ## Promoted features
 
@@ -134,14 +150,24 @@ At the moment, we are not planning to provide an alternative. In most cases, tas
 
 TBD - The methods on `DefaultTask` and `ProjectLayout` that create file and directory `Property` instances have been deprecated and replaced by methods on `ObjectFactory`. These deprecated methods will be removed in Gradle 6.0.
 
-TBD - The `ObjectFactory.property(type)` method no longer sets a default value for the property. There is an overload `property(type, initialValue)` that can be used instead.
+TBD - The `ObjectFactory.property(type)`, `listProperty(type)` and `setProperty(type)` methods no longer set an initial value for the property. Instead, you can use the `value()` or `empty()` methods, or any other mutation method, on the property instances to set an initial value, if required.
 
 ### The property `append` on `JacocoTaskExtension` has been deprecated
 
 See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
 
+### Deprecated announce plugins
+
+The [announce](userguide/announce_plugin.html) and [build announcements](userguide/build_announcements_plugin.html) plugins have been deprecated.
+
+### Deprecated OSGi plugin
+
+The [osgi](userguide/osgi_plugin.html) plugin has been deprecated. Builds should migrate to the [biz.aQute.bnd plugin](https://github.com/bndtools/bnd/blob/master/biz.aQute.bnd.gradle/README.md). 
+
 ### Deprecated code quality plugins
 
+- The FindBugs plugin has been deprecated because the project is unmaintained and does not work with bytecode compiled for Java 9 and above.
+  Please consider using the [SpotBugs plugin](https://plugins.gradle.org/plugin/com.github.spotbugs) instead.
 - The JDepend plugin has been deprecated because the project is unmaintained and does not work with bytecode compiled for Java 8 and above.
 
 ## Potential breaking changes
@@ -155,6 +181,11 @@ However the fixed issues are mostly about corner cases and combination with rece
 When a dependency constraint matched a real dependency, it was made part of the graph.
 However if for some reason the dependency was later evicted from the graph, the constraint remained present.
 Now when the last non-constraint edge to a dependency disappears, all constraints for that dependency will be properly removed from the graph.
+
+### Gradle 5.0 requires Java 8
+
+Gradle can no longer be run on Java 7, but requires Java 8 as the minimum build JVM version. 
+However, you can still use forked compilation and testing to build and test software for Java 6 and above.
 
 ### Java Library Distribution Plugin utilizes Java Library Plugin
 
@@ -254,6 +285,9 @@ The `IdeaModule` Tooling API model element contains methods to retrieve resource
 - Removed the type `RegularFileVar`.
 - Removed the type `DirectoryVar`.
 - Removed the type `PropertyState`.
+- Removed `JavaBasePlugin.configureForSourceSet`
+- Removed `JDepend.classesDir`
+- Removed `IdeaPlugin.performPostEvaluationActions` and `EclipsePlugin.performPostEvaluationActions`
 - Forbid passing `null` as configuration action to the methods `from` and `to` on `CopySpec`.
 - Removed the property `bootClasspath` from `CompileOptions`.
 - Validation problems for inputs or outputs registered via the runtime API now fail the build.
@@ -267,6 +301,12 @@ The `IdeaModule` Tooling API model element contains methods to retrieve resource
 - `BasePluginConvention` is now abstract. 
 - `ProjectReportsPluginConvention` is now abstract. 
 
+### System properties `test.single` and `test.debug` have been removed
+
+The `test.single` filter mechanism has been removed. You must select tests from the command-line with [`--tests`](userguide/java_testing.html#simple_name_pattern).
+
+The `test.debug` mechanism to enable debugging of JVM tests from the command-line has been removed.  You must use [`--debug-jvm`](userguide/java_testing.html#sec:debugging_java_tests) to enable debugging of test execution.  
+
 ### Changes to internal APIs
 
 - Removed the internal class `SimpleFileCollection`.
@@ -279,18 +319,22 @@ We would like to thank the following community members for making contributions 
 
 - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Switch Jacoco plugin to use configuration avoidance APIs (gradle/gradle#6245)
 - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Switch build-dashboard plugin to use configuration avoidance APIs (gradle/gradle#6247)
+- [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Fix nullability of the CreateStartScripts task properties (gradle/gradle#6704)
+- [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Make Settings implement ExtensionAware (gradle/gradle#6685)
 - [Ben McCann](https://github.com/benmccann) - Remove Play 2.2 support (gradle/gradle#3353)
 - [Björn Kautler](https://github.com/Vampire) - No Deprecated Configurations in Build Init (gradle/gradle#6208)
 - [Georg Friedrich](https://github.com/GFriedrich) - Base Java Library Distribution Plugin on Java Library Plugin (gradle/gradle#5695)
-- [Stefan M.](https://github.com/StefMa) — Include Kotlin DSL samples in Gradle Wrapper, Java Gradle Plugin, and OSGI Plugin user manual chapters (gradle/gradle#5923, gradle/gradle#6485, gradle/gradle#6539)
+- [Stefan M.](https://github.com/StefMa) — Include Kotlin DSL samples in Gradle Wrapper, Java Gradle Plugin, OSGI Plugin and Organizing Gradle Projects user manual chapters (gradle/gradle#5923, gradle/gradle#6485, gradle/gradle#6539, gradle/gradle#6621)
 - [Stefan M.](https://github.com/StefMa) - Fix incoherent task name in the Authoring Tasks user manual chapter (gradle/gradle#6581)
-- [Jean-Baptiste Nizet](https://github.com/jnizet) — Include Kotlin DSL samples in Announcements, ANTLR, Base, EAR, Java Library Plugins, JaCoCo Plugins, Building Java Projects, Declaring Repositories, Dependency Locking, Dependency Types, Java Library, Java Testing, Artifact Management, IDEA Plugin, Application Plugin, Build Cache, Build Lifecycle, Declaring Dependencies, Inspecting Dependencies, Dependency Management for Java Projects, Working With Files, Working With Dependencies, Building Java Projects, Java Quickstart, Eclipse Plugin, Custom Tasks, Java Plugin, Signing Plugin, Composite Builds, TestKit and Multi Projects Builds user manual chapters (gradle/gradle#6488, gradle/gradle#6500, gradle/gradle#6514, gradle/gradle#6518, gradle/gradle#6521, gradle/gradle#6540, gradle/gradle#6560, gradle/gradle#6559, gradle/gradle#6569, gradle/gradle#6556, gradle/gradle#6512, gradle/gradle#6501, gradle/gradle#6497, gradle/gradle#6571, gradle/gradle#6575, gradle/gradle#6586, gradle/gradle#6590, gradle/gradle#6591, gradle/gradle#6593, gradle/gradle#6597, gradle/gradle#6598, gradle/gradle#6602, gradle/gradle#6613, gradle/gradle#6618, gradle/gradle#6578, gradle/gradle#6660, gradle/gradle#6663, gradle/gradle#6678, gradle/gradle#6687)
+- [Jean-Baptiste Nizet](https://github.com/jnizet) — Include Kotlin DSL samples in Announcements, ANTLR, Base, EAR, Java Library Plugins, JaCoCo Plugins, Building Java Projects, Declaring Repositories, Dependency Locking, Dependency Types, Java Library, Java Testing, Artifact Management, IDEA Plugin, Application Plugin, Build Cache, Build Lifecycle, Declaring Dependencies, Inspecting Dependencies, Dependency Management for Java Projects, Working With Files, Working With Dependencies, Building Java Projects, Java Quickstart, Eclipse Plugin, Custom Tasks, Java Plugin, Signing Plugin, Composite Builds, TestKit, Multi Projects Builds, Managing Transitive Dependencies, Custom Plugins, Init Scripts, Scala Plugin, Managing Dependency Configurations, Groovy Plugin and Groovy Quickstart user manual chapters (gradle/gradle#6488, gradle/gradle#6500, gradle/gradle#6514, gradle/gradle#6518, gradle/gradle#6521, gradle/gradle#6540, gradle/gradle#6560, gradle/gradle#6559, gradle/gradle#6569, gradle/gradle#6556, gradle/gradle#6512, gradle/gradle#6501, gradle/gradle#6497, gradle/gradle#6571, gradle/gradle#6575, gradle/gradle#6586, gradle/gradle#6590, gradle/gradle#6591, gradle/gradle#6593, gradle/gradle#6597, gradle/gradle#6598, gradle/gradle#6602, gradle/gradle#6613, gradle/gradle#6618, gradle/gradle#6578, gradle/gradle#6660, gradle/gradle#6663, gradle/gradle#6678, gradle/gradle#6687, gradle/gradle#6588, gradle/gradle#6633, gradle/gradle#6637, gradle/gradle#6689, gradle/gradle#6509, gradle/gradle#6645)
 - [Jean-Baptiste Nizet](https://github.com/jnizet) — Use proper subtype for useTestNG() (gradle/gradle#6520)
 - [Xiang Li](https://github.com/lixiangconan) and [Theodore Ni](https://github.com/tjni) - Make FileUtils#calculateRoots more efficient (gradle/gradle#6455)
 - [James Justinic](https://github.com/jjustinic) Include Kotlin DSL samples in Ant, WAR Plugin, Checkstyle plugin, CodeNarc plugin, FindBugs plugin, JDepend plugin, PMD plugin user manual chapters (gradle/gradle#6492, gradle/gradle#6510, gradle/gradle#6522)
 - [James Justinic](https://github.com/jjustinic) Support type-safe configuration for Checkstyle/FindBugs HTML report stylesheet (gradle/gradle#6551)
 - [Mike Kobit](https://github.com/mkobit) - Include Kotlin DSL samples in Lazy Configuration user manual chapter (gradle/gradle#6528)
 - [Kevin Macksamie](https://github.com/k-mack) - Switch distribution plugin to use configuration avoidance APIs (gradle/gradle#6443)
+- [Cliffred van Velzen](https://github.com/cliffred) - Allow logging null value (gradle/gradle#6665)
+- [Artem Zinnatullin](https://github.com/artem-zinnatullin) - Update HttpCore from 4.4.9 to 4.4.10 and HttpClient from 4.5.5 to 4.5.6 (gradle/gradle#6709)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

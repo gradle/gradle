@@ -22,8 +22,11 @@ import org.gradle.api.tasks.Input;
 
 /**
  * The single file XML report for FindBugs.
+ *
+ * @deprecated FindBugs is unmaintained and does not support bytecode compiled for Java 9 and above.
  */
 @Incubating
+@Deprecated
 public interface FindBugsXmlReport extends SingleFileReport {
     /**
      * Whether or not FindBugs should generate XML augmented with human-readable messages.

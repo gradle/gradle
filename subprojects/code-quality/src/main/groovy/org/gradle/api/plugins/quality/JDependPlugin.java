@@ -48,7 +48,7 @@ public class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
 
     @Override
     protected void beforeApply() {
-        SingleMessageLogger.nagUserOfDeprecatedPlugin("JDepend");
+        SingleMessageLogger.nagUserOfDeprecatedPlugin("jdepend");
     }
 
     @Override

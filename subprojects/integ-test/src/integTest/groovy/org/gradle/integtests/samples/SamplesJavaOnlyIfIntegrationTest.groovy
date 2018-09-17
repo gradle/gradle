@@ -30,7 +30,7 @@ class SamplesJavaOnlyIfIntegrationTest extends AbstractIntegrationTest {
 
     @Before
     void setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
     /**

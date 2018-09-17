@@ -213,12 +213,12 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
             try {
                 workQueue.put(new ShutdownOperationsCommand());
             } catch (InterruptedException e) {
-                // ignore
+                Thread.currentThread().interrupt();
             }
             try {
                 doneSignal.await();
             } catch (InterruptedException e) {
-                // ignore
+                Thread.currentThread().interrupt();
             }
         }
         rethrowFailure();

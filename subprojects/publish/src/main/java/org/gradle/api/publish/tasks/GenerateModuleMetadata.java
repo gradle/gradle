@@ -72,7 +72,7 @@ public class GenerateModuleMetadata extends DefaultTask {
     public GenerateModuleMetadata() {
         ObjectFactory objectFactory = getProject().getObjects();
         publication = objectFactory.property(Publication.class);
-        publications = objectFactory.listProperty(Publication.class);
+        publications = objectFactory.listProperty(Publication.class).empty();
         outputFile = objectFactory.fileProperty();
         // TODO - should be incremental
         getOutputs().upToDateWhen(Specs.<Task>satisfyNone());

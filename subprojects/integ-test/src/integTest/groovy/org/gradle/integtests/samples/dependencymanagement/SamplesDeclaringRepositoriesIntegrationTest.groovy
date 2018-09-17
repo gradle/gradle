@@ -27,7 +27,7 @@ class SamplesDeclaringRepositoriesIntegrationTest extends AbstractIntegrationSpe
     Sample sample = new Sample(testDirectoryProvider)
 
     def setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
     @UsesSample("userguide/dependencyManagement/declaringRepositories/publicRepository/groovy")

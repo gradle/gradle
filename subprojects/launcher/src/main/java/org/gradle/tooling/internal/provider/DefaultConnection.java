@@ -97,7 +97,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
      * This is used by consumers 1.2-rc-1 and later.
      */
     public void configure(ConnectionParameters parameters) {
-        assertUsingJava7();
+        assertUsingSupportedJavaVersion();
         ProviderConnectionParameters providerConnectionParameters = new ProtocolToModelAdapter().adapt(ProviderConnectionParameters.class, parameters);
         File gradleUserHomeDir = providerConnectionParameters.getGradleUserHomeDir(null);
         if (gradleUserHomeDir == null) {
@@ -108,9 +108,9 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
         consumerVersion = GradleVersion.version(providerConnectionParameters.getConsumerVersion());
     }
 
-    private void assertUsingJava7() {
+    private void assertUsingSupportedJavaVersion() {
         try {
-            UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_7);
+            UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_8);
         } catch (IllegalArgumentException e) {
             // https://github.com/gradle/gradle/issues/3317
             LOGGER.warn(e.getMessage());
@@ -265,7 +265,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
 
     private ProviderOperationParameters validateAndConvert(BuildParameters buildParameters) {
         LOGGER.info("Tooling API is using target Gradle version: {}.", GradleVersion.current().getVersion());
-        assertUsingJava7();
+        assertUsingSupportedJavaVersion();
 
         checkUnsupportedTapiVersion();
         ProviderOperationParameters parameters = adapter.builder(ProviderOperationParameters.class).mixInTo(ProviderOperationParameters.class, BuildLogLevelMixIn.class).build(buildParameters);

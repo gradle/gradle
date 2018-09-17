@@ -147,7 +147,7 @@ public class LogToClient extends BuildCommandOnly {
             try {
                 completionLock.await();
             } catch (InterruptedException e) {
-                // the caller has been interrupted
+                Thread.currentThread().interrupt();
             }
         }
     }

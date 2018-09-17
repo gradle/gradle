@@ -62,5 +62,20 @@ class LockablePropertyTest extends LockablePropertySpec<String> {
         "more"
     }
 
+    def "cannot set value after property is locked"() {
+        given:
+        property.lockNow()
+
+        when:
+        property.value(brokenValue())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'This property is locked and cannot be changed.'
+
+        and:
+        0 * target._
+    }
+
     interface TestProperty extends Property<String>, PropertyInternal<String>, ProviderInternal<String> {}
 }

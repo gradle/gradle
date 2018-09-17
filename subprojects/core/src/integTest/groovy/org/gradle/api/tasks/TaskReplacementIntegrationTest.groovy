@@ -63,7 +63,7 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         expect:
         executer.expectDeprecationWarning()
         succeeds 'help'
-        outputContains("Replacing a task that may have been used by other plugins can cause problems. This behavior has been deprecated and is scheduled to become an error in Gradle 6.0. Use a different name for this task ('foo') or avoid creating the original task you are trying to replace.")
+        outputContains("Replacing a task that may have been used by other plugins has been deprecated. This is scheduled to be removed in Gradle 6.0. Use a different name for this task ('foo') or avoid creating the original task you are trying to replace.")
         outputDoesNotContain(":foo is a First")
         outputContains(":foo is a Second")
         outputContains(":foo is a Third")
@@ -86,7 +86,7 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
         outputContains(":foo is a First")
         outputContains(":foo is a Second")
-        outputContains("Replacing a task that may have been used by other plugins can cause problems. This behavior has been deprecated and is scheduled to become an error in Gradle 6.0. Use a different name for this task ('foo') or avoid creating the original task you are trying to replace.")
+        outputContains("Replacing a task that may have been used by other plugins has been deprecated. This is scheduled to be removed in Gradle 6.0. Use a different name for this task ('foo') or avoid creating the original task you are trying to replace.")
 
         where:
         description               | api
@@ -103,7 +103,7 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         expect:
         executer.expectDeprecationWarning()
         succeeds 'help'
-        outputContains("Replacing a task that may have been used by other plugins can cause problems. This behavior has been deprecated and is scheduled to become an error in Gradle 6.0. Use a different name for this task ('foo') or avoid creating the original task you are trying to replace.")
+        outputContains("Replacing a task that may have been used by other plugins has been deprecated. This is scheduled to be removed in Gradle 6.0. Use a different name for this task ('foo') or avoid creating the original task you are trying to replace.")
     }
 
     def "shows deprecation warning when replace realized task by configuration rule"() {
@@ -116,7 +116,7 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         expect:
         executer.expectDeprecationWarning()
         succeeds 'help'
-        outputContains("Replacing a task that may have been used by other plugins can cause problems. This behavior has been deprecated and is scheduled to become an error in Gradle 6.0. Use a different name for this task ('foo') or avoid creating the original task you are trying to replace.")
+        outputContains("Replacing a task that may have been used by other plugins has been deprecated. This is scheduled to be removed in Gradle 6.0. Use a different name for this task ('foo') or avoid creating the original task you are trying to replace.")
     }
 
     @Unroll
@@ -132,7 +132,7 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         expect:
         executer.expectDeprecationWarning()
         succeeds 'help'
-        outputContains("Replacing an existing task with an incompatible type. This behavior has been deprecated and is scheduled to become an error in Gradle 6.0. Use a different name for this task ('foo'), use a compatible type (UnrelatedCustomTask) or avoid creating the original task you are trying to replace.")
+        outputContains("Replacing an existing task with an incompatible type has been deprecated. This is scheduled to be removed in Gradle 6.0. Use a different name for this task ('foo'), use a compatible type (UnrelatedCustomTask) or avoid creating the original task you are trying to replace.")
 
         where:
         description               | api
@@ -153,7 +153,7 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         expect:
         executer.expectDeprecationWarning()
         succeeds 'help'
-        outputContains("Replacing an existing task with an incompatible type. This behavior has been deprecated and is scheduled to become an error in Gradle 6.0. Use a different name for this task ('foo'), use a compatible type (CustomTask) or avoid creating the original task you are trying to replace.")
+        outputContains("Replacing an existing task with an incompatible type has been deprecated. This is scheduled to be removed in Gradle 6.0. Use a different name for this task ('foo'), use a compatible type (CustomTask) or avoid creating the original task you are trying to replace.")
 
         where:
         description               | api
@@ -229,7 +229,7 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         expect:
         executer.expectDeprecationWarning()
         succeeds 'help'
-        outputContains("Unnecessarily replacing a task that does not exist. This behavior has been deprecated and is scheduled to become an error in Gradle 6.0. You attempted to replace a task named 'foo', but no task exists with that name already. Try using create() or register() directly instead.")
+        outputContains("Unnecessarily replacing a task that does not exist has been deprecated. This is scheduled to be removed in Gradle 6.0. Try using create() or register() directly instead. You attempted to replace a task named 'foo', but no task exists with that name already.")
 
         where:
         description               | api

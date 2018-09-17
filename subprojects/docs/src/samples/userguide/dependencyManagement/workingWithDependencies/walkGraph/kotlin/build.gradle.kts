@@ -11,7 +11,7 @@ dependencies {
 }
 
 // tag::walk-task[]
-task("walkDependencyGraph", DependencyGraphWalk::class) {
+task<DependencyGraphWalk>("walkDependencyGraph") {
     dependsOn(configurations["scm"])
 }
 

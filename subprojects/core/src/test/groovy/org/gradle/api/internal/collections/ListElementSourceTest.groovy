@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.collections
 
-import org.gradle.api.internal.provider.AbstractProvider
+import org.gradle.api.internal.provider.AbstractReadOnlyProvider
 import org.gradle.api.internal.provider.CollectionProviderInternal
 
 
@@ -477,7 +477,7 @@ class ListElementSourceTest extends AbstractIterationOrderRetainingElementSource
         return new TypedProviderOfList<StringBuffer>(StringBuffer, values as List)
     }
 
-    private static class TypedProviderOfList<T> extends AbstractProvider<List<T>> implements CollectionProviderInternal<T, List<T>> {
+    private static class TypedProviderOfList<T> extends AbstractReadOnlyProvider<List<T>> implements CollectionProviderInternal<T, List<T>> {
         final Class<T> type
         final List<T> value
 

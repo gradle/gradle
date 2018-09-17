@@ -1,30 +1,30 @@
-open class FooExtension(objects: ObjectFactory, layout: ProjectLayout) {
-    // A directory
-    val someDirectory: DirectoryProperty = objects.directoryProperty()
-    //  A file
-    val someFile: RegularFileProperty = objects.fileProperty()
-    // A collection of files or directories
-    val someFiles: ConfigurableFileCollection = layout.configurableFiles()
-}
+// A task that generates a source file and writes the result to an output directory
+open class GenerateSource @javax.inject.Inject constructor(objects: ObjectFactory): DefaultTask() {
+    @InputFile
+    val configFile: RegularFileProperty = objects.fileProperty()
 
-project.extensions.create("foo", FooExtension::class, project.objects, project.layout)
+    @OutputDirectory
+    val outputDir: DirectoryProperty = objects.directoryProperty()
 
-configure<FooExtension> {
-    // Configure the locations
-    someDirectory.set(project.layout.projectDirectory.dir("some-directory"))
-    someFile.set(project.layout.buildDirectory.file("some-file"))
-    someFiles.from(someDirectory, someFile)
-}
-
-task("print") {
-    doLast {
-        val foo = project.the<FooExtension>()
-        val someDirectory = foo.someDirectory.get().asFile
-        logger.quiet("foo.someDirectory = " + someDirectory)
-        logger.quiet("foo.someFiles contains someDirectory? " + foo.someFiles.contains(someDirectory))
-
-        val someFile = foo.someFile.get().asFile
-        logger.quiet("foo.someFile = " + someFile)
-        logger.quiet("foo.someFiles contains someFile? " + foo.someFiles.contains(someFile))
+    @TaskAction
+    fun compile() {
+        val inFile = configFile.get().asFile
+        logger.quiet("configuration file = $inFile")
+        val dir = outputDir.get().asFile
+        logger.quiet("output dir = $dir")
+        val className = inFile.readText().trim()
+        val srcFile = File(dir, "${className}.java")
+        srcFile.writeText("public class ${className} { }")
     }
 }
+
+// Create the source generation task
+task<GenerateSource>("generate") {
+    // Configure the locations, relative to the project and build directories
+    configFile.set(project.layout.projectDirectory.file("src/config.txt"))
+    outputDir.set(project.layout.buildDirectory.dir("generated-source"))
+}
+
+// Change the build directory
+// Don't need to reconfigure the task properties. These are automatically updated as the build directory changes
+buildDir = file("output")

@@ -52,7 +52,7 @@ dependencies {
     integTestRuntimeOnly(project(":resourcesSftp"))
     integTestRuntimeOnly(project(":testKit"))
 
-    testFixturesCompile(project(":resourcesHttp", "testFixturesUsageCompile"))
+    testFixturesApi(project(":resourcesHttp", "testFixturesApiElements"))
     testFixturesImplementation(project(":internalIntegTesting"))
 }
 
@@ -63,7 +63,7 @@ gradlebuildJava {
 testFixtures {
     from(":core")
     from(":messaging")
-    from(":modelCore")
+    from(":coreApi")
     from(":versionControl")
     from(":resourcesHttp")
 }

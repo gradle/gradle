@@ -18,10 +18,10 @@ package org.gradle.api.internal.file.collections
 import org.gradle.api.Buildable
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskOutputs
-import org.gradle.api.tasks.TaskProvider
 import spock.lang.Specification
 
 import java.nio.file.Path
@@ -156,18 +156,48 @@ class BuildDependenciesOnlyFileCollectionResolveContextTest extends Specificatio
         0 * taskContext._
     }
 
-    def taskProvider() {
-        def task = Stub(Task)
-        def taskProvider = Mock(TaskProvider) {
-            get() >> task
-        }
+    def delegatesToDependencyContainerToDetermineBuildDependencies() {
+        def container = Mock(TaskDependencyContainer)
+        def task = Mock(Task)
 
         when:
-        context.add(taskProvider)
+        context.add(container)
 
         then:
+        1 * container.visitDependencies(_) >> { TaskDependencyResolveContext nestedContext -> nestedContext.add(task) }
         1 * taskContext.add(task)
         0 * taskContext._
+        0 * container._
+    }
+
+    def delegatesToNestedDependencyContainer() {
+        def container = Mock(TaskDependencyContainer)
+        def nested = Mock(TaskDependencyContainer)
+        def task = Mock(Task)
+
+        when:
+        context.add(container)
+
+        then:
+        1 * container.visitDependencies(_) >> { TaskDependencyResolveContext nestedContext -> nestedContext.add(nested) }
+        1 * nested.visitDependencies(_) >> { TaskDependencyResolveContext nestedContext -> nestedContext.add(task) }
+        1 * taskContext.add(task)
+        0 * taskContext._
+        0 * container._
+    }
+
+    def ignoresTaskDependencyContainerElementThatCannotBeConverted() {
+        def container = Mock(TaskDependencyContainer)
+
+        when:
+        context.add(container)
+
+        then:
+        1 * container.visitDependencies(_) >> { TaskDependencyResolveContext nestedContext ->
+            nestedContext.add("thing")
+        }
+        0 * taskContext._
+        0 * container._
     }
 
     interface TestFileSet extends MinimalFileSet, Buildable {

@@ -17,11 +17,9 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.internal.Factory;
-import org.gradle.internal.exceptions.Contextual;
 
-public class DefaultMutationGuard implements MutationGuard {
+public class DefaultMutationGuard extends AbstractMutationGuard {
     private ThreadLocal<Boolean> isMutationAllowed = new ThreadLocal<Boolean>() {
         @Override
         protected Boolean initialValue() {
@@ -34,30 +32,7 @@ public class DefaultMutationGuard implements MutationGuard {
         return isMutationAllowed.get();
     }
 
-    @Override
-    public void assertMutationAllowed(String methodName, Object target) {
-        assertMutationAllowed(methodName, target, new DslObject(target).getPublicType().getConcreteClass());
-    }
-
-    @Override
-    public <T> void assertMutationAllowed(String methodName, T target, Class<T> targetType) {
-        if (!isMutationAllowed()) {
-            throw createIllegalStateException(targetType, methodName, target);
-        }
-    }
-
-    private static <T> IllegalStateException createIllegalStateException(Class<T> targetType, String methodName, T target) {
-        return new IllegalMutationException(String.format("%s#%s on %s cannot be executed in the current context.", targetType.getSimpleName(), methodName, target));
-    }
-
-    @Contextual
-    private static class IllegalMutationException extends IllegalStateException {
-        public IllegalMutationException(String message) {
-            super(message);
-        }
-    }
-
-    private <T> Action<? super T> newActionWithMutation(final Action<? super T> action, final boolean allowMutationMethods) {
+    protected <T> Action<? super T> newActionWithMutation(final Action<? super T> action, final boolean allowMutationMethods) {
         return new Action<T>() {
             @Override
             public void execute(T t) {
@@ -72,7 +47,7 @@ public class DefaultMutationGuard implements MutationGuard {
         };
     }
 
-    private void runWithMutation(final Runnable runnable, boolean allowMutationMethods) {
+    protected void runWithMutation(final Runnable runnable, boolean allowMutationMethods) {
         boolean oldIsMutationAllowed = isMutationAllowed.get();
         isMutationAllowed.set(allowMutationMethods);
         try {
@@ -82,7 +57,7 @@ public class DefaultMutationGuard implements MutationGuard {
         }
     }
 
-    private <I> I createWithMutation(final Factory<I> factory, boolean allowMutationMethods) {
+    protected <I> I createWithMutation(final Factory<I> factory, boolean allowMutationMethods) {
         boolean oldIsMutationAllowed = isMutationAllowed.get();
         isMutationAllowed.set(allowMutationMethods);
         try {
@@ -90,35 +65,5 @@ public class DefaultMutationGuard implements MutationGuard {
         } finally {
             isMutationAllowed.set(oldIsMutationAllowed);
         }
-    }
-
-    @Override
-    public <T> Action<? super T> withMutationEnabled(Action<? super T> action) {
-        return newActionWithMutation(action, true);
-    }
-
-    @Override
-    public <T> Action<? super T> withMutationDisabled(Action<? super T> action) {
-        return newActionWithMutation(action, false);
-    }
-
-    @Override
-    public void whileMutationEnabled(Runnable runnable) {
-        runWithMutation(runnable, true);
-    }
-
-    @Override
-    public <T> T whileMutationEnabled(Factory<T> factory) {
-        return createWithMutation(factory, true);
-    }
-
-    @Override
-    public void whileMutationDisabled(Runnable runnable) {
-        runWithMutation(runnable, false);
-    }
-
-    @Override
-    public <T> T whileMutationDisabled(Factory<T> factory) {
-        return createWithMutation(factory, false);
     }
 }
