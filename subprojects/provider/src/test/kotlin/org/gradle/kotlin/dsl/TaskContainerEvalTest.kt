@@ -22,7 +22,10 @@ import org.gradle.api.tasks.Copy
 
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.eval
+import org.gradle.kotlin.dsl.fixtures.customInstallationGradleApiExtensionsClasspath
 import org.gradle.kotlin.dsl.fixtures.newProjectBuilderProject
+import org.gradle.kotlin.dsl.fixtures.testCompilationClassPath
+
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.Matcher
@@ -96,7 +99,10 @@ class TaskContainerEvalTest : TestWithTempFiles() {
 
             before()
 
-            eval(script)
+            eval(
+                script,
+                scriptCompilationClassPath = testCompilationClassPath + customInstallationGradleApiExtensionsClasspath
+            )
 
             tasksAssertions.forEach { taskAssertion ->
                 taskAssertion.run {
@@ -132,15 +138,13 @@ class TaskContainerEvalTest : TestWithTempFiles() {
             }
 
             val t6: Task = tasks.create("bazar")
-            // TODO ::class taking overload generated is absent in this context
-            val t7: Copy = tasks.create("cathedral", Copy::class.java)
+            val t7: Copy = tasks.create("cathedral", Copy::class)
             val t8: Copy = tasks.create<Copy>("cabin")
 
             val t9: Task = tasks.create("castle") {
                 description += "!"
             }
-            // TODO ::class taking overload generated is absent in this context
-            val t10: Copy = tasks.create("valley", Copy::class.java) {
+            val t10: Copy = tasks.create("valley", Copy::class) {
                 description += "!"
                 destinationDir = file("out")
             }
@@ -166,15 +170,13 @@ class TaskContainerEvalTest : TestWithTempFiles() {
             }
 
             val t18: TaskProvider<Task> = tasks.register("yate")
-            // TODO ::class taking overload generated is absent in this context
-            val t19: TaskProvider<Copy> = tasks.register("quartern", Copy::class.java)
+            val t19: TaskProvider<Copy> = tasks.register("quartern", Copy::class)
             val t20: TaskProvider<Copy> = tasks.register<Copy>("veduta")
 
             val t21: TaskProvider<Task> = tasks.register("vansire") {
                 description += "!"
             }
-            // TODO ::class taking overload generated is absent in this context
-            val t22: TaskProvider<Copy> = tasks.register("koto", Copy::class.java) {
+            val t22: TaskProvider<Copy> = tasks.register("koto", Copy::class) {
                 description += "!"
                 destinationDir = file("out")
             }
@@ -207,15 +209,13 @@ class TaskContainerEvalTest : TestWithTempFiles() {
                 }
     
                 val t7: Task = create("bazar")
-                // TODO ::class taking overload generated is absent in this context
-                val t8: Copy = create("cathedral", Copy::class.java)
+                val t8: Copy = create("cathedral", Copy::class)
                 val t9: Copy = create<Copy>("cabin")
 
                 val t10: Task = create("castle") {
                     description += "!"
                 }
-                // TODO ::class taking overload generated is absent in this context
-                val t11: Copy = tasks.create("valley", Copy::class.java) {
+                val t11: Copy = tasks.create("valley", Copy::class) {
                     description += "!"
                     destinationDir = file("out")
                 }
@@ -241,15 +241,13 @@ class TaskContainerEvalTest : TestWithTempFiles() {
             }
     
                 val t19: TaskProvider<Task> = register("yate")
-                // TODO ::class taking overload generated is absent in this context
-                val t20: TaskProvider<Copy> = register("quartern", Copy::class.java)
+                val t20: TaskProvider<Copy> = register("quartern", Copy::class)
                 val t21: TaskProvider<Copy> = register<Copy>("veduta")
     
                 val t22: TaskProvider<Task> = register("vansire") {
                     description += "!"
                 }
-                // TODO ::class taking overload generated is absent in this context
-                val t23: TaskProvider<Copy> = register("koto", Copy::class.java) {
+                val t23: TaskProvider<Copy> = register("koto", Copy::class) {
                     description += "!"
                     destinationDir = file("out")
                 }

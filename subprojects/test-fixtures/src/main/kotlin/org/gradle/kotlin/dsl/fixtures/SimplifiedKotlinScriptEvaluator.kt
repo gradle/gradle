@@ -62,9 +62,10 @@ import java.net.URLClassLoader
  */
 fun Project.eval(
     script: String,
-    baseCacheDir: File = file(".gradle/kotlin-dsl-eval-cache")
+    baseCacheDir: File = file(".gradle/kotlin-dsl-eval-cache"),
+    scriptCompilationClassPath: ClassPath = testCompilationClassPath
 ) {
-    eval(script, this, baseCacheDir)
+    eval(script, this, baseCacheDir, scriptCompilationClassPath)
 }
 
 
@@ -72,8 +73,13 @@ fun Project.eval(
  * Evaluates the given Kotlin [script] against the given [target] writing compiled classes
  * to sub-directories of [baseCacheDir].
  */
-fun eval(script: String, target: Any, baseCacheDir: File) {
-    SimplifiedKotlinScriptEvaluator(baseCacheDir).use {
+fun eval(
+    script: String,
+    target: Any,
+    baseCacheDir: File,
+    scriptCompilationClassPath: ClassPath = testCompilationClassPath
+) {
+    SimplifiedKotlinScriptEvaluator(baseCacheDir, scriptCompilationClassPath).use {
         it.eval(script, target)
     }
 }
@@ -82,9 +88,10 @@ fun eval(script: String, target: Any, baseCacheDir: File) {
 /**
  * A simplified Kotlin script evaluator, suitable for cheaper testing of the DSL outside Gradle.
  */
+private
 class SimplifiedKotlinScriptEvaluator(
     private val baseCacheDir: File,
-    private val scriptCompilationClassPath: ClassPath = testCompilationClassPath,
+    private val scriptCompilationClassPath: ClassPath,
     private val serviceRegistry: ServiceRegistry = DefaultServiceRegistry()
 ) : AutoCloseable {
 
