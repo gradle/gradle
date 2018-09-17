@@ -24,7 +24,7 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(mod
             name = "BUILD_WITH_BUILT_GRADLE"
             tasks = "clean :install"
             gradleHome = "%teamcity.build.checkoutDir%/dogfood-first"
-            gradleParams = "-Pgradle_installPath=dogfood-second $defaultParameters"
+            gradleParams = "-Pgradle_installPath=dogfood-second -PignoreIncomingBuildReceipt=true $defaultParameters"
         }
         localGradle {
             name = "QUICKCHECK_WITH_GRADLE_BUILT_BY_GRADLE"
