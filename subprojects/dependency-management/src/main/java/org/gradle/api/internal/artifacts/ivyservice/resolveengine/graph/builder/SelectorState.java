@@ -167,8 +167,8 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         if (dependencyState.failure != null) {
             idResolveResult.failed(dependencyState.failure);
         } else {
-            ResolvedVersionConstraint mergedConstraint = versionConstraint == null ? null : versionConstraint.withRejectSelector(allRejects);
-            resolver.resolve(firstSeenDependency, mergedConstraint, idResolveResult);
+            VersionSelector selector = versionConstraint == null ? null : versionConstraint.getPreferredSelector();
+            resolver.resolve(firstSeenDependency, selector, allRejects, idResolveResult);
         }
 
         if (idResolveResult.getFailure() != null) {

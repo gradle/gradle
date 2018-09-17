@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
-import org.gradle.api.internal.artifacts.ResolvedVersionConstraint
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
@@ -272,24 +271,21 @@ class SelectorStateResolverTest extends Specification {
      */
     class TestDependencyToComponentIdResolver implements DependencyToComponentIdResolver {
         @Override
-        void resolve(DependencyMetadata dependency, ResolvedVersionConstraint versionConstraint, BuildableComponentIdResolveResult result) {
-            def prefer = versionConstraint.preferredSelector
-            def reject = versionConstraint.rejectedSelector
-
-            if (!prefer.isDynamic()) {
-                def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(moduleId.group, moduleId.name), prefer.selector)
-                resolvedOrRejected(id, reject, result)
+        void resolve(DependencyMetadata dependency, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result) {
+            if (!acceptor.isDynamic()) {
+                def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(moduleId.group, moduleId.name), acceptor.selector)
+                resolvedOrRejected(id, rejector, result)
                 return
             }
 
-            def resolved = findDynamicVersion(prefer, reject)
+            def resolved = findDynamicVersion(acceptor, rejector)
             if (resolved) {
                 def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(moduleId.group, moduleId.name), resolved as String)
-                resolvedOrRejected(id, reject, result)
+                resolvedOrRejected(id, rejector, result)
                 return
             }
 
-            result.failed(missing(prefer))
+            result.failed(missing(acceptor))
         }
 
         def resolvedOrRejected(ModuleComponentIdentifier id, VersionSelector rejectSelector, BuildableComponentIdResolveResult result) {

@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -57,25 +56,24 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
         dynamicRevisionResolver.add(repository);
     }
 
-    public void resolve(DependencyMetadata dependency, ResolvedVersionConstraint resolvedVersionConstraint, BuildableComponentIdResolveResult result) {
+    @Override
+    public void resolve(DependencyMetadata dependency, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result) {
         ComponentSelector componentSelector = dependency.getSelector();
         if (componentSelector instanceof ModuleComponentSelector) {
             ModuleComponentSelector module = (ModuleComponentSelector) componentSelector;
-            if (resolvedVersionConstraint == null) {
-                // TODO:DAZ This shouldn't be required, but `ExternalResourceResolverDescriptorParseContext` does not provide a resolved constraint
+            if (acceptor == null) {
+                // TODO:DAZ This shouldn't be required, but `ExternalResourceResolverDescriptorParseContext` does not provide a version constraint
                 VersionConstraint raw = module.getVersionConstraint();
-                resolvedVersionConstraint = new DefaultResolvedVersionConstraint(raw, versionSelectorScheme);
+                acceptor = new DefaultResolvedVersionConstraint(raw, versionSelectorScheme).getPreferredSelector();
             }
-            VersionSelector preferredSelector = resolvedVersionConstraint.getPreferredSelector();
-            VersionSelector rejectSelector = resolvedVersionConstraint.getRejectedSelector();
-            if (preferredSelector.isDynamic()) {
-                dynamicRevisionResolver.resolve(toModuleDependencyMetadata(dependency), preferredSelector, rejectSelector, consumerAttributes, result);
+            if (acceptor.isDynamic()) {
+                dynamicRevisionResolver.resolve(toModuleDependencyMetadata(dependency), acceptor, rejector, consumerAttributes, result);
             } else {
-                String version = preferredSelector.getSelector();
+                String version = acceptor.getSelector();
                 ModuleIdentifier moduleId = module.getModuleIdentifier();
                 ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId(moduleId, version);
                 ModuleVersionIdentifier mvId = DefaultModuleVersionIdentifier.newId(moduleId, version);
-                if (rejectSelector != null && rejectSelector.accept(version)) {
+                if (rejector != null && rejector.accept(version)) {
                     result.rejected(id, mvId);
                 } else {
                     result.resolved(id, mvId);

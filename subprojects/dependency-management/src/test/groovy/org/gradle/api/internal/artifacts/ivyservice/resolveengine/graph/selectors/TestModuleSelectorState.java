@@ -57,12 +57,6 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
         throw new UnsupportedOperationException();
     }
 
-    private ComponentIdResolveResult resolveVersion(ResolvedVersionConstraint mergedConstraint) {
-        BuildableComponentIdResolveResult result = new DefaultBuildableComponentIdResolveResult();
-        resolver.resolve(null, mergedConstraint, result);
-        return result;
-    }
-
     @Override
     public String toString() {
         return versionConstraint.toString();
@@ -74,8 +68,9 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
             return resolved;
         }
 
-        ResolvedVersionConstraint mergedConstraint = resolvedVersionConstraint.withRejectSelector(allRejects);
-        resolved = resolveVersion(mergedConstraint);
+        BuildableComponentIdResolveResult result = new DefaultBuildableComponentIdResolveResult();
+        resolver.resolve(null, resolvedVersionConstraint.getPreferredSelector(), allRejects, result);
+        resolved = result;
         return resolved;
     }
 
