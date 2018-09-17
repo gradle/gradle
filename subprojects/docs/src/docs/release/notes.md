@@ -24,9 +24,11 @@ We hope you will build happiness with Gradle 4.10, and we look forward to your f
 
 Switch your build to use Gradle 4.10 quickly by updating your wrapper properties:
 
-    ./gradlew wrapper --gradle-version=4.10
+    ./gradlew wrapper --gradle-version=4.10.2
 
 Standalone downloads are available at [gradle.org/releases](https://gradle.org/releases/).
+
+**NOTE**: Gradle 4.10 has had two patch releases. You should use the latest patch release (4.10.2).  
 
 ## New and noteworthy
 
