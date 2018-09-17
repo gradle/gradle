@@ -88,6 +88,17 @@ operator fun <U : Task> ExistingDomainObjectDelegateProviderWithType<out TaskCon
 
 
 /**
+ * Provides a [TaskProvider] delegate for the task of the given type named after the property after configuring it with the given action.
+ */
+operator fun <U : Task> ExistingDomainObjectDelegateProviderWithTypeAndAction<out TaskContainer, U>.provideDelegate(
+    receiver: Any?,
+    property: KProperty<*>
+) = ExistingDomainObjectDelegate(
+    delegateProvider.named(property.name, type).apply { configure(action) }
+)
+
+
+/**
  * Registers a task and provides a delegate with the resulting [TaskProvider].
  */
 operator fun RegisteringDomainObjectDelegateProvider<out TaskContainer>.provideDelegate(

@@ -304,8 +304,7 @@ class TaskContainerEvalTest : TestWithTempFiles() {
                 }
 
                 val bat: TaskProvider<Copy> by tasks.existing(Copy::class)
-                // TODO wrong return type
-                val pipistrelle: NamedDomainObjectProvider<Copy> by tasks.existing(Copy::class) {
+                val pipistrelle: TaskProvider<Copy> by tasks.existing(Copy::class) {
                     description += "!"
                     destinationDir = file("out")
                 }
@@ -369,8 +368,7 @@ class TaskContainerEvalTest : TestWithTempFiles() {
                     }
     
                     val bat: TaskProvider<Copy> by existing(Copy::class)
-                    // TODO wrong return type
-                    val pipistrelle: NamedDomainObjectProvider<Copy> by existing(Copy::class) {
+                    val pipistrelle: TaskProvider<Copy> by existing(Copy::class) {
                         description += "!"
                         destinationDir = file("out")
                     }
