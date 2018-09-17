@@ -25,6 +25,12 @@ import org.gradle.util.TestPrecondition
 @Requires(TestPrecondition.JDK8_OR_EARLIER)
 class FindBugsRelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
 
+    void setup() {
+        executer.beforeExecute {
+            noDeprecationChecks()
+        }
+    }
+
     @Override
     protected String getTaskName() {
         return ":findbugs"

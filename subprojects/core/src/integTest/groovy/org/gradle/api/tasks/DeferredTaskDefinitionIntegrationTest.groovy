@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -561,6 +562,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
+        executer.expectDeprecationWarning()
         succeeds "help"
 
         result.output.count("Create :myTask") == 1
@@ -587,6 +589,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
+        executer.expectDeprecationWarning()
         succeeds "help"
 
         result.output.count("Create :myTask") == 1
@@ -612,6 +615,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
+        executer.expectDeprecationWarning()
         succeeds "help"
 
         result.output.count("Create :myTask") == 2
@@ -637,6 +641,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
+        executer.expectDeprecationWarning()
         succeeds "help"
 
         result.output.count("Create :myTask") == 2
@@ -833,6 +838,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         expect:
+        executer.expectDeprecationWarning()
         fails "foo"
 
         and:
@@ -892,11 +898,32 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private static final def INVALID_CALL_FROM_LAZY_CONFIGURATION = [
-        ["Project#afterEvaluate(Closure)"  , "afterEvaluate {}"],
-        ["Project#afterEvaluate(Action)"   , "afterEvaluate new Action<Project>() { void execute(Project p) {} }"],
-        ["Project#beforeEvaluate(Closure)" , "beforeEvaluate {}"],
-        ["Project#beforeEvaluate(Action)"  , "beforeEvaluate new Action<Project>() { void execute(Project p) {} }"],
+        ["Project#afterEvaluate(Closure)"   , "afterEvaluate {}"],
+        ["Project#afterEvaluate(Action)"    , "afterEvaluate new Action<Project>() { void execute(Project p) {} }"],
+        ["Project#beforeEvaluate(Closure)"  , "beforeEvaluate {}"],
+        ["Project#beforeEvaluate(Action)"   , "beforeEvaluate new Action<Project>() { void execute(Project p) {} }"],
+        ["Gradle#beforeProject(Closure)"    , "gradle.beforeProject {}"],
+        ["Gradle#beforeProject(Action)"     , "gradle.beforeProject new Action<Project>() { void execute(Project p) {} }"],
+        ["Gradle#afterProject(Closure)"     , "gradle.afterProject {}"],
+        ["Gradle#afterProject(Action)"      , "gradle.afterProject new Action<Project>() { void execute(Project p) {} }"],
+        ["Gradle#projectsLoaded(Closure)"   , "gradle.projectsLoaded {}"],
+        ["Gradle#projectsLoaded(Action)"    , "gradle.projectsLoaded new Action<Gradle>() { void execute(Gradle g) {} }"],
+        ["Gradle#projectsEvaluated(Closure)", "gradle.projectsEvaluated {}"],
+        ["Gradle#projectsEvaluated(Action)" , "gradle.projectsEvaluated new Action<Gradle>() { void execute(Gradle g) {} }"]
     ]
+
+    String mutationExceptionFor(description) {
+        def target
+        if (description.startsWith("Project")) {
+            target = "root project 'root'"
+        } else if (description.startsWith("Gradle")) {
+            target = "build 'root'"
+        } else {
+            throw new IllegalArgumentException("Can't determine the exception text for '${description}'")
+        }
+
+        return "$description on ${target} cannot be executed in the current context."
+    }
 
     @Unroll
     def "cannot execute #description during lazy task creation action execution"() {
@@ -910,7 +937,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "foo"
         failure.assertHasCause("Could not create task ':foo'.")
-        failure.assertHasCause("$description on root project 'root' cannot be executed in the current context.")
+        failure.assertHasCause(mutationExceptionFor(description))
 
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
@@ -944,7 +971,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "foo"
         failure.assertHasCause("Could not create task ':foo'.")
-        failure.assertHasCause("$description on root project 'root' cannot be executed in the current context.")
+        failure.assertHasCause(mutationExceptionFor(description))
 
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
@@ -981,7 +1008,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "foo"
         failure.assertHasCause("Could not create task ':other:foo'.")
-        failure.assertHasCause("$description on root project 'root' cannot be executed in the current context.")
+        failure.assertHasCause(mutationExceptionFor(description))
 
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
@@ -1019,7 +1046,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "foo"
         failure.assertHasCause("Could not create task ':other:foo'.")
-        failure.assertHasCause("$description on root project 'root' cannot be executed in the current context.")
+        failure.assertHasCause(mutationExceptionFor(description))
 
         where:
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
@@ -1136,5 +1163,90 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         """
         expect:
         succeeds("help")
+    }
+
+    @Ignore
+    @Issue("https://github.com/gradle/gradle/issues/6558")
+    def "can register tasks in multi-project build that iterates over allprojects and tasks in task action"() {
+        settingsFile << """
+            include 'a', 'b', 'c', 'd'
+        """
+        buildFile << """
+            class MyTask extends DefaultTask {
+                @TaskAction
+                void doIt() {
+                    for (Project subproject : project.rootProject.getAllprojects()) {
+                        for (MyTask myTask : subproject.tasks.withType(MyTask)) {
+                            println "Looking at " + myTask.path
+                        }
+                    }
+                }
+            }
+            
+            allprojects {
+                (1..10).each {
+                    def mytask = tasks.register("mytask" + it, MyTask)
+                }
+            }
+        """
+        expect:
+        succeeds("mytask0", "--parallel")
+    }
+
+    @Issue("https://github.com/gradle/gradle-native/issues/814")
+    def "can locate task by name and type with named"() {
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                String message
+                int number
+                
+                @TaskAction
+                void print() {
+                    println message + " " + number
+                }
+            }
+            task foo(type: CustomTask)
+            tasks.register("bar", CustomTask)
+            
+            tasks.named("foo", CustomTask).configure {
+                message = "foo named(String, Class)"
+            }
+            tasks.named("foo", CustomTask) {
+                number = 100
+            }
+            tasks.named("foo") {
+                number = number * 2
+            }
+            tasks.named("bar", CustomTask) {
+                message = "bar named(String, Class, Action)"
+            }
+            tasks.named("bar", CustomTask).configure {
+                number = 12345
+            }
+        """
+        expect:
+        succeeds("foo", "bar")
+        outputContains("foo named(String, Class) 200")
+        outputContains("bar named(String, Class, Action) 12345")
+    }
+
+    @Unroll
+    def "gets useful message when using improper type for named using #api"() {
+        buildFile << """
+            class CustomTask extends DefaultTask {
+            }
+            class AnotherTask extends DefaultTask {
+            }
+
+            tasks.${api}("foo", CustomTask)
+            
+            tasks.named("foo", AnotherTask) // should fail
+        """
+        expect:
+        fails("help")
+        failure.assertHasCause("The task 'foo' (CustomTask) is not a subclass of the given type (AnotherTask).")
+
+        where:
+        api << ["create", "register"]
     }
 }

@@ -30,7 +30,7 @@ class CorruptedTaskHistoryIntegrationTest extends AbstractIntegrationSpec {
         def numberOfInputProperties = 10
         def numberOfTasks = 100
         def totalNumberOfOutputDirectories = numberOfTasks
-        def killPollInterval = 20
+        def killPollInterval = 10
         def totalNumberOfOutputFiles = numberOfTasks * numberOfOutputFilesPerTask + totalNumberOfOutputDirectories
 
         setupTestProject(numberOfFiles, numberOfInputProperties, numberOfTasks, killPollInterval)
@@ -130,7 +130,7 @@ if (project.findProperty("killMe")) {
     new Thread({
         while (true) {
             Thread.sleep(${killPollInterval})
-            if (buildDir.exists() && buildDir.listFiles().size() > 40) {
+            if (buildDir.exists() && buildDir.listFiles().size() > 20) {
                 System.exit(1)
             }
         }

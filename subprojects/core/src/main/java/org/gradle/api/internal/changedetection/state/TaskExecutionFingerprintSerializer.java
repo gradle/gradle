@@ -21,23 +21,23 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.internal.fingerprint.HistoricalFileCollectionFingerprint;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
-import java.io.IOException;
 import java.util.Map;
 
 public class TaskExecutionFingerprintSerializer extends AbstractSerializer<HistoricalTaskExecution> {
     private final InputPropertiesSerializer inputPropertiesSerializer;
     private final Serializer<HistoricalFileCollectionFingerprint> fileCollectionFingerprintSerializer;
+    private final Serializer<ImplementationSnapshot> implementationSnapshotSerializer;
 
     TaskExecutionFingerprintSerializer(Serializer<HistoricalFileCollectionFingerprint> fileCollectionFingerprintSerializer) {
         this.fileCollectionFingerprintSerializer = fileCollectionFingerprintSerializer;
         this.inputPropertiesSerializer = new InputPropertiesSerializer();
+        this.implementationSnapshotSerializer = new ImplementationSnapshot.SerializerImpl();
     }
 
     public HistoricalTaskExecution read(Decoder decoder) throws Exception {
@@ -51,13 +51,13 @@ public class TaskExecutionFingerprintSerializer extends AbstractSerializer<Histo
         ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> inputFilesFingerprints = readFingerprints(decoder);
         ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> outputFilesFingerprints = readFingerprints(decoder);
 
-        ImplementationSnapshot taskImplementation = readImplementation(decoder);
+        ImplementationSnapshot taskImplementation = implementationSnapshotSerializer.read(decoder);
 
         // We can't use an immutable list here because some hashes can be null
         int taskActionsCount = decoder.readSmallInt();
         ImmutableList.Builder<ImplementationSnapshot> taskActionImplementationsBuilder = ImmutableList.builder();
         for (int j = 0; j < taskActionsCount; j++) {
-            ImplementationSnapshot actionImpl = readImplementation(decoder);
+            ImplementationSnapshot actionImpl = implementationSnapshotSerializer.read(decoder);
             taskActionImplementationsBuilder.add(actionImpl);
         }
         ImmutableList<ImplementationSnapshot> taskActionImplementations = taskActionImplementationsBuilder.build();
@@ -89,32 +89,16 @@ public class TaskExecutionFingerprintSerializer extends AbstractSerializer<Histo
         encoder.writeLong(execution.getOriginExecutionMetadata().getExecutionTime());
         writeFingerprints(encoder, execution.getInputFingerprints());
         writeFingerprints(encoder, execution.getOutputFingerprints());
-        writeImplementation(encoder, execution.getTaskImplementation());
+        implementationSnapshotSerializer.write(encoder, execution.getTaskImplementation());
         encoder.writeSmallInt(execution.getTaskActionImplementations().size());
         for (ImplementationSnapshot actionImpl : execution.getTaskActionImplementations()) {
-            writeImplementation(encoder, actionImpl);
+            implementationSnapshotSerializer.write(encoder, actionImpl);
         }
         encoder.writeSmallInt(execution.getOutputPropertyNamesForCacheKey().size());
         for (String outputFile : execution.getOutputPropertyNamesForCacheKey()) {
             encoder.writeString(outputFile);
         }
         inputPropertiesSerializer.write(encoder, execution.getInputProperties());
-    }
-
-    private static ImplementationSnapshot readImplementation(Decoder decoder) throws IOException {
-        String typeName = decoder.readString();
-        HashCode classLoaderHash = decoder.readBoolean() ? HashCode.fromBytes(decoder.readBinary()) : null;
-        return new ImplementationSnapshot(typeName, classLoaderHash);
-    }
-
-    private static void writeImplementation(Encoder encoder, ImplementationSnapshot implementation) throws IOException {
-        encoder.writeString(implementation.getTypeName());
-        if (implementation.hasUnknownClassLoader()) {
-            encoder.writeBoolean(false);
-        } else {
-            encoder.writeBoolean(true);
-            encoder.writeBinary(implementation.getClassLoaderHash().toByteArray());
-        }
     }
 
     private ImmutableSortedMap<String, HistoricalFileCollectionFingerprint> readFingerprints(Decoder decoder) throws Exception {

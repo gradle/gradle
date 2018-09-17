@@ -20,12 +20,11 @@ import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.internal.reflect.DirectInstantiator
 
-import spock.lang.Specification
-
-class DefaultPolymorphicDomainObjectContainerTest extends Specification {
+class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDomainObjectContainerSpec<Person> {
     def fred = new DefaultPerson(name: "fred")
     def barney = new DefaultPerson(name: "barney")
     def agedFred = new DefaultAgeAwarePerson(name: "fred", age: 42)
@@ -33,9 +32,30 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
 
     def container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, DirectInstantiator.INSTANCE)
 
+    @Override
+    final NamedDomainObjectContainer<Person> getContainer() {
+        return container
+    }
+
+    Person a = new DefaultPerson(name: "a")
+    Person b = new DefaultPerson(name: "b")
+    Person c = new DefaultPerson(name: "c")
+    Person d = new DefaultCtorNamedPerson("d")
+    boolean externalProviderAllowed = true
+
+    @Override
+    void behaveLikeNamedContainer() {
+        container.registerDefaultFactory({ new DefaultPerson(name: it) } as NamedDomainObjectFactory )
+    }
+
+    @Override
+    List<Person> iterationOrder(Person... elements) {
+        return elements.sort { it.name }
+    }
+
     interface Person extends Named {}
 
-    static class DefaultPerson implements Person {
+    static abstract class AbstractPerson implements Person {
         String name
         String toString() { name }
 
@@ -49,11 +69,14 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
         }
     }
 
+    static class DefaultPerson extends AbstractPerson {
+    }
+
     interface AgeAwarePerson extends Person {
         int getAge()
     }
 
-    static class DefaultAgeAwarePerson extends DefaultPerson implements AgeAwarePerson {
+    static class DefaultAgeAwarePerson extends AbstractPerson implements AgeAwarePerson {
         int age
 
         boolean equals(DefaultAgeAwarePerson other) {
@@ -71,7 +94,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
 
     interface CtorNamedPerson extends Person {}
 
-    static class DefaultCtorNamedPerson extends DefaultPerson implements CtorNamedPerson {
+    static class DefaultCtorNamedPerson extends AbstractPerson implements CtorNamedPerson {
         DefaultCtorNamedPerson(String name) {
             this.name = name
         }
@@ -353,6 +376,42 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
         fred.get().name == "fred"
         bob.present
         bob.get().age == 50
+    }
+
+    def "can find and configure objects by name and type"() {
+        container.registerFactory(Person, { new DefaultPerson(name: it) } as NamedDomainObjectFactory)
+        container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it) } as NamedDomainObjectFactory)
+        container.register("fred", Person)
+        container.register("bob", AgeAwarePerson)
+        when:
+        def fred = container.named("fred", Person)
+        def bob = container.named("bob", AgeAwarePerson) {
+            it.age = 50
+        }
+        then:
+        fred.present
+        fred.get().name == "fred"
+        bob.present
+        bob.get().age == 50
+
+        when:
+        container.named("bob") {
+            it.age = 100
+        }
+        then:
+        bob.get().age == 100
+    }
+
+    def "gets useful message if type does not match registered type"() {
+        container.registerFactory(Person, { new DefaultPerson(name: it) } as NamedDomainObjectFactory)
+        container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it) } as NamedDomainObjectFactory)
+        container.register("fred", Person)
+        container.register("bob", AgeAwarePerson)
+        when:
+        container.named("fred", AgeAwarePerson)
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message == "The domain object 'fred' (${Person.class.canonicalName}) is not a subclass of the given type (${AgeAwarePerson.class.canonicalName})."
     }
 
     protected void assertSchemaIs(Map<String, String> expectedSchema) {

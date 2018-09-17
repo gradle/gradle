@@ -21,12 +21,12 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  */
 plugins {
     id 'java-library'
-    id 'gradlebuild.strict-compile'
     id 'gradlebuild.classycle'
 }
 
 dependencies {
     api project(':baseServices')
+    api project(":coreApi")
     api libraries.groovy.coordinates
 
     implementation project(':baseServicesGroovy')
@@ -39,6 +39,7 @@ dependencies {
 
     integTestImplementation project(':core')
     integTestRuntimeOnly project(':plugins')
+    integTestRuntimeOnly project(':apiMetadata')
 
     testFixturesImplementation project(':internalTesting')
     testFixturesImplementation project(':core')
@@ -50,16 +51,14 @@ gradlebuildJava {
 
 testFixtures {
     from(':core')
+    from(':coreApi')
     from(':diagnostics', 'testFixtures')
-}
-
-strictCompile {
-    ignoreDeprecations = true
 }
 
 classycle {
     excludePatterns = ['org/gradle/model/internal/core/**',
                        'org/gradle/model/internal/inspect/**',
+                       'org/gradle/api/internal/tasks/**',
                        'org/gradle/model/internal/manage/schema/**',
                        'org/gradle/model/internal/type/**']
 }

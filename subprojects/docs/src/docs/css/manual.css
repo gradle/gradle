@@ -14,22 +14,6 @@
  * limitations under the License.
  */
 
-/*
- * Copyright 2018 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 /* Lato (normal, regular) */
 @font-face {
     font-family: Lato;
@@ -882,15 +866,19 @@ h6,
 h1 {
     font-size: 2rem;
 }
+
 h2 {
     font-size: 1.5rem;
 }
+
 h3 {
     font-size: 1.125rem;
 }
+
 h4 {
     font-size: 1.0625rem;
 }
+
 h5, h6 {
     font-size: 1rem;
 }
@@ -928,6 +916,7 @@ dl {
     .footer {
         max-width: 100%;
     }
+
     .main-content > .appendix,
     .main-content > .book,
     .main-content > .chapter {
@@ -940,6 +929,7 @@ dl {
 #header {
     position: static;
 }
+
 #header, #content {
     padding: 0;
 }
@@ -951,6 +941,17 @@ dl {
 
 p {
     color: #02303A;
+}
+
+h1,
+h2,
+p,
+p strong,
+td.content,
+td.content strong,
+div.footnote strong,
+span.alt {
+    letter-spacing: normal;
 }
 
 .subheader,
@@ -1210,14 +1211,14 @@ body.book #header > h1 {
 }
 
 div.screenshot {
-    box-shadow: 0 0 20px 1px rgba(0,0,0,0.2);
+    box-shadow: 0 0 20px 1px rgba(0, 0, 0, 0.2);
     margin-left: auto;
     margin-right: auto;
     width: 90%;
 }
 
 .inset {
-    box-shadow: 0 0 1px 1px rgba(0,0,0,0.1);
+    box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.1);
     padding: 1em;
 }
 
@@ -1233,7 +1234,7 @@ div.screenshot {
 }
 
 #header #toctitle {
-    margin-bottom: 0.625rem;
+    margin-bottom: 0.425rem;
 }
 
 #toc,
@@ -1247,10 +1248,11 @@ div.screenshot {
 }
 
 #toc > ul > li {
-    line-height: 1.0;
+    line-height: 1.25;
     margin-top: 0;
-    padding-bottom: 0.425rem;
+    padding-bottom: 0.5rem;
 }
+
 #toc > ul > li:last-of-type {
     padding-bottom: 0;
 }
@@ -1282,7 +1284,7 @@ div.screenshot {
     #header #toctitle {
         font-size: 1rem;
         font-weight: 700;
-        margin: 0.4rem 0 0.625rem 0;
+        margin: 0.4rem 0 0.5rem 0;
     }
 
     #toc a {
@@ -1329,6 +1331,7 @@ div.screenshot {
 .site-header div {
     font-family: 'Lato', Arial, sans-serif;
 }
+
 .site-header__navigation-header a {
     align-self: center;
     border-bottom: 0 none;
@@ -1365,7 +1368,7 @@ div.screenshot {
     flex-direction: column;
     flex-wrap: wrap;
     align-items: flex-start;
-    max-height: 170px;
+    max-height: 210px; /* This matches the collapsible height above */
     margin: 0 20px;
     padding-top: 12px;
     padding-left: 0;
@@ -1500,9 +1503,9 @@ div.screenshot {
         top: 0;
         left: 0;
         right: 0;
-        -webkit-box-shadow: 0 2px 4px 0 rgba(0,0,0,.15);
-        -moz-box-shadow: 0 2px 4px 0 rgba(0,0,0,.15);
-        box-shadow: 0 2px 4px 0 rgba(0,0,0,.15);
+        -webkit-box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .15);
+        -moz-box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .15);
+        box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .15);
         z-index: 1;
     }
 
@@ -1513,10 +1516,12 @@ div.screenshot {
     #content h2[id], #content h3[id], #content h4[id] {
         padding-top: 60px;
     }
+
     #content h2[id] {
         /* Little extra room above h2s */
         margin-top: -44px;
     }
+
     #content h3[id], #content h4[id] {
         margin-top: -60px;
     }
@@ -1586,16 +1591,144 @@ div.screenshot {
 /* Docs Navigation */
 .docs-navigation {
     display: none;
-    overflow: hidden;
     padding-left: 5px;
-    position: relative;
+}
+
+.docs-navigation .search-container {
+    display: none;
+    margin-bottom: 1rem;
+}
+
+.docs-navigation .search-input {
+    height: 30px;
+    line-height: 30px;
+    box-sizing: border-box;
+    padding: 0 20px 0 30px;
+    border: 1px solid #e3e3e3;
+    border-radius: 3px;
+    color: #666;
+    outline: none;
+    margin-right: 10px;
+    transition: border-color 0.2s ease;
+    background: white url('data:image/svg+xml;utf8,<svg height="20px" version="1.1" viewBox="0 0 32 32" width="20px" xmlns="http://www.w3.org/2000/svg"><g fill="#cccccc" fill-rule="evenodd" stroke="none" stroke-width="1"><path d="M19.4271164,21.4271164 C18.0372495,22.4174803 16.3366522,23 14.5,23 C9.80557939,23 6,19.1944206 6,14.5 C6,9.80557939 9.80557939,6 14.5,6 C19.1944206,6 23,9.80557939 23,14.5 C23,16.3366522 22.4174803,18.0372495 21.4271164,19.4271164 L27.0119176,25.0119176 C27.5621186,25.5621186 27.5575313,26.4424687 27.0117185,26.9882815 L26.9882815,27.0117185 C26.4438648,27.5561352 25.5576204,27.5576204 25.0119176,27.0119176 L19.4271164,21.4271164 L19.4271164,21.4271164 Z M14.5,21 C18.0898511,21 21,18.0898511 21,14.5 C21,10.9101489 18.0898511,8 14.5,8 C10.9101489,8 8,10.9101489 8,14.5 C8,18.0898511 10.9101489,21 14.5,21 L14.5,21 Z"/></g></svg>') no-repeat 8px 5px;
+    background-size: 20px;
+    vertical-align: middle !important;
+    max-width: 100%;
+}
+
+.docs-navigation .search-input:focus {
+    border-color: #1BA8CB;
+}
+
+.docs-navigation .search-input::placeholder {
+    color: #ccc;
+}
+
+/* Docsearch overrides */
+.docs-navigation .algolia-autocomplete {
+    display: block !important;
+    flex: 1;
+}
+
+.docs-navigation .algolia-autocomplete .ds-dropdown-menu {
+    width: 100%;
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: .75rem 0 !important;
+    background-color: #fff !important;
+    background-clip: padding-box;
+    border: 1px solid #e3e3e3 !important;
+    box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .175) !important;
+}
+
+@media (min-width: 768px) {
+    .docs-navigation .algolia-autocomplete .ds-dropdown-menu {
+        width: 300%;
+    }
+}
+
+.docs-navigation .algolia-autocomplete .ds-dropdown-menu [class^="ds-dataset-"] {
+    padding: 0 !important;
+    overflow: visible !important;
+    background-color: transparent !important;
+    border: 0 !important;
+}
+
+.docs-navigation .algolia-autocomplete .ds-dropdown-menu .ds-suggestions {
+    margin-top: 0 !important;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion {
+    padding: 0 15px !important;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--category-header {
+    font-weight: 800 !important;
+    color: #1BA8CB !important;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--wrapper {}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--subcategory-column {}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--content {
+    padding: 0 !important;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--title {
+    display: block !important;
+    color: #02303A;
+    padding: .25rem 1rem !important;
+    margin-bottom: 0 !important;
+    font-weight: 500 !important;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--text {
+    padding: 0 1rem .5rem !important;
+    margin-top: -.25rem !important;
+    font-size: 0.9em !important;
+    font-weight: 400 !important;
+    line-height: 1.25 !important;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-footer {
+    float: none !important;
+    width: auto !important;
+    height: auto !important;
+    padding: .75rem 1rem 0;
+    font-size: .875rem !important;
+    line-height: 1 !important;
+    color: #767676 !important;
+    border-top: 1px solid #e3e3e3 !important;
+    text-align: right;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-footer a {
+    font-size: .875rem;
+    text-decoration: underline;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-footer--logo {
+    display: inline !important;
+    overflow: visible !important;
+    color: inherit !important;
+    text-indent: 0 !important;
+    background: none !important;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--highlight {
+    background-color: rgba(143, 187, 237, .1) !important;
+}
+
+.docs-navigation .algolia-autocomplete .ds-suggestion .ds-cursor .algolia-docsearch-suggestion--content {
+    background-color: rgba(208, 189, 236, .15) !important;
 }
 
 .docs-navigation a {
     color: #02303A;
     display: block;
     font-size: 1rem;
-    line-height: 1.0;
+    line-height: 1.25;
 }
 
 .docs-navigation a code {
@@ -1611,16 +1744,22 @@ div.screenshot {
 
 .docs-navigation ul {
     list-style-type: none;
-    margin: 0.625em 0;
+    margin: 0.5em 0;
     padding: 0;
 }
+
 .docs-navigation ul:last-of-type {
     margin-bottom: 0;
 }
 
-.docs-navigation li {
-    margin-bottom: 0.625em;
+.docs-navigation li:first-of-type {
+    margin-top: 0;
 }
+
+.docs-navigation li {
+    margin-bottom: 0.5em;
+}
+
 .docs-navigation li:last-of-type {
     margin-bottom: 0;
 }
@@ -1650,10 +1789,14 @@ div.screenshot {
     margin: 1.5em 0 0;
 }
 
+.docs-navigation .docs-home-link {
+    position: relative;
+}
+
 .docs-navigation .pdf-link-container {
     display: inline-block;
     position: absolute;
-    top: 0.75em;
+    top: 0.1em;
     right: 0;
 }
 
@@ -1714,7 +1857,6 @@ div.screenshot {
     .chapter #toc a {
         color: #02303A;
         display: inline-block;
-        margin-bottom: 0.2rem;
     }
 
     .appendix #toc a.active,
@@ -1769,11 +1911,13 @@ div.screenshot {
 .rating {
     direction: rtl;
 }
+
 .rating > .star {
     cursor: pointer;
     display: table-cell;
     padding: 3px;
 }
+
 .rating > .star:hover > svg > g,
 .rating > .star:hover ~ .star > svg > g,
 .rating > .star.selected > svg > g,
@@ -1788,7 +1932,7 @@ div.screenshot {
 .site-footer__navigation {
     display: flex;
     max-width: 75rem;
-    margin: 3rem auto 2.5rem auto;
+    margin: 3rem auto 0 auto;
     padding: 0.5rem 0.75rem;
 }
 
@@ -1816,14 +1960,23 @@ div.screenshot {
 }
 
 .site-footer__subscribe-newsletter {
-    flex: 0 0 auto;
+    flex: 0 0 350px;
+}
+
+.site-footer__subscribe-newsletter .newsletter-form__header h5 {
+    color: #555;
+    margin-top: 0;
 }
 
 .site-footer__subscribe-newsletter p {
     font-size: 0.875rem;
-    margin-bottom: 0;
-    margin-left: 2px;
+    margin: 2px 0 0 2px;
     opacity: 0.7;
+}
+
+.site-footer__subscribe-newsletter .disclaimer {
+    font-size: 0.75rem;
+    opacity: 0.55;
 }
 
 .site-footer__subscribe-newsletter .newsletter-form {
@@ -1952,7 +2105,7 @@ div.screenshot {
 /* Avoid the footer taking up much of the screen on short displays */
 @media all and (max-height: 56.25rem) {
     .site-footer__navigation {
-        margin: 1.5rem auto 1.5rem auto;
+        margin: 1.5rem auto 0 auto;
         padding-top: 0;
         padding-bottom: 0;
     }

@@ -118,7 +118,7 @@ public class ValueSnapshotter implements IsolatableFactory {
         }
         if (value instanceof Class<?>) {
             Class<?> implementation = (Class<?>) value;
-            return new ImplementationSnapshot(implementation.getName(), classLoaderHasher.getClassLoaderHash(implementation.getClassLoader()));
+            return ImplementationSnapshot.of(implementation, classLoaderHasher);
         }
         if (value.getClass().equals(File.class)) {
             // Not subtypes as we don't know whether they are immutable or not

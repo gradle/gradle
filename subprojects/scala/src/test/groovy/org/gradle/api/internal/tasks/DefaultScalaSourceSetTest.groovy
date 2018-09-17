@@ -18,28 +18,23 @@ package org.gradle.api.internal.tasks
 import org.gradle.api.Action
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.ScalaSourceSet
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.junit.Before
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import org.junit.Test
 
 import static org.gradle.api.reflect.TypeOf.typeOf
 import static org.gradle.util.Matchers.isEmpty
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.hasItem
+import static org.hamcrest.Matchers.instanceOf
 import static org.junit.Assert.assertThat
 
 class DefaultScalaSourceSetTest {
     public @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    @Before
-    void before() {
-        NativeServicesTestFixture.initialize()
-    }
-
-    private final DefaultScalaSourceSet sourceSet = new DefaultScalaSourceSet("<set-display-name>", TestFiles.sourceDirectorySetFactory(tmpDir.testDirectory))
+    private final DefaultScalaSourceSet sourceSet = new DefaultScalaSourceSet("<set-display-name>", TestUtil.objectFactory(tmpDir.testDirectory))
 
     @Test
     public void defaultValues() {

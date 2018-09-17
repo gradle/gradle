@@ -84,6 +84,11 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
     }
 
     @Override
+    public boolean isConstraint() {
+        return false;
+    }
+
+    @Override
     public boolean isChanging() {
         return changing;
     }

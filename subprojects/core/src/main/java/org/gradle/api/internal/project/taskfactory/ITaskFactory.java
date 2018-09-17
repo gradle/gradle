@@ -18,9 +18,8 @@ package org.gradle.api.internal.project.taskfactory;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.model.internal.core.NamedEntityInstantiator;
 
-public interface ITaskFactory extends NamedEntityInstantiator<Task> {
+public interface ITaskFactory {
     ITaskFactory createChild(ProjectInternal project, Instantiator instantiator);
 
     <S extends Task> S create(TaskIdentity<S> taskIdentity, Object... args);

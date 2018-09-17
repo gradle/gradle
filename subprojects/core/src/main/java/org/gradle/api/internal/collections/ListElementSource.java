@@ -145,7 +145,7 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
         iterator.remove();
         return previous;
     }
-    
+
     private class RealizedElementListIterator extends RealizedElementCollectionIterator implements ListIterator<T> {
         T previous;
         int listNextIndex = 0;

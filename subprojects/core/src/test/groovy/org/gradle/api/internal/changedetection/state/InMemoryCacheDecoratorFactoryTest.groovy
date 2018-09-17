@@ -19,13 +19,12 @@ package org.gradle.api.internal.changedetection.state
 import org.gradle.cache.AsyncCacheAccess
 import org.gradle.cache.CrossProcessCacheAccess
 import org.gradle.cache.MultiProcessSafePersistentIndexedCache
-import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
+import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.Factory
-import org.gradle.internal.event.DefaultListenerManager
 import spock.lang.Specification
 
 class InMemoryCacheDecoratorFactoryTest extends Specification {
-    def cacheFactory = new InMemoryCacheDecoratorFactory(false, new CrossBuildInMemoryCacheFactory(new DefaultListenerManager()))
+    def cacheFactory = new InMemoryCacheDecoratorFactory(false, new TestCrossBuildInMemoryCacheFactory())
     def target = Mock(MultiProcessSafePersistentIndexedCache)
     def asyncCacheAccess = Mock(AsyncCacheAccess)
     def crossProcessCacheAccess = Mock(CrossProcessCacheAccess)

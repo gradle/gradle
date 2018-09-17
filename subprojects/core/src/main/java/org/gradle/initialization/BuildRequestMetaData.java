@@ -42,4 +42,5 @@ public interface BuildRequestMetaData {
      */
     long getStartTime();
 
+    boolean isInteractive();
 }

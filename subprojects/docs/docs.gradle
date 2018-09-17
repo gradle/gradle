@@ -58,7 +58,7 @@ configurations {
 }
 
 dependencies {
-    asciidoctor "org.gradle:docs-asciidoctor-extensions:0.3.0"
+    asciidoctor "org.gradle:docs-asciidoctor-extensions:0.4.0"
     asciidoctor project.files("src/main/resources")
 
     userGuideTask 'xalan:xalan:2.7.1', 'xerces:xercesImpl:2.11.0'
@@ -72,7 +72,7 @@ dependencies {
 
     testCompile "org.pegdown:pegdown:1.1.0"
     testCompile testLibraries.jsoup
-    testCompile "org.gebish:geb-spock:0.9.3"
+    testCompile "org.gebish:geb-spock:2.2"
     testCompile('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
     testCompile libraries.commons_httpclient.coordinates
     testCompile "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
@@ -135,7 +135,13 @@ artifacts {
 
 // TODO This is a hack pending a solution to https://github.com/gradle/gradle/issues/4612
 // Don't publish the CSS artifacts when calling uploadArchives
-configurations.archives.artifacts.removeAll(configurations.cssElements.artifacts)
+afterEvaluate {
+    def notCssElements = configurations.archives.artifacts.findAll { !(it in configurations.cssElements.artifacts) }
+    configurations.archives.artifacts.clear()
+    artifacts {
+        archives notCssElements
+    }
+}
 
 ext.cssFiles = fileTree(css.map { it.destinationDir }) {
     builtBy css
@@ -306,8 +312,7 @@ tasks.withType(AsciidoctorTask).configureEach {
     inputs.dir file("src/main/resources")
     inputs.dir samplesSrcDir
 
-    attributes \
-        stylesdir           : '../css/',
+    attributes stylesdir           : '../css/',
         stylesheet          : 'manual.css',
         imagesdir           : 'img',
         nofooter            : true,
@@ -326,7 +331,8 @@ tasks.withType(AsciidoctorTask).configureEach {
         gradleVersion       : version,
         groovyDslPath       : "../dsl",
         javadocPath         : "../javadoc",
-        samplesPath         : "../../samples"
+        samplesPath         : "../../samples",
+        'samples-dir'       : "$projectDir/src/samples"
 }
 
 def userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask) {
@@ -387,7 +393,7 @@ tasks.register("serveDocs", Exec) {
 tasks.register("editReleaseNotes") {
     group = "release notes"
     doLast {
-        Class.forName("java.awt.Desktop").newInstance().edit(file("src/docs/release/notes.md"))
+        Class.forName("java.awt.Desktop").getDesktop().edit(file("src/docs/release/notes.md"))
     }
 }
 
@@ -415,7 +421,7 @@ tasks.addRule("view«Doc Task Name» - Opens entry point") { String taskName ->
             tasks.create(taskName) {
                 dependsOn task
                 doLast {
-                    Class.forName("java.awt.Desktop").newInstance().browse(file(task.entryPoint).toURI())
+                    Class.forName("java.awt.Desktop").getDesktop().browse(file(task.entryPoint).toURI())
                 }
             }
         }

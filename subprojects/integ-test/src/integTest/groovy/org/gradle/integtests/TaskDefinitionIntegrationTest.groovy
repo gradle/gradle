@@ -280,7 +280,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains(message)
-        output.contains("The Task.leftShift(Closure) method has been deprecated. This is scheduled to be removed in Gradle 5.0. Please use Task.doLast(Action) instead.")
+        output.contains("The Task.leftShift(Closure) method has been deprecated.")
     }
 
     def "can construct a custom task without constructor arguments"() {
@@ -597,7 +597,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         succeeds("help")
 
         then:
-        outputContains("The add() method has been deprecated. This method will cause an error in Gradle 6.0. Please use the create() or register() method instead.")
+        outputContains("Using method TaskContainer.add() has been deprecated. This will fail with an error in Gradle 6.0. Please use the TaskContainer.register() method instead.")
     }
 
     def "cannot add a pre-created task provider to the task container"() {

@@ -18,10 +18,24 @@ package org.gradle.api.internal
 
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectCollection
+import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.internal.provider.CollectionProviderInternal
 import org.gradle.api.internal.provider.ProviderInternal
+import org.junit.Assume
 import spock.lang.Specification
+import spock.lang.Unroll
 
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallAddAllFactory
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallAddAllLaterFactory
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallAddFactory
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallAddLaterFactory
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallClearFactory
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallRemoveAllFactory
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallRemoveFactory
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallRemoveOnIteratorFactory
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallRetainAllFactory
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallNextOnIteratorFactory
+import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallContainsFactory
 import static org.gradle.util.WrapUtil.toList
 
 abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
@@ -47,6 +61,16 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         return elements
     }
 
+    abstract boolean isExternalProviderAllowed()
+
+    void containerAllowsExternalProviders() {
+        Assume.assumeTrue("the container doesn't allow external provider to be added", isExternalProviderAllowed())
+    }
+
+    Class<? extends DomainObjectCollection<T>> getContainerPublicType() {
+        return new DslObject(container).publicType.concreteClass
+    }
+
     def setup() {
         // Verify some assumptions
         assert !type.isAssignableFrom(otherType) && !otherType.isAssignableFrom(type)
@@ -67,6 +91,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "element added using provider is not realized when added"() {
+        containerAllowsExternalProviders()
         def provider = Mock(ProviderInternal)
 
         when:
@@ -82,6 +107,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "elements added using provider of iterable are not realized when added"() {
+        containerAllowsExternalProviders()
         def provider = Mock(CollectionProviderInternal)
         _ * provider.size() >> 2
 
@@ -98,6 +124,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider of elements are not queried when another element added"() {
+        containerAllowsExternalProviders()
         def provider = Mock(ProviderInternal)
         def providerOfIterable = Mock(CollectionProviderInternal)
         _ * providerOfIterable.size() >> 2
@@ -130,6 +157,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider for element is queried when membership checked"() {
+        containerAllowsExternalProviders()
         def provider = Mock(ProviderInternal)
 
         given:
@@ -147,6 +175,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider for iterable of elements is queried when membership checked"() {
+        containerAllowsExternalProviders()
         def provider = Mock(CollectionProviderInternal)
 
         given:
@@ -189,6 +218,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider for element is queried when elements iterated and insertion order is retained"() {
+        containerAllowsExternalProviders()
         def provider1 = Mock(ProviderInternal)
         def provider2 = Mock(ProviderInternal)
 
@@ -211,6 +241,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider for iterable of elements is queried when elements iterated and insertion order is retained"() {
+        containerAllowsExternalProviders()
         def provider1 = Mock(CollectionProviderInternal)
 
         given:
@@ -253,6 +284,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "queries provider for element when registering action for all elements in a collection"() {
+        containerAllowsExternalProviders()
         def action = Mock(Action)
         def provider1 = Mock(ProviderInternal)
         def provider2 = Mock(ProviderInternal)
@@ -279,6 +311,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "queries provider for iterable of elements when registering action for all elements in a collection"() {
+        containerAllowsExternalProviders()
         def action = Mock(Action)
         def provider1 = Mock(CollectionProviderInternal)
         def provider2 = Mock(CollectionProviderInternal)
@@ -317,6 +350,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider for element is queried when filtered collection with matching type created"() {
+        containerAllowsExternalProviders()
         def provider = Mock(ProviderInternal)
 
         container.add(c)
@@ -347,6 +381,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider for iterable of elements is queried when filtered collection with matching type created"() {
+        containerAllowsExternalProviders()
         def provider = Mock(CollectionProviderInternal)
         _ * provider.elementType >> type
 
@@ -378,6 +413,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider for element is not queried when filtered collection with non matching type created"() {
+        containerAllowsExternalProviders()
         def provider = Mock(ProviderInternal)
         _ * provider.type >> type
 
@@ -408,6 +444,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider for iterable of elements is not queried when filtered collection with non matching type created"() {
+        containerAllowsExternalProviders()
         def provider = Mock(CollectionProviderInternal)
         _ * provider.elementType >> type
 
@@ -498,6 +535,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider for element is queried and action executed for filtered collection with matching type"() {
+        containerAllowsExternalProviders()
         def action = Mock(Action)
         def provider1 = Mock(ProviderInternal)
         def provider2 = Mock(ProviderInternal)
@@ -525,6 +563,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider for iterable of elements is queried and action executed for filtered collection with matching type"() {
+        containerAllowsExternalProviders()
         def action = Mock(Action)
         def provider1 = Mock(CollectionProviderInternal)
         def provider2 = Mock(CollectionProviderInternal)
@@ -554,6 +593,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider for element is not queried and action executed for filtered collection with non matching type"() {
+        containerAllowsExternalProviders()
         def action = Mock(Action)
         def provider1 = Mock(ProviderInternal)
         def provider2 = Mock(ProviderInternal)
@@ -578,6 +618,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider for iterable of elements is not queried and action executed for filtered collection with non matching type"() {
+        containerAllowsExternalProviders()
         def action = Mock(Action)
         def provider1 = Mock(CollectionProviderInternal)
         def provider2 = Mock(CollectionProviderInternal)
@@ -603,6 +644,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "can execute action to configure element when element is realized"() {
+        containerAllowsExternalProviders()
         def action = Mock(Action)
         def provider1 = Mock(ProviderInternal)
         def provider2 = Mock(ProviderInternal)
@@ -659,6 +701,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "runs configure element action immediately when element already realized"() {
+        containerAllowsExternalProviders()
         def action = Mock(Action)
         def provider = Mock(ProviderInternal)
         def providerOfIterable = Mock(CollectionProviderInternal)
@@ -696,6 +739,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "can execute action to configure element of given type when element is realized"() {
+        containerAllowsExternalProviders()
         def action = Mock(Action)
         def provider1 = Mock(ProviderInternal)
         def provider2 = Mock(ProviderInternal)
@@ -729,6 +773,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "can execute action to configure elements of given type when iterable of elements is realized"() {
+        containerAllowsExternalProviders()
         def action = Mock(Action)
         def provider1 = Mock(CollectionProviderInternal)
         def provider2 = Mock(CollectionProviderInternal)
@@ -767,6 +812,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider is not queried or element configured until collection is realized when lazy action is registered on type-filtered collection"() {
+        containerAllowsExternalProviders()
         def action = Mock(Action)
         def provider1 = Mock(ProviderInternal)
         def provider2 = Mock(ProviderInternal)
@@ -800,6 +846,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider of iterable is not queried or elements configured until collection is realized when lazy action is registered on type-filtered collection"() {
+        containerAllowsExternalProviders()
         def action = Mock(Action)
         def provider1 = Mock(CollectionProviderInternal)
         def provider2 = Mock(CollectionProviderInternal)
@@ -836,6 +883,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "only realized elements of given type are configured when lazy action is registered on type-filtered collection"() {
+        containerAllowsExternalProviders()
         def action = Mock(Action)
         def provider1 = Mock(ProviderInternal)
         def provider2 = Mock(ProviderInternal)
@@ -869,6 +917,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "only realized elements of iterable with given type are configured when lazy action is registered on type-filtered collection"() {
+        containerAllowsExternalProviders()
         def action = Mock(Action)
         def provider1 = Mock(CollectionProviderInternal)
         def provider2 = Mock(CollectionProviderInternal)
@@ -905,6 +954,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def "provider is queried but element not configured when lazy action is registered on non-matching filter"() {
+        containerAllowsExternalProviders()
         def action = Mock(Action)
         def provider1 = Mock(ProviderInternal)
         def provider2 = Mock(ProviderInternal)
@@ -936,22 +986,334 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         1 * action.execute(b)
     }
 
-    def "can mutate the container inside a configureEach action"() {
+    def "can remove external providers without realizing them"() {
+        containerAllowsExternalProviders()
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+
         given:
-        container.add(a)
-        container.add(b)
-        container.add(c)
+        _ * provider1.type >> type
+        _ * provider2.type >> type
+        container.addLater(provider1)
+        container.addLater(provider2)
 
         when:
-        container.configureEach {
-            container.add(d)
-        }
+        def didRemoved = container.remove(provider1)
 
         then:
-        toList(container) == [a, b, c, d]
+        didRemoved
+
+        and:
+        0 * provider1.get()
+        0 * provider2.get()
+
+        when:
+        def result = toList(container)
+
+        then:
+        0 * provider1.get()
+        1 * provider2.get() >> b
+        result == iterationOrder(b)
+    }
+
+    def "returns false when removing external providers a second time"() {
+        containerAllowsExternalProviders()
+        def provider1 = Mock(ProviderInternal)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider1.present >> true
+        container.addLater(provider1)
+
+        when:
+        def didRemovedFirstTime = container.remove(provider1)
+
+        then:
+        didRemovedFirstTime
+        toList(container) == []
+
+        and:
+        0 * provider1.get()
+
+        when:
+        def didRemovedSecondTime = container.remove(provider1)
+
+        then:
+        !didRemovedSecondTime
+        toList(container) == []
+
+        and:
+        1 * provider1.present >> false
+        0 * provider1.get()
+    }
+
+    def "can remove realized external providers without realizing more providers"() {
+        containerAllowsExternalProviders()
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+        def provider3 = Mock(ProviderInternal)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider1.get() >> a
+        _ * provider1.present >> true
+        _ * provider2.type >> type
+        _ * provider2.get() >> b
+        _ * provider2.present >> true
+        _ * provider3.type >> otherType
+        container.addLater(provider1)
+        container.addLater(provider2)
+        container.addLater(provider3)
+
+        // Realize all object of type `type`
+        toList(container.withType(type))
+
+        when:
+        def didRemoved1 = container.remove(provider1)
+
+        then:
+        didRemoved1
+
+        and:
+        1 * provider1.get() >> a
+        0 * provider2.get()
+        0 * provider3.get()
+
+        when:
+        def didRemoved2 = container.remove(provider2)
+
+        then:
+        didRemoved2
+
+        and:
+        0 * provider1.get()
+        1 * provider2.get() >> b
+        0 * provider3.get()
+    }
+
+    def "can remove realized external elements via instance"() {
+        containerAllowsExternalProviders()
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider1.get() >> a
+        _ * provider2.type >> otherType
+        container.addLater(provider1)
+        container.addLater(provider2)
+
+        // Realize all object of type `type`
+        def element = container.withType(type).iterator().next()
+
+        when:
+        def didRemoved = container.remove(element)
+
+        then:
+        didRemoved
+
+        and:
+        0 * provider1.get()
+        0 * provider2.get()
+    }
+
+    def "will execute remove action when removing external provider only for realized elements"() {
+        containerAllowsExternalProviders()
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+        def action = Mock(Action)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider1.get() >> a
+        _ * provider1.present >> true
+        _ * provider2.type >> otherType
+        container.addLater(provider1)
+        container.addLater(provider2)
+        container.whenObjectRemoved(action)
+
+        // Realize all object of type `type`
+        toList(container.withType(type))
+
+        when:
+        def didRemoved1 = container.remove(provider1)
+
+        then:
+        didRemoved1
+
+        and:
+        1 * action.execute(a)
+        0 * action.execute(_)
+
+        when:
+        def didRemoved2 = container.remove(provider2)
+
+        then:
+        didRemoved2
+
+        and:
+        0 * action.execute(_)
+    }
+
+    def "will execute remove action when clearing the container only for realized external providers"() {
+        containerAllowsExternalProviders()
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+        def action = Mock(Action)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider1.get() >> a
+        _ * provider2.type >> otherType
+        container.addLater(provider1)
+        container.addLater(provider2)
+        container.whenObjectRemoved(action)
+
+        // Realize all object of type `type`
+        toList(container.withType(type))
+
+        when:
+        container.clear()
+
+        then:
+        1 * action.execute(a)
+        0 * action.execute(_)
+
+        when:
+        def result = toList(container)
+
+        then:
+        result == iterationOrder()
+    }
+
+    def "will not query external provider when clearing"() {
+        containerAllowsExternalProviders()
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider2.type >> type
+        container.addLater(provider1)
+        container.addLater(provider2)
+
+        when:
+        container.clear()
+
+        then:
+        0 * provider1.get()
+        0 * provider2.get()
+
+        when:
+        def result = toList(container)
+
+        then:
+        0 * provider1.get()
+        0 * provider2.get()
+        result == iterationOrder()
+    }
+
+    def "will execute remove action when not retaining external providers for all elements"() {
+        containerAllowsExternalProviders()
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+        def action = Mock(Action)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider1.get() >> a
+        _ * provider2.type >> otherType
+        _ * provider2.get() >> d
+        container.addLater(provider1)
+        container.addLater(provider2)
+        container.whenObjectRemoved(action)
+
+        // Realize all object of type `type`
+        toList(container.withType(type))
+
+        when:
+        def didRetained = container.retainAll([])
+
+        then:
+        didRetained
+
+        and:
+        1 * action.execute(a)
+        1 * action.execute(d)
+        0 * action.execute(_)
+
+        when:
+        def result = toList(container)
+
+        then:
+        result == iterationOrder()
+    }
+
+    def "will query external providers when not retaining them"() {
+        containerAllowsExternalProviders()
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider2.type >> type
+        container.addLater(provider1)
+        container.addLater(provider2)
+
+        when:
+        def didRetained = container.retainAll([b])
+
+        then:
+        didRetained
+
+        and:
+        1 * provider1.get() >> a
+        1 * provider2.get() >> b
+
+        when:
+        def result = toList(container)
+
+        then:
+        0 * provider1.get()
+        0 * provider2.get()
+        result == iterationOrder(b)
+    }
+
+    def "will query retaining provider when retaining realized external provider"() {
+        containerAllowsExternalProviders()
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider1.get() >> a
+        _ * provider2.type >> otherType
+        _ * provider2.get() >> d
+        container.addLater(provider1)
+        container.addLater(provider2)
+
+        // Realize all object of type `type`
+        toList(container.withType(type))
+
+        when:
+        def didRetained = container.retainAll([a])
+
+        then:
+        didRetained
+
+        and:
+        0 * provider1.get()
+        1 * provider2.get() >> d
+
+        when:
+        def result = toList(container)
+
+        then:
+        result == iterationOrder(a)
     }
 
     def "provider of iterable is queried but elements not configured when lazy action is registered on non-matching filter"() {
+        containerAllowsExternalProviders()
         def action = Mock(Action)
         def provider1 = Mock(CollectionProviderInternal)
         def provider2 = Mock(CollectionProviderInternal)
@@ -984,5 +1346,197 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * action.execute(a)
         0 * action.execute(c)
         1 * action.execute(b)
+    }
+
+    def "will realize all external provider when querying the iterator"() {
+        containerAllowsExternalProviders()
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider2.type >> otherType
+        container.addLater(provider1)
+        container.addLater(provider2)
+
+        when:
+        container.withType(type).iterator()
+
+        then:
+        1 * provider1.get() >> a
+        0 * provider2.get()
+
+        when:
+        def result = toList(container)
+
+        then:
+        0 * provider1.get()
+        1 * provider2.get() >> b
+        result == iterationOrder(a, b)
+    }
+
+    def "will execute remove action when removing realized external provider using iterator"() {
+        containerAllowsExternalProviders()
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+        def action = Mock(Action)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider1.get() >> a
+        _ * provider2.type >> type
+        _ * provider2.get() >> b
+        container.addLater(provider1)
+        container.addLater(provider2)
+        container.whenObjectRemoved(action)
+
+        when:
+        def iterator = container.iterator()
+        iterator.next()
+        iterator.remove()
+
+        then:
+        def result = toList(container)
+        result == iterationOrder(b)
+
+        and:
+        1 * action.execute(a)
+        0 * action.execute(_)
+    }
+
+    def "will execute remove action when removing a collection of external provider only for realized elements"() {
+        containerAllowsExternalProviders()
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+        def action = Mock(Action)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider1.get() >> a
+        _ * provider1.present >> true
+        _ * provider2.type >> otherType
+        container.addLater(provider1)
+        container.addLater(provider2)
+        container.whenObjectRemoved(action)
+
+        // Realize all object of type `type`
+        toList(container.withType(type))
+
+        when:
+        def didRemoved = container.removeAll([provider1, provider2])
+
+        then:
+        didRemoved
+        container.empty
+
+        and:
+        1 * action.execute(a)
+        0 * action.execute(_)
+    }
+
+    protected def getInvalidCallFromLazyConfiguration() {
+        return [
+            ["add(T)"               , CallAddFactory.AsAction],
+            ["add(T)"               , CallAddFactory.AsClosure],
+            ["addLater(Provider)"   , CallAddLaterFactory.AsAction],
+            ["addLater(Provider)"   , CallAddLaterFactory.AsClosure],
+            ["addAllLater(Provider)", CallAddAllLaterFactory.AsAction],
+            ["addAllLater(Provider)", CallAddAllLaterFactory.AsClosure],
+            ["addAll(Collection)"   , CallAddAllFactory.AsAction],
+            ["addAll(Collection)"   , CallAddAllFactory.AsClosure],
+            ["clear()"              , CallClearFactory.AsAction],
+            ["clear()"              , CallClearFactory.AsClosure],
+            ["remove(Object)"       , CallRemoveFactory.AsAction],
+            ["remove(Object)"       , CallRemoveFactory.AsClosure],
+            ["removeAll(Collection)", CallRemoveAllFactory.AsAction],
+            ["removeAll(Collection)", CallRemoveAllFactory.AsClosure],
+            ["retainAll(Collection)", CallRetainAllFactory.AsAction],
+            ["retainAll(Collection)", CallRetainAllFactory.AsClosure],
+            ["iterator().remove()"  , CallRemoveOnIteratorFactory.AsAction],
+            ["iterator().remove()"  , CallRemoveOnIteratorFactory.AsClosure],
+        ]
+    }
+
+    protected def getValidCallFromLazyConfiguration() {
+        return [
+            ["contains(Object)", CallContainsFactory.AsAction],
+            ["contains(Object)", CallContainsFactory.AsClosure],
+            ["iterator().next()", CallNextOnIteratorFactory.AsAction],
+            ["iterator().next()", CallNextOnIteratorFactory.AsClosure],
+        ]
+    }
+
+    @Unroll
+    def "disallow mutating when configureEach(#factoryClass.configurationType.simpleName) calls #description"() {
+        def factory = factoryClass.newInstance()
+        if (factory.isUseExternalProviders()) {
+            containerAllowsExternalProviders()
+        }
+
+        when:
+        container.configureEach(factory.create(container, b))
+        container.add(a)
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "${containerPublicType.simpleName}#${description} on ${container.toString()} cannot be executed in the current context."
+
+        where:
+        [description, factoryClass] << getInvalidCallFromLazyConfiguration()
+    }
+
+    @Unroll
+    def "disallow mutating when withType(Class).configureEach(#factoryClass.configurationType.simpleName) calls #description"() {
+        def factory = factoryClass.newInstance()
+        if (factory.isUseExternalProviders()) {
+            containerAllowsExternalProviders()
+        }
+
+        when:
+        container.withType(type).configureEach(factory.create(container, b))
+        container.add(a)
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "${containerPublicType.simpleName}#${description} on ${container.toString()} cannot be executed in the current context."
+
+        where:
+        [description, factoryClass] << getInvalidCallFromLazyConfiguration()
+    }
+
+    @Unroll
+    def "allow querying when configureEach(#factoryClass.configurationType.simpleName) calls #description"() {
+        def factory = factoryClass.newInstance()
+        if (factory.isUseExternalProviders()) {
+            containerAllowsExternalProviders()
+        }
+
+        when:
+        container.configureEach(factory.create(container, b))
+        container.add(a)
+
+        then:
+        noExceptionThrown()
+
+        where:
+        [description, factoryClass] << getValidCallFromLazyConfiguration()
+    }
+
+    @Unroll
+    def "allow querying when withType(Class).configureEach(#factoryClass.configurationType.simpleName) calls #description"() {
+        def factory = factoryClass.newInstance()
+        if (factory.isUseExternalProviders()) {
+            containerAllowsExternalProviders()
+        }
+
+        when:
+        container.withType(type).configureEach(factory.create(container, b))
+        container.add(a)
+
+        then:
+        noExceptionThrown()
+
+        where:
+        [description, factoryClass] << getValidCallFromLazyConfiguration()
     }
 }

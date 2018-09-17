@@ -27,6 +27,7 @@ import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.logging.events.PromptOutputEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
@@ -35,6 +36,7 @@ import org.gradle.internal.logging.serializer.LogLevelChangeEventSerializer;
 import org.gradle.internal.logging.serializer.ProgressCompleteEventSerializer;
 import org.gradle.internal.logging.serializer.ProgressEventSerializer;
 import org.gradle.internal.logging.serializer.ProgressStartEventSerializer;
+import org.gradle.internal.logging.serializer.PromptOutputEventSerializer;
 import org.gradle.internal.logging.serializer.SpanSerializer;
 import org.gradle.internal.logging.serializer.StyledTextOutputEventSerializer;
 import org.gradle.internal.logging.serializer.UserInputRequestEventSerializer;
@@ -85,6 +87,7 @@ public class DaemonMessageSerializer {
         // Output events
         registry.register(LogEvent.class, new LogEventSerializer(logLevelSerializer, throwableSerializer));
         registry.register(UserInputRequestEvent.class, new UserInputRequestEventSerializer());
+        registry.register(PromptOutputEvent.class, new PromptOutputEventSerializer());
         registry.register(UserInputResumeEvent.class, new UserInputResumeEventSerializer());
         registry.register(StyledTextOutputEvent.class, new StyledTextOutputEventSerializer(logLevelSerializer, new ListSerializer<StyledTextOutputEvent.Span>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
         registry.register(ProgressStartEvent.class, new ProgressStartEventSerializer());
@@ -210,6 +213,7 @@ public class DaemonMessageSerializer {
             encoder.writeLong(build.getIdentifier().getLeastSignificantBits());
             encoder.writeBinary(build.getToken());
             encoder.writeLong(build.getStartTime());
+            encoder.writeBoolean(build.isInteractive());
             buildActionSerializer.write(encoder, build.getAction());
             GradleLauncherMetaData metaData = (GradleLauncherMetaData) build.getBuildClientMetaData();
             encoder.writeString(metaData.getAppName());
@@ -221,10 +225,11 @@ public class DaemonMessageSerializer {
             UUID uuid = new UUID(decoder.readLong(), decoder.readLong());
             byte[] token = decoder.readBinary();
             long timestamp = decoder.readLong();
+            boolean interactive = decoder.readBoolean();
             BuildAction buildAction = buildActionSerializer.read(decoder);
             GradleLauncherMetaData metaData = new GradleLauncherMetaData(decoder.readString());
             BuildActionParameters buildActionParameters = buildActionParametersSerializer.read(decoder);
-            return new Build(uuid, token, buildAction, metaData, timestamp, buildActionParameters);
+            return new Build(uuid, token, buildAction, metaData, timestamp, interactive, buildActionParameters);
         }
     }
 
@@ -245,7 +250,6 @@ public class DaemonMessageSerializer {
             logLevelSerializer.write(encoder, parameters.getLogLevel());
             encoder.writeBoolean(parameters.isUseDaemon()); // Can probably skip this
             encoder.writeBoolean(parameters.isContinuous());
-            encoder.writeBoolean(parameters.isInteractive());
             classPathSerializer.write(encoder, parameters.getInjectedPluginClasspath().getAsFiles());
         }
 
@@ -257,9 +261,8 @@ public class DaemonMessageSerializer {
             LogLevel logLevel = logLevelSerializer.read(decoder);
             boolean useDaemon = decoder.readBoolean();
             boolean continuous = decoder.readBoolean();
-            boolean interactive = decoder.readBoolean();
             ClassPath classPath = DefaultClassPath.of(classPathSerializer.read(decoder));
-            return new DefaultBuildActionParameters(sysProperties, envVariables, currentDir, logLevel, useDaemon, continuous, interactive, classPath);
+            return new DefaultBuildActionParameters(sysProperties, envVariables, currentDir, logLevel, useDaemon, continuous, classPath);
         }
     }
 

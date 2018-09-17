@@ -32,10 +32,9 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
 
     private final boolean useDaemon;
     private final boolean continuous;
-    private final boolean interactive;
     private final ClassPath injectedPluginClasspath;
 
-    public DefaultBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel, boolean useDaemon, boolean continuous, boolean interactive, ClassPath injectedPluginClasspath) {
+    public DefaultBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel, boolean useDaemon, boolean continuous, ClassPath injectedPluginClasspath) {
         this.currentDir = currentDir;
         this.logLevel = logLevel;
         this.useDaemon = useDaemon;
@@ -45,7 +44,6 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
         this.systemProperties = new HashMap<String, String>();
         GUtil.addToMap(this.systemProperties, systemProperties);
         this.envVariables = new HashMap<String, String>(envVariables);
-        this.interactive = interactive;
         this.injectedPluginClasspath = injectedPluginClasspath;
     }
 
@@ -74,7 +72,6 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
             + ", logLevel=" + logLevel
             + ", useDaemon=" + useDaemon
             + ", continuous=" + continuous
-            + ", interactive=" + interactive
             + ", injectedPluginClasspath=" + injectedPluginClasspath
             + '}';
     }
@@ -85,10 +82,6 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
 
     public boolean isContinuous() {
         return continuous;
-    }
-
-    public boolean isInteractive() {
-        return interactive;
     }
 
     public ClassPath getInjectedPluginClasspath() {

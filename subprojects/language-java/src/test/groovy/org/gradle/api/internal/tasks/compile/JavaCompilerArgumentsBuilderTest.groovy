@@ -178,17 +178,6 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.build() == ["-bootclasspath", "lib1.jar${File.pathSeparator}lib2.jar"] + defaultOptions
     }
 
-    @SuppressWarnings("GrDeprecatedAPIUsage")
-    def "generates -bootclasspath option via deprecated property"() {
-        def compileOptions = new CompileOptions(Stub(ProjectLayout), TestUtil.objectFactory())
-        compileOptions.bootClasspath = "/lib/lib1.jar${File.pathSeparator}/lib/lib2.jar"
-        spec.compileOptions = compileOptions
-        def options = builder.build()
-
-        expect:
-        options == ["-bootclasspath", new File("/lib/lib1.jar").path + File.pathSeparator + new File("/lib/lib2.jar").path] + defaultOptions
-    }
-
     def "generates -extdirs option"() {
         spec.compileOptions.extensionDirs = "/dir1:/dir2"
 

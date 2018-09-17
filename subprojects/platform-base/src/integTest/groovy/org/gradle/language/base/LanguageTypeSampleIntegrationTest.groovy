@@ -16,16 +16,21 @@
 
 package org.gradle.language.base
 
-import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 @Requires(TestPrecondition.ONLINE)
-class LanguageTypeSampleIntegrationTest extends AbstractSampleIntegrationTest {
+class LanguageTypeSampleIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     Sample languageTypeSample = new Sample(temporaryFolder, "customModel/languageType")
+
+    def setup() {
+        //  customModel/languageType sample contains buildSrc, which needs global init script to make mirror work
+        executer.withGlobalRepositoryMirrors()
+    }
 
     def "shows custom language sourcesets in component"() {
         given:

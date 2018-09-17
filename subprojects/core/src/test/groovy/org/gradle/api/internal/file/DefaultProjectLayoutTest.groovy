@@ -42,7 +42,7 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "can resolve directory relative to project directory"() {
-        def pathProvider = Stub(Provider)
+        def pathProvider = Stub(ProviderInternal)
         _ * pathProvider.get() >>> ["a", "b"]
         _ * pathProvider.present >> true
 
@@ -64,7 +64,7 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "can resolve regular file relative to project directory"() {
-        def pathProvider = Stub(Provider)
+        def pathProvider = Stub(ProviderInternal)
         _ * pathProvider.get() >>> ["a", "b"]
         _ * pathProvider.present >> true
 
@@ -86,8 +86,9 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "directory is not present when path provider is not present"() {
-        def pathProvider = Stub(Provider)
+        def pathProvider = Stub(ProviderInternal)
         _ * pathProvider.present >> false
+        _ * pathProvider.getOrNull() >> null
 
         expect:
         def provider = layout.projectDirectory.dir(pathProvider)
@@ -96,7 +97,7 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "regular file is not present when path provider is not present"() {
-        def pathProvider = Stub(Provider)
+        def pathProvider = Stub(ProviderInternal)
         _ * pathProvider.present >> false
         _ * pathProvider.getOrNull() >> null
 
@@ -121,14 +122,14 @@ class DefaultProjectLayoutTest extends Specification {
         tree2.files == [file3] as Set
     }
 
-    def "can create directory var"() {
-        def pathProvider = Stub(Provider)
+    def "can create directory property"() {
+        def pathProvider = Stub(ProviderInternal)
         _ * pathProvider.get() >> { "../other-dir" }
         _ * pathProvider.present >> true
         def otherDir = tmpDir.file("other-dir")
 
         expect:
-        def dirVar = layout.newDirectoryVar()
+        def dirVar = layout.directoryProperty()
         def fileProvider = dirVar.asFile
         !dirVar.present
         dirVar.getOrNull() == null
@@ -175,14 +176,14 @@ class DefaultProjectLayoutTest extends Specification {
         fileProvider.get() == otherDir
     }
 
-    def "can create regular file var"() {
-        def pathProvider = Stub(Provider)
+    def "can create regular file property"() {
+        def pathProvider = Stub(ProviderInternal)
         _ * pathProvider.get() >> { "../some-file" }
         _ * pathProvider.present >> true
         def otherFile = tmpDir.file("some-file")
 
         expect:
-        def fileVar = layout.newFileVar()
+        def fileVar = layout.fileProperty()
         def fileProvider = fileVar.asFile
         !fileVar.present
         fileVar.getOrNull() == null
@@ -229,11 +230,11 @@ class DefaultProjectLayoutTest extends Specification {
         fileProvider.get() == otherFile
     }
 
-    def "can set directory var using a relative File"() {
+    def "can set directory property using a relative File"() {
         def otherDir = projectDir.file("sub-dir")
 
         expect:
-        def dirVar = layout.newDirectoryVar()
+        def dirVar = layout.directoryProperty()
         def fileProvider = dirVar.asFile
 
         dirVar.set(new File("sub-dir"))
@@ -243,11 +244,11 @@ class DefaultProjectLayoutTest extends Specification {
         fileProvider.get() == otherDir
     }
 
-    def "can set file var using a relative File"() {
+    def "can set file property using a relative File"() {
         def otherFile = projectDir.file("some-file")
 
         expect:
-        def fileVar = layout.newFileVar()
+        def fileVar = layout.fileProperty()
         def fileProvider = fileVar.asFile
 
         fileVar.set(new File("some-file"))
@@ -257,22 +258,22 @@ class DefaultProjectLayoutTest extends Specification {
         fileProvider.get() == otherFile
     }
 
-    def "can set directory var untyped using a File"() {
+    def "can set directory property untyped using a File"() {
         def otherDir = projectDir.file("sub-dir")
 
         expect:
-        def dirVar = layout.newDirectoryVar()
+        def dirVar = layout.directoryProperty()
 
         dirVar.setFromAnyValue(new File("sub-dir"))
         dirVar.present
         dirVar.get().getAsFile() == otherDir
     }
 
-    def "can set file var untyped using a File"() {
+    def "can set file property untyped using a File"() {
         def otherFile = projectDir.file("some-file")
 
         expect:
-        def fileVar = layout.newFileVar()
+        def fileVar = layout.fileProperty()
 
         fileVar.setFromAnyValue(new File("some-file"))
         fileVar.present
@@ -291,7 +292,7 @@ class DefaultProjectLayoutTest extends Specification {
         _ * pathProvider.present >> true
 
         expect:
-        def dirVar = layout.newDirectoryVar()
+        def dirVar = layout.directoryProperty()
         def calculated1 = dirVar.dir("c1")
 
         !calculated1.present
@@ -332,7 +333,7 @@ class DefaultProjectLayoutTest extends Specification {
         _ * pathProvider.present >> true
 
         expect:
-        def dirVar = layout.newDirectoryVar()
+        def dirVar = layout.directoryProperty()
         def calculated1 = dirVar.file("c1")
 
         !calculated1.present
@@ -361,7 +362,7 @@ class DefaultProjectLayoutTest extends Specification {
         calculated2.get().getAsFile() == dir1.file("c2")
     }
 
-    def "can view directory var as a file tree"() {
+    def "can view directory property as a file tree"() {
         def dir1 = projectDir.createDir("dir1")
         def file1 = dir1.createFile("sub-dir/file1")
         def file2 = dir1.createFile("file2")
@@ -370,7 +371,7 @@ class DefaultProjectLayoutTest extends Specification {
         def dir3 = projectDir.file("missing")
 
         expect:
-        def dirVar = layout.newDirectoryVar()
+        def dirVar = layout.directoryProperty()
         def tree = dirVar.asFileTree
 
         dirVar.set(dir1)
@@ -383,8 +384,8 @@ class DefaultProjectLayoutTest extends Specification {
         tree.files == [] as Set
     }
 
-    def "cannot query the views of a directory var when the var has no value"() {
-        def dirVar = layout.newDirectoryVar()
+    def "cannot query the views of a directory property when the property has no value"() {
+        def dirVar = layout.directoryProperty()
         def tree = dirVar.asFileTree
         def fileProvider = dirVar.asFile
         def dir = dirVar.dir("dir")
@@ -426,8 +427,8 @@ class DefaultProjectLayoutTest extends Specification {
         e5.message == 'No value has been specified for this provider.'
     }
 
-    def "cannot set the value of a directory var using incompatible type"() {
-        def var = layout.newDirectoryVar()
+    def "cannot set the value of a directory property using incompatible type"() {
+        def var = layout.directoryProperty()
 
         when:
         var.set(123)
@@ -440,8 +441,8 @@ class DefaultProjectLayoutTest extends Specification {
         !var.present
     }
 
-    def "cannot set the value of a regular file var using incompatible type"() {
-        def var = layout.newFileVar()
+    def "cannot set the value of a regular file property using incompatible type"() {
+        def var = layout.fileProperty()
 
         when:
         var.set(123)
@@ -560,7 +561,7 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "can wrap File provider"() {
-        def fileProvider = Stub(Provider)
+        def fileProvider = Stub(ProviderInternal)
         def file1 = projectDir.file("file1")
         def file2 = projectDir.file("file2")
 
@@ -576,7 +577,7 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "resolves relative files given by File provider"() {
-        def fileProvider = Stub(Provider)
+        def fileProvider = Stub(ProviderInternal)
         def file1 = projectDir.file("file1")
         def file2 = projectDir.file("file2")
 

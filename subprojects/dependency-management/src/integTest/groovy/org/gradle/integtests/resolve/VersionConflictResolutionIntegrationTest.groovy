@@ -1642,4 +1642,87 @@ task checkDeps(dependsOn: configurations.compile) {
         then:
         noExceptionThrown()
     }
+
+    @Issue("gradle/gradle#6403")
+    def "shouldn't fail when forcing a dynamic version in resolution strategy"() {
+
+        given:
+        mavenRepo.module("org", "moduleA", "1.1").publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf { 
+                   resolutionStrategy {
+                      force "org:moduleA:1.+"
+                      failOnVersionConflict() 
+                   }
+                }
+            }
+            
+            dependencies {
+               conf("org:moduleA:1.+")
+               conf("org:moduleA:1.1")
+            }
+        """
+
+        when:
+        run 'dependencies', '--configuration', 'conf'
+
+        then:
+        noExceptionThrown()
+
+
+    }
+
+    @Unroll
+    def 'optional dependency marked as no longer pending reverts to pending if hard edge disappears (remover depends on optional #dependsOptional)'() {
+        given:
+        def optional = mavenRepo.module('org', 'optional', '1.0').publish()
+        def main = mavenRepo.module('org', 'main', '1.0').dependsOn(optional, optional: true).publish()
+        mavenRepo.module('org.a', 'root', '1.0').dependsOn(main).dependsOn(optional).publish()
+        def root11 = mavenRepo.module('org.a', 'root', '1.1').dependsOn(main).publish()
+        def bom = mavenRepo.module("org", "bom", "1.0")
+        bom.hasPackaging('pom')
+        bom.dependencyConstraint(root11)
+        if (dependsOptional) {
+            bom.dependencyConstraint(optional)
+        }
+        bom.publish()
+
+        settingsFile << """
+enableFeaturePreview('IMPROVED_POM_SUPPORT')
+"""
+        buildFile << """
+plugins {
+    id 'java'
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+
+dependencies {
+    implementation 'org.a:root'
+    implementation platform('org:bom:1.0')
+    constraints {
+        implementation 'org.a:root:1.0'
+    }
+}
+"""
+        when:
+        succeeds 'dependencies', '--configuration', 'compileClasspath'
+
+        then:
+        outputDoesNotContain('org:optional')
+
+        where:
+        dependsOptional << [true, false]
+    }
+
 }

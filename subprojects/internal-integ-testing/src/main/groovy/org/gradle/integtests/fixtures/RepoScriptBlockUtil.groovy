@@ -21,11 +21,11 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.test.fixtures.dsl.GradleDsl
 
+import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
+import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.GOOGLE_URL
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.MAVEN_CENTRAL_URL
 import static org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler.BINTRAY_JCENTER_URL
-import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
-import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 
 @CompileStatic
 class RepoScriptBlockUtil {
@@ -87,11 +87,6 @@ class RepoScriptBlockUtil {
     }
 
     private RepoScriptBlockUtil() {
-    }
-
-    static Map<String, String> repoMirrorUrlsEnvironment() {
-        def mirrors = MirroredRepository.values().collect { MirroredRepository repo -> "${repo.name()}:${repo.mirrorUrl}".toString() }
-        ['REPO_MIRRORS_URL': mirrors.join(',')]
     }
 
     static String jcenterRepository(GradleDsl dsl = GROOVY) {
@@ -170,6 +165,11 @@ class RepoScriptBlockUtil {
     static File createMirrorInitScript() {
         File mirrors = File.createTempFile("mirrors", ".gradle")
         mirrors.deleteOnExit()
+        mirrors << mirrorInitScript()
+        return mirrors
+    }
+
+    static String mirrorInitScript() {
         def mirrorConditions = MirroredRepository.values().collect { MirroredRepository mirror ->
             """
                 if (normalizeUrl(repo.url) == normalizeUrl('${mirror.originalUrl}')) {
@@ -177,7 +177,7 @@ class RepoScriptBlockUtil {
                 }
             """
         }.join("")
-        mirrors << """
+        return """
             import groovy.transform.CompileStatic
             import groovy.transform.CompileDynamic
             
@@ -232,6 +232,5 @@ class RepoScriptBlockUtil {
                 }
             }
         """
-        mirrors
     }
 }

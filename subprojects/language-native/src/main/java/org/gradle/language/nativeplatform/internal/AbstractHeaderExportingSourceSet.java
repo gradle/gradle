@@ -30,8 +30,8 @@ public abstract class AbstractHeaderExportingSourceSet extends BaseLanguageSourc
     private final SourceDirectorySet implicitHeaders;
 
     public AbstractHeaderExportingSourceSet() {
-        this.exportedHeaders = sourceDirectorySetFactory.create("exported headers");
-        this.implicitHeaders = sourceDirectorySetFactory.create("implicit headers");
+        this.exportedHeaders = objectFactory.sourceDirectorySet("exported", "exported headers");
+        this.implicitHeaders = objectFactory.sourceDirectorySet("implicit", "implicit headers");
     }
 
     @Override

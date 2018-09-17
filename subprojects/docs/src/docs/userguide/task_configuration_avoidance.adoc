@@ -228,7 +228,8 @@ Follow these steps:
   Execute the Gradle command using the `--scan` flag.
 
   b. Navigate to the configuration performance tab.
-+.Navigate to configuration performance tab in build scan
++
+.Navigate to configuration performance tab in build scan
 image::taskConfigurationAvoidance-navigate-to-performance.png[]
 +
     1. Navigate to the performance card from the left side menu.
@@ -442,7 +443,7 @@ It is highly recommended to have cross-version test coverage using <<test_kit.ad
 
 | Instead of: `withType(java.lang.Class).getByName(java.lang.String)`
 .2+| This returns a `TaskProvider` instead of a `Task`.
-| Use: `withType(java.lang.Class).named(java.lang.String)`
+| Use: `named(java.lang.String, java.lang.Class)`
 
 | Instead of: link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-org.gradle.api.Action-[DomainObjectCollection.withType(java.lang.Class, org.gradle.api.Action)]
 .2+| This returns `void`, so it cannot be chained.

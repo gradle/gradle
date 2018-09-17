@@ -24,12 +24,15 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 import org.gradle.api.tasks.SourceSet
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.util.Matchers.isEmpty
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.hasItem
+import static org.hamcrest.Matchers.instanceOf
+import static org.hamcrest.Matchers.nullValue
 import static org.junit.Assert.assertThat
 
 class DefaultSourceSetTest extends Specification {
@@ -38,13 +41,9 @@ class DefaultSourceSetTest extends Specification {
     private final FileResolver fileResolver = TestFiles.resolver(tmpDir.testDirectory)
 
     private DefaultSourceSet sourceSet(String name) {
-        def s = new DefaultSourceSet(name, TestFiles.sourceDirectorySetFactory(tmpDir.testDirectory))
+        def s = new DefaultSourceSet(name, TestUtil.objectFactory(tmpDir.testDirectory), TestUtil.instantiatorFactory().decorate())
         s.classes = new DefaultSourceSetOutput(s.displayName, fileResolver, taskResolver)
         return s
-    }
-
-    def setup() {
-        NativeServicesTestFixture.initialize()
     }
 
     void hasUsefulDisplayName() {
@@ -218,5 +217,23 @@ class DefaultSourceSetTest extends Specification {
 
         dirs1.builtBy('c')
         assertThat(dependencies.getDependencies(null)*.name as Set, equalTo(['a', 'b', 'c'] as Set))
+    }
+
+    def "can access extra properties and extensions through the api"() {
+        given:
+        SourceSet sourceSet = sourceSet('set-name')
+
+        expect:
+        sourceSet.extensions.extraProperties.properties.isEmpty()
+        sourceSet.extensions.extensionsSchema.elements.size() == 1
+
+        when:
+        sourceSet.extensions.extraProperties.set("foo", "bar")
+        sourceSet.extensions.add("bazar", "cathedral")
+
+        then:
+        sourceSet.extensions.extraProperties.get("foo") == "bar"
+        sourceSet.extensions.extensionsSchema.elements.size() == 2
+        sourceSet.extensions.getByName("bazar") == "cathedral"
     }
 }

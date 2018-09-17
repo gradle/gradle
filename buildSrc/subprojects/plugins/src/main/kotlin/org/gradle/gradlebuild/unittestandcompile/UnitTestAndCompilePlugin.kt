@@ -25,8 +25,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Named
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ComponentMetadataContext
-import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.compile.CompileOptions
@@ -38,6 +36,8 @@ import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.BuildEnvironment.agentNum
 import org.gradle.gradlebuild.java.AvailableJavaInstallations
 import org.gradle.kotlin.dsl.*
+import org.gradle.plugins.ide.idea.IdeaPlugin
+import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.process.CommandLineArgumentProvider
 import java.util.concurrent.Callable
 import testLibraries
@@ -45,15 +45,14 @@ import testLibrary
 import java.util.jar.Attributes
 
 
-enum class ModuleType(val source: JavaVersion, val target: JavaVersion, val requiredCompiler: JavaVersion) {
-    UNDEFINED(JavaVersion.VERSION_1_1, JavaVersion.VERSION_1_1, JavaVersion.VERSION_1_1),
-    ENTRY_POINT(JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6),
-    WORKER(JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6),
-    CORE(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
-    PLUGIN(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
-    INTERNAL(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
-    REQUIRES_JAVA_8(JavaVersion.VERSION_1_8, JavaVersion.VERSION_1_8, JavaVersion.VERSION_1_8),
-    REQUIRES_JAVA_9_COMPILER(JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_9);
+enum class ModuleType(val compatibility: JavaVersion) {
+    UNDEFINED(JavaVersion.VERSION_1_1),
+    ENTRY_POINT(JavaVersion.VERSION_1_6),
+    WORKER(JavaVersion.VERSION_1_6),
+    CORE(JavaVersion.VERSION_1_8),
+    PLUGIN(JavaVersion.VERSION_1_8),
+    INTERNAL(JavaVersion.VERSION_1_7), //TODO bumpt to 8 after Groovy 2.5 upgrade
+    REQUIRES_JAVA_8(JavaVersion.VERSION_1_8)
 }
 
 
@@ -66,35 +65,34 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         base.archivesBaseName = "gradle-${name.replace(Regex("\\p{Upper}")) { "-${it.value.toLowerCase()}" }}"
         addDependencies()
         addGeneratedResources(extension)
-        configureCompile(extension)
+        configureCompile()
         configureJarTasks()
         configureTests()
     }
 
     private
-    fun Project.configureCompile(extension: UnitTestAndCompileExtension) {
+    fun Project.configureCompile() {
         afterEvaluate {
             val availableJavaInstallations = rootProject.the<AvailableJavaInstallations>()
 
             tasks.withType<JavaCompile>().configureEach {
                 options.isIncremental = true
-                configureCompileTask(this, options, availableJavaInstallations, extension.moduleType.requiredCompiler)
+                configureCompileTask(this, options, availableJavaInstallations)
             }
             tasks.withType<GroovyCompile>().configureEach {
                 groovyOptions.encoding = "utf-8"
-                configureCompileTask(this, options, availableJavaInstallations, extension.moduleType.requiredCompiler)
+                configureCompileTask(this, options, availableJavaInstallations)
             }
         }
         addCompileAllTask()
     }
 
     private
-    fun configureCompileTask(compileTask: AbstractCompile, options: CompileOptions, availableJavaInstallations: AvailableJavaInstallations, requiredCompilerVersion: JavaVersion) {
+    fun configureCompileTask(compileTask: AbstractCompile, options: CompileOptions, availableJavaInstallations: AvailableJavaInstallations) {
         options.isFork = true
         options.encoding = "utf-8"
         options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
-        val compilerJdkVersion = maxOf(requiredCompilerVersion, JavaVersion.VERSION_1_7)
-        val jdkForCompilation = availableJavaInstallations.jdkForCompilation(compilerJdkVersion)
+        val jdkForCompilation = availableJavaInstallations.javaInstallationForCompilation
         if (!jdkForCompilation.current) {
             options.forkOptions.javaHome = jdkForCompilation.javaHome
         }
@@ -108,8 +106,16 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 
     private
     fun Project.addGeneratedResources(gradlebuildJava: UnitTestAndCompileExtension) {
-        val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class.java)
+        val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class)
         java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), gradlebuildJava.generatedResourcesDir)
+        plugins.withType<IdeaPlugin> {
+            configure<IdeaModel> {
+                module {
+                    resourceDirs = resourceDirs + gradlebuildJava.generatedResourcesDir
+                    testResourceDirs = testResourceDirs + gradlebuildJava.generatedTestResourcesDir
+                }
+            }
+        }
     }
 
     private
@@ -120,10 +126,6 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             testCompile(library("groovy"))
             testCompile(testLibrary("spock"))
             testLibraries("jmock").forEach { testCompile(it) }
-
-            components {
-                withModule("org.spockframework:spock-core", SpockCoreRule::class.java)
-            }
         }
     }
 
@@ -216,28 +218,14 @@ open class UnitTestAndCompileExtension(val project: Project) {
     var moduleType: ModuleType = ModuleType.UNDEFINED
         set(value) {
             field = value
-            project.java.targetCompatibility = moduleType.target
-            project.java.sourceCompatibility = moduleType.source
+            project.java.targetCompatibility = moduleType.compatibility
+            project.java.sourceCompatibility = moduleType.compatibility
         }
 
     init {
         project.afterEvaluate {
             if (this@UnitTestAndCompileExtension.moduleType == ModuleType.UNDEFINED) {
                 throw InvalidUserDataException("gradlebuild.moduletype must be set for project $project")
-            }
-        }
-    }
-}
-
-
-open class SpockCoreRule : ComponentMetadataRule {
-    override fun execute(context: ComponentMetadataContext) {
-        context.details.allVariants {
-            withDependencyConstraints {
-                filter { it.group == "org.objenesis" }.forEach {
-                    it.version { prefer("1.2") }
-                    it.because("1.2 is required by Gradle and part of the distribution")
-                }
             }
         }
     }

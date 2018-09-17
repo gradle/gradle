@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.resolve;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
+import com.google.common.base.Throwables;
 import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException;
 
 import java.io.InterruptedIOException;
@@ -33,7 +33,7 @@ public class ResolveExceptionAnalyzer {
     }
 
     public static boolean isCriticalFailure(Throwable throwable) {
-        Throwable rootCause = ExceptionUtils.getRootCause(throwable);
+        Throwable rootCause = Throwables.getRootCause(throwable);
         return isTimeoutException(rootCause) || isUnrecoverable5xxStatusCode(rootCause);
     }
 

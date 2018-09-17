@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TaskFactory
+import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.featurelifecycle.FeatureUsage
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
@@ -68,7 +69,7 @@ class NameValidatorTest extends Specification {
                 getIdentityPath() >> Path.path(":build:foo:bar")
             }
         }
-        new TaskFactory(Mock(ClassGenerator), project, Mock(Instantiator)).create(name, DefaultTask)
+        new TaskInstantiator(new TaskFactory(Mock(ClassGenerator), project, Mock(Instantiator)), project).create(name, DefaultTask)
 
         then:
         1 * loggingDeprecatedFeatureHandler.featureUsed(_ as FeatureUsage) >> { FeatureUsage usage ->
@@ -109,11 +110,11 @@ class NameValidatorTest extends Specification {
 
     void assertForbidden(name, message) {
         if (name == '') {
-            assert message.contains("is empty. This has been deprecated and is scheduled to be removed in Gradle 5.0.")
+            assert message.contains("is empty. This has been deprecated ")
         } else if (name.contains("" + forbiddenLeadingAndTrailingCharacter)) {
-            assert message.contains("' starts or ends with a '.'. This has been deprecated and is scheduled to be removed in Gradle 5.0.")
+            assert message.contains("' starts or ends with a '.'. This has been deprecated ")
         } else {
-            assert message.contains("""' contains at least one of the following characters: [ , /, \\, :, <, >, ", ?, *, |]. This has been deprecated and is scheduled to be removed in Gradle 5.0.""")
+            assert message.contains("""' contains at least one of the following characters: [ , /, \\, :, <, >, ", ?, *, |]. This has been deprecated""")
         }
     }
 }

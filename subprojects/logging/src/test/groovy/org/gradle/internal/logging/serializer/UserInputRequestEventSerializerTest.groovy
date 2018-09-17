@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging.serializer
 
-import org.gradle.api.logging.LogLevel
+
 import org.gradle.internal.logging.events.UserInputRequestEvent
 import spock.lang.Subject
 
@@ -26,15 +26,12 @@ class UserInputRequestEventSerializerTest extends LogSerializerSpec {
 
     def "can serialize user input event"() {
         given:
-        def prompt = 'Please provide your input:'
-        def event = new UserInputRequestEvent(prompt)
+        def event = new UserInputRequestEvent()
 
         when:
         def result = serialize(event, serializer)
 
         then:
         result instanceof UserInputRequestEvent
-        result.prompt == prompt
-        result.logLevel == LogLevel.QUIET
     }
 }

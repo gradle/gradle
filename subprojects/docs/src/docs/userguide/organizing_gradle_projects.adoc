@@ -33,6 +33,10 @@ Gradle recommends that you place sources in directories according to their langu
 
 The following source tree contains Java and Kotlin source files. Java source files live in `src/main/java`, whereas Kotlin source files live in `src/main/kotlin`.
 
+====
+[.multi-language-sample]
+=====
+[source,groovy]
 ----
 .
 ├── build.gradle
@@ -44,6 +48,23 @@ The following source tree contains Java and Kotlin source files. Java source fil
         └── kotlin
             └── Utils.kt
 ----
+=====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+.
+├── build.gradle.kts
+├── settings.gradle.kts
+└── src
+    └── main
+        ├── java
+        │   └── HelloWorld.java
+        └── kotlin
+            └── Utils.kt
+----
+=====
+====
 
 [[sec:separate_test_type_source_files]]
 == Separate source files per test type
@@ -54,6 +75,10 @@ Separated test source code has a positive impact on maintainability and separati
 
 The following source tree demonstrates how to separate unit from integration tests in a Java-based project.
 
+====
+[.multi-language-sample]
+=====
+[source,groovy]
 ----
 .
 ├── build.gradle
@@ -73,28 +98,49 @@ The following source tree demonstrates how to separate unit from integration tes
         └── java
             └── StringUtilsTest.java
 ----
+=====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+.
+├── build.gradle.kts
+├── gradle
+│   └── integration-test.gradle.kts
+├── settings.gradle.kts
+└── src
+    ├── integTest
+    │   └── java
+    │       └── DefaultFileReaderIntegrationTest.java
+    ├── main
+    │   └── java
+    │       ├── DefaultFileReader.java
+    │       ├── FileReader.java
+    │       └── StringUtils.java
+    └── test
+        └── java
+            └── StringUtilsTest.java
+----
+=====
+====
 
 Gradle models source code directories with the help of the <<building_java_projects.adoc#sec:java_source_sets,source set concept>>.
 By pointing an instance of a source set to one or many source code directories, Gradle will automatically create a corresponding compilation task out-of-the-box.
 
-=== Example: Integration test source set
-
-[source.multi-language-sample,groovy]
-.gradle/integration-test.gradle
-----
-include::{samplesPath}/userguide/organizingGradleProjects/separatedTestTypes/gradle/integration-test.gradle[tag=custom-source-set]
-----
+.Integration test source set
+====
+include::sample[dir="userguide/organizingGradleProjects/separatedTestTypes/groovy",files="gradle/integration-test.gradle[tags=custom-source-set]"]
+include::sample[dir="userguide/organizingGradleProjects/separatedTestTypes/kotlin",files="gradle/integration-test.gradle.kts[tags=custom-source-set]"]
+====
 
 Source sets are only responsible for compiling source code, but do not deal with executing the byte code.
 For the purpose of test execution, a corresponding task of type link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] needs to be established.
 
-=== Example: Integration test task
-
-[source.multi-language-sample,groovy]
-.gradle/integration-test.gradle
-----
-include::{samplesPath}/userguide/organizingGradleProjects/separatedTestTypes/gradle/integration-test.gradle[tag=test-task]
-----
+.Integration test task
+====
+include::sample[dir="userguide/organizingGradleProjects/separatedTestTypes/groovy",files="gradle/integration-test.gradle[tags=test-task]"]
+include::sample[dir="userguide/organizingGradleProjects/separatedTestTypes/kotlin",files="gradle/integration-test.gradle.kts[tags=test-task]"]
+====
 
 [[sec:use_standard_conventions]]
 == Use standard conventions as much as possible
@@ -123,11 +169,26 @@ The file can either be empty or define the desired name of the project.
 
 A typical Gradle project with a settings file look as such:
 
+====
+[.multi-language-sample]
+=====
+[source,groovy]
 ----
 .
 ├── build.gradle
 └── settings.gradle
 ----
+=====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+.
+├── build.gradle.kts
+└── settings.gradle.kts
+----
+=====
+====
 
 [[sec:build_sources]]
 == Use `buildSrc` to abstract imperative logic
@@ -143,18 +204,20 @@ For multi-project builds there can be only one `buildSrc` directory, which has t
 `buildSrc` uses the same <<java_plugin.adoc#javalayout,source code conventions>> applicable to Java and Groovy projects.
 It also provides direct access to the Gradle API. Additional dependencies can be declared in a dedicated `build.gradle` under `buildSrc`.
 
-=== Example: Custom buildSrc build script
-
-[source.multi-language-sample,groovy]
-.buildSrc/build.gradle
-----
-include::{samplesPath}/java/multiproject/buildSrc/build.gradle[]
-----
+.Custom buildSrc build script
+====
+include::sample[dir="java/multiproject/groovy",files="buildSrc/build.gradle[]"]
+include::sample[dir="java/multiproject/kotlin",files="buildSrc/build.gradle.kts[]"]
+====
 
 A typical project including `buildSrc` has the following layout.
 Any code under `buildSrc` should use a package similar to application code.
 Optionally, the `buildSrc` directory can host a build script if additional configuration is needed (e.g. to apply plugins or to declare dependencies).
 
+====
+[.multi-language-sample]
+=====
+[source,groovy]
 ----
 .
 ├── build.gradle
@@ -174,6 +237,31 @@ Optionally, the `buildSrc` directory can host a build script if additional confi
 │                       └── DeploymentPluginTest.java
 └── settings.gradle
 ----
+=====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+.
+├── build.gradle.kts
+├── buildSrc
+│   ├── build.gradle.kts
+│   └── src
+│       ├── main
+│       │   └── java
+│       │       └── com
+│       │           └── enterprise
+│       │               ├── Deploy.java
+│       │               └── DeploymentPlugin.java
+│       └── test
+│           └── java
+│               └── com
+│                   └── enterprise
+│                       └── DeploymentPluginTest.java
+└── settings.gradle.kts
+----
+=====
+====
 
 == Declare properties in `gradle.properties` file
 
@@ -188,12 +276,28 @@ It's a good location for placing <<build_environment.adoc#sec:gradle_configurati
 A typical project setup places the `gradle.properties` file in the root directory of the build.
 Alternatively, the file can also live in the `GRADLE_USER_HOME` directory if you want to it apply to all builds on your machine.
 
+====
+[.multi-language-sample]
+=====
+[source,groovy]
 ----
 .
 ├── build.gradle
 ├── gradle.properties
 └── settings.gradle
 ----
+=====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+.
+├── build.gradle.kts
+├── gradle.properties
+└── settings.gradle.kts
+----
+=====
+====
 
 == Avoid overlapping task outputs
 

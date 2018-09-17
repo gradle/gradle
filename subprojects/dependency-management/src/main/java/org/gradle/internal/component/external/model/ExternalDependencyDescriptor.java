@@ -36,6 +36,8 @@ public abstract class ExternalDependencyDescriptor {
 
     public abstract boolean isOptional();
 
+    public abstract boolean isConstraint();
+
     public abstract boolean isChanging();
 
     public abstract boolean isTransitive();

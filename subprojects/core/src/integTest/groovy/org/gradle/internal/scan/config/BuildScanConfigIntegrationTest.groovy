@@ -189,34 +189,9 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         description = applied ? "applied" : "not applied"
     }
 
-    def "fails when VCS mappings are being used and plugin is too old"() {
-        given:
-        scanPlugin.runtimeVersion = "1.10"
-        installVcsMappings()
-
-        when:
-        fails "t"
-
-        then:
-        failureCauseContains(BuildScanPluginCompatibility.UNSUPPORTED_VCS_MAPPINGS_MESSAGE)
-    }
-
-    def "conveys when VCS mappings are being used and plugin is not too old"() {
-        given:
-        scanPlugin.runtimeVersion = "1.11"
-        installVcsMappings()
-
-        when:
-        succeeds "t"
-
-        then:
-        scanPlugin.assertUnsupportedMessage(output, null)
-        scanPlugin.attributes(output).rootProjectHasVcsMappings
-    }
-
     def "can convey unsupported to plugin that supports it"() {
         given:
-        scanPlugin.runtimeVersion = "1.11"
+        scanPlugin.runtimeVersion = "1.13"
         when:
         succeeds "t", "-D${BuildScanPluginCompatibility.UNSUPPORTED_TOGGLE}=true"
 
@@ -230,7 +205,7 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         scanPlugin.runtimeVersion = "1.15.1"
 
         when:
-        succeeds "t", "-P${BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE}=true"
+        succeeds "t", "-D${BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE}=true"
 
         then:
         scanPlugin.assertUnsupportedMessage(output, BuildScanPluginCompatibility.UNSUPPORTED_KOTLIN_SCRIPT_BUILD_CACHING_MESSAGE)
@@ -241,7 +216,7 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         scanPlugin.runtimeVersion = "1.15.2"
 
         when:
-        succeeds "t", "-P${BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE}=true"
+        succeeds "t", "-D${BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE}=true"
 
         then:
         scanPlugin.assertUnsupportedMessage(output, null)

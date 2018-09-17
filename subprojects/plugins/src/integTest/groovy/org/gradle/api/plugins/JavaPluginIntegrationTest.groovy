@@ -76,4 +76,26 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("Gradle now uses separate output directories for each JVM language, but this build assumes a single directory for all classes from a source set.")
     }
+
+    def "jar task is created lazily"() {
+        buildFile << """
+            apply plugin: 'java'
+
+            tasks.named('jar').configure {
+                println "jar task created"
+            }
+            
+            task printArtifacts {
+                doLast {
+                    configurations.runtime.artifacts.files.each { println it }
+                }
+            }
+        """
+
+        when:
+        succeeds("printArtifacts")
+
+        then:
+        result.groupedOutput.task(':printArtifacts').output.contains("jar task created")
+    }
 }

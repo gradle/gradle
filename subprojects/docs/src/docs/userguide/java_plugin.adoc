@@ -22,13 +22,11 @@ The Java plugin adds Java compilation along with testing and bundling capabiliti
 
 To use the Java plugin, include the following in your build script:
 
-=== Example: Using the Java plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/java/quickstart/build.gradle[tag=use-plugin]
-----
+.Using the Java plugin
+====
+include::sample[dir="java/quickstart/groovy", files="build.gradle[tags=use-plugin]"]
+include::sample[dir="java/quickstart/kotlin", files="build.gradle.kts[tags=use-plugin]"]
+====
 
 
 [[sec:java_project_layout]]
@@ -48,13 +46,11 @@ include::javaProjectGenericLayout.adoc[]
 
 You configure the project layout by configuring the appropriate source set. This is discussed in more detail in the following sections. Here is a brief example which changes the main Java and resource source directories.
 
-=== Example: Custom Java source layout
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/java/customizedLayout/build.gradle[tag=define-main]
-----
+.Custom Java source layout
+====
+include::sample[dir="java/customizedLayout/groovy", files="build.gradle[tags=define-main]"]
+include::sample[dir="java/customizedLayout/kotlin", files="build.gradle.kts[tags=define-main]"]
+====
 
 == Source sets
 
@@ -143,33 +139,27 @@ See the <<java_testing.adoc#sec:configuring_java_integration_tests,integration t
 
 Adding a JAR containing the classes of a source set:
 
-=== Example: Assembling a JAR for a source set
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/java/sourceSets/build.gradle[tag=jar]
-----
+.Assembling a JAR for a source set
+====
+include::sample[dir="userguide/java/sourceSets/groovy", files="build.gradle[tags=jar]"]
+include::sample[dir="userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=jar]"]
+====
 
 Generating Javadoc for a source set:
 
-=== Example: Generating the Javadoc for a source set
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/java/sourceSets/build.gradle[tag=javadoc]
-----
+.Generating the Javadoc for a source set
+====
+include::sample[dir="userguide/java/sourceSets/groovy", files="build.gradle[tags=javadoc]"]
+include::sample[dir="userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=javadoc]"]
+====
 
 Adding a test suite to run the tests in a source set:
 
-=== Example: Running tests in a source set
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/java/sourceSets/build.gradle[tag=test]
-----
+.Running tests in a source set
+====
+include::sample[dir="userguide/java/sourceSets/groovy", files="build.gradle[tags=test]"]
+include::sample[dir="userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=test]"]
+====
 
 [[sec:java_tasks]]
 == Tasks
@@ -551,6 +541,8 @@ To help you understand how incremental compilation works, the following provides
 ==== Known issues
 
 * If a compile task fails due to a compile error, it will do a full compilation again the next time it is invoked.
+* If you are using an annotation processor that reads resources (e.g. a configuration file), you need to declare those resources as an input of the compile task.
+* If a resource file is changed, Gradle will trigger a full recompilation.
 
 [[sec:incremental_annotation_processing]]
 === Incremental annotation processing
@@ -599,8 +591,6 @@ Both categories have the following limitations:
 * They must not depend on compiler-specific APIs like https://docs.oracle.com/javase/8/docs/jdk/api/javac/tree/com/sun/source/util/Trees.html[com.sun.source.util.Trees].
     Gradle wraps the processing APIs, so attempts to cast to compiler-specific types will fail.
     If your processor does this, it cannot be incremental, unless you have some fallback mechanism.
-* If they use https://docs.oracle.com/javase/10/docs/api/javax/annotation/processing/Filer.html#getResource(javax.tools.JavaFileManager.Location,java.lang.CharSequence,java.lang.CharSequence)[Filer#getResource], Gradle will recompile all source files.
-    See link:https://github.com/gradle/gradle/issues/4701[gradle/issues/4701]
 * If they use link:https://docs.oracle.com/javase/10/docs/api/javax/annotation/processing/Filer.html#createResource(javax.tools.JavaFileManager.Location,java.lang.CharSequence,java.lang.CharSequence,javax.lang.model.element.Element++...++)[Filer#createResource], Gradle will recompile all source files.
     See https://github.com/gradle/gradle/issues/4702[gradle/issues/4702]
 
@@ -669,14 +659,11 @@ Some of the types of changes that do not affect the public API and are ignored:
 
 Compile-avoidance is deactivated if annotation processors are found on the compile classpath, because for annotation processors the implementation details matter. Annotation processors should be declared on the annotation processor path instead. Gradle 5.0 will ignore processors on the compile classpath.
 
-=== Example: Declaring annotation processors
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/java/apt/build.gradle[tag=annotation-processing]
-----
-
+.Declaring annotation processors
+====
+include::sample[dir="java/apt/groovy", files="build.gradle[tags=annotation-processing]"]
+include::sample[dir="java/apt/kotlin", files="build.gradle.kts[tags=annotation-processing]"]
+====
 
 [[sec:java_test]]
 == Test
@@ -697,43 +684,35 @@ The `jar` task creates a JAR file containing the class files and resources of th
 
 Each jar or war object has a `manifest` property with a separate instance of link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest]. When the archive is generated, a corresponding `MANIFEST.MF` file is written into the archive.
 
-=== Example: Customization of MANIFEST.MF
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tutorial/manifest/build.gradle[tag=add-to-manifest]
-----
+.Customization of MANIFEST.MF
+====
+include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=add-to-manifest]"]
+include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=add-to-manifest]"]
+====
 
 You can create stand-alone instances of a `Manifest`. You can use that for example, to share manifest information between jars.
 
-=== Example: Creating a manifest object.
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tutorial/manifest/build.gradle[tag=custom-manifest]
-----
+.Creating a manifest object.
+====
+include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=custom-manifest]"]
+include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=custom-manifest]"]
+====
 
 You can merge other manifests into any `Manifest` object. The other manifests might be either described by a file path or, like in the example above, by a reference to another `Manifest` object.
 
-=== Example: Separate MANIFEST.MF for a particular archive
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tutorial/manifest/build.gradle[tag=merge]
-----
+.Separate MANIFEST.MF for a particular archive
+====
+include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=merge]"]
+include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=merge]"]
+====
 
 Manifests are merged in the order they are declared by the `from` statement. If the base manifest and the merged manifest both define values for the same key, the merged manifest wins by default. You can fully customize the merge behavior by adding `eachEntry` actions in which you have access to a link:{javadocPath}/org/gradle/api/java/archives/ManifestMergeDetails.html[ManifestMergeDetails] instance for each entry of the resulting manifest. The merge is not immediately triggered by the from statement. It is done lazily, either when generating the jar, or by calling `writeTo` or `effectiveManifest`
 
 You can easily write a manifest to disk.
 
-=== Example: Saving a MANIFEST.MF to disk
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tutorial/manifest/build.gradle[tag=write]
-----
+.Saving a MANIFEST.MF to disk
+====
+include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=write]"]
+include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=write]"]
+====
 

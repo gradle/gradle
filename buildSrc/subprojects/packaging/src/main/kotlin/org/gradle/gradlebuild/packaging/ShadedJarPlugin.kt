@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.attributes.Usage
-import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
@@ -75,7 +74,7 @@ open class ShadedJarPlugin : Plugin<Project> {
 
     private
     fun Project.createShadedJarExtension(configurationToShade: Configuration) =
-        extensions.create<ShadedJarExtension>("shadedJar", layout, objects, configurationToShade)
+        extensions.create<ShadedJarExtension>("shadedJar", objects, configurationToShade)
 
     private
     fun Project.registerTransforms(shadedJarExtension: ShadedJarExtension) {
@@ -86,7 +85,7 @@ open class ShadedJarPlugin : Plugin<Project> {
                         .attribute(artifactType, "jar")
                         .attribute(minified, true)
                     to.attribute(artifactType, relocatedClassesAndAnalysisType)
-                    artifactTransform(ShadeClassesTransform::class.java) {
+                    artifactTransform(ShadeClassesTransform::class) {
                         params(
                             "org.gradle.internal.impldep",
                             shadedJarExtension.keepPackages.get(),
@@ -113,7 +112,7 @@ open class ShadedJarPlugin : Plugin<Project> {
         }
 
         return configurations.create(configurationName) {
-            attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+            attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
             isCanBeResolved = true
             isCanBeConsumed = false
         }
@@ -123,9 +122,9 @@ open class ShadedJarPlugin : Plugin<Project> {
     fun Project.addShadedJarTask(shadedJarExtension: ShadedJarExtension): TaskProvider<ShadedJar> {
         val configurationToShade = shadedJarExtension.shadedConfiguration
         val baseVersion: String by rootProject.extra
-        val jar: TaskProvider<Jar> = tasks.withType(Jar::class.java).named("jar")
+        val jar: TaskProvider<Jar> = tasks.withType(Jar::class).named("jar")
 
-        return tasks.register("${project.name}ShadedJar", ShadedJar::class.java) {
+        return tasks.register("${project.name}ShadedJar", ShadedJar::class) {
             dependsOn(jar)
             jarFile.set(layout.buildDirectory.file("shaded-jar/${base.archivesBaseName}-shaded-$baseVersion.jar"))
             classTreesConfiguration.from(configurationToShade.artifactViewForType(classTreesType))
@@ -156,32 +155,32 @@ open class ShadedJarPlugin : Plugin<Project> {
         registerTransform {
             from.attribute(artifactType, fromType)
             to.attribute(artifactType, toType)
-            artifactTransform(T::class.java, action)
+            artifactTransform(T::class, action)
         }
 }
 
 
-open class ShadedJarExtension(layout: ProjectLayout, objects: ObjectFactory, val shadedConfiguration: Configuration) {
+open class ShadedJarExtension(objects: ObjectFactory, val shadedConfiguration: Configuration) {
 
     /**
      * The build receipt properties file.
      *
      * The file will be included in the shaded jar under {@code /org/gradle/build-receipt.properties}.
      */
-    val buildReceiptFile = layout.fileProperty()
+    val buildReceiptFile = objects.fileProperty()
 
     /**
      * Retain only those classes in the keep package hierarchies, plus any classes that are reachable from these classes.
      */
-    val keepPackages = objects.setProperty(String::class.java)!!
+    val keepPackages = objects.setProperty(String::class)
 
     /**
      * Do not rename classes in the unshaded package hierarchies. Always includes 'java'.
      */
-    val unshadedPackages = objects.setProperty(String::class.java)!!
+    val unshadedPackages = objects.setProperty(String::class)
 
     /**
      * Do not retain classes in the ignore packages hierarchies, unless reachable from some other retained class.
      */
-    val ignoredPackages = objects.setProperty(String::class.java)!!
+    val ignoredPackages = objects.setProperty(String::class)
 }

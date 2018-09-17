@@ -18,7 +18,6 @@ package org.gradle.test.fixtures.file;
 
 import groovy.lang.Closure;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.test.fixtures.ConcurrentTestUtil;
 import org.junit.rules.TestRule;
@@ -45,16 +44,6 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
     private String prefix;
     private boolean cleanup = true;
     private boolean suppressCleanupErrors = false;
-
-    private String determinePrefix() {
-        StackTraceElement[] stackTrace = new RuntimeException().getStackTrace();
-        for (StackTraceElement element : stackTrace) {
-            if (element.getClassName().endsWith("Test") || element.getClassName().endsWith("Spec")) {
-                return StringUtils.substringAfterLast(element.getClassName(), ".") + "/unknown-test";
-            }
-        }
-        return "unknown-test-class";
-    }
 
     @Override
     public void suppressCleanup() {
@@ -171,7 +160,7 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
         if (prefix == null) {
             // This can happen if this is used in a constructor or a @Before method. It also happens when using
             // @RunWith(SomeRunner) when the runner does not support rules.
-            prefix = determinePrefix();
+            prefix = "unknown-test-class";
         }
         return prefix;
     }

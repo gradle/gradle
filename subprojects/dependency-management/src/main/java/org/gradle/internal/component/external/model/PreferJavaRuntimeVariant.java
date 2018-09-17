@@ -59,30 +59,34 @@ public class PreferJavaRuntimeVariant extends EmptySchema {
     @Override
     public DisambiguationRule<Object> disambiguationRules(Attribute<?> attribute) {
         if (Usage.USAGE_ATTRIBUTE.equals(attribute)) {
-            return Cast.uncheckedCast(new DisambiguationRule<Usage>() {
-                @Override
-                public boolean doesSomething() {
-                    return true;
-                }
-
-                public void execute(MultipleCandidatesResult<Usage> details) {
-                    if (details.getConsumerValue() == null) {
-                        Set<Usage> candidates = details.getCandidateValues();
-                        if (candidates.equals(DEFAULT_JAVA_USAGES)) {
-                            details.closestMatch(RUNTIME_USAGE);
-                        } else {
-                            // slower path: let's see if the candidates are either null (missing) or one of the standard usages
-                            for (Usage candidate : candidates) {
-                                if (candidate != null && !DEFAULT_JAVA_USAGES.contains(candidate)) {
-                                    return;
-                                }
-                            }
-                            details.closestMatch(RUNTIME_USAGE);
-                        }
-                    }
-                }
-            });
+            return Cast.uncheckedCast(PreferRuntimeVariantUsageDisambiguationRule.INSTANCE);
         }
         return super.disambiguationRules(attribute);
+    }
+
+    private static class PreferRuntimeVariantUsageDisambiguationRule implements DisambiguationRule<Usage> {
+        private final static PreferRuntimeVariantUsageDisambiguationRule INSTANCE = new PreferRuntimeVariantUsageDisambiguationRule();
+
+        @Override
+        public boolean doesSomething() {
+            return true;
+        }
+
+        public void execute(MultipleCandidatesResult<Usage> details) {
+            if (details.getConsumerValue() == null) {
+                Set<Usage> candidates = details.getCandidateValues();
+                if (DEFAULT_JAVA_USAGES.equals(candidates)) {
+                    details.closestMatch(RUNTIME_USAGE);
+                } else {
+                    // slower path: let's see if the candidates are either null (missing) or one of the standard usages
+                    for (Usage candidate : candidates) {
+                        if (candidate != null && !DEFAULT_JAVA_USAGES.contains(candidate)) {
+                            return;
+                        }
+                    }
+                    details.closestMatch(RUNTIME_USAGE);
+                }
+            }
+        }
     }
 }

@@ -46,7 +46,10 @@ class TransformArtifactOperation implements RunnableBuildOperation {
 
     @Override
     public void run(@Nullable BuildOperationContext context) {
-        transformListener.beforeTransform(transform, artifactId, file);
+        boolean hasCachedResult = transform.hasCachedResult(file);
+        if (!hasCachedResult) {
+            transformListener.beforeTransform(transform, artifactId, file);
+        }
         try {
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Executing transform {} on artifact {}", transform.getDisplayName(), artifactId.getDisplayName());
@@ -55,7 +58,9 @@ class TransformArtifactOperation implements RunnableBuildOperation {
         } catch (Throwable t) {
             failure = t;
         }
-        transformListener.afterTransform(transform, artifactId, file, failure);
+        if (!hasCachedResult) {
+            transformListener.afterTransform(transform, artifactId, file, failure);
+        }
     }
 
     @Override

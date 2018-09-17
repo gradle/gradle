@@ -26,58 +26,59 @@ import javax.annotation.Nullable;
 import java.util.Map;
 
 @NonNullApi
-abstract class TaskInputsDeprecationSupport implements TaskInputs {
-    // --- See CompatibilityAdapterForTaskInputs for an explanation for why these methods are here
+public class TaskInputsDeprecationSupport implements TaskInputs {
 
-    protected abstract TaskInputs getTaskInputs(String method);
+    private UnsupportedOperationException failWithUnsupportedMethod(String method) {
+        throw new UnsupportedOperationException(String.format("Chaining of the TaskInputs.%s method is not supported since Gradle 5.0.", method));
+    }
 
     @Override
     public boolean getHasInputs() {
-        return getTaskInputs("getHasInputs()").getHasInputs();
+        throw failWithUnsupportedMethod("getHasInputs()");
     }
 
     @Override
     public FileCollection getFiles() {
-        return getTaskInputs("getFiles()").getFiles();
+        throw failWithUnsupportedMethod("getFiles()");
     }
 
     @Override
     public TaskInputFilePropertyBuilder files(Object... paths) {
-        return getTaskInputs("files(Object...)").files(paths);
+        throw failWithUnsupportedMethod("files(Object...)");
     }
 
     @Override
     public TaskInputFilePropertyBuilder file(Object path) {
-        return getTaskInputs("file(Object)").file(path);
+        throw failWithUnsupportedMethod("file(Object)");
     }
 
     @Override
     public TaskInputFilePropertyBuilder dir(Object dirPath) {
-        return getTaskInputs("dir(Object)").dir(dirPath);
+        throw failWithUnsupportedMethod("dir(Object)");
     }
 
     @Override
     public Map<String, Object> getProperties() {
-        return getTaskInputs("getProperties()").getProperties();
+        throw failWithUnsupportedMethod("getProperties()");
     }
 
     @Override
     public TaskInputPropertyBuilder property(String name, @Nullable Object value) {
-        return getTaskInputs("property(String, Object)").property(name, value);
+        throw failWithUnsupportedMethod("property(String, Object)");
     }
 
     @Override
     public TaskInputs properties(Map<String, ?> properties) {
-        return getTaskInputs("properties(Map)").properties(properties);
+        throw failWithUnsupportedMethod("properties(Map)");
     }
 
     @Override
     public boolean getHasSourceFiles() {
-        return getTaskInputs("getHasSourceFiles()").getHasSourceFiles();
+        throw failWithUnsupportedMethod("getHasSourceFiles()");
     }
 
     @Override
     public FileCollection getSourceFiles() {
-        return getTaskInputs("getSourceFiles()").getSourceFiles();
+        throw failWithUnsupportedMethod("getSourceFiles()");
     }
 }

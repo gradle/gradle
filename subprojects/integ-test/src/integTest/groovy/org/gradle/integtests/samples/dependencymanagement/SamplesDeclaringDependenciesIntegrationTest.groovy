@@ -20,8 +20,13 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Unroll
 
+import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
+
+@Requires(KOTLIN_SCRIPT)
 class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrationTest {
 
     private static final String COPY_LIBS_TASK_NAME = 'copyLibs'
@@ -29,101 +34,140 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/declaringDependencies/concreteVersion")
-    def "can use declare and resolve dependency with concrete version"() {
-        executer.inDirectory(sample.dir)
+    def "can use declare and resolve dependency with concrete version with #dsl dsl"() {
+        TestFile dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        sample.dir.file('build/libs/spring-web-5.0.2.RELEASE.jar').isFile()
+        dslDir.file('build/libs/spring-web-5.0.2.RELEASE.jar').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/declaringDependencies/withoutVersion")
-    def "can use declare and resolve dependency without version"() {
-        executer.inDirectory(sample.dir)
+    def "can use declare and resolve dependency without version with #dsl dsl"() {
+        TestFile dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        sample.dir.file('build/libs/spring-web-5.0.2.RELEASE.jar').isFile()
+        dslDir.file('build/libs/spring-web-5.0.2.RELEASE.jar').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/declaringDependencies/dynamicVersion")
-    def "can use declare and resolve dependency with dynamic version"() {
-        executer.inDirectory(sample.dir)
+    def "can use declare and resolve dependency with dynamic version with #dsl dsl"() {
+        TestFile dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds('copyLibs')
 
         then:
-        sample.dir.file('build/libs').listFiles().any { it.name.startsWith('spring-web-5.') }
+        dslDir.file('build/libs').listFiles().any { it.name.startsWith('spring-web-5.') }
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/declaringDependencies/changingVersion")
-    def "can use declare and resolve dependency with changing version"() {
-        executer.inDirectory(sample.dir)
+    def "can use declare and resolve dependency with changing version with #dsl dsl"() {
+        TestFile dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        sample.dir.file('build/libs/spring-web-5.0.3.BUILD-SNAPSHOT.jar').isFile()
+        dslDir.file('build/libs/spring-web-5.0.3.BUILD-SNAPSHOT.jar').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/declaringDependencies/fileDependencies")
-    def "can use declare and resolve file dependencies"() {
-        executer.inDirectory(sample.dir)
+    def "can use declare and resolve file dependencies with #dsl dsl"() {
+        TestFile dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        sample.dir.file('build/libs/antcontrib.jar').isFile()
-        sample.dir.file('build/libs/commons-lang.jar').isFile()
-        sample.dir.file('build/libs/log4j.jar').isFile()
-        sample.dir.file('build/libs/a.exe').isFile()
-        sample.dir.file('build/libs/b.exe').isFile()
+        dslDir.file('build/libs/antcontrib.jar').isFile()
+        dslDir.file('build/libs/commons-lang.jar').isFile()
+        dslDir.file('build/libs/log4j.jar').isFile()
+        dslDir.file('build/libs/a.exe').isFile()
+        dslDir.file('build/libs/b.exe').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/declaringDependencies/projectDependencies")
-    def "can declare and resolve project dependencies"() {
-        executer.inDirectory(sample.dir)
+    def "can declare and resolve project dependencies with #dsl dsl"() {
+        executer.inDirectory(sample.dir.file(dsl))
 
         expect:
         succeeds('assemble')
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/declaringDependencies/artifactOnly")
-    def "can resolve dependency with artifact-only declaration"() {
-        executer.inDirectory(sample.dir)
+    def "can resolve dependency with artifact-only declaration with #dsl dsl"() {
+        TestFile dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        assertSingleLib('jquery-3.2.1.js')
+        assertSingleLib(dslDir, 'jquery-3.2.1.js')
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
+    @Unroll
     @UsesSample("userguide/dependencyManagement/declaringDependencies/artifactOnlyWithClassifier")
-    def "can resolve dependency with artifact-only declaration with classifier"() {
-        executer.inDirectory(sample.dir)
+    def "can resolve dependency with artifact-only declaration with classifier with #dsl dsl"() {
+        TestFile dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
 
         when:
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        assertSingleLib('jquery-3.2.1-min.js')
+        assertSingleLib(dslDir, 'jquery-3.2.1-min.js')
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
-    private TestFile[] listFilesInBuildLibsDir() {
-        sample.dir.file('build/libs').listFiles()
+    private TestFile[] listFilesInBuildLibsDir(TestFile dslDir) {
+        dslDir.file('build/libs').listFiles()
     }
 
-    private void assertSingleLib(String filename) {
-        def libs = listFilesInBuildLibsDir()
+    private void assertSingleLib(TestFile dslDir, String filename) {
+        def libs = listFilesInBuildLibsDir(dslDir)
         assert libs.size() == 1
         assert libs[0].name == filename
     }

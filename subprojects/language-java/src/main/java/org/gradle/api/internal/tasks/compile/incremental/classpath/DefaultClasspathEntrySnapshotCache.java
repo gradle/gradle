@@ -40,11 +40,10 @@ public class DefaultClasspathEntrySnapshotCache implements ClasspathEntrySnapsho
         Map<File, ClasspathEntrySnapshot> out = Maps.newLinkedHashMap();
         for (Map.Entry<File, HashCode> entry : fileHashes.entrySet()) {
             ClasspathEntrySnapshotData snapshotData = cache.get(entry.getValue());
-            if (snapshotData == null) {
-                throw new IllegalStateException("No incremental compile snapshot data available for " + entry.getKey() + " with hash " + entry.getValue() + ".");
+            if (snapshotData != null) {
+                ClasspathEntrySnapshot snapshot = new ClasspathEntrySnapshot(snapshotData);
+                out.put(entry.getKey(), snapshot);
             }
-            ClasspathEntrySnapshot snapshot = new ClasspathEntrySnapshot(snapshotData);
-            out.put(entry.getKey(), snapshot);
         }
         return out;
     }

@@ -30,7 +30,7 @@ public class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
 
     @Before
     void setUp() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
     @Test @UsesSample('testing/testng/suitexmlbuilder')

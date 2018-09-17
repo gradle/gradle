@@ -16,5 +16,5 @@
 package org.gradle.api.internal.tasks;
 
 public interface ValidationAction {
-    void validate(String propertyName, Object value, TaskValidationContext context, TaskValidationContext.Severity severity);
+    void validate(String propertyName, Object value, TaskValidationContext context);
 }

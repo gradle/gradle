@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.fixture
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
@@ -30,7 +29,6 @@ import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestDistributionDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testing.internal.util.RetryRule
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
@@ -39,8 +37,11 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
+import spock.lang.Retry
 import spock.lang.Specification
 
+import static org.gradle.integtests.fixtures.RetryConditions.onIssueWithReleasedGradleVersion
+import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 /**
  * A spec that executes tests against all compatible versions of tooling API consumer and testDirectoryProvider, including the current Gradle version under test.
  *
@@ -56,15 +57,13 @@ import spock.lang.Specification
 @ToolingApiVersion('>=2.0')
 @TargetGradleVersion('>=1.2')
 @RunWith(ToolingApiCompatibilitySuiteRunner)
+@Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class ToolingApiSpecification extends Specification {
 
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties()
 
     GradleConnectionException caughtGradleConnectionException
-
-    @Rule
-    RetryRule retryRule = RetryRuleUtil.retryCrossVersionTestOnIssueWithReleasedGradleVersion(this)
 
     String getReleasedGradleVersion() {
         return targetDist.version.baseVersion.version

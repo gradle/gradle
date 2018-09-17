@@ -28,7 +28,6 @@ class BuildScanConfigManagerTest extends Specification {
     boolean scanDisabled
 
     def attributes = Mock(BuildScanConfig.Attributes)
-    def projectProperties = [:]
 
     def "conveys configuration"() {
         when:
@@ -73,13 +72,13 @@ class BuildScanConfigManagerTest extends Specification {
         thrown UnsupportedBuildScanPluginVersionException
 
         when:
-        config("1.9")
+        config("1.13")
 
         then:
         notThrown UnsupportedBuildScanPluginVersionException
 
         when:
-        config("1.8-TIMESTAMP")
+        config("1.13-TIMESTAMP")
 
         then:
         notThrown UnsupportedBuildScanPluginVersionException
@@ -111,9 +110,10 @@ class BuildScanConfigManagerTest extends Specification {
         version << ["1.11", "1.12"]
     }
 
+    @RestoreSystemProperties
     def "throws if kotlin script build caching used and version doesnt support"() {
         given:
-        projectProperties[BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE] = "true"
+        System.setProperty(BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE, "true")
 
         when:
         config("1.9")
@@ -123,9 +123,10 @@ class BuildScanConfigManagerTest extends Specification {
     }
 
     @Unroll
+    @RestoreSystemProperties
     def "does not throw if kotlin script build caching used and version #version"() {
         given:
-        projectProperties[BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE] = "true"
+        System.setProperty(BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE, "true")
 
         when:
         config(version)
@@ -143,7 +144,7 @@ class BuildScanConfigManagerTest extends Specification {
         System.setProperty(BuildScanPluginCompatibility.UNSUPPORTED_TOGGLE, "true")
 
         then:
-        with(config(BuildScanConfigManager.FIRST_VERSION_AWARE_OF_UNSUPPORTED.toString())) {
+        with(config()) {
             !enabled
             !disabled
             unsupportedMessage == BuildScanPluginCompatibility.UNSUPPORTED_TOGGLE_MESSAGE
@@ -153,7 +154,7 @@ class BuildScanConfigManagerTest extends Specification {
         scanEnabled = true
 
         then:
-        with(config(BuildScanConfigManager.FIRST_VERSION_AWARE_OF_UNSUPPORTED.toString())) {
+        with(config()) {
             enabled
             !disabled
             unsupportedMessage == BuildScanPluginCompatibility.UNSUPPORTED_TOGGLE_MESSAGE
@@ -165,10 +166,9 @@ class BuildScanConfigManagerTest extends Specification {
             isBuildScan() >> scanEnabled
             isNoBuildScan() >> scanDisabled
             getSystemPropertiesArgs() >> { [:] }
-            getProjectProperties() >> { projectProperties }
         }
 
-        new BuildScanConfigManager(startParameter, Mock(ListenerManager), new BuildScanPluginCompatibility(startParameter), { attributes })
+        new BuildScanConfigManager(startParameter, Mock(ListenerManager), new BuildScanPluginCompatibility(), { attributes })
     }
 
     BuildScanConfig config(String versionNumber = BuildScanPluginCompatibility.MIN_SUPPORTED_VERSION) {

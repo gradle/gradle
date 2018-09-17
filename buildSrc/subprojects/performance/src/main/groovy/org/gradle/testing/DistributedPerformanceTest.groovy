@@ -31,11 +31,17 @@ import org.gradle.api.tasks.testing.TestListener
 import org.gradle.api.tasks.testing.TestOutputListener
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.IoActions
+import org.gradle.process.CommandLineArgumentProvider
 
 import javax.inject.Inject
 import java.util.concurrent.TimeUnit
 import java.util.zip.ZipInputStream
-import javax.annotation.Nullable
+import org.gradle.api.Action
+import org.gradle.process.JavaExecSpec
+import groovy.transform.CompileStatic
+import org.openmbee.junit.model.JUnitTestSuite
+import org.openmbee.junit.JUnitMarshalling
+import org.apache.commons.io.input.CloseShieldInputStream
 
 /**
  * Runs each performance test scenario in a dedicated TeamCity job.
@@ -78,13 +84,17 @@ class DistributedPerformanceTest extends PerformanceTest {
     @PathSensitive(PathSensitivity.RELATIVE)
     File scenarioReport
 
+    @OutputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
+    File reportDir
+
     private RESTClient client
 
     private List<String> scheduledBuilds = Lists.newArrayList()
 
     private List<Object> finishedBuilds = Lists.newArrayList()
 
-    private Map<String, List<File>> testResultFilesForBuild = [:]
+    private Map<String, List<JUnitTestSuite>> testResultFilesForBuild = [:]
     private File workerTestResultsTempDir
 
     private final JUnitXmlTestEventsGenerator testEventsGenerator
@@ -95,19 +105,12 @@ class DistributedPerformanceTest extends PerformanceTest {
     DistributedPerformanceTest(BuildCancellationToken cancellationToken) {
         this.testEventsGenerator = new JUnitXmlTestEventsGenerator(listenerManager.createAnonymousBroadcaster(TestListener.class), listenerManager.createAnonymousBroadcaster(TestOutputListener.class))
         this.cancellationToken = cancellationToken
-    }
-
-    @Nullable
-    @Optional
-    @Input
-    String getBaselineCacheKey() {
-        List baselineList = baselines == null ? [] : baselines.split(',').collect { String it -> it.trim() }
-        if (baselineList.contains('last') || baselineList.contains('nightly')) {
-            // turn off cache if the baseline contains 'nightly' or 'last'
-            return UUID.randomUUID().toString()
-        } else {
-            return baselines
-        }
+        jvmArgumentProviders.add(new CommandLineArgumentProvider() {
+            @Override
+            Iterable<String> asArguments() {
+                return ["-Dorg.gradle.performance.scenario.list=$scenarioList".toString()]
+            }
+        })
     }
 
     @Override
@@ -121,7 +124,6 @@ class DistributedPerformanceTest extends PerformanceTest {
     }
 
     void setScenarioList(File scenarioList) {
-        systemProperty "org.gradle.performance.scenario.list", scenarioList
         this.scenarioList = scenarioList
     }
 
@@ -132,8 +134,22 @@ class DistributedPerformanceTest extends PerformanceTest {
             doExecuteTests()
         } finally {
             testEventsGenerator.release()
+            generatePerformanceReport()
             cleanTempFiles()
         }
+    }
+
+    private void generatePerformanceReport() {
+        project.delete(reportDir)
+        project.javaexec(new Action<JavaExecSpec>() {
+            void execute(JavaExecSpec spec) {
+                spec.setMain("org.gradle.performance.results.ReportGenerator")
+                spec.args(resultStoreClass, reportDir.getPath())
+                spec.systemProperties(databaseParameters)
+                spec.systemProperty("org.gradle.performance.execution.channel", channel)
+                spec.setClasspath(DistributedPerformanceTest.this.getClasspath())
+            }
+        })
     }
 
     private void createWorkerTestResultsTempDir() {
@@ -167,9 +183,7 @@ class DistributedPerformanceTest extends PerformanceTest {
             schedule(it, coordinatorBuild?.lastChangeId)
         }
 
-        scheduledBuilds.each {
-            join(it)
-        }
+        waitForTestsCompletion()
 
         writeScenarioReport()
 
@@ -249,27 +263,50 @@ class DistributedPerformanceTest extends PerformanceTest {
         return null
     }
 
+    void waitForTestsCompletion() {
+        int total = scheduledBuilds.size()
+        Set<String> completed = []
+        while (completed.size() < total) {
+            List<String> waiting = []
+            scheduledBuilds.each { build ->
+                if (!completed.contains(build)) {
+                    if (checkResult(build)) {
+                        completed << build
+                    } else {
+                        waiting << build
+                    }
+                }
+            }
+            if (completed.size() < total) {
+                int pc = (100 * (((double) completed.size()) / (double) total)) as int
+                println "Waiting for scenarios $waiting to complete"
+                println "Completed ${completed.size()} tests of $total ($pc%)"
+                sleep(TimeUnit.MINUTES.toMillis(1))
+            }
+        }
+    }
+
     @TypeChecked(TypeCheckingMode.SKIP)
     private String findLastChangeIdInXml(xmlroot) {
         xmlroot.lastChanges.change[0].@id.text()
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private void join(String jobId) {
-        def finished = false
-        def response
-        while (!finished) {
-            response = client.get(path: "builds/id:$jobId")
-            finished = response.data.@state == "finished"
-            if (!finished) {
-                println "Waiting for scenario build $jobId to finish"
-                sleep(TimeUnit.MINUTES.toMillis(1))
-            }
+    private boolean checkResult(String jobId) {
+        def response = client.get(path: "builds/id:$jobId")
+        boolean finished = response.data.@state == "finished"
+        if (finished) {
+            collectPerformanceTestResults(response, jobId)
         }
+        finished
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private void collectPerformanceTestResults(def response, String jobId) {
         finishedBuilds += response.data
 
         try {
-            def results = fetchTestResults(jobId, response.data)
+            List<JUnitTestSuite> results = fetchTestResults(response.data)
             testResultFilesForBuild.put(jobId, results)
             fireTestListener(results, response.data)
         } catch (e) {
@@ -306,16 +343,15 @@ class DistributedPerformanceTest extends PerformanceTest {
         )
     }
 
-    private void fireTestListener(List<File> results, Object build) {
-        def xmlFiles = results.findAll { it.name.endsWith('.xml') }
-        xmlFiles.each {
-            testEventsGenerator.processXmlFile(it, build)
+    private void fireTestListener(List<JUnitTestSuite> results, Object build) {
+        results.each {
+            testEventsGenerator.processTestSuite(it, build)
         }
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private def fetchTestResults(String jobId, buildData) {
-        def unzippedFiles = []
+    private List<JUnitTestSuite> fetchTestResults(buildData) {
+        def junitTestSuites = []
         def artifactsUri = buildData?.artifacts?.@href?.text()
         if (artifactsUri) {
             def resultArtifacts = client.get(path: "${artifactsUri}/results/${project.name}/build/")
@@ -325,35 +361,28 @@ class DistributedPerformanceTest extends PerformanceTest {
                     it.@name.text() == zipName
                 }
                 if (fileNode) {
-                    def resultsDirectory = new File(workerTestResultsTempDir, jobId)
                     def contentUri = fileNode.content.@href.text()
                     client.get(path: contentUri, contentType: ContentType.BINARY) {
                         resp, inputStream ->
-                            unzippedFiles = unzipToDirectory(inputStream, resultsDirectory)
+                            junitTestSuites = parseXmlsInZip(inputStream)
                     }
                 }
             }
         }
-        unzippedFiles
+        junitTestSuites
     }
 
-    @TypeChecked(TypeCheckingMode.SKIP)
-    def unzipToDirectory(inputStream, destination) {
-        def unzippedFiles = []
+    List<JUnitTestSuite> parseXmlsInZip(InputStream inputStream) {
+        List<JUnitTestSuite> parsedXmls = []
         new ZipInputStream(inputStream).withStream { zipInput ->
             def entry
             while (entry = zipInput.nextEntry) {
-                if (!entry.isDirectory()) {
-                    def file = new File(destination, entry.name)
-                    file.parentFile?.mkdirs()
-                    new FileOutputStream(file).withStream {
-                        it << zipInput
-                    }
-                    unzippedFiles << file
+                if (!entry.isDirectory() && entry.name.endsWith('.xml')) {
+                    parsedXmls.add(JUnitMarshalling.unmarshalTestSuite(new CloseShieldInputStream(zipInput)))
                 }
             }
         }
-        unzippedFiles
+        parsedXmls
     }
 
     private void writeScenarioReport() {

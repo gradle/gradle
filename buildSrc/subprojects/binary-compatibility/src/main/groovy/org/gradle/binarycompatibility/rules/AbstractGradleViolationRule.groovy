@@ -21,6 +21,7 @@ import com.github.javaparser.ast.body.MethodDeclaration
 import com.github.javaparser.ast.visitor.GenericVisitorAdapter
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
+import japicmp.model.JApiChangeStatus
 import japicmp.model.JApiClass
 import japicmp.model.JApiCompatibility
 import japicmp.model.JApiConstructor
@@ -115,6 +116,10 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
                 }
                 return null
             }
+        }
+        // No point in parsing the source file if the method is not there any more.
+        if (method.changeStatus == JApiChangeStatus.REMOVED) {
+            return false
         }
         return JavaParser.parse(sourceFileFor(method.jApiClass.fullyQualifiedName)).accept(visitor, null) != null
     }

@@ -29,6 +29,8 @@ import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.api.tasks.TaskValidationException
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
+import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
@@ -82,8 +84,8 @@ import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTa
 class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     private AnnotationProcessingTaskFactory factory
     private ITaskFactory delegate
-    private TaskClassInfoStore taskClassInfoStore
-    def propertyWalker = new DefaultPropertyWalker(new DefaultPropertyMetadataStore([]))
+    def taskClassInfoStore = new DefaultTaskClassInfoStore(new TestCrossBuildInMemoryCacheFactory())
+    def propertyWalker = new DefaultPropertyWalker(new DefaultPropertyMetadataStore([], new TestCrossBuildInMemoryCacheFactory()))
 
     @SuppressWarnings("GroovyUnusedDeclaration")
     private String inputValue = "value"
@@ -96,7 +98,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         delegate = Mock(ITaskFactory)
-        taskClassInfoStore = new DefaultTaskClassInfoStore()
         factory = new AnnotationProcessingTaskFactory(taskClassInfoStore, delegate)
         testDir = temporaryFolder.testDirectory
         existingFile = testDir.file("file.txt").touch()
@@ -172,9 +173,8 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         expectTaskCreated(type)
 
         then:
-        def e = thrown Exception
-        e.cause instanceof GradleException
-        e.cause.message == failureMessage
+        def e = thrown GradleException
+        e.message == failureMessage
 
         where:
         type                               | failureMessage
@@ -789,7 +789,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
                 if (params.length > 0) {
                     return type.cast(decorated.constructors[0].newInstance(params))
                 } else {
-                    return decorated.newInstance()
+                    return JavaReflectionUtil.newInstance(decorated)
                 }
             }
         })
@@ -798,8 +798,10 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
     private TaskInternal expectTaskCreated(final String name, final Class<? extends Task> type, final TaskInternal task) {
         // We cannot just stub here as we want to return a different task each time.
-        1 * delegate.create(name, type) >> task
-        assert factory.create(name, type).is(task)
+        def id = new TaskIdentity(type, name, null, null, null, 12)
+        1 * delegate.create(id) >> task
+        def createdTask = factory.create(id)
+        assert createdTask.is(task)
         return task
     }
 

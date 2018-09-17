@@ -22,9 +22,9 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
-import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.antlr.internal.AntlrSourceVirtualDirectoryImpl;
@@ -41,11 +41,11 @@ import static org.gradle.api.plugins.JavaPlugin.COMPILE_CONFIGURATION_NAME;
  */
 public class AntlrPlugin implements Plugin<Project> {
     public static final String ANTLR_CONFIGURATION_NAME = "antlr";
-    private final SourceDirectorySetFactory sourceDirectorySetFactory;
+    private final ObjectFactory objectFactory;
 
     @Inject
-    public AntlrPlugin(SourceDirectorySetFactory sourceDirectorySetFactory) {
-        this.sourceDirectorySetFactory = sourceDirectorySetFactory;
+    public AntlrPlugin(ObjectFactory objectFactory) {
+        this.objectFactory = objectFactory;
     }
 
     public void apply(final Project project) {
@@ -83,7 +83,7 @@ public class AntlrPlugin implements Plugin<Project> {
                         // for each source set we will:
                         // 1) Add a new 'antlr' virtual directory mapping
                         final AntlrSourceVirtualDirectoryImpl antlrDirectoryDelegate
-                                = new AntlrSourceVirtualDirectoryImpl(((DefaultSourceSet) sourceSet).getDisplayName(), sourceDirectorySetFactory);
+                                = new AntlrSourceVirtualDirectoryImpl(((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
                         new DslObject(sourceSet).getConvention().getPlugins().put(
                                 AntlrSourceVirtualDirectory.NAME, antlrDirectoryDelegate);
                         final String srcDir = "src/"+ sourceSet.getName() +"/antlr";
@@ -110,7 +110,7 @@ public class AntlrPlugin implements Plugin<Project> {
                         });
 
                         // 5) register fact that antlr should be run before compiling
-                        project.getTasks().named(sourceSet.getCompileJavaTaskName()).configure(new Action<Task>() {
+                        project.getTasks().named(sourceSet.getCompileJavaTaskName(), new Action<Task>() {
                             @Override
                             public void execute(Task task) {
                                 task.dependsOn(taskName);

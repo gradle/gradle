@@ -29,7 +29,8 @@ Build script::
 You can include the source for the plugin directly in the build script. This has the benefit that the plugin is automatically compiled and included in the classpath of the build script without you having to do anything. However, the plugin is not visible outside the build script, and so you cannot reuse the plugin outside the build script it is defined in.
 
 `buildSrc` project::
-You can put the source for the plugin in the `__rootProjectDir__/buildSrc/src/main/groovy` directory. Gradle will take care of compiling and testing the plugin and making it available on the classpath of the build script. The plugin is visible to every build script used by the build. However, it is not visible outside the build, and so you cannot reuse the plugin outside the build it is defined in.
+You can put the source for the plugin in the `__rootProjectDir__/buildSrc/src/main/groovy` directory
+(or `__rootProjectDir__/buildSrc/src/main/kotlin` if you prefer using Kotlin) . Gradle will take care of compiling and testing the plugin and making it available on the classpath of the build script. The plugin is visible to every build script used by the build. However, it is not visible outside the build, and so you cannot reuse the plugin outside the build it is defined in.
 +
 See <<organizing_gradle_projects.adoc#organizing_gradle_projects,Organizing Gradle Projects>> for more details about the `buildSrc` project.
 
@@ -44,13 +45,11 @@ In our examples, we will start with the plugin in the build script, to keep thin
 
 To create a Gradle plugin, you need to write a class that implements the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] interface. When the plugin is applied to a project, Gradle creates an instance of the plugin class and calls the instance's link:{javadocPath}/org/gradle/api/Plugin.html#apply-T-[Plugin.apply()] method. The project object is passed as a parameter, which the plugin can use to configure the project however it needs to. The following sample contains a greeting plugin, which adds a `hello` task to the project.
 
-=== Example: A custom plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/customPlugins/customPlugin/build.gradle[]
-----
+.A custom plugin
+====
+include::sample[dir="userguide/customPlugins/customPlugin/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/customPlugins/customPlugin/kotlin",files="build.gradle.kts[]"]
+====
 
 .Output of **`gradle -q hello`**
 ----
@@ -67,13 +66,11 @@ Most plugins need to obtain some configuration from the build script. One method
 
 Let's add a simple extension object to the project. Here we add a `greeting` extension object to the project, which allows you to configure the greeting.
 
-=== Example: A custom plugin extension
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/customPlugins/customPluginWithConvention/build.gradle[]
-----
+.A custom plugin extension
+====
+include::sample[dir="userguide/customPlugins/customPluginWithConvention/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/customPlugins/customPluginWithConvention/kotlin",files="build.gradle.kts[]"]
+====
 
 .Output of **`gradle -q hello`**
 ----
@@ -81,17 +78,15 @@ include::{samplesPath}/userguide/customPlugins/customPluginWithConvention/build.
 include::{samplesPath}/userguide/customPlugins/customPluginWithConvention/customPluginWithConvention.out[]
 ----
 
-In this example, `GreetingPluginExtension` is a plain old Groovy object with a property called `message`. The extension object is added to the plugin list with the name `greeting`. This object then becomes available as a project property with the same name as the extension object.
+In this example, `GreetingPluginExtension` is a plain old Groovy/Kotlin object with a property called `message`. The extension object is added to the plugin list with the name `greeting`. This object then becomes available as a project property with the same name as the extension object.
 
-Oftentimes, you have several related properties you need to specify on a single plugin. Gradle adds a configuration closure block for each extension object, so you can group settings together. The following example shows you how this works.
+Oftentimes, you have several related properties you need to specify on a single plugin. Gradle adds a configuration block block for each extension object, so you can group settings together. The following example shows you how this works.
 
-=== Example: A custom plugin with configuration closure
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/customPlugins/customPluginWithAdvancedConvention/build.gradle[]
-----
+.A custom plugin with configuration block
+====
+include::sample[dir="userguide/customPlugins/customPluginWithAdvancedConvention/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/customPlugins/customPluginWithAdvancedConvention/kotlin",files="build.gradle.kts[]"]
+====
 
 .Output of **`gradle -q hello`**
 ----
@@ -99,20 +94,23 @@ include::{samplesPath}/userguide/customPlugins/customPluginWithAdvancedConventio
 include::{samplesPath}/userguide/customPlugins/customPluginWithAdvancedConvention/customPluginWithAdvancedConvention.out[]
 ----
 
+[.multi-language-text.lang-groovy]
 In this example, several settings can be grouped together within the `greeting` closure. The name of the closure block in the build script (`greeting`) needs to match the extension object name. Then, when the closure is executed, the fields on the extension object will be mapped to the variables within the closure based on the standard Groovy closure delegate feature.
+
+[.multi-language-text.lang-kotlin]
+In this example, several settings can be grouped together within the `configure<GreetingPluginExtension>` block. The type used on the `configure` function in the build script (`GreetingPluginExtension`) needs to match the extension type. Then, when the block is executed, the receiver of the block is the extension.
+
 
 [[sec:working_with_files_in_custom_tasks_and_plugins]]
 == Working with files in custom tasks and plugins
 
 When developing custom tasks and plugins, it's a good idea to be very flexible when accepting input configuration for file locations. To do this, you can leverage the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method to resolve values to files as late as possible.
 
-=== Example: Evaluating file properties lazily
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tasks/customTaskWithFileProperty/build.gradle[tags="task,config"]
-----
+.Evaluating file properties lazily
+====
+include::sample[dir="userguide/tasks/customTaskWithFileProperty/groovy",files="build.gradle[tags=all]"]
+include::sample[dir="userguide/tasks/customTaskWithFileProperty/kotlin",files="build.gradle.kts[tags=all]"]
+====
 
 .Output of **`gradle -q sayGreeting`**
 ----
@@ -120,7 +118,7 @@ include::{samplesPath}/userguide/tasks/customTaskWithFileProperty/build.gradle[t
 include::{samplesPath}/userguide/tasks/customTaskWithFileProperty/lazyFileProperties.out[]
 ----
 
-In this example, we configure the `greet` task `destination` property as a closure, which is evaluated with the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method to turn the return value of the closure into a `File` object at the last minute. You will notice that in the example above we specify the `greetingFile` property value after we have configured to use it for the task. This kind of lazy evaluation is a key benefit of accepting any value when setting a file property, then resolving that value when reading the property.
+In this example, we configure the `greet` task `destination` property as a closure/provider, which is evaluated with the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method to turn the return value of the closure/provider into a `File` object at the last minute. You will notice that in the example above we specify the `greetingFile` property value after we have configured to use it for the task. This kind of lazy evaluation is a key benefit of accepting any value when setting a file property, then resolving that value when reading the property.
 
 [[sec:mapping_extension_properties_to_task_properties]]
 == Mapping extension properties to task properties
@@ -131,13 +129,11 @@ The extension declaration in the build script as well as the mapping between ext
 
 The following demonstrates the usage of the type for mapping an extension property to a task property:
 
-=== Example: Mapping extension properties to task properties
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/tasks/mapExtensionPropertiesToTaskProperties/build.gradle[]
-----
+.Mapping extension properties to task properties
+====
+include::sample[dir="userguide/tasks/mapExtensionPropertiesToTaskProperties/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/tasks/mapExtensionPropertiesToTaskProperties/kotlin",files="build.gradle.kts[]"]
+====
 
 NOTE: The code for this example can be found at **`samples/userguide/tasks/mapExtensionPropertiesToTaskProperties`** in the ‘-all’ distribution of Gradle.
 
@@ -152,15 +148,13 @@ include::{samplesPath}/userguide/tasks/mapExtensionPropertiesToTaskProperties/ma
 
 Now we will move our plugin to a standalone project, so we can publish it and share it with others. This project is simply a Groovy project that produces a JAR containing the plugin classes. Here is a simple build script for the project. It applies the Groovy plugin, and adds the Gradle API as a compile-time dependency.
 
-=== Example: A build for a custom plugin
+.A build for a custom plugin
+====
+include::sample[dir="customPlugin/groovy/plugin",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="customPlugin/kotlin/plugin",files="build.gradle.kts[tags=use-plugin]"]
+====
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/customPlugin/plugin/build.gradle[tag=use-plugin]
-----
-
-NOTE: The code for this example can be found at **`samples/customPlugin/plugin`** in the ‘-all’ distribution of Gradle.
+NOTE: The code for this example can be found at **`samples/customPlugin`** in the ‘-all’ distribution of Gradle.
 
 So how does Gradle find the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] implementation? The answer is you need to provide a properties file in the jar's `META-INF/gradle-plugins` directory that matches the id of your plugin.
 
@@ -169,7 +163,7 @@ So how does Gradle find the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin
 [source,properties]
 .src/main/resources/META-INF/gradle-plugins/org.samples.greeting.properties
 ----
-include::{samplesPath}/customPlugin/plugin/src/main/resources/META-INF/gradle-plugins/org.samples.greeting.properties[]
+include::{samplesPath}/customPlugin/groovy/plugin/src/main/resources/META-INF/gradle-plugins/org.samples.greeting.properties[]
 ----
 
 Notice that the properties filename matches the plugin id and is placed in the resources folder, and that the `implementation-class` property identifies the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] implementation class.
@@ -206,24 +200,19 @@ If you are interested in publishing your plugin to be used by the wider Gradle c
 
 To use a plugin in a build script, you need to add the plugin classes to the build script's classpath. To do this, you use a "`buildscript { }`" block, as described in see <<plugins.adoc#sec:applying_plugins_buildscript,Applying plugins using the buildscript block>>. The following example shows how you might do this when the JAR containing the plugin has been published to a local repository:
 
-=== Example: Using a custom plugin in another project
+.Using a custom plugin in another project
+====
+include::sample[dir="customPlugin/groovy/consumer",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="customPlugin/kotlin/consumer",files="build.gradle.kts[tags=use-plugin]"]
+====
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/customPlugin/consumer/build.gradle[tag=use-plugin]
-----
+Alternatively, you can use the plugins DSL (see <<plugins.adoc#sec:plugins_block,Applying plugins using the plugins DSL>>) to apply the plugin:
 
-Alternatively, if your plugin is published to the plugin portal, you can use the incubating plugins DSL (see <<plugins.adoc#sec:plugins_block,Applying plugins using the plugins DSL>>) to apply the plugin:
-
-=== Example: Applying a community plugin with the plugins DSL
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/plugins/dsl/build.gradle[tag=use-community-plugin]
-----
-
+.Applying a community plugin with the plugins DSL
+====
+include::sample[dir="plugins/dsl/groovy",files="build.gradle[tags=use-community-plugin]"]
+include::sample[dir="plugins/dsl/kotlin",files="build.gradle.kts[tags=use-community-plugin]"]
+====
 
 [[sec:writing_tests_for_your_plugin]]
 === Writing tests for your plugin
@@ -235,7 +224,7 @@ You can use the link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[P
 [source.multi-language-sample,groovy]
 .src/test/groovy/org/gradle/GreetingPluginTest.groovy
 ----
-include::{samplesPath}/customPlugin/plugin/src/test/groovy/org/gradle/GreetingPluginTest.groovy[tag=test-plugin]
+include::{samplesPath}/customPlugin/groovy/plugin/src/test/groovy/org/gradle/GreetingPluginTest.groovy[tag=test-plugin]
 ----
 
 
@@ -244,13 +233,11 @@ include::{samplesPath}/customPlugin/plugin/src/test/groovy/org/gradle/GreetingPl
 
 You can use the incubating <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>> to eliminate some of the boilerplate declarations in your build script and provide some basic validations of plugin metadata. This plugin will automatically apply the <<java_plugin.adoc#java_plugin,Java Plugin>>, add the `gradleApi()` dependency to the compile configuration, and perform plugin metadata validations as part of the `jar` task execution, and generate plugin descriptors in the resulting JAR's `META-INF` directory.
 
-=== Example: Using the Java Gradle Plugin Development plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/customPlugin/javaGradlePlugin/build.gradle[tag=use-and-configure-plugin]
-----
+.Using the Java Gradle Plugin Development plugin
+====
+include::sample[dir="customPlugin/groovy/javaGradlePlugin",files="build.gradle[tags=use-and-configure-plugin]"]
+include::sample[dir="customPlugin/kotlin/javaGradlePlugin",files="build.gradle.kts[tags=use-and-configure-plugin]"]
+====
 
 When publishing plugins to custom plugin repositories using the <<publishing_ivy.adoc#publishing_ivy,Ivy>> or <<publishing_maven.adoc#publishing_maven,Maven>> publish plugins, the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>> will also generate plugin marker artifacts named based on the plugin id which depend on the plugin's implementation artifact.
 
@@ -267,13 +254,11 @@ Gradle provides several conveniences to help create a well-behaved DSL for your 
 
 When Gradle creates a task or extension object, Gradle _decorates_ the implementation class to mix in DSL support. To create a nested DSL element you can use the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] type to create objects that are similarly decorated. These decorated objects can then be made visible to the DSL through properties and methods of the plugin's extension:
 
-=== Example: Nested DSL elements
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/customPlugins/customPluginWithNestedDsl/build.gradle[]
-----
+.Nested DSL elements
+====
+include::sample[dir="userguide/customPlugins/customPluginWithNestedDsl/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/customPlugins/customPluginWithNestedDsl/kotlin",files="build.gradle.kts[]"]
+====
 
 .Output of **`gradle -q hello`**
 ----
@@ -288,18 +273,22 @@ In this example, the plugin passes the project's `ObjectFactory` to the extensio
 
 Gradle provides some utility classes for maintaining collections of objects, intended to work well with the Gradle DSL.
 
-=== Example: Managing a collection of objects
+.Managing a collection of objects
+====
+include::sample[dir="userguide/customPlugins/customPluginWithDomainObjectContainer/groovy",files="build.gradle[]"]
+include::sample[dir="userguide/customPlugins/customPluginWithDomainObjectContainer/kotlin",files="build.gradle.kts[]"]
+====
 
+==== Output of **`gradle -q books`**
 [source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/customPlugins/customPluginWithDomainObjectContainer/build.gradle[]
-----
-
-.Output of **`gradle -q books`**
 ----
 > gradle -q books
-include::{samplesPath}/userguide/customPlugins/customPluginWithDomainObjectContainer/domainObjectContainer.out[]
+include::{samplesPath}/userguide/customPlugins/customPluginWithDomainObjectContainer/domainObjectContainer.groovy.out[]
+----
+[source.multi-language-sample,kotlin]
+----
+> gradle -q books
+include::{samplesPath}/userguide/customPlugins/customPluginWithDomainObjectContainer/domainObjectContainer.kotlin.out[]
 ----
 
 The link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:container(java.lang.Class)[Project.container(java.lang.Class)] methods create instances of link:{groovyDslPath}/org.gradle.api.NamedDomainObjectContainer.html[NamedDomainObjectContainer], that have many useful methods for managing and configuring the objects. In order to use a type with any of the `project.container` methods, it MUST expose a property named "`name`" as the unique, and constant, name for the object. The `project.container(Class)` variant of the container method creates new instances by attempting to invoke the constructor of the class that takes a single string argument, which is the desired name of the object. See the above link for `project.container` method variants that allow custom instantiation strategies.

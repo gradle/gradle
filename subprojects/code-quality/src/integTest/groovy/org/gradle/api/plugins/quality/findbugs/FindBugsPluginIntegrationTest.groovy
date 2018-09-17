@@ -34,5 +34,8 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
         buildFile << """
             apply plugin: 'java'
         """
+        executer.beforeExecute {
+            expectDeprecationWarning()
+        }
     }
 }

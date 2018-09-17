@@ -50,7 +50,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
      *
      * @param provider A {@link Provider} of {@link Iterable} that can provide the elements when required.
-     * @since 4.11
+     * @since 5.0
      */
     @Incubating
     void addAllLater(Provider<? extends Iterable<T>> provider);

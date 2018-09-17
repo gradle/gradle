@@ -17,15 +17,13 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Named;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.collections.CollectionFilter;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.taskfactory.TaskIdentity;
-import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskCollection;
@@ -86,69 +84,46 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
     }
 
     @Override
+    protected InvalidUserDataException createWrongTypeException(String name, Class expected, Class actual) {
+        return new InvalidUserDataException(String.format("The task '%s' (%s) is not a subclass of the given type (%s).", name, actual.getCanonicalName(), expected.getCanonicalName()));
+    }
+
+    @Override
     public TaskProvider<T> named(String name) throws UnknownTaskException {
         return (TaskProvider<T>) super.named(name);
     }
 
     @Override
-    protected TaskProvider<? extends T> createExistingProvider(String name, T object) {
-        TaskInternal taskInternal = (TaskInternal) object;
-        TaskIdentity<?> taskIdentity = taskInternal.getTaskIdentity();
-        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, object, taskIdentity));
+    public TaskProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownTaskException {
+        return (TaskProvider<T>) super.named(name, configurationAction);
     }
 
-    protected abstract class DefaultTaskProvider<I extends Task> extends AbstractProvider<I> implements Named, TaskProvider<I> {
+    @Override
+    public <S extends T> TaskProvider<S> named(String name, Class<S> type) throws UnknownTaskException {
+        return (TaskProvider<S>) super.named(name, type);
+    }
 
-        final TaskIdentity<I> identity;
-        boolean removed = false;
+    @Override
+    public <S extends T> TaskProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownTaskException {
+        return (TaskProvider<S>) super.named(name, type, configurationAction);
+    }
 
-        DefaultTaskProvider(TaskIdentity<I> identity) {
-            this.identity = identity;
-        }
-
-        @Override
-        public String getName() {
-            return identity.name;
-        }
-
-        @Override
-        public Class<I> getType() {
-            return identity.type;
-        }
-
-        @Override
-        public boolean isPresent() {
-            return findDomainObject(identity.name) != null;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("provider(task %s, %s)", identity.name, identity.type);
-        }
+    @Override
+    protected TaskProvider<? extends T> createExistingProvider(String name, T object) {
+        // TODO: This isn't quite right. We're leaking the _implementation_ type here.  But for tasks, this is usually right.
+        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, object.getName(), new DslObject(object).getDeclaredType()));
     }
 
     // Cannot be private due to reflective instantiation
-    public class ExistingTaskProvider<I extends T> extends DefaultTaskProvider<I> {
-
-        private final I task;
-
-        public ExistingTaskProvider(I task, TaskIdentity<I> identity) {
-            super(identity);
-            this.task = task;
+    public class ExistingTaskProvider<I extends T> extends ExistingNamedDomainObjectProvider<I> implements TaskProvider<I> {
+        public ExistingTaskProvider(String name, Class type) {
+            super(name, type);
         }
 
         @Override
-        public void configure(Action<? super I> action) {
-            action.execute(task);
-        }
-
-        @Override
-        public boolean isPresent() {
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            context.add(get());
             return true;
-        }
-
-        public I getOrNull() {
-            return task;
         }
     }
 }

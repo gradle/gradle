@@ -26,22 +26,23 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
 
     FileResolver fileResolver = Mock()
     TemplateOperationFactory templateOperationFactory = Mock()
+    BuildScriptBuilderFactory scriptBuilderFactory = Mock()
     TemplateLibraryVersionProvider libraryVersionProvider = Mock()
-    ProjectInitDescriptor globalSettingsDescriptor = Mock()
     LanguageLibraryProjectInitDescriptor descriptor
     TemplateOperationFactory.TemplateOperationBuilder templateOperationBuilder = Mock(TemplateOperationFactory.TemplateOperationBuilder)
 
     def "generates from template within sourceSet"(){
         setup:
-        descriptor = new TestLanguageLibraryProjectInitDescriptor(language, templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor)
-        1 * templateOperationFactory.newTemplateOperation() >> templateOperationBuilder
+        descriptor = new TestLanguageLibraryProjectInitDescriptor(language, scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider)
 
         when:
         descriptor.fromClazzTemplate("someTemplate/SomeClazz.somelang.template", sourceSet)
 
         then:
+        1 * templateOperationFactory.newTemplateOperation() >> templateOperationBuilder
         1 * templateOperationBuilder.withTemplate("someTemplate/SomeClazz.somelang.template") >> templateOperationBuilder
         1 * templateOperationBuilder.withTarget(target) >> templateOperationBuilder
+        1 * templateOperationBuilder.withBinding("packageDecl", "") >> templateOperationBuilder
         1 * templateOperationBuilder.create() >> Mock(TemplateOperation)
 
         where:
@@ -51,12 +52,34 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
         "somelang"      |    "integTest"   |   "src/integTest/somelang/SomeClazz.somelang"
     }
 
+    def "generates source file with package from template"(){
+        setup:
+        def settings = new InitSettings("project", BuildInitDsl.GROOVY, "my.lib", BuildInitTestFramework.NONE)
+        descriptor = new TestLanguageLibraryProjectInitDescriptor(language, scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider)
+
+        when:
+        descriptor.fromClazzTemplate("someTemplate/SomeClazz.somelang.template", settings, sourceSet)
+
+        then:
+        1 * templateOperationFactory.newTemplateOperation() >> templateOperationBuilder
+        1 * templateOperationBuilder.withTemplate("someTemplate/SomeClazz.somelang.template") >> templateOperationBuilder
+        1 * templateOperationBuilder.withTarget(target) >> templateOperationBuilder
+        1 * templateOperationBuilder.withBinding("packageDecl", "package my.lib") >> templateOperationBuilder
+        1 * templateOperationBuilder.create() >> Mock(TemplateOperation)
+
+        where:
+        language        |  sourceSet       |   target
+        "somelang"      |    "main"        |   "src/main/somelang/my/lib/SomeClazz.somelang"
+        "someotherlang" |    "test"        |   "src/test/someotherlang/my/lib/SomeClazz.somelang"
+        "somelang"      |    "integTest"   |   "src/integTest/somelang/my/lib/SomeClazz.somelang"
+    }
+
     def "whenNoSourcesAvailable creates template operation checking for sources"(){
         setup:
         def mainSourceDirectory = Mock(FileTreeInternal)
         def testSourceDirectory = Mock(FileTreeInternal)
         def delegate = Mock(TemplateOperation)
-        descriptor = new TestLanguageLibraryProjectInitDescriptor("somelang", templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor)
+        descriptor = new TestLanguageLibraryProjectInitDescriptor("somelang", scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider)
 
         when:
         descriptor.whenNoSourcesAvailable(delegate).generate()
@@ -76,21 +99,28 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
     }
 
     class TestLanguageLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
-
-        TestLanguageLibraryProjectInitDescriptor(String language, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
-                                                 TemplateLibraryVersionProvider libraryVersionProvider, ProjectInitDescriptor globalSettingsDescriptor) {
-            super(language, templateOperationFactory, fileResolver, libraryVersionProvider, globalSettingsDescriptor)
+        TestLanguageLibraryProjectInitDescriptor(String language, BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider) {
+            super(language, scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider)
         }
 
         @Override
-        void generate(BuildInitDsl dsl, BuildInitTestFramework testFramework) {
-
+        String getId() {
+            return "test"
         }
 
+        @Override
+        void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+            throw new UnsupportedOperationException()
+        }
 
         @Override
-        boolean supports(BuildInitTestFramework testFramework) {
-            return false
+        Set<BuildInitTestFramework> getTestFrameworks() {
+            return []
+        }
+
+        @Override
+        BuildInitTestFramework getDefaultTestFramework() {
+            return BuildInitTestFramework.NONE
         }
     }
 }

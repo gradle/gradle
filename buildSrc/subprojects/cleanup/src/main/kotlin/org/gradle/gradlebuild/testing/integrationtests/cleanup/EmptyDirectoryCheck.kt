@@ -26,6 +26,7 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.logging.ConsoleRenderer
+import org.gradle.kotlin.dsl.*
 import java.io.File
 import javax.inject.Inject
 
@@ -37,13 +38,13 @@ import javax.inject.Inject
 open class EmptyDirectoryCheck @Inject constructor(objects: ObjectFactory) : DefaultTask() {
 
     @get:InputFiles
-    val targetDirectory: DirectoryProperty = newInputDirectory()
+    val targetDirectory: DirectoryProperty = objects.directoryProperty()
 
     @get:OutputFile
-    val reportFile: RegularFileProperty = newOutputFile()
+    val reportFile: RegularFileProperty = objects.fileProperty()
 
     @get:Input
-    val policy: Property<WhenNotEmpty> = objects.property(WhenNotEmpty::class.java)
+    val policy: Property<WhenNotEmpty> = objects.property()
 
     @TaskAction
     fun ensureDirectoryEmpty() {
@@ -67,5 +68,5 @@ open class EmptyDirectoryCheck @Inject constructor(objects: ObjectFactory) : Def
 
     private
     fun createMessage(targetDir: File, report: File) =
-            "The directory $targetDir was not empty. Report: ${ConsoleRenderer().asClickableFileUrl(report)}\n${report.readText()}"
+        "The directory $targetDir was not empty. Report: ${ConsoleRenderer().asClickableFileUrl(report)}\n${report.readText()}"
 }

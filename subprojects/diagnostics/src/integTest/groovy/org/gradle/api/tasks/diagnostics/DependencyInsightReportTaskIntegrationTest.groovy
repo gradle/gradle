@@ -349,6 +349,79 @@ org:leaf2:1.5 -> 2.5
 """
     }
 
+    def "displays information about conflicting modules when failOnVersionConflict is used and afterResolve is used"() {
+        given:
+        mavenRepo.module("org", "leaf1").publish()
+        mavenRepo.module("org", "leaf2").publish()
+        mavenRepo.module("org", "leaf2", "1.5").publish()
+        mavenRepo.module("org", "leaf2", "2.5").publish()
+        mavenRepo.module("org", "leaf3").publish()
+        mavenRepo.module("org", "leaf4").publish()
+
+        mavenRepo.module("org", "middle1").dependsOnModules('leaf1', 'leaf2').publish()
+        mavenRepo.module("org", "middle2").dependsOnModules('leaf3', 'leaf4').publish()
+        mavenRepo.module("org", "middle3").dependsOnModules('leaf2').publish()
+
+        mavenRepo.module("org", "toplevel").dependsOnModules("middle1", "middle2").publish()
+
+        mavenRepo.module("org", "toplevel2").dependsOn("org", "leaf2", "1.5").publish()
+        mavenRepo.module("org", "toplevel3").dependsOn("org", "leaf2", "2.5").publish()
+
+        mavenRepo.module("org", "toplevel4").dependsOnModules("middle3").publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+
+            configurations {
+                conf {
+                    resolutionStrategy.failOnVersionConflict()
+                    incoming.afterResolve {
+                        // If executed, the below will cause the resolution failure on version conflict to be thrown, breaking dependency insight
+                        it.artifacts.artifacts 
+                    }
+                }
+            }
+            dependencies {
+                conf 'org:toplevel:1.0', 'org:toplevel2:1.0', 'org:toplevel3:1.0', 'org:toplevel4:1.0'
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "leaf2", "--configuration", "conf"
+
+        then:
+        outputContains """Dependency resolution failed because of conflicts between the following modules:
+   - org:leaf2:1.5
+   - org:leaf2:2.5
+   - org:leaf2:1.0
+
+org:leaf2:2.5
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
+   Selection reasons:
+      - By conflict resolution : between versions 1.5, 2.5 and 1.0
+
+org:leaf2:2.5
+\\--- org:toplevel3:1.0
+     \\--- conf
+
+org:leaf2:1.0 -> 2.5
++--- org:middle1:1.0
+|    \\--- org:toplevel:1.0
+|         \\--- conf
+\\--- org:middle3:1.0
+     \\--- org:toplevel4:1.0
+          \\--- conf
+
+org:leaf2:1.5 -> 2.5
+\\--- org:toplevel2:1.0
+     \\--- conf
+"""
+    }
+
     def "displays a dependency insight report even if locks are out of date"() {
         def lockfileFixture = new LockfileFixture(testDirectory: testDirectory)
         mavenRepo.module('org', 'foo', '1.0').publish()
@@ -380,17 +453,19 @@ dependencies {
         succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'
 
         then:
-        outputContains """The dependency locks are out-of-date:
-   - Did not resolve 'org:bar:1.0' which is part of the lock state
-   - Resolved 'org:foo:1.1' which is not part of the lock state
+        outputContains """org:foo:1.1 FAILED
+   Selection reasons:
+      - By constraint : Dependency locking
+   Failures:
+      - Dependency lock state out of date:
+          - Resolved 'org:foo:1.1' which is not part of the dependency lock state
 
-org:foo:1.1
-   variant "default" [
-      org.gradle.status = release (not requested)
-   ]
+org:foo:1.1 FAILED
+\\--- lockedConf
 
 org:foo:1.+ -> 1.1
-\\--- lockedConf"""
+\\--- lockedConf
+"""
     }
 
     def "displays a dependency insight report even if locks are out of date because of new constraint"() {
@@ -415,11 +490,7 @@ configurations {
 
 dependencies {    
     constraints {
-        lockedConf('org:foo') {
-            version {
-                prefer '1.1'
-            }
-        }
+        lockedConf('org:foo:1.1')
     }
     lockedConf 'org:foo:1.+'
 }
@@ -439,7 +510,7 @@ org:foo:1.0 FAILED
       - Could not resolve org:foo:1.0.:
           - Cannot find a version of 'org:foo' that satisfies the version constraints: 
                Dependency path ':insight-test:unspecified' --> 'org:foo:1.+'
-               Constraint path ':insight-test:unspecified' --> 'org:foo' prefers '1.1'
+               Constraint path ':insight-test:unspecified' --> 'org:foo:1.1'
                Constraint path ':insight-test:unspecified' --> 'org:foo' strictly '1.0' because of the following reason: dependency was locked to version '1.0'
 
 org:foo:1.0 FAILED
@@ -865,8 +936,6 @@ org:leaf:1.6
    variant "default" [
       org.gradle.status = integration (not requested)
    ]
-   Selection reasons:
-      - By conflict resolution : between versions 1.6 and 1.6
 
 org:leaf:1.+ -> 1.6
 \\--- org:top:1.0
@@ -2168,7 +2237,7 @@ org:foo:[1.0,) -> 1.1
             }
 
             dependencies {
-                implementation 'org:bom:1.0'
+                implementation platform('org:bom:1.0')
                 implementation 'org:leaf'
             }
         """
@@ -2180,8 +2249,9 @@ org:foo:[1.0,) -> 1.1
         outputContains """
 org:leaf:1.0 (by constraint)
    variant "compile" [
-      org.gradle.status = release (not requested)
-      org.gradle.usage  = java-api
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
    ]
 
 org:leaf:1.0

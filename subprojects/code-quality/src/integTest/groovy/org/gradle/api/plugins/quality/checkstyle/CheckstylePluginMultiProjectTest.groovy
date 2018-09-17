@@ -16,12 +16,15 @@
 package org.gradle.api.plugins.quality.checkstyle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.util.TextUtil.getPlatformLineSeparator
 
+@Requires(TestPrecondition.JDK8_OR_LATER)
 class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
 
-    private static final EXPECTED_DEPRECATION_MESSAGE = "Setting the Checkstyle configuration file under 'config/checkstyle' of a sub project has been deprecated. This is scheduled to be removed in Gradle 5.0. Use the root project's 'config/checkstyle' directory instead.";
+    private static final EXPECTED_DEPRECATION_MESSAGE = "Setting the Checkstyle configuration file under 'config/checkstyle' of a sub project has been deprecated.";
 
     def "configures checkstyle extension to read config from root project in a single project build"() {
         given:

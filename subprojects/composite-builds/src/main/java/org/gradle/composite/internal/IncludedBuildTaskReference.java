@@ -18,11 +18,13 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.internal.tasks.TaskReferenceInternal;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.tasks.TaskReference;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.util.Path;
 
-public class IncludedBuildTaskReference implements TaskReferenceInternal {
+public class IncludedBuildTaskReference implements TaskReference, TaskDependencyContainer {
     private final String taskPath;
     private final IncludedBuildState includedBuild;
 
@@ -41,7 +43,11 @@ public class IncludedBuildTaskReference implements TaskReferenceInternal {
     }
 
     @Override
-    public Task resolveTask() {
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        context.add(resolveTask());
+    }
+
+    private Task resolveTask() {
         return includedBuild.getConfiguredBuild().getRootProject().getTasks().getByPath(taskPath);
     }
 }

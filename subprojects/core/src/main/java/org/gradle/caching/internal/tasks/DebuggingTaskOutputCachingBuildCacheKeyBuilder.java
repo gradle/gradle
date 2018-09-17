@@ -38,18 +38,14 @@ public class DebuggingTaskOutputCachingBuildCacheKeyBuilder implements TaskOutpu
 
     @Override
     public void appendTaskImplementation(ImplementationSnapshot taskImplementation) {
-        log("taskClass", taskImplementation.getTypeName());
-        if (!taskImplementation.hasUnknownClassLoader()) {
-            log("classLoaderHash", taskImplementation.getClassLoaderHash());
-        }
+        log("taskImplementation", taskImplementation);
         delegate.appendTaskImplementation(taskImplementation);
     }
 
     @Override
     public void appendTaskActionImplementations(Collection<ImplementationSnapshot> taskActionImplementations) {
         for (ImplementationSnapshot actionImpl : taskActionImplementations) {
-            log("actionType", actionImpl.getTypeName());
-            log("actionClassLoaderHash", actionImpl.hasUnknownClassLoader() ? null : actionImpl.getClassLoaderHash());
+            log("actionImplementation", actionImpl);
         }
         delegate.appendTaskActionImplementations(taskActionImplementations);
     }
@@ -68,9 +64,9 @@ public class DebuggingTaskOutputCachingBuildCacheKeyBuilder implements TaskOutpu
     }
 
     @Override
-    public void inputPropertyLoadedByUnknownClassLoader(String propertyName) {
-        LOGGER.lifecycle("The implementation of '{}' cannot be determined, because it was loaded by an unknown classloader", propertyName);
-        delegate.inputPropertyLoadedByUnknownClassLoader(propertyName);
+    public void inputPropertyImplementationUnknown(String propertyName) {
+        LOGGER.lifecycle("The implementation of '{}' cannot be determined. It was probably loaded by an unknown classloader.", propertyName);
+        delegate.inputPropertyImplementationUnknown(propertyName);
     }
 
     @Override

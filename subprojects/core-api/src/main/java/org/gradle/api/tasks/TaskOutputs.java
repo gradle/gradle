@@ -28,7 +28,7 @@ import org.gradle.internal.HasInternalProtocol;
  * <p>You can obtain a {@code TaskOutputs} instance using {@link org.gradle.api.Task#getOutputs()}.</p>
  */
 @HasInternalProtocol
-public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
+public interface TaskOutputs {
     /**
      * <p>Adds a predicate to determine whether the outputs of this task are up-to-date. The given closure is executed
      * at task execution time. The closure is passed the task as a parameter. If the closure returns false, the task

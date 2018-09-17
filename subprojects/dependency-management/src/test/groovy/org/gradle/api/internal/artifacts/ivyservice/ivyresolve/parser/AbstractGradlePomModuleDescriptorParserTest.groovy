@@ -96,4 +96,16 @@ abstract class AbstractGradlePomModuleDescriptorParserTest extends Specification
         assert elements.size() == 1
         return elements.first()
     }
+
+    static <T extends MavenDependencyDescriptor> T firstDependency(Iterable<T> elements) {
+        elements.find { !it.constraint }
+    }
+
+    static <T extends MavenDependencyDescriptor> List<T> dependenciesOnly(Iterable<T> unfiltered) {
+        unfiltered.findAll { !it.constraint }
+    }
+
+    static <T extends MavenDependencyDescriptor> List<T> constraintsOnly(Iterable<T> unfiltered) {
+        unfiltered.findAll { it.constraint }
+    }
 }

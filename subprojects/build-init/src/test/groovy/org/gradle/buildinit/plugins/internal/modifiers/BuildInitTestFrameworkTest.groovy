@@ -16,43 +16,20 @@
 
 package org.gradle.buildinit.plugins.internal.modifiers
 
-import org.gradle.api.GradleException
+
 import spock.lang.Specification
 
 class BuildInitTestFrameworkTest extends Specification {
-
-    def "should convert valid test framework from string"() {
-        when:
-        def result = BuildInitTestFramework.fromName("spock")
-
-        then:
-        result == BuildInitTestFramework.SPOCK
-    }
-
-    def "should convert null to none"() {
-        when:
-        def result = BuildInitTestFramework.fromName(null)
-
-        then:
-        result == BuildInitTestFramework.NONE
-    }
-
-    def "should throw exception for unknown test framework"() {
-        when:
-        BuildInitTestFramework.fromName("unknown")
-
-        then:
-        GradleException e = thrown()
-        e.message == "The requested test framework 'unknown' is not supported."
-    }
-
     def "should list all supported test frameworks"() {
         when:
         def result = BuildInitTestFramework.listSupported();
 
         then:
-        result.size() == 2
-        result[0] == "spock"
+        result.size() == 5
+        result[0] == "junit"
         result[1] == "testng"
+        result[2] == "spock"
+        result[3] == "kotlintest"
+        result[4] == "scalatest"
     }
 }

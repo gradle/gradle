@@ -23,36 +23,31 @@ To build a Groovy project, you use the _Groovy plugin_. This plugin extends the 
 
 Let's look at an example. To use the Groovy plugin, add the following to your build file:
 
-=== Example: Groovy plugin
+.Groovy plugin
+====
+include::sample[dir="groovy/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="groovy/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+====
 
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/groovy/quickstart/build.gradle[tag=use-plugin]
-----
 NOTE: The code for this example can be found at **`samples/groovy/quickstart`** in the ‘-all’ distribution of Gradle.
 
 This will also apply the Java plugin to the project, if it has not already been applied. The Groovy plugin extends the `compile` task to look for source files in directory `src/main/groovy`, and the `compileTest` task to look for test source files in directory `src/test/groovy`. The compile tasks use joint compilation for these directories, which means they can contain a mixture of Java and Groovy source files.
 
 To use the Groovy compilation tasks, you must also declare the Groovy version to use and where to find the Groovy libraries. You do this by adding a dependency to the `groovy` configuration. The `compile` configuration inherits this dependency, so the Groovy libraries will be included in classpath when compiling Groovy and Java source. For our sample, we will use Groovy 2.2.0 from the public Maven repository:
 
-=== Example: Dependency on Groovy
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/groovy/quickstart/build.gradle[tag=groovy-dependency]
-----
+.Dependency on Groovy
+====
+include::sample[dir="groovy/quickstart/groovy",files="build.gradle[tags=groovy-dependency]"]
+include::sample[dir="groovy/quickstart/kotlin",files="build.gradle.kts[tags=groovy-dependency]"]
+====
 
 Here is our complete build file:
 
-=== Example: Groovy example - complete build file
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/groovy/quickstart/build.gradle[tags='use-plugin,groovy-dependency']
-----
+.Groovy example - complete build file
+====
+include::sample[dir="groovy/quickstart/groovy",files="build.gradle[tags=all]"]
+include::sample[dir="groovy/quickstart/kotlin",files="build.gradle.kts[tags=all]"]
+====
 
 Running `gradle build` will compile, test and JAR your project.
 

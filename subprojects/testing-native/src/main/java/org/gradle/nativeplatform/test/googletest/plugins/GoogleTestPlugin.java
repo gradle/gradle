@@ -19,7 +19,6 @@ package org.gradle.nativeplatform.test.googletest.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.cpp.plugins.CppLangPlugin;
 import org.gradle.model.ModelMap;
@@ -67,8 +66,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
         public void createGoogleTestTestBinaries(ModelMap<GoogleTestTestSuiteBinarySpec> binaries,
                                                  GoogleTestTestSuiteSpec testSuite,
                                                  @Path("buildDir") final File buildDir,
-                                                 final ServiceRegistry serviceRegistry,
-                                                 final ITaskFactory taskFactory) {
+                                                 final ServiceRegistry serviceRegistry) {
             createNativeTestSuiteBinaries(binaries, testSuite, GoogleTestTestSuiteBinarySpec.class, "GoogleTestExe", buildDir, serviceRegistry);
        }
     }

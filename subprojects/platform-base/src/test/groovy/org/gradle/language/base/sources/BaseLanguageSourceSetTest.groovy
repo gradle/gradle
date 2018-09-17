@@ -16,15 +16,16 @@
 
 package org.gradle.language.base.sources
 
-import org.gradle.api.internal.file.TestFiles
+
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class BaseLanguageSourceSetTest extends Specification {
     def "has useful display names"() {
         def identifier = new DefaultComponentSpecIdentifier("project", "parent").child("java5").child("test")
-        def sourceSet = BaseLanguageSourceSet.create(TestSourceSet, BaseLanguageSourceSet, identifier, TestFiles.sourceDirectorySetFactory())
+        def sourceSet = BaseLanguageSourceSet.create(TestSourceSet, BaseLanguageSourceSet, identifier, TestUtil.objectFactory())
 
         expect:
         sourceSet.name == "test"
@@ -34,7 +35,7 @@ class BaseLanguageSourceSetTest extends Specification {
 
     def "calculates display name from public type name"() {
         expect:
-        def sourceSet = BaseLanguageSourceSet.create(publicType, BaseLanguageSourceSet, new DefaultComponentSpecIdentifier("project", "test"), TestFiles.sourceDirectorySetFactory())
+        def sourceSet = BaseLanguageSourceSet.create(publicType, BaseLanguageSourceSet, new DefaultComponentSpecIdentifier("project", "test"), TestUtil.objectFactory())
         sourceSet.displayName == displayName
 
         where:
