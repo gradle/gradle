@@ -116,17 +116,18 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         execute()
 
         then:
-        loggedOncePerBuild('buildListener.settingsEvaluated', [':', ':buildC', ':pluginD'])
-        loggedOncePerBuild('buildListener.projectsLoaded', [':', ':buildC', ':pluginD'])
-        loggedOncePerBuild('buildListener.projectsEvaluated', [':', ':buildC', ':pluginD'])
+        loggedOncePerBuild('buildListener.settingsEvaluated', [':', ':buildB', ':buildC', ':pluginD'])
+        loggedOncePerBuild('buildListener.projectsLoaded', [':', ':buildB', ':buildC', ':pluginD'])
+        loggedOncePerBuild('buildListener.projectsEvaluated', [':', ':buildB', ':buildC', ':pluginD'])
         loggedOncePerBuild('gradle.taskGraphReady', [':', ':pluginD'])
         loggedOncePerBuild('buildListener.buildFinished', [':', ':buildC', ':pluginD'])
         loggedOncePerBuild('gradle.buildFinished', [':', ':buildC', ':pluginD'])
 
-        // `:buildB` is executed twice
-        loggedAtLeast('buildListener.settingsEvaluated [:buildB]', 2)
-        loggedAtLeast('buildListener.projectsEvaluated [:buildB]', 2)
+        // Tasks for buildB are run twice
+        // TODO - fire these events once only
+        loggedAtLeast('gradle.taskGraphReady [:buildB]', 2)
         loggedAtLeast('buildListener.buildFinished [:buildB]', 2)
+        loggedAtLeast('gradle.buildFinished [:buildB]', 2)
     }
 
     def "fires build listener events for included builds with additional discovered (compileOnly) dependencies"() {
