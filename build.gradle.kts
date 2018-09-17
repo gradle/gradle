@@ -279,6 +279,7 @@ tasks.register<PatchExternalModules>("patchExternalModules") {
     coreModules = coreRuntime
     modulesToPatch = this@Build_gradle.externalModules
     destination = patchedExternalModulesDir
+    outputs.doNotCacheIf("Not running on CI") { !System.getenv().containsKey("CI") }
 }
 
 evaluationDependsOn(":distributions")
