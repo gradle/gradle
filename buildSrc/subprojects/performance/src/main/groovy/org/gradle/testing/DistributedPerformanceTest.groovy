@@ -58,6 +58,9 @@ import groovy.json.JsonOutput
 @CacheableTask
 class DistributedPerformanceTest extends PerformanceTest {
     @Internal
+    String coordinatorBuildId
+
+    @Internal
     String branchName
 
     @Input

@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.comparingDouble;
@@ -48,28 +49,31 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
         this.scenarios = readBuildResultData(resultJson);
     }
 
-    @VisibleForTesting
-    Set<ScenarioBuildResultData> readBuildResultData(File resultJson) {
+    private Set<ScenarioBuildResultData> readBuildResultData(File resultJson) {
         try {
-            Comparator<ScenarioBuildResultData> comparator = comparing(ScenarioBuildResultData::isBuildFailed).reversed()
-                .thenComparing(ScenarioBuildResultData::isSuccessful)
-                .thenComparing(comparing(ScenarioBuildResultData::isAboutToRegress).reversed())
-                .thenComparing(comparingDouble(ScenarioBuildResultData::getConfidencePercentage).reversed())
-                .thenComparing(comparingDouble(ScenarioBuildResultData::getRegressionPercentage).reversed())
-                .thenComparing(ScenarioBuildResultData::getScenarioName);
-
             List<ScenarioBuildResultData> list = new ObjectMapper().readValue(resultJson, new TypeReference<List<ScenarioBuildResultData>>() {
             });
-            return list.stream().map(this::queryExecutionData).collect(() -> new TreeSet<>(comparator), TreeSet::add, TreeSet::addAll);
+            return sortBuildResultData(list.stream().map(this::queryExecutionData));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
+    @VisibleForTesting
+    Set<ScenarioBuildResultData> sortBuildResultData(Stream<ScenarioBuildResultData> data) {
+        Comparator<ScenarioBuildResultData> comparator = comparing(ScenarioBuildResultData::isBuildFailed).reversed()
+            .thenComparing(ScenarioBuildResultData::isSuccessful)
+            .thenComparing(comparing(ScenarioBuildResultData::isAboutToRegress).reversed())
+            .thenComparing(comparingDouble(ScenarioBuildResultData::getConfidencePercentage).reversed())
+            .thenComparing(comparingDouble(ScenarioBuildResultData::getRegressionPercentage).reversed())
+            .thenComparing(ScenarioBuildResultData::getScenarioName);
+        return data.collect(() -> new TreeSet<>(comparator), TreeSet::add, TreeSet::addAll);
+    }
+
     private ScenarioBuildResultData queryExecutionData(ScenarioBuildResultData scenario) {
         PerformanceTestHistory history = resultsStore.getTestResults(scenario.getScenarioName(), 3, 2, ResultsStoreHelper.determineChannel());
         List<? extends PerformanceTestExecution> recentExecutions = history.getExecutions();
-        List<? extends PerformanceTestExecution> currentCommitExecutions = recentExecutions.stream().filter(execution-> execution.getVcsCommits().contains(commitId)).collect(Collectors.toList());
+        List<? extends PerformanceTestExecution> currentCommitExecutions = recentExecutions.stream().filter(execution -> execution.getVcsCommits().contains(commitId)).collect(Collectors.toList());
         if (currentCommitExecutions.isEmpty()) {
             scenario.setRecentExecutions(recentExecutions.stream().map(this::extractExecutionData).collect(Collectors.toList()));
         } else {

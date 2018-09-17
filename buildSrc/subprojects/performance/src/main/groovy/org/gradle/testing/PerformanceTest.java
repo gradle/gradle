@@ -182,15 +182,6 @@ public class PerformanceTest extends DistributionTest {
         this.databaseParameters.putAll(databaseConnectionParameters);
     }
 
-    public void setBuildId(String buildId) {
-        this.buildId = buildId;
-    }
-
-    @Internal
-    public String getBuildId() {
-        return buildId;
-    }
-
     private class PerformanceTestJvmArgumentsProvider implements CommandLineArgumentProvider {
         @Override
         public Iterable<String> asArguments() {

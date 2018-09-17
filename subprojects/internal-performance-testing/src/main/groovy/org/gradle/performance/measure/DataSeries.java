@@ -110,10 +110,6 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
     }
 
     private double[] asDoubleArray() {
-        double[] result = new double[this.size()];
-        for (int i = 0; i < this.size(); ++i) {
-            result[i] = this.get(i).getValue().doubleValue();
-        }
-        return result;
+        return stream().map(Amount::getValue).mapToDouble(BigDecimal::doubleValue).toArray();
     }
 }

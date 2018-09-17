@@ -320,6 +320,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             scenarioList = buildDir / Config.performanceTestScenarioListFileName
             buildTypeId = stringPropertyOrNull(PropertyNames.buildTypeId)
             workerTestTaskName = stringPropertyOrNull(PropertyNames.workerTestTaskName) ?: "fullPerformanceTest"
+            coordinatorBuildId = System.getenv("BUILD_ID")
             branchName = stringPropertyOrNull(PropertyNames.branchName)
             teamCityUrl = Config.teamCityUrl
             teamCityUsername = stringPropertyOrNull(PropertyNames.teamCityUsername)
@@ -399,7 +400,6 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         task.apply {
             group = "verification"
-            buildId = System.getenv("BUILD_ID")
             addDatabaseParameters(propertiesForPerformanceDb())
             testClassesDirs = performanceSourceSet.output.classesDirs
             classpath = performanceSourceSet.runtimeClasspath

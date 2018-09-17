@@ -30,7 +30,7 @@ class JavaABIChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
         given:
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
-        runner.tasksToRun = ['assemble', 'unexistedTask']
+        runner.tasksToRun = ['assemble']
         runner.addBuildExperimentListener(new ApplyAbiChangeToJavaSourceFileMutator(testProject.config.fileToChangeByScenario['assemble']))
         runner.targetVersions = ["5.0-20180909235858+0000"]
 
