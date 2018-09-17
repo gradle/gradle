@@ -201,12 +201,12 @@ class NamedContainersEvalTest : TestWithTempFiles() {
         """) {
             configurations {
                 val bazar by creating
-                val cathedral by creating {
-                    extendsFrom(bazar)
+                create("cathedral") {
+                    it.extendsFrom(bazar)
                 }
                 val valley by registering
-                val hill by registering {
-                    extendsFrom(valley.get())
+                register("hill") {
+                    it.extendsFrom(valley.get())
                 }
             }
             apply(plugin = "java")
