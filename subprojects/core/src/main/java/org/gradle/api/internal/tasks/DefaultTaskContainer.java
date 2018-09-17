@@ -541,11 +541,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
-    public void whenElementKnown(Action<? super ElementInfo<Task>> action) {
-        super.whenElementKnown(action);
-    }
-
-    @Override
     public <S extends Task> TaskCollection<S> withType(Class<S> type) {
         Instantiator instantiator = getInstantiator();
         return Cast.uncheckedCast(instantiator.newInstance(DefaultRealizableTaskCollection.class, type, super.withType(type), modelNode, instantiator));
@@ -554,7 +549,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public boolean remove(Object o) {
         warnAboutRemoveMethodDeprecation("remove(Object)");
-        return super.remove(o);
+        return removeInternal(o);
     }
 
     private boolean removeInternal(Object o) {
