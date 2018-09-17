@@ -78,6 +78,7 @@ We love getting contributions from the Gradle community. For information on cont
 - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Switch Jacoco plugin to use configuration avoidance APIs (gradle/gradle#6245)
 - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Switch build-dashboard plugin to use configuration avoidance APIs (gradle/gradle#6247)
 - [Ben McCann](https://github.com/benmccann) - Remove Play 2.2 support (gradle/gradle#3353)
+- [Jakub Strzyżewski](https://github.com/shindouj) - Improve exception message for missing repository credentials when publishing (gradle/gradle#6379)
 
 ## Known issues
 
