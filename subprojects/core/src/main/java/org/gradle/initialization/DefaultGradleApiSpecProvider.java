@@ -18,6 +18,7 @@ package org.gradle.initialization;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.groovy.json.DefaultFastStringServiceFactory;
+import org.apache.groovy.json.FastStringServiceFactory;
 
 import java.util.Set;
 
@@ -26,6 +27,7 @@ public class DefaultGradleApiSpecProvider extends GradleApiSpecProvider.SpecAdap
     @Override
     public Set<Class<?>> getExportedClasses() {
         return ImmutableSet.<Class<?>>of(
+            FastStringServiceFactory.class,
             DefaultFastStringServiceFactory.class
         );
     }
@@ -36,7 +38,6 @@ public class DefaultGradleApiSpecProvider extends GradleApiSpecProvider.SpecAdap
             "org.gradle",
             "org.apache.tools.ant",
             "groovy",
-            "org.apache.groovy",
             "org.codehaus.groovy",
             "groovyjarjarantlr",
             "org.slf4j",
