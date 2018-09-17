@@ -90,7 +90,7 @@ class VersionRangeResolveTestScenarios {
         conflicts: true
     ).and(
         versions: [PREFER_11, PREFER_10_12],
-        expected: "11",
+        expected: "12",
         conflicts: true
     ).and(
         versions: [PREFER_12, PREFER_10_11],
@@ -98,15 +98,15 @@ class VersionRangeResolveTestScenarios {
         conflicts: true
     ).and(
         versions: [PREFER_11, PREFER_12, PREFER_10_14],
-        expected: "12",
+        expected: "13",
         conflicts: true
     ).and(
         versions: [PREFER_10_11, PREFER_12, PREFER_10_14],
-        expected: "12",
+        expected: "13",
         conflicts: true
     ).and(
         versions: [PREFER_10_11, PREFER_10_12, PREFER_10_14],
-        expected: "11"
+        expected: "13"
     ).and(
         versions: [PREFER_12, FIXED_11],
         expected: "11",

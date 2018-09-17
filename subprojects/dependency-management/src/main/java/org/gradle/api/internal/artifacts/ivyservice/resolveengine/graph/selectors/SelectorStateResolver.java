@@ -36,7 +36,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
+import java.util.TreeSet;
 
 public class SelectorStateResolver<T extends ComponentResolutionState> {
     private final ModuleConflictResolver conflictResolver;
@@ -167,26 +167,27 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
             return;
         }
 
-        if (results.isEmpty()) {
-            // All selectors were either empty or prefer, so resolve all of the 'prefer' selectors as primary
-            for (ResolvableSelectorState selector : preferSelectors) {
-                processPrimarySelector(results, selector, allRejects);
+        // Resolve the 'prefer' selectors as secondary: will disambiguate, but not add new results.
+        TreeSet<ComponentIdResolveResult> preferResults = Sets.newTreeSet(new DescendingResolveResultComparator());
+        for (ResolvableSelectorState selector : preferSelectors) {
+            ComponentIdResolveResult resolvedPreference = selector.resolve(allRejects);
+            // Ignore failure resolving a 'prefer' constraint.
+            if (resolvedPreference.getFailure() == null) {
+                preferResults.add(resolvedPreference);
             }
-        } else {
-            // Resolve the 'prefer' selectors as secondary: will disambiguate, but not add new results.
-            Set<ComponentIdResolveResult> preferResults = Sets.newTreeSet(new DescendingResolveResultComparator());
-            for (ResolvableSelectorState selector : preferSelectors) {
-                ComponentIdResolveResult resolvedPreference = selector.resolve(allRejects);
-                // Ignore failure resolving a 'prefer' constraint.
-                if (resolvedPreference.getFailure() == null) {
-                    preferResults.add(resolvedPreference);
-                }
-            }
+        }
 
-            for (ComponentIdResolveResult preferResult : preferResults) {
-                if (results.replaceExistingResolutionsWithBetterResult(preferResult)) {
-                    break;
-                }
+        // If not result from 'require', just use the highest preferred version (no range merging)
+        if (results.isEmpty()) {
+            ComponentIdResolveResult highestPreferredVersion = preferResults.first();
+            results.register(preferSelectors.get(0), highestPreferredVersion);
+            return;
+        }
+
+        for (ComponentIdResolveResult preferResult : preferResults) {
+            // Use the highest preferred version that refines the chosen 'require' selector
+            if (results.replaceExistingResolutionsWithBetterResult(preferResult)) {
+                break;
             }
         }
     }
