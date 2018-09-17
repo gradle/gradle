@@ -335,7 +335,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         thrown(CircularReferenceException)
     }
 
-    def "notifies graph listener before execute"() {
+    def "notifies graph listener before first execute"() {
         def taskPlanExecutor = Mock(TaskPlanExecutor)
         def taskGraph = new DefaultTaskExecutionGraph(taskPlanExecutor, [workExecutor], buildOperationExecutor, listenerBuildOperationDecorator, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver, graphListeners, taskExecutionListeners)
         TaskExecutionGraphListener listener = Mock(TaskExecutionGraphListener)
@@ -351,9 +351,15 @@ class DefaultTaskExecutionGraphSpec extends Specification {
 
         then:
         1 * taskPlanExecutor.process(_, _, _)
+
+        when:
+        taskGraph.execute(failures)
+
+        then:
+        0 * listener._
     }
 
-    def "executes whenReady listener before execute"() {
+    def "executes whenReady listener before first execute"() {
         def taskPlanExecutor = Mock(TaskPlanExecutor)
         def taskGraph = new DefaultTaskExecutionGraph(taskPlanExecutor, [workExecutor], buildOperationExecutor, listenerBuildOperationDecorator, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver, graphListeners, taskExecutionListeners)
         def closure = Mock(Closure)
@@ -379,6 +385,13 @@ class DefaultTaskExecutionGraphSpec extends Specification {
             displayName == 'Notify task graph whenReady listeners'
             details.buildPath == ':'
         }
+
+        when:
+        taskGraph.execute(failures)
+
+        then:
+        0 * closure._
+        0 * action._
     }
 
     def "stops execution on first failure when no failure handler provided"() {

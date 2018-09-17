@@ -119,13 +119,11 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         loggedOncePerBuild('buildListener.settingsEvaluated', [':', ':buildB', ':buildC', ':pluginD'])
         loggedOncePerBuild('buildListener.projectsLoaded', [':', ':buildB', ':buildC', ':pluginD'])
         loggedOncePerBuild('buildListener.projectsEvaluated', [':', ':buildB', ':buildC', ':pluginD'])
-        loggedOncePerBuild('gradle.taskGraphReady', [':', ':pluginD'])
+        loggedOncePerBuild('gradle.taskGraphReady', [':', ':buildB', ':pluginD'])
         loggedOncePerBuild('buildListener.buildFinished', [':', ':buildB', ':buildC', ':pluginD'])
         loggedOncePerBuild('gradle.buildFinished', [':', ':buildB', ':buildC', ':pluginD'])
 
-        // Tasks for buildB are run twice
-        // TODO - fire these events once only
-        logged('gradle.taskGraphReady [:buildB]', 2)
+        logged("Ignoring listeners of task graph ready event, as this build (:buildB) has already run tasks.")
     }
 
     def "fires build listener events for included builds with additional discovered (compileOnly) dependencies"() {

@@ -18,16 +18,14 @@ package org.gradle.composite.internal;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
-import org.gradle.api.execution.TaskExecutionAdapter;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
+import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.ReportedException;
-import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.concurrent.Stoppable;
@@ -274,7 +272,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         public TaskStatus status = TaskStatus.QUEUED;
     }
 
-    private class IncludedBuildExecutionListener extends InternalBuildAdapter implements TaskExecutionGraphListener, BuildListener {
+    private class IncludedBuildExecutionListener implements TaskExecutionGraphListener, TaskExecutionListener {
         private final Collection<String> tasksToExecute;
 
         IncludedBuildExecutionListener(Collection<String> tasksToExecute) {
@@ -288,22 +286,22 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
                     throw new GradleException("Task '" + task + "' not found in build '" + includedBuild.getName() + "'.");
                 }
             }
-
-            taskExecutionGraph.addTaskExecutionListener(new TaskCompletionRecorder());
         }
 
         public void tasksFinished(@Nullable ReportedException failure) {
             tasksDone(tasksToExecute, failure);
         }
 
-        private class TaskCompletionRecorder extends TaskExecutionAdapter {
-            @Override
-            public void afterExecute(Task task, org.gradle.api.tasks.TaskState state) {
-                String taskPath = task.getPath();
-                Throwable failure = state.getFailure();
-                if (tasksToExecute.contains(taskPath)) {
-                    taskCompleted(taskPath, failure);
-                }
+        @Override
+        public void beforeExecute(Task task) {
+        }
+
+        @Override
+        public void afterExecute(Task task, org.gradle.api.tasks.TaskState state) {
+            String taskPath = task.getPath();
+            Throwable failure = state.getFailure();
+            if (tasksToExecute.contains(taskPath)) {
+                taskCompleted(taskPath, failure);
             }
         }
     }
