@@ -78,7 +78,7 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         if (requiredVersion == null) {
             throw new IllegalArgumentException("Required version must not be null");
         }
-        this.preferredVersion = requiredVersion;
+        this.preferredVersion = "";
         this.requiredVersion = requiredVersion;
         this.strictVersion = "";
         this.rejectedVersions = ImmutableList.of();

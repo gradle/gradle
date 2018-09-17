@@ -26,7 +26,7 @@ class DefaultMutableVersionConstraintTest extends Specification {
 
         then:
         e.requiredVersion == '1.0'
-        e.preferredVersion == '1.0'
+        e.preferredVersion == ''
         e.strictVersion == ''
         e.rejectedVersions == []
     }
@@ -56,7 +56,7 @@ class DefaultMutableVersionConstraintTest extends Specification {
 
         then:
         version.requiredVersion == '2.0'
-        version.preferredVersion == '2.0'
+        version.preferredVersion == ''
         version.strictVersion == ''
         version.rejectedVersions == []
     }
@@ -98,7 +98,7 @@ class DefaultMutableVersionConstraintTest extends Specification {
 
         then:
         version.requiredVersion == '2.0'
-        version.preferredVersion == '2.0'
+        version.preferredVersion == ''
         version.strictVersion == '2.0'
     }
 
@@ -111,7 +111,7 @@ class DefaultMutableVersionConstraintTest extends Specification {
 
         then:
         version.requiredVersion == '2.0'
-        version.preferredVersion == '2.0'
+        version.preferredVersion == ''
         version.strictVersion == ''
     }
 
@@ -159,7 +159,7 @@ class DefaultMutableVersionConstraintTest extends Specification {
 
         then:
         version.requiredVersion == '1.1'
-        version.preferredVersion == '1.1'
+        version.preferredVersion == ''
         version.strictVersion == '1.1'
         version.rejectedVersions == []
     }

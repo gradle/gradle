@@ -39,7 +39,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
     }
 
     public DefaultMutableVersionConstraint(String version) {
-        this(version, version, null);
+        this(null, version, null);
     }
 
     private DefaultMutableVersionConstraint(String preferredVersion, String requiredVersion, String strictVersion) {
@@ -91,7 +91,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
 
     @Override
     public void require(String version) {
-        updateVersions(version, version, null);
+        updateVersions(null, version, null);
     }
 
     @Override
@@ -111,7 +111,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
 
     @Override
     public void strictly(String version) {
-        updateVersions(version, version, version);
+        updateVersions(null, version, version);
     }
 
     @Override
