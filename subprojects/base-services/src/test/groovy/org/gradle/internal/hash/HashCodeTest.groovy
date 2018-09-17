@@ -87,18 +87,18 @@ class HashCodeTest extends Specification {
         "abcdef1234" | "abcdef12"   | false
     }
 
-    def "#a <=> #b: #result"() {
+    def "#a <=> #b: #expected"() {
         def hashA = HashCode.fromString(a)
         def hashB = HashCode.fromString(b)
         def compareAB = hashA <=> hashB
         def compareBA = hashB <=> hashA
 
         expect:
-        Math.signum(compareAB) == result
-        Math.signum(compareBA) == -result
+        Math.signum(compareAB) == expected
+        Math.signum(compareBA) == -expected
 
         where:
-        a            | b            | result
+        a            | b            | expected
         "abcdef12"   | "abcdef12"   | 0
         "abcdef12"   | "abcdef1234" | -1
         "abcdef1234" | "abcdef12"   | 1

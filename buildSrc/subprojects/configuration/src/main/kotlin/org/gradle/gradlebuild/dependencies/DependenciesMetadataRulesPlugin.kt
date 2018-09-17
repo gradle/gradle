@@ -49,12 +49,14 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 readCapabilitiesFromJson()
 
                 withModule("org.spockframework:spock-core", ReplaceCglibNodepWithCglibRule::class.java)
+                // Prevent Spock from pulling in Groovy and third-party dependencies - see https://github.com/spockframework/spock/issues/899
+                withLibraryDependencies("org.spockframework:spock-core", DependencyRemovalByNameRule::class,
+                    setOf("groovy-groovysh", "groovy-json", "groovy-macro", "groovy-nio", "groovy-sql", "groovy-templates", "groovy-test", "groovy-xml"))
                 withModule("org.jmock:jmock-legacy", ReplaceCglibNodepWithCglibRule::class.java)
                 withModule("cglib:cglib", NoAntRule::class.java)
 
-                //TODO check if we can upgrade the following dependencies and remove the rules
-                withModule("org.codehaus.groovy:groovy-all", DowngradeIvyRule::class.java)
-                withModule("org.codehaus.groovy:groovy-all", DowngradeTestNGRule::class.java)
+                withModule("org.junit.jupiter:junit-jupiter-api", DowngradeOpentest4jRule::class.java)
+                withModule("org.junit.platform:junit-platform-engine", DowngradeOpentest4jRule::class.java)
 
                 withModule("jaxen:jaxen", DowngradeXmlApisRule::class.java)
                 withModule("jdom:jdom", DowngradeXmlApisRule::class.java)
@@ -227,27 +229,13 @@ fun ComponentMetadataHandler.withLibraryDependencies(module: String, kClass: KCl
 }
 
 
-open class DowngradeIvyRule : ComponentMetadataRule {
+open class DowngradeOpentest4jRule : ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         context.details.allVariants {
-            withDependencyConstraints {
-                filter { it.group == "org.apache.ivy" }.forEach {
-                    it.version { prefer("2.2.0") }
-                    it.because("Gradle depends on ivy implementation details which changed with newer versions")
-                }
-            }
-        }
-    }
-}
-
-
-open class DowngradeTestNGRule : ComponentMetadataRule {
-    override fun execute(context: ComponentMetadataContext) {
-        context.details.allVariants {
-            withDependencyConstraints {
-                filter { it.group == "org.testng" }.forEach {
-                    it.version { prefer("6.3.1") }
-                    it.because("6.3.1 is required by Gradle and part of the distribution")
+            withDependencies {
+                filter { it.group == "org.opentest4j" }.forEach {
+                    it.version { strictly("1.0.0") }
+                    it.because("1.1.0 has has issue https://github.com/ota4j-team/opentest4j/issues/49")
                 }
             }
         }

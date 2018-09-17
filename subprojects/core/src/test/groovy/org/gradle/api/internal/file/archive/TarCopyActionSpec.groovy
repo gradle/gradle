@@ -71,7 +71,7 @@ public class TarCopyActionSpec extends Specification {
 
     def "tar file contains expected permissions"() {
         when:
-        final TestFile tarFile = initializeTarFile(temporaryFolder.getTestDirectory().file("test.tar"), new SimpleCompressor());
+        TestFile tarFile = initializeTarFile(temporaryFolder.getTestDirectory().file("test.tar"), new SimpleCompressor());
 
         tar(dir("dir"), file("file"));
 
@@ -83,7 +83,7 @@ public class TarCopyActionSpec extends Specification {
 
     def "wraps failure to open output file"() {
         when:
-        final TestFile tarFile = initializeTarFile(temporaryFolder.createDir("test.tar"), new SimpleCompressor());
+        TestFile tarFile = initializeTarFile(temporaryFolder.createDir("test.tar"), new SimpleCompressor());
 
         action.execute(new CopyActionProcessingStream() {
             public void process(CopyActionProcessingStreamAction action) {
@@ -98,7 +98,7 @@ public class TarCopyActionSpec extends Specification {
 
     def "wraps failure to add element"() {
         when:
-        final TestFile tarFile = initializeTarFile(temporaryFolder.getTestDirectory().file("test.tar"), new SimpleCompressor());
+        TestFile tarFile = initializeTarFile(temporaryFolder.getTestDirectory().file("test.tar"), new SimpleCompressor());
 
         Throwable failure = new RuntimeException("broken");
         visit(action, brokenFile("dir/file1", failure));

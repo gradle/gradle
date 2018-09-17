@@ -66,7 +66,7 @@ const val ideConfigurationBaseName = "ideConfiguration"
 
 
 private
-const val javaCompilerHeapSpace = 2048
+const val javaCompilerHeapSpace = 3072
 
 
 // Disable Java 7 inspections because some parts of the codebase still need

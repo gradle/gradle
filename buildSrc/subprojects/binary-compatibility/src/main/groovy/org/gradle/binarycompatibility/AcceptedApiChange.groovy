@@ -16,17 +16,17 @@
 
 package org.gradle.binarycompatibility
 
-import com.google.gson.Gson
-import com.google.gson.stream.JsonWriter
+import groovy.transform.Immutable
+import groovy.transform.ToString
 
-class AcceptedApiChangesJsonFileManager {
+@Immutable @ToString
+class AcceptedApiChange {
+    String type
+    String member
+    String acceptation
+    List<String> changes
 
-    void emptyAcceptedApiChanges(File jsonFile) {
-        jsonFile.withWriter { fileWriter ->
-            def writer = new JsonWriter(fileWriter)
-            writer.setIndent("    ")
-            new Gson().toJson([acceptedApiChanges: []], Object, writer)
-            writer.close()
-        }
+    ApiChange toApiChange() {
+        return new ApiChange(type, member, changes ?: [])
     }
 }

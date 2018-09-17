@@ -79,9 +79,7 @@ class AcceptedApiChangesJsonFileManagerTest extends Specification {
 
     static String nonExistentAcceptedApiChanges() {
         """{
-    "acceptedApiChanges": [
-        
-    ]
+    "acceptedApiChanges": []
 }"""
     }
 }

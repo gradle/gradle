@@ -34,6 +34,11 @@ public interface GradleApiSpecProvider {
 
     interface Spec {
         /**
+         * Set of classes which should be visible from the Gradle API ClassLoader.
+         */
+        Set<Class<?>> getExportedClasses();
+
+        /**
          * Set of packages and enclosing sub-packages which should be visible from the Gradle API ClassLoader.
          *
          * Resources in those packages will also be visible.
@@ -44,6 +49,11 @@ public interface GradleApiSpecProvider {
          * Set of resource prefixes which should be visible from the Gradle API ClassLoader.
          */
         Set<String> getExportedResourcePrefixes();
+
+        /**
+         * Set of resources which should be visible from the Gradle API ClassLoader.
+         */
+        Set<String> getExportedResources();
     }
 
     /**
@@ -53,12 +63,22 @@ public interface GradleApiSpecProvider {
     class SpecAdapter implements Spec {
 
         @Override
+        public Set<Class<?>> getExportedClasses() {
+            return ImmutableSet.of();
+        }
+
+        @Override
         public Set<String> getExportedPackages() {
             return ImmutableSet.of();
         }
 
         @Override
         public Set<String> getExportedResourcePrefixes() {
+            return ImmutableSet.of();
+        }
+
+        @Override
+        public Set<String> getExportedResources() {
             return ImmutableSet.of();
         }
     }
