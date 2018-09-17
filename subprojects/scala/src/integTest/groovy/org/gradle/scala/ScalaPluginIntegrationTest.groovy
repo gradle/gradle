@@ -16,7 +16,6 @@
 package org.gradle.scala
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class ScalaPluginIntegrationTest extends AbstractIntegrationSpec {
@@ -72,7 +71,6 @@ task someTask
         succeeds(":a:classes", "--parallel")
     }
 
-    @Ignore
     @Issue("https://github.com/gradle/gradle/issues/6735")
     def "can depend on the source set of another Java project"() {
         settingsFile << """
@@ -107,7 +105,6 @@ task someTask
         succeeds(":scala:testClasses")
     }
 
-    @Ignore
     @Issue("https://github.com/gradle/gradle/issues/6750")
     def "can depend on Scala project from other project"() {
         settingsFile << """
@@ -136,6 +133,7 @@ task someTask
             }
             project(":scala") {
                 apply plugin: 'scala'
+
                 dependencies {
                     compile("org.scala-lang:scala-library:2.12.6")
                 }
