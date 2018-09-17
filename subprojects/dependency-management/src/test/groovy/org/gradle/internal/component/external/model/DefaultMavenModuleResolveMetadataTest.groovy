@@ -149,9 +149,9 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentR
 
         when:
         def immutableMetadata = metadata.asImmutable()
+        def variantsForGraphTraversal = immutableMetadata.getVariantsForGraphTraversal().orNull()
         def compileConf = immutableMetadata.getConfiguration("compile")
         def runtimeConf = immutableMetadata.getConfiguration("runtime")
-        def variantsForGraphTraversal = immutableMetadata.getVariantsForGraphTraversal().orNull()
 
         then:
         assertHasOnlyStatusAttribute(compileConf.attributes)

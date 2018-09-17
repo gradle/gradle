@@ -50,12 +50,19 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
     private ImmutableAttributes computedAttributes;
     private CapabilitiesMetadata computedCapabilities;
 
+    // Fields used for performance optimizations: we avoid computing the derived dependencies (withConstraints, withoutContrainsts, ...)
+    // eagerly because it's very likely that those methods would only be called on the selected variant. Therefore it's a waste of time
+    // to compute them eagerly when those filtering methods are called. We cannot use a dedicated, lazy wrapper over configuration metadata
+    // because we need the attributes to be computes lazily too, because of component metadata rules.
+    private final DependencyFilter dependencyFilter;
+    private ImmutableList<ModuleDependencyMetadata> filteredConfigDependencies;
+
     public DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
                                         ImmutableSet<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
                                         VariantMetadataRules componentMetadataRules,
                                         ImmutableList<ExcludeMetadata> excludes,
                                         ImmutableAttributes componentLevelAttributes) {
-        this(componentId, name, transitive, visible, hierarchy, artifacts, componentMetadataRules, excludes, componentLevelAttributes, null);
+        this(componentId, name, transitive, visible, hierarchy, artifacts, componentMetadataRules, excludes, componentLevelAttributes, null, DependencyFilter.ALL);
     }
 
     private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
@@ -63,10 +70,12 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
                                          VariantMetadataRules componentMetadataRules,
                                          ImmutableList<ExcludeMetadata> excludes,
                                          ImmutableAttributes attributes,
-                                         ImmutableList<ModuleDependencyMetadata> configDependencies) {
+                                         ImmutableList<ModuleDependencyMetadata> configDependencies,
+                                         DependencyFilter dependencyFilter) {
         super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependencies, ImmutableCapabilities.EMPTY);
         this.componentMetadataRules = componentMetadataRules;
         this.componentLevelAttributes = attributes;
+        this.dependencyFilter = dependencyFilter;
     }
 
     @Override
@@ -75,6 +84,31 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
             computedAttributes = componentMetadataRules.applyVariantAttributeRules(this, super.getAttributes());
         }
         return computedAttributes;
+    }
+
+    @Override
+    ImmutableList<ModuleDependencyMetadata> getConfigDependencies() {
+        if (filteredConfigDependencies != null) {
+            return filteredConfigDependencies;
+        }
+        ImmutableList<ModuleDependencyMetadata> filtered = super.getConfigDependencies();
+        switch (dependencyFilter) {
+            case CONSTRAINTS_ONLY:
+                filtered = withConstraints(true, filtered);
+                break;
+            case DEPENDENCIES_ONLY:
+                filtered = withConstraints(false, filtered);
+                break;
+        }
+        switch (dependencyFilter) {
+            case FORCED_ALL:
+            case FORCED_CONSTRAINTS_ONLY:
+            case FORCED_DEPENDENCIES_ONLY:
+                filtered = force(filtered);
+                break;
+        }
+        filteredConfigDependencies = filtered;
+        return filteredConfigDependencies;
     }
 
     @Override
@@ -94,19 +128,23 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
     }
 
     public DefaultConfigurationMetadata withAttributes(ImmutableAttributes attributes) {
-        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), attributes, getConfigDependencies());
+        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), attributes, getConfigDependencies(), dependencyFilter);
     }
 
     public DefaultConfigurationMetadata withAttributes(String newName, ImmutableAttributes attributes) {
-        return new DefaultConfigurationMetadata(getComponentId(), newName, isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), attributes, getConfigDependencies());
+        return new DefaultConfigurationMetadata(getComponentId(), newName, isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), attributes, getConfigDependencies(), dependencyFilter);
+    }
+
+    public DefaultConfigurationMetadata withoutConstraints() {
+        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), super.getAttributes(), super.getConfigDependencies(), dependencyFilter.dependenciesOnly());
+    }
+
+    public DefaultConfigurationMetadata withConstraintsOnly() {
+        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), super.getAttributes(), super.getConfigDependencies(), dependencyFilter.constraintsOnly());
     }
 
     public DefaultConfigurationMetadata withForcedDependencies() {
-        ImmutableList<ModuleDependencyMetadata> configDependencies = getConfigDependencies();
-        if (configDependencies.isEmpty()) {
-            return this;
-        }
-        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), componentLevelAttributes, force(configDependencies));
+        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), componentLevelAttributes, super.getConfigDependencies(), dependencyFilter.forcing());
     }
 
     private ImmutableList<ModuleDependencyMetadata> force(ImmutableList<ModuleDependencyMetadata> configDependencies) {
@@ -121,18 +159,9 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
         return dependencies.build();
     }
 
-    public DefaultConfigurationMetadata withoutConstraints() {
-        return withConstraints(false);
-    }
-
-    public DefaultConfigurationMetadata withConstraintsOnly() {
-        return withConstraints(true);
-    }
-
-    private DefaultConfigurationMetadata withConstraints(boolean constraint) {
-        ImmutableList<ModuleDependencyMetadata> configDependencies = getConfigDependencies();
+    private ImmutableList<ModuleDependencyMetadata> withConstraints(boolean constraint, ImmutableList<ModuleDependencyMetadata> configDependencies) {
         if (configDependencies.isEmpty()) {
-            return this;
+            return ImmutableList.of();
         }
         int count = 0;
         ImmutableList.Builder<ModuleDependencyMetadata> filtered = null;
@@ -147,10 +176,9 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
         }
         if (count == configDependencies.size()) {
             // Avoid creating a copy if the resulting configuration is identical
-            return this;
+            return configDependencies;
         }
-        ImmutableList<ModuleDependencyMetadata> filteredDependencies = filtered == null ? ImmutableList.<ModuleDependencyMetadata>of() : filtered.build();
-        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), componentLevelAttributes, filteredDependencies);
+        return filtered == null ? ImmutableList.<ModuleDependencyMetadata>of() : filtered.build();
     }
 
     private static class ForcedDependencyMetadataWrapper implements ForcingDependencyMetadata, ModuleDependencyMetadata {
@@ -223,6 +251,51 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
         @Override
         public ForcingDependencyMetadata forced() {
             return this;
+        }
+    }
+
+    private enum DependencyFilter {
+        ALL,
+        CONSTRAINTS_ONLY,
+        DEPENDENCIES_ONLY,
+        FORCED_ALL,
+        FORCED_CONSTRAINTS_ONLY,
+        FORCED_DEPENDENCIES_ONLY;
+
+        DependencyFilter forcing() {
+            switch (this) {
+                case ALL:
+                    return FORCED_ALL;
+                case CONSTRAINTS_ONLY:
+                    return FORCED_CONSTRAINTS_ONLY;
+                case DEPENDENCIES_ONLY:
+                    return FORCED_DEPENDENCIES_ONLY;
+            }
+            return this;
+        }
+
+        DependencyFilter dependenciesOnly() {
+            switch (this) {
+                case ALL:
+                    return DEPENDENCIES_ONLY;
+                case FORCED_ALL:
+                    return FORCED_DEPENDENCIES_ONLY;
+                case DEPENDENCIES_ONLY:
+                    return this;
+            }
+            throw new IllegalStateException("Cannot set dependencies only when constraints only has already been called");
+        }
+
+        DependencyFilter constraintsOnly() {
+            switch (this) {
+                case ALL:
+                    return CONSTRAINTS_ONLY;
+                case FORCED_ALL:
+                    return FORCED_CONSTRAINTS_ONLY;
+                case CONSTRAINTS_ONLY:
+                    return this;
+            }
+            throw new IllegalStateException("Cannot set constraints only when dependencies only has already been called");
         }
     }
 }
