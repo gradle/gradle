@@ -52,7 +52,6 @@ open class TestFixturesPlugin : Plugin<Project> {
 
         if (file("src/testFixtures").isDirectory) {
             configureAsProducer()
-            removeTestFixturesFromArchivesConfiguration()
         }
 
         configureAsConsumer()
