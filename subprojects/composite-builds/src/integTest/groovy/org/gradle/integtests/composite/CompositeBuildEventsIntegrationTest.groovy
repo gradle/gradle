@@ -120,14 +120,12 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         loggedOncePerBuild('buildListener.projectsLoaded', [':', ':buildB', ':buildC', ':pluginD'])
         loggedOncePerBuild('buildListener.projectsEvaluated', [':', ':buildB', ':buildC', ':pluginD'])
         loggedOncePerBuild('gradle.taskGraphReady', [':', ':pluginD'])
-        loggedOncePerBuild('buildListener.buildFinished', [':', ':buildC', ':pluginD'])
-        loggedOncePerBuild('gradle.buildFinished', [':', ':buildC', ':pluginD'])
+        loggedOncePerBuild('buildListener.buildFinished', [':', ':buildB', ':buildC', ':pluginD'])
+        loggedOncePerBuild('gradle.buildFinished', [':', ':buildB', ':buildC', ':pluginD'])
 
         // Tasks for buildB are run twice
         // TODO - fire these events once only
-        loggedAtLeast('gradle.taskGraphReady [:buildB]', 2)
-        loggedAtLeast('buildListener.buildFinished [:buildB]', 2)
-        loggedAtLeast('gradle.buildFinished [:buildB]', 2)
+        logged('gradle.taskGraphReady [:buildB]', 2)
     }
 
     def "fires build listener events for included builds with additional discovered (compileOnly) dependencies"() {
@@ -231,11 +229,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
     void logged(String message, int count = 1) {
         outputContains(message)
         assert result.output.count(message) == count
-    }
-
-    void loggedAtLeast(String message, int count = 1) {
-        outputContains(message)
-        assert result.output.count(message) >= count
     }
 
     protected void execute() {

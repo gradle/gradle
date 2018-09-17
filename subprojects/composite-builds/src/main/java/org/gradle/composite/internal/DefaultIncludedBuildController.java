@@ -77,7 +77,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
             if (state != State.CollectingTasks) {
                 throw new IllegalStateException();
             }
-            for (Map.Entry<String, TaskState> taskEntry: tasks.entrySet()) {
+            for (Map.Entry<String, TaskState> taskEntry : tasks.entrySet()) {
                 if (taskEntry.getValue().status == TaskStatus.QUEUED) {
                     String taskName = taskEntry.getKey();
                     if (tasksAdded.add(taskName)) {
@@ -175,7 +175,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
                 return null;
             }
             Set<String> tasksToExecute = Sets.newLinkedHashSet();
-            for (Map.Entry<String, TaskState> taskEntry: tasks.entrySet()) {
+            for (Map.Entry<String, TaskState> taskEntry : tasks.entrySet()) {
                 if (taskEntry.getValue().status == TaskStatus.QUEUED) {
                     tasksToExecute.add(taskEntry.getKey());
                     taskEntry.getValue().status = TaskStatus.EXECUTING;
@@ -193,7 +193,12 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         }
         LOGGER.info("Executing " + includedBuild.getName() + " tasks " + tasksToExecute);
         IncludedBuildExecutionListener listener = new IncludedBuildExecutionListener(tasksToExecute);
-        includedBuild.execute(tasksToExecute, listener);
+        try {
+            includedBuild.execute(tasksToExecute, listener);
+            listener.tasksFinished(null);
+        } catch (ReportedException failure) {
+            listener.tasksFinished(failure);
+        }
     }
 
     private void taskCompleted(String task, Throwable failure) {
@@ -206,20 +211,20 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         }
     }
 
-    private void tasksDone(Collection<String> tasksExecuted, BuildResult result) {
+    private void tasksDone(Collection<String> tasksExecuted, @Nullable ReportedException failure) {
         lock.lock();
         try {
-            for (String task: tasksExecuted) {
+            for (String task : tasksExecuted) {
                 TaskState taskState = tasks.get(task);
                 if (taskState.status == TaskStatus.EXECUTING) {
                     taskState.status = TaskStatus.FAILED;
                 }
             }
-            if (result.getFailure() != null) {
-                if (result.getFailure() instanceof MultipleBuildFailures) {
-                    taskFailures.addAll(((MultipleBuildFailures) result.getFailure()).getCauses());
+            if (failure != null) {
+                if (failure.getCause() instanceof MultipleBuildFailures) {
+                    taskFailures.addAll(((MultipleBuildFailures) failure.getCause()).getCauses());
                 } else {
-                    taskFailures.add(result.getFailure());
+                    taskFailures.add(failure.getCause());
                 }
             }
         } finally {
@@ -278,7 +283,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
 
         @Override
         public void graphPopulated(TaskExecutionGraph taskExecutionGraph) {
-            for (String task: tasksToExecute) {
+            for (String task : tasksToExecute) {
                 if (!taskExecutionGraph.hasTask(task)) {
                     throw new GradleException("Task '" + task + "' not found in build '" + includedBuild.getName() + "'.");
                 }
@@ -287,9 +292,8 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
             taskExecutionGraph.addTaskExecutionListener(new TaskCompletionRecorder());
         }
 
-        @Override
-        public void buildFinished(BuildResult result) {
-            tasksDone(tasksToExecute, result);
+        public void tasksFinished(@Nullable ReportedException failure) {
+            tasksDone(tasksToExecute, failure);
         }
 
         private class TaskCompletionRecorder extends TaskExecutionAdapter {
