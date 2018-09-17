@@ -89,7 +89,7 @@ public interface ComponentSelectionRules {
      * This rule method:
      * <ul>
      *     <li>must return void.</li>
-     *     <li>must have {@link org.gradle.api.artifacts.ComponentSelection} as the first parameter.</li>
+     *     <li>must have {@link org.gradle.api.artifacts.ComponentSelection} as its parameter.</li>
      * </ul>
      *
      * Injection of other arguments has been deprecated in favor of the added methods
@@ -134,7 +134,7 @@ public interface ComponentSelectionRules {
      * This rule method:
      * <ul>
      *     <li>must return void.</li>
-     *     <li>must have {@link org.gradle.api.artifacts.ComponentSelection} as the first parameter.</li>
+     *     <li>must have {@link org.gradle.api.artifacts.ComponentSelection} as its parameter.</li>
      * </ul>
      *
      * Injection of other arguments has been deprecated in favor of the added methods
