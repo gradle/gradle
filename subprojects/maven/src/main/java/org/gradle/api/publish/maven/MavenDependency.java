@@ -17,6 +17,8 @@ package org.gradle.api.publish.maven;
 
 import org.gradle.internal.HasInternalProtocol;
 
+import javax.annotation.Nullable;
+
 /**
  * A dependency declared as part of an {@link MavenPublication}.
  */
@@ -36,4 +38,10 @@ public interface MavenDependency {
      * The version value for this dependency.
      */
     String getVersion();
+
+    /**
+     * The type value for this dependency.
+     */
+    @Nullable
+    String getType();
 }

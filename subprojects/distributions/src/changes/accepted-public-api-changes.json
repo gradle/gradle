@@ -589,6 +589,14 @@
             "type": "org.gradle.language.swift.SwiftBinary",
             "member": "Method org.gradle.language.swift.SwiftBinary.getTargetPlatform()",
             "acceptation": "Upgrading to Java 8 seems to have changed the byte code slightly, probably introducing a bridge method."
+        },
+        {
+            "type": "org.gradle.api.publish.maven.MavenDependency",
+            "member": "Method org.gradle.api.publish.maven.MavenDependency.getType()",
+            "acceptation": "Expose the Maven dependency type property",
+            "changes": [
+                "Method added to interface"
+            ]
         }
     ]
 }
