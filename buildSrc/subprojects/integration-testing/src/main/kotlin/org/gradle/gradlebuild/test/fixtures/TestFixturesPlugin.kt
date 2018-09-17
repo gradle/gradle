@@ -178,6 +178,6 @@ open class TestFixturesPlugin : Plugin<Project> {
     // https://builds.gradle.org/viewLog.html?buildId=15853642&buildTypeId=bt39
     private
     fun Project.removeTestFixturesFromArchivesConfiguration() = afterEvaluate {
-        configurations.findByName("archives")?.artifacts?.removeIf({ it.name == "testFixtures" })
+        configurations["archives"]?.artifacts?.removeIf({ it.name == "testFixtures" })
     }
 }
