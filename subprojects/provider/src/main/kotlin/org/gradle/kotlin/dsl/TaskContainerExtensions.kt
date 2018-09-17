@@ -209,6 +209,37 @@ fun <T : Task> TaskContainer.named(name: String, type: KClass<T>, configuration:
 
 
 /**
+ * Configures a task by name and type, without triggering its creation or configuration, failing if there is no such task.
+ *
+ * @see [TaskContainer.named]
+ * @see [TaskProvider.configure]
+ */
+inline fun <reified T : Task> TaskContainer.named(name: String, noinline configuration: T.() -> Unit): TaskProvider<T> =
+    named<T>(name).apply {
+        configure(configuration)
+    }
+
+
+/**
+ * Defines a new object, which will be created when it is required.
+ *
+ * @see [TaskContainer.register]
+ */
+@Suppress("extension_shadowed_by_member")
+inline fun <reified T : Task> TaskContainer.register(name: String): TaskProvider<T> =
+    register(name, T::class.java)
+
+
+/**
+ * Defines and configure a new object, which will be created when it is required.
+ *
+ * @see [TaskContainer.register]
+ */
+inline fun <reified T : Task> TaskContainer.register(name: String, noinline configuration: T.() -> Unit): TaskProvider<T> =
+    register(name, T::class.java, configuration)
+
+
+/**
  * Creates a [Task] with the given [name] and type, passing the given arguments to the [javax.inject.Inject]-annotated constructor,
  * and adds it to this project tasks container.
  */

@@ -42,9 +42,7 @@ class PolymorphicContainersEvalTest : TestWithTempFiles() {
         )
 
         val tasksConfigurationAssertions = listOf(
-            TaskAssertion("foo", Task::class) {
-
-            }
+            TaskAssertion("foo", Task::class) {}
         )
 
         class TaskAssertion<T : Task>(
@@ -117,16 +115,14 @@ class PolymorphicContainersEvalTest : TestWithTempFiles() {
             val t16: TaskProvider<Copy> = tasks.named("pipistrelle", Copy::class) {
                 description += "!"
             }
-            // TODO wrong return type
-            val t17: NamedDomainObjectProvider<Copy> = tasks.named<Copy>("pipistrelle") {
+            val t17: TaskProvider<Copy> = tasks.named<Copy>("pipistrelle") {
                 description += "!"
             }
 
             val t18: TaskProvider<Task> = tasks.register("yate")
             // TODO ::class taking overload generated is absent in this context
             val t19: TaskProvider<Copy> = tasks.register("quartern", Copy::class.java)
-            // TODO wrong return type
-            val t20: NamedDomainObjectProvider<Copy> = tasks.register<Copy>("veduta")
+            val t20: TaskProvider<Copy> = tasks.register<Copy>("veduta")
 
             val t21: TaskProvider<Task> = tasks.register("vansire") {
                 description += "!"
@@ -135,13 +131,10 @@ class PolymorphicContainersEvalTest : TestWithTempFiles() {
             val t22: TaskProvider<Copy> = tasks.register("koto", Copy::class.java) {
                 description += "!"
             }
-            // TODO wrong return type
-            val t23: NamedDomainObjectProvider<Copy> = tasks.register<Copy>("diptote") {
+            val t23: TaskProvider<Copy> = tasks.register<Copy>("diptote") {
                 description += "!"
             }
-
-        """) {
-        }
+        """)
     }
 
     @Test
@@ -189,16 +182,14 @@ class PolymorphicContainersEvalTest : TestWithTempFiles() {
                 val t17: TaskProvider<Copy> = named("pipistrelle", Copy::class) {
                     description += "!"
                 }
-                // TODO wrong return type
-                val t18: NamedDomainObjectProvider<Copy> = named<Copy>("pipistrelle") {
+                val t18: TaskProvider<Copy> = named<Copy>("pipistrelle") {
                     description += "!"
                 }
     
                 val t19: TaskProvider<Task> = register("yate")
                 // TODO ::class taking overload generated is absent in this context
                 val t20: TaskProvider<Copy> = register("quartern", Copy::class.java)
-                // TODO wrong return type
-                val t21: NamedDomainObjectProvider<Copy> = register<Copy>("veduta")
+                val t21: TaskProvider<Copy> = register<Copy>("veduta")
     
                 val t22: TaskProvider<Task> = register("vansire") {
                     description += "!"
@@ -207,14 +198,11 @@ class PolymorphicContainersEvalTest : TestWithTempFiles() {
                 val t23: TaskProvider<Copy> = register("koto", Copy::class.java) {
                     description += "!"
                 }
-                // TODO wrong return type
-                val t24: NamedDomainObjectProvider<Copy> = register<Copy>("diptote") {
+                val t24: TaskProvider<Copy> = register<Copy>("diptote") {
                     description += "!"
                 }
             }
-
-        """) {
-        }
+        """)
     }
 
     @Test
@@ -271,9 +259,7 @@ class PolymorphicContainersEvalTest : TestWithTempFiles() {
 
             untyped()
             typed()
-
-        """) {
-        }
+        """)
     }
 
     @Test
@@ -335,9 +321,7 @@ class PolymorphicContainersEvalTest : TestWithTempFiles() {
 
             untyped()
             typed()
-
-        """) {
-        }
+        """)
     }
 
     @Test
@@ -357,8 +341,6 @@ class PolymorphicContainersEvalTest : TestWithTempFiles() {
                     description += "!"
                 }
             }
-
-        """) {
-        }
+        """)
     }
 }
