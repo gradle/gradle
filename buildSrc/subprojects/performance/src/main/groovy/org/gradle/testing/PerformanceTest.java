@@ -53,8 +53,6 @@ public class PerformanceTest extends DistributionTest {
     private String resultStoreClass = "org.gradle.performance.results.AllResultsStore";
     private boolean flamegraphs;
 
-    private String buildId;
-
     private final Map<String, String> databaseParameters = new HashMap<>();
 
     private File debugArtifactsDirectory = new File(getProject().getBuildDir(), getName());

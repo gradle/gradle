@@ -29,6 +29,7 @@ import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,10 +37,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
-import static java.util.Comparator.comparingDouble;
 
 public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
     public static final int DANGEROUS_REGRESSION_CONFIDENCE_THRESHOLD = 90;
+    private static final int DEFAULT_RETRY_COUNT = 3;
+    private static final int PERFORMANCE_DATE_RETRIEVE_DAYS = 2;
     private final Set<ScenarioBuildResultData> scenarios;
     private final ResultsStore resultsStore;
     private final String commitId = Git.current().getCommitId();
@@ -51,8 +53,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
 
     private Set<ScenarioBuildResultData> readBuildResultData(File resultJson) {
         try {
-            List<ScenarioBuildResultData> list = new ObjectMapper().readValue(resultJson, new TypeReference<List<ScenarioBuildResultData>>() {
-            });
+            List<ScenarioBuildResultData> list = new ObjectMapper().readValue(resultJson, new TypeReference<List<ScenarioBuildResultData>>() { });
             return sortBuildResultData(list.stream().map(this::queryExecutionData));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -64,20 +65,19 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
         Comparator<ScenarioBuildResultData> comparator = comparing(ScenarioBuildResultData::isBuildFailed).reversed()
             .thenComparing(ScenarioBuildResultData::isSuccessful)
             .thenComparing(comparing(ScenarioBuildResultData::isAboutToRegress).reversed())
-            .thenComparing(comparingDouble(ScenarioBuildResultData::getConfidencePercentage).reversed())
-            .thenComparing(comparingDouble(ScenarioBuildResultData::getRegressionPercentage).reversed())
+            .thenComparing(comparing(ScenarioBuildResultData::getRegressionSortKey).reversed())
             .thenComparing(ScenarioBuildResultData::getScenarioName);
         return data.collect(() -> new TreeSet<>(comparator), TreeSet::add, TreeSet::addAll);
     }
 
     private ScenarioBuildResultData queryExecutionData(ScenarioBuildResultData scenario) {
-        PerformanceTestHistory history = resultsStore.getTestResults(scenario.getScenarioName(), 3, 2, ResultsStoreHelper.determineChannel());
+        PerformanceTestHistory history = resultsStore.getTestResults(scenario.getScenarioName(), DEFAULT_RETRY_COUNT, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel());
         List<? extends PerformanceTestExecution> recentExecutions = history.getExecutions();
         List<? extends PerformanceTestExecution> currentCommitExecutions = recentExecutions.stream().filter(execution -> execution.getVcsCommits().contains(commitId)).collect(Collectors.toList());
         if (currentCommitExecutions.isEmpty()) {
-            scenario.setRecentExecutions(recentExecutions.stream().map(this::extractExecutionData).collect(Collectors.toList()));
+            scenario.setRecentExecutions(recentExecutions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(Collectors.toList()));
         } else {
-            scenario.setCurrentCommitExecutions(currentCommitExecutions.stream().map(this::extractExecutionData).collect(Collectors.toList()));
+            scenario.setCurrentCommitExecutions(currentCommitExecutions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(Collectors.toList()));
         }
 
         return scenario;
@@ -113,8 +113,8 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                 html();
                     head();
                         headSection(this);
-                        link().rel("stylesheet").type("text/css").href("https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css").end();
-                        script().src("https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js").end();
+                        link().rel("stylesheet").type("text/css").href("https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css").end();
+                        script().src("https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js").end();
                         title().text("Profile report for channel " + ResultsStoreHelper.determineChannel()).end();
                     end();
                     body();

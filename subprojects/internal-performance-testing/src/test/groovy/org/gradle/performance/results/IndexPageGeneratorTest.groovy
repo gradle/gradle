@@ -44,13 +44,14 @@ class IndexPageGeneratorTest extends Specification {
         when:
         List buildResults = [
             createLowConfidenceRegressedData(),
+            createLowConfidenceImprovedData(),
             createHighConfidenceImprovedData(),
-            createDangerousRegressedData(),
+            createHighConfidenceRegressedData(),
             createFailedData()
         ]
 
         then:
-        generator.sortBuildResultData(buildResults.stream()).toList().collect { it.scenarioName } == ['failed', 'dangerousRegressed', 'highConfidenceImproved', 'lowConfidenceRegressed']
+        generator.sortBuildResultData(buildResults.stream()).toList().collect { it.scenarioName } == ['failed', 'highConfidenceRegressed', 'lowConfidenceRegressed', 'lowConfidenceImproved', 'highConfidenceImproved']
     }
 
     private ScenarioBuildResultData createFailedData() {
@@ -58,28 +59,33 @@ class IndexPageGeneratorTest extends Specification {
     }
 
     private ScenarioBuildResultData createHighConfidenceImprovedData() {
-        // 95% confidence
+        // 95% confidence -50% difference
         return createResult('highConfidenceImproved', [2, 2, 2], [1, 1, 1])
     }
 
+    private ScenarioBuildResultData createLowConfidenceImprovedData() {
+        // 68% confidence -50% difference
+        return createResult('lowConfidenceImproved', [2], [1])
+    }
+
     private ScenarioBuildResultData createLowConfidenceRegressedData() {
-        // 68% confidence
+        // 68% confidence 100% difference
         return createResult("lowConfidenceRegressed", [1], [2])
     }
 
-    private ScenarioBuildResultData createDangerousRegressedData() {
-        // 91% confidence
-        return createResult('dangerousRegressed', [1, 1, 1, 2], [2, 2, 2, 2])
+    private ScenarioBuildResultData createHighConfidenceRegressedData() {
+        // 91% confidence 100% difference
+        return createResult('highConfidenceRegressed', [1, 1, 1, 2], [2, 2, 2, 2])
     }
 
     private ScenarioBuildResultData createResult(String name, List<Integer> baseVersionResult, List<Integer> currentVersionResult) {
-        MeasuredOperationList baseVersion = experiement(baseVersionResult)
-        MeasuredOperationList currentVersion = experiement(currentVersionResult)
+        MeasuredOperationList baseVersion = experiment(baseVersionResult)
+        MeasuredOperationList currentVersion = experiment(currentVersionResult)
         ScenarioBuildResultData.ExecutionData execution = new ScenarioBuildResultData.ExecutionData(new Date().getTime(), '', baseVersion, currentVersion)
         return new ScenarioBuildResultData(scenarioName: name, successful: true, currentCommitExecutions: [execution])
     }
 
-    private MeasuredOperationList experiement(List<Integer> values) {
+    private MeasuredOperationList experiment(List<Integer> values) {
         MeasuredOperationList measuredOperationList = new MeasuredOperationList()
         measuredOperationList.addAll(values.collect { new MeasuredOperation(totalTime: Amount.valueOf(it, Duration.SECONDS)) })
         return measuredOperationList

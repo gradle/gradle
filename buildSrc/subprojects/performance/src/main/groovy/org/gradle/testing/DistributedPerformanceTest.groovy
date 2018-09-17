@@ -134,7 +134,6 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     private File generateResultJson() {
         File resultJson = File.createTempFile('distributedPerformanceTest', 'results.json')
-        resultJson.deleteOnExit()
         List<Map> resultData = finishedBuilds.collect { workerBuildId, scenarioResult ->
             // org.gradle.performance.results.ScenarioBuildResultData
             [
@@ -145,8 +144,6 @@ class DistributedPerformanceTest extends PerformanceTest {
             ] as Map
         }
         resultJson.text = JsonOutput.toJson(resultData)
-        println("JSON: ${resultJson.text}")
-
         return resultJson
     }
 
@@ -158,16 +155,21 @@ class DistributedPerformanceTest extends PerformanceTest {
     }
 
     private void generatePerformanceReport() {
+        File resultJson = generateResultJson()
         project.delete(reportDir)
-        project.javaexec(new Action<JavaExecSpec>() {
-            void execute(JavaExecSpec spec) {
-                spec.setMain("org.gradle.performance.results.ReportGenerator")
-                spec.args(resultStoreClass, reportDir.path, generateResultJson().path)
-                spec.systemProperties(databaseParameters)
-                spec.systemProperty("org.gradle.performance.execution.channel", channel)
-                spec.setClasspath(DistributedPerformanceTest.this.getClasspath())
-            }
-        })
+        try {
+            project.javaexec(new Action<JavaExecSpec>() {
+                void execute(JavaExecSpec spec) {
+                    spec.setMain("org.gradle.performance.results.ReportGenerator")
+                    spec.args(resultStoreClass, reportDir.path, resultJson.path)
+                    spec.systemProperties(databaseParameters)
+                    spec.systemProperty("org.gradle.performance.execution.channel", channel)
+                    spec.setClasspath(DistributedPerformanceTest.this.getClasspath())
+                }
+            })
+        } finally {
+            project.delete(resultJson)
+        }
     }
 
     private void doExecuteTests() {
@@ -175,12 +177,7 @@ class DistributedPerformanceTest extends PerformanceTest {
 
         fillScenarioList()
 
-        def scenarios = scenarioList.readLines()
-            .collect { line ->
-            def parts = Splitter.on(';').split(line).toList()
-            new Scenario(id: parts[0], estimatedRuntime: Long.parseLong(parts[1]), templates: parts.subList(2, parts.size()))
-        }
-        .sort { -it.estimatedRuntime }
+        def scenarios = scenarioList.readLines().collect { String line -> new Scenario(line) }.sort { -it.estimatedRuntime }
 
         createClient()
 
@@ -348,7 +345,7 @@ class DistributedPerformanceTest extends PerformanceTest {
     }
 
     void cancel(String buildId, String endpoint) {
-        String link = XmlUtil.escapeXml("$teamCityUrl/viewLog.html?buildId=$buildId&buildTypeId=$buildTypeId")
+        String link = XmlUtil.escapeXml("$teamCityUrl/viewLog.html?buildId=$coordinatorBuildId&buildTypeId=$buildTypeId")
         String cancelRequest = """<buildCancelRequest comment="Coordinator build was canceled: $link" readdIntoQueue="false" />"""
         client.post(
             path: "$endpoint/id:$buildId",
@@ -417,6 +414,13 @@ class DistributedPerformanceTest extends PerformanceTest {
         String id
         long estimatedRuntime
         List<String> templates
+
+        Scenario(String scenarioLine) {
+            def parts = Splitter.on(';').split(scenarioLine).toList()
+            this.id = parts[0]
+            this.estimatedRuntime = parts[1].toLong()
+            this.templates = parts[2..-1]
+        }
     }
 
     private static class ScenarioResult {
