@@ -528,9 +528,7 @@ class VersionRangeResolveTestScenarios {
 
         @Override
         VersionConstraint getVersionConstraint() {
-            def vc = new DefaultMutableVersionConstraint(version)
-            vc.strictly(version)
-            return vc
+            DefaultMutableVersionConstraint.withStrictVersion(version)
         }
 
         @Override
@@ -549,7 +547,7 @@ class VersionRangeResolveTestScenarios {
 
         @Override
         VersionConstraint getVersionConstraint() {
-            def vc = new DefaultMutableVersionConstraint(version)
+            def vc = new DefaultMutableVersionConstraint('')
             vc.prefer(version)
             return vc
         }

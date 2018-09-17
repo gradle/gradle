@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.dependencies
 
-import org.gradle.api.InvalidUserDataException
+
 import spock.lang.Specification
 
 class DefaultMutableVersionConstraintTest extends Specification {
@@ -31,59 +31,31 @@ class DefaultMutableVersionConstraintTest extends Specification {
         e.rejectedVersions == []
     }
 
-    def "can override preferred version with another preferred version"() {
+    def "can override preferred version"() {
         given:
         def version = new DefaultMutableVersionConstraint('1.0')
-        version.prefer('1.0')
-
-        when:
         version.prefer('2.0')
 
+        when:
+        version.prefer('3.0')
+
         then:
-        version.requiredVersion == ''
-        version.preferredVersion == '2.0'
+        version.requiredVersion == '1.0'
+        version.preferredVersion == '3.0'
         version.strictVersion == ''
         version.rejectedVersions == []
     }
 
-    def "can override preferred version with required version"() {
+    def "can override required version"() {
         given:
         def version = new DefaultMutableVersionConstraint('1.0')
-        version.prefer('1.0')
-
-        when:
-        version.require('2.0')
-
-        then:
-        version.requiredVersion == '2.0'
-        version.preferredVersion == ''
-        version.strictVersion == ''
-        version.rejectedVersions == []
-    }
-
-    def "can override version with preferred version"() {
-        given:
-        def version = new DefaultMutableVersionConstraint('1.0')
-
-        when:
         version.prefer('2.0')
 
-        then:
-        version.requiredVersion == ''
-        version.preferredVersion == '2.0'
-        version.strictVersion == ''
-        version.rejectedVersions == []
-    }
-
-    def "can override strict version with preferred version"() {
-        given:
-        def version = DefaultMutableVersionConstraint.withStrictVersion('1.0')
-
         when:
-        version.prefer('2.0')
+        version.require('3.0')
 
         then:
-        version.requiredVersion == ''
+        version.requiredVersion == '3.0'
         version.preferredVersion == '2.0'
         version.strictVersion == ''
         version.rejectedVersions == []
@@ -115,6 +87,20 @@ class DefaultMutableVersionConstraintTest extends Specification {
         version.strictVersion == ''
     }
 
+    def "can combine strict version with preferred version"() {
+        given:
+        def version = DefaultMutableVersionConstraint.withStrictVersion('1.0')
+
+        when:
+        version.prefer('2.0')
+
+        then:
+        version.requiredVersion == '1.0'
+        version.preferredVersion == '2.0'
+        version.strictVersion == '1.0'
+        version.rejectedVersions == []
+    }
+
     def "can declare rejected versions"() {
         given:
         def version = new DefaultMutableVersionConstraint('1.0')
@@ -127,7 +113,7 @@ class DefaultMutableVersionConstraintTest extends Specification {
         version.rejectedVersions == ['1.0.1']
 
         when:
-        version.reject('1.0.2')
+        version.reject('1.0.1', '1.0.2')
 
         then:
         version.requiredVersion == '1.0'
@@ -143,8 +129,23 @@ class DefaultMutableVersionConstraintTest extends Specification {
         version.prefer('1.1')
 
         then:
-        version.requiredVersion == ''
+        version.requiredVersion == '1.0'
         version.preferredVersion == '1.1'
+        version.strictVersion == ''
+        version.rejectedVersions == []
+    }
+
+    def "calling 'require' resets the list of rejects"() {
+        given:
+        def version = new DefaultMutableVersionConstraint('1.0')
+        version.reject('1.0.1')
+
+        when:
+        version.require('1.1')
+
+        then:
+        version.requiredVersion == '1.1'
+        version.preferredVersion == ''
         version.strictVersion == ''
         version.rejectedVersions == []
     }
@@ -164,16 +165,16 @@ class DefaultMutableVersionConstraintTest extends Specification {
         version.rejectedVersions == []
     }
 
-    def "cannot use an empty list of rejections"() {
+    def "can clear list of rejections"() {
         given:
         def version = new DefaultMutableVersionConstraint('1.0')
+        version.reject("1.1")
 
         when:
         version.reject()
 
         then:
-        InvalidUserDataException e = thrown()
-        e.message == "The 'reject' clause requires at least one rejected version"
+        version.rejectedVersions == []
     }
 
     def "calling rejectAll is equivalent to having empty preferred version and '+' reject"() {

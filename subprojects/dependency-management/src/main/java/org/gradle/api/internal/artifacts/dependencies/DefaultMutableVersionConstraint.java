@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.VersionConstraintInternal;
@@ -65,7 +64,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
     }
 
     public static DefaultMutableVersionConstraint withStrictVersion(String version) {
-        return new DefaultMutableVersionConstraint(version, version, version);
+        return new DefaultMutableVersionConstraint(null, version, version);
     }
 
     @Override
@@ -91,7 +90,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
 
     @Override
     public void require(String version) {
-        updateVersions(null, version, null);
+        updateVersions(preferredVersion, version, null);
     }
 
     @Override
@@ -101,7 +100,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
 
     @Override
     public void prefer(String version) {
-        updateVersions(version, null, null);
+        updateVersions(version, requiredVersion, strictVersion);
     }
 
     @Override
@@ -116,9 +115,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
 
     @Override
     public void reject(String... versions) {
-        if (versions.length==0) {
-            throw new InvalidUserDataException("The 'reject' clause requires at least one rejected version");
-        }
+        this.rejectedVersions.clear();
         Collections.addAll(rejectedVersions, versions);
     }
 
