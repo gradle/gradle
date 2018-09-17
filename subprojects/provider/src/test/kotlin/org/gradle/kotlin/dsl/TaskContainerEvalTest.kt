@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.Copy
@@ -24,56 +23,97 @@ import org.gradle.api.tasks.Copy
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.eval
 import org.gradle.kotlin.dsl.fixtures.newProjectBuilderProject
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.nullValue
+import org.hamcrest.Matcher
 
+import org.junit.Assert.assertThat
 import org.junit.Test
 
 import kotlin.reflect.KClass
 
 
-class PolymorphicContainersEvalTest : TestWithTempFiles() {
+class TaskContainerEvalTest : TestWithTempFiles() {
 
     companion object {
 
-        val preExistingTasks = listOf(
-            "foo" to DefaultTask::class,
-            "bar" to Copy::class,
-            "bat" to Copy::class,
-            "pipistrelle" to Copy::class
+        class TaskNameAndType(
+            val name: String,
+            val type: KClass<out Task> = Task::class
+        )
+
+        class TaskAssertion(
+            val task: TaskNameAndType,
+            val descriptionMatcher: Matcher<in String?>
+        )
+
+        fun taskAssertion(
+            name: String,
+            type: KClass<out Task> = Task::class,
+            descriptionMatcher: Matcher<in String?> = nullValue()
+        ) =
+            TaskAssertion(TaskNameAndType(name, type), descriptionMatcher)
+
+        val preRegisteredTasks = listOf(
+            TaskNameAndType("foo"),
+            TaskNameAndType("bar", Copy::class),
+            TaskNameAndType("bat", Copy::class),
+            TaskNameAndType("pipistrelle", Copy::class)
         )
 
         val tasksConfigurationAssertions = listOf(
-            TaskAssertion("foo", Task::class) {}
-        )
-
-        class TaskAssertion<T : Task>(
-            val name: String,
-            val type: KClass<T>,
-            val assertion: T.() -> Unit
+            taskAssertion("foo"),
+            taskAssertion("bar", Copy::class, equalTo("null!!!")),
+            taskAssertion("bazar"),
+            taskAssertion("cathedral", Copy::class),
+            taskAssertion("cabin", Copy::class),
+            taskAssertion("castle", Task::class, equalTo("null!")),
+            taskAssertion("valley", Copy::class, equalTo("null!")),
+            taskAssertion("hill", Copy::class, equalTo("null!")),
+            taskAssertion("bat"),
+            taskAssertion("pipistrelle", Copy::class, equalTo("null!!!")),
+            taskAssertion("yate"),
+            taskAssertion("quartern", Copy::class),
+            taskAssertion("veduta", Copy::class),
+            taskAssertion("vansire", Task::class, equalTo("null!")),
+            taskAssertion("koto", Copy::class, equalTo("null!")),
+            taskAssertion("diptote", Copy::class, equalTo("null!"))
         )
     }
 
     private
-    fun assertTasksConfiguration(name: String, script: String, configuration: Project.() -> Unit = {}) {
+    fun assertTasksConfiguration(
+        name: String,
+        before: Project.() -> Unit = {},
+        script: String,
+        tasksAssertions: List<TaskAssertion> = tasksConfigurationAssertions
+    ) {
         newFolder(name).newProjectBuilderProject().run {
 
-            preExistingTasks.forEach { (name, type) ->
-                tasks.register(name, type.java).configure {
-                    it.description = ""
-                }
+            preRegisteredTasks.forEach {
+                tasks.register(it.name, it.type.java)
             }
 
-            configuration()
+            before()
 
             eval(script)
 
-            // TODO assert
+            tasksAssertions.forEach { taskAssertion ->
+                taskAssertion.run {
+                    assertThat(
+                        "${task.name}: ${task.type.simpleName}",
+                        tasks.getByName(task.name, task.type).description,
+                        descriptionMatcher
+                    )
+                }
+            }
         }
     }
 
     @Test
     fun `polymorphic named domain object container api`() {
 
-        assertTasksConfiguration("api", """
+        assertTasksConfiguration("api", script = """
 
             val t1: Task = tasks.getByName("foo")
             val t2: Task = tasks.getByName("foo", Task::class)
@@ -140,7 +180,7 @@ class PolymorphicContainersEvalTest : TestWithTempFiles() {
     @Test
     fun `polymorphic named domain object container scope api`() {
 
-        assertTasksConfiguration("scope-api", """
+        assertTasksConfiguration("scope-api", script = """
             tasks {
                 val t1: Task = getByName("foo")
                 val t2: Task = getByName("foo", Task::class)
@@ -208,7 +248,7 @@ class PolymorphicContainersEvalTest : TestWithTempFiles() {
     @Test
     fun `polymorphic named domain object container delegated properties`() {
 
-        assertTasksConfiguration("delegated-properties", """
+        assertTasksConfiguration("delegated-properties", before = beforeDelegatedProperties, script = """
 
             fun untyped() {
 
@@ -265,7 +305,7 @@ class PolymorphicContainersEvalTest : TestWithTempFiles() {
     @Test
     fun `polymorphic named domain object container scope delegated properties`() {
 
-        assertTasksConfiguration("scope-delegated-properties", """
+        assertTasksConfiguration("scope-delegated-properties", before = beforeDelegatedProperties, script = """
 
             fun untyped() {
 
@@ -324,10 +364,21 @@ class PolymorphicContainersEvalTest : TestWithTempFiles() {
         """)
     }
 
+    private
+    val beforeDelegatedProperties: Project.() -> Unit = {
+        // For cases not exercised by delegated properties
+        tasks["bar"].description += "!"
+        tasks.create<Copy>("cabin")
+        tasks.create<Copy>("valley").description += "!"
+        tasks["pipistrelle"].description += "!"
+        tasks.create<Copy>("quartern")
+        tasks.create<Copy>("koto").description += "!"
+    }
+
     @Test
     fun `polymorphic named domain object container scope string invoke`() {
 
-        assertTasksConfiguration("scope-string invoke", """
+        assertTasksConfiguration("scope-string invoke", script = """
 
             tasks {
 
@@ -341,6 +392,11 @@ class PolymorphicContainersEvalTest : TestWithTempFiles() {
                     description += "!"
                 }
             }
-        """)
+        """, tasksAssertions = listOf(
+            taskAssertion("foo"),
+            taskAssertion("bar", Task::class, equalTo("null!")),
+            taskAssertion("bat"),
+            taskAssertion("pipistrelle", Copy::class, equalTo("null!"))
+        ))
     }
 }
