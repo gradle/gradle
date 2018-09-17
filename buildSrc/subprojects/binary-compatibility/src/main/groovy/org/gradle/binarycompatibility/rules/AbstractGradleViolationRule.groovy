@@ -158,7 +158,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         def acceptanceJson = new AcceptedApiChange(
             change.type,
             change.member,
-            '&lt;ADD YOUR CUSTOM REASON HERE&gt;',
+            '[ADD YOUR CUSTOM REASON HERE]',
             change.changes
         )
 
