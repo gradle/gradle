@@ -217,7 +217,7 @@ class DistributedPerformanceTest extends PerformanceTest {
                     ${renderLastChange(lastChangeId)}
                 </build>
             """
-        logger.info("Scheduling $scenario.id, estimated runtime: $scenario.estimatedRuntime, coordinatorBuildId: $buildId, lastChangeId: $lastChangeId, build request: $buildRequest")
+        logger.info("Scheduling $scenario.id, estimated runtime: $scenario.estimatedRuntime, coordinatorBuildId: $coordinatorBuildId, lastChangeId: $lastChangeId, build request: $buildRequest")
         def response = client.post(
             path: "buildQueue",
             requestContentType: ContentType.XML,
@@ -229,7 +229,7 @@ class DistributedPerformanceTest extends PerformanceTest {
         }
         def scheduledChangeId = findLastChangeIdInXml(response.data)
         if (lastChangeId && scheduledChangeId != lastChangeId) {
-            throw new RuntimeException("The requested change id is different than the actual one. requested change id: $lastChangeId in coordinatorBuildId: $buildId, actual change id: $scheduledChangeId in workerBuildId: $workerBuildId\nresponse: ${xmlToString(response.data)}")
+            throw new RuntimeException("The requested change id is different than the actual one. requested change id: $lastChangeId in coordinatorBuildId: $coordinatorBuildId, actual change id: $scheduledChangeId in workerBuildId: $workerBuildId\nresponse: ${xmlToString(response.data)}")
         }
         scheduledBuilds.put(workerBuildId, scenario)
     }
@@ -260,10 +260,10 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     private CoordinatorBuild resolveCoordinatorBuild() {
-        if (buildId) {
-            def response = client.get(path: "builds/id:$buildId")
+        if (coordinatorBuildId) {
+            def response = client.get(path: "builds/id:$coordinatorBuildId")
             if (response.success) {
-                return new CoordinatorBuild(id: buildId, lastChangeId: findLastChangeIdInXml(response.data), buildTypeId: response.data.@buildTypeId.text())
+                return new CoordinatorBuild(id: coordinatorBuildId, lastChangeId: findLastChangeIdInXml(response.data), buildTypeId: response.data.@buildTypeId.text())
             }
         }
         return null
