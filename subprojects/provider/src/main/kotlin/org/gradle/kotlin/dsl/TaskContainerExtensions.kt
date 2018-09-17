@@ -16,6 +16,7 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Task
+import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 
@@ -186,29 +187,29 @@ class TaskContainerScope(val container: TaskContainer) : TaskContainer by contai
 /**
  * Locates a task by name and type, without triggering its creation or configuration, failing if there is no such task.
  *
- * @see [TaskContainer.named]
+ * @see [TaskCollection.named]
  */
 @Suppress("extension_shadowed_by_member")
-inline fun <reified T : Task> TaskContainer.named(name: String): TaskProvider<T> =
+inline fun <reified T : Task> TaskCollection<out Task>.named(name: String): TaskProvider<T> =
     named(name, T::class)
 
 
 /**
  * Locates a task by name and type, without triggering its creation or configuration, failing if there is no such task.
  *
- * @see [TaskContainer.named]
+ * @see [TaskCollection.named]
  */
-fun <T : Task> TaskContainer.named(name: String, type: KClass<T>): TaskProvider<T> =
+fun <T : Task> TaskCollection<out Task>.named(name: String, type: KClass<T>): TaskProvider<T> =
     named(name, type) {}
 
 
 /**
  * Configures a task by name and type, without triggering its creation or configuration, failing if there is no such task.
  *
- * @see [TaskContainer.named]
+ * @see [TaskCollection.named]
  * @see [TaskProvider.configure]
  */
-fun <T : Task> TaskContainer.named(name: String, type: KClass<T>, configuration: T.() -> Unit): TaskProvider<T> =
+fun <T : Task> TaskCollection<out Task>.named(name: String, type: KClass<T>, configuration: T.() -> Unit): TaskProvider<T> =
     uncheckedCast(named(name).also { provider ->
         provider.configure { obj ->
             configuration(
@@ -222,10 +223,10 @@ fun <T : Task> TaskContainer.named(name: String, type: KClass<T>, configuration:
 /**
  * Configures a task by name and type, without triggering its creation or configuration, failing if there is no such task.
  *
- * @see [TaskContainer.named]
+ * @see [TaskCollection.named]
  * @see [TaskProvider.configure]
  */
-inline fun <reified T : Task> TaskContainer.named(name: String, noinline configuration: T.() -> Unit): TaskProvider<T> =
+inline fun <reified T : Task> TaskCollection<out Task>.named(name: String, noinline configuration: T.() -> Unit): TaskProvider<T> =
     named<T>(name).apply {
         configure(configuration)
     }
