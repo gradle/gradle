@@ -77,7 +77,10 @@ data class CIBuildModel (
             Stage(StageNames.EXPERIMENTAL,
                     trigger = Trigger.never,
                     runsIndependent = true,
-                    functionalTests = listOf(TestCoverage(TestType.platform, OS.linux, JvmVersion.java11)))
+                    functionalTests = listOf(
+                        TestCoverage(TestType.platform, OS.linux, JvmVersion.java11),
+                        TestCoverage(TestType.platform, OS.windows, JvmVersion.java11))
+            )
         ),
         val subProjects : List<GradleSubproject> = listOf(
             GradleSubproject("announce"),
