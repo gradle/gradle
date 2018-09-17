@@ -31,14 +31,10 @@ val customInstallationGradleApiExtensionsClasspath: ClassPath
 
 
 val customInstallationGradleApiExtensionsJar: File by lazy {
-    File("build/tmp/fixtures/gradle-api-extensions.jar").also { jar ->
-        jar.parentFile.mkdirs()
-        val output = File.createTempFile("gradle-api-extensions", "output", jar.parentFile)
-        generateCustomInstallationGradleApiExtensionsJarTo(output)
-        if (jar.isFile) {
-            require(jar.delete())
-        }
-        output.renameTo(jar)
+    val fixturesDir = File("build/tmp/fixtures").also { it.mkdirs() }
+    File.createTempFile("gradle-api-extensions", "fixture", fixturesDir).also { jar ->
+        generateCustomInstallationGradleApiExtensionsJarTo(jar)
+        jar.deleteOnExit()
     }
 }
 
