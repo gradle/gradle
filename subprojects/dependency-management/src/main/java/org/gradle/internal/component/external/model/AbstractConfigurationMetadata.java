@@ -43,6 +43,7 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
     private final ImmutableList<ExcludeMetadata> excludes;
     private final ImmutableAttributes attributes;
     private final ImmutableCapabilities capabilities;
+
     // Should be final, and set in constructor
     private ImmutableList<ModuleDependencyMetadata> configDependencies;
     private Factory<List<ModuleDependencyMetadata>> configDependenciesFactory;
@@ -61,6 +62,24 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
         this.excludes = excludes;
         this.attributes = attributes;
         this.configDependencies = configDependencies;
+        this.capabilities = capabilities;
+    }
+
+    AbstractConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
+                                  ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableSet<String> hierarchy,
+                                  ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
+                                  Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
+                                  ImmutableCapabilities capabilities) {
+
+        this.componentId = componentId;
+        this.name = name;
+        this.transitive = transitive;
+        this.visible = visible;
+        this.artifacts = artifacts;
+        this.hierarchy = hierarchy;
+        this.excludes = excludes;
+        this.attributes = attributes;
+        this.configDependenciesFactory = configDependenciesFactory;
         this.capabilities = capabilities;
     }
 

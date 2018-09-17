@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -32,6 +33,7 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -62,7 +64,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
                                         VariantMetadataRules componentMetadataRules,
                                         ImmutableList<ExcludeMetadata> excludes,
                                         ImmutableAttributes componentLevelAttributes) {
-        this(componentId, name, transitive, visible, hierarchy, artifacts, componentMetadataRules, excludes, componentLevelAttributes, null, DependencyFilter.ALL);
+        this(componentId, name, transitive, visible, hierarchy, artifacts, componentMetadataRules, excludes, componentLevelAttributes, (ImmutableList<ModuleDependencyMetadata>) null, DependencyFilter.ALL);
     }
 
     private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
@@ -73,6 +75,19 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
                                          ImmutableList<ModuleDependencyMetadata> configDependencies,
                                          DependencyFilter dependencyFilter) {
         super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependencies, ImmutableCapabilities.EMPTY);
+        this.componentMetadataRules = componentMetadataRules;
+        this.componentLevelAttributes = attributes;
+        this.dependencyFilter = dependencyFilter;
+    }
+
+    private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
+                                         ImmutableSet<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+                                         VariantMetadataRules componentMetadataRules,
+                                         ImmutableList<ExcludeMetadata> excludes,
+                                         ImmutableAttributes attributes,
+                                         Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
+                                         DependencyFilter dependencyFilter) {
+        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependenciesFactory, ImmutableCapabilities.EMPTY);
         this.componentMetadataRules = componentMetadataRules;
         this.componentLevelAttributes = attributes;
         this.dependencyFilter = dependencyFilter;
@@ -128,23 +143,33 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
     }
 
     public DefaultConfigurationMetadata withAttributes(ImmutableAttributes attributes) {
-        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), attributes, getConfigDependencies(), dependencyFilter);
+        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), attributes, lazyConfigDependencies(), dependencyFilter);
     }
 
     public DefaultConfigurationMetadata withAttributes(String newName, ImmutableAttributes attributes) {
-        return new DefaultConfigurationMetadata(getComponentId(), newName, isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), attributes, getConfigDependencies(), dependencyFilter);
+        return new DefaultConfigurationMetadata(getComponentId(), newName, isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), attributes, lazyConfigDependencies(), dependencyFilter);
     }
 
     public DefaultConfigurationMetadata withoutConstraints() {
-        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), super.getAttributes(), super.getConfigDependencies(), dependencyFilter.dependenciesOnly());
+        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), super.getAttributes(), lazyConfigDependencies(), dependencyFilter.dependenciesOnly());
     }
 
     public DefaultConfigurationMetadata withConstraintsOnly() {
-        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), super.getAttributes(), super.getConfigDependencies(), dependencyFilter.constraintsOnly());
+        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), super.getAttributes(), lazyConfigDependencies(), dependencyFilter.constraintsOnly());
+    }
+
+    private Factory<List<ModuleDependencyMetadata>> lazyConfigDependencies() {
+        return new Factory<List<ModuleDependencyMetadata>>() {
+            @Nullable
+            @Override
+            public List<ModuleDependencyMetadata> create() {
+                return DefaultConfigurationMetadata.super.getConfigDependencies();
+            }
+        };
     }
 
     public DefaultConfigurationMetadata withForcedDependencies() {
-        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), componentLevelAttributes, super.getConfigDependencies(), dependencyFilter.forcing());
+        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), componentLevelAttributes, lazyConfigDependencies(), dependencyFilter.forcing());
     }
 
     private ImmutableList<ModuleDependencyMetadata> force(ImmutableList<ModuleDependencyMetadata> configDependencies) {
