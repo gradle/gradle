@@ -291,7 +291,6 @@ class DependencyManagementBuildScopeServices {
 
     ResolveIvyFactory createResolveIvyFactory(StartParameter startParameter, ModuleRepositoryCacheProvider moduleRepositoryCacheProvider,
                                               BuildCommencedTimeProvider buildCommencedTimeProvider,
-                                              VersionSelectorScheme versionSelectorScheme,
                                               VersionComparator versionComparator,
                                               ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                               RepositoryBlacklister repositoryBlacklister,
@@ -302,7 +301,6 @@ class DependencyManagementBuildScopeServices {
             moduleRepositoryCacheProvider,
             startParameterResolutionOverride,
             buildCommencedTimeProvider,
-            versionSelectorScheme,
             versionComparator,
             moduleIdentifierFactory,
             repositoryBlacklister,
