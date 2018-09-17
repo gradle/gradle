@@ -124,9 +124,11 @@ class TaskContainerEvalTest : TestWithTempFiles() {
             }
             val t5: Copy = tasks.getByName("bar", Copy::class) {
                 description += "!"
+                destinationDir = file("out")
             }
             val t6: Copy = tasks.getByName<Copy>("bar") {
                 description += "!"
+                destinationDir = file("out")
             }
 
             val t6: Task = tasks.create("bazar")
@@ -140,9 +142,11 @@ class TaskContainerEvalTest : TestWithTempFiles() {
             // TODO ::class taking overload generated is absent in this context
             val t10: Copy = tasks.create("valley", Copy::class.java) {
                 description += "!"
+                destinationDir = file("out")
             }
             val t11: Copy = tasks.create<Copy>("hill") {
                 description += "!"
+                destinationDir = file("out")
             }
 
             val t12: TaskProvider<Task> = tasks.named("bat")
@@ -154,9 +158,11 @@ class TaskContainerEvalTest : TestWithTempFiles() {
             }
             val t16: TaskProvider<Copy> = tasks.named("pipistrelle", Copy::class) {
                 description += "!"
+                destinationDir = file("out")
             }
             val t17: TaskProvider<Copy> = tasks.named<Copy>("pipistrelle") {
                 description += "!"
+                destinationDir = file("out")
             }
 
             val t18: TaskProvider<Task> = tasks.register("yate")
@@ -170,9 +176,11 @@ class TaskContainerEvalTest : TestWithTempFiles() {
             // TODO ::class taking overload generated is absent in this context
             val t22: TaskProvider<Copy> = tasks.register("koto", Copy::class.java) {
                 description += "!"
+                destinationDir = file("out")
             }
             val t23: TaskProvider<Copy> = tasks.register<Copy>("diptote") {
                 description += "!"
+                destinationDir = file("out")
             }
         """)
     }
@@ -191,9 +199,11 @@ class TaskContainerEvalTest : TestWithTempFiles() {
                 }
                 val t5: Copy = getByName("bar", Copy::class) {
                     description += "!"
+                    destinationDir = file("out")
                 }
                 val t6: Copy = getByName<Copy>("bar") {
                     description += "!"
+                    destinationDir = file("out")
                 }
     
                 val t7: Task = create("bazar")
@@ -207,9 +217,11 @@ class TaskContainerEvalTest : TestWithTempFiles() {
                 // TODO ::class taking overload generated is absent in this context
                 val t11: Copy = tasks.create("valley", Copy::class.java) {
                     description += "!"
+                    destinationDir = file("out")
                 }
                 val t12: Copy = create<Copy>("hill") {
                     description += "!"
+                    destinationDir = file("out")
                 }
     
                 val t13: TaskProvider<Task> = named("bat")
@@ -221,10 +233,12 @@ class TaskContainerEvalTest : TestWithTempFiles() {
                 }
                 val t17: TaskProvider<Copy> = named("pipistrelle", Copy::class) {
                     description += "!"
+                    destinationDir = file("out")
                 }
                 val t18: TaskProvider<Copy> = named<Copy>("pipistrelle") {
                     description += "!"
-                }
+                    destinationDir = file("out")
+            }
     
                 val t19: TaskProvider<Task> = register("yate")
                 // TODO ::class taking overload generated is absent in this context
@@ -237,9 +251,11 @@ class TaskContainerEvalTest : TestWithTempFiles() {
                 // TODO ::class taking overload generated is absent in this context
                 val t23: TaskProvider<Copy> = register("koto", Copy::class.java) {
                     description += "!"
+                    destinationDir = file("out")
                 }
                 val t24: TaskProvider<Copy> = register<Copy>("diptote") {
                     description += "!"
+                    destinationDir = file("out")
                 }
             }
         """)
@@ -278,22 +294,26 @@ class TaskContainerEvalTest : TestWithTempFiles() {
                 val foo: Task by tasks.getting(Task::class)
                 val bar: Copy by tasks.getting(Copy::class) {
                     description += "!"
+                    destinationDir = file("out")
                 }
 
                 val cathedral: Copy by tasks.creating(Copy::class)
                 val hill: Copy by tasks.creating(Copy::class) {
                     description += "!"
+                    destinationDir = file("out")
                 }
 
                 val bat: TaskProvider<Copy> by tasks.existing(Copy::class)
                 // TODO wrong return type
                 val pipistrelle: NamedDomainObjectProvider<Copy> by tasks.existing(Copy::class) {
                     description += "!"
+                    destinationDir = file("out")
                 }
 
                 val veduta: TaskProvider<Copy> by tasks.registering(Copy::class)
                 val diptote: TaskProvider<Copy> by tasks.registering(Copy::class) {
                     description += "!"
+                    destinationDir = file("out")
                 }
             }
 
@@ -339,22 +359,26 @@ class TaskContainerEvalTest : TestWithTempFiles() {
                     val foo: Task by getting(Task::class)
                     val bar: Copy by getting(Copy::class) {
                         description += "!"
+                        destinationDir = file("out")
                     }
     
                     val cathedral: Copy by creating(Copy::class)
                     val hill: Copy by creating(Copy::class) {
                         description += "!"
+                        destinationDir = file("out")
                     }
     
                     val bat: TaskProvider<Copy> by existing(Copy::class)
                     // TODO wrong return type
                     val pipistrelle: NamedDomainObjectProvider<Copy> by existing(Copy::class) {
                         description += "!"
+                        destinationDir = file("out")
                     }
     
                     val veduta: TaskProvider<Copy> by registering(Copy::class)
                     val diptote: TaskProvider<Copy> by registering(Copy::class) {
                         description += "!"
+                        destinationDir = file("out")
                     }
                 }
             }
@@ -390,6 +414,7 @@ class TaskContainerEvalTest : TestWithTempFiles() {
                 val bat: TaskProvider<Task> = "bat"(Task::class)
                 val pipistrelle: TaskProvider<Copy> = "pipistrelle"(Copy::class) {
                     description += "!"
+                    destinationDir = file("out")
                 }
             }
         """, tasksAssertions = listOf(
