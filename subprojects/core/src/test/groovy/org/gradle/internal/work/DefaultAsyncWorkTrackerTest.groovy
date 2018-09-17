@@ -77,6 +77,11 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
                     boolean isComplete() {
                         return false
                     }
+
+                    @Override
+                    void cancel() {
+
+                    }
                 })
                 instant.worker2Started
             }
@@ -138,6 +143,11 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
                     boolean isComplete() {
                         return false
                     }
+
+                    @Override
+                    void cancel() {
+
+                    }
                 })
                 instant.worker1Started
             }
@@ -183,6 +193,11 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
             boolean isComplete() {
                 return true
             }
+
+            @Override
+            void cancel() {
+
+            }
         })
         asyncWorkTracker.registerWork(operation1, completedWorkCompletion())
 
@@ -214,6 +229,11 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
                     boolean isComplete() {
                         return false
                     }
+
+                    @Override
+                    void cancel() {
+
+                    }
                 })
                 instant.registered
             }
@@ -232,6 +252,11 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
                         @Override
                         boolean isComplete() {
                             return false
+                        }
+
+                        @Override
+                        void cancel() {
+
                         }
                     })
                 } finally {
@@ -264,6 +289,11 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
             boolean isComplete() {
                 return false
             }
+
+            @Override
+            void cancel() {
+
+            }
         })
         asyncWorkTracker.waitForCompletion(operation1, true)
 
@@ -285,6 +315,11 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
             @Override
             boolean isComplete() {
                 return false
+            }
+
+            @Override
+            void cancel() {
+
             }
         })
         asyncWorkTracker.waitForCompletion(operation1, false)
@@ -331,6 +366,11 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
             boolean isComplete() {
                 return false
             }
+
+            @Override
+            void cancel() {
+
+            }
         }
     }
 
@@ -343,6 +383,11 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
             @Override
             boolean isComplete() {
                 return true
+            }
+
+            @Override
+            void cancel() {
+
             }
         }
     }
