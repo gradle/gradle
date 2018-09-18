@@ -63,7 +63,11 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
                     Printer.print(throwable);
                     new Thread() {
                         public void run() {
-                            abort();
+                            try {
+                                abort();
+                            } catch (Throwable e) {
+                                Printer.print(e);
+                            }
                         }
                     }.start();
                 }
@@ -153,7 +157,7 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
         @Override
         public void endStream() {
             if (instance instanceof StreamCompletion) {
-                ((StreamCompletion)instance).endStream();
+                ((StreamCompletion) instance).endStream();
             }
         }
 
@@ -165,7 +169,7 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
         @Override
         public void handleStreamFailure(Throwable t) {
             if (instance instanceof StreamFailureHandler) {
-                ((StreamFailureHandler)instance).handleStreamFailure(t);
+                ((StreamFailureHandler) instance).handleStreamFailure(t);
             }
         }
     }
