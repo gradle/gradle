@@ -26,7 +26,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  * @since 1.10
  */
 @UsedByScanPlugin
-@Incubating
 public interface ModuleComponentSelector extends ComponentSelector {
     /**
      * The group of the module to select the component from.
