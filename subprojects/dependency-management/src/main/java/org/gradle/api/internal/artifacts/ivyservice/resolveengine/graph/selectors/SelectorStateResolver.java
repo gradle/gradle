@@ -74,7 +74,10 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
     private List<T> resolveSelectors(List<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
         if (selectors.size() == 1) {
             ResolvableSelectorState selectorState = selectors.get(0);
-            return resolveSingleSelector(selectorState, allRejects);
+            // Short-circuit selector merging for single selector without 'prefer'
+            if (selectorState.getVersionConstraint() == null || selectorState.getVersionConstraint().getPreferredSelector() == null) {
+                return resolveSingleSelector(selectorState, allRejects);
+            }
         }
 
         List<T> results = buildResolveResults(selectors, allRejects);
@@ -86,6 +89,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
     }
 
     private List<T> resolveSingleSelector(ResolvableSelectorState selectorState, VersionSelector allRejects) {
+        assert selectorState.getVersionConstraint() == null || selectorState.getVersionConstraint().getPreferredSelector() == null;
         ComponentIdResolveResult resolved = selectorState.resolve(allRejects);
         T selected = SelectorStateResolverResults.componentForIdResolveResult(componentFactory, resolved, selectorState);
         return Collections.singletonList(selected);
@@ -101,12 +105,11 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         List<ResolvableSelectorState> preferSelectors = null;
         for (ResolvableSelectorState selector : selectors) {
             // Defer prefer selectors until all other selectors are processed
-            if (isPrefer(selector)) {
+            if (hasPrefer(selector)) {
                 if (preferSelectors == null) {
                     preferSelectors = Lists.newArrayListWithCapacity(selectors.size());
                 }
                 preferSelectors.add(selector);
-                continue;
             }
 
             processPrimarySelector(results, selector, allRejects);
@@ -117,8 +120,12 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         return results.getResolved(componentFactory);
     }
 
-    private boolean isPrefer(ResolvableSelectorState selector) {
-        return selector.getVersionConstraint() != null && selector.getVersionConstraint().isPrefer();
+    private boolean hasPrefer(ResolvableSelectorState selector) {
+        return selector.getVersionConstraint() != null && selector.getVersionConstraint().getPreferredSelector() != null;
+    }
+
+    private boolean hasRequire(ResolvableSelectorState selector) {
+        return selector.getVersionConstraint() == null || !selector.getVersionConstraint().getRequiredSelector().getSelector().isEmpty();
     }
 
     /**
@@ -151,7 +158,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         // Resolve the 'prefer' selectors as secondary: will disambiguate, but not add new results.
         TreeSet<ComponentIdResolveResult> preferResults = Sets.newTreeSet(new DescendingResolveResultComparator());
         for (ResolvableSelectorState selector : preferSelectors) {
-            ComponentIdResolveResult resolvedPreference = selector.resolve(allRejects);
+            ComponentIdResolveResult resolvedPreference = selector.resolvePrefer(allRejects);
             // Ignore failure resolving a 'prefer' constraint.
             if (resolvedPreference.getFailure() == null) {
                 preferResults.add(resolvedPreference);

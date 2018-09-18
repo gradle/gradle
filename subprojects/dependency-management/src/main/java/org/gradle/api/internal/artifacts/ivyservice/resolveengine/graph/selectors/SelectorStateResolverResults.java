@@ -150,11 +150,11 @@ class SelectorStateResolverResults {
         if (versionConstraint == null) {
             return dep.getSelector().matchesStrictly(candidate.getId());
         }
-        VersionSelector preferredSelector = versionConstraint.getPreferredSelector();
-        if (preferredSelector == null || !preferredSelector.canShortCircuitWhenVersionAlreadyPreselected()) {
+        VersionSelector versionSelector = versionConstraint.getRequiredSelector();
+        if (versionSelector == null || !versionSelector.canShortCircuitWhenVersionAlreadyPreselected()) {
             return false;
         }
-        return preferredSelector.accept(candidate.getModuleVersionId().getVersion());
+        return versionSelector.accept(candidate.getModuleVersionId().getVersion());
     }
 
     public boolean isEmpty() {

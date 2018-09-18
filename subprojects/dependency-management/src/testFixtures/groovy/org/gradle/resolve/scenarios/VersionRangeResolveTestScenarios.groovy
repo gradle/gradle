@@ -78,7 +78,6 @@ class VersionRangeResolveTestScenarios {
         versions: [RANGE_10_12],
         expected: "12"
     ).and(
-        ignore: true,
         versions: [RANGE_10_12_AND_PREFER_11],
         expected: "11"
     )
@@ -130,7 +129,8 @@ class VersionRangeResolveTestScenarios {
     ).and(
         versions: [PREFER_11, FIXED_12],
         expected: "12",
-        expectedStrict: [IGNORE, "12"]
+        expectedStrict: [IGNORE, "12"],
+        conflicts: true // TODO:DAZ Should not be any conflict resolution here
     ).and(
         versions: [PREFER_12, RANGE_10_11],
         expected: "11",
@@ -146,7 +146,8 @@ class VersionRangeResolveTestScenarios {
     ).and(
         versions: [PREFER_11, RANGE_12_14],
         expected: "13",
-        expectedStrict: [IGNORE, "13"]
+        expectedStrict: [IGNORE, "13"],
+        conflicts: true // TODO:DAZ Should not be any conflict resolution here
     ).and(
         versions: [PREFER_11, PREFER_12, RANGE_10_14],
         expected: "12",

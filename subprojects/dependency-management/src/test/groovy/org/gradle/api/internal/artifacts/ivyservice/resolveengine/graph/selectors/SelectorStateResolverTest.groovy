@@ -206,9 +206,8 @@ class SelectorStateResolverTest extends Specification {
 
         then:
         selected.version == "10"
-        missingLow.resolved.failure instanceof ModuleVersionNotFoundException
-        missingLow.resolved.failure instanceof ModuleVersionNotFoundException
-        missingHigh.resolved.failure instanceof ModuleVersionNotFoundException
+        missingLow.requireResult.failure instanceof ModuleVersionNotFoundException
+         missingHigh.requireResult.failure instanceof ModuleVersionNotFoundException
     }
 
     def "rethrows failure when all selectors fail to resolve"() {
@@ -255,7 +254,7 @@ class SelectorStateResolverTest extends Specification {
                 new TestModuleSelectorState(componentIdResolver, version.versionConstraint)
             }
             def currentSelection = ssr.selectBest(moduleId, selectors)
-            if (selectors.any { it.resolved?.failure != null }) {
+            if (selectors.any { it.requireResult?.failure != null || it.preferResult?.failure != null }) {
                 return VersionRangeResolveTestScenarios.FAILED
             }
             if (currentSelection.isRejected()) {

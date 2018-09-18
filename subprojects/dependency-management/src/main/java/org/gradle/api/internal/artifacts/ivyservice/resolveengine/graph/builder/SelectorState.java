@@ -70,7 +70,8 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private final ImmutableAttributesFactory attributesFactory;
     private final Set<ComponentSelectionDescriptorInternal> dependencyReasons = Sets.newLinkedHashSet();
 
-    private ComponentIdResolveResult idResolveResult;
+    private ComponentIdResolveResult preferResult;
+    private ComponentIdResolveResult requireResult;
     private ModuleVersionResolveException failure;
     private ModuleResolveState targetModule;
     private boolean resolved;
@@ -159,23 +160,34 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
      */
     @Override
     public ComponentIdResolveResult resolve(VersionSelector allRejects) {
-        if (!requiresResolve(allRejects)) {
-            return idResolveResult;
+        VersionSelector requiredSelector = versionConstraint == null ? null : versionConstraint.getRequiredSelector();
+        requireResult = resolve(requiredSelector, allRejects, requireResult);
+        return requireResult;
+    }
+
+    @Override
+    public ComponentIdResolveResult resolvePrefer(VersionSelector allRejects) {
+        VersionSelector preferredSelector = versionConstraint == null ? null : versionConstraint.getPreferredSelector();
+        preferResult = resolve(preferredSelector, allRejects, preferResult);
+        return preferResult;
+    }
+
+    private ComponentIdResolveResult resolve(VersionSelector selector, VersionSelector rejector, ComponentIdResolveResult previousResult) {
+        if (!requiresResolve(previousResult, rejector)) {
+            return previousResult;
         }
 
         BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
         if (dependencyState.failure != null) {
             idResolveResult.failed(dependencyState.failure);
         } else {
-            VersionSelector selector = versionConstraint == null ? null : versionConstraint.getPreferredSelector();
-            resolver.resolve(firstSeenDependency, selector, allRejects, idResolveResult);
+            resolver.resolve(firstSeenDependency, selector, rejector, idResolveResult);
         }
 
         if (idResolveResult.getFailure() != null) {
             failure = idResolveResult.getFailure();
         }
 
-        this.idResolveResult = idResolveResult;
         this.resolved = true;
         return idResolveResult;
     }
@@ -185,28 +197,28 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         this.failure = failure;
         BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
         idResolveResult.failed(failure);
-        this.idResolveResult = idResolveResult;
-
+        this.requireResult = idResolveResult;
+        this.preferResult = idResolveResult;
     }
 
-    private boolean requiresResolve(VersionSelector allRejects) {
+    private boolean requiresResolve(ComponentIdResolveResult previousResult, VersionSelector allRejects) {
         // If we've never resolved, must resolve
-        if (idResolveResult == null) {
+        if (previousResult == null) {
             return true;
         }
 
         // If previous resolve failed, no point in re-resolving
-        if (idResolveResult.getFailure() != null) {
+        if (previousResult.getFailure() != null) {
             return false;
         }
 
         // If the previous result was rejected, do not need to re-resolve (new rejects will be a superset of previous rejects)
-        if (idResolveResult.isRejected()) {
+        if (previousResult.isRejected()) {
             return false;
         }
 
         // If the previous result is still not rejected, do not need to re-resolve. The previous result is still good.
-        if (allRejects == null || !allRejects.accept(idResolveResult.getModuleVersionId().getVersion())) {
+        if (allRejects == null || !allRejects.accept(previousResult.getModuleVersionId().getVersion())) {
             return false;
         }
 

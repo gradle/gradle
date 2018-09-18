@@ -39,7 +39,8 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
     private final DependencyToComponentIdResolver resolver;
     private final DefaultResolvedVersionConstraint resolvedVersionConstraint;
     private final VersionConstraint versionConstraint;
-    public ComponentIdResolveResult resolved;
+    public ComponentIdResolveResult requireResult;
+    public ComponentIdResolveResult preferResult;
 
     public TestModuleSelectorState(DependencyToComponentIdResolver resolver, VersionConstraint versionConstraint) {
         this.resolver = resolver;
@@ -64,14 +65,24 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
 
     @Override
     public ComponentIdResolveResult resolve(VersionSelector allRejects) {
-        if (resolved != null) {
-            return resolved;
+        requireResult = doResolve(resolvedVersionConstraint.getRequiredSelector(), allRejects, requireResult);
+        return requireResult;
+    }
+
+    @Override
+    public ComponentIdResolveResult resolvePrefer(VersionSelector allRejects) {
+        preferResult = doResolve(resolvedVersionConstraint.getPreferredSelector(), allRejects, preferResult);
+        return preferResult;
+    }
+
+    private ComponentIdResolveResult doResolve(VersionSelector acceptor, VersionSelector rejector, ComponentIdResolveResult previousResult) {
+        if (previousResult != null) {
+            return previousResult;
         }
 
         BuildableComponentIdResolveResult result = new DefaultBuildableComponentIdResolveResult();
-        resolver.resolve(null, resolvedVersionConstraint.getPreferredSelector(), allRejects, result);
-        resolved = result;
-        return resolved;
+        resolver.resolve(null, acceptor, rejector, result);
+        return result;
     }
 
     @Override

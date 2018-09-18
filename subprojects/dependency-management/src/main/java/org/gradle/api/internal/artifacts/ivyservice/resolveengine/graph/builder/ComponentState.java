@@ -446,7 +446,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
                 if (!rejectedByThisSelector.isEmpty()) {
                     descriptor = descriptor.withReason(new RejectedBySelectorReason(rejectedByThisSelector, descriptor));
                 } else {
-                    rejectedByThisSelector = rejectedBySelectors.get(selectorState.getVersionConstraint().getPreferredSelector());
+                    rejectedByThisSelector = rejectedBySelectors.get(selectorState.getVersionConstraint().getRequiredSelector());
                     if (!rejectedByThisSelector.isEmpty()) {
                         descriptor = descriptor.withReason(new UnmatchedVersionsReason(rejectedByThisSelector, descriptor));
                     }
