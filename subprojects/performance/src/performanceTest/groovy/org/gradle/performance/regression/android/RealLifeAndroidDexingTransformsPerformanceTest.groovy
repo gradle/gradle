@@ -23,6 +23,7 @@ import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.fixture.GradleInvocationSpec
 import org.gradle.performance.results.BaselineVersion
 import org.gradle.performance.results.CrossBuildPerformanceResults
+import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.util.GFileUtils
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
@@ -34,9 +35,9 @@ class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildP
     public static final String DEXING_TASK = "dexing task"
 
     @Unroll
-    def "dexing task vs transform: #tasks on #testProject without (android/transform) cache"() {
+    def "dexing task vs transform: #tasks on #testProject #withOrWithout (android/transform) cache"() {
         given:
-        def invocationOptions = [tasks: tasks, memory: memory, enableAndroidBuildCache: false]
+        def invocationOptions = [tasks: tasks, memory: memory, enableAndroidBuildCache: enableCaches]
 
         runner.testGroup = "Android dexing"
         runner.buildSpec {
@@ -44,7 +45,9 @@ class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildP
             displayName(DEXING_TRANSFORM)
             warmUpCount warmUpRuns
             invocationCount runs
-            listener(cleanTransformsCache())
+            if (!enableCaches) {
+                listener(cleanTransformsCacheBeforeInvocation())
+            }
             invocation {
                 defaultInvocation(*:invocationOptions, dexingTransforms: true, delegate)
             }
@@ -55,7 +58,9 @@ class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildP
             displayName(DEXING_TASK)
             warmUpCount warmUpRuns
             invocationCount runs
-            listener(cleanTransformsCache())
+            if (!enableCaches) {
+                listener(cleanTransformsCacheBeforeInvocation())
+            }
             invocation {
                 defaultInvocation(*:invocationOptions, dexingTransforms: false, delegate)
             }
@@ -70,53 +75,13 @@ class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildP
         assertDexingTransformIsFaster(results)
 
         where:
-        testProject         | memory | warmUpRuns | runs | tasks
-        'largeAndroidBuild' | '5g'   | 2          | 4    | 'clean assembleDebug'
+        testProject         | memory | warmUpRuns | runs | tasks                 | enableCaches
+        'largeAndroidBuild' | '5g'   | 2          | 8    | 'clean assembleDebug' | true
+        'largeAndroidBuild' | '5g'   | 2          | 8    | 'clean assembleDebug' | false
+        withOrWithout = enableCaches ? "with" : "without"
     }
 
-    @Unroll
-    def "dexing task vs transform: #tasks on #testProject"() {
-        given:
-        def dexingTransform = DEXING_TRANSFORM
-        def dexingTask = DEXING_TASK
-
-        def invocationOptions = [tasks: tasks, memory: memory, enableAndroidBuildCache: true]
-
-        runner.testGroup = "Android dexing"
-        runner.buildSpec {
-            projectName(testProject)
-            displayName(dexingTransform)
-            warmUpCount warmUpRuns
-            invocationCount runs
-            invocation {
-                defaultInvocation(*:invocationOptions, dexingTransforms: true, delegate)
-            }
-        }
-
-        runner.baseline {
-            projectName(testProject)
-            displayName(dexingTask)
-            warmUpCount warmUpRuns
-            invocationCount runs
-            invocation {
-                defaultInvocation(*:invocationOptions, dexingTransforms: false, delegate)
-            }
-        }
-
-        when:
-        def results = runner.run()
-
-        then:
-        results.assertEveryBuildSucceeds()
-        and:
-        assertDexingTransformIsFaster(results)
-
-        where:
-        testProject         | memory | warmUpRuns | runs | tasks
-        'largeAndroidBuild' | '5g'   | 2          | 4    | 'clean assembleDebug'
-    }
-
-    private static BuildExperimentListenerAdapter cleanTransformsCache() {
+    private static BuildExperimentListenerAdapter cleanTransformsCacheBeforeInvocation() {
         new BuildExperimentListenerAdapter() {
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
@@ -139,8 +104,8 @@ class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildP
     }
 
     private static void assertDexingTransformIsFaster(CrossBuildPerformanceResults results) {
-        def transformResults = results.buildResult(DEXING_TRANSFORM)
-        BaselineVersion taskResults = dexingTaskResult(results)
+        def transformResults = getDexingByTransformResults(results)
+        def taskResults = getDexingByTaskResult(results)
         def speedStats = taskResults.getSpeedStatsAgainst(DEXING_TRANSFORM, transformResults)
         println(speedStats)
         if (taskResults.significantlyFasterThan(transformResults)) {
@@ -149,7 +114,11 @@ class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildP
 
     }
 
-    private static BaselineVersion dexingTaskResult(CrossBuildPerformanceResults result) {
+    private static MeasuredOperationList getDexingByTransformResults(CrossBuildPerformanceResults results) {
+        results.buildResult(DEXING_TRANSFORM)
+    }
+
+    private static BaselineVersion getDexingByTaskResult(CrossBuildPerformanceResults result) {
         def taskResults = new BaselineVersion("")
         taskResults.with {
             results.name = DEXING_TASK
