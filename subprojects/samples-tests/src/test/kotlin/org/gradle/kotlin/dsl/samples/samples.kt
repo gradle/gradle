@@ -4,6 +4,8 @@ import org.gradle.kotlin.dsl.fixtures.loadPropertiesFrom
 import org.gradle.kotlin.dsl.fixtures.mergePropertiesInto
 import org.gradle.kotlin.dsl.fixtures.rootProjectDir
 
+import org.junit.Assume
+
 import java.io.File
 
 
@@ -34,3 +36,8 @@ fun withMergedGradleProperties(gradlePropertiesFile: File, action: () -> Unit) {
 private
 fun loadThenDeletePropertiesFrom(file: File) =
     loadPropertiesFrom(file).also { file.delete() }
+
+
+internal
+fun assumeAndroidHomeEnvVariableIsSet() =
+    Assume.assumeTrue(System.getenv().containsKey("ANDROID_HOME"))
