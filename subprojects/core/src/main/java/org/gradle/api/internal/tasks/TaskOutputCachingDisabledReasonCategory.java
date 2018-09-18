@@ -42,15 +42,6 @@ public enum TaskOutputCachingDisabledReasonCategory {
     NO_OUTPUTS_DECLARED,
 
     /**
-     * Task has outputs declared via {@literal @}{@link org.gradle.api.tasks.OutputFiles} or {@literal @}{@link org.gradle.api.tasks.OutputDirectories}.
-     *
-     * @deprecated Simply having plural outputs is not a reason anymore to disable caching since Gradle 5.0
-     * The enum cannot be removed as build scan plugin depends on it.
-     */
-    @Deprecated
-    PLURAL_OUTPUTS,
-
-    /**
      * Task has a {@link org.gradle.api.file.FileTree} or {@link org.gradle.api.internal.file.collections.DirectoryFileTree} as an output.
      *
      * @since 5.0
