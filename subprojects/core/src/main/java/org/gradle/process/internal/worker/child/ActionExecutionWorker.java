@@ -17,6 +17,7 @@
 package org.gradle.process.internal.worker.child;
 
 import org.gradle.api.Action;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.service.ServiceRegistry;
@@ -78,6 +79,15 @@ public class ActionExecutionWorker implements Action<WorkerContext>, Serializabl
         Thread.currentThread().setContextClassLoader(action.getClass().getClassLoader());
 
         NativeServices.initialize(gradleUserHomeDir, false);
+
+        clientConnection.addUnrecoverableErrorHandler(new Action<Throwable>() {
+            @Override
+            public void execute(Throwable throwable) {
+                if (action instanceof Stoppable) {
+                    ((Stoppable) action).stop();
+                }
+            }
+        });
 
         try {
             action.execute(context);
