@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.NamedDomainObjectContainer;
@@ -40,7 +41,6 @@ import org.gradle.internal.typeconversion.NotationParser;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -100,15 +100,18 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
 
             @Override
             public Set<? extends OutgoingVariant> getChildren() {
-                Set<OutgoingVariant> result = new LinkedHashSet<OutgoingVariant>();
                 PublishArtifactSet allArtifactSet = allArtifacts.getPublishArtifactSet();
-                if (allArtifactSet.size() > 0 || variants == null) {
-                    result.add(new LeafOutgoingVariant(displayName, attributes, allArtifactSet));
+                LeafOutgoingVariant leafOutgoingVariant = new LeafOutgoingVariant(displayName, attributes, allArtifactSet);
+                if (variants == null) {
+                    return Collections.singleton(leafOutgoingVariant);
                 }
-                if (variants != null) {
-                    for (DefaultVariant variant : variants.withType(DefaultVariant.class)) {
-                        result.add(variant.convertToOutgoingVariant());
-                    }
+                boolean hasArtifacts = !allArtifactSet.isEmpty();
+                Set<OutgoingVariant> result = Sets.newLinkedHashSetWithExpectedSize(hasArtifacts ? 1 + variants.size() : variants.size());
+                if (hasArtifacts) {
+                    result.add(leafOutgoingVariant);
+                }
+                for (DefaultVariant variant : variants.withType(DefaultVariant.class)) {
+                    result.add(variant.convertToOutgoingVariant());
                 }
                 return result;
             }
