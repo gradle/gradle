@@ -16,6 +16,7 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Task
+import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 
@@ -84,6 +85,17 @@ operator fun <U : Task> ExistingDomainObjectDelegateProviderWithType<out TaskCon
     property: KProperty<*>
 ) = ExistingDomainObjectDelegate(
     delegateProvider.named(property.name, type)
+)
+
+
+/**
+ * Provides a [TaskProvider] delegate for the task of the given type named after the property after configuring it with the given action.
+ */
+operator fun <U : Task> ExistingDomainObjectDelegateProviderWithTypeAndAction<out TaskContainer, U>.provideDelegate(
+    receiver: Any?,
+    property: KProperty<*>
+) = ExistingDomainObjectDelegate(
+    delegateProvider.named(property.name, type).apply { configure(action) }
 )
 
 
@@ -175,29 +187,29 @@ class TaskContainerScope(val container: TaskContainer) : TaskContainer by contai
 /**
  * Locates a task by name and type, without triggering its creation or configuration, failing if there is no such task.
  *
- * @see [TaskContainer.named]
+ * @see [TaskCollection.named]
  */
 @Suppress("extension_shadowed_by_member")
-inline fun <reified T : Task> TaskContainer.named(name: String): TaskProvider<T> =
+inline fun <reified T : Task> TaskCollection<out Task>.named(name: String): TaskProvider<T> =
     named(name, T::class)
 
 
 /**
  * Locates a task by name and type, without triggering its creation or configuration, failing if there is no such task.
  *
- * @see [TaskContainer.named]
+ * @see [TaskCollection.named]
  */
-fun <T : Task> TaskContainer.named(name: String, type: KClass<T>): TaskProvider<T> =
+fun <T : Task> TaskCollection<out Task>.named(name: String, type: KClass<T>): TaskProvider<T> =
     named(name, type) {}
 
 
 /**
  * Configures a task by name and type, without triggering its creation or configuration, failing if there is no such task.
  *
- * @see [TaskContainer.named]
+ * @see [TaskCollection.named]
  * @see [TaskProvider.configure]
  */
-fun <T : Task> TaskContainer.named(name: String, type: KClass<T>, configuration: T.() -> Unit): TaskProvider<T> =
+fun <T : Task> TaskCollection<out Task>.named(name: String, type: KClass<T>, configuration: T.() -> Unit): TaskProvider<T> =
     uncheckedCast(named(name).also { provider ->
         provider.configure { obj ->
             configuration(
@@ -206,6 +218,37 @@ fun <T : Task> TaskContainer.named(name: String, type: KClass<T>, configuration:
             )
         }
     })
+
+
+/**
+ * Configures a task by name and type, without triggering its creation or configuration, failing if there is no such task.
+ *
+ * @see [TaskCollection.named]
+ * @see [TaskProvider.configure]
+ */
+inline fun <reified T : Task> TaskCollection<out Task>.named(name: String, noinline configuration: T.() -> Unit): TaskProvider<T> =
+    named<T>(name).apply {
+        configure(configuration)
+    }
+
+
+/**
+ * Defines a new object, which will be created when it is required.
+ *
+ * @see [TaskContainer.register]
+ */
+@Suppress("extension_shadowed_by_member")
+inline fun <reified T : Task> TaskContainer.register(name: String): TaskProvider<T> =
+    register(name, T::class.java)
+
+
+/**
+ * Defines and configure a new object, which will be created when it is required.
+ *
+ * @see [TaskContainer.register]
+ */
+inline fun <reified T : Task> TaskContainer.register(name: String, noinline configuration: T.() -> Unit): TaskProvider<T> =
+    register(name, T::class.java, configuration)
 
 
 /**
