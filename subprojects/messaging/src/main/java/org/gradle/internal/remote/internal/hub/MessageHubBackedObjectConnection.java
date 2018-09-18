@@ -18,6 +18,7 @@ package org.gradle.internal.remote.internal.hub;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.Printer;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -55,9 +56,11 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
     private volatile boolean aborted;
 
     public MessageHubBackedObjectConnection(ExecutorFactory executorFactory, ConnectCompletion completion) {
+        Printer.print("Create MessageHub");
         Action<Throwable> errorHandler = new Action<Throwable>() {
             public void execute(Throwable throwable) {
                 if (!aborted) {
+                    Printer.print(throwable);
                     LOGGER.error("Unexpected exception thrown.", throwable);
                 }
             }
