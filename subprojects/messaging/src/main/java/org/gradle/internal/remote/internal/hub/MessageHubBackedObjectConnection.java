@@ -47,7 +47,7 @@ import java.util.Set;
 public class MessageHubBackedObjectConnection implements ObjectConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageHubBackedObjectConnection.class);
     private final MessageHub hub;
-    private final List<Action<Throwable>> unrecoverableErrorHandlers = new ArrayList<>();
+    private final List<Action<Throwable>> unrecoverableErrorHandlers = new ArrayList<Action<Throwable>>();
     private ConnectCompletion completion;
     private RemoteConnection<InterHubMessage> connection;
     //    private ClassLoader methodParamClassLoader;
