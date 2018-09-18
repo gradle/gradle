@@ -41,7 +41,7 @@ class ScenarioBuildResultData {
     }
 
     double getRegressionSortKey() {
-        return executions.empty ? Double.NEGATIVE_INFINITY : executions[0].confidencePercentage * executions[0].regressionPercentage
+        return executions.empty ? Double.NEGATIVE_INFINITY : executions[0].confidencePercentage * Math.signum(executions[0].regressionPercentage)
     }
 
     List<ExecutionData> getExecutions() {

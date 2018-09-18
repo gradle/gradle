@@ -90,7 +90,8 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
             .filter(testExecution -> !testExecution.getTotalTime().isEmpty())
             .collect(Collectors.toList());
         if (nonEmptyExecutions.size() > 1) {
-            return new ScenarioBuildResultData.ExecutionData(performanceTestExecution.getStartTime(), getCommit(performanceTestExecution), nonEmptyExecutions.get(0), nonEmptyExecutions.get(1));
+            int size = nonEmptyExecutions.size();
+            return new ScenarioBuildResultData.ExecutionData(performanceTestExecution.getStartTime(), getCommit(performanceTestExecution), nonEmptyExecutions.get(size - 2), nonEmptyExecutions.get(size - 1));
         } else {
             return null;
         }
