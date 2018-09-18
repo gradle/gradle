@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts.component;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  * @since 1.10
  */
 @UsedByScanPlugin
-@Incubating
 public interface ProjectComponentSelector extends ComponentSelector {
     /**
      * The name of the build to select a project from.
