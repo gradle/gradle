@@ -101,13 +101,7 @@ class BuildOperationNotificationFixture {
 
     String registerListener() {
         listenerClass() + """
-        registrar.registerBuildScopeListener(listener)
-        """
-    }
-
-    String registerListenerWithDrainRecordings() {
-        listenerClass() + """
-        registrar.registerBuildScopeListenerAndReceiveStoredOperations(listener)
+        registrar.register(listener)
         """
     }
 
@@ -132,6 +126,11 @@ class BuildOperationNotificationFixture {
                             detailsType: startedNotification.notificationOperationDetails.getClass().getInterfaces()[0].getName(),
                             details: details, 
                             started: startedNotification.notificationOperationStartedTimestamp))
+                }
+                
+                @Override
+                void progress(${BuildOperationProgressNotification.name} progressNotification){
+                    // Do nothing
                 }
             
                 @Override
