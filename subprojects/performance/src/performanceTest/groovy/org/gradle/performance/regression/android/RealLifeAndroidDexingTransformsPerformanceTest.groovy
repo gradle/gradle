@@ -35,7 +35,7 @@ class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildP
     public static final String DEXING_TASK = "dexing task"
 
     @Unroll
-    def "dexing task vs transform: #tasksString on #testProject #withOrWithout (android/transform) cache"() {
+    def "dexing task vs transform - #tasksString on #testProject #withOrWithout (android/transform) cache"() {
         given:
         def invocationOptions = [tasks: tasksString, memory: memory, enableAndroidBuildCache: enableCaches]
 
