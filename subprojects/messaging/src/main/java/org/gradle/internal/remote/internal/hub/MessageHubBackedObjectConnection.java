@@ -56,24 +56,14 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
     private volatile boolean aborted;
 
     public MessageHubBackedObjectConnection(ExecutorFactory executorFactory, ConnectCompletion completion) {
-        Printer.print("Create MessageHub");
-        Action<Throwable> errorHandler = new Action<Throwable>() {
+        this(executorFactory, completion, new Action<Throwable>() {
             public void execute(Throwable throwable) {
-                if (!aborted) {
-                    Printer.print(throwable);
-                    new Thread() {
-                        public void run() {
-                            try {
-                                Printer.print("Start to abort!");
-                                abort();
-                            } catch (Throwable e) {
-                                Printer.print(e);
-                            }
-                        }
-                    }.start();
-                }
+                LOGGER.error("Unexpected exception thrown.", throwable);
             }
-        };
+        });
+    }
+
+    public MessageHubBackedObjectConnection(ExecutorFactory executorFactory, ConnectCompletion completion, Action<Throwable> errorHandler) {
         this.hub = new MessageHub(completion.toString(), executorFactory, errorHandler);
         this.completion = completion;
     }

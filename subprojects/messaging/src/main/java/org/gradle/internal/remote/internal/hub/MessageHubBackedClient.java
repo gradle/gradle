@@ -16,6 +16,7 @@
 
 package org.gradle.internal.remote.internal.hub;
 
+import org.gradle.api.Action;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.internal.OutgoingConnector;
@@ -31,7 +32,7 @@ public class MessageHubBackedClient implements MessagingClient {
         this.executorFactory = executorFactory;
     }
 
-    public ObjectConnection getConnection(Address address) {
-        return new MessageHubBackedObjectConnection(executorFactory, connector.connect(address));
+    public ObjectConnection getConnection(Address address, Action<Throwable> unrecoverableExceptionHandler) {
+        return new MessageHubBackedObjectConnection(executorFactory, connector.connect(address), unrecoverableExceptionHandler);
     }
 }

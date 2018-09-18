@@ -104,7 +104,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
             byte[] serializedWorker = decoder.readBinary();
 
             // Deserialize the worker action
-            Action<WorkerContext> action;
+            final Action<WorkerContext> action;
             try {
                 ObjectInputStream instr = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker), getClass().getClassLoader());
                 action = (Action<WorkerContext>) instr.readObject();
@@ -112,7 +112,16 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
 
-            connection = wrapConnection(messagingServices.get(MessagingClient.class).getConnection(serverAddress), action);
+            connection = messagingServices.get(MessagingClient.class).getConnection(serverAddress, new Action<Throwable>() {
+                @Override
+                public void execute(Throwable throwable) {
+                    Printer.print(throwable);
+                    Action a = action;
+                    if (a instanceof WorkerAction) {
+                        ((WorkerAction) a).stop();
+                    }
+                }
+            });
             workerLogEventListener = configureLogging(loggingManager, connection);
             if (shouldPublishJvmMemoryInfo) {
                 configureWorkerJvmMemoryInfoEvents(workerServices, connection);
@@ -146,66 +155,6 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         }
 
         return null;
-    }
-
-    private ObjectConnection wrapConnection(ObjectConnection connection, Action action) {
-        if (action instanceof WorkerAction) {
-            return new ObjectConnectionDecorator(connection, (WorkerAction) action);
-        } else {
-            return connection;
-        }
-    }
-
-    private static class ObjectConnectionDecorator implements ObjectConnection {
-        ObjectConnection delegate;
-        WorkerAction action;
-
-        public ObjectConnectionDecorator(ObjectConnection delegate, WorkerAction action) {
-            this.delegate = delegate;
-            this.action = action;
-        }
-
-        @Override
-        public void connect() {
-            delegate.connect();
-        }
-
-        @Override
-        public void requestStop() {
-            delegate.requestStop();
-        }
-
-        @Override
-        public void stop() {
-            Printer.print("decorator abort!");
-            delegate.stop();
-            action.stop();
-        }
-
-        @Override
-        public void abort() {
-            delegate.abort();
-        }
-
-        @Override
-        public <T> T addOutgoing(Class<T> type) {
-            return delegate.addOutgoing(type);
-        }
-
-        @Override
-        public <T> void addIncoming(Class<T> type, T instance) {
-            delegate.addIncoming(type, instance);
-        }
-
-        @Override
-        public void useJavaSerializationForParameters(ClassLoader incomingMessageClassLoader) {
-            delegate.useJavaSerializationForParameters(incomingMessageClassLoader);
-        }
-
-        @Override
-        public void useParameterSerializers(SerializerRegistry serializers) {
-            delegate.useParameterSerializers(serializers);
-        }
     }
 
     private WorkerLogEventListener configureLogging(LoggingManagerInternal loggingManager, ObjectConnection connection) {

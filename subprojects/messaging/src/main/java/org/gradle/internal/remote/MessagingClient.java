@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.remote;
 
+import org.gradle.api.Action;
+
 /**
  * A {@code MessagingClient} maintains a single bi-directional uni-cast object connection with some peer.
  */
@@ -24,5 +26,5 @@ public interface MessagingClient {
      *
      * @param address The address to connect to.
      */
-    ObjectConnection getConnection(Address address);
+    ObjectConnection getConnection(Address address, Action<Throwable> unrecoverableExceptionHandler);
 }
