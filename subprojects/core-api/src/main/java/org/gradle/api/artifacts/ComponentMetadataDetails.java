@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 
@@ -29,7 +28,6 @@ import java.util.List;
  *
  * @since 1.8
  */
-@Incubating
 @NonExtensible
 public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigurableAttributes<ComponentMetadataDetails> {
     /**
