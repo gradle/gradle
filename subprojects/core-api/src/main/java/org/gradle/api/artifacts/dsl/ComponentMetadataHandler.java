@@ -18,7 +18,6 @@ package org.gradle.api.artifacts.dsl;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.artifacts.ComponentMetadataRule;
 
@@ -55,7 +54,6 @@ import org.gradle.api.artifacts.ComponentMetadataRule;
  *
  * @since 1.8
  */
-@Incubating
 public interface ComponentMetadataHandler {
     /**
      * Adds a rule action that may modify the metadata of any resolved software component.
