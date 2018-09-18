@@ -120,6 +120,10 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     }
 
     private void findCompatibleCandidates() {
+        if (requested.isEmpty()) {
+            // Avoid iterating on candidates if there's no requested attribute
+            return;
+        }
         for (int c = 0; c < candidates.size(); c++) {
             matchCandidate(c);
         }
