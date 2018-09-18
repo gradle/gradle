@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.hash;
+package org.gradle.internal.snapshot;
 
-import javax.annotation.Nonnull;
-
-public class DefaultContentHasherFactory implements ContentHasherFactory {
-    private static final HashCode SIGNATURE = Hashing.signature(DefaultContentHasherFactory.class);
-
-    @Nonnull
-    @Override
-    public PrimitiveHasher create() {
-        PrimitiveHasher hasher = Hashing.newPrimitiveHasher();
-        hasher.putHash(SIGNATURE);
-        return hasher;
-    }
+/**
+ * This service can tell whether a file is in a location controlled by Gradle,
+ * which usually allows for more optimization than user-provided files.
+ */
+public interface WellKnownFileLocations {
+    boolean isImmutable(String path);
 }

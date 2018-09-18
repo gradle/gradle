@@ -18,9 +18,9 @@ package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -65,7 +65,7 @@ public class AbsolutePathFingerprintCompareStrategy implements FingerprintCompar
     }
 
     @Override
-    public void appendToHasher(BuildCacheHasher hasher, Collection<FileSystemLocationFingerprint> fingerprints) {
+    public void appendToHasher(Hasher hasher, Collection<FileSystemLocationFingerprint> fingerprints) {
         NormalizedPathFingerprintCompareStrategy.appendSortedToHasher(hasher, fingerprints);
     }
 }

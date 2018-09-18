@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
-import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.hash.Hasher;
 
 abstract class AbstractMetadataSource<S extends MutableModuleComponentResolveMetadata> implements MetadataSource<S> {
     @Override
-    public void appendId(BuildCacheHasher hasher) {
+    public void appendId(Hasher hasher) {
         hasher.putString(this.getClass().getName());
     }
 }

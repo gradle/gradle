@@ -18,8 +18,8 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Objects;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 
 import java.io.ByteArrayInputStream;
@@ -77,7 +77,7 @@ public class SerializedValueSnapshot implements ValueSnapshot {
     }
 
     @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
+    public void appendToHasher(Hasher hasher) {
         if (implementationHash == null) {
             hasher.putNull();
         } else {

@@ -38,7 +38,7 @@ import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.hash.Hasher;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -229,7 +229,7 @@ public class JavaLibrary implements SoftwareComponentInternal {
                 }
 
                 @Override
-                public void appendToHasher(BuildCacheHasher hasher) {
+                public void appendToHasher(Hasher hasher) {
                     throw new UnsupportedOperationException();
                 }
             };

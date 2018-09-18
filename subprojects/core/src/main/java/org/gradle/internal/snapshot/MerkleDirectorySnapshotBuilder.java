@@ -16,9 +16,8 @@
 
 package org.gradle.internal.snapshot;
 
-import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 
 import javax.annotation.Nullable;
@@ -29,7 +28,7 @@ import java.util.Deque;
 import java.util.List;
 
 public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotVisitor {
-    private static final HashCode DIR_SIGNATURE = Hashing.md5().hashString("DIR");
+    private static final HashCode DIR_SIGNATURE = Hashing.signature("DIR");
 
     private final RelativePathSegmentsTracker relativePathSegmentsTracker = new RelativePathSegmentsTracker();
     private final Deque<List<FileSystemLocationSnapshot>> levelHolder = new ArrayDeque<List<FileSystemLocationSnapshot>>();
@@ -89,7 +88,7 @@ public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotVisitor
         if (sortingRequired) {
             Collections.sort(children, FileSystemLocationSnapshot.BY_NAME);
         }
-        BuildCacheHasher hasher = new DefaultBuildCacheHasher();
+        Hasher hasher = Hashing.newHasher();
         hasher.putHash(DIR_SIGNATURE);
         for (FileSystemLocationSnapshot child : children) {
             hasher.putString(child.getName());
