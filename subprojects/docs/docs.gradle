@@ -27,6 +27,7 @@ import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.ProjectGroups
 import org.gradle.gradlebuild.PublicApi
 import org.gradle.gradlebuild.docs.PegDown
+import org.gradle.gradlebuild.docs.SitemapGenerator
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
@@ -86,15 +87,16 @@ gradlebuildJava {
 ext {
     srcDocsDir = file('src/docs')
     releaseFeaturesFile = file("$srcDocsDir/release/release-features.txt")
-    userguideSrcDir = new File(srcDocsDir, 'userguide')
-    userguideIntermediateOutputDir = new File(buildDir, 'userguideIntermediate')
-    userguideSinglePageOutputDir = new File(buildDir, 'userguideSinglePage')
-    dslSrcDir = new File(srcDocsDir, 'dsl')
+    userguideSrcDir = file("$srcDocsDir/userguide")
+    userguideIntermediateOutputDir = file("$buildDir/userguideIntermediate")
+    userguideSinglePageOutputDir = file("$buildDir/userguideSinglePage")
+    dslSrcDir = file("$srcDocsDir/dsl")
     docsDir = file("$buildDir/docs")
-    userguideDir = new File(docsDir, 'userguide')
-    distDocsDir = new File(buildDir, 'distDocs')
+    sitemapDir = file("$buildDir/sitemap")
+    userguideDir = file("$docsDir/userguide")
+    distDocsDir = file("$buildDir/distDocs")
     samplesDir = file("$buildDir/samples")
-    docbookSrc = new File(project.buildDir, 'src')
+    docbookSrc = file("$buildDir/src")
     samplesSrcDir = file('src/samples')
 }
 
@@ -106,7 +108,7 @@ outputs.distDocs = files(distDocsDir) {
     builtBy 'distDocs'
 }
 outputs.docs = files(docsDir) {
-    builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
+    builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes', 'sitemap'
 }
 
 def configureCss = tasks.register("configureCss") {
@@ -402,6 +404,19 @@ releaseNotesMarkdown.configure {
     group = "release notes"
 }
 
+def generateSitemap = tasks.register("generateSitemap", SitemapGenerator) {
+    description = "Generate a sitemap.xml file for generated docs"
+    group = "documentation"
+
+    source docsDir
+    dest
+    urlBase = "https://docs.gradle.org/current/"
+    includes = ["**/*.html"]
+    excludes = ["**/getting-started.html", "**/javadoc/**/*-frame.html", "**/javadoc/**/*-tree.html", "**/javadoc/**/index-all.html", "**/javadoc/**/serialized-form.html"]
+
+    dependsOn userguide
+}
+
 def releaseNotes = tasks.register("releaseNotes", Copy) {
     group = "release notes"
     ext.fileName = "release-notes.html"
@@ -433,6 +448,13 @@ def copyReleaseFeatures = tasks.register("copyReleaseFeatures", Copy) {
     into generatedResourcesDir
 }
 
+def sitemap = tasks.register("sitemap", Copy) {
+    from sitemapDir
+    into docsDir
+
+    dependsOn generateSitemap
+}
+
 sourceSets.main.output.dir generatedResourcesDir, builtBy: [defaultImports, copyReleaseFeatures]
 
 tasks.named("test").configure {
@@ -446,7 +468,7 @@ tasks.named("test").configure {
 }
 
 tasks.register("docs") {
-    dependsOn javadocAll, userguide, distDocs, dslHtml, releaseNotes
+    dependsOn javadocAll, userguide, distDocs, dslHtml, releaseNotes, sitemap
     description = 'Generates all documentation'
     group = 'documentation'
 }

@@ -64,11 +64,15 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
         contentsDir.file('docs/userguide/userguide.html').assertContents(containsString("Gradle User Manual</h1>"))
         contentsDir.file('docs/userguide/userguide_single.html').assertIsFile()
         contentsDir.file('docs/userguide/userguide_single.html').assertContents(containsString("<h1>Gradle User Manual: Version ${version}</h1>"))
-//        contentsDir.file('docs/userguide/userguide.pdf').assertIsFile()
+        contentsDir.file('docs/userguide/userguide.pdf').assertIsFile()
 
         // DSL reference
         contentsDir.file('docs/dsl/index.html').assertIsFile()
         contentsDir.file('docs/dsl/index.html').assertContents(containsString("<title>Gradle DSL Version ${version}</title>"))
+
+        // Sitemap
+        contentsDir.file('docs/sitemap.xml').assertIsFile()
+        contentsDir.file('docs/sitemap.xml').assertContents(containsString("<urlset xmlns="))
     }
 
 }
