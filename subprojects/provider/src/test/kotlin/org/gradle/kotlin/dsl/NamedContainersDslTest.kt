@@ -28,7 +28,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
-class NamedContainersEvalTest : TestWithTempFiles() {
+class NamedContainersDslTest : TestWithTempFiles() {
 
     companion object {
 

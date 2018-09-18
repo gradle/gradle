@@ -36,7 +36,7 @@ import org.junit.Test
 import kotlin.reflect.KClass
 
 
-class TaskContainerEvalTest : TestWithTempFiles() {
+class TaskContainerDslTest : TestWithTempFiles() {
 
     companion object {
 
