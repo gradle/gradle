@@ -81,7 +81,6 @@ System.err.println 'this is stderr'
 
         then:
         progress.size() >= 2
-        // TODO:lptr I have no idea why this changed from pop() to removeLast()
         progress.removeLast() == ''
         progress.every { it }
     }
