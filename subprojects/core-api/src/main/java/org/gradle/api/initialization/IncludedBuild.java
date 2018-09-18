@@ -26,7 +26,6 @@ import java.io.File;
  *
  * @since 3.1
  */
-@Incubating
 public interface IncludedBuild {
     /**
      * The name of the included build.
