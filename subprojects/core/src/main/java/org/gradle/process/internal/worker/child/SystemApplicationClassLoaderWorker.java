@@ -33,6 +33,7 @@ import org.gradle.internal.remote.internal.inet.MultiChoiceAddressSerializer;
 import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
+import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
@@ -47,6 +48,7 @@ import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.OsMemoryInfo;
 import org.gradle.process.internal.worker.WorkerJvmMemoryInfoSerializer;
 import org.gradle.process.internal.worker.WorkerLoggingSerializer;
+import org.gradle.process.internal.worker.request.WorkerAction;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -109,7 +111,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
 
-            connection = messagingServices.get(MessagingClient.class).getConnection(serverAddress);
+            connection = wrapConnection(messagingServices.get(MessagingClient.class).getConnection(serverAddress), action);
             workerLogEventListener = configureLogging(loggingManager, connection);
             if (shouldPublishJvmMemoryInfo) {
                 configureWorkerJvmMemoryInfoEvents(workerServices, connection);
@@ -143,6 +145,65 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         }
 
         return null;
+    }
+
+    private ObjectConnection wrapConnection(ObjectConnection connection, Action action) {
+        if (action instanceof WorkerAction) {
+            return new ObjectConnectionDecorator(connection, (WorkerAction) action);
+        } else {
+            return connection;
+        }
+    }
+
+    private static class ObjectConnectionDecorator implements ObjectConnection {
+        ObjectConnection delegate;
+        WorkerAction action;
+
+        public ObjectConnectionDecorator(ObjectConnection delegate, WorkerAction action) {
+            this.delegate = delegate;
+            this.action = action;
+        }
+
+        @Override
+        public void connect() {
+            delegate.connect();
+        }
+
+        @Override
+        public void requestStop() {
+            delegate.requestStop();
+        }
+
+        @Override
+        public void stop() {
+            delegate.stop();
+            action.stop();
+        }
+
+        @Override
+        public void abort() {
+            delegate.abort();
+        }
+
+        @Override
+        public <T> T addOutgoing(Class<T> type) {
+            return delegate.addOutgoing(type);
+        }
+
+        @Override
+        public <T> void addIncoming(Class<T> type, T instance) {
+            delegate.addIncoming(type, instance);
+        }
+
+        @Override
+        public void useJavaSerializationForParameters(ClassLoader incomingMessageClassLoader) {
+            delegate.useJavaSerializationForParameters(incomingMessageClassLoader);
+        }
+
+        @Override
+        public void useParameterSerializers(SerializerRegistry serializers) {
+            delegate.useParameterSerializers(serializers);
+        }
     }
 
     private WorkerLogEventListener configureLogging(LoggingManagerInternal loggingManager, ObjectConnection connection) {
