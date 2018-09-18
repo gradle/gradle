@@ -16,7 +16,6 @@
 
 package org.gradle.internal.hash;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import org.gradle.internal.io.BufferCaster;
 import org.gradle.internal.io.NullOutputStream;
@@ -279,8 +278,7 @@ public class Hashing {
         }
     }
 
-    @VisibleForTesting
-    static class DefaultHasher implements Hasher {
+    private static class DefaultHasher implements Hasher {
         private final PrimitiveHasher hasher;
         private boolean valid = true;
 
@@ -360,7 +358,7 @@ public class Hashing {
         @Override
         public HashCode hash() {
             if (!valid) {
-                throw new IllegalStateException("Build cache hash is not valid");
+                throw new IllegalStateException("Hash is not valid");
             }
             return hasher.hash();
         }
