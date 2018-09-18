@@ -29,4 +29,9 @@ public interface AsyncWorkCompletion {
      * Returns true if the work item is completed.
      */
     boolean isComplete();
+
+    /**
+     * Cancels this work item.
+     */
+    void cancel();
 }

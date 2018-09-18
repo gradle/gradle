@@ -70,4 +70,80 @@ task someTask
         expect:
         succeeds(":a:classes", "--parallel")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/6735")
+    def "can depend on the source set of another Java project"() {
+        settingsFile << """
+            include 'java', 'scala'
+        """
+        buildFile << """
+            allprojects {
+                repositories {
+                    ${jcenterRepository()}
+                }
+            }
+            project(":java") {
+                apply plugin: 'java'
+            }
+            project(":scala") {
+                apply plugin: 'scala'
+                dependencies {
+                    compile("org.scala-lang:scala-library:2.12.6")
+                    compile(project(":java").sourceSets.main.output)
+                }
+            }
+        """
+        file("java/src/main/java/Bar.java") << """
+            public class Bar {}
+        """
+        file("scala/src/test/scala/Foo.scala") << """
+            trait Foo {
+                val bar: Bar
+            }
+        """
+        expect:
+        succeeds(":scala:testClasses")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/6750")
+    def "can depend on Scala project from other project"() {
+        settingsFile << """
+            include 'other', 'scala'
+        """
+        buildFile << """
+            allprojects {
+                repositories {
+                    ${jcenterRepository()}
+                }
+            }
+            project(":other") {
+                apply plugin: 'base'
+                configurations {
+                    conf
+                }
+                dependencies {
+                    conf(project(":scala"))
+                }
+                task resolve {
+                    dependsOn configurations.conf
+                    doLast {
+                        println configurations.conf.files
+                    }
+                }
+            }
+            project(":scala") {
+                apply plugin: 'scala'
+
+                dependencies {
+                    compile("org.scala-lang:scala-library:2.12.6")
+                }
+            }
+        """
+        file("scala/src/main/scala/Bar.scala") << """
+            class Bar {
+            }
+        """
+        expect:
+        succeeds(":other:resolve")
+    }
 }

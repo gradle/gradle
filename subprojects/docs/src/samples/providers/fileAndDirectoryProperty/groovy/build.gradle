@@ -1,35 +1,35 @@
-class FooExtension {
-    // A directory
-    final DirectoryProperty someDirectory
-    //  A file
-    final RegularFileProperty someFile
-    // A collection of files or directories
-    final ConfigurableFileCollection someFiles
+// A task that generates a source file and writes the result to an output directory
+class GenerateSource extends DefaultTask {
+    // The configuration file to use to generate the source file
+    @InputFile
+    final RegularFileProperty configFile = project.objects.fileProperty()
 
-    FooExtension(ObjectFactory objects, ProjectLayout layout) {
-        someDirectory = objects.directoryProperty()
-        someFile = objects.fileProperty()
-        someFiles = layout.configurableFiles()
+    // The directory to write source files to
+    @OutputDirectory
+    final DirectoryProperty outputDir = project.objects.directoryProperty()
+
+    @TaskAction
+    def compile() {
+        def inFile = configFile.get().asFile
+        logger.quiet("configuration file = $inFile")
+        def dir = outputDir.get().asFile
+        logger.quiet("output dir = $dir")
+        def className = inFile.text.trim()
+        def srcFile = new File(dir, "${className}.java")
+        srcFile.text = "public class ${className} { ... }"
     }
 }
 
-project.extensions.create('foo', FooExtension, project.objects, project.layout)
+// Create the source generation task
+task generate(type: GenerateSource) {
+    // Configure the locations, relative to the project and build directories
+    configFile = project.layout.projectDirectory.file('src/main/config.txt')
+    outputDir = project.layout.buildDirectory.dir('generated-source')
 
-foo {
-    // Configure the locations
-    someDirectory = project.layout.projectDirectory.dir('some-directory')
-    someFile = project.layout.buildDirectory.file('some-file')
-    someFiles.from(someDirectory, someFile)
+    // Note that a `File` instance can be used as a convenience to set a location
+    configFile = file('src/config.txt')
 }
 
-task print {
-    doLast {
-        def someDirectory = foo.someDirectory.get().asFile
-        logger.quiet("foo.someDirectory = " + someDirectory)
-        logger.quiet("foo.someFiles contains someDirectory? " + foo.someFiles.contains(someDirectory))
-
-        def someFile = foo.someFile.get().asFile
-        logger.quiet("foo.someFile = " + someFile)
-        logger.quiet("foo.someFiles contains someFile? " + foo.someFiles.contains(someFile))
-    }
-}
+// Change the build directory
+// Don't need to reconfigure the task properties. These are automatically updated as the build directory changes
+buildDir = 'output'

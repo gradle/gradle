@@ -28,7 +28,6 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.hash.HashingOutputStream;
-import org.gradle.internal.io.NullOutputStream;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.testing.internal.util.RetryUtil;
@@ -444,7 +443,7 @@ public class TestFile extends File {
     }
 
     public static HashCode md5(File file) {
-        HashingOutputStream hashingStream = new HashingOutputStream(Hashing.md5(), NullOutputStream.INSTANCE);
+        HashingOutputStream hashingStream = Hashing.primitiveStreamHasher();
         try {
             Files.copy(file, hashingStream);
         } catch (IOException e) {

@@ -67,7 +67,6 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
     private boolean resolvedDependencySubstitutions;
 
     private GradleLauncher gradleLauncher;
-    private boolean discardLauncher;
     private String name;
     private Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules;
 
@@ -212,7 +211,7 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
 
     @Override
     public void finishBuild() {
-        if (gradleLauncher == null || discardLauncher) {
+        if (gradleLauncher == null) {
             return;
         }
         gradleLauncher.finishBuild();
@@ -232,39 +231,16 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
 
     @Override
     public synchronized void execute(final Iterable<String> tasks, final Object listener) {
-        cleanupLauncherIfRequired();
-
         final GradleLauncher launcher = getGradleLauncher();
         launcher.addListener(listener);
         launcher.scheduleTasks(tasks);
         WorkerLeaseService workerLeaseService = launcher.getGradle().getServices().get(WorkerLeaseService.class);
-        try {
-            workerLeaseService.withSharedLease(parentLease, new Runnable() {
-                @Override
-                public void run() {
-                    launcher.executeTasks();
-                }
-            });
-        } finally {
-            markAsNotReusable();
-        }
-    }
-
-    private void cleanupLauncherIfRequired() {
-        if (gradleLauncher != null && discardLauncher) {
-            // Have already used the launcher to run tasks, need to replace it
-            try {
-                gradleLauncher.stop();
-            } finally {
-                gradleLauncher = null;
-                discardLauncher = false;
+        workerLeaseService.withSharedLease(parentLease, new Runnable() {
+            @Override
+            public void run() {
+                launcher.executeTasks();
             }
-        }
-    }
-
-    private void markAsNotReusable() {
-        // Hang on to the launcher, as other builds in progress may still have references to this build, for example through dependency resolution, even though the tasks of this build have completed
-        discardLauncher = true;
+        });
     }
 
     @Override
@@ -275,7 +251,6 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
             }
         } finally {
             gradleLauncher = null;
-            discardLauncher = false;
         }
     }
 }

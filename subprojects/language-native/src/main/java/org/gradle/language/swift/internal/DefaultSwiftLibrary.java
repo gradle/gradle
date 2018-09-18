@@ -53,7 +53,7 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
         this.configurations = configurations;
         this.developmentBinary = objectFactory.property(SwiftBinary.class);
 
-        linkage = new LockableSetProperty<Linkage>(objectFactory.setProperty(Linkage.class));
+        linkage = new LockableSetProperty<Linkage>(objectFactory.setProperty(Linkage.class)).empty();
         linkage.add(Linkage.SHARED);
 
         dependencies = objectFactory.newInstance(DefaultLibraryDependencies.class, getNames().withSuffix("implementation"), getNames().withSuffix("api"));

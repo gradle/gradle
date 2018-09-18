@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.hash.Hasher;
 
 /**
  * A resource normalizer which is configurable.
@@ -24,5 +24,5 @@ import org.gradle.caching.internal.BuildCacheHasher;
  * Allows tracking changes to its configuration.
  */
 public interface ConfigurableNormalizer {
-    void appendConfigurationToHasher(BuildCacheHasher hasher);
+    void appendConfigurationToHasher(Hasher hasher);
 }

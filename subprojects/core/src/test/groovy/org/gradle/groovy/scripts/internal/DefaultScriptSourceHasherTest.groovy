@@ -20,7 +20,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.hash.ContentHasherFactory
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.hash.Hasher
+import org.gradle.internal.hash.PrimitiveHasher
 import org.gradle.internal.resource.TextResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -56,7 +56,7 @@ class DefaultScriptSourceHasherTest extends Specification {
     def hashesContentWhenResourceIsNotBackedByFile() {
         def script = Mock(ScriptSource)
         def resource = Mock(TextResource)
-        def hasher = Mock(Hasher)
+        def hasher = Mock(PrimitiveHasher)
 
         when:
         def result = scriptHasher.hash(script)

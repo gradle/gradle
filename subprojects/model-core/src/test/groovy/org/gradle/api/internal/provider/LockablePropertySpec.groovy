@@ -41,6 +41,16 @@ abstract class LockablePropertySpec<T> extends Specification {
     abstract PropertyInternal<T> getTarget()
     abstract AbstractLockableProperty<T> getProperty()
 
+    def "cannot get value when locked and backing property had no value"() {
+        when:
+        property.lockNow()
+        property.get()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "No value has been specified for this provider."
+    }
+
     def "delegates to original property before property is locked"() {
         when:
         property.getType()
@@ -59,14 +69,14 @@ abstract class LockablePropertySpec<T> extends Specification {
 
         then:
         result == toMutable(someValue())
-        1 * target.getOrNull() >> toMutable(someValue())
+        1 * target.get() >> toMutable(someValue())
 
         when:
         def present = property.present
 
         then:
         !present
-        1 * target.getOrNull() >> null
+        1 * target.present >> false
 
         when:
         def transformer = Stub(Transformer)
@@ -79,8 +89,8 @@ abstract class LockablePropertySpec<T> extends Specification {
         then:
         result1 == 123
         result2 == 456
-        1 * target.getOrNull() >> toMutable(someValue())
-        1 * target.getOrNull() >> toMutable(someOtherValue())
+        1 * target.get() >> toMutable(someValue())
+        1 * target.get() >> toMutable(someOtherValue())
     }
 
     def "cannot set elements after property is locked"() {

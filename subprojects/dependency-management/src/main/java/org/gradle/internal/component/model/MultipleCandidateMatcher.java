@@ -208,12 +208,14 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
 
     private void disambiguateWithAttribute(int a) {
         Set<Object> candidateValues = getCandidateValues(a);
-        if (candidateValues.size() == 1) {
+        if (candidateValues.size() <= 1) {
             return;
         }
 
         Set<Object> matches = schema.disambiguate(getAttribute(a), getRequestedValue(a), candidateValues);
-        removeCandidatesWithValueNotIn(a, matches);
+        if (matches.size() < candidateValues.size()) {
+            removeCandidatesWithValueNotIn(a, matches);
+        }
     }
 
     private Set<Object> getCandidateValues(int a) {
@@ -225,6 +227,9 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         boolean first = true;
         for (int c = compatible.nextSetBit(0); c >= 0; c = compatible.nextSetBit(c + 1)) {
             Object candidateValue = getCandidateValue(c, a);
+            if (candidateValue == null) {
+                continue;
+            }
             if (first) {
                 // first match, just record the value. We can't use "null" as the candidate value may be null
                 compatibleValue = candidateValue;
@@ -239,7 +244,13 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
                 candidateValues.add(candidateValue);
             }
         }
-        return candidateValues == null ? Collections.singleton(compatibleValue) : candidateValues;
+        if (candidateValues == null) {
+            if (compatibleValue == null) {
+                return Collections.emptySet();
+            }
+            return Collections.singleton(compatibleValue);
+        }
+        return candidateValues;
     }
 
     private void removeCandidatesWithValueNotIn(int a, Set<Object> matchedValues) {

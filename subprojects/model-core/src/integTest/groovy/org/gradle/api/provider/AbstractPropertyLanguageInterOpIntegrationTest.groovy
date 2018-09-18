@@ -53,7 +53,8 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
     }
 
     def setup() {
-        usePluginRepositoryMirror()
+        executer.withRepositoryMirrors()
+        executer.withPluginRepositoryMirror()
         file("buildSrc/settings.gradle") << """
             include("plugin")
         """

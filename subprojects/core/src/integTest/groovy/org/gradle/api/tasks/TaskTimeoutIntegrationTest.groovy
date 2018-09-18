@@ -17,15 +17,15 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.workers.IsolationMode
-import spock.lang.Timeout
 import spock.lang.Unroll
 
 class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 
     private static final TIMEOUT = 500
 
-    @Timeout(30)
+    @IntegrationTestTimeout(60)
     def "fails when negative timeout is specified"() {
         given:
         buildFile << """
@@ -43,7 +43,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         result.assertNotOutput("Hello")
     }
 
-    @Timeout(30)
+    @IntegrationTestTimeout(60)
     def "timeout stops long running method call"() {
         given:
         buildFile << """
@@ -60,7 +60,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("task ':block' exceeded its timeout")
     }
 
-    @Timeout(30)
+    @IntegrationTestTimeout(60)
     def "other tasks still run after a timeout if --continue is used"() {
         given:
         buildFile << """
@@ -81,7 +81,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("task ':block' exceeded its timeout")
     }
 
-    @Timeout(30)
+    @IntegrationTestTimeout(60)
     def "timeout stops long running exec()"() {
         given:
         file('src/main/java/Block.java') << """ 
@@ -107,7 +107,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("task ':block' exceeded its timeout")
     }
 
-    @Timeout(30)
+    @IntegrationTestTimeout(60)
     def "timeout stops long running tests"() {
         given:
         (1..100).each { i ->
@@ -139,7 +139,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("task ':test' exceeded its timeout")
     }
 
-    @Timeout(30)
+    @IntegrationTestTimeout(60)
     @Unroll
     def "timeout stops long running work items with #isolationMode isolation"() {
         given:

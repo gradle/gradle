@@ -72,7 +72,7 @@ dependencies {
 
     testCompile "org.pegdown:pegdown:1.1.0"
     testCompile testLibraries.jsoup
-    testCompile "org.gebish:geb-spock:2.2"
+    testCompile("org.gebish:geb-spock:2.2")
     testCompile('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
     testCompile libraries.commons_httpclient.coordinates
     testCompile "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
@@ -254,7 +254,7 @@ def userguideSinglePage = tasks.register("userguideSinglePage", AsciidoctorTask)
 }
 
 def javaApiUrl = "https://docs.oracle.com/javase/7/docs/api"
-def groovyApiUrl = "http://docs.groovy-lang.org/docs/groovy-${libraries.groovy.version}/html/gapi"
+def groovyApiUrl = "http://docs.groovy-lang.org/docs/groovy-${groovyVersion}/html/gapi"
 def mavenApiUrl = "http://maven.apache.org/ref/${libraries.maven3.version}/maven-model/apidocs"
 
 def javadocAll = tasks.register("javadocAll", Javadoc) {

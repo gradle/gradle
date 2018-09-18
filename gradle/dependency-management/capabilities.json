@@ -44,6 +44,14 @@
         ],
         "selected": "org.slf4j:log4j-over-slf4j"
     },
+    {
+        "name": "groovy",
+        "providedBy": [
+            "org.codehaus.groovy:groovy",
+            "org.codehaus.groovy:groovy-all"
+        ],
+        "selected": "org.gradle.groovy:groovy-all"
+    },
 
     // forced upgrade: the following modules will automatically be replaced with the selected module
     // even if there's no conflict, and forces an upgrade to the specified version

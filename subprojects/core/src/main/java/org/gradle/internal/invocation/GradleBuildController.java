@@ -74,7 +74,9 @@ public class GradleBuildController implements BuildController {
         return doBuild(new Callable<GradleInternal>() {
             @Override
             public GradleInternal call() {
-                return getLauncher().executeTasks();
+                GradleInternal gradle = getLauncher().executeTasks();
+                getLauncher().finishBuild();
+                return gradle;
             }
         });
     }

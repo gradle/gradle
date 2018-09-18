@@ -21,10 +21,8 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.provider.ProviderInternal;
-import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppBinary;
@@ -135,9 +133,9 @@ public class CppModelBuilder implements ToolingModelBuilder {
     }
 
     private Task taskFor(Provider<RegularFile> buildableFile) {
-        ProviderInternal<RegularFile> container = Providers.internal(buildableFile);
+        TaskDependencyContainer container = (TaskDependencyContainer) buildableFile;
         TaskDependencyResolveContextImpl context = new TaskDependencyResolveContextImpl();
-        container.maybeVisitBuildDependencies(context);
+        container.visitDependencies(context);
         return context.task;
     }
 
@@ -156,7 +154,7 @@ public class CppModelBuilder implements ToolingModelBuilder {
         return macros;
     }
 
-    private static class TaskDependencyResolveContextImpl implements TaskDependencyResolveContext {
+    private static class TaskDependencyResolveContextImpl extends AbstractTaskDependencyResolveContext {
         private Task task;
 
         @Override
@@ -167,10 +165,6 @@ public class CppModelBuilder implements ToolingModelBuilder {
             } else {
                 task = (Task) dependency;
             }
-        }
-
-        @Override
-        public void maybeAdd(Object dependency) {
         }
 
         @Override

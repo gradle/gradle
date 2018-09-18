@@ -18,10 +18,18 @@ package org.gradle.integtests.resolve.alignment
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.gradle.test.fixtures.server.http.MavenHttpModule
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
+@IgnoreIf({
+    // This test is very expensive due to the permutation testing.
+    // Because it tests the internal state of the resolution engine, the Gradle execution model does not matter.
+    // Se we run the tests only in embedded mode
+    !GradleContextualExecuter.embedded
+})
 class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
 
     def "can force a virtual platform version by forcing one of its leaves"() {

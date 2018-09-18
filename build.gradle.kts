@@ -279,6 +279,7 @@ tasks.register<PatchExternalModules>("patchExternalModules") {
     coreModules = coreRuntime
     modulesToPatch = this@Build_gradle.externalModules
     destination = patchedExternalModulesDir
+    outputs.doNotCacheIfSlowInternetConnection()
 }
 
 evaluationDependsOn(":distributions")

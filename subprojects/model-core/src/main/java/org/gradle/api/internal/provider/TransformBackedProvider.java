@@ -17,7 +17,6 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 class TransformBackedProvider<OUT, IN> extends AbstractMappingProvider<OUT, IN> {
     private final Transformer<? extends OUT, ? super IN> transformer;
@@ -25,11 +24,6 @@ class TransformBackedProvider<OUT, IN> extends AbstractMappingProvider<OUT, IN> 
     public TransformBackedProvider(Transformer<? extends OUT, ? super IN> transformer, ProviderInternal<? extends IN> provider) {
         super(null, provider);
         this.transformer = transformer;
-    }
-
-    @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        return getProvider().maybeVisitBuildDependencies(context);
     }
 
     @Override

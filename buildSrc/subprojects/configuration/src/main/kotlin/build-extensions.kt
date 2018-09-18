@@ -17,6 +17,8 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.HasConfigurableAttributes
+import org.gradle.api.tasks.TaskOutputs
+import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.kotlin.dsl.extra
 import org.gradle.util.GradleVersion
 
@@ -87,3 +89,10 @@ val Project.useAllDistribution: Boolean
 private
 fun <T> Project.ifProperty(name: String, then: T): T? =
     then.takeIf { rootProject.findProperty(name) == true }
+
+
+fun TaskOutputs.doNotCacheIfSlowInternetConnection() {
+    doNotCacheIf("Slow internet connection") {
+        BuildEnvironment.isSlowInternetConnection
+    }
+}

@@ -31,23 +31,19 @@ The Java library distribution plugin adds support for building a distribution ZI
 
 To use the Java library distribution plugin, include the following in your build script:
 
-=== Example: Using the Java library distribution plugin
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/javaLibraryDistribution/build.gradle[tag=use-plugin]
-----
+.Using the Java library distribution plugin
+====
+include::sample[dir="userguide/javaLibraryDistribution/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="userguide/javaLibraryDistribution/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+====
 
 To define the name for the distribution you have to set the `baseName` property as shown below:
 
-=== Example: Configure the distribution name
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/javaLibraryDistribution/build.gradle[tag=name-conf]
-----
+.Configure the distribution name
+====
+include::sample[dir="userguide/javaLibraryDistribution/groovy",files="build.gradle[tags=name-conf]"]
+include::sample[dir="userguide/javaLibraryDistribution/kotlin",files="build.gradle.kts[tags=name-conf]"]
+====
 
 The plugin builds a distribution for your library. The distribution will package up the runtime dependencies of the library. All files stored in `src/main/dist` will be added to the root of the archive distribution. You can run “`gradle distZip`” to create a ZIP file containing the distribution.
 
@@ -67,10 +63,8 @@ Creates a full distribution ZIP archive including runtime libraries.
 
 All of the files from the `src/dist` directory are copied. To include any static files in the distribution, simply arrange them in the `src/dist` directory, or add them to the content of the distribution.
 
-=== Example: Include files in the distribution
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/javaLibraryDistribution/build.gradle[tag=custom-distribution]
-----
+.Include files in the distribution
+====
+include::sample[dir="userguide/javaLibraryDistribution/groovy",files="build.gradle[tags=custom-distribution]"]
+include::sample[dir="userguide/javaLibraryDistribution/kotlin",files="build.gradle.kts[tags=custom-distribution]"]
+====

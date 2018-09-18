@@ -21,7 +21,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.hash.ContentHasherFactory;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.PrimitiveHasher;
 import org.gradle.internal.resource.TextResource;
 
 import java.io.File;
@@ -50,7 +50,7 @@ public class DefaultScriptSourceHasher implements ScriptSourceHasher {
                 throw e;
             }
         }
-        Hasher hasher = contentHasherFactory.create();
+        PrimitiveHasher hasher = contentHasherFactory.create();
         hasher.putString(resource.getText());
         return hasher.hash();
     }

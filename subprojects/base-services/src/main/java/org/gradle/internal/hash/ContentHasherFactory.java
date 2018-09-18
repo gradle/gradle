@@ -18,5 +18,10 @@ package org.gradle.internal.hash;
 
 import org.gradle.internal.Factory;
 
-public interface ContentHasherFactory extends Factory<Hasher> {
+import javax.annotation.Nonnull;
+
+public interface ContentHasherFactory extends Factory<PrimitiveHasher> {
+    @Nonnull
+    @Override
+    PrimitiveHasher create();
 }

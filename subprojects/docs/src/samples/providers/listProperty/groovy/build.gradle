@@ -1,6 +1,7 @@
 task print {
     doLast {
         ListProperty<String> list = project.objects.listProperty(String)
+        list.empty()
 
         // Resolve the list
         logger.quiet('The list contains: ' + list.get())

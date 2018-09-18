@@ -34,7 +34,7 @@ dependencies {
     // Required to test visual studio project file generation for generated sources
     integTestRuntime project(':ideNative')
 
-    testFixturesCompile project(':internalIntegTesting')
+    testFixturesApi project(':internalIntegTesting')
 }
 
 gradlebuildJava {

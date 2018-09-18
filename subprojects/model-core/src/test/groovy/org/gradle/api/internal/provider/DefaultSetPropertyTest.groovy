@@ -45,15 +45,7 @@ class DefaultSetPropertyTest extends CollectionPropertySpec<Set<String>> {
         return new LinkedHashSet<String>(values)
     }
 
-    def "defaults to empty set"() {
-        expect:
-        property.present
-        property.get() == ImmutableSet.of()
-        property.getOrNull() == ImmutableSet.of()
-        property.getOrElse(["abc"] as Set) == ImmutableSet.of()
-    }
-
-    def "retains iteration order of added elements"() {
+    def "discards duplicates values and retains iteration order of added elements"() {
         given:
         property.set(["123"] as Set)
         property.add("abc")

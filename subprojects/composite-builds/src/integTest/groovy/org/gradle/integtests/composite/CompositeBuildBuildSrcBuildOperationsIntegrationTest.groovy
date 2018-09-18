@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.initialization.buildsrc.BuildBuildSrcBuildOperationType
@@ -108,6 +109,18 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         runTasksOps[2].displayName == "Run tasks (:buildB)"
         runTasksOps[2].parentId == root.id
 
+        def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
+        graphNotifyOps.size() == 3
+        graphNotifyOps[0].displayName == 'Notify task graph whenReady listeners (:buildB:buildSrc)'
+        graphNotifyOps[0].details.buildPath == ':buildB:buildSrc'
+        graphNotifyOps[0].parentId == runTasksOps[0].id
+        graphNotifyOps[1].displayName == "Notify task graph whenReady listeners"
+        graphNotifyOps[1].details.buildPath == ":"
+        graphNotifyOps[1].parentId == runTasksOps[1].id
+        graphNotifyOps[2].displayName == "Notify task graph whenReady listeners (:buildB)"
+        graphNotifyOps[2].details.buildPath == ":buildB"
+        graphNotifyOps[2].parentId == runTasksOps[2].id
+
         where:
         settings                     | display
         ""                           | "default root project name"
@@ -195,6 +208,21 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         runTasksOps[2].parentId == root.id
         runTasksOps[3].displayName == "Run tasks (:buildB)"
         runTasksOps[3].parentId == root.id
+
+        def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
+        graphNotifyOps.size() == 4
+        graphNotifyOps[0].displayName == 'Notify task graph whenReady listeners (:buildSrc)'
+        graphNotifyOps[0].details.buildPath == ':buildSrc'
+        graphNotifyOps[0].parentId == runTasksOps[0].id
+        graphNotifyOps[1].displayName == "Notify task graph whenReady listeners (:buildB:buildSrc)"
+        graphNotifyOps[1].details.buildPath == ":buildB:buildSrc"
+        graphNotifyOps[1].parentId == runTasksOps[1].id
+        graphNotifyOps[2].displayName == "Notify task graph whenReady listeners"
+        graphNotifyOps[2].details.buildPath == ":"
+        graphNotifyOps[2].parentId == runTasksOps[2].id
+        graphNotifyOps[3].displayName == "Notify task graph whenReady listeners (:buildB)"
+        graphNotifyOps[3].details.buildPath == ":buildB"
+        graphNotifyOps[3].parentId == runTasksOps[3].id
 
         where:
         settings                     | display

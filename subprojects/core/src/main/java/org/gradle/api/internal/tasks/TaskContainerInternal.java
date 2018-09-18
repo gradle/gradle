@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
 import org.gradle.api.tasks.TaskContainer;
@@ -33,12 +32,8 @@ public interface TaskContainerInternal extends TaskContainer, TaskResolver, Poly
 
     DynamicObject getTasksAsDynamicObject();
 
-    <T extends Task> void addPlaceholderAction(String placeholderName, Class<T> type, Action<? super T> configure);
-
     /**
      * Force the task graph to come into existence.
-     *
-     * As part of this, all placeholder actions are materialized to show up in 'tasks' and 'tasks --all' overview.
      */
     void realize();
 

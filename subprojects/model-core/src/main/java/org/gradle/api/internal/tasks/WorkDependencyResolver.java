@@ -41,9 +41,6 @@ public interface WorkDependencyResolver<T> {
                 }
             } else if (node instanceof Task) {
                 resolveAction.execute((Task) node);
-            } else if (node instanceof TaskReferenceInternal) {
-                Task task = ((TaskReferenceInternal) node).resolveTask();
-                resolveAction.execute(task);
             } else {
                 return false;
             }

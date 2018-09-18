@@ -52,7 +52,7 @@ dependencies {
     integTestRuntimeOnly(project(":resourcesSftp"))
     integTestRuntimeOnly(project(":testKit"))
 
-    testFixturesCompile(project(":resourcesHttp", "testFixturesUsageCompile"))
+    testFixturesApi(project(":resourcesHttp", "testFixturesApiElements"))
     testFixturesImplementation(project(":internalIntegTesting"))
 }
 

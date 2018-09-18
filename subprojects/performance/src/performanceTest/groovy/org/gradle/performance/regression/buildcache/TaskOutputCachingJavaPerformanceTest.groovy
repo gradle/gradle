@@ -238,7 +238,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
                                 break
                             }
 
-                            tarEntry.setModTime(tarEntry.modTime + 3743)
+                            tarEntry.setModTime(tarEntry.modTime.time + 3743)
                             tarOutput.putArchiveEntry(tarEntry)
                             if (!tarEntry.directory) {
                                 tarOutput << tarInput

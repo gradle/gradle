@@ -17,14 +17,15 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.util.TextUtil
 import org.junit.Rule
+import spock.lang.Unroll
 
-class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec {
+class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule public final Sample sampleProject = new Sample(temporaryFolder)
 
     @UsesSample("maven-publish/quickstart")
@@ -210,13 +211,15 @@ class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec {
         parsedPom.name == "Example"
     }
 
+    @Unroll
     @UsesSample("maven-publish/distribution")
-    def publishesDistributionArchives() {
+    def "publishes distribution archives with #dsl dsl"() {
         given:
-        sample sampleProject
+        def sampleDir = sampleProject.dir.file(dsl)
+        executer.inDirectory(sampleDir).requireGradleDistribution()
 
         and:
-        def repo = maven(sampleProject.dir.file("build/repo"))
+        def repo = maven(sampleDir.file("build/repo"))
         def artifactId = "distribution"
         def version = "1.0"
         def module = repo.module("org.gradle.sample", artifactId, version)
@@ -230,6 +233,9 @@ class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec {
         and:
         module.assertPublished()
         module.assertArtifactsPublished "${artifactId}-${version}.zip", "${artifactId}-${version}.tar", "${artifactId}-${version}.pom"
+
+        where:
+        dsl << ['groovy', 'kotlin']
     }
 
     private void verifyPomFile(MavenFileModule module, String outputFileName) {

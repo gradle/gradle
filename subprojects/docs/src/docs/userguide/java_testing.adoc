@@ -191,16 +191,6 @@ You can also combine filters defined at the command line with <<command_line_int
 gradle test --continuous --tests "com.mypackage.foo.*"
 ```
 
-[[sec:single_test_execution_via_system_properties]]
-=== Single test execution via System Properties
-
-[NOTE]
-====
-This mechanism has been superseded by 'Test Filtering', described above. We only include it in case you encounter it in online forums and blogs.
-====
-
-Test inclusions/exclusions are a file-based — as opposed to a class name-based — mechanism for selecting tests to run. It's activated when you use the `-D__taskName__.single=__<pattern>__` option on the command line, e.g. `-Dtest.single=MyTest`.
-
 [[test_reporting]]
 == Test reporting
 

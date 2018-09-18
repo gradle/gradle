@@ -218,6 +218,7 @@ task wrongPropertyElementTypeApi {
     def "can add elements to empty list property"() {
         buildFile << """
             verify {
+                prop.empty()
                 prop.add('a')
                 prop.add(project.provider { 'b' })
                 prop.addAll(project.provider { [ 'c', 'd' ] })

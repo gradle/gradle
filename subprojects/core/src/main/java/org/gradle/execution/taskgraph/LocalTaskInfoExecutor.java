@@ -36,6 +36,11 @@ public class LocalTaskInfoExecutor implements WorkInfoExecutor {
         if (work instanceof LocalTaskInfo) {
             TaskInternal task = ((LocalTaskInfo) work).getTask();
             TaskStateInternal state = task.getState();
+            if (state.getExecuted()) {
+                // Task has already been run. This can happen when the owning build is used both at configuration time and execution time
+                // This should move earlier in task scheduling, so that a worker thread does not even bother trying run this task
+                return true;
+            }
             TaskExecutionContext ctx = new DefaultTaskExecutionContext();
             TaskExecuter taskExecuter = taskExecuterFactory.create();
             assert taskExecuter != null;

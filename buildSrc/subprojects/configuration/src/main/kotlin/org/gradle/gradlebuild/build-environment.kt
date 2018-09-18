@@ -10,6 +10,8 @@ object BuildEnvironment {
     val jvm = org.gradle.internal.jvm.Jvm.current()
     val javaVersion = JavaVersion.current()
     val isWindows = OperatingSystem.current().isWindows
+    val isSlowInternetConnection
+        get() = System.getProperty("slow.internet.connection", "false").toBoolean()
     val agentNum: Int
         get() {
             if (System.getenv().containsKey("USERNAME")) {
