@@ -284,14 +284,3 @@ open class NoAntRule : ComponentMetadataRule {
         }
     }
 }
-
-
-open class ExcludeAsciidoctorjRule : ComponentMetadataRule {
-    override fun execute(context: ComponentMetadataContext) {
-        context.details.allVariants {
-            withDependencies {
-                removeAll { it.name == "asciidoctorj" }
-            }
-        }
-    }
-}
