@@ -22,10 +22,12 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 public class DefaultModuleIdentifier implements ModuleIdentifier {
     private final String group;
     private final String name;
+    private final int hashCode;
 
     private DefaultModuleIdentifier(String group, String name) {
         this.group = group;
         this.name = name;
+        this.hashCode = Objects.hashCode(group, name);
     }
 
     public static ModuleIdentifier newId(ModuleIdentifier other) {
@@ -61,12 +63,13 @@ public class DefaultModuleIdentifier implements ModuleIdentifier {
             return false;
         }
         DefaultModuleIdentifier that = (DefaultModuleIdentifier) o;
-        return Objects.equal(group, that.group) &&
+        return hashCode == that.hashCode &&
+            Objects.equal(group, that.group) &&
             Objects.equal(name, that.name);
     }
 
     @Override
     public int hashCode() {
-        return group.hashCode() ^ name.hashCode();
+        return hashCode;
     }
 }
