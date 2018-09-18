@@ -1,63 +1,41 @@
 # Contributing to Gradle
 Thank you for considering a contribution to Gradle! This guide explains how to:
-
 * maximize the chance of your changes being accepted
 * work on the Gradle code base
 * get help if you encounter trouble
-
 ## Get in touch
-
 Before starting to work on a feature or a fix, please open an issue to discuss the use case or bug with us. This can save both you and us a lot of time.
 For any non-trivial change, we'll ask you to create a short design document explaining:
-
 * Why is this change done? What's the use case?
 * What will the API look like? (For new features)
 * What test cases should it have? What could go wrong?
 * How will it roughly be implemented? (We'll happily provide code pointers to save you time)
-
 This can be done directly inside the GitHub issue or (for large changes) you can share a Google Doc with us.
-
 ## Accept Developer Certificate of Origin
-
 In order for your contributions to be accepted, you must [sign off](https://git-scm.com/docs/git-commit#git-commit---signoff) your Git commits to indicate that you agree to the terms of [Developer Certificate of Origin](https://developercertificate.org/).
 
 ## Follow the Code of Conduct
-
 In order to foster a more inclusive community, Gradle has adopted the [Contributor Covenant](https://www.contributor-covenant.org/version/1/4/code-of-conduct/).
 
 Contributors must follow the Code of Conduct outlined at [https://gradle.org/conduct/](https://gradle.org/conduct/).
-
 ## Making Changes
-
 ### Development Setup
-
 In order to make changes to Gradle, you'll need:
-
 * A text editor or IDE. We use and recommend [IntelliJ IDEA CE](http://www.jetbrains.com/idea/).
 * A [Java Development Kit](http://www.oracle.com/technetwork/java/javase/downloads/index.html) (JDK) version 9 or 10.
 * [git](https://git-scm.com/) and a [GitHub account](https://github.com/join).
-
-Gradle uses pull requests for contributions. Fork [gradle/gradle](https://github.com/gradle/gradle) and clone your fork. Configure your Git username and email with
-
+Gradle uses pull requests for contributions. Fork [gradle/gradle](https://github.com/gradle/gradle) and clone your fork. Configure your G1it username and email with
     git config user.name 'First Last'
     git config user.email user@example.com
-
 ### IntelliJ
-
 You can generate the IntelliJ projects by running
-
     ./gradlew idea
-
 then open the generated `gradle.ipr` file.
-
 ### Eclipse
-
 You can generate the Eclipse projects by running
-
     ./gradlew eclipse
-
 Then you can import the generated projects into Eclipse
-  
+
 1. Install Eclipse 4.5 (Mars) at least
 2. Install the Groovy Eclipse plugin from http://dist.springsource.org/snapshot/GRECLIPSE/e4.5/
 3. Make sure you have a Java 8 compatible JDK configured in your workspace
@@ -65,17 +43,13 @@ Then you can import the generated projects into Eclipse
 5. Import all projects using the "Import Existing Projects into Workspace" wizard
 
 
- 
 ### Code Change Guidelines
-
 All code contributions should contain the following:
 
 * Unit Tests (using [Spock](http://spockframework.org/spock/docs/1.1-rc-2/index.html)) for any logic introduced
 * Integration Test coverage of the bug/feature at the level of build execution. Please annotate tests guarding against a specific GitHub issue `@Issue("gradle/gradle#123")`.
 * Documentation in the User Guide and DSL Reference (under `subprojects/docs/src/docs`). You can generate docs by running `./gradlew :docs:docs`.
-
 Your code needs to run on all supported Java versions and operating systems. The [Gradle CI](http://builds.gradle.org/) will verify this, but here are some pointers that will avoid surprises:
-
 * Avoid using features introduced in Java 1.7 or later. Several parts of Gradle still need to run on Java 6.
 * Normalise file paths in tests. The `org.gradle.util.TextUtil` class has some useful functions for this purpose.
 
