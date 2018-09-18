@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.internal.HasInternalProtocol;
@@ -27,7 +26,6 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @since 3.3
  */
-@Incubating
 @HasInternalProtocol
 public interface ConfigurationVariant extends Named, HasConfigurableAttributes<ConfigurationVariant> {
 
