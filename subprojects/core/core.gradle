@@ -1,0 +1,132 @@
+import org.gradle.gradlebuild.ProjectGroups
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
+/*
+ * Copyright 2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+plugins {
+    id 'java-library'
+}
+
+configurations {
+    reports
+}
+
+tasks.named("classpathManifest").configure {
+    optionalProjects = ['gradle-kotlin-dsl']
+}
+
+dependencies {
+    api project(":baseServices")
+    api project(":baseServicesGroovy")
+    api project(":messaging")
+    api project(":logging")
+    api project(":resources")
+    api project(":cli")
+    api project(":buildOption")
+    api project(":native")
+    api project(":persistentCache")
+    api project(":buildCache")
+    api project(":coreApi")
+    api project(":files")
+
+    api project(":processServices")
+    api project(":jvmServices")
+    api project(":modelCore")
+    api libraries.groovy.coordinates
+    api libraries.ant.coordinates
+    api libraries.guava.coordinates
+    api libraries.inject.coordinates
+
+    implementation project(":modelGroovy")
+    implementation libraries.asm.coordinates
+    implementation libraries.asm_commons.coordinates
+    implementation libraries.slf4j_api.coordinates
+    implementation libraries.commons_collections.coordinates
+    implementation libraries.commons_io.coordinates
+    implementation libraries.commons_lang.coordinates
+    implementation libraries.jcip.coordinates
+    implementation libraries.nativePlatform.coordinates
+    implementation libraries.commons_compress.coordinates
+    implementation libraries.xmlApis.coordinates
+
+    runtimeOnly project(":docs")
+
+    testImplementation testLibraries.jsoup
+    testImplementation libraries.log4j_to_slf4j.coordinates
+    testImplementation libraries.jcl_to_slf4j.coordinates
+
+    testRuntimeOnly libraries.xerces.coordinates
+    testRuntimeOnly project(":diagnostics")
+    testRuntimeOnly project(":compositeBuilds")
+
+    testFixturesImplementation project(":internalTesting")
+    testFixturesImplementation libraries.ivy.coordinates
+
+    testFixturesRuntimeOnly project(':runtimeApiInfo')
+    testFixturesRuntimeOnly rootProject.ext.allCoreRuntimeExtensions
+    testFixturesRuntimeOnly project(':testingJunitPlatform')
+
+    integTestImplementation project(":internalIntegTesting")
+    integTestImplementation project(":plugins")
+
+    integTestRuntimeOnly project(':maven')
+    integTestRuntimeOnly project(':apiMetadata')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
+}
+
+testFixtures {
+    from(':coreApi')
+    from(':messaging')
+    from(':modelCore')
+    from(':logging')
+    from(':baseServices')
+}
+
+tasks.named("test").configure {
+    forkEvery = 200
+}
+
+def generatedResourcesDir = gradlebuildJava.generatedResourcesDir
+
+["compileGroovy", "compileTestGroovy"].each {
+    tasks.named(it).configure { it.groovyOptions.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G') }
+}
+
+def pluginsManifest = tasks.register("pluginsManifest", WriteProperties) {
+    property("plugins") {
+        ProjectGroups.INSTANCE.getPluginProjects(project).collect { it.archivesBaseName }.sort().join(',')
+    }
+    outputFile = new File(generatedResourcesDir, "gradle-plugins.properties")
+}
+
+sourceSets.main.output.dir generatedResourcesDir, builtBy: pluginsManifest
+
+def implementationPluginsManifest = tasks.register("implementationPluginsManifest", WriteProperties) {
+    property("plugins") {
+        ProjectGroups.INSTANCE.getImplementationPluginProjects(project).collect { it.archivesBaseName }.sort().join(',')
+    }
+    outputFile = new File(generatedResourcesDir, "gradle-implementation-plugins.properties")
+}
+
+sourceSets.main.output.dir generatedResourcesDir, builtBy: implementationPluginsManifest
+
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+testFilesCleanup {
+    policy = WhenNotEmpty.REPORT
+}

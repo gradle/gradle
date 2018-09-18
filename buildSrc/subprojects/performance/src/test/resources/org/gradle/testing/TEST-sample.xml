@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.gradle.performance.RealWorldNativePluginPerformanceTest" tests="7" skipped="6" failures="1" errors="0" timestamp="2016-08-14T17:42:06" hostname="ubuntu48.buildfarm.gradle.org" time="1406.122">
+  <properties/>
+  <testcase name="Project 'nativeMonolithic' measuring incremental build speed with 0 parallel workers" classname="org.gradle.performance.RealWorldNativePluginPerformanceTest" time="1406.113">
+    <failure message="java.lang.AssertionError: Speed Results for test project 'nativeMonolithic' with tasks build: we're slower than 2.14.1.&#10;Difference: 192.5 ms slower (192.5 ms), 2.48%, max regression: 164.891 ms&#10;  Current Gradle avg: 7.94 s min: 7.678 s, max: 8.274 s, stddev: 196.91 ms, sdom: 62.268 ms&#10;  &gt; [8.228 s, 8.015 s, 8.274 s, 7.721 s, 8.005 s, 7.986 s, 7.678 s, 7.856 s, 7.7 s, 7.937 s]&#10;  Gradle 2.14.1 avg: 7.748 s min: 7.491 s, max: 7.922 s, stddev: 150.71 ms, sdom: 47.659 ms&#10;  &gt; [7.856 s, 7.824 s, 7.788 s, 7.535 s, 7.854 s, 7.767 s, 7.882 s, 7.491 s, 7.556 s, 7.922 s]&#10;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: Speed Results for test project 'nativeMonolithic' with tasks build: we're slower than 2.14.1.
+Difference: 192.5 ms slower (192.5 ms), 2.48%, max regression: 164.891 ms
+  Current Gradle avg: 7.94 s min: 7.678 s, max: 8.274 s, stddev: 196.91 ms, sdom: 62.268 ms
+  &gt; [8.228 s, 8.015 s, 8.274 s, 7.721 s, 8.005 s, 7.986 s, 7.678 s, 7.856 s, 7.7 s, 7.937 s]
+  Gradle 2.14.1 avg: 7.748 s min: 7.491 s, max: 7.922 s, stddev: 150.71 ms, sdom: 47.659 ms
+  &gt; [7.856 s, 7.824 s, 7.788 s, 7.535 s, 7.854 s, 7.767 s, 7.882 s, 7.491 s, 7.556 s, 7.922 s]
+
+
+	at org.gradle.performance.results.CrossVersionPerformanceResults.assertCurrentVersionHasNotRegressed(CrossVersionPerformanceResults.groovy:94)
+	at org.gradle.performance.fixture.CrossVersionPerformanceTestRunner.run(CrossVersionPerformanceTestRunner.groovy:120)
+	at org.gradle.performance.RealWorldNativePluginPerformanceTest.build real world native project(RealWorldNativePluginPerformanceTest.groovy:51)
+</failure>
+  </testcase>
+  <testcase name="Project 'nativeMonolithic' measuring incremental build speed with 4 parallel workers" classname="org.gradle.performance.RealWorldNativePluginPerformanceTest" time="0.001">
+    <skipped/>
+  </testcase>
+  <testcase name="Project 'nativeMonolithicOverlapping' measuring incremental build speed with 0 parallel workers" classname="org.gradle.performance.RealWorldNativePluginPerformanceTest" time="0.001">
+    <skipped/>
+  </testcase>
+  <testcase name="Project 'nativeMonolithicOverlapping' measuring incremental build speed with 4 parallel workers" classname="org.gradle.performance.RealWorldNativePluginPerformanceTest" time="0.001">
+    <skipped/>
+  </testcase>
+  <testcase name="Project medium native build source file change" classname="org.gradle.performance.RealWorldNativePluginPerformanceTest" time="0.002">
+    <skipped/>
+  </testcase>
+  <testcase name="Project medium native build header file change" classname="org.gradle.performance.RealWorldNativePluginPerformanceTest" time="0.001">
+    <skipped/>
+  </testcase>
+  <testcase name="Project medium native build recompile all sources" classname="org.gradle.performance.RealWorldNativePluginPerformanceTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <system-out><![CDATA[
+System.out shows here
+]]></system-out>
+  <system-err><![CDATA[
+System.err shows here      
+      ]]></system-err>
+</testsuite>

@@ -1,0 +1,90 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
+/*
+ * Copyright 2013 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+plugins {
+    id 'gradlebuild.classycle'
+}
+
+dependencies {
+    implementation 'org.codehaus.plexus:plexus-container-default'
+    implementation 'org.apache.maven:maven-compat'
+    implementation 'org.apache.maven:maven-plugin-api'
+    implementation libraries.groovy.coordinates
+
+    implementation project(':core')
+    implementation project(':plugins')
+    implementation project(':wrapper')
+
+    testFixturesImplementation project(":internalTesting")
+
+    integTestRuntime allTestRuntimeDependencies
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
+}
+
+testFixtures {
+    from(':core')
+}
+
+task updateInitPluginTemplateVersionFile() {
+    doLast {
+        def libraryVersionFile = file("src/main/resources/org/gradle/buildinit/tasks/templates/library-versions.properties")
+
+        Properties versionProperties = new Properties()
+
+        findLatest('scala-library', 'org.scala-lang:scala-library:2.12.+', versionProperties)
+        def scalaVersion = VersionNumber.parse(versionProperties['scala-library'])
+        versionProperties.put('scala', "${scalaVersion.major}.${scalaVersion.minor}" as String)
+        findLatest('scalatest', "org.scalatest:scalatest_${versionProperties.scala}:(3.0,)", versionProperties)
+        findLatest('scala-xml', "org.scala-lang.modules:scala-xml_${versionProperties.scala}:latest.release", versionProperties)
+        findLatest('groovy', 'org.codehaus.groovy:groovy:(2.4,2.5]', versionProperties)
+        findLatest('junit', 'junit:junit:(4.0,)', versionProperties)
+        findLatest('testng', 'org.testng:testng:(6.0,)', versionProperties)
+        findLatest('slf4j', 'org.slf4j:slf4j-api:(1.7,)', versionProperties)
+        def groovyVersion = VersionNumber.parse(versionProperties['groovy'])
+        versionProperties.put('spock', "1.0-groovy-${groovyVersion.major}.${groovyVersion.minor}" as String)
+        findLatest('guava', 'com.google.guava:guava:(20,)', versionProperties)
+        findLatest('commons-math', 'org.apache.commons:commons-math3:latest.release', versionProperties)
+        findLatest('kotlin', 'org.jetbrains.kotlin:kotlin-gradle-plugin:(1.2,)', versionProperties)
+
+        org.gradle.build.ReproduciblePropertiesWriter.store(versionProperties, libraryVersionFile,
+                                                            "Generated file, please to not edit - Version values used in build-init templates")
+    }
+}
+
+private void findLatest(String name, String notation, Properties dest) {
+    def libDependencies = [ project.dependencies.create(notation) ]
+    def templateVersionConfiguration = project.configurations.detachedConfiguration(libDependencies as Dependency[])
+    templateVersionConfiguration.resolutionStrategy.componentSelection.all { selection ->
+        def devSuffixes = ["-SNAP\\d+", "-SNAPSHOT", "-alpha-?\\d+", "-beta-?\\d+", "-dev-?\\d+", "-rc-?\\d+", "-M\\d+", "-eap-?\\d+"]
+        devSuffixes.each {
+            if (selection.candidate.version.matches(".+$it\$")) {
+                selection.reject("don't use snapshots")
+                return
+            }
+        }
+    }
+    templateVersionConfiguration.transitive = false
+    ResolutionResult resolutionResult = templateVersionConfiguration.incoming.resolutionResult
+    def matches = resolutionResult.allComponents.findAll { it != resolutionResult.root }
+    if (matches.empty) {
+        throw new GradleException("Could not locate any matches for $notation")
+    }
+    matches.each { dep -> dest.put(name, dep.id.version) }
+}

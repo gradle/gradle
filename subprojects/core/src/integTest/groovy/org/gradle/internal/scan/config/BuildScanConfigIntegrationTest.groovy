@@ -1,0 +1,245 @@
+/*
+ * Copyright 2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.scan.config
+
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.scan.config.fixtures.BuildScanPluginFixture
+import spock.lang.Unroll
+
+@Unroll
+class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
+
+    def scanPlugin = new BuildScanPluginFixture(testDirectory, mavenRepo, createExecuter())
+
+    def setup() {
+        settingsFile << scanPlugin.pluginManagement()
+
+        scanPlugin.with {
+            logConfig = true
+            logApplied = true
+            publishDummyBuildScanPlugin(executer)
+        }
+
+        buildFile << """
+            task t
+        """
+    }
+
+    def "enabled and disabled are false with no flags"() {
+        when:
+        succeeds "t"
+
+        then:
+        scanPlugin.assertEnabled(output, false)
+        scanPlugin.assertDisabled(output, false)
+    }
+
+    def "enabled with --scan"() {
+        when:
+        succeeds "t", "--scan"
+
+        then:
+        scanPlugin.assertEnabled(output, true)
+        scanPlugin.assertDisabled(output, false)
+    }
+
+    def "disabled with --no-scan"() {
+        when:
+        succeeds "t", "--no-scan"
+
+        then:
+        scanPlugin.assertEnabled(output, false)
+        scanPlugin.assertDisabled(output, true)
+    }
+
+    def "not enabled with -Dscan"() {
+        // build scan plugin will treat this as enabled
+        when:
+        succeeds "t", "-Dscan"
+
+        then:
+        scanPlugin.assertEnabled(output, false)
+        scanPlugin.assertDisabled(output, false)
+    }
+
+    def "not disabled with -Dscan=false"() {
+        when:
+        succeeds "t", "-Dscan=false"
+
+        then:
+        scanPlugin.assertEnabled(output, false)
+        scanPlugin.assertDisabled(output, false)
+    }
+
+    def "warns if scan requested but no scan plugin applied"() {
+        given:
+        scanPlugin.collectConfig = false
+
+        when:
+        succeeds "t", "--scan"
+
+        then:
+        scanPlugin.issuedNoPluginWarning(output)
+    }
+
+    def "warns if scan requested by sys prop value #value but no scan plugin applied"() {
+        given:
+        scanPlugin.collectConfig = false
+
+        when:
+        succeeds "t", value == null ? "-Dscan" : "-Dscan=$value"
+
+        then:
+        scanPlugin.issuedNoPluginWarning(output)
+
+        where:
+        value << [null, "", "true", "yes"]
+    }
+
+    def "does not warn if no scan requested but no scan plugin applied"() {
+        given:
+        scanPlugin.collectConfig = false
+
+        when:
+        succeeds "t", "--no-scan"
+
+        then:
+        scanPlugin.didNotIssuedNoPluginWarning(output)
+    }
+
+    def "fails if plugin is too old"() {
+        given:
+        scanPlugin.runtimeVersion = "1.7.4"
+
+        when:
+        fails "t", "--scan"
+
+        then:
+        assertFailedVersionCheck()
+
+        when:
+        fails "t", "--no-scan"
+
+        then:
+        assertFailedVersionCheck()
+
+        when:
+        fails "t"
+
+        then:
+        assertFailedVersionCheck()
+    }
+
+    def "does not warn for each nested build if --scan used"() {
+        given:
+        scanPlugin.collectConfig = false
+        file("buildSrc/build.gradle") << ""
+        file("a/buildSrc/build.gradle") << ""
+        file("a/build.gradle") << ""
+        file("a/settings.gradle") << ""
+        file("b/buildSrc/build.gradle") << ""
+        file("b/build.gradle") << ""
+        file("b/settings.gradle") << ""
+        settingsFile << """
+            includeBuild "a"
+            includeBuild "b"
+        """
+        buildFile.text = """
+            task t
+        """
+
+        when:
+        succeeds "t", "--scan"
+
+        then:
+        scanPlugin.issuedNoPluginWarningCount(output, 1)
+    }
+
+    def "detects that the build scan plugin has been #description"() {
+        given:
+        scanPlugin.collectConfig = applied
+
+        when:
+        succeeds "t"
+
+        then:
+        output.contains("buildScan plugin applied: ${applied}")
+        if (applied) {
+            with(scanPlugin.attributes(output)) {
+                !isRootProjectHasVcsMappings()
+            }
+        }
+
+        where:
+        applied << [true, false]
+        description = applied ? "applied" : "not applied"
+    }
+
+    def "can convey unsupported to plugin that supports it"() {
+        given:
+        scanPlugin.runtimeVersion = "1.13"
+        when:
+        succeeds "t", "-D${BuildScanPluginCompatibility.UNSUPPORTED_TOGGLE}=true"
+
+        then:
+        scanPlugin.assertUnsupportedMessage(output, BuildScanPluginCompatibility.UNSUPPORTED_TOGGLE_MESSAGE)
+        scanPlugin.attributes(output) != null
+    }
+
+    def "unsupported for pre 1.15.2 versions when kotlin script build caching used"() {
+        given:
+        scanPlugin.runtimeVersion = "1.15.1"
+
+        when:
+        succeeds "t", "-D${BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE}=true"
+
+        then:
+        scanPlugin.assertUnsupportedMessage(output, BuildScanPluginCompatibility.UNSUPPORTED_KOTLIN_SCRIPT_BUILD_CACHING_MESSAGE)
+    }
+
+    def "supported for 1.15.2 versions when kotlin script build caching used"() {
+        given:
+        scanPlugin.runtimeVersion = "1.15.2"
+
+        when:
+        succeeds "t", "-D${BuildScanPluginCompatibility.KOTLIN_SCRIPT_BUILD_CACHE_TOGGLE}=true"
+
+        then:
+        scanPlugin.assertUnsupportedMessage(output, null)
+    }
+
+    void installVcsMappings() {
+        settingsFile.text = """
+            sourceControl {
+                vcsMappings {
+                    withModule('external-source:artifact') {
+                        from(GitVersionControlSpec) {
+                            // not actually used, doesn't need a real repo
+                        }
+                    }
+                }
+            }
+
+        """
+    }
+
+    void assertFailedVersionCheck() {
+        failureCauseContains(BuildScanPluginCompatibility.UNSUPPORTED_PLUGIN_VERSION_MESSAGE)
+    }
+
+
+}
