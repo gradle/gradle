@@ -1,4 +1,11 @@
-apply plugin: 'distribution'
+// tag::publishing[]
+plugins {
+// end::publishing[]
+    id 'distribution'
+// tag::publishing[]
+    id 'ivy-publish'
+}
+// end::publishing[]
 
 group = 'org.gradle.sample'
 version = '1.0'
@@ -6,18 +13,17 @@ version = '1.0'
 distributions {
     main {
         contents {
-            from { 'src' }
+            from 'src'
         }
     }
     custom {
         contents {
-            from { 'src' }
+            from 'src'
         }
     }
 }
 
 // tag::publishing[]
-apply plugin: 'ivy-publish'
 
 publishing {
     publications {

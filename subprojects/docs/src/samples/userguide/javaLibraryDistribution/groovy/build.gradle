@@ -1,12 +1,14 @@
 // tag::use-plugin[]
-apply plugin: 'java-library-distribution'
+plugins {
+    id 'java-library-distribution'
+}
 // end::use-plugin[]
 
 version = '1.0.0'
 
 // tag::name-conf[]
 distributions {
-    main{
+    main {
         baseName = 'my-name'
     }
 }
@@ -17,7 +19,7 @@ distributions {
     main {
         baseName = 'my-name'
         contents {
-            from { 'src/dist' }
+            from 'src/dist'
         }
     }
 }
@@ -28,5 +30,5 @@ repositories {
 }
 
 dependencies {
-    compile 'commons-collections:commons-collections:3.2.2'
+    implementation 'commons-collections:commons-collections:3.2.2'
 }

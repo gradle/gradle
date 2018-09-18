@@ -20,7 +20,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 import javax.annotation.Nullable;
 
-public abstract class AbstractLockableProperty<T> extends AbstractProperty<T> {
+public abstract class AbstractLockableProperty<T> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
     private PropertyInternal<T> delegate;
     private boolean locked;
     private T value;

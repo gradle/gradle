@@ -24,7 +24,7 @@ class GradleRunnerArgumentsIntegrationTest extends BaseGradleRunnerIntegrationTe
     def "can execute build without specifying any arguments"() {
         given:
         buildScript """
-            task help {
+            help {
                 doLast {
                     file('out.txt').text = "help"
                 }

@@ -45,6 +45,7 @@ import org.jetbrains.gradle.ext.CopyrightConfiguration
 import org.jetbrains.gradle.ext.ForceBraces.FORCE_BRACES_ALWAYS
 import org.jetbrains.gradle.ext.GroovyCompilerConfiguration
 import org.jetbrains.gradle.ext.IdeaCompilerConfiguration
+import org.jetbrains.gradle.ext.Inspection
 import org.jetbrains.gradle.ext.JUnit
 import org.jetbrains.gradle.ext.Make
 import org.jetbrains.gradle.ext.ProjectSettings
@@ -65,7 +66,13 @@ const val ideConfigurationBaseName = "ideConfiguration"
 
 
 private
-const val javaCompilerHeapSpace = 2048
+const val javaCompilerHeapSpace = 3072
+
+
+// Disable Java 7 inspections because some parts of the codebase still need
+// to run on Java 6
+private
+val disabledInspections = listOf("Convert2Diamond", "EqualsReplaceableByObjectsCall", "SafeVarargsDetector", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches")
 
 
 object GradleCopyright {
@@ -174,6 +181,8 @@ open class IdePlugin : Plugin<Project> {
                             // In doing so, tags in the code style settings are ignored.
                             projectElement.removeBySelector("component[name=ProjectCodeStyleConfiguration]")
                                 .configureCodeStyleSettings()
+                            projectElement.removeBySelector("component[name=InspectionProjectProfileManager]")
+                                .configureInspectionSettings()
 
                             configureFrameworkDetectionExcludes(projectElement)
                             configureBuildSrc(projectElement)
@@ -208,6 +217,9 @@ open class IdePlugin : Plugin<Project> {
                     configureCompilerSettings(rootProject)
                     configureCopyright()
                     configureCodeStyle()
+                    // TODO The idea-ext plugin does not yet support customizing inspections.
+                    // TODO Delete .idea/inspectionProfiles and uncomment the code below when it does
+                    // configureInspections()
                     configureRunConfigurations(rootProject)
                     doNotDetectFrameworks("android", "web")
                 }
@@ -363,8 +375,8 @@ open class IdePlugin : Plugin<Project> {
         @Suppress("UNCHECKED_CAST")
         val ideaLanguageLevel =
             if (ideaModule.project in projectsRequiringJava8) "1.8"
-            else "1.6"
-        // Force everything to Java 6, pending detangling some int test cycles or switching to project-per-source-set mapping
+            else "1.7"
+        // Force everything to Java 7, pending detangling some int test cycles or switching to project-per-source-set mapping
         ideaModule.languageLevel = IdeaLanguageLevel(ideaLanguageLevel)
         ideaModule.targetBytecodeVersion = JavaVersion.toVersion(ideaLanguageLevel)
     }
@@ -568,6 +580,11 @@ fun ProjectSettings.copyright(configuration: CopyrightConfiguration.() -> kotlin
 fun ProjectSettings.codeStyle(configuration: CodeStyleConfig.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
 
 
+fun ProjectSettings.inspections(configuration: NamedDomainObjectContainer<Inspection>.() -> kotlin.Unit) = (this as ExtensionAware).configure<NamedDomainObjectContainer<Inspection>> {
+    this.apply(configuration)
+}
+
+
 fun ProjectSettings.runConfigurations(configuration: PolymorphicDomainObjectContainer<RunConfiguration>.() -> kotlin.Unit) = (this as ExtensionAware).configure<NamedDomainObjectContainer<RunConfiguration>> {
     (this as PolymorphicDomainObjectContainer<RunConfiguration>).apply(configuration)
 }
@@ -653,6 +670,32 @@ fun Element.configureCodeStyleSettings() {
 
 
 private
+fun Element.configureInspectionSettings() {
+    val config = appendElement("component")
+        .attr("name", "InspectionProjectProfileManager")
+
+    val profile = config.appendElement("profile")
+        .attr("version", "1.0")
+    profile.option("myName", "Project Default")
+
+    disabledInspections.forEach { profile.inspectionTool(it) }
+
+    config.appendElement("version")
+        .attr("value", "1.0")
+}
+
+
+private
+fun Element.inspectionTool(clazz: String, level: String = "INFORMATION", enabled: Boolean = false) {
+    appendElement("inspection_tool")
+        .attr("class", clazz)
+        .attr("enabled", enabled.toString())
+        .attr("level", level)
+        .attr("enabled_by_default", "false")
+}
+
+
+private
 fun ProjectSettings.configureCodeStyle() {
     codeStyle {
         @Suppress("DEPRECATION")
@@ -680,6 +723,18 @@ fun ProjectSettings.configureCodeStyle() {
             doWhileForceBraces = FORCE_BRACES_ALWAYS
             whileForceBraces = FORCE_BRACES_ALWAYS
             forForceBraces = FORCE_BRACES_ALWAYS
+        }
+    }
+}
+
+
+private
+fun ProjectSettings.configureInspections() {
+    inspections {
+        disabledInspections.forEach { name ->
+            create(name) {
+                enabled = false
+            }
         }
     }
 }

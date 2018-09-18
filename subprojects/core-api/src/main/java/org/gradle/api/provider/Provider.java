@@ -46,7 +46,7 @@ import java.util.concurrent.Callable;
  *  Providers also allow expensive computations to be deferred until their value is actually needed, usually at task execution time.
  * </p>
  *
- * <p>There are a number of ways to create a {@link Provider instance}. Some common methods:</p>
+ * <p>There are a number of ways to create a {@link Provider} instance. Some common methods:</p>
  *
  * <ul>
  *     <li>Calling {@link #map(Transformer)} to create a new provider from an existing provider.</li>

@@ -17,8 +17,9 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
 import org.gradle.api.Rule;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
-import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.diagnostics.internal.AggregateMultiProjectTaskReportModel;
 import org.gradle.api.tasks.diagnostics.internal.DefaultGroupTaskReportModel;
@@ -27,6 +28,8 @@ import org.gradle.api.tasks.diagnostics.internal.SingleProjectTaskReportModel;
 import org.gradle.api.tasks.diagnostics.internal.TaskDetails;
 import org.gradle.api.tasks.diagnostics.internal.TaskDetailsFactory;
 import org.gradle.api.tasks.diagnostics.internal.TaskReportRenderer;
+import org.gradle.api.tasks.options.Option;
+import org.gradle.internal.Factory;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -69,16 +72,13 @@ public class TaskReportTask extends AbstractReportTask {
         renderer.addDefaultTasks(project.getDefaultTasks());
 
         AggregateMultiProjectTaskReportModel aggregateModel = new AggregateMultiProjectTaskReportModel(!isDetail(), isDetail());
-        TaskDetailsFactory taskDetailsFactory = new TaskDetailsFactory(project);
+        final TaskDetailsFactory taskDetailsFactory = new TaskDetailsFactory(project);
 
-        SingleProjectTaskReportModel projectTaskModel = new SingleProjectTaskReportModel(taskDetailsFactory);
-        projectTaskModel.build(getProjectTaskLister().listProjectTasks(project));
+        SingleProjectTaskReportModel projectTaskModel = buildTaskReportModelFor(taskDetailsFactory, project);
         aggregateModel.add(projectTaskModel);
 
-        for (Project subproject : project.getSubprojects()) {
-            SingleProjectTaskReportModel subprojectTaskModel = new SingleProjectTaskReportModel(taskDetailsFactory);
-            subprojectTaskModel.build(getProjectTaskLister().listProjectTasks(subproject));
-            aggregateModel.add(subprojectTaskModel);
+        for (final Project subproject : project.getSubprojects()) {
+            aggregateModel.add(buildTaskReportModelFor(taskDetailsFactory, subproject));
         }
 
         aggregateModel.build();
@@ -97,6 +97,28 @@ public class TaskReportTask extends AbstractReportTask {
         for (Rule rule : project.getTasks().getRules()) {
             renderer.addRule(rule);
         }
+    }
+
+    private SingleProjectTaskReportModel buildTaskReportModelFor(final TaskDetailsFactory taskDetailsFactory, final Project subproject) {
+        ProjectState projectState = getProjectStateRegistry().stateFor(subproject);
+        return projectState.withMutableState(new Factory<SingleProjectTaskReportModel>() {
+            @Override
+            public SingleProjectTaskReportModel create() {
+                SingleProjectTaskReportModel subprojectTaskModel = new SingleProjectTaskReportModel(taskDetailsFactory);
+                subprojectTaskModel.build(getProjectTaskLister().listProjectTasks(subproject));
+                return subprojectTaskModel;
+            }
+        });
+    }
+
+    /**
+     * Injects a {@code ProjectStateRegistry} service.
+     *
+     * @since 5.0
+     */
+    @Inject
+    protected ProjectStateRegistry getProjectStateRegistry() {
+        throw new UnsupportedOperationException();
     }
 
     @Inject

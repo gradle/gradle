@@ -32,11 +32,9 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
 
     @Override
     public Timeout start(Thread taskExecutionThread, Duration timeout) {
-        long timeoutMillis = timeout.toMillis();
-        long limit = System.currentTimeMillis() + timeoutMillis;
-        InterruptOnTimeout interrupter = new InterruptOnTimeout(taskExecutionThread, limit);
-        ScheduledFuture<?> periodicCheck = executor.scheduleAtFixedRate(interrupter, timeoutMillis, 50, TimeUnit.MILLISECONDS);
-        return new DefaultTimeout(interrupter, periodicCheck);
+        InterruptOnTimeout interrupter = new InterruptOnTimeout(taskExecutionThread);
+        ScheduledFuture<?> timeoutTask = executor.schedule(interrupter, timeout.toMillis(), TimeUnit.MILLISECONDS);
+        return new DefaultTimeout(timeoutTask, interrupter);
     }
 
     @Override
@@ -45,46 +43,37 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
     }
 
     private static final class DefaultTimeout implements Timeout {
-
+        private final ScheduledFuture<?> timeoutTask;
         private final InterruptOnTimeout interrupter;
-        private final ScheduledFuture<?> periodicCheck;
 
-        private DefaultTimeout(InterruptOnTimeout interrupter, ScheduledFuture<?> periodicCheck) {
+        private DefaultTimeout(ScheduledFuture<?> timeoutTask, InterruptOnTimeout interrupter) {
+            this.timeoutTask = timeoutTask;
             this.interrupter = interrupter;
-            this.periodicCheck = periodicCheck;
         }
 
         @Override
         public void stop() {
-            periodicCheck.cancel(true);
+            timeoutTask.cancel(true);
         }
 
         @Override
         public boolean timedOut() {
-            return interrupter.timedOut;
+            return interrupter.interrupted;
         }
     }
 
     private static class InterruptOnTimeout implements Runnable {
         private final Thread thread;
-        private final long limit;
+        private volatile boolean interrupted;
 
-        private volatile boolean timedOut;
-
-        private InterruptOnTimeout(Thread thread, long limit) {
+        private InterruptOnTimeout(Thread thread) {
             this.thread = thread;
-            this.limit = limit;
         }
 
         @Override
         public void run() {
-            if (timedOut) {
-                return;
-            }
-            if (System.currentTimeMillis() > limit) {
-                timedOut = true;
-                thread.interrupt();
-            }
+            interrupted = true;
+            thread.interrupt();
         }
     }
 }

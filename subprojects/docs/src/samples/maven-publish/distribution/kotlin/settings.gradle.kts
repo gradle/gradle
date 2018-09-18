@@ -1,2 +1,2 @@
-rootProject.name = 'distribution'
+rootProject.name = "distribution"
 enableFeaturePreview("STABLE_PUBLISHING")

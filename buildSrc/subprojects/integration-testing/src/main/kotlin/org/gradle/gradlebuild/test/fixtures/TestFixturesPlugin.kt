@@ -57,7 +57,6 @@ open class TestFixturesPlugin : Plugin<Project> {
         configureAsConsumer()
     }
 
-
     /**
      * This mimics what the java-library plugin does, but creating a library of test fixtures instead.
      */
@@ -120,6 +119,8 @@ open class TestFixturesPlugin : Plugin<Project> {
             }
         }
 
+        removeTestFixturesFromArchivesConfiguration()
+
         dependencies {
             val testFixturesApi by configurations
 
@@ -170,5 +171,12 @@ open class TestFixturesPlugin : Plugin<Project> {
                 runtimeConfig(project(path = projectPath, configuration = "testFixturesRuntimeElements"))
             }
         }
+    }
+
+    // This is a hack to get rid of `Cannot publish artifact 'testFixtures' as it does not exist.`
+    // https://builds.gradle.org/viewLog.html?buildId=15853642&buildTypeId=bt39
+    private
+    fun Project.removeTestFixturesFromArchivesConfiguration() = afterEvaluate {
+        configurations["archives"]?.artifacts?.removeIf({ it.name == "testFixtures" })
     }
 }

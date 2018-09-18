@@ -30,6 +30,9 @@ import java.util.Set;
  * Represents a graph of dependent tasks, returned in execution order.
  */
 public interface TaskExecutionPlan extends Describable {
+    /**
+     * Selects a work item to run, returns null if there is no work remaining _or_ if no queued work is ready to run.
+     */
     @Nullable
     WorkInfo selectNext(WorkerLeaseRegistry.WorkerLease workerLease, ResourceLockState resourceLockState);
 

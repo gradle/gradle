@@ -114,13 +114,6 @@ public class DefaultObjectFactory implements ObjectFactory {
     }
 
     @Override
-    public <T> Property<T> property(Class<T> valueType, T initialValue) {
-        Property<T> property = property(valueType);
-        property.set(initialValue);
-        return property;
-    }
-
-    @Override
     public <T> ListProperty<T> listProperty(Class<T> elementType) {
         return new DefaultListProperty<T>(elementType);
     }

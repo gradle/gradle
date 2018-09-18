@@ -14,7 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider;
+package org.gradle.binarycompatibility
 
-public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
+import groovy.transform.Immutable
+import groovy.transform.ToString
+
+@Immutable @ToString
+class AcceptedApiChange {
+    String type
+    String member
+    String acceptation
+    List<String> changes
+
+    ApiChange toApiChange() {
+        return new ApiChange(type, member, changes ?: [])
+    }
 }

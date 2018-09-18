@@ -16,8 +16,8 @@
 
 package org.gradle.binarycompatibility
 
-import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import org.gradle.util.GradleVersion
 
 class AcceptedApiChanges {
@@ -26,24 +26,23 @@ class AcceptedApiChanges {
     Map<ApiChange, String> acceptedChanges
 
     static AcceptedApiChanges parse(String jsonText) {
-        def json = new JsonSlurper().parseText(jsonText)
         def acceptedApiChanges = new AcceptedApiChanges()
+        def json = new Gson().fromJson(jsonText, new TypeToken<Map<String, List<AcceptedApiChange>>>() {}.type)
         acceptedApiChanges.acceptedChanges = json.acceptedApiChanges.collectEntries { jsonChange ->
-            [(ApiChange.parse(jsonChange)): jsonChange.acceptation]
+            [(jsonChange.toApiChange()): jsonChange.acceptation]
         }
         return acceptedApiChanges
     }
 
     Map<String, String> toAcceptedChangesMap() {
         acceptedChanges.collectEntries { change ->
-            [(JsonOutput.toJson(change.key)): change.value]
+            [(new Gson().toJson(change.key)): change.value]
         }
     }
 
     static Map<ApiChange, String> fromAcceptedChangesMap(Map<String, String> acceptedChanges) {
         acceptedChanges.collectEntries { key, value ->
-            [(ApiChange.parse(new JsonSlurper().parseText(key))): value]
+            [(new Gson().fromJson(key, ApiChange)): value]
         }
     }
-
 }

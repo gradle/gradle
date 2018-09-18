@@ -99,13 +99,13 @@ public class SwiftCompile extends DefaultTask {
         this.moduleName = objectFactory.property(String.class);
         this.moduleFile = objectFactory.fileProperty();
         this.modules = getProject().files();
-        this.compilerArgs = objectFactory.listProperty(String.class);
+        this.compilerArgs = objectFactory.listProperty(String.class).empty();
         this.objectFileDir = objectFactory.directoryProperty();
         this.source = getProject().files();
         this.sourceCompatibility = objectFactory.property(SwiftVersion.class);
-        this.macros = objectFactory.listProperty(String.class);
-        this.debuggable = objectFactory.property(Boolean.class, false);
-        this.optimize = objectFactory.property(Boolean.class, false);
+        this.macros = objectFactory.listProperty(String.class).empty();
+        this.debuggable = objectFactory.property(Boolean.class).value(false);
+        this.optimize = objectFactory.property(Boolean.class).value(false);
         this.targetPlatform = objectFactory.property(NativePlatform.class);
         this.toolChain = objectFactory.property(NativeToolChain.class);
     }

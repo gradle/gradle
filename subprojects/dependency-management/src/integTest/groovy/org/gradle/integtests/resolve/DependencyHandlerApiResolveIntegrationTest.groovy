@@ -140,7 +140,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         then:
         def gradleVersion = GradleVersion.current().version
         def gradleBaseVersion = GradleVersion.current().baseVersion.version
-        def groovyVersion = GroovySystem.version
+        def groovyVersion = getGradleGroovyVersion()
         outputContains("gradleApi() files: [gradle-api-${gradleVersion}.jar, groovy-all-${groovyVersion}.jar, gradle-installation-beacon-${gradleBaseVersion}.jar]")
         outputContains("gradleApi() ids: [gradle-api-${gradleVersion}.jar (Gradle API), groovy-all-${groovyVersion}.jar (Gradle API), gradle-installation-beacon-${gradleBaseVersion}.jar (Gradle API)]")
         outputContains("gradleTestKit() files: [gradle-test-kit-${gradleVersion}.jar, gradle-api-${ gradleVersion}.jar, groovy-all-${groovyVersion}.jar, gradle-installation-beacon-${gradleBaseVersion}.jar]")
@@ -149,7 +149,18 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         outputContains("localGroovy() ids: [groovy-all-${groovyVersion}.jar (Local Groovy)]")
     }
 
-    private String javaClassReferencingTestKit() {
+    /**
+     * Find the version number of the groovy-all.jar packaged by Gradle.
+     * See more about the reasons for repackaging Groovy here: https://github.com/gradle/gradle-groovy-all.
+     */
+    private static String getGradleGroovyVersion() {
+        def gradleGroovyVersionProps = new Properties()
+        def gradleGroovyVersionResource = DependencyHandlerApiResolveIntegrationTest.getResource("/gradle-groovy-all-version.properties")
+        gradleGroovyVersionProps.load(new StringReader(gradleGroovyVersionResource.text))
+        return gradleGroovyVersionProps.version
+    }
+
+    private static String javaClassReferencingTestKit() {
         """package com.gradle.example;
 
            import org.gradle.testkit.runner.GradleRunner;

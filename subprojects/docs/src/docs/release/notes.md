@@ -56,7 +56,7 @@ TBD - More provider implementations track the task that produces the value of th
 
 ### Changes to file and directory property construction
 
-`ObjectFactory` is now used to create file and directory `Property` instances, similar to other `Property` types. Previously, this was done using either the methods on `DefaulTask`, which was available only for `DefaultTask` subclasses, or using `ProjectLayout`, only available for projects. Now a single type, `ObjectFactory` can be used to create all property instances in a Gradle model object.
+`ObjectFactory` is now used to create file and directory `Property` instances, similar to other `Property` types. Previously, this was done using either the methods on `DefaulTask`, which was available only for `DefaultTask` subclasses, or using `ProjectLayout`, only available for projects. Now a single type `ObjectFactory` can be used to create all property instances in a Gradle model object.
 
 These other methods have been deprecated and will be removed in Gradle 6.0.
 
@@ -150,7 +150,7 @@ At the moment, we are not planning to provide an alternative. In most cases, tas
 
 TBD - The methods on `DefaultTask` and `ProjectLayout` that create file and directory `Property` instances have been deprecated and replaced by methods on `ObjectFactory`. These deprecated methods will be removed in Gradle 6.0.
 
-TBD - The `ObjectFactory.property(type)` method no longer sets a default value for the property. There is an overload `property(type, initialValue)` that can be used instead.
+TBD - The `ObjectFactory.property(type)`, `listProperty(type)` and `setProperty(type)` methods no longer set an initial value for the property. Instead, you can use the `value()` or `empty()` methods, or any other mutation method, on the property instances to set an initial value, if required.
 
 ### The property `append` on `JacocoTaskExtension` has been deprecated
 
@@ -182,7 +182,7 @@ When a dependency constraint matched a real dependency, it was made part of the 
 However if for some reason the dependency was later evicted from the graph, the constraint remained present.
 Now when the last non-constraint edge to a dependency disappears, all constraints for that dependency will be properly removed from the graph.
 
-### Gradle requires Java 8
+### Gradle 5.0 requires Java 8
 
 Gradle can no longer be run on Java 7, but requires Java 8 as the minimum build JVM version. 
 However, you can still use forked compilation and testing to build and test software for Java 6 and above.
@@ -307,6 +307,18 @@ The `test.single` filter mechanism has been removed. You must select tests from 
 
 The `test.debug` mechanism to enable debugging of JVM tests from the command-line has been removed.  You must use [`--debug-jvm`](userguide/java_testing.html#sec:debugging_java_tests) to enable debugging of test execution.  
 
+### Replacing built-in tasks 
+
+In earlier versions of Gradle, builds were allowed to replace tasks that may be automatically created. This was deprecated in [Gradle 4.8](https://docs.gradle.org/4.8/release-notes.html#overwriting-gradle's-built-in-tasks) and has now been turned into an error.
+
+Attempting to replace a built-in task will produce an error similar to the following:
+
+> Cannot add task 'wrapper' as a task with that name already exists.
+
+The full list of built-in tasks that cannot be replaced:
+
+`wrapper`, `init`, `help`, `tasks`, `projects`, `buildEnvironment`, `components`, `dependencies`, `dependencyInsight`, `dependentComponents`, `model`, `properties`
+
 ### Changes to internal APIs
 
 - Removed the internal class `SimpleFileCollection`.
@@ -320,6 +332,7 @@ We would like to thank the following community members for making contributions 
 - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Switch Jacoco plugin to use configuration avoidance APIs (gradle/gradle#6245)
 - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Switch build-dashboard plugin to use configuration avoidance APIs (gradle/gradle#6247)
 - [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Fix nullability of the CreateStartScripts task properties (gradle/gradle#6704)
+- [Jonathan Leitschuh](https://github.com/JLLeitschuh) - Make Settings implement ExtensionAware (gradle/gradle#6685)
 - [Ben McCann](https://github.com/benmccann) - Remove Play 2.2 support (gradle/gradle#3353)
 - [Björn Kautler](https://github.com/Vampire) - No Deprecated Configurations in Build Init (gradle/gradle#6208)
 - [Georg Friedrich](https://github.com/GFriedrich) - Base Java Library Distribution Plugin on Java Library Plugin (gradle/gradle#5695)
@@ -334,6 +347,7 @@ We would like to thank the following community members for making contributions 
 - [Kevin Macksamie](https://github.com/k-mack) - Switch distribution plugin to use configuration avoidance APIs (gradle/gradle#6443)
 - [Cliffred van Velzen](https://github.com/cliffred) - Allow logging null value (gradle/gradle#6665)
 - [Artem Zinnatullin](https://github.com/artem-zinnatullin) - Update HttpCore from 4.4.9 to 4.4.10 and HttpClient from 4.5.5 to 4.5.6 (gradle/gradle#6709)
+- [Jakub Strzyżewski](https://github.com/shindouj) - Improve exception message for missing repository credentials when publishing (gradle/gradle#6379)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

@@ -82,23 +82,4 @@ class WrapperPluginAutoApplyActionIntegTest extends AbstractIntegrationSpec {
         then:
         wrapper.generated()
     }
-
-    def "manually declared wrapper task is preferred, but deprecated"() {
-        when:
-        buildFile << """
-
-                task wrapper {
-                    doLast {
-                        println "running custom wrapper task"
-                    }
-                }
-            """
-        executer.expectDeprecationWarning()
-        run 'wrapper'
-        then:
-
-        outputContains("running custom wrapper task")
-        outputContains("Creating a custom task named 'wrapper' has been deprecated.")
-        wrapper.notGenerated()
-    }
 }

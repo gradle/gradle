@@ -24,6 +24,7 @@ import org.gradle.api.internal.provider.Collectors.ElementsFromCollectionProvide
 import org.gradle.api.internal.provider.Collectors.EmptyCollection;
 import org.gradle.api.internal.provider.Collectors.NoValueCollector;
 import org.gradle.api.internal.provider.Collectors.SingleElement;
+import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
@@ -32,13 +33,13 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractProperty<C> implements CollectionPropertyInternal<T, C> {
+public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractMinimalProvider<C> implements CollectionPropertyInternal<T, C> {
     private static final EmptyCollection EMPTY_COLLECTION = new EmptyCollection();
     private static final NoValueCollector NO_VALUE_COLLECTOR = new NoValueCollector();
     private final Class<? extends Collection> collectionType;
     private final Class<T> elementType;
     private final ValueCollector<T> valueCollector;
-    private Collector<T> value = (Collector<T>) EMPTY_COLLECTION;
+    private Collector<T> value = (Collector<T>) NO_VALUE_COLLECTOR;
     private List<Collector<T>> collectors = new LinkedList<Collector<T>>();
 
     AbstractCollectionProperty(Class<? extends Collection> collectionType, Class<T> elementType) {
@@ -166,6 +167,13 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
         collectors.clear();
         value = new ElementsFromCollectionProvider<T>(provider);
+    }
+
+    @Override
+    public HasMultipleValues<T> empty() {
+        value = (Collector<T>) EMPTY_COLLECTION;
+        collectors.clear();
+        return this;
     }
 
     @Override

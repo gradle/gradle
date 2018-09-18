@@ -40,13 +40,6 @@ class DefaultObjectFactoryTest extends Specification {
         e.message == 'No value has been specified for this provider.'
     }
 
-    def "can create a property with initial value"() {
-        expect:
-        def property = factory.property(Boolean, true)
-        property.present
-        property.get()
-    }
-
     def "cannot create property for null value"() {
         when:
         factory.property(null)
@@ -57,7 +50,7 @@ class DefaultObjectFactoryTest extends Specification {
     }
 
     @Unroll
-    def "can create property wih primitive type"() {
+    def "can create property with primitive type"() {
         given:
         def property = factory.property(type)
 
@@ -85,15 +78,15 @@ class DefaultObjectFactoryTest extends Specification {
     def "can create a List property"() {
         expect:
         def property = factory.listProperty(String)
-        property.present
-        property.get() == []
+        !property.present
+        property.getOrNull() == null
     }
 
     def "can create a Set property"() {
         expect:
         def property = factory.setProperty(String)
-        property.present
-        property.get() == [] as Set
+        !property.present
+        property.getOrNull() == null
     }
 
 }
