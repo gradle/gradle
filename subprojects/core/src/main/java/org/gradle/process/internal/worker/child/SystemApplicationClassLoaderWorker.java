@@ -17,7 +17,6 @@
 package org.gradle.process.internal.worker.child;
 
 import org.gradle.api.Action;
-import org.gradle.api.Printer;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.UncheckedException;
@@ -49,12 +48,10 @@ import org.gradle.process.internal.health.memory.OsMemoryInfo;
 import org.gradle.process.internal.worker.WorkerJvmMemoryInfoSerializer;
 import org.gradle.process.internal.worker.WorkerLoggingSerializer;
 
-import javax.sound.midi.SysexMessage;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.ObjectInputStream;
-import java.io.PrintStream;
 import java.util.concurrent.Callable;
 
 /**

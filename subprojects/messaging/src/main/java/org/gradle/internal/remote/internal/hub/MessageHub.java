@@ -17,7 +17,6 @@
 package org.gradle.internal.remote.internal.hub;
 
 import org.gradle.api.Action;
-import org.gradle.api.Printer;
 import org.gradle.internal.concurrent.AsyncStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -26,7 +25,12 @@ import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.remote.internal.Connection;
 import org.gradle.internal.remote.internal.RecoverableMessageIOException;
 import org.gradle.internal.remote.internal.RemoteConnection;
-import org.gradle.internal.remote.internal.hub.protocol.*;
+import org.gradle.internal.remote.internal.hub.protocol.ChannelIdentifier;
+import org.gradle.internal.remote.internal.hub.protocol.ChannelMessage;
+import org.gradle.internal.remote.internal.hub.protocol.EndOfStream;
+import org.gradle.internal.remote.internal.hub.protocol.InterHubMessage;
+import org.gradle.internal.remote.internal.hub.protocol.RejectedMessage;
+import org.gradle.internal.remote.internal.hub.protocol.StreamFailureMessage;
 import org.gradle.internal.remote.internal.hub.queue.EndPointQueue;
 
 import java.util.ArrayList;
@@ -127,7 +131,6 @@ public class MessageHub implements AsyncStoppable {
             } else {
                 streamFailureHandler = DISCARD;
             }
-            Printer.print("Channel name: " + channelName);
             ChannelIdentifier identifier = new ChannelIdentifier(channelName);
             EndPointQueue queue = incomingQueue.getChannel(identifier).newEndpoint();
             workers.execute(new Handler(queue, dispatch, boundedDispatch, rejectedMessageListener, streamFailureHandler));
@@ -263,7 +266,6 @@ public class MessageHub implements AsyncStoppable {
                         InterHubMessage message;
                         try {
                             message = connection.receive();
-                            Printer.print("Receive message " + message);
                         } catch (RecoverableMessageIOException e) {
                             addToIncoming(new StreamFailureMessage(e));
                             continue;
@@ -320,7 +322,6 @@ public class MessageHub implements AsyncStoppable {
                         }
                         for (InterHubMessage message : messages) {
                             try {
-                                Printer.print("Send message: " +message);
                                 connection.dispatch(message); // here
                             } catch (RecoverableMessageIOException e) {
                                 addToIncoming(new StreamFailureMessage(e));
@@ -389,7 +390,6 @@ public class MessageHub implements AsyncStoppable {
 
         public void run() {
             try {
-                Printer.print("Handler run!");
                 List<InterHubMessage> messages = new ArrayList<InterHubMessage>();
                 try {
                     while (true) {
@@ -400,10 +400,8 @@ public class MessageHub implements AsyncStoppable {
                             lock.unlock();
                         }
                         for (InterHubMessage message : messages) {
-                            Printer.print("handler message: " + message);
                             if (message instanceof EndOfStream) {
                                 boundedDispatch.endStream();
-                                Printer.print("Handler end of stream!");
                                 return;
                             }
                             if (message instanceof ChannelMessage) {
@@ -428,10 +426,8 @@ public class MessageHub implements AsyncStoppable {
                     } finally {
                         lock.unlock();
                     }
-                    Printer.print("Handler exit!");
                 }
             } catch (Throwable t) {
-                Printer.print(t.getMessage());
                 errorHandler.execute(t);
             }
         }

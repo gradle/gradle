@@ -37,21 +37,9 @@ public class ReflectionDispatch implements Dispatch<MethodInvocation> {
             method.setAccessible(true);
             method.invoke(target, message.getArguments());
         } catch (InvocationTargetException e) {
-            printError(e);
             throw UncheckedException.throwAsUncheckedException(e.getCause());
         } catch (Throwable throwable) {
-            printError(throwable);
             throw UncheckedException.throwAsUncheckedException(throwable);
-        }
-    }
-
-    public void printError(Throwable throwable) {
-        try {
-            PrintStream ps = new PrintStream(new File("C:/error.txt"));
-            throwable.printStackTrace(ps);
-            ps.close();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 }
