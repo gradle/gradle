@@ -61,7 +61,7 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
             public void execute(Throwable throwable) {
                 if (!aborted) {
                     Printer.print(throwable);
-                    abort();
+//                    abort();
                 }
             }
         };

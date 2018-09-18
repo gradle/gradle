@@ -93,6 +93,9 @@ public class SocketConnection<T> implements RemoteConnection<T> {
         } catch (ClassNotFoundException e) {
             Printer.print(e);
             throw new RecoverableMessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
+        } catch (NoClassDefFoundError e) {
+            Printer.print(e);
+            throw new RecoverableMessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
         } catch (IOException e) {
             Printer.print(e);
             throw new RecoverableMessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
