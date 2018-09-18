@@ -187,6 +187,10 @@ Now when the last non-constraint edge to a dependency disappears, all constraint
 Gradle can no longer be run on Java 7, but requires Java 8 as the minimum build JVM version. 
 However, you can still use forked compilation and testing to build and test software for Java 6 and above.
 
+### Gradle 5.0 ships with Groovy 2.5.2
+
+The Groovy runtime shipped with Gradle was upgraded from 2.4.15 to 2.5.2.
+
 ### Java Library Distribution Plugin utilizes Java Library Plugin
 
 The [Java Library Distribution Plugin](userguide/java_library_distribution_plugin.html) is now based on the
