@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts.query;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ArtifactResolutionResult;
 import org.gradle.api.component.Artifact;
@@ -47,7 +46,6 @@ import java.util.Collection;
  *
  * @since 2.0
  */
-@Incubating
 public interface ArtifactResolutionQuery {
     /**
      * Specifies the set of components to include in the result.
