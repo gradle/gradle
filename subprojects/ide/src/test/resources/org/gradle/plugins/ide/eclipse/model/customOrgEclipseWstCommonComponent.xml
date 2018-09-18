@@ -1,9 +1,0 @@
-<project-modules id="moduleCoreId" project-version="2.0">
-  <wb-module deploy-name="recu">
-    <property name="context-root" value="recu"/>
-    <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/myapp-1.0.0.jar">
-      <dependency-type>uses</dependency-type>
-    </dependent-module>
-    <wb-resource deploy-path="/WEB-INF/classes" source-path="src/main/java"/>
-  </wb-module>
-</project-modules>

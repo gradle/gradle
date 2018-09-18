@@ -1,5 +1,0 @@
-
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-task ':hangingTask' exceeded its timeout

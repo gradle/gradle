@@ -1,9 +1,0 @@
-guava-18.0.pom
-Guava: Google Core Libraries for Java
-
-    Guava is a suite of core and expanded libraries that include
-    utility classes, google's collections, io classes, and much
-    much more.
-
-    Guava has only one code dependency - javax.annotation,
-    per the JSR-305 spec.

@@ -1,9 +1,0 @@
-// tag::configuration-default-dependencies[]
-configurations {
-    pluginTool {
-        defaultDependencies { dependencies ->
-            dependencies.add(project.dependencies.create("org.gradle:my-util:1.0"))
-        }
-    }
-}
-// end::configuration-default-dependencies[]

@@ -1,8 +1,0 @@
-configurations { runtime }
-
-// tag::copy-dependencies[]
-task libs(type: Sync) {
-    from configurations.runtime
-    into "$buildDir/libs"
-}
-// end::copy-dependencies[]

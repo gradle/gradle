@@ -1,5 +1,0 @@
-allprojects {
-    repositories {
-        mavenLocal()
-    }
-}

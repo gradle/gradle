@@ -1,3 +1,0 @@
-rootProject.name = 'maven-publish-multiple'
-include 'project1', 'project2'
-enableFeaturePreview("STABLE_PUBLISHING")

@@ -1,7 +1,0 @@
-
-> Task :generate
-configuration file = /home/user/gradle/samples/kotlin/src/config.txt
-output dir = /home/user/gradle/samples/kotlin/output/generated-source
-
-BUILD SUCCESSFUL in 0s
-1 actionable task: 1 executed

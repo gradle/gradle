@@ -1,1 +1,0 @@
-extra["producerMessage"] = null

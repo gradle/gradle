@@ -1,3 +1,0 @@
-include "project1", "project2", "project3"
-
-rootProject.name = "root"

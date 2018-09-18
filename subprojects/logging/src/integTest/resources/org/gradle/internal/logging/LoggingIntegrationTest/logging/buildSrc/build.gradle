@@ -1,2 +1,0 @@
-println 'main buildSrc quiet'
-logger.info 'main buildSrc info'

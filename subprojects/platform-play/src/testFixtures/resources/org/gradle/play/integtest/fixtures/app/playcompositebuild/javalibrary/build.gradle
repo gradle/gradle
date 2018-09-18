@@ -1,4 +1,0 @@
-plugins {
-    id 'java'
-}
-group = 'org.my'

@@ -1,2 +1,0 @@
-rootProject.name = 'plugin'
-enableFeaturePreview("STABLE_PUBLISHING")

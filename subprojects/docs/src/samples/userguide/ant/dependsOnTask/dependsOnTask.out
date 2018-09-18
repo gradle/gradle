@@ -1,9 +1,0 @@
-
-> Task :intro
-Hello, from Gradle
-
-> Task :hello
-[ant:echo] Hello, from Ant
-
-BUILD SUCCESSFUL in 0s
-2 actionable tasks: 2 executed

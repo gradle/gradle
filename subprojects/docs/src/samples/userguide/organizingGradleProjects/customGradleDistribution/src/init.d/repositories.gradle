@@ -1,7 +1,0 @@
-gradle.projectsLoaded { Gradle gradle ->
-    gradle.allprojects {
-        repositories {
-            jcenter()
-        }
-    }
-}

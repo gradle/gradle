@@ -1,6 +1,0 @@
-// tag::plugin-use[]
-plugins {
-  id("org.gradle.sample.hello") version "1.0.0"
-  id("org.gradle.sample.goodbye") version "1.0.0"
-}
-// end::plugin-use[]

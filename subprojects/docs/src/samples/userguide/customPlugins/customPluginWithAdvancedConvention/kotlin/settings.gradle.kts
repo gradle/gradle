@@ -1,1 +1,0 @@
-rootProject.name = "custom-plugin-with-advanced-convention"
