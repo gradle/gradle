@@ -53,18 +53,25 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
     //    private ClassLoader methodParamClassLoader;
     private List<SerializerRegistry> paramSerializers = new ArrayList<SerializerRegistry>();
     private Set<ClassLoader> methodParamClassLoaders = new HashSet<ClassLoader>();
+    private List<Action<Throwable>> errorHandlers = new ArrayList<Action<Throwable>>();
     private volatile boolean aborted;
 
     public MessageHubBackedObjectConnection(ExecutorFactory executorFactory, ConnectCompletion completion) {
-        this(executorFactory, completion, new Action<Throwable>() {
+        this.hub = new MessageHub(completion.toString(), executorFactory, new Action<Throwable>() {
+            @Override
             public void execute(Throwable throwable) {
-                LOGGER.error("Unexpected exception thrown.", throwable);
+                for(Action<Throwable> handler: errorHandlers) {
+                    handler.execute(throwable);
+                }
             }
         });
-    }
-
-    public MessageHubBackedObjectConnection(ExecutorFactory executorFactory, ConnectCompletion completion, Action<Throwable> errorHandler) {
-        this.hub = new MessageHub(completion.toString(), executorFactory, errorHandler);
+        this.errorHandlers.add(new Action<Throwable>() {
+            public void execute(Throwable throwable) {
+                if(!aborted) {
+                    LOGGER.error("Unexpected exception thrown.", throwable);
+                }
+            }
+        });
         this.completion = completion;
     }
 
@@ -134,6 +141,11 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
     public void abort() {
         aborted = true;
         stop();
+    }
+
+    @Override
+    public void addExceptionHandler(Action<Throwable> handler) {
+        errorHandlers.add(handler);
     }
 
     private static class DispatchWrapper<T> implements BoundedDispatch<MethodInvocation>, StreamFailureHandler {

@@ -21,6 +21,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.internal.worker.WorkerProcessContext;
+import org.gradle.process.internal.worker.request.WorkerAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,6 +79,15 @@ public class ActionExecutionWorker implements Action<WorkerContext>, Serializabl
         Thread.currentThread().setContextClassLoader(action.getClass().getClassLoader());
 
         NativeServices.initialize(gradleUserHomeDir, false);
+
+        clientConnection.addExceptionHandler(new Action<Throwable>() {
+            @Override
+            public void execute(Throwable throwable) {
+                if (action instanceof WorkerAction) {
+                    ((WorkerAction) action).stop();
+                }
+            }
+        });
 
         try {
             action.execute(context);

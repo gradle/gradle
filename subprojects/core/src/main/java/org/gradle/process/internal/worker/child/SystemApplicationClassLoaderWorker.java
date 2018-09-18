@@ -112,30 +112,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
 
-            connection = messagingServices.get(MessagingClient.class).getConnection(serverAddress, new Action<Throwable>() {
-                @Override
-                public void execute(Throwable throwable) {
-                    Printer.print("Unrecoverable!");
-                    Printer.print(throwable);
-                    final Action a = action;
-                    Printer.print(a.getClass().getName());
-                    Printer.print(a.getClass().getClassLoader().toString());
-                    Printer.print(WorkerAction.class.getClassLoader().toString());
-                    if (a.getClass().getName().contains("WorkerAction")) {
-                        Printer.print("is worker action!");
-                        new Thread() {
-                            public void run() {
-                                try {
-                                    Printer.print("stop thread runs!");
-                                    ((WorkerAction) a).stop();
-                                } catch (Throwable e) {
-                                    Printer.print(e);
-                                }
-                            }
-                        }.start();
-                    }
-                }
-            });
+            connection = messagingServices.get(MessagingClient.class).getConnection(serverAddress);
             workerLogEventListener = configureLogging(loggingManager, connection);
             if (shouldPublishJvmMemoryInfo) {
                 configureWorkerJvmMemoryInfoEvents(workerServices, connection);
