@@ -118,7 +118,10 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
                     Printer.print("Unrecoverable!");
                     Printer.print(throwable);
                     final Action a = action;
-                    if (a instanceof WorkerAction) {
+                    Printer.print(a.getClass().getName());
+                    Printer.print(a.getClass().getClassLoader().toString());
+                    Printer.print(WorkerAction.class.getClassLoader().toString());
+                    if (a.getClass().getName().contains("WorkerAction")) {
                         Printer.print("is worker action!");
                         new Thread() {
                             public void run() {
