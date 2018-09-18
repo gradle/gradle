@@ -115,12 +115,19 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
             connection = messagingServices.get(MessagingClient.class).getConnection(serverAddress, new Action<Throwable>() {
                 @Override
                 public void execute(Throwable throwable) {
+                    Printer.print("Unrecoverable!");
                     Printer.print(throwable);
                     final Action a = action;
                     if (a instanceof WorkerAction) {
+                        Printer.print("is worker action!");
                         new Thread() {
                             public void run() {
-                                ((WorkerAction) a).stop();
+                                try {
+                                    Printer.print("stop thread runs!");
+                                    ((WorkerAction) a).stop();
+                                } catch (Throwable e) {
+                                    Printer.print(e);
+                                }
                             }
                         }.start();
                     }
