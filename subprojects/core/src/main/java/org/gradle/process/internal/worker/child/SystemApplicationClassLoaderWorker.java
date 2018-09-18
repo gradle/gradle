@@ -116,9 +116,13 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
                 @Override
                 public void execute(Throwable throwable) {
                     Printer.print(throwable);
-                    Action a = action;
+                    final Action a = action;
                     if (a instanceof WorkerAction) {
-                        ((WorkerAction) a).stop();
+                        new Thread() {
+                            public void run() {
+                                ((WorkerAction) a).stop();
+                            }
+                        }.start();
                     }
                 }
             });
