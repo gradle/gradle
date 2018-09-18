@@ -18,14 +18,26 @@ package org.gradle.kotlin.dsl.fixtures
 
 import org.gradle.api.Project
 
-import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.internal.classpath.ClassPath
 
 import java.io.File
 
 
-fun newProjectBuilderProjectWith(projectDir: File, name: String = projectDir.name): Project =
-    newProjectBuilderWith(projectDir, name).build()
+abstract class AbstractDslTest : TestWithTempFiles() {
 
+    private
+    val kotlinDslEvalBaseCacheDir by lazy {
+        newFolder("kotlin-dsl-eval-cache")
+    }
 
-fun newProjectBuilderWith(projectDir: File, name: String = projectDir.name): ProjectBuilder =
-    ProjectBuilder.builder().withProjectDir(projectDir).withName(name)
+    /**
+     * Evaluates the given Kotlin [script] against this [Project] writing compiled classes
+     * to sub-directories of [baseCacheDir] using [scriptCompilationClassPath].
+     */
+    fun Project.eval(
+        script: String,
+        baseCacheDir: File = kotlinDslEvalBaseCacheDir,
+        scriptCompilationClassPath: ClassPath = testCompilationClassPath
+    ) =
+        eval(script, this, baseCacheDir, scriptCompilationClassPath)
+}

@@ -57,19 +57,6 @@ import java.net.URLClassLoader
 
 
 /**
- * Evaluates the given Kotlin [script] against this [Project] writing compiled classes
- * to sub-directories of `$projectDir/.gradle/kotlin-dsl-eval-cache`.
- */
-fun Project.eval(
-    script: String,
-    baseCacheDir: File = file(".gradle/kotlin-dsl-eval-cache"),
-    scriptCompilationClassPath: ClassPath = testCompilationClassPath
-) {
-    eval(script, this, baseCacheDir, scriptCompilationClassPath)
-}
-
-
-/**
  * Evaluates the given Kotlin [script] against the given [target] writing compiled classes
  * to sub-directories of [baseCacheDir].
  */

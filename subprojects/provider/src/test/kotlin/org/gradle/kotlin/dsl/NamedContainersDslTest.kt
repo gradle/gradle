@@ -17,9 +17,9 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Project
-import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
-import org.gradle.kotlin.dsl.fixtures.eval
-import org.gradle.kotlin.dsl.fixtures.newProjectBuilderProject
+
+import org.gradle.kotlin.dsl.fixtures.AbstractDslTest
+import org.gradle.kotlin.dsl.fixtures.newProjectBuilderProjectWith
 
 import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.CoreMatchers.hasItems
@@ -28,52 +28,12 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
-class NamedContainersDslTest : TestWithTempFiles() {
-
-    companion object {
-
-        val preExistingConfigurations = listOf(
-            "foo", "bar", "cabin", "castle"
-        )
-
-        val expectedConfigurationsExtendsFrom = listOf(
-            "bar" to "foo",
-            "cathedral" to "bazar",
-            "castle" to "cabin",
-            "hill" to "valley"
-        )
-    }
-
-    private
-    fun assertConfigurationsExtendsFrom(name: String, script: String, configuration: Project.() -> Unit = {}) {
-        newFolder(name).newProjectBuilderProject().run {
-
-            preExistingConfigurations.forEach { name ->
-                configurations.register(name)
-            }
-
-            configuration()
-
-            eval(script)
-
-            assertThat(
-                configurations.names.sorted(),
-                hasItems(
-                    *expectedConfigurationsExtendsFrom.flatMap {
-                        listOf(it.first, it.second)
-                    }.sorted().toTypedArray()
-                )
-            )
-            expectedConfigurationsExtendsFrom.forEach { (first, second) ->
-                assertThat(configurations[first].extendsFrom, hasItem(configurations[second]))
-            }
-        }
-    }
+class NamedContainersDslTest : AbstractDslTest() {
 
     @Test
     fun `monomorphic named domain object container api`() {
 
-        assertConfigurationsExtendsFrom("api", """
+        testConfigurationContainerVia("api", """
 
             val foo: Configuration = configurations.getByName("foo")
             val bar: Configuration = configurations.getByName("bar") {
@@ -100,7 +60,7 @@ class NamedContainersDslTest : TestWithTempFiles() {
     @Test
     fun `monomorphic named domain object container scope api`() {
 
-        assertConfigurationsExtendsFrom("scope-api", """
+        testConfigurationContainerVia("scope-api", """
             configurations {
 
                 val foo: Configuration = getByName("foo")
@@ -129,7 +89,7 @@ class NamedContainersDslTest : TestWithTempFiles() {
     @Test
     fun `monomorphic named domain object container delegated properties`() {
 
-        assertConfigurationsExtendsFrom("delegated-properties", """
+        testConfigurationContainerVia("delegated-properties", """
 
             val foo: Configuration by configurations.getting
             val bar: Configuration by configurations.getting {
@@ -156,7 +116,7 @@ class NamedContainersDslTest : TestWithTempFiles() {
     @Test
     fun `monomorphic named domain object container scope delegated properties`() {
 
-        assertConfigurationsExtendsFrom("scope-delegated-properties", """
+        testConfigurationContainerVia("scope-delegated-properties", """
             configurations {
 
                 val foo: Configuration by getting
@@ -185,7 +145,7 @@ class NamedContainersDslTest : TestWithTempFiles() {
     @Test
     fun `monomorphic named domain object container scope string invoke`() {
 
-        assertConfigurationsExtendsFrom("scope-string-invoke", """
+        testConfigurationContainerVia("scope-string-invoke", """
             configurations {
 
                 val foo: NamedDomainObjectProvider<Configuration> = "foo"()
@@ -211,5 +171,45 @@ class NamedContainersDslTest : TestWithTempFiles() {
             }
             apply(plugin = "java")
         }
+    }
+
+    private
+    fun testConfigurationContainerVia(name: String, script: String, configuration: Project.() -> Unit = {}) {
+        newProjectBuilderProjectWith(newFolder(name)).run {
+
+            preExistingConfigurations.forEach { name ->
+                configurations.register(name)
+            }
+
+            configuration()
+
+            eval(script)
+
+            assertThat(
+                configurations.names.sorted(),
+                hasItems(
+                    *expectedConfigurationsExtendsFrom.flatMap {
+                        listOf(it.first, it.second)
+                    }.sorted().toTypedArray()
+                )
+            )
+            expectedConfigurationsExtendsFrom.forEach { (first, second) ->
+                assertThat(configurations[first].extendsFrom, hasItem(configurations[second]))
+            }
+        }
+    }
+
+    companion object {
+
+        val preExistingConfigurations = listOf(
+            "foo", "bar", "cabin", "castle"
+        )
+
+        val expectedConfigurationsExtendsFrom = listOf(
+            "bar" to "foo",
+            "cathedral" to "bazar",
+            "castle" to "cabin",
+            "hill" to "valley"
+        )
     }
 }
