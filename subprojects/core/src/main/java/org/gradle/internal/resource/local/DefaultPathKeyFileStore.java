@@ -67,11 +67,15 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
         return baseDir;
     }
 
-    private File getFile(String path) {
-        return new File(baseDir, path);
+    private File getFile(String... path) {
+        File result = baseDir;
+        for (String p : path) {
+            result = new File(result, p);
+        }
+        return result;
     }
 
-    private File getFileWhileCleaningInProgress(String path) {
+    private File getFileWhileCleaningInProgress(String... path) {
         File file = getFile(path);
         File markerFile = getInProgressMarkerFile(file);
         if (markerFile.exists()) {
@@ -189,10 +193,10 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
     }
 
     @Override
-    public LocallyAvailableResource get(String key) {
-        final File file = getFileWhileCleaningInProgress(key);
+    public LocallyAvailableResource get(String... path) {
+        final File file = getFileWhileCleaningInProgress(path);
         if (file.exists()) {
-            return new DefaultLocallyAvailableResource(getFile(key));
+            return new DefaultLocallyAvailableResource(getFile(path));
         } else {
             return null;
         }
