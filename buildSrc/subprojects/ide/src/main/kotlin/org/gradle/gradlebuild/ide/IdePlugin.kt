@@ -53,6 +53,7 @@ import org.jetbrains.gradle.ext.Remote
 import org.jetbrains.gradle.ext.RunConfiguration
 import org.gradle.plugins.ide.idea.model.Module
 import org.gradle.plugins.ide.idea.model.ModuleLibrary
+import org.jetbrains.gradle.ext.ActionDelegationConfig
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -222,6 +223,10 @@ open class IdePlugin : Plugin<Project> {
                     // configureInspections()
                     configureRunConfigurations(rootProject)
                     doNotDetectFrameworks("android", "web")
+                    delegateActions {
+                        delegateBuildRunToGradle = false
+                        testRunner = ActionDelegationConfig.TestRunner.PLATFORM
+                    }
                 }
             }
         }
@@ -578,6 +583,9 @@ fun ProjectSettings.copyright(configuration: CopyrightConfiguration.() -> kotlin
 
 
 fun ProjectSettings.codeStyle(configuration: CodeStyleConfig.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
+
+
+fun ProjectSettings.delegateActions(configuration: ActionDelegationConfig.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
 
 
 fun ProjectSettings.inspections(configuration: NamedDomainObjectContainer<Inspection>.() -> kotlin.Unit) = (this as ExtensionAware).configure<NamedDomainObjectContainer<Inspection>> {
