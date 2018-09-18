@@ -28,7 +28,6 @@ System.err.println 'this is stderr'
 
         when:
         def progress = withModel(GradleProject.class).progressMessages
-        // TODO:lptr I have no idea why this changed from pop() to removeLast()
         progress.removeLast()
 
         then:

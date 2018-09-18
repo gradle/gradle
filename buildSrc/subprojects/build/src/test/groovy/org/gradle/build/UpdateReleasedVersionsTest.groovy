@@ -20,6 +20,7 @@ import spock.lang.Specification
 
 import java.text.SimpleDateFormat
 
+import static java.util.concurrent.TimeUnit.DAYS
 import static org.gradle.build.UpdateReleasedVersions.updateReleasedVersions
 
 class UpdateReleasedVersionsTest extends Specification {
@@ -43,7 +44,7 @@ class UpdateReleasedVersionsTest extends Specification {
     def "final releases are sorted by version"() {
         def snapshot = snapshot('4.3')
         def rc = releasedVersion('4.3-rc-1')
-        def referenceBuildTime = System.currentTimeMillis() - 10
+        def referenceBuildTime = System.currentTimeMillis() - DAYS.toMillis(10)
         def finalVersionsBefore = [
             releasedVersion('4.3.1', referenceBuildTime + 7),
             releasedVersion('4.4', referenceBuildTime + 5),
@@ -59,7 +60,7 @@ class UpdateReleasedVersionsTest extends Specification {
     }
 
     def "newer snapshots are stored"() {
-        def referenceBuildTime = System.currentTimeMillis() - 10
+        def referenceBuildTime = System.currentTimeMillis() - DAYS.toMillis(10)
         def oldSnapshot = snapshot('4.3', referenceBuildTime)
         def rc = releasedVersion('4.2-rc-1')
         def versions = releasedVersions(oldSnapshot, rc, [])
@@ -76,7 +77,7 @@ class UpdateReleasedVersionsTest extends Specification {
     }
 
     def "older snapshots are not stored"() {
-        def referenceBuildTime = System.currentTimeMillis() - 10
+        def referenceBuildTime = System.currentTimeMillis() - DAYS.toMillis(10)
         def oldSnapshot = snapshot('4.3', referenceBuildTime)
         def rc = releasedVersion('4.2-rc-1')
         def versions = releasedVersions(oldSnapshot, rc, [])
@@ -93,7 +94,7 @@ class UpdateReleasedVersionsTest extends Specification {
     }
 
     def "newer rcs are stored"() {
-        def referenceBuildTime = System.currentTimeMillis() - 10
+        def referenceBuildTime = System.currentTimeMillis() - DAYS.toMillis(10)
         def oldRc = releasedVersion('4.3-rc-2', referenceBuildTime)
         def snapshotVersion = snapshot('4.3', referenceBuildTime)
         def versions = releasedVersions(snapshotVersion, oldRc, [])
@@ -110,7 +111,7 @@ class UpdateReleasedVersionsTest extends Specification {
     }
 
     def "older rcs are not stored"() {
-        def referenceBuildTime = System.currentTimeMillis() - 10
+        def referenceBuildTime = System.currentTimeMillis() - DAYS.toMillis(10)
         def oldRc = releasedVersion('4.3-rc-2', referenceBuildTime)
         def snapshotVersion = snapshot('4.3', referenceBuildTime)
         def versions = releasedVersions(snapshotVersion, oldRc, [])
