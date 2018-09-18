@@ -35,9 +35,9 @@ class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildP
     public static final String DEXING_TASK = "dexing task"
 
     @Unroll
-    def "dexing task vs transform: #tasks on #testProject #withOrWithout (android/transform) cache"() {
+    def "dexing task vs transform: #tasksString on #testProject #withOrWithout (android/transform) cache"() {
         given:
-        def invocationOptions = [tasks: tasks, memory: memory, enableAndroidBuildCache: enableCaches]
+        def invocationOptions = [tasks: tasksString, memory: memory, enableAndroidBuildCache: enableCaches]
 
         runner.testGroup = "Android dexing"
         runner.buildSpec {
@@ -75,7 +75,7 @@ class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildP
         assertDexingTransformIsFaster(results)
 
         where:
-        testProject         | memory | warmUpRuns | runs | tasks                 | enableCaches
+        testProject         | memory | warmUpRuns | runs | tasksString           | enableCaches
         'largeAndroidBuild' | '5g'   | 2          | 8    | 'clean assembleDebug' | true
         'largeAndroidBuild' | '5g'   | 2          | 8    | 'clean assembleDebug' | false
         withOrWithout = enableCaches ? "with" : "without"
