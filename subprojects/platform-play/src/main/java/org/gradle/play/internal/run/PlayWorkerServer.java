@@ -22,6 +22,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 
 import java.io.Serializable;
@@ -33,7 +34,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWorkerServerProtocol, Reloader, Serializable {
+public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWorkerServerProtocol, Reloader, Serializable, Stoppable {
     private static final Logger LOGGER = Logging.getLogger(PlayWorkerServer.class);
 
     private final PlayRunSpec runSpec;
