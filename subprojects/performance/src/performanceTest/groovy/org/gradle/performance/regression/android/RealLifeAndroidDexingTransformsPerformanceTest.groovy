@@ -46,6 +46,9 @@ class RealLifeAndroidDexingTransformsPerformanceTest extends AbstractCrossBuildP
             warmUpCount warmUpRuns
             invocationCount runs
             if (!enableCaches) {
+                // We actually want to execute the transforms.
+                // So we clean the transform caches before the actual test run since we cannot disable it.
+                // When we have some sources we can change, we should do that instead.
                 listener(cleanTransformsCacheBeforeInvocation())
             }
             invocation {
