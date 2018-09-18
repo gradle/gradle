@@ -64,6 +64,7 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
                     new Thread() {
                         public void run() {
                             try {
+                                Printer.print("Start to abort!");
                                 abort();
                             } catch (Throwable e) {
                                 Printer.print(e);
