@@ -17,6 +17,7 @@
 package org.gradle.process.internal.worker.child;
 
 import org.gradle.api.Action;
+import org.gradle.api.Printer;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.UncheckedException;
@@ -157,20 +158,26 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         private PrintStream ps;
 
         private PrintUnrecoverableErrorToFileHandler(File gradleUserHomeDir) {
+            Printer.print("gradle user home: " + gradleUserHomeDir);
             this.gradleUserHomeDir = gradleUserHomeDir;
         }
 
         @Override
         public void execute(Throwable throwable) {
-            if (ps == null) {
-                String fileName = "worker-error-" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".txt";
-                try {
-                    ps = new PrintStream(new File(gradleUserHomeDir, fileName));
-                } catch (FileNotFoundException ignored) {
+            try {
+                if (ps == null) {
+                    String fileName = "worker-error-" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".txt";
+                    try {
+                        ps = new PrintStream(new File(gradleUserHomeDir, fileName));
+                    } catch (FileNotFoundException ignored) {
+                        Printer.print(ignored);
+                    }
+                } else {
+                    ps.println("Encountered unrecoverable error:");
+                    throwable.printStackTrace(ps);
                 }
-            } else {
-                ps.println("Encountered unrecoverable error:");
-                throwable.printStackTrace(ps);
+            } catch (Throwable e) {
+                Printer.print(e);
             }
         }
 
