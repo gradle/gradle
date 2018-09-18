@@ -39,5 +39,5 @@ fun loadThenDeletePropertiesFrom(file: File) =
 
 
 internal
-fun assumeAndroidHomeEnvVariableIsSet() =
+fun assumeAndroidHomeIsSet() =
     Assume.assumeTrue(System.getenv().containsKey("ANDROID_HOME"))

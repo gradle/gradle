@@ -24,7 +24,7 @@ class HelloAndroidSampleTest : AbstractSampleTest("hello-android") {
 
     @Before
     fun assumeAndroidHome() =
-        assumeAndroidHomeEnvVariableIsSet()
+        assumeAndroidHomeIsSet()
 
     @Test
     fun `build hello android`() {

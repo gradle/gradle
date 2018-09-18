@@ -60,7 +60,7 @@ class SamplesSmokeTest(
     private
     fun ignoreAndroidSampleUnlessAndroidHomeIsSet() {
         if (sampleName.contains("android")) {
-            assumeAndroidHomeEnvVariableIsSet()
+            assumeAndroidHomeIsSet()
         }
     }
 
