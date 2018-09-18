@@ -54,7 +54,7 @@ import java.util.Map;
 
 import static org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata.JAR_PACKAGINGS;
 import static org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata.POM_PACKAGING;
-import static org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata.USAGE_ATTRIBUTE;
+import static org.gradle.api.internal.artifacts.repositories.metadata.MavenImmutableAttributesFactory.USAGE_ATTRIBUTE;
 
 /**
  * {@link AbstractRealisedModuleComponentResolveMetadata Realised version} of a {@link MavenModuleResolveMetadata}.
