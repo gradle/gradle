@@ -172,7 +172,8 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
                     } catch (FileNotFoundException ignored) {
                         Printer.print(ignored);
                     }
-                } else {
+                }
+                if (ps != null) {
                     ps.println("Encountered unrecoverable error:");
                     throwable.printStackTrace(ps);
                 }
