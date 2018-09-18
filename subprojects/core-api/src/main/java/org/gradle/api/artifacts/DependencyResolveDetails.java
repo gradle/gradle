@@ -16,15 +16,12 @@
 
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
-
 /**
  * Provides details about a dependency when it is resolved.
  * Provides means to manipulate dependency metadata when it is resolved.
  *
  * @since 1.4
  */
-@Incubating
 public interface DependencyResolveDetails {
 
     /**
