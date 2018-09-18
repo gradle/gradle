@@ -31,7 +31,7 @@ import java.util.List;
 
 public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataFactory<MutableMavenModuleResolveMetadata> {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final MavenImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator objectInstantiator;
     private final FeaturePreviews featurePreviews;
 
@@ -39,7 +39,7 @@ public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataF
                                              ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator objectInstantiator,
                                              FeaturePreviews featurePreviews) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.attributesFactory = attributesFactory;
+        this.attributesFactory = new DefaultMavenImmutableAttributesFactory(attributesFactory, objectInstantiator);
         this.objectInstantiator = objectInstantiator;
         this.featurePreviews = featurePreviews;
     }

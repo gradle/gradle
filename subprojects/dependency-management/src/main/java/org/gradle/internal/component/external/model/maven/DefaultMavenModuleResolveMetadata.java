@@ -21,12 +21,9 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.descriptor.Configuration;
@@ -59,10 +56,9 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
 
     public static final String POM_PACKAGING = "pom";
     static final Set<String> JAR_PACKAGINGS = ImmutableSet.of("jar", "ejb", "bundle", "maven-plugin", "eclipse-plugin");
-    // We need to work with the 'String' version of the usage attribute, since this is expected for all providers by the `PreferJavaRuntimeVariant` schema
-    static final Attribute<String> USAGE_ATTRIBUTE = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class);
 
     private final NamedObjectInstantiator objectInstantiator;
+    private final MavenImmutableAttributesFactory mavenImmutableAttributesFactory;
 
     private final ImmutableList<MavenDependencyDescriptor> dependencies;
     private final String packaging;
@@ -77,6 +73,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     DefaultMavenModuleResolveMetadata(DefaultMutableMavenModuleResolveMetadata metadata) {
         super(metadata);
         this.objectInstantiator = metadata.getObjectInstantiator();
+        this.mavenImmutableAttributesFactory = (MavenImmutableAttributesFactory) metadata.getAttributesFactory();
         packaging = metadata.getPackaging();
         relocated = metadata.isRelocated();
         snapshotTimestamp = metadata.getSnapshotTimestamp();
@@ -86,6 +83,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSource source) {
         super(metadata, source);
         this.objectInstantiator = metadata.objectInstantiator;
+        this.mavenImmutableAttributesFactory = metadata.mavenImmutableAttributesFactory;
         packaging = metadata.packaging;
         relocated = metadata.relocated;
         snapshotTimestamp = metadata.snapshotTimestamp;
@@ -119,12 +117,12 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
             DefaultConfigurationMetadata compileConfiguration = (DefaultConfigurationMetadata) getConfiguration("compile");
             DefaultConfigurationMetadata runtimeConfiguration = (DefaultConfigurationMetadata) getConfiguration("runtime");
             derivedVariants = ImmutableList.of(
-                libraryWithUsageAttribute(compileConfiguration, Usage.JAVA_API, getAttributesFactory()),
-                libraryWithUsageAttribute(runtimeConfiguration, Usage.JAVA_RUNTIME, getAttributesFactory()),
-                platformWithUsageAttribute(compileConfiguration, Usage.JAVA_API, getAttributesFactory(), false),
-                platformWithUsageAttribute(runtimeConfiguration, Usage.JAVA_RUNTIME, getAttributesFactory(), false),
-                platformWithUsageAttribute(compileConfiguration, Usage.JAVA_API, getAttributesFactory(), true),
-                platformWithUsageAttribute(runtimeConfiguration, Usage.JAVA_RUNTIME, getAttributesFactory(), true));
+                libraryWithUsageAttribute(compileConfiguration, Usage.JAVA_API),
+                libraryWithUsageAttribute(runtimeConfiguration, Usage.JAVA_RUNTIME),
+                platformWithUsageAttribute(compileConfiguration, Usage.JAVA_API, false),
+                platformWithUsageAttribute(runtimeConfiguration, Usage.JAVA_RUNTIME, false),
+                platformWithUsageAttribute(compileConfiguration, Usage.JAVA_API, true),
+                platformWithUsageAttribute(runtimeConfiguration, Usage.JAVA_RUNTIME, true));
         }
         return derivedVariants;
     }
@@ -143,16 +141,13 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         return md;
     }
 
-    private ConfigurationMetadata libraryWithUsageAttribute(DefaultConfigurationMetadata conf, String usage, ImmutableAttributesFactory attributesFactory) {
-        ImmutableAttributes attributes = attributesFactory.concat(getAttributes().asImmutable(), USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator));
-        attributes = attributesFactory.concat(attributes, PlatformSupport.COMPONENT_CATEGORY, PlatformSupport.LIBRARY);
+    private ConfigurationMetadata libraryWithUsageAttribute(DefaultConfigurationMetadata conf, String usage) {
+        ImmutableAttributes attributes = mavenImmutableAttributesFactory.libraryWithUsage(getAttributes().asImmutable(), usage);
         return conf.withAttributes(attributes).withoutConstraints();
     }
 
-    private ConfigurationMetadata platformWithUsageAttribute(DefaultConfigurationMetadata conf, String usage, ImmutableAttributesFactory attributesFactory, boolean enforcedPlatform) {
-        ImmutableAttributes attributes = attributesFactory.concat(getAttributes().asImmutable(), USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator));
-        String componentType = enforcedPlatform ? PlatformSupport.ENFORCED_PLATFORM : PlatformSupport.REGULAR_PLATFORM;
-        attributes = attributesFactory.concat(attributes, PlatformSupport.COMPONENT_CATEGORY, componentType);
+    private ConfigurationMetadata platformWithUsageAttribute(DefaultConfigurationMetadata conf, String usage, boolean enforcedPlatform) {
+        ImmutableAttributes attributes = mavenImmutableAttributesFactory.platformWithUsage(getAttributes().asImmutable(), usage, enforcedPlatform);
         String prefix = enforcedPlatform ? "enforced-platform-" : "platform-";
         DefaultConfigurationMetadata metadata = conf.withAttributes(prefix + conf.getName(), attributes);
         metadata = metadata.withConstraintsOnly();
