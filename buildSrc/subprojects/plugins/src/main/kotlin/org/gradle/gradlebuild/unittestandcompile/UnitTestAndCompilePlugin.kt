@@ -51,7 +51,7 @@ enum class ModuleType(val compatibility: JavaVersion) {
     WORKER(JavaVersion.VERSION_1_6),
     CORE(JavaVersion.VERSION_1_8),
     PLUGIN(JavaVersion.VERSION_1_8),
-    INTERNAL(JavaVersion.VERSION_1_7), //TODO bumpt to 8 after Groovy 2.5 upgrade
+    INTERNAL(JavaVersion.VERSION_1_8),
     REQUIRES_JAVA_8(JavaVersion.VERSION_1_8)
 }
 
