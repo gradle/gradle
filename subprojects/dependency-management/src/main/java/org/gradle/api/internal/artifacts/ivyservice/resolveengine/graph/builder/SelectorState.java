@@ -245,9 +245,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
         // Target module can change, if this is called as the result of a module replacement conflict.
         this.targetModule = selected.getModule();
-
-        // TODO:DAZ It's not clear that we're setting up the correct state here:
-        // - If the target module changed, we are not updating the set of selectors on the target modules (both current and new)
     }
 
     public ComponentSelectionReasonInternal getSelectionReason() {

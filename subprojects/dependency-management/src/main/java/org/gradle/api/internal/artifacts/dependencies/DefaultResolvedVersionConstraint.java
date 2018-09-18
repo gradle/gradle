@@ -40,7 +40,6 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
 
         boolean strict = !strictVersion.isEmpty();
         String version = strict ? strictVersion : requiredVersion;
-        // TODO:DAZ Use null instead of empty (like 'prefer')
         this.requiredVersionSelector = scheme.parseSelector(version);
         this.preferredVersionSelector = preferredVersion.isEmpty() ? null : scheme.parseSelector(preferredVersion);
 

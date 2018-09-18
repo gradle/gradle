@@ -105,7 +105,6 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
                     // Mark this version as rejected
                     result.rejectedByRule(rejectedByRules);
 
-                    // TODO:DAZ This logic should apply to rejection by constraint as well (or should at least be consistent)
                     if (requestedVersionMatcher.matchesUniqueVersion()) {
                         // Only consider one candidate, because matchesUniqueVersion means that there's no ambiguity on the version number
                         break;

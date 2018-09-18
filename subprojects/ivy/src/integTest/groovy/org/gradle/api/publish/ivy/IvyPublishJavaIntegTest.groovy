@@ -529,7 +529,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         javaLibrary.parsedModuleMetadata.variant('runtime') {
             dependency('commons-collections:commons-collections:') {
-                // TODO:DAZ Validate the 'required' version
                 noMoreExcludes()
                 prefers(null)
                 strictly('3.2.2')

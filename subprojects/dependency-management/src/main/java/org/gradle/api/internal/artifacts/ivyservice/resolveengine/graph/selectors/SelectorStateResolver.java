@@ -163,7 +163,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
             return;
         }
 
-        // If not result from 'require', just use the highest preferred version (no range merging)
+        // If no result from 'require', just use the highest preferred version (no range merging)
         if (results.isEmpty()) {
             ComponentIdResolveResult highestPreferredVersion = preferResults.first();
             results.register(selectors.get(0), highestPreferredVersion);
