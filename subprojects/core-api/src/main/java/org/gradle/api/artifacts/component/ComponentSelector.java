@@ -25,7 +25,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  *
  * @since 1.10
  */
-@Incubating
 @UsedByScanPlugin
 public interface ComponentSelector {
     /**
