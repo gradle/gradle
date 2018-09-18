@@ -176,14 +176,14 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                             div().classAttr("col-7");
                                 big().text(scenario.getScenarioName()).end();
                                 if(scenario.isFromCache()) {
-                                    span().classAttr("badge badge-info").text("FROM-CACHE").end();
+                                    span().classAttr("badge badge-info").title("The test is not really executed - its results are fetched from build cache.").text("FROM-CACHE").end();
                                 }
                                 if(scenario.isBuildFailed()) {
-                                    span().classAttr("badge badge-danger").text("FAILED").end();
+                                    span().classAttr("badge badge-danger").title("The build failed and doesn't generate any execution data.").text("FAILED").end();
                                 } else if(!scenario.isSuccessful()) {
-                                    span().classAttr("badge badge-danger").text("REGRESSED").end();
+                                    span().classAttr("badge badge-danger").title("Regression confidence > 99% despite retries.").text("REGRESSED").end();
                                 } else if(scenario.isAboutToRegress()) {
-                                    span().classAttr("badge badge-warning").text("DANGEROUS").end();
+                                    span().classAttr("badge badge-warning").title("Regression confidence > 90%, we're going to fail soon.").text("DANGEROUS").end();
                                 }
                             end();
                             div().classAttr("col-2");
