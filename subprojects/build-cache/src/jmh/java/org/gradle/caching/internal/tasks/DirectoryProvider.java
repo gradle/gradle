@@ -20,7 +20,6 @@ import org.openjdk.jmh.annotations.Level;
 
 import java.nio.file.Path;
 
-@SuppressWarnings("Since15")
 public interface DirectoryProvider {
     Path getRoot(Level level);
 }
