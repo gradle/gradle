@@ -40,7 +40,6 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
 
     static {
         try {
-            //noinspection Since15
             ClassLoader.registerAsParallelCapable();
         } catch (NoSuchMethodError ignore) {
             // Not supported on Java 6

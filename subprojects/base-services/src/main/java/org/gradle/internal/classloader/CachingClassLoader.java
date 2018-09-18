@@ -32,7 +32,6 @@ public class CachingClassLoader extends ClassLoader implements ClassLoaderHierar
 
     static {
         try {
-            //noinspection Since15
             ClassLoader.registerAsParallelCapable();
         } catch (NoSuchMethodError ignore) {
             // Not supported on Java 6

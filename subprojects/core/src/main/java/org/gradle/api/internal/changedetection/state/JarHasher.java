@@ -78,7 +78,6 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
         }
     }
 
-    @SuppressWarnings("Since15")
     private List<FileSystemLocationFingerprint> fingerprintZipEntries(String jarFile) throws IOException {
         List<FileSystemLocationFingerprint> fingerprints = Lists.newArrayList();
         InputStream fileInputStream = null;

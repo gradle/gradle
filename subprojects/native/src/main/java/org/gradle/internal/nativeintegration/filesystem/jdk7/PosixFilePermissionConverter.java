@@ -22,7 +22,6 @@ import java.util.Set;
 
 import static java.nio.file.attribute.PosixFilePermission.*;
 
-@SuppressWarnings("Since15")
 public class PosixFilePermissionConverter {
 
     public static Set<PosixFilePermission> convertToPermissionsSet(int mode) {

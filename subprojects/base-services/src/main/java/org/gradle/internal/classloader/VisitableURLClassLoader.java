@@ -27,7 +27,6 @@ import java.util.List;
 public class VisitableURLClassLoader extends URLClassLoader implements ClassLoaderHierarchy {
     static {
         try {
-            //noinspection Since15
             ClassLoader.registerAsParallelCapable();
         } catch (NoSuchMethodError ignore) {
             // Not supported on Java 6

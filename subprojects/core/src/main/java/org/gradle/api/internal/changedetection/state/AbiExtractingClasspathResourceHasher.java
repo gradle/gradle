@@ -35,7 +35,6 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.zip.ZipEntry;
 
-@SuppressWarnings("Since15")
 public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     private static final Logger LOGGER = Logging.getLogger(AbiExtractingClasspathResourceHasher.class);
 
