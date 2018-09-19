@@ -16,6 +16,10 @@
 
 package org.gradle.performance.regression.java
 
+import org.gradle.performance.AbstractToolingApiCrossVersionPerformanceTest
+import org.gradle.tooling.model.ExternalDependency
+import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.tooling.model.idea.IdeaProject
 import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
