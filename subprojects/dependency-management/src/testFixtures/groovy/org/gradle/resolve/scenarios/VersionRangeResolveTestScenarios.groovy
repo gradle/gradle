@@ -59,6 +59,7 @@ class VersionRangeResolveTestScenarios {
     public static final RANGE_12_14 = range(12, 14)
     public static final RANGE_13_14 = range(13, 14)
     public static final RANGE_14_16 = range(14, 16)
+    public static final RANGE_10_12_AND_PREFER_11 = requireAndPrefer(10, 12, 11)
 
     public static final DYNAMIC_PLUS = dynamic('+')
     public static final DYNAMIC_LATEST = dynamic( 'latest.integration')
@@ -66,6 +67,21 @@ class VersionRangeResolveTestScenarios {
     public static final REJECT_11 = reject(11)
     public static final REJECT_12 = reject(12)
     public static final REJECT_13 = reject(13)
+
+    public static final StrictPermutationsProvider SCENARIOS_SINGLE = StrictPermutationsProvider.check(
+        versions: [FIXED_12],
+        expected: "12"
+    ).and(
+        versions: [PREFER_12],
+        expected: "12"
+    ).and(
+        versions: [RANGE_10_12],
+        expected: "12"
+    ).and(
+        ignore: true,
+        versions: [RANGE_10_12_AND_PREFER_11],
+        expected: "11"
+    )
 
     public static final StrictPermutationsProvider SCENARIOS_EMPTY = StrictPermutationsProvider.check(
         versions: [EMPTY, FIXED_12],
@@ -473,6 +489,13 @@ class VersionRangeResolveTestScenarios {
         v
     }
 
+    private static RenderableVersion requireAndPrefer(int low, int high, int prefer) {
+        def v = new CombinedVersion()
+        v.require = "[${low},${high}]"
+        v.prefer = "${prefer}"
+        v
+    }
+
     interface RenderableVersion {
         String getVersion()
 
@@ -539,6 +562,34 @@ class VersionRangeResolveTestScenarios {
         @Override
         String toString() {
             return "prefer(" + version + ")"
+        }
+    }
+
+    static class CombinedVersion implements RenderableVersion {
+        String require
+        String prefer
+
+        @Override
+        VersionConstraint getVersionConstraint() {
+            def vc = new DefaultMutableVersionConstraint('')
+            vc.prefer(prefer)
+            vc.require(require)
+            return vc
+        }
+
+        @Override
+        String render() {
+            return "('org:foo') { version { prefer '${prefer}'; require '${require}' }"
+        }
+
+        @Override
+        String toString() {
+            return "require(" + require + ") prefer(" + prefer + ")"
+        }
+
+        @Override
+        String getVersion() {
+            return require + "/" + prefer
         }
     }
 

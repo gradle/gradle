@@ -57,6 +57,7 @@ import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCEN
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_EMPTY
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_FOUR_DEPENDENCIES
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_PREFER
+import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_SINGLE
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_THREE_DEPENDENCIES
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_TWO_DEPENDENCIES
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_WITH_REJECT
@@ -72,6 +73,19 @@ class SelectorStateResolverTest extends Specification {
 
     private final SelectorStateResolver conflictHandlingResolver = new SelectorStateResolver(conflictResolver, componentFactory, root)
     private final SelectorStateResolver failingResolver = new SelectorStateResolver(new FailingConflictResolver(), componentFactory, root)
+
+    @Unroll
+    def "resolve selector #permutation"() {
+        given:
+        def candidates = permutation.candidates
+        def expected = permutation.expected
+
+        expect:
+        resolver(permutation.conflicts).resolve(candidates) == expected
+
+        where:
+        permutation << SCENARIOS_SINGLE
+    }
 
     @Unroll
     def "resolve pair #permutation"() {
