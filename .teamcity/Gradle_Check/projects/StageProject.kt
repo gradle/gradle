@@ -26,7 +26,6 @@ class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boo
         }
         if (!stage.performanceTests.isEmpty()) {
             buildReportTab("Performance", "report-performance-performance-tests.zip!report/index.html")
-            buildReportTab("Performance Failures", "report-performance-performance-tests.zip!scenario-report.html")
         }
     }
 
