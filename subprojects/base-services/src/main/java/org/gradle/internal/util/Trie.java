@@ -17,12 +17,12 @@ package org.gradle.internal.util;
 
 import org.gradle.api.Action;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 
-public class Trie {
+public class Trie implements Comparable<Trie> {
     private final char c;
     private final boolean terminal;
     private final Trie[] transitions;
@@ -59,6 +59,11 @@ public class Trie {
         }
         sb.append("\n");
         return sb.toString();
+    }
+
+    @Override
+    public int compareTo(@Nonnull Trie o) {
+        return c - o.c;
     }
 
     /**
@@ -157,12 +162,7 @@ public class Trie {
                 Builder transition = this.transitions.get(i);
                 transitions[i] = transition.build();
             }
-            Arrays.sort(transitions, new Comparator<Trie>() {
-                @Override
-                public int compare(Trie o1, Trie o2) {
-                    return o1.c - o2.c;
-                }
-            });
+            Arrays.sort(transitions);
             return new Trie(c, terminal, transitions);
         }
     }
