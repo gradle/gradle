@@ -166,15 +166,20 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         public <T> T withMutableState(final Factory<? extends T> action) {
             Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
             if (currentLocks.contains(projectLock)) {
+                // if we already hold the project lock for this project
                 currentLocks = Lists.newArrayList(currentLocks);
                 currentLocks.remove(projectLock);
                 if (!currentLocks.isEmpty()) {
+                    // release any other project locks we might happen to hold
                     return workerLeaseService.withoutLocks(currentLocks, action);
                 } else {
+                    // the lock for this project is the only lock we hold
                     return action.create();
                 }
             } else {
+                // we don't currently hold the project lock
                 if (!currentLocks.isEmpty()) {
+                    // we hold other project locks that we should release first
                     if (logger.isEnabled(LogLevel.DEBUG)) {
                         logger.debug("Releasing project locks " + CollectionUtils.join(", ", CollectionUtils.collect(currentLocks, new Transformer<String, ResourceLock>() {
                             @Override
@@ -191,6 +196,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
                         }
                     });
                 } else {
+                    // we just need to get the lock for this project
                     return withProjectLock(projectLock, action);
                 }
             }
