@@ -302,6 +302,10 @@ class ModuleResolveState implements CandidateModule {
         return platformState;
     }
 
+    boolean isVirtualPlatform() {
+        return platformState != null && !platformState.getParticipatingModules().isEmpty();
+    }
+
     void decreaseHardEdgeCount() {
         pendingDependencies.decreaseHardEdgeCount();
     }
@@ -327,6 +331,17 @@ class ModuleResolveState implements CandidateModule {
         } else if (newSelected != selected) {
             changeSelection(newSelected);
             return true;
+        }
+        return false;
+    }
+
+    boolean hasCompetingForceSelectors() {
+        if (selectors.size() > 1) {
+            for (SelectorState selector : selectors) {
+                if (selector.isForce() && !selector.getRequested().matchesStrictly(selected.getComponentId())) {
+                    return true;
+                }
+            }
         }
         return false;
     }
