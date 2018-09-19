@@ -45,10 +45,10 @@ class BuildScanPerformanceTest extends ReportGenerationPerformanceTest {
     protected List<ScenarioBuildResultData> getResultsForReport() {
         Collection<File> xmls = reports.junitXml.destination.listFiles().findAll { it.path.endsWith(".xml") }
         List<JUnitTestSuite> testSuites = xmls.collect { JUnitMarshalling.unmarshalTestSuite(new FileInputStream(it)) }
-        return testSuites.collect(this.&extractResultFromTestCase).flatten() as List<ScenarioBuildResultData>
+        return testSuites.collect { extractResultFromTestSuite(it) }.flatten() as List<ScenarioBuildResultData>
     }
 
-    private List<ScenarioBuildResultData> extractResultFromTestCase(JUnitTestSuite testSuite) {
+    private List<ScenarioBuildResultData> extractResultFromTestSuite(JUnitTestSuite testSuite) {
         List<JUnitTestCase> testCases = testSuite.testCases ?: []
         return testCases.collect {
             new ScenarioBuildResultData(scenarioName: it.name,
