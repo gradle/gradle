@@ -27,6 +27,22 @@ public class Trie {
     private final boolean terminal;
     private final Trie[] transitions;
 
+    public static Trie from(String... words) {
+        return from(Arrays.asList(words));
+    }
+
+    public static Trie from(Iterable<String> words) {
+        Builder builder = new Builder();
+        for (String word : words) {
+            builder.addWord(word);
+        }
+        return builder.build();
+    }
+
+    public static Builder builder() {
+        return new Trie.Builder();
+    }
+
     private Trie(char c, boolean terminal, Trie[] transitions) {
         this.c = c;
         this.terminal = terminal;
@@ -36,10 +52,6 @@ public class Trie {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        return toString(sb);
-    }
-
-    private String toString(StringBuilder sb) {
         sb.append(c).append(terminal ? "(terminal)\n" : "\n");
         sb.append("Next: ");
         for (Trie transition : transitions) {
@@ -49,6 +61,9 @@ public class Trie {
         return sb.toString();
     }
 
+    /**
+     * Checks if the trie contains the given character sequence or any prefixes of the sequence.
+     */
     public boolean find(CharSequence seq) {
         if (seq.length() == 0) {
             return false;
