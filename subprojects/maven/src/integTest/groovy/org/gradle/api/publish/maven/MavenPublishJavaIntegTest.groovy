@@ -852,7 +852,8 @@ $append
 
     }
 
-    def 'can publish java library using a platform with a dependencyManagement entry of type "pom" and scope "import"'() {
+    @Unroll
+    def 'can publish java library with a #config dependency on a published BOM platform"'() {
         given:
         javaLibrary(mavenRepo.module("org.test", "bom", "1.0")).hasPackaging('pom').dependencyConstraint(mavenRepo.module('org.test', 'bar', '1.1')).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
@@ -860,13 +861,13 @@ $append
 
         createBuildScripts("""
             dependencies {
-                api "org.test:bar"
-                api platform("org.test:bom:1.0")
+                ${config} "org.test:bar"
+                ${config} platform("org.test:bom:1.0")
             }
             publishing {
                 publications {
                     maven(MavenPublication) {
-                        from components.javaLibraryPlatform
+                        from components.java
                     }
                 }
             }
@@ -876,19 +877,21 @@ $append
         run "publish"
 
         then:
-        def mavenModule = javaLibrary.mavenModule
+        javaLibrary.assertPublished()
 
-        mavenModule.assertPublished()
-        mavenModule.assertArtifactsPublished("publishTest-1.9.module", "publishTest-1.9.pom")
+        def mavenModule = javaLibrary.mavenModule
         mavenModule.parsedPom.scopes['import'].expectDependencyManagement('org.test:bom:1.0').hasType('pom')
+        mavenModule.parsedPom.scopes[scope].assertDependsOn('org.test:bar:')
 
         and:
-        javaLibrary.parsedModuleMetadata.variant('api') {
-            dependency('org.test:bar:').exists()
-            dependency('org.test:bom:1.0') {
-                hasAttribute(PlatformSupport.COMPONENT_CATEGORY.name, PlatformSupport.REGULAR_PLATFORM)
+        if (config == "api") {
+            javaLibrary.parsedModuleMetadata.variant('api') {
+                dependency('org.test:bar:').exists()
+                dependency('org.test:bom:1.0') {
+                    hasAttribute(PlatformSupport.COMPONENT_CATEGORY.name, PlatformSupport.REGULAR_PLATFORM)
+                }
+                noMoreDependencies()
             }
-            noMoreDependencies()
         }
 
         javaLibrary.parsedModuleMetadata.variant('runtime') {
@@ -898,6 +901,11 @@ $append
             }
             noMoreDependencies()
         }
+
+        where:
+        config           | scope
+        "api"            | "compile"
+        "implementation" | "runtime"
 
     }
 
