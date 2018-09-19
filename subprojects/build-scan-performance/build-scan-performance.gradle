@@ -33,23 +33,7 @@ gradlebuildJava {
 }
 
 tasks.withType(org.gradle.testing.PerformanceTest).configureEach {
-    resultStoreClass = "org.gradle.performance.results.BuildScanResultsStore"
     systemProperties += [incomingArtifactDir: "${rootDir}/incoming/"]
-}
-
-tasks.named('performanceReport').configure {
-    doLast {
-        project.delete("build/reports/performance")
-        project.javaexec(new Action<JavaExecSpec>() {
-            void execute(JavaExecSpec spec) {
-                spec.setMain("org.gradle.performance.results.ReportGenerator")
-                spec.args("org.gradle.performance.results.BuildScanResultsStore", "build/reports/performance")
-                spec.systemProperties(performanceTest.databaseParameters)
-                spec.systemProperty("org.gradle.performance.execution.channel", "commits")
-                spec.setClasspath(performanceTest.classpath)
-            }
-        })
-    }
 }
 
 tasks.withType(org.gradle.testing.PerformanceTest).configureEach{

@@ -18,6 +18,8 @@ import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.testing.DistributedPerformanceTest
 import org.gradle.testing.PerformanceTest
+import org.gradle.testing.ReportGenerationPerformanceTest
+import org.gradle.testing.BuildScanPerformanceTest
 import org.gradle.testing.RebaselinePerformanceTests
 import org.gradle.testing.performance.generator.tasks.AbstractProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JavaExecProjectGeneratorTask
@@ -25,12 +27,12 @@ import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.ProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.RemoteProject
 import org.gradle.testing.performance.generator.tasks.TemplateProjectGeneratorTask
+import org.gradle.kotlin.dsl.*
 
 import org.w3c.dom.Document
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
-
-import org.gradle.kotlin.dsl.*
+import kotlin.reflect.KClass
 
 
 private
@@ -56,8 +58,6 @@ object Config {
     val baseLineList = listOf("1.1", "1.12", "2.0", "2.1", "2.4", "2.9", "2.12", "2.14.1", "last")
 
     const val performanceTestScenarioListFileName = "performance-tests/scenario-list.csv"
-
-    const val performanceTestScenarioReportFileName = "performance-tests/scenario-report.html"
 
     const val performanceTestReportsDir = "performance-tests/report"
 
@@ -315,12 +315,10 @@ class PerformanceTestPlugin : Plugin<Project> {
     ): TaskProvider<DistributedPerformanceTest> {
 
         val result = tasks.register(name, DistributedPerformanceTest::class) {
-            configureReportProperties()
             configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask)
             scenarioList = buildDir / Config.performanceTestScenarioListFileName
             buildTypeId = stringPropertyOrNull(PropertyNames.buildTypeId)
             workerTestTaskName = stringPropertyOrNull(PropertyNames.workerTestTaskName) ?: "fullPerformanceTest"
-            coordinatorBuildId = System.getenv("BUILD_ID")
             branchName = stringPropertyOrNull(PropertyNames.branchName)
             teamCityUrl = Config.teamCityUrl
             teamCityUsername = stringPropertyOrNull(PropertyNames.teamCityUsername)
@@ -343,9 +341,8 @@ class PerformanceTestPlugin : Plugin<Project> {
         name: String,
         performanceSourceSet: SourceSet,
         prepareSamplesTask: TaskProvider<Task>
-    ): TaskProvider<PerformanceTest> {
-
-        val performanceTest = tasks.register(name, PerformanceTest::class) {
+    ): TaskProvider<out PerformanceTest> {
+        val performanceTest = tasks.register(name, determineLocalPerformanceTestClass()) {
             configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask)
 
             if (project.hasProperty(PropertyNames.performanceTestVerbose)) {
@@ -369,7 +366,12 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.testResultsZipTaskFor(performanceTest: TaskProvider<PerformanceTest>, name: String): TaskProvider<Zip> =
+    fun Project.determineLocalPerformanceTestClass(): KClass<out PerformanceTest> {
+        return if (name == "buildScanPerformance") BuildScanPerformanceTest::class else PerformanceTest::class
+    }
+
+    private
+    fun Project.testResultsZipTaskFor(performanceTest: TaskProvider<out PerformanceTest>, name: String): TaskProvider<Zip> =
         tasks.register("${name}ResultsZip", Zip::class) {
             val junitXmlDir = performanceTest.get().reports.junitXml.destination
             from(junitXmlDir) {
@@ -422,11 +424,13 @@ class PerformanceTestPlugin : Plugin<Project> {
                 this@apply.mustRunAfter(this)
             }
         }
-    }
 
-    private
-    fun DistributedPerformanceTest.configureReportProperties() {
-        reportDir = project.buildDir / Config.performanceTestReportsDir
+        if (task is ReportGenerationPerformanceTest) {
+            task.apply {
+                buildId = System.getenv("BUILD_ID")
+                reportDir = project.buildDir / Config.performanceTestReportsDir
+            }
+        }
     }
 
     private
