@@ -39,7 +39,7 @@ class SelectorStateResolverResults {
         results = Lists.newArrayListWithCapacity(size);
     }
 
-    public <T extends ComponentResolutionState> List<T> getResolved(ComponentStateFactory<T> componentFactory, List<ResolvableSelectorState> emptySelectors) {
+    public <T extends ComponentResolutionState> List<T> getResolved(ComponentStateFactory<T> componentFactory) {
         ModuleVersionResolveException failure = null;
         List<T> resolved = null;
         for (Registration entry : results) {
@@ -68,19 +68,10 @@ class SelectorStateResolverResults {
         }
 
         if (resolved == null && failure != null) {
-            recordFailureInEmptySelectors(emptySelectors, failure);
             throw failure;
         }
 
         return resolved == null ? Collections.<T>emptyList() : resolved;
-    }
-
-    private void recordFailureInEmptySelectors(List<ResolvableSelectorState> emptySelectors, ModuleVersionResolveException failure) {
-        if (emptySelectors != null) {
-            for (ResolvableSelectorState emptySelector : emptySelectors) {
-                emptySelector.failed(failure);
-            }
-        }
     }
 
     public static <T extends ComponentResolutionState> T componentForIdResolveResult(ComponentStateFactory<T> componentFactory, ComponentIdResolveResult idResolveResult, ResolvableSelectorState selector) {
@@ -113,7 +104,7 @@ class SelectorStateResolverResults {
         // Check already-resolved dependencies and use this version if it's compatible
         boolean replaces = false;
         for (Registration registration : results) {
-            if (sameVersion(registration.result, resolveResult) ||
+            if (emptyVersion(registration.result) || sameVersion(registration.result, resolveResult) ||
                 (included(registration.selector, resolveResult) && lowerVersion(registration.result, resolveResult))) {
                 registration.result = resolveResult;
                 replaces = true;
@@ -124,6 +115,13 @@ class SelectorStateResolverResults {
 
     void register(ResolvableSelectorState selector, ComponentIdResolveResult resolveResult) {
         results.add(new Registration(selector, resolveResult));
+    }
+
+    private boolean emptyVersion(ComponentIdResolveResult existing) {
+        if (existing.getFailure() == null) {
+            return existing.getModuleVersionId().getVersion().isEmpty();
+        }
+        return false;
     }
 
     private boolean sameVersion(ComponentIdResolveResult existing, ComponentIdResolveResult resolveResult) {
