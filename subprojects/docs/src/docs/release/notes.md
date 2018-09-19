@@ -47,7 +47,7 @@ In this release of Gradle, the `ObjectFactory` service, which is part of the pub
 
 TBD - why this is useful
 
-### Provider implementations track their producer task 
+### Provider implementations track their producer task
 
 TBD - More provider implementations track the task that produces the value of the provider:
 - Any provider returned by `TaskContainer`
@@ -63,13 +63,13 @@ These other methods have been deprecated and will be removed in Gradle 6.0.
 ### JaCoCo plugin now works with the build cache and parallel test execution
 
 The [JaCoCo plugin](userguide/jacoco_plugin.html) plugin now works seamlessly with the build cache.
-When applying the plugin with no extra configuration, the test task stays cacheable and parallel test execution can be used.  
+When applying the plugin with no extra configuration, the test task stays cacheable and parallel test execution can be used.
 
 In order to make the tasks cacheable when generating execution data with `append = true`, the tasks running with code coverage are configured to delete the execution data just before they starts executing.
 In this way, stale execution data, which would cause non-repeatable task outputs, is removed.
 
 Since Gradle now takes care of removing the execution data, the `JacocoPluginExtension.append` property has been deprecated.
-The JaCoCo agent is always configured with `append = true`, so it can be used when running tests in parallel. 
+The JaCoCo agent is always configured with `append = true`, so it can be used when running tests in parallel.
 
 ### Plural task output properties don't disable caching anymore
 
@@ -82,7 +82,7 @@ The only remaining reason to disable caching for the task is if the output conta
 
 ### Task timeouts
 
-You can now specify a timeout for a task, after which it will be interrupted. 
+You can now specify a timeout for a task, after which it will be interrupted.
 See the user guide section on “[Task timeouts](userguide/more_about_tasks.html#task_timeouts)” for more information.
 
 ## Promoted features
@@ -105,7 +105,7 @@ in the next major Gradle version (Gradle 6.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
 
-### StartParameter.interactive flag 
+### StartParameter.interactive flag
 
 The `interactive` flag is deprecated and will be removed in Gradle 6.0.
 
@@ -121,19 +121,19 @@ Removing tasks from the `TaskContainer` using the following methods has been dep
 
 With the deprecation of every method for removing a task, registering a callback when an object is removed is also deprecated (`whenObjectRemoved(Closure/Action)`). These methods will be removed in Gradle 6.0
 
-### Replacing tasks 
+### Replacing tasks
 
 It is only safe to replace an unrealized tasks registered with the new Task API because this task has not been used by anything else.
 
 In Gradle 6.0, these behaviors will be treated as errors.
 
-#### Replacing tasks that may still be used by other tasks 
+#### Replacing tasks that may still be used by other tasks
 
-Gradle now emits a deprecation warning when you attempt to replace a task that may have already been used by something else.  
+Gradle now emits a deprecation warning when you attempt to replace a task that may have already been used by something else.
 
 #### Replacing tasks with a task of an incompatible type
 
-Gradle now emits a deprecation warning when you attempt to replace a task with a type that's incompatible from the task being replaced. 
+Gradle now emits a deprecation warning when you attempt to replace a task with a type that's incompatible from the task being replaced.
 
 #### Replacing a task that does not exist
 
@@ -162,7 +162,7 @@ The [announce](userguide/announce_plugin.html) and [build announcements](usergui
 
 ### Deprecated OSGi plugin
 
-The [osgi](userguide/osgi_plugin.html) plugin has been deprecated. Builds should migrate to the [biz.aQute.bnd plugin](https://github.com/bndtools/bnd/blob/master/biz.aQute.bnd.gradle/README.md). 
+The [osgi](userguide/osgi_plugin.html) plugin has been deprecated. Builds should migrate to the [biz.aQute.bnd plugin](https://github.com/bndtools/bnd/blob/master/biz.aQute.bnd.gradle/README.md).
 
 ### Deprecated code quality plugins
 
@@ -184,7 +184,7 @@ Now when the last non-constraint edge to a dependency disappears, all constraint
 
 ### Gradle 5.0 requires Java 8
 
-Gradle can no longer be run on Java 7, but requires Java 8 as the minimum build JVM version. 
+Gradle can no longer be run on Java 7, but requires Java 8 as the minimum build JVM version.
 However, you can still use forked compilation and testing to build and test software for Java 6 and above.
 
 ### Java Library Distribution Plugin utilizes Java Library Plugin
@@ -211,6 +211,19 @@ The default tool versions of the following code quality plugins have been update
 - The PMD plugin now uses 6.7.0 instead of 5.6.1 by default.
   In addition, the default ruleset was changed from the now deprecated `java-basic` to `category/java/errorprone.xml`.
   We recommend configuring a ruleset explicitly, though.
+
+### Library upgrades
+
+Several libraries that are used by Gradle have been upgraded:
+
+- Ant has been upgraded from 1.9.11 to 1.9.13.
+- The AWS SDK used to access S3 backed Maven/Ivy repositories has been upgraded from 1.11.267 to 1.11.407.
+- The BND library used by the OSGi plugin has been upgraded from 3.4.0 to 4.0.0.
+- The Google Cloud Storage JSON API Client Library used to access Google Cloud Storage backed Maven/Ivy repositories has been upgraded from v1-rev116-1.23.0 to v1-rev136-1.25.0.
+- Ivy has been upgraded from 2.2.0 to 2.3.0.
+- The JUnit Platform libraries used by the `Test` task have been upgraded from 1.0.3 to 1.3.1.
+- The Maven Wagon libraries used to access Maven repositories have been upgraded from 2.4 to 3.0.0.
+- SLF4J has been upgraded from 1.7.16 to 1.7.25.
 
 ### `CopySpec.duplicatesStrategy` is no longer nullable
 
@@ -275,7 +288,7 @@ The `IdeaModule` Tooling API model element contains methods to retrieve resource
 - Removed the methods `execute`, `getExecuter`, `setExecuter`, `getValidators` and `addValidator` from `TaskInternal`.
 - Removed the methods `stopExecutionIfEmpty` and `add` from `FileCollection`.
 - Removed the ability to cast (Groovy `as`) `FileCollection` to `File[]` and `File`.
-- Removed the method `getBuildDependencies` from `AbstractFileCollection`. 
+- Removed the method `getBuildDependencies` from `AbstractFileCollection`.
 - Removed the methods `file` and `files` from `TaskDestroyables`.
 - Removed the property `styleSheet` from `ScalaDocOptions`.
 - Removed the methods `newFileVar` and `newDirectoryVar` from `ProjectLayout`.
@@ -294,20 +307,20 @@ The `IdeaModule` Tooling API model element contains methods to retrieve resource
 - Chaining calls to the methods `file`, `files`, and `dir` on `TaskInputs` is now impossible.
 - Chaining calls to the methods `file`, `files`, and `dir` on `TaskOutputs` is now impossible.
 - Chaining calls to the method `property` and `properties` on `TaskInputs` is now an error.
-- `JavaPluginConvention` is now abstract. 
-- `ApplicationPluginConvention` is now abstract. 
-- `WarPluginConvention` is now abstract. 
-- `EarPluginConvention` is now abstract. 
-- `BasePluginConvention` is now abstract. 
-- `ProjectReportsPluginConvention` is now abstract. 
+- `JavaPluginConvention` is now abstract.
+- `ApplicationPluginConvention` is now abstract.
+- `WarPluginConvention` is now abstract.
+- `EarPluginConvention` is now abstract.
+- `BasePluginConvention` is now abstract.
+- `ProjectReportsPluginConvention` is now abstract.
 
 ### System properties `test.single` and `test.debug` have been removed
 
 The `test.single` filter mechanism has been removed. You must select tests from the command-line with [`--tests`](userguide/java_testing.html#simple_name_pattern).
 
-The `test.debug` mechanism to enable debugging of JVM tests from the command-line has been removed.  You must use [`--debug-jvm`](userguide/java_testing.html#sec:debugging_java_tests) to enable debugging of test execution.  
+The `test.debug` mechanism to enable debugging of JVM tests from the command-line has been removed.  You must use [`--debug-jvm`](userguide/java_testing.html#sec:debugging_java_tests) to enable debugging of test execution.
 
-### Replacing built-in tasks 
+### Replacing built-in tasks
 
 In earlier versions of Gradle, builds were allowed to replace tasks that may be automatically created. This was deprecated in [Gradle 4.8](https://docs.gradle.org/4.8/release-notes.html#overwriting-gradle's-built-in-tasks) and has now been turned into an error.
 
