@@ -51,7 +51,7 @@ class BuildScanPluginPerformanceTest extends Specification {
     CrossBuildPerformanceTestRunner runner
 
     private int warmupBuilds = 1
-    private int measuredBuilds = 7
+    private int measuredBuilds = 1
 
     void setup() {
         def incomingDir = "../../incoming" // System.getProperty('incomingArtifactDir')
