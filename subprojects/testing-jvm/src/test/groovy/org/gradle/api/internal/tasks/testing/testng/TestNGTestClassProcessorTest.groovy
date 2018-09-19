@@ -30,6 +30,7 @@ import org.junit.Rule
 import org.testng.ITestContext
 import org.testng.ITestListener
 import org.testng.ITestResult
+import org.testng.TestNG
 import org.testng.annotations.AfterClass
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeClass
@@ -38,6 +39,8 @@ import org.testng.annotations.Factory
 import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Subject
+
+import java.lang.reflect.Proxy
 
 class TestNGTestClassProcessorTest extends Specification {
 
@@ -62,8 +65,10 @@ class TestNGTestClassProcessorTest extends Specification {
 
         then: 1 * processor.started({ it.id == 1 && it.name == 'Gradle suite' && it.className == null }, { it.parentId == null })
         then: 1 * processor.started({ it.id == 2 && it.name == 'Gradle test' && it.className == null }, { it.parentId == 1 })
-        then: 1 * processor.started({ it.id == 3 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 2 })
-        then: 1 * processor.completed(3, { it.resultType == ResultType.SUCCESS })
+        then: 1 * processor.started({ it.id == 3 && it.name == ATestNGClass.name && it.className == ATestNGClass.name }, { it.parentId == 2 })
+        then: 1 * processor.started({ it.id == 4 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 3 })
+        then: 1 * processor.completed(4, { it.resultType == ResultType.SUCCESS })
+        then: 1 * processor.completed(3, { it.resultType == null })
         then: 1 * processor.completed(2, { it.resultType == null })
         then: 1 * processor.completed(1, { it.resultType == null })
         0 * processor._
@@ -75,8 +80,10 @@ class TestNGTestClassProcessorTest extends Specification {
 
         then: 1 * processor.started({ it.id == 1 && it.name == 'Gradle suite' && it.className == null }, { it.parentId == null })
         then: 1 * processor.started({ it.id == 2 && it.name == 'Gradle test' && it.className == null }, { it.parentId == 1 })
-        then: 1 * processor.started({ it.id == 3 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 2 })
-        then: 1 * processor.completed(3, { it.resultType == ResultType.SUCCESS })
+        then: 1 * processor.started({ it.id == 3 && it.name == ATestNGClass.name && it.className == ATestNGClass.name }, { it.parentId == 2 })
+        then: 1 * processor.started({ it.id == 4 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 3 })
+        then: 1 * processor.completed(4, { it.resultType == ResultType.SUCCESS })
+        then: 1 * processor.completed(3, { it.resultType == null })
         then: 1 * processor.completed(2, { it.resultType == null })
         then: 1 * processor.completed(1, { it.resultType == null })
 
@@ -90,8 +97,10 @@ class TestNGTestClassProcessorTest extends Specification {
 
         then: 1 * processor.started({ it.id == 1 && it.name == 'Gradle suite' && it.className == null }, { it.parentId == null })
         then: 1 * processor.started({ it.id == 2 && it.name == 'Gradle test' && it.className == null }, { it.parentId == 1 })
-        then: 1 * processor.started({ it.id == 3 && it.name == 'another' && it.className == ATestNGClassWithManyMethods.name }, { it.parentId == 2 })
-        then: 1 * processor.completed(3, { it.resultType == ResultType.SUCCESS })
+        then: 1 * processor.started({ it.id == 3 && it.name == ATestNGClassWithManyMethods.name && it.className == ATestNGClassWithManyMethods.name }, { it.parentId == 2 })
+        then: 1 * processor.started({ it.id == 4 && it.name == 'another' && it.className == ATestNGClassWithManyMethods.name }, { it.parentId == 3 })
+        then: 1 * processor.completed(4, { it.resultType == ResultType.SUCCESS })
+        then: 1 * processor.completed(3, { it.resultType == null })
         then: 1 * processor.completed(2, { it.resultType == null })
         then: 1 * processor.completed(1, { it.resultType == null })
 
@@ -103,11 +112,16 @@ class TestNGTestClassProcessorTest extends Specification {
 
         when: process(ATestNGClassWithManyMethods)
 
-        then:
-        1 * processor.started({ it.id == 1 && it.name == 'Gradle suite' && it.className == null }, { it.parentId == null })
-        1 * processor.started({ it.id == 2 && it.name == 'Gradle test' && it.className == null }, { it.parentId == 1 })
-        1 * processor.started({ it.id == 3 && it.name == 'another' && it.className == ATestNGClassWithManyMethods.name }, { it.parentId == 2 })
-        1 * processor.started({ it.id == 4 && it.name == 'yetAnother' && it.className == ATestNGClassWithManyMethods.name }, { it.parentId == 2 })
+        then: 1 * processor.started({ it.id == 1 && it.name == 'Gradle suite' && it.className == null }, { it.parentId == null })
+        then: 1 * processor.started({ it.id == 2 && it.name == 'Gradle test' && it.className == null }, { it.parentId == 1 })
+        then: 1 * processor.started({ it.id == 3 && it.name == ATestNGClassWithManyMethods.name && it.className == ATestNGClassWithManyMethods.name }, { it.parentId == 2 })
+        then: 1 * processor.started({ it.id == 4 && it.name == 'another' && it.className == ATestNGClassWithManyMethods.name }, { it.parentId == 3 })
+        then: 1 * processor.completed(4, { it.resultType == ResultType.SUCCESS })
+        then: 1 * processor.started({ it.id == 5 && it.name == 'yetAnother' && it.className == ATestNGClassWithManyMethods.name }, { it.parentId == 3 })
+        then: 1 * processor.completed(5, { it.resultType == ResultType.SUCCESS })
+        then: 1 * processor.completed(3, { it.resultType == null })
+        then: 1 * processor.completed(2, { it.resultType == null })
+        then: 1 * processor.completed(1, { it.resultType == null })
         0 * processor.started(_, _)
     }
 
@@ -119,8 +133,9 @@ class TestNGTestClassProcessorTest extends Specification {
         then:
         1 * processor.started({ it.id == 1 && it.name == 'Gradle suite' }, _)
         1 * processor.started({ it.id == 2 && it.name == 'Gradle test' }, _)
-        1 * processor.started({ it.name == 'ok' && it.className == ATestNGClassWithManyMethods.name }, { it.parentId == 2 })
-        1 * processor.started({ it.name == 'ok2' && it.className == ATestNGClassWithManyMethods.name }, { it.parentId == 2 })
+        1 * processor.started({ it.id == 3 && it.name == ATestNGClassWithManyMethods.name && it.className == ATestNGClassWithManyMethods.name }, { it.parentId == 2 })
+        1 * processor.started({ it.name == 'ok' && it.className == ATestNGClassWithManyMethods.name }, { it.parentId == 3 })
+        1 * processor.started({ it.name == 'ok2' && it.className == ATestNGClassWithManyMethods.name }, { it.parentId == 3 })
         0 * processor.started(_, _)
     }
 
@@ -141,8 +156,10 @@ class TestNGTestClassProcessorTest extends Specification {
 
         then: 1 * processor.started({ it.id == 1 } , _)
         then: 1 * processor.started({ it.id == 2 } , _)
-        then: 1 * processor.started({ it.name == 'ok' && it.className == ATestNGClassWithExpectedException.name }, { it.parentId == 2 })
-        then: 1 * processor.completed(3, { it.resultType == ResultType.SUCCESS })
+        then: 1 * processor.started({ it.id == 3 && it.name == ATestNGClassWithExpectedException.name && it.className == ATestNGClassWithExpectedException.name }, { it.parentId == 2 })
+        then: 1 * processor.started({ it.id == 4 && it.name == 'ok' && it.className == ATestNGClassWithExpectedException.name }, { it.parentId == 3 })
+        then: 1 * processor.completed(4, { it.resultType == ResultType.SUCCESS })
+        then: 1 * processor.completed(3, { it.resultType == null })
         then: 1 * processor.completed(2, { it.resultType == null })
         then: 1 * processor.completed(1, { it.resultType == null })
         0 * processor._
@@ -153,13 +170,16 @@ class TestNGTestClassProcessorTest extends Specification {
 
         then: 1 * processor.started({ it.id == 1 } , _)
         then: 1 * processor.started({ it.id == 2 } , _)
-        then: 1 * processor.started({ it.name == 'beforeMethod' && it.className == ATestNGClassWithBrokenSetupMethod.name }, _)
-        then: 1 * processor.failure(3, ATestNGClassWithBrokenSetupMethod.failure)
-        then: 1 * processor.completed(3, { it.resultType == ResultType.FAILURE })
+        then: 1 * processor.started({ it.id == 3 && it.name == ATestNGClassWithBrokenSetupMethod.name && it.className == ATestNGClassWithBrokenSetupMethod.name }, { it.parentId == 2 })
 
-        then: 1 * processor.started({ it.name == 'test' && it.className == ATestNGClassWithBrokenSetupMethod.name }, _)
-        then: 1 * processor.completed(4, { it.resultType == ResultType.SKIPPED})
+        then: 1 * processor.started({ it.id == 4 && it.name == 'beforeMethod' && it.className == ATestNGClassWithBrokenSetupMethod.name }, { it.parentId == 3 })
+        then: 1 * processor.failure(4, ATestNGClassWithBrokenSetupMethod.failure)
+        then: 1 * processor.completed(4, { it.resultType == ResultType.FAILURE })
 
+        then: 1 * processor.started({ it.id == 5 && it.name == 'test' && it.className == ATestNGClassWithBrokenSetupMethod.name }, { it.parentId == 3 })
+        then: 1 * processor.completed(5, { it.resultType == ResultType.SKIPPED})
+
+        then: 1 * processor.completed(3, { it.resultType == null})
         then: 1 * processor.completed(2, { it.resultType == null})
         then: 1 * processor.completed(1, { it.resultType == null})
 
@@ -171,14 +191,16 @@ class TestNGTestClassProcessorTest extends Specification {
 
         then: 1 * processor.started({ it.id == 1 } , _)
         then: 1 * processor.started({ it.id == 2 } , _)
-        then: 1 * processor.started({ it.name == 'beforeMethod' && it.className == ATestNGClassWithBrokenDependencyMethod.name }, _)
+        then: 1 * processor.started({ it.id == 3 && it.name == ATestNGClassWithBrokenDependencyMethod.name && it.className == ATestNGClassWithBrokenDependencyMethod.name }, { it.parentId == 2 })
 
-        then: 1 * processor.failure(3, ATestNGClassWithBrokenDependencyMethod.failure)
-        then: 1 * processor.completed(3, { it.resultType == ResultType.FAILURE })
+        then: 1 * processor.started({ it.id == 4 && it.name == 'beforeMethod' && it.className == ATestNGClassWithBrokenDependencyMethod.name }, { it.parentId == 3 })
+        then: 1 * processor.failure(4, ATestNGClassWithBrokenDependencyMethod.failure)
+        then: 1 * processor.completed(4, { it.resultType == ResultType.FAILURE })
 
-        then: 1 * processor.started({ it.name == 'test' && it.className == ATestNGClassWithBrokenDependencyMethod.name }, _)
-        then: 1 * processor.completed(4, { it.resultType == ResultType.SKIPPED})
+        then: 1 * processor.started({ it.id == 5 && it.name == 'test' && it.className == ATestNGClassWithBrokenDependencyMethod.name }, _)
+        then: 1 * processor.completed(5, { it.resultType == ResultType.SKIPPED})
 
+        then: 1 * processor.completed(3, { it.resultType == null})
         then: 1 * processor.completed(2, { it.resultType == null})
         then: 1 * processor.completed(1, { it.resultType == null})
 
@@ -195,9 +217,10 @@ class TestNGTestClassProcessorTest extends Specification {
         then:
         1 * processor.started({ it.id == 1 } , _)
         1 * processor.started({ it.id == 2 } , _)
+        1 * processor.started({ it.id == 3 && it.name == ATestNGClassWithGroups.name } , _)
         1 * processor.started({ it.name == 'group1' && it.className == ATestNGClassWithGroups.name }, _)
         1 * processor.started({ it.name == 'group2' && it.className == ATestNGClassWithGroups.name }, _)
-        4 * processor.completed(_, _)
+        5 * processor.completed(_, _)
         0 * processor._
     }
 
@@ -235,19 +258,26 @@ class TestNGTestClassProcessorTest extends Specification {
         then:
         then: 1 * processor.started({ it.id == 1 && it.name == 'Gradle suite' && it.className == null }, _)
         then: 1 * processor.started({ it.id == 2 && it.name == 'Gradle test' && it.className == null }, _)
-        then: 1 * processor.started({ it.id == 3 && it.name == 'ok' && it.className == ATestNGClass.name }, _)
+        then: 1 * processor.started({ it.id == 3 && it.name == ATestNGClass.name }, _)
+        then: 1 * processor.started({ it.id == 4 && it.name == 'ok' && it.className == ATestNGClass.name }, _)
+        then: 1 * processor.completed(4, _)
         then: 1 * processor.completed(3, _)
         then: 1 * processor.completed(2, _)
         then: 1 * processor.completed(1, _)
         0 * processor._
     }
 
-    void "custom test listeners can change test status"() {
-        options.listeners << FailSkippedTestsListener.class.name
+    void "custom test listeners are registered before Gradle's listener"() {
+        given:
+        def testNG = Mock(TestNG)
+        options.listeners << CustomTestListener.class.name
+        classProcessor.startProcessing(processor)
 
-        when: process(ATestNGClassWithSkippedTest)
+        when:
+        classProcessor.configure(testNG)
 
-        then: 1 * processor.completed(_, { it.resultType == ResultType.FAILURE})
+        then: 1 * testNG.addListener({ it instanceof CustomTestListener }) >> null
+        then: 1 * testNG.addListener({ Proxy.isProxyClass(it.class) && it.toString().contains(TestNGTestResultProcessorAdapter.class.name) })
     }
 
     void "executes test from suite"() {
@@ -268,8 +298,10 @@ class TestNGTestClassProcessorTest extends Specification {
 
         then: 1 * processor.started({ it.id == 1 && it.name == 'AwesomeSuite' && it.className == null }, { it.parentId == null })
         then: 1 * processor.started({ it.id == 2 && it.name == 'AwesomeTest' && it.className == null }, { it.parentId == 1 })
-        then: 1 * processor.started({ it.id == 3 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 2 })
-        then: 1 * processor.completed(3, { it.resultType == ResultType.SUCCESS })
+        then: 1 * processor.started({ it.id == 3 && it.name == ATestNGClass.name && it.className == ATestNGClass.name }, { it.parentId == 2 })
+        then: 1 * processor.started({ it.id == 4 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 3 })
+        then: 1 * processor.completed(4, { it.resultType == ResultType.SUCCESS })
+        then: 1 * processor.completed(3, { it.resultType == null })
         then: 1 * processor.completed(2, { it.resultType == null })
         then: 1 * processor.completed(1, { it.resultType == null })
         0 * processor._
@@ -312,27 +344,35 @@ class TestNGTestClassProcessorTest extends Specification {
 
         then: 1 * processor.started({ it.id == 1 && it.name == 'suite 1' && it.className == null }, { it.parentId == null })
         then: 1 * processor.started({ it.id == 2 && it.name == 'test 1' && it.className == null }, { it.parentId == 1 })
-        then: 1 * processor.started({ it.id == 3 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 2 })
-        then: 1 * processor.completed(3, { it.resultType == ResultType.SUCCESS })
+        then: 1 * processor.started({ it.id == 3 && it.name == ATestNGClass.name && it.className == ATestNGClass.name }, { it.parentId == 2 })
+        then: 1 * processor.started({ it.id == 4 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 3 })
+        then: 1 * processor.completed(4, { it.resultType == ResultType.SUCCESS })
+        then: 1 * processor.completed(3, { it.resultType == null })
         then: 1 * processor.completed(2, { it.resultType == null })
 
-        then: 1 * processor.started({ it.id == 4 && it.name == 'test 2' && it.className == null }, { it.parentId == 1 })
-        then: 1 * processor.started({ it.id == 5 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 4 })
-        then: 1 * processor.completed(5, { it.resultType == ResultType.SUCCESS })
-        then: 1 * processor.completed(4, { it.resultType == null })
+        then: 1 * processor.started({ it.id == 5 && it.name == 'test 2' && it.className == null }, { it.parentId == 1 })
+        then: 1 * processor.started({ it.id == 6 && it.name == ATestNGClass.name && it.className == ATestNGClass.name }, { it.parentId == 5 })
+        then: 1 * processor.started({ it.id == 7 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 6 })
+        then: 1 * processor.completed(7, { it.resultType == ResultType.SUCCESS })
+        then: 1 * processor.completed(6, { it.resultType == null })
+        then: 1 * processor.completed(5, { it.resultType == null })
         then: 1 * processor.completed(1, { it.resultType == null })
 
-        then: 1 * processor.started({ it.id == 6 && it.name == 'suite 2' && it.className == null }, { it.parentId == null })
-        then: 1 * processor.started({ it.id == 7 && it.name == 'test 1' && it.className == null }, { it.parentId == 6 })
-        then: 1 * processor.started({ it.id == 8 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 7 })
-        then: 1 * processor.completed(8, { it.resultType == ResultType.SUCCESS })
-        then: 1 * processor.completed(7, { it.resultType == null })
-
-        then: 1 * processor.started({ it.id == 9 && it.name == 'test 2' && it.className == null }, { it.parentId == 6 })
-        then: 1 * processor.started({ it.id == 10 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 9 })
-        then: 1 * processor.completed(10, { it.resultType == ResultType.SUCCESS })
+        then: 1 * processor.started({ it.id == 8 && it.name == 'suite 2' && it.className == null }, { it.parentId == null })
+        then: 1 * processor.started({ it.id == 9 && it.name == 'test 1' && it.className == null }, { it.parentId == 8 })
+        then: 1 * processor.started({ it.id == 10 && it.name == ATestNGClass.name && it.className == ATestNGClass.name }, { it.parentId == 9 })
+        then: 1 * processor.started({ it.id == 11 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 10 })
+        then: 1 * processor.completed(11, { it.resultType == ResultType.SUCCESS })
+        then: 1 * processor.completed(10, { it.resultType == null })
         then: 1 * processor.completed(9, { it.resultType == null })
-        then: 1 * processor.completed(6, { it.resultType == null })
+
+        then: 1 * processor.started({ it.id == 12 && it.name == 'test 2' && it.className == null }, { it.parentId == 8 })
+        then: 1 * processor.started({ it.id == 13 && it.name == ATestNGClass.name && it.className == ATestNGClass.name }, { it.parentId == 12 })
+        then: 1 * processor.started({ it.id == 14 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 13 })
+        then: 1 * processor.completed(14, { it.resultType == ResultType.SUCCESS })
+        then: 1 * processor.completed(13, { it.resultType == null })
+        then: 1 * processor.completed(12, { it.resultType == null })
+        then: 1 * processor.completed(8, { it.resultType == null })
 
         0 * processor._
     }
@@ -345,15 +385,11 @@ class TestNGTestClassProcessorTest extends Specification {
     }
 }
 
-public class FailSkippedTestsListener implements ITestListener {
+public class CustomTestListener implements ITestListener {
     void onTestStart(ITestResult result) {}
-    void onTestSuccess(ITestResult result) {
-        result.setStatus(ITestResult.FAILURE)
-    }
+    void onTestSuccess(ITestResult result) {}
     void onTestFailure(ITestResult result) {}
-    void onTestSkipped(ITestResult result) {
-
-    }
+    void onTestSkipped(ITestResult result) {}
     void onTestFailedButWithinSuccessPercentage(ITestResult result) {}
     void onStart(ITestContext context) {}
     void onFinish(ITestContext context) {}

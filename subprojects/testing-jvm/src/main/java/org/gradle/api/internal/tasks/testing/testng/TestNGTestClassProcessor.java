@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.testng;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
@@ -99,6 +100,12 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
 
     private void runTests() {
         TestNG testNg = new TestNG();
+        configure(testNg);
+        testNg.run();
+    }
+
+    @VisibleForTesting
+    void configure(TestNG testNg) {
         testNg.setOutputDirectory(testReportDir.getAbsolutePath());
         testNg.setDefaultSuiteName(options.getDefaultSuiteName());
         testNg.setDefaultTestName(options.getDefaultTestName());
@@ -136,7 +143,6 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             testNg.setTestClasses(testClasses.toArray(new Class[0]));
         }
         testNg.addListener((Object) adaptListener(new TestNGTestResultProcessorAdapter(resultProcessor, idGenerator, clock)));
-        testNg.run();
     }
 
     private void invokeVerifiedMethod(TestNG testNg, String methodName, Class<?> paramClass, Object value, Object defaultValue) {
