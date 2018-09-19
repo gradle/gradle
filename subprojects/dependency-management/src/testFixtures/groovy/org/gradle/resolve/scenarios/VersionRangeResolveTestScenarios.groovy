@@ -50,6 +50,7 @@ class VersionRangeResolveTestScenarios {
     public static final RANGE_10_14 = range(10, 14)
     public static final RANGE_10_16 = range(10, 16)
     public static final RANGE_10_OR_HIGHER = dynamic("[10,)")
+    public static final RANGE_11_OR_HIGHER = dynamic("[11,)")
     public static final RANGE_12_OR_LOWER = dynamic("(,12]")
     public static final RANGE_MORE_THAN_10 = dynamic("(10,)")
     public static final RANGE_LESS_THAN_12 = dynamic("(,12)")
@@ -64,9 +65,13 @@ class VersionRangeResolveTestScenarios {
     public static final DYNAMIC_PLUS = dynamic('+')
     public static final DYNAMIC_LATEST = dynamic( 'latest.integration')
 
-    public static final REJECT_11 = reject(11)
-    public static final REJECT_12 = reject(12)
-    public static final REJECT_13 = reject(13)
+    public static final REJECT_11 = reject("11")
+    public static final REJECT_12 = reject("12")
+    public static final REJECT_13 = reject("13")
+    public static final REJECT_10_11 = reject("[10,11]")
+    public static final REJECT_9_14 = reject("[9,14]")
+    public static final REJECT_ALL = reject("+")
+    public static final REJECT_10_OR_HIGHER = reject("[10,)")
 
     public static final StrictPermutationsProvider SCENARIOS_SINGLE = StrictPermutationsProvider.check(
         versions: [FIXED_12],
@@ -228,6 +233,17 @@ class VersionRangeResolveTestScenarios {
         expected: "12",
         expectedStrict: ["12", IGNORE]
     ).and(
+        versions: [RANGE_10_11, RANGE_10_OR_HIGHER],
+        expected: "11",
+        expectedStrict: ["11", IGNORE]
+    ).and(
+        versions: [RANGE_10_14, RANGE_10_OR_HIGHER],
+        expected: "13",
+        expectedStrict: ["13", IGNORE]
+    ).and(
+        versions: [RANGE_10_OR_HIGHER, RANGE_11_OR_HIGHER],
+        expected: "13"
+    ).and(
         versions: [FIXED_12, RANGE_MORE_THAN_10],
         expected: "12",
         expectedStrict: ["12", IGNORE]
@@ -302,6 +318,9 @@ class VersionRangeResolveTestScenarios {
         versions: [FIXED_12, REJECT_13],
         expected: "12"
     ).and(
+        versions: [FIXED_10, REJECT_10_11],
+        expected: REJECTED
+    ).and(
         versions: [RANGE_10_12, REJECT_11],
         expected: "12"
     ).and(
@@ -310,6 +329,45 @@ class VersionRangeResolveTestScenarios {
     ).and(
         versions: [RANGE_10_12, REJECT_13],
         expected: "12"
+    ).and(
+        versions: [RANGE_10_12, REJECT_10_11],
+        expected: "12"
+    ).and(
+        versions: [RANGE_10_12, REJECT_9_14],
+        expected: REJECTED
+    ).and(
+        versions: [RANGE_10_12, REJECT_10_OR_HIGHER],
+        expected: REJECTED
+    ).and(
+        versions: [RANGE_11_OR_HIGHER, REJECT_11],
+        expected: "13"
+    ).and(
+        versions: [RANGE_10_OR_HIGHER, REJECT_10_11],
+        expected: "13"
+    ).and(
+        versions: [RANGE_10_OR_HIGHER, REJECT_13],
+        expected: "12"
+    ).and(
+        versions: [RANGE_10_OR_HIGHER, REJECT_9_14],
+        expected: REJECTED
+    ).and(
+        versions: [RANGE_10_OR_HIGHER, REJECT_10_OR_HIGHER],
+        expected: REJECTED
+    ).and(
+        versions: [DYNAMIC_PLUS, REJECT_11],
+        expected: "13"
+    ).and(
+        versions: [DYNAMIC_PLUS, REJECT_13],
+        expected: "12"
+    ).and(
+        versions: [DYNAMIC_PLUS, REJECT_10_11],
+        expected: "13"
+    ).and(
+        versions: [DYNAMIC_PLUS, REJECT_9_14],
+        expected: REJECTED
+    ).and(
+        versions: [DYNAMIC_PLUS, REJECT_ALL],
+        expected: REJECTED
     )
 
     public static final StrictPermutationsProvider SCENARIOS_THREE_DEPENDENCIES = StrictPermutationsProvider.check(
@@ -478,7 +536,7 @@ class VersionRangeResolveTestScenarios {
         return vs
     }
 
-    private static RenderableVersion reject(int version) {
+    private static RenderableVersion reject(String version) {
         def vs = new RejectVersion()
         vs.version = version
         vs
