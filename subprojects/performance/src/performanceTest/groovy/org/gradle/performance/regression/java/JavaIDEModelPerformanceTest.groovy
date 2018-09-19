@@ -26,7 +26,6 @@ import spock.lang.Unroll
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
-@Ignore("Temporarily ignore until we have a new nightly to rebaseline")
 class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
     @Unroll
@@ -34,7 +33,7 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
         given:
         experiment(testProject.projectName) {
             minimumVersion = "2.11"
-            targetVersions = ["5.0-20180919014901+0000"]
+            targetVersions = ["5.0-20180919145027+0000"]
             invocationCount = iterations
             warmUpCount = iterations
             action {
@@ -94,7 +93,7 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
         given:
         experiment(testProject.projectName) {
             minimumVersion = "2.11"
-            targetVersions = ["5.0-20180919014901+0000"]
+            targetVersions = ["5.0-20180919145027+0000"]
             invocationCount = iterations
             warmUpCount = iterations
             action {
