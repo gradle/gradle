@@ -215,10 +215,22 @@ object RequestQueue {
         while (true) {
             val (request, k) = poll() ?: break
             try {
-                k.resume(fetchKotlinBuildScriptModelFor(request))
+                handle(request, k)
             } catch (e: Throwable) {
-                k.resumeWithException(e)
+                e.printStackTrace()
             }
         }
+    }
+
+    private
+    fun handle(request: KotlinBuildScriptModelRequest, k: Continuation<KotlinBuildScriptModel>) {
+        val response =
+            try {
+                fetchKotlinBuildScriptModelFor(request)
+            } catch (e: Throwable) {
+                k.resumeWithException(e)
+                return
+            }
+        k.resume(response)
     }
 }
