@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.runtimeshaded;
+package org.gradle.internal.util;
 
 import org.gradle.api.Action;
 
@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-class Trie {
+public class Trie {
     private final char c;
     private final boolean terminal;
     private final Trie[] transitions;
@@ -111,7 +111,7 @@ class Trie {
             this.c = c;
         }
 
-        public Builder addTransition(char c, boolean terminal) {
+        private Builder addTransition(char c, boolean terminal) {
             Builder b = null;
             for (Builder transition : transitions) {
                 if (transition.c == c) {
