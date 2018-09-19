@@ -412,7 +412,7 @@ class PerformanceTestPlugin : Plugin<Project> {
                 task.baselines = baselines as String
             }
 
-            jvmArgs("-Xmx3g", "-XX:+HeapDumpOnOutOfMemoryError")
+            jvmArgs("-Xmx5g", "-XX:+HeapDumpOnOutOfMemoryError")
 
             dependsOn(prepareSamplesTask)
 
