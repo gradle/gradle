@@ -179,7 +179,7 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentR
         variantsForGraphTraversal[5].attributes.getAttribute(componentTypeAttribute) == "enforced-platform"
 
         where:
-        packaging << ["pom", "jar", "maven-plugin", "war"]
+        packaging << ["pom", "jar", "maven-plugin", "war", "aar"]
     }
 
     def dependency(String org, String module, String version, String scope) {
