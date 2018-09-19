@@ -102,37 +102,22 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
      */
     private List<T> buildResolveResults(List<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
         SelectorStateResolverResults results = new SelectorStateResolverResults(selectors.size());
-        List<ResolvableSelectorState> preferSelectors = null;
-        for (ResolvableSelectorState selector : selectors) {
-            // Defer prefer selectors until all other selectors are processed
-            if (hasPrefer(selector)) {
-                if (preferSelectors == null) {
-                    preferSelectors = Lists.newArrayListWithCapacity(selectors.size());
-                }
-                preferSelectors.add(selector);
-            }
+        TreeSet<ComponentIdResolveResult> preferResults = null; // Created only on demand
 
-            processPrimarySelector(results, selector, allRejects);
+        for (ResolvableSelectorState selector : selectors) {
+            resolveRequireConstraint(results, selector, allRejects);
+            preferResults = maybeResolvePreferConstraint(preferResults, selector, allRejects);
         }
 
-        processPreferSelectors(results, preferSelectors, allRejects);
-
+        integratePreferResults(selectors, results, preferResults);
         return results.getResolved(componentFactory);
     }
 
-    private boolean hasPrefer(ResolvableSelectorState selector) {
-        return selector.getVersionConstraint() != null && selector.getVersionConstraint().getPreferredSelector() != null;
-    }
-
-    private boolean hasRequire(ResolvableSelectorState selector) {
-        return selector.getVersionConstraint() == null || !selector.getVersionConstraint().getRequiredSelector().getSelector().isEmpty();
-    }
-
     /**
-     * Process a selector as 'primary'.
+     * Resolve the 'require' constraint of the selector.
      * A version will be registered for this selector, and it will participate in conflict resolution.
      */
-    private void processPrimarySelector(SelectorStateResolverResults results, ResolvableSelectorState selector, VersionSelector allRejects) {
+    private void resolveRequireConstraint(SelectorStateResolverResults results, ResolvableSelectorState selector, VersionSelector allRejects) {
         // Check already resolved results for a compatible version, and use it for this dependency rather than re-resolving.
         if (results.alreadyHaveResolutionForSelector(selector)) {
             return;
@@ -150,25 +135,38 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         results.register(selector, result);
     }
 
-    private void processPreferSelectors(SelectorStateResolverResults results, List<ResolvableSelectorState> preferSelectors, VersionSelector allRejects) {
-        if (preferSelectors == null) {
-            return;
+    /**
+     * Collect the result of the 'prefer' constraint of the selector, if present and not failing.
+     * These results are integrated with the 'require' results in the second phase.
+     */
+    private TreeSet<ComponentIdResolveResult> maybeResolvePreferConstraint(TreeSet<ComponentIdResolveResult> previousResults, ResolvableSelectorState selector, VersionSelector allRejects) {
+
+        TreeSet<ComponentIdResolveResult> preferResults = previousResults;
+        ComponentIdResolveResult resolvedPreference = selector.resolvePrefer(allRejects);
+        if (resolvedPreference != null && resolvedPreference.getFailure() == null) {
+            if (preferResults == null) {
+                preferResults = Sets.newTreeSet(new DescendingResolveResultComparator());
+            }
+            preferResults.add(resolvedPreference);
         }
 
-        // Resolve the 'prefer' selectors as secondary: will disambiguate, but not add new results.
-        TreeSet<ComponentIdResolveResult> preferResults = Sets.newTreeSet(new DescendingResolveResultComparator());
-        for (ResolvableSelectorState selector : preferSelectors) {
-            ComponentIdResolveResult resolvedPreference = selector.resolvePrefer(allRejects);
-            // Ignore failure resolving a 'prefer' constraint.
-            if (resolvedPreference.getFailure() == null) {
-                preferResults.add(resolvedPreference);
-            }
+        return preferResults;
+    }
+
+    /**
+     * Given the result of resolving any 'prefer' constraints, see if these can be used to further refine the results
+     *  of resolving the 'require' constraints.
+     */
+    private void integratePreferResults(List<? extends ResolvableSelectorState> selectors, SelectorStateResolverResults results, TreeSet<ComponentIdResolveResult> preferResults) {
+
+        if (preferResults == null) {
+            return;
         }
 
         // If not result from 'require', just use the highest preferred version (no range merging)
         if (results.isEmpty()) {
             ComponentIdResolveResult highestPreferredVersion = preferResults.first();
-            results.register(preferSelectors.get(0), highestPreferredVersion);
+            results.register(selectors.get(0), highestPreferredVersion);
             return;
         }
 

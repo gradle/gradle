@@ -54,7 +54,7 @@ class TestProjectSelectorState implements ResolvableSelectorState {
 
     @Override
     ComponentIdResolveResult resolvePrefer(VersionSelector allRejects) {
-        throw new UnsupportedOperationException("Project selectors do not support 'prefer'")
+        return null
     }
 
     @Override

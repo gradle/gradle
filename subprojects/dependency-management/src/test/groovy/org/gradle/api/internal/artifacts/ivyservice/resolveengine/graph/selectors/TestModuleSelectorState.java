@@ -71,7 +71,11 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
 
     @Override
     public ComponentIdResolveResult resolvePrefer(VersionSelector allRejects) {
-        preferResult = doResolve(resolvedVersionConstraint.getPreferredSelector(), allRejects, preferResult);
+        VersionSelector preferredSelector = resolvedVersionConstraint.getPreferredSelector();
+        if (preferredSelector == null) {
+            return null;
+        }
+        preferResult = doResolve(preferredSelector, allRejects, preferResult);
         return preferResult;
     }
 

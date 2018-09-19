@@ -167,8 +167,10 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
     @Override
     public ComponentIdResolveResult resolvePrefer(VersionSelector allRejects) {
-        VersionSelector preferredSelector = versionConstraint == null ? null : versionConstraint.getPreferredSelector();
-        preferResult = resolve(preferredSelector, allRejects, preferResult);
+        if (versionConstraint == null || versionConstraint.getPreferredSelector() == null) {
+            return null;
+        }
+        preferResult = resolve(versionConstraint.getPreferredSelector(), allRejects, preferResult);
         return preferResult;
     }
 
