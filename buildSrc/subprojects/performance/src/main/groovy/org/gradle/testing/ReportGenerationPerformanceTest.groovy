@@ -17,6 +17,7 @@
 package org.gradle.testing
 
 import groovy.json.JsonOutput
+import groovy.transform.CompileStatic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.gradle.api.Action
@@ -30,6 +31,7 @@ import org.openmbee.junit.model.JUnitFailure
 import org.openmbee.junit.model.JUnitTestCase
 import org.openmbee.junit.model.JUnitTestSuite
 
+@CompileStatic
 abstract class ReportGenerationPerformanceTest extends PerformanceTest {
     @Internal
     String buildId
