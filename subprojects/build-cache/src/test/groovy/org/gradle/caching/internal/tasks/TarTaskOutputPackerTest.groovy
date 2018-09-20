@@ -26,9 +26,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
-import org.gradle.internal.hash.ContentHasherFactory
 import org.gradle.internal.hash.DefaultStreamHasher
-import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.internal.snapshot.WellKnownFileLocations
@@ -55,7 +53,7 @@ class TarTaskOutputPackerTest extends Specification {
     def writeOrigin = Stub(TaskOutputOriginWriter)
 
     def fileSystem = Mock(FileSystem)
-    def streamHasher = new DefaultStreamHasher({ Hashing.newPrimitiveHasher() } as ContentHasherFactory)
+    def streamHasher = new DefaultStreamHasher()
     def stringInterner = new StringInterner()
     def packer = new TarTaskOutputPacker(fileSystem, streamHasher, stringInterner)
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))

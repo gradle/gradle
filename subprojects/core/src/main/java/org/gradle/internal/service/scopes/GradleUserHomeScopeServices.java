@@ -66,7 +66,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.JarCache;
 import org.gradle.internal.fingerprint.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.DefaultClasspathFingerprinter;
-import org.gradle.internal.hash.ContentHasherFactory;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
@@ -135,8 +134,8 @@ public class GradleUserHomeScopeServices {
         return fileHasher;
     }
 
-    ScriptSourceHasher createScriptSourceHasher(FileHasher fileHasher, ContentHasherFactory contentHasherFactory) {
-        return new DefaultScriptSourceHasher(fileHasher, contentHasherFactory);
+    ScriptSourceHasher createScriptSourceHasher(FileHasher fileHasher) {
+        return new DefaultScriptSourceHasher(fileHasher);
     }
 
     CrossBuildInMemoryCachingScriptClassCache createCachingScriptCompiler(ScriptSourceHasher hasher, CrossBuildInMemoryCacheFactory cacheFactory) {
