@@ -20,6 +20,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 
 import java.util.Collection;
 
-public interface TransformInfoFactory {
-    Collection<TransformInfo> getOrCreate(ResolvedArtifactSet artifactSet, ArtifactTransformer transformer);
+public interface TransformNodeFactory {
+    Collection<TransformNode> getOrCreate(ResolvedArtifactSet artifactSet, ArtifactTransformer transformer);
 }

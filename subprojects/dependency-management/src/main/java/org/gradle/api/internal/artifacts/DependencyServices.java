@@ -17,10 +17,10 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
-import org.gradle.api.internal.artifacts.transform.DefaultTransformInfoFactory;
-import org.gradle.api.internal.artifacts.transform.TransformInfoDependencyResolver;
-import org.gradle.api.internal.artifacts.transform.TransformInfoExecutor;
-import org.gradle.api.internal.artifacts.transform.TransformInfoFactory;
+import org.gradle.api.internal.artifacts.transform.DefaultTransformNodeFactory;
+import org.gradle.api.internal.artifacts.transform.TransformNodeDependencyResolver;
+import org.gradle.api.internal.artifacts.transform.TransformNodeExecutor;
+import org.gradle.api.internal.artifacts.transform.TransformNodeFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistration;
@@ -56,16 +56,16 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
             return listenerManager.getBroadcaster(ArtifactTransformListener.class);
         }
 
-        TransformInfoFactory createTransformInfoFactory() {
-            return new DefaultTransformInfoFactory();
+        TransformNodeFactory createTransformNodeFactory() {
+            return new DefaultTransformNodeFactory();
         }
 
-        TransformInfoDependencyResolver createTransformInfoResolver(TransformInfoFactory transformInfoFactory) {
-            return new TransformInfoDependencyResolver(transformInfoFactory);
+        TransformNodeDependencyResolver createTransformNodeDepndencyResolver(TransformNodeFactory transformNodeFactory) {
+            return new TransformNodeDependencyResolver(transformNodeFactory);
         }
 
-        TransformInfoExecutor createTransformInfoExecutor(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
-            return new TransformInfoExecutor(buildOperationExecutor, transformListener);
+        TransformNodeExecutor createTransformNodeExecutor(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
+            return new TransformNodeExecutor(buildOperationExecutor, transformListener);
         }
     }
 }

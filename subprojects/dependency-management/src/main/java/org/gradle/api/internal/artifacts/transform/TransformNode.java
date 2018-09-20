@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class TransformInfo extends Node {
+public abstract class TransformNode extends Node {
     private static final AtomicInteger ORDER_COUNTER = new AtomicInteger();
 
     private final int order = ORDER_COUNTER.incrementAndGet();
@@ -53,15 +53,15 @@ public abstract class TransformInfo extends Node {
     protected List<File> result;
     protected Throwable failure;
 
-    public static TransformInfo chained(UserCodeBackedTransformer current, TransformInfo previous, ComponentArtifactIdentifier artifactId) {
-        return new ChainedTransformInfo(current, previous, artifactId);
+    public static TransformNode chained(UserCodeBackedTransformer current, TransformNode previous, ComponentArtifactIdentifier artifactId) {
+        return new ChainedTransformNode(current, previous, artifactId);
     }
 
-    public static TransformInfo initial(UserCodeBackedTransformer initial, BuildableSingleResolvedArtifactSet artifact) {
-        return new InitialTransformInfo(initial, artifact);
+    public static TransformNode initial(UserCodeBackedTransformer initial, BuildableSingleResolvedArtifactSet artifact) {
+        return new InitialTransformNode(initial, artifact);
     }
 
-    protected TransformInfo(UserCodeBackedTransformer artifactTransformer) {
+    protected TransformNode(UserCodeBackedTransformer artifactTransformer) {
         this.artifactTransformer = artifactTransformer;
     }
 
@@ -112,14 +112,14 @@ public abstract class TransformInfo extends Node {
         if (getClass() != other.getClass()) {
             return getClass().getName().compareTo(other.getClass().getName());
         }
-        TransformInfo otherTransform = (TransformInfo) other;
+        TransformNode otherTransform = (TransformNode) other;
         return order - otherTransform.order;
     }
 
-    private static class InitialTransformInfo extends TransformInfo {
+    private static class InitialTransformNode extends TransformNode {
         private final BuildableSingleResolvedArtifactSet artifactSet;
 
-        public InitialTransformInfo(
+        public InitialTransformNode(
             UserCodeBackedTransformer artifactTransformer,
             BuildableSingleResolvedArtifactSet artifactSet
         ) {
@@ -203,11 +203,11 @@ public abstract class TransformInfo extends Node {
         }
     }
 
-    private static class ChainedTransformInfo extends TransformInfo {
-        private final TransformInfo previousTransform;
+    private static class ChainedTransformNode extends TransformNode {
+        private final TransformNode previousTransform;
         private final ComponentArtifactIdentifier artifactId;
 
-        public ChainedTransformInfo(UserCodeBackedTransformer artifactTransformer, TransformInfo previousTransform, ComponentArtifactIdentifier artifactId) {
+        public ChainedTransformNode(UserCodeBackedTransformer artifactTransformer, TransformNode previousTransform, ComponentArtifactIdentifier artifactId) {
             super(artifactTransformer);
             this.previousTransform = previousTransform;
             this.artifactId = artifactId;

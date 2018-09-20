@@ -20,20 +20,20 @@ import org.gradle.execution.taskgraph.Node;
 import org.gradle.execution.taskgraph.NodeExecutor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 
-public class TransformInfoExecutor implements NodeExecutor {
+public class TransformNodeExecutor implements NodeExecutor {
     private final BuildOperationExecutor buildOperationExecutor;
     private final ArtifactTransformListener transformListener;
 
-    public TransformInfoExecutor(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
+    public TransformNodeExecutor(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.transformListener = transformListener;
     }
 
     @Override
     public boolean execute(Node node) {
-        if (node instanceof TransformInfo) {
-            final TransformInfo transform = (TransformInfo) node;
-            transform.execute(buildOperationExecutor, transformListener);
+        if (node instanceof TransformNode) {
+            TransformNode transformNode = (TransformNode) node;
+            transformNode.execute(buildOperationExecutor, transformListener);
             return true;
         } else {
             return false;
