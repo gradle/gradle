@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph;
+package org.gradle.execution.plan;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;

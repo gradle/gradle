@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph;
+package org.gradle.execution.plan;
 
-public interface NodeExecutor {
-    boolean execute(Node node);
+import org.gradle.api.internal.tasks.WorkDependencyResolver;
+
+/**
+ * Resolves dependencies to {@link Node} objects.
+ */
+public interface DependencyResolver extends WorkDependencyResolver<Node> {
 }

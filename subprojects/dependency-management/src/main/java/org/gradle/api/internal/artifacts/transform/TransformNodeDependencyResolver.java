@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.execution.taskgraph.DependencyResolver;
-import org.gradle.execution.taskgraph.Node;
+import org.gradle.execution.plan.DependencyResolver;
+import org.gradle.execution.plan.Node;
 
 import java.util.Collection;
 

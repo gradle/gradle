@@ -33,7 +33,7 @@ import org.gradle.configuration.BuildConfigurer
 import org.gradle.execution.BuildConfigurationActionExecuter
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.MultipleBuildFailures
-import org.gradle.execution.TaskExecutionGraphInternal
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.operations.TestBuildOperationExecutor

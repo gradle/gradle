@@ -32,6 +32,14 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.configuration.internal.TestListenerBuildOperationDecorator
+import org.gradle.execution.plan.DefaultPlanExecutor
+import org.gradle.execution.plan.LocalTaskNode
+import org.gradle.execution.plan.Node
+import org.gradle.execution.plan.NodeExecutor
+import org.gradle.execution.plan.PlanExecutor
+import org.gradle.execution.plan.TaskDependencyResolver
+import org.gradle.execution.plan.TaskNodeDependencyResolver
+import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory

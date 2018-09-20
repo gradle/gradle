@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph
+package org.gradle.execution.plan
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal

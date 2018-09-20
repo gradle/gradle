@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.execution.taskgraph.Node;
-import org.gradle.execution.taskgraph.NodeExecutor;
+import org.gradle.execution.plan.Node;
+import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 
 public class TransformNodeExecutor implements NodeExecutor {

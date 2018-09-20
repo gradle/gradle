@@ -18,6 +18,7 @@ package org.gradle.execution;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.commandline.CommandLineTaskParser;
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

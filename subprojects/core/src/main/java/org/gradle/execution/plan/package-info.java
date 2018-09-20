@@ -13,13 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.execution.plan;
 
-package org.gradle.execution.taskgraph;
-
-import org.gradle.api.internal.tasks.WorkDependencyResolver;
-
-/**
- * Resolves dependencies to {@link Node} objects.
- */
-public interface DependencyResolver extends WorkDependencyResolver<Node> {
-}
+import org.gradle.api.NonNullApi;

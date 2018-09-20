@@ -21,6 +21,7 @@ import org.gradle.TaskExecutionRequest
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
 import org.gradle.execution.commandline.CommandLineTaskParser
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import spock.lang.Specification
 
 class TaskNameResolvingBuildConfigurationActionSpec extends Specification {
