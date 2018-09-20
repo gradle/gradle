@@ -51,7 +51,7 @@ class BuildScanPluginPerformanceTest extends Specification {
     CrossBuildPerformanceTestRunner runner
 
     private int warmupBuilds = 1
-    private int measuredBuilds = 1
+    private int measuredBuilds = 7
 
     void setup() {
         def incomingDir = "../../incoming" // System.getProperty('incomingArtifactDir')
@@ -72,7 +72,7 @@ class BuildScanPluginPerformanceTest extends Specification {
         }
     }
 
-    def "build scan plugin comparison"() {
+    def "large java project with and without build scan"() {
         given:
         def sourceProject = "largeJavaProjectWithBuildScanPlugin"
         def tasks = ['clean', 'build']
