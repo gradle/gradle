@@ -67,16 +67,10 @@ enum class ModuleType(val compatibility: JavaVersion) {
     WORKER(JavaVersion.VERSION_1_6),
 
     /**
-     * This module type is used by all modules that end up in the core of
-     * the distribution and are not used by entry points or workers.
+     * This module type is used by all modules that end up in the distribution
+     * and are not used by entry points or workers.
      */
     CORE(JavaVersion.VERSION_1_8),
-
-    /**
-     * This module type is used by all modules that become plugins in the
-     * distribution.
-     */
-    PLUGIN(JavaVersion.VERSION_1_8),
 
     /**
      * This module type is used by internal modules that are not part of
