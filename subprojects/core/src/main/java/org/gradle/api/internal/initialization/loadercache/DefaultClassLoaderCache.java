@@ -181,7 +181,6 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
             }
             ManagedClassLoaderSpec that = (ManagedClassLoaderSpec) o;
             return Objects.equal(this.parent, that.parent)
-                && this.name.equals(that.name)
                 && this.implementationHash.equals(that.implementationHash)
                 && this.classPath.equals(that.classPath)
                 && Objects.equal(this.filterSpec, that.filterSpec);
@@ -190,7 +189,6 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
         @Override
         public int hashCode() {
             int result = implementationHash.hashCode();
-            result = 31 * result + name.hashCode();
             result = 31 * result + classPath.hashCode();
             result = 31 * result + (filterSpec != null ? filterSpec.hashCode() : 0);
             result = 31 * result + (parent != null ? parent.hashCode() : 0);

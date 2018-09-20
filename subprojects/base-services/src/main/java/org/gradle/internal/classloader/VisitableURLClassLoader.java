@@ -96,8 +96,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
                 return false;
             }
             Spec other = (Spec) obj;
-            return name.equals(other.name)
-                && classpath.equals(other.classpath);
+            return classpath.equals(other.classpath);
         }
 
         @Override
