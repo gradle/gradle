@@ -18,7 +18,6 @@ package org.gradle.integtests
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.internal.hash.DefaultContentHasherFactory
 import org.gradle.internal.hash.DefaultFileHasher
 import org.gradle.internal.hash.DefaultStreamHasher
 import org.gradle.internal.hash.FileHasher
@@ -36,7 +35,7 @@ import static org.junit.Assert.assertEquals
 class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     static final String TEST_FILE = "build/test.txt"
 
-    final FileHasher fileHasher = new DefaultFileHasher(new DefaultStreamHasher(new DefaultContentHasherFactory()))
+    final FileHasher fileHasher = new DefaultFileHasher(new DefaultStreamHasher())
 
     @Rule public final HttpServer server = new HttpServer()
 
