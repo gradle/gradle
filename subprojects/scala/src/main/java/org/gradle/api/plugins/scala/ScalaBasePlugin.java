@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
@@ -132,22 +133,14 @@ public class ScalaBasePlugin implements Plugin<Project> {
                     }
                 });
 
-                Configuration classpath = project.getConfigurations().getByName(sourceSet.getImplementationConfigurationName());
-                Configuration incrementalAnalysis = project.getConfigurations().create("incrementalScalaAnalysisFor" + sourceSet.getName());
-                incrementalAnalysis.setVisible(false);
-                incrementalAnalysis.setDescription("Incremental compilation analysis files for " + displayName);
-                incrementalAnalysis.setCanBeResolved(true);
-                incrementalAnalysis.setCanBeConsumed(false);
-                incrementalAnalysis.extendsFrom(classpath);
-                incrementalAnalysis.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, incrementalAnalysisUsage);
-
-                configureScalaCompile(project, sourceSet, incrementalAnalysis, incrementalAnalysisUsage);
+                Configuration classpath = project.getConfigurations().getByName(sourceSet.getCompileClasspathConfigurationName());
+                configureScalaCompile(project, sourceSet, classpath, incrementalAnalysisUsage);
             }
 
         });
     }
 
-    private static void configureScalaCompile(final Project project, final SourceSet sourceSet, final Configuration incrementalAnalysis, final Usage incrementalAnalysisUsage) {
+    private static void configureScalaCompile(final Project project, final SourceSet sourceSet, final Configuration classpath, final Usage incrementalAnalysisUsage) {
         Convention scalaConvention = (Convention) InvokerHelper.getProperty(sourceSet, "convention");
         final ScalaSourceSet scalaSourceSet = scalaConvention.findPlugin(ScalaSourceSet.class);
         SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, scalaSourceSet.getScala(), project);
@@ -177,10 +170,16 @@ public class ScalaBasePlugin implements Plugin<Project> {
                         }
                     })));
                 }
-                scalaCompile.getAnalysisFiles().from(incrementalAnalysis.getIncoming().artifactView(new Action<ArtifactView.ViewConfiguration>() {
+                scalaCompile.getAnalysisFiles().from(classpath.getIncoming().artifactView(new Action<ArtifactView.ViewConfiguration>() {
                     @Override
                     public void execute(ArtifactView.ViewConfiguration viewConfiguration) {
                         viewConfiguration.lenient(true);
+                        viewConfiguration.attributes(new Action<AttributeContainer>() {
+                            @Override
+                            public void execute(AttributeContainer attributeContainer) {
+                                attributeContainer.attribute(Usage.USAGE_ATTRIBUTE, incrementalAnalysisUsage);
+                            }
+                        });
                         viewConfiguration.componentFilter(new Spec<ComponentIdentifier>() {
                             @Override
                             public boolean isSatisfiedBy(ComponentIdentifier element) {
