@@ -39,5 +39,3 @@ tasks.withType(org.gradle.testing.PerformanceTest).configureEach {
 tasks.withType(org.gradle.testing.PerformanceTest).configureEach{
     finalizedBy 'performanceReport'
 }
-
-tasks.named("performanceAdhocTest").configure { enabled = false }
