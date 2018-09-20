@@ -65,8 +65,6 @@ import java.io.Serializable
 
 import java.util.*
 
-import kotlin.coroutines.experimental.buildSequence
-
 
 private
 class KotlinBuildScriptModelParameter(val scriptPath: String?)
@@ -388,7 +386,7 @@ val Project.scriptImplicitImports
 
 private
 val Project.hierarchy: Sequence<Project>
-    get() = buildSequence {
+    get() = sequence {
         var project = this@hierarchy
         yield(project)
         while (project != project.rootProject) {

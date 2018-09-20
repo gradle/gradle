@@ -19,8 +19,11 @@ package org.gradle.kotlin.dsl.concurrent
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
 
-import kotlin.coroutines.experimental.Continuation
-import kotlin.coroutines.experimental.suspendCoroutine
+import kotlin.Result.Companion.failure
+import kotlin.Result.Companion.success
+
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.suspendCoroutine
 
 
 /**
@@ -32,7 +35,7 @@ import kotlin.coroutines.experimental.suspendCoroutine
  */
 internal
 suspend inline fun <T> tapi(crossinline computation: (ResultHandler<T>) -> Unit): T =
-    suspendCoroutine { k: Continuation<T> ->
+    suspendCoroutine { k ->
         computation(k.asResultHandler())
     }
 
@@ -41,8 +44,8 @@ internal
 fun <T> Continuation<T>.asResultHandler(): ResultHandler<T> =
     object : ResultHandler<T> {
         override fun onComplete(result: T) =
-            resume(result)
+            resumeWith(success(result))
 
         override fun onFailure(failure: GradleConnectionException) =
-            resumeWithException(failure)
+            resumeWith(failure(failure))
     }
