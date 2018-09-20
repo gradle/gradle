@@ -6,6 +6,7 @@ import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.hamcrest.CoreMatchers.containsString
 
 import org.junit.Assert.assertThat
+import org.junit.Assume.assumeFalse
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
@@ -31,6 +32,7 @@ class SamplesSmokeTest(
     @Before
     fun populateProjectRootWithSample() {
         ignoreAndroidSampleUnlessAndroidHomeIsSet()
+        ignoreKaptSample()
         copySampleProject(from = sampleDir, to = projectRoot)
     }
 
@@ -62,6 +64,12 @@ class SamplesSmokeTest(
         if (sampleName.contains("android")) {
             assumeTrue(System.getenv().containsKey("ANDROID_HOME"))
         }
+    }
+
+    private
+    fun ignoreKaptSample() {
+        // TODO: Kotlin 1.3 Fix kapt sample
+        assumeFalse(sampleName.contains("kapt"))
     }
 
     private
