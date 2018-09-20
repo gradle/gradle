@@ -18,20 +18,13 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.artifacts.VersionConstraint;
-import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Factory;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
-import org.gradle.internal.component.model.IvyArtifactName;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -204,79 +197,6 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
             return configDependencies;
         }
         return filtered == null ? ImmutableList.<ModuleDependencyMetadata>of() : filtered.build();
-    }
-
-    private static class ForcedDependencyMetadataWrapper implements ForcingDependencyMetadata, ModuleDependencyMetadata {
-        private final ModuleDependencyMetadata delegate;
-
-        private ForcedDependencyMetadataWrapper(ModuleDependencyMetadata delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public ModuleComponentSelector getSelector() {
-            return delegate.getSelector();
-        }
-
-        @Override
-        public ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
-            return new ForcedDependencyMetadataWrapper(delegate.withRequestedVersion(requestedVersion));
-        }
-
-        @Override
-        public ModuleDependencyMetadata withReason(String reason) {
-            return new ForcedDependencyMetadataWrapper(delegate.withReason(reason));
-        }
-
-        @Override
-        public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
-            return delegate.selectConfigurations(consumerAttributes, targetComponent, consumerSchema);
-        }
-
-        @Override
-        public List<ExcludeMetadata> getExcludes() {
-            return delegate.getExcludes();
-        }
-
-        @Override
-        public List<IvyArtifactName> getArtifacts() {
-            return delegate.getArtifacts();
-        }
-
-        @Override
-        public DependencyMetadata withTarget(ComponentSelector target) {
-            return new ForcedDependencyMetadataWrapper((ModuleDependencyMetadata) delegate.withTarget(target));
-        }
-
-        @Override
-        public boolean isChanging() {
-            return delegate.isChanging();
-        }
-
-        @Override
-        public boolean isTransitive() {
-            return delegate.isTransitive();
-        }
-
-        @Override
-        public boolean isConstraint() {
-            return delegate.isConstraint();
-        }
-
-        @Override
-        public String getReason() {
-            return delegate.getReason();
-        }
-
-        @Override
-        public boolean isForce() {
-            return true;
-        }
-
-        @Override
-        public ForcingDependencyMetadata forced() {
-            return this;
-        }
     }
 
     private enum DependencyFilter {

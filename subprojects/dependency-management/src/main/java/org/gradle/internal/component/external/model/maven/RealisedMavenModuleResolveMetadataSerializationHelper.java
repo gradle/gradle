@@ -19,10 +19,8 @@ package org.gradle.internal.component.external.model.maven;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -33,9 +31,11 @@ import org.gradle.internal.component.external.model.AbstractRealisedModuleResolv
 import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
+import org.gradle.internal.component.external.model.ForcedDependencyMetadataWrapper;
 import org.gradle.internal.component.external.model.GradleDependencyMetadata;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.LazyToRealisedModuleComponentResolveMetadataHelper;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.RealisedConfigurationMetadata;
@@ -52,19 +52,16 @@ import java.util.Map;
 
 public class RealisedMavenModuleResolveMetadataSerializationHelper extends AbstractRealisedModuleResolveMetadataSerializationHelper {
 
-    private static final String COMPILE_DERIVED_VARIANT_NAME = "compile___derived";
-    private static final String RUNTIME_DERIVED_VARIANT_NAME = "runtime___derived";
-
     public RealisedMavenModuleResolveMetadataSerializationHelper(AttributeContainerSerializer attributeContainerSerializer, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         super(attributeContainerSerializer, moduleIdentifierFactory);
     }
 
     @Override
     public void writeRealisedConfigurationsData(Encoder encoder, AbstractRealisedModuleComponentResolveMetadata transformed) throws IOException {
+        super.writeRealisedConfigurationsData(encoder, transformed);
         if (transformed instanceof RealisedMavenModuleResolveMetadata) {
             writeDerivedVariants(encoder, (RealisedMavenModuleResolveMetadata) transformed);
         }
-        super.writeRealisedConfigurationsData(encoder, transformed);
     }
 
     public ModuleComponentResolveMetadata readMetadata(Decoder decoder, DefaultMavenModuleResolveMetadata resolveMetadata) throws IOException {
@@ -77,10 +74,9 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
         }
         ImmutableList<AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl> realisedVariants = builder.build();
 
-        Map<String, ConfigurationMetadata> configurations = readMavenConfigurationsAndDerivedVariants(decoder, resolveMetadata);
-        List<ConfigurationMetadata> derivedVariants = Lists.newArrayListWithCapacity(2);
-        addDerivedVariant(configurations, derivedVariants, COMPILE_DERIVED_VARIANT_NAME);
-        addDerivedVariant(configurations, derivedVariants, RUNTIME_DERIVED_VARIANT_NAME);
+        Map<String, ConfigurationMetadata> configurations = readMavenConfigurations(decoder, resolveMetadata);
+        ImmutableList<ConfigurationMetadata> derivedVariants = readDerivedVariants(decoder, resolveMetadata);
+
         return new RealisedMavenModuleResolveMetadata(resolveMetadata, realisedVariants, derivedVariants, configurations);
     }
 
@@ -88,9 +84,17 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
         List<? extends DependencyMetadata> dependencies = configuration.getDependencies();
         encoder.writeSmallInt(dependencies.size());
         for (DependencyMetadata dependency: dependencies) {
+            if (dependency instanceof ForcedDependencyMetadataWrapper) {
+                ForcedDependencyMetadataWrapper wrapper = (ForcedDependencyMetadataWrapper) dependency;
+                dependency = wrapper.unwrap();
+                if (wrapper.isForce()) {
+                    encoder.writeByte(FORCED_DEPENDENCY_METADATA);
+                }
+            }
             if (dependency instanceof GradleDependencyMetadata) {
                 encoder.writeByte(GRADLE_DEPENDENCY_METADATA);
                 writeDependencyMetadata(encoder, (GradleDependencyMetadata) dependency);
+                break;
             } else if (dependency instanceof ConfigurationBoundExternalDependencyMetadata) {
                 ConfigurationBoundExternalDependencyMetadata dependencyMetadata = (ConfigurationBoundExternalDependencyMetadata) dependency;
                 ExternalDependencyDescriptor dependencyDescriptor = dependencyMetadata.getDependencyDescriptor();
@@ -106,13 +110,25 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
     }
 
     private void writeDerivedVariants(Encoder encoder, RealisedMavenModuleResolveMetadata metadata) throws IOException {
-        encoder.writeBoolean(!metadata.getDerivedVariants().isEmpty());
+        ImmutableList<? extends ConfigurationMetadata> derivedVariants = metadata.getDerivedVariants();
+        encoder.writeSmallInt(derivedVariants.size());
+        for (ConfigurationMetadata derivedVariant : derivedVariants) {
+            writeConfiguration(encoder, derivedVariant);
+            writeDerivedVariantExtra(encoder, derivedVariant);
+        }
     }
 
-    private Map<String, ConfigurationMetadata> readMavenConfigurationsAndDerivedVariants(Decoder decoder, DefaultMavenModuleResolveMetadata metadata) throws IOException {
+    private void writeDerivedVariantExtra(Encoder encoder, ConfigurationMetadata derivedVariant) throws IOException {
+        encoder.writeBoolean(derivedVariant.isTransitive());
+        encoder.writeBoolean(derivedVariant.isVisible());
+        writeStringSet(encoder, derivedVariant.getHierarchy());
+        writeMavenExcludeRules(encoder, derivedVariant.getExcludes());
+        writeDependencies(encoder, derivedVariant);
+    }
+
+    private Map<String, ConfigurationMetadata> readMavenConfigurations(Decoder decoder, DefaultMavenModuleResolveMetadata metadata) throws IOException {
         ImmutableMap<String, Configuration> configurationDefinitions = metadata.getConfigurationDefinitions();
 
-        boolean derivedVariants = decoder.readBoolean();
         int configurationsCount = decoder.readSmallInt();
         Map<String, ConfigurationMetadata> configurations = Maps.newHashMapWithExpectedSize(configurationsCount);
         for (int i = 0; i < configurationsCount; i++) {
@@ -124,47 +140,84 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
 
             RealisedConfigurationMetadata configurationMetadata = new RealisedConfigurationMetadata(metadata.getId(), configurationName, configuration.isTransitive(), configuration.isVisible(),
                 hierarchy, RealisedMavenModuleResolveMetadata.getArtifactsForConfiguration(metadata.getId(), configurationName), ImmutableList.<ExcludeMetadata>of(), attributes, capabilities);
-            ImmutableList.Builder<ModuleDependencyMetadata> builder = ImmutableList.builder();
-            int dependenciesCount = decoder.readSmallInt();
-            for (int j = 0; j < dependenciesCount; j++) {
-                byte dependencyType = decoder.readByte();
-                switch(dependencyType) {
-                    case GRADLE_DEPENDENCY_METADATA:
-                        builder.add(readDependencyMetadata(decoder));
-                        break;
-                    case MAVEN_DEPENDENCY_METADATA:
-                        MavenDependencyDescriptor mavenDependencyDescriptor = readMavenDependency(decoder);
-                        ModuleDependencyMetadata dependencyMetadata = RealisedMavenModuleResolveMetadata.contextualize(configurationMetadata, metadata.getId(), mavenDependencyDescriptor);
-                        builder.add(dependencyMetadata.withReason(decoder.readNullableString()));
-                        break;
-                    case IVY_DEPENDENCY_METADATA:
-                        throw new IllegalStateException("Unexpected Ivy dependency for Maven module");
-                    default:
-                        throw new IllegalStateException("Unknown dependency type " + dependencyType);
-                }
-            }
-            ImmutableList<ModuleDependencyMetadata> dependencies = builder.build();
+            ImmutableList<ModuleDependencyMetadata> dependencies = readDependencies(decoder, metadata, configurationMetadata);
             configurationMetadata.setDependencies(dependencies);
-
             configurations.put(configurationName, configurationMetadata);
-            if (derivedVariants) {
-                if (configurationName.equals("compile")) {
-                    ConfigurationMetadata compileDerivedVariant = RealisedMavenModuleResolveMetadata.withUsageAttribute(configurationMetadata, Usage.JAVA_API, metadata.getAttributesFactory(), attributes, metadata.getObjectInstantiator());
-                    configurations.put(COMPILE_DERIVED_VARIANT_NAME, compileDerivedVariant);
-                } else if (configurationName.equals("runtime")) {
-                    ConfigurationMetadata runtimeDerivedVariant = RealisedMavenModuleResolveMetadata.withUsageAttribute(configurationMetadata, Usage.JAVA_RUNTIME, metadata.getAttributesFactory(), attributes, metadata.getObjectInstantiator());
-                    configurations.put(RUNTIME_DERIVED_VARIANT_NAME, runtimeDerivedVariant);
-                }
-            }
         }
         return configurations;
     }
 
-    private void addDerivedVariant(Map<String, ConfigurationMetadata> configurations, List<ConfigurationMetadata> derivedVariants, String name) {
-        ConfigurationMetadata configurationMetadata = configurations.remove(name);
-        if (configurationMetadata != null) {
-            derivedVariants.add(configurationMetadata);
+    private ImmutableList<ModuleDependencyMetadata> readDependencies(Decoder decoder, DefaultMavenModuleResolveMetadata metadata, RealisedConfigurationMetadata configurationMetadata) throws IOException {
+        ImmutableList.Builder<ModuleDependencyMetadata> builder = ImmutableList.builder();
+        int dependenciesCount = decoder.readSmallInt();
+        if (dependenciesCount == 0) {
+            return ImmutableList.of();
         }
+        for (int j = 0; j < dependenciesCount; j++) {
+            byte dependencyType = decoder.readByte();
+            boolean force = false;
+            if (dependencyType == FORCED_DEPENDENCY_METADATA) {
+                force = true;
+                dependencyType = decoder.readByte();
+            }
+            ModuleDependencyMetadata md;
+            switch(dependencyType) {
+                case GRADLE_DEPENDENCY_METADATA:
+                    md = readDependencyMetadata(decoder);
+                    break;
+                case MAVEN_DEPENDENCY_METADATA:
+                    MavenDependencyDescriptor mavenDependencyDescriptor = readMavenDependency(decoder);
+                    ModuleDependencyMetadata dependencyMetadata = RealisedMavenModuleResolveMetadata.contextualize(configurationMetadata, metadata.getId(), mavenDependencyDescriptor);
+                    md = dependencyMetadata.withReason(decoder.readNullableString());
+                    break;
+                case IVY_DEPENDENCY_METADATA:
+                    throw new IllegalStateException("Unexpected Ivy dependency for Maven module");
+                default:
+                    throw new IllegalStateException("Unknown dependency type " + dependencyType);
+            }
+            if (force) {
+                md = new ForcedDependencyMetadataWrapper(md);
+            }
+            builder.add(md);
+        }
+        return builder.build();
+    }
+
+    private ImmutableList<ConfigurationMetadata> readDerivedVariants(Decoder decoder, DefaultMavenModuleResolveMetadata resolveMetadata) throws IOException {
+        int derivedVariantsCount = decoder.readSmallInt();
+        if (derivedVariantsCount == 0) {
+            return ImmutableList.of();
+        }
+        ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<>();
+        for (int i=0; i<derivedVariantsCount; i++) {
+            builder.add(readDerivedVariant(decoder, resolveMetadata));
+        }
+        return builder.build();
+    }
+
+    private ConfigurationMetadata readDerivedVariant(Decoder decoder, DefaultMavenModuleResolveMetadata resolveMetadata) throws IOException {
+        String name = decoder.readString();
+        ImmutableAttributes attributes = attributeContainerSerializer.read(decoder);
+        ImmutableCapabilities immutableCapabilities = readCapabilities(decoder);
+        boolean transitive = decoder.readBoolean();
+        boolean visible = decoder.readBoolean();
+        ImmutableSet<String> hierarchy = ImmutableSet.copyOf(readStringSet(decoder));
+        List<ExcludeMetadata> excludeMetadata = readMavenExcludes(decoder);
+        RealisedConfigurationMetadata realized = new RealisedConfigurationMetadata(
+            resolveMetadata.getId(),
+            name,
+            transitive,
+            visible,
+            hierarchy,
+            ImmutableList.<ModuleComponentArtifactMetadata>of(),
+            ImmutableList.copyOf(excludeMetadata),
+            attributes,
+            immutableCapabilities
+        );
+        ImmutableList<ModuleDependencyMetadata> dependencies = readDependencies(decoder, resolveMetadata, realized);
+        realized.setDependencies(dependencies);
+        return realized;
+
     }
 
     private MavenDependencyDescriptor readMavenDependency(Decoder decoder) throws IOException {
