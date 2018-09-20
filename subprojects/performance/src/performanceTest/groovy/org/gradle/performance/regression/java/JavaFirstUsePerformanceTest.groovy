@@ -41,7 +41,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.tasksToRun = ['tasks']
         runner.runs = runs
         runner.useDaemon = false
-        runner.targetVersions = ["5.0-20180914112317+0000"]
+        runner.targetVersions = ["5.0-20180920090625+0000"]
         runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
             @Override
             void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
