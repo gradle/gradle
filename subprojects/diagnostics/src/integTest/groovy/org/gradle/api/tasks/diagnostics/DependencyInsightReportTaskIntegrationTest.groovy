@@ -652,13 +652,9 @@ org:leaf:latest.integration -> 1.0
 """
     }
 
-    def "shows versions substitute by resolve rule"() {
+    def "shows version selected by multiple rules"() {
         given:
-        mavenRepo.module("org", "leaf", "1.0").publish()
-        mavenRepo.module("org", "leaf", "2.0").publish()
-
-        mavenRepo.module("org", "foo", "1.0").dependsOn('org', 'leaf', '1.0').publish()
-        mavenRepo.module("org", "bar", "1.0").dependsOn('org', 'leaf', '2.0').publish()
+        mavenRepo.module("org", "bar", "2.0").publish()
 
         file("build.gradle") << """
             repositories {
@@ -666,15 +662,22 @@ org:leaf:latest.integration -> 1.0
             }
             configurations {
                 conf {
-                    resolutionStrategy.eachDependency { if (it.requested.name == 'leaf') { it.useVersion('1.0') } }
+                    resolutionStrategy {
+                        eachDependency { it.useVersion('1.0') }
+                        eachDependency { it.useVersion('2.0'); it.because("RULE 2") }
+                        dependencySubstitution {
+                            substitute module('org:foo') with module('org:foo:3.0')
+                            substitute module('org:foo') because "SUBSTITUTION 2" with module('org:bar:2.0')
+                        }
+                    }
                 }
             }
             dependencies {
-                conf 'org:foo:1.0', 'org:bar:1.0'
+                conf 'org:foo:1.0'
             }
             task insight(type: DependencyInsightReportTask) {
                 configuration = configurations.conf
-                setDependencySpec { it.requested.module == 'leaf' }
+                setDependencySpec { true }
             }
         """
 
@@ -683,24 +686,21 @@ org:leaf:latest.integration -> 1.0
 
         then:
         outputContains """
-org:leaf:1.0 (selected by rule)
+org:bar:2.0
    variant "runtime" [
       org.gradle.status             = release (not requested)
       org.gradle.usage              = java-runtime (not requested)
       org.gradle.component.category = library (not requested)
    ]
+   Selection reasons:
+      - Selected by rule : SUBSTITUTION 2
 
-org:leaf:1.0
-\\--- org:foo:1.0
-     \\--- conf
-
-org:leaf:2.0 -> 1.0
-\\--- org:bar:1.0
-     \\--- conf
+org:foo:1.0 -> org:bar:2.0
+\\--- conf
 """
     }
 
-    def "shows custom selection reason using eachDependency"() {
+    def "shows version and reason when chosen by dependency resolve rule"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
         mavenRepo.module("org", "foo", "2.0").publish()
@@ -781,10 +781,11 @@ org:foo:1.0 -> 2.0
     }
 
 
-    def "shows custom selection reason with dependency substitution"() {
+    def "shows version and reason with dependency substitution"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
         mavenRepo.module("org", "bar", "1.0").publish()
+        mavenRepo.module("org", "baz", "2.0").publish()
 
         file("build.gradle") << """
             repositories {
@@ -793,14 +794,14 @@ org:foo:1.0 -> 2.0
             configurations {
                conf {
                   resolutionStrategy.dependencySubstitution {
-                     all {
-                        it.useTarget('org:bar:1.0', 'foo superceded by bar')
-                     }
+                     substitute module('org:foo') because 'foo superceded by bar' with module('org:bar:1.0')
+                     substitute module('org:baz') with module('org:baz:2.0')
                   }
                }
             }
             dependencies {
                 conf 'org:foo:1.0'
+                conf 'org:baz:1.1'
             }
             task insight(type: DependencyInsightReportTask) {
                 configuration = configurations.conf
@@ -812,7 +813,18 @@ org:foo:1.0 -> 2.0
         run "insight"
 
         then:
-        outputContains """org:bar:1.0
+        outputContains """
+org:baz:2.0 (selected by rule)
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
+   ]
+
+org:baz:1.1 -> 2.0
+\\--- conf
+
+org:bar:1.0
    variant "runtime" [
       org.gradle.status             = release (not requested)
       org.gradle.usage              = java-runtime (not requested)
