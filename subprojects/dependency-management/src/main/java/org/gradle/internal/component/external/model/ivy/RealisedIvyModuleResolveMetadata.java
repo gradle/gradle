@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
@@ -30,6 +29,7 @@ import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.model.AbstractRealisedModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ComponentVariant;
+import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.LazyToRealisedModuleComponentResolveMetadataHelper;
@@ -38,15 +38,16 @@ import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.RealisedConfigurationMetadata;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * {@link AbstractRealisedModuleComponentResolveMetadata Realised version} of a {@link IvyModuleResolveMetadata}.
@@ -95,8 +96,8 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
     private final DefaultIvyModuleResolveMetadata metadata;
     private final String branch;
 
-    private RealisedIvyModuleResolveMetadata(RealisedIvyModuleResolveMetadata metadata, List<IvyDependencyDescriptor> dependencies) {
-        super(metadata);
+    private RealisedIvyModuleResolveMetadata(RealisedIvyModuleResolveMetadata metadata, List<IvyDependencyDescriptor> dependencies, Map<String, ConfigurationMetadata> transformedConfigurations) {
+        super(metadata, metadata.getVariants(), transformedConfigurations);
         this.configurationDefinitions = metadata.getConfigurationDefinitions();
         this.branch = metadata.getBranch();
         this.artifactDefinitions = metadata.getArtifactDefinitions();
@@ -117,8 +118,9 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
         this.metadata = metadata.metadata.withSource(source);
     }
 
-    RealisedIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, ImmutableList<? extends ComponentVariant> variants,
-                                            Map<String, ConfigurationMetadata> configurations) {
+    RealisedIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata,
+                                     ImmutableList<? extends ComponentVariant> variants,
+                                     Map<String, ConfigurationMetadata> configurations) {
         super(metadata, variants, configurations);
         this.configurationDefinitions = metadata.getConfigurationDefinitions();
         this.branch = metadata.getBranch();
@@ -175,16 +177,18 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
 
     @Override
     public IvyModuleResolveMetadata withDynamicConstraintVersions() {
-        List<IvyDependencyDescriptor> transformed = CollectionUtils.collect(getDependencies(), new Transformer<IvyDependencyDescriptor, IvyDependencyDescriptor>() {
-            @Override
-            public IvyDependencyDescriptor transform(IvyDependencyDescriptor dependency) {
-                ModuleComponentSelector selector = dependency.getSelector();
-                String dynamicConstraintVersion = dependency.getDynamicConstraintVersion();
-                ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), dynamicConstraintVersion);
-                return dependency.withRequested(newSelector);
-            }
-        });
-        return this.withDependencies(transformed);
+        ImmutableList<IvyDependencyDescriptor> descriptors = getDependencies();
+        if (descriptors.isEmpty()) {
+            return this;
+        }
+        Map<IvyDependencyDescriptor, IvyDependencyDescriptor> transformedDescriptors = Maps.newHashMapWithExpectedSize(descriptors.size());
+        for (IvyDependencyDescriptor dependency : descriptors) {
+            ModuleComponentSelector selector = dependency.getSelector();
+            String dynamicConstraintVersion = dependency.getDynamicConstraintVersion();
+            ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), dynamicConstraintVersion);
+            transformedDescriptors.put(dependency, dependency.withRequested(newSelector));
+        }
+        return this.withDependencies(transformedDescriptors);
     }
 
     @Override
@@ -192,8 +196,24 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
         return dependencies;
     }
 
-    private IvyModuleResolveMetadata withDependencies(List<IvyDependencyDescriptor> transformed) {
-        return new RealisedIvyModuleResolveMetadata(this, transformed);
+    private IvyModuleResolveMetadata withDependencies(Map<IvyDependencyDescriptor, IvyDependencyDescriptor> transformed) {
+        ImmutableList<IvyDependencyDescriptor> transformedDescriptors = ImmutableList.copyOf(transformed.values());
+        Set<String> configurationNames = getConfigurationNames();
+        Map<String, ConfigurationMetadata> transformedConfigurations = Maps.newHashMapWithExpectedSize(configurationNames.size());
+        for (String name : configurationNames) {
+            RealisedConfigurationMetadata configuration = (RealisedConfigurationMetadata) getConfiguration(name);
+            List<? extends DependencyMetadata> dependencies = configuration.getDependencies();
+            ImmutableList.Builder<ModuleDependencyMetadata> transformedConfigurationDependencies = ImmutableList.builder();
+            for (DependencyMetadata dependency : dependencies) {
+                if (dependency instanceof ConfigurationBoundExternalDependencyMetadata) {
+                    transformedConfigurationDependencies.add(((ConfigurationBoundExternalDependencyMetadata) dependency).withDescriptor(transformed.get(((ConfigurationBoundExternalDependencyMetadata) dependency).getDependencyDescriptor())));
+                } else {
+                    transformedConfigurationDependencies.add((ModuleDependencyMetadata) dependency);
+                }
+            }
+            transformedConfigurations.put(name, configuration.withDependencies(transformedConfigurationDependencies.build()));
+        }
+        return new RealisedIvyModuleResolveMetadata(this, transformedDescriptors, transformedConfigurations);
     }
 
 }

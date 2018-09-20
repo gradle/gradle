@@ -256,10 +256,6 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         return objectInstantiator;
     }
 
-    private boolean isJavaLibrary() {
-        return isKnownJarPackaging() || isPomPackaging();
-    }
-
     @Nullable
     public String getSnapshotTimestamp() {
         return snapshotTimestamp;

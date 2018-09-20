@@ -69,6 +69,12 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
     }
     // Use the default executer for the simply named task. This is what most developers will run when running check
     val testTask = createTestTask(prefix + "Test", defaultExecuter, sourceSet, testType, Action {})
+    // Create a variant of the test suite to force realization of component metadata
+    if (testType == TestType.INTEGRATION) {
+        val forceRealizeTestTask = createTestTask(prefix + "ForceRealizeTest", defaultExecuter, sourceSet, testType, Action {
+            systemProperties["org.gradle.integtest.force.realize.metadata"] = "true"
+        })
+    }
     tasks.named("check").configure { dependsOn(testTask) }
 }
 

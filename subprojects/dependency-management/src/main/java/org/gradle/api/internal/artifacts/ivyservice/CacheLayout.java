@@ -51,7 +51,7 @@ public enum CacheLayout {
         .changedTo(56, "4.7-rc-1")
         .changedTo(58, "4.8-rc-1")
         .changedTo(63, "4.10-rc-1")
-        .changedTo(67, "5.0-rc-1")),
+        .changedTo(68, "5.0-rc-1")),
 
     RESOURCES(ROOT, "resources", introducedIn("1.9-rc-1")),
 
