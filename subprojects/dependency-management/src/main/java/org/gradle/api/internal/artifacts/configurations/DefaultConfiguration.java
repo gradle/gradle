@@ -533,18 +533,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
                 final ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) getIncoming();
                 performPreResolveActions(incoming);
-                ResolverResults results = new DefaultResolverResults();
-                try {
-                    resolver.resolveGraph(DefaultConfiguration.this, results);
-                    dependenciesModified = false;
-                    resolvedState = GRAPH_RESOLVED;
-
-                    // Mark all affected configurations as observed
-                    markParentsObserved(requestedState);
-                    markReferencedProjectConfigurationsObserved(requestedState, results);
-                } finally {
-                    cachedResolverResults = results;
+                if (cachedResolverResults == null) {
+                    cachedResolverResults = new DefaultResolverResults();
                 }
+                resolver.resolveGraph(DefaultConfiguration.this, cachedResolverResults);
+                dependenciesModified = false;
+                resolvedState = GRAPH_RESOLVED;
+
+                // Mark all affected configurations as observed
+                markParentsObserved(requestedState);
+                markReferencedProjectConfigurationsObserved(requestedState);
 
                 if (!cachedResolverResults.hasError()) {
                     dependencyResolutionListeners.getSource().afterResolve(incoming);
@@ -593,8 +591,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private void markReferencedProjectConfigurationsObserved(final InternalState requestedState, ResolverResults results) {
-        for (ResolvedProjectConfiguration projectResult : results.getResolvedLocalComponents().getResolvedProjectConfigurations()) {
+    private void markReferencedProjectConfigurationsObserved(final InternalState requestedState) {
+        for (ResolvedProjectConfiguration projectResult : cachedResolverResults.getResolvedLocalComponents().getResolvedProjectConfigurations()) {
             ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
             ConfigurationInternal targetConfig = (ConfigurationInternal) project.getConfigurations().getByName(projectResult.getTargetConfiguration());
             targetConfig.markAsObserved(requestedState);
