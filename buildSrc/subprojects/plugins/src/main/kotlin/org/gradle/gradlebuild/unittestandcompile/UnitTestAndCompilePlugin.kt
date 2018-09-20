@@ -48,12 +48,6 @@ import java.util.jar.Attributes
 enum class ModuleType(val compatibility: JavaVersion) {
 
     /**
-     * This module type is used internally by default but should not be
-     * referenced by any module.
-     */
-    UNDEFINED(JavaVersion.VERSION_1_1),
-
-    /**
      * This module type is used by modules that contain code that is used by one
      * of the entry points of using Gradle, such as the Wrapper, the Launcher
      * and the Tooling API.
@@ -259,16 +253,16 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 open class UnitTestAndCompileExtension(val project: Project) {
     val generatedResourcesDir = project.file("${project.buildDir}/generated-resources/main")
     val generatedTestResourcesDir = project.file("${project.buildDir}/generated-resources/test")
-    var moduleType: ModuleType = ModuleType.UNDEFINED
+    var moduleType: ModuleType? = null
         set(value) {
-            field = value
-            project.java.targetCompatibility = moduleType.compatibility
-            project.java.sourceCompatibility = moduleType.compatibility
+            field = value!!
+            project.java.targetCompatibility = value.compatibility
+            project.java.sourceCompatibility = value.compatibility
         }
 
     init {
         project.afterEvaluate {
-            if (this@UnitTestAndCompileExtension.moduleType == ModuleType.UNDEFINED) {
+            if (this@UnitTestAndCompileExtension.moduleType == null) {
                 throw InvalidUserDataException("gradlebuild.moduletype must be set for project $project")
             }
         }
