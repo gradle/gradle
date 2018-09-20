@@ -163,7 +163,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
 
         return classNames.contains(className)
             || packagePrefixes.find(className)
-            || packagePrefixes.contains(DEFAULT_PACKAGE) && isInDefaultPackage(className);
+            || (packagePrefixes.contains(DEFAULT_PACKAGE + ".") && isInDefaultPackage(className));
     }
 
     private boolean isInDefaultPackage(String className) {
