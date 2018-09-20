@@ -53,9 +53,9 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory)
-        def taskInfoFactory = new TaskInfoFactory(root.gradle, Stub(IncludedBuildTaskGraph))
-        def dependencyResolver = new TaskDependencyResolver([new TaskInfoWorkDependencyResolver(taskInfoFactory)])
-        executionPlan = new DefaultExecutionPlan(workerLeaseService, root.gradle, taskInfoFactory, dependencyResolver)
+        def taskNodeFactory = new TaskNodeFactory(root.gradle, Stub(IncludedBuildTaskGraph))
+        def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
+        executionPlan = new DefaultExecutionPlan(workerLeaseService, root.gradle, taskNodeFactory, dependencyResolver)
         _ * workerLeaseService.getProjectLock(_, _) >> Mock(ResourceLock) {
             _ * isLocked() >> false
             _ * tryLock() >> true

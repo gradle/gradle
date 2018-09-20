@@ -22,7 +22,7 @@ import com.google.common.collect.Sets;
 import java.util.NavigableSet;
 import java.util.Set;
 
-public abstract class TaskInfo extends Node {
+public abstract class TaskNode extends Node {
 
     private final NavigableSet<Node> mustSuccessors = Sets.newTreeSet();
     private final NavigableSet<Node> shouldSuccessors = Sets.newTreeSet();
@@ -69,11 +69,11 @@ public abstract class TaskInfo extends Node {
         mustSuccessors.add(toNode);
     }
 
-    protected void addFinalizingSuccessor(TaskInfo finalized) {
+    protected void addFinalizingSuccessor(TaskNode finalized) {
         finalizingSuccessors.add(finalized);
     }
 
-    protected void addFinalizer(TaskInfo finalizerNode) {
+    protected void addFinalizer(TaskNode finalizerNode) {
         finalizers.add(finalizerNode);
         finalizerNode.addFinalizingSuccessor(this);
     }
@@ -82,7 +82,7 @@ public abstract class TaskInfo extends Node {
         shouldSuccessors.add(toNode);
     }
 
-    public void removeShouldSuccessor(TaskInfo toNode) {
+    public void removeShouldSuccessor(TaskNode toNode) {
         shouldSuccessors.remove(toNode);
     }
 
@@ -105,7 +105,7 @@ public abstract class TaskInfo extends Node {
         if (super.hasHardSuccessor(successor)) {
             return true;
         }
-        if (!(successor instanceof TaskInfo)) {
+        if (!(successor instanceof TaskNode)) {
             return false;
         }
         return getMustSuccessors().contains(successor)

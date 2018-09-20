@@ -25,12 +25,12 @@ import org.gradle.api.internal.tasks.TaskContainerInternal;
 import java.util.Set;
 
 /**
- * A {@link TaskInfo} implementation for a task in the current build.
+ * A {@link TaskNode} implementation for a task in the current build.
  */
-public class LocalTaskInfo extends TaskInfo {
+public class LocalTaskNode extends TaskNode {
     private final TaskInternal task;
 
-    public LocalTaskInfo(TaskInternal task) {
+    public LocalTaskNode(TaskInternal task) {
         this.task = task;
     }
 
@@ -65,10 +65,10 @@ public class LocalTaskInfo extends TaskInfo {
             processHardSuccessor.execute(targetNode);
         }
         for (Node targetNode : getFinalizedBy(dependencyResolver)) {
-            if (!(targetNode instanceof TaskInfo)) {
+            if (!(targetNode instanceof TaskNode)) {
                 throw new IllegalStateException("Only tasks can be finalizers: " + targetNode);
             }
-            addFinalizerNode((TaskInfo) targetNode);
+            addFinalizerNode((TaskNode) targetNode);
             processHardSuccessor.execute(targetNode);
         }
         for (Node targetNode : getMustRunAfter(dependencyResolver)) {
@@ -79,7 +79,7 @@ public class LocalTaskInfo extends TaskInfo {
         }
     }
 
-    private void addFinalizerNode(TaskInfo finalizerNode) {
+    private void addFinalizerNode(TaskNode finalizerNode) {
         addFinalizer(finalizerNode);
         if (!finalizerNode.isInKnownState()) {
             finalizerNode.mustNotRun();
@@ -108,7 +108,7 @@ public class LocalTaskInfo extends TaskInfo {
         if (getClass() != other.getClass()) {
             return getClass().getName().compareTo(other.getClass().getName());
         }
-        LocalTaskInfo localTask = (LocalTaskInfo) other;
+        LocalTaskNode localTask = (LocalTaskNode) other;
         return task.compareTo(localTask.task);
     }
 

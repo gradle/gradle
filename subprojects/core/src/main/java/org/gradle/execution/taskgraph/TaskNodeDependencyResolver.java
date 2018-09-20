@@ -22,13 +22,13 @@ import org.gradle.api.Task;
 import javax.annotation.Nonnull;
 
 /**
- * Resolves dependencies to {@link TaskInfo} objects. Uses the same logic as {@link #TASK_AS_TASK}.
+ * Resolves dependencies to {@link TaskNode} objects. Uses the same logic as {@link #TASK_AS_TASK}.
  */
-public class TaskInfoWorkDependencyResolver implements DependencyResolver {
-    private final TaskInfoFactory taskInfoFactory;
+public class TaskNodeDependencyResolver implements DependencyResolver {
+    private final TaskNodeFactory taskNodeFactory;
 
-    public TaskInfoWorkDependencyResolver(TaskInfoFactory taskInfoFactory) {
-        this.taskInfoFactory = taskInfoFactory;
+    public TaskNodeDependencyResolver(TaskNodeFactory taskNodeFactory) {
+        this.taskNodeFactory = taskNodeFactory;
     }
 
     @Override
@@ -36,7 +36,7 @@ public class TaskInfoWorkDependencyResolver implements DependencyResolver {
         return TASK_AS_TASK.resolve(task, node, new Action<Task>() {
             @Override
             public void execute(@Nonnull Task task) {
-                resolveAction.execute(taskInfoFactory.getOrCreateNode(task));
+                resolveAction.execute(taskNodeFactory.getOrCreateNode(task));
             }
         });
     }

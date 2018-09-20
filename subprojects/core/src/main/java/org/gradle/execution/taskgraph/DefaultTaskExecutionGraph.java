@@ -86,7 +86,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         WorkerLeaseService workerLeaseService,
         ResourceLockCoordinationService coordinationService,
         GradleInternal gradleInternal,
-        TaskInfoFactory taskInfoFactory,
+        TaskNodeFactory taskNodeFactory,
         TaskDependencyResolver dependencyResolver,
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
         ListenerBroadcast<TaskExecutionListener> taskListeners
@@ -99,7 +99,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         this.gradleInternal = gradleInternal;
         this.graphListeners = graphListeners;
         this.taskListeners = taskListeners;
-        this.executionPlan = new DefaultExecutionPlan(workerLeaseService, gradleInternal, taskInfoFactory, dependencyResolver);
+        this.executionPlan = new DefaultExecutionPlan(workerLeaseService, gradleInternal, taskNodeFactory, dependencyResolver);
     }
 
     @Override

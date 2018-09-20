@@ -45,7 +45,7 @@ class DefaultPlanExecutorTest extends Specification {
     def "executes tasks until no further tasks remain"() {
         def gradle = Mock(Gradle)
         def project = Mock(Project)
-        def node = Mock(LocalTaskInfo)
+        def node = Mock(LocalTaskNode)
         def task = Mock(TaskInternal)
         def state = Mock(TaskStateInternal)
         project.gradle >> gradle
@@ -72,7 +72,7 @@ class DefaultPlanExecutorTest extends Specification {
     def "execution is canceled when cancellation requested"() {
         def gradle = Mock(Gradle)
         def project = Mock(Project)
-        def node = Mock(LocalTaskInfo)
+        def node = Mock(LocalTaskNode)
         def task = Mock(TaskInternal)
         def state = Mock(TaskStateInternal)
         project.gradle >> gradle

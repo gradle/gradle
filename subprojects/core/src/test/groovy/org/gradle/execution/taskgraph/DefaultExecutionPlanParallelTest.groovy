@@ -51,9 +51,9 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
     def lockSetup = new LockSetup()
 
     def setup() {
-        def taskInfoFactory = new TaskInfoFactory(project.gradle, Stub(IncludedBuildTaskGraph))
-        def dependencyResolver = new TaskDependencyResolver([new TaskInfoWorkDependencyResolver(taskInfoFactory)])
-        executionPlan = new DefaultExecutionPlan(lockSetup.workerLeaseService, project.gradle, taskInfoFactory, dependencyResolver)
+        def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(IncludedBuildTaskGraph))
+        def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
+        executionPlan = new DefaultExecutionPlan(lockSetup.workerLeaseService, project.gradle, taskNodeFactory, dependencyResolver)
     }
 
     def "multiple tasks with async work from the same project can run in parallel"() {
@@ -84,23 +84,23 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
         when:
         addToGraphAndPopulate(fooA, barA, fooB, barB)
-        def taskInfo1 = selectNextTaskInfo()
-        def taskInfo2 = selectNextTaskInfo()
+        def taskNode1 = selectNextTaskNode()
+        def taskNode2 = selectNextTaskNode()
 
         then:
         lockSetup.lockedProjects.size() == 2
-        taskInfo1.task.project != taskInfo2.task.project
+        taskNode1.task.project != taskNode2.task.project
         selectNextTask() == null
 
         when:
-        executionPlan.nodeComplete(taskInfo1)
-        executionPlan.nodeComplete(taskInfo2)
-        def taskInfo3 = selectNextTaskInfo()
-        def taskInfo4 = selectNextTaskInfo()
+        executionPlan.nodeComplete(taskNode1)
+        executionPlan.nodeComplete(taskNode2)
+        def taskNode3 = selectNextTaskNode()
+        def taskNode4 = selectNextTaskNode()
 
         then:
         lockSetup.lockedProjects.size() == 2
-        taskInfo3.task.project != taskInfo4.task.project
+        taskNode3.task.project != taskNode4.task.project
     }
 
     def "a non-async task can start while an async task from the same project is waiting for work to complete"() {
@@ -128,14 +128,14 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
         when:
         addToGraphAndPopulate(a, b)
-        def nonAsyncTaskInfo = selectNextTaskInfo()
+        def nonAsyncTaskNode = selectNextTaskNode()
         then:
-        nonAsyncTaskInfo.task == a
+        nonAsyncTaskNode.task == a
         selectNextTask() == null
         lockSetup.lockedProjects.size() == 1
 
         when:
-        executionPlan.nodeComplete(nonAsyncTaskInfo)
+        executionPlan.nodeComplete(nonAsyncTaskNode)
         def asyncTask = selectNextTask()
         then:
         asyncTask == b
@@ -150,14 +150,14 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
         when:
         addToGraphAndPopulate(a, b)
-        def firstTaskInfo = selectNextTaskInfo()
+        def firstTaskNode = selectNextTaskNode()
         then:
-        firstTaskInfo.task == a
+        firstTaskNode.task == a
         selectNextTask() == null
         lockSetup.lockedProjects.empty
 
         when:
-        executionPlan.nodeComplete(firstTaskInfo)
+        executionPlan.nodeComplete(firstTaskNode)
         def secondTask = selectNextTask()
         then:
         secondTask == b
@@ -191,19 +191,19 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         when:
         addToGraphAndPopulate(a,b,c)
 
-        def firstTaskInfo = selectNextTaskInfo()
-        def secondTaskInfo = selectNextTaskInfo()
+        def firstTaskNode = selectNextTaskNode()
+        def secondTaskNode = selectNextTaskNode()
         then:
-        [firstTaskInfo, secondTaskInfo]*.task as Set == [a, b] as Set
+        [firstTaskNode, secondTaskNode]*.task as Set == [a, b] as Set
         selectNextTask() == null
 
         when:
-        executionPlan.nodeComplete(firstTaskInfo)
+        executionPlan.nodeComplete(firstTaskNode)
         then:
         selectNextTask() == null
 
         when:
-        executionPlan.nodeComplete(secondTaskInfo)
+        executionPlan.nodeComplete(secondTaskNode)
         then:
         selectNextTask() == c
 
@@ -287,15 +287,15 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
     private void tasksAreNotExecutedInParallel(Task first, Task second) {
         addToGraphAndPopulate(first, second)
 
-        def firstTaskInfo = selectNextTaskInfo()
+        def firstTaskNode = selectNextTaskNode()
 
         assert selectNextTask() == null
         assert lockSetup.lockedProjects.empty
 
-        executionPlan.nodeComplete(firstTaskInfo)
+        executionPlan.nodeComplete(firstTaskNode)
         def secondTask = selectNextTask()
 
-        assert [firstTaskInfo.task, secondTask] as Set == [first, second] as Set
+        assert [firstTaskNode.task, secondTask] as Set == [first, second] as Set
 
     }
 
@@ -454,19 +454,19 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
     private void destroyerRunsLast(Task producer, Task consumer, Task destroyer) {
         addToGraphAndPopulate(producer, destroyer, consumer)
 
-        def producerInfo = selectNextTaskInfo()
+        def producerInfo = selectNextTaskNode()
 
         assert producerInfo.task == producer
         assert selectNextTask() == null
 
         executionPlan.nodeComplete(producerInfo)
-        def consumerInfo = selectNextTaskInfo()
+        def consumerInfo = selectNextTaskNode()
 
         assert consumerInfo.task == consumer
         assert selectNextTask() == null
 
         executionPlan.nodeComplete(consumerInfo)
-        def destroyerInfo = selectNextTaskInfo()
+        def destroyerInfo = selectNextTaskNode()
 
         assert destroyerInfo.task == destroyer
     }
@@ -532,19 +532,19 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         addToGraphAndPopulate(destroyer)
         addToGraphAndPopulate(producer, consumer)
 
-        def destroyerInfo = selectNextTaskInfo()
+        def destroyerInfo = selectNextTaskNode()
 
         assert destroyerInfo.task == destroyer
         assert selectNextTask() == null
 
         executionPlan.nodeComplete(destroyerInfo)
-        def producerInfo = selectNextTaskInfo()
+        def producerInfo = selectNextTaskNode()
 
         assert producerInfo.task == producer
         assert selectNextTask() == null
 
         executionPlan.nodeComplete(producerInfo)
-        def consumerInfo = selectNextTaskInfo()
+        def consumerInfo = selectNextTaskNode()
 
         assert consumerInfo.task == consumer
     }
@@ -597,8 +597,8 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
         when:
         addToGraphAndPopulate(a, b)
-        def firstInfo = selectNextTaskInfo()
-        def secondInfo = selectNextTaskInfo()
+        def firstInfo = selectNextTaskNode()
+        def secondInfo = selectNextTaskNode()
 
         then:
         firstInfo.task == a
@@ -613,7 +613,7 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
         when:
         executionPlan.nodeComplete(secondInfo)
-        def finalizerInfo = selectNextTaskInfo()
+        def finalizerInfo = selectNextTaskNode()
 
         then:
         finalizerInfo.task == finalizer
@@ -627,7 +627,7 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
         when:
         addToGraphAndPopulate(finalized)
-        def finalizedInfo = selectNextTaskInfo()
+        def finalizedInfo = selectNextTaskNode()
 
         then:
         finalizedInfo.task == finalized
@@ -700,16 +700,16 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
 
     private TaskInternal selectNextTask() {
-        selectNextTaskInfo()?.task
+        selectNextTaskNode()?.task
     }
 
-    private TaskInfo selectNextTaskInfo() {
-        def nextTaskInfo = executionPlan.selectNext(lockSetup.workerLease, lockSetup.createResourceLockState())
-        if (nextTaskInfo?.task instanceof Async) {
-            def project = (ProjectInternal) nextTaskInfo.task.project
+    private TaskNode selectNextTaskNode() {
+        def nextTaskNode = executionPlan.selectNext(lockSetup.workerLease, lockSetup.createResourceLockState())
+        if (nextTaskNode?.task instanceof Async) {
+            def project = (ProjectInternal) nextTaskNode.task.project
             lockSetup.projectLocks.get(project.identityPath.toString()).unlock()
         }
-        return nextTaskInfo
+        return nextTaskNode
     }
 
     class LockSetup {
