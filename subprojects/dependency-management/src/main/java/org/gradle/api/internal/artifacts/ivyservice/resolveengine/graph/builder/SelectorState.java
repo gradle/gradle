@@ -34,6 +34,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
@@ -76,6 +77,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private ModuleResolveState targetModule;
     private boolean resolved;
     private boolean forced;
+    private boolean fromLock;
 
     // An internal counter used to track the number of outgoing edges
     // that use this selector. Since a module resolve state tracks all selectors
@@ -95,6 +97,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         this.versionConstraint = resolveVersionConstraint(firstSeenDependency.getSelector());
         this.attributesFactory = resolveState.getAttributesFactory();
         this.forced = isForced(firstSeenDependency);
+        this.fromLock = isFromLock(firstSeenDependency);
         addDependencyMetadata(firstSeenDependency);
     }
 
@@ -281,6 +284,11 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         return forced;
     }
 
+    @Override
+    public boolean isFromLock() {
+        return fromLock;
+    }
+
     private ComponentSelector selectorWithDesugaredAttributes(ComponentSelector selector) {
         return AttributeDesugaring.desugarSelector(selector, attributesFactory);
     }
@@ -290,12 +298,21 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
             && ((ForcingDependencyMetadata) dependencyMetadata).isForce();
     }
 
+    private static boolean isFromLock(DependencyMetadata dependencyMetadata) {
+        return dependencyMetadata instanceof LocalOriginDependencyMetadata
+            && ((LocalOriginDependencyMetadata) dependencyMetadata).isFromLock();
+    }
+
     public void update(DependencyState dependencyState) {
         if (dependencyState != this.dependencyState) {
             DependencyMetadata dependency = dependencyState.getDependency();
             if (!forced && isForced(dependency)) {
                 forced = true;
                 resolved = false; // when a selector changes from non forced to forced, we must reselect
+            }
+            if (!fromLock && isFromLock(dependency)) {
+                fromLock = true;
+                resolved = false; // when a selector changes from non lock to lock, we must reselect
             }
             addDependencyMetadata(dependency);
         }

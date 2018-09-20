@@ -32,4 +32,9 @@ public interface LocalOriginDependencyMetadata extends ForcingDependencyMetadata
 
     @Override
     LocalOriginDependencyMetadata forced();
+
+    /**
+     * Is this a dependency constraint created for a dependency lock?
+     */
+    boolean isFromLock();
 }

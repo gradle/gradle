@@ -103,4 +103,9 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
         return false;
     }
 
+    @Override
+    public boolean isFromLock() {
+        return false;
+    }
+
 }
