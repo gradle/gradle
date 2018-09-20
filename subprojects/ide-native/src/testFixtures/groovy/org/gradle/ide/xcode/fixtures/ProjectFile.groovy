@@ -21,7 +21,7 @@ import com.dd.plist.NSDictionary
 import com.dd.plist.NSObject
 import com.dd.plist.NSString
 import com.dd.plist.PropertyListParser
-import com.google.common.base.Objects
+import com.google.common.base.MoreObjects
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget.ProductType
 import org.gradle.test.fixtures.file.TestFile
 
@@ -166,7 +166,7 @@ class ProjectFile {
 
         @Override
         String toString() {
-            Objects.toStringHelper(this)
+            MoreObjects.toStringHelper(this)
                 .add('isa', getProperty("isa"))
                 .toString()
         }
@@ -250,7 +250,7 @@ class ProjectFile {
 
         @Override
         String toString() {
-            Objects.toStringHelper(this)
+            MoreObjects.toStringHelper(this)
                 .add('name', getName())
                 .add('productName', getProductName())
                 .toString()

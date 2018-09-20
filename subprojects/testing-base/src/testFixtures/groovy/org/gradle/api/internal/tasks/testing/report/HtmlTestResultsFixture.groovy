@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.report
 
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.TextUtil
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -153,7 +154,7 @@ class HtmlTestResultsFixture {
         assert detailsRows.any { it.select("tr > td:eq(2)").text() == 'failed' }
         def tab = findTab('Failed tests')
         assert tab != null && !tab.isEmpty()
-        assert tab.select("pre").find { it.text() == stackTrace.trim() }
+        assert tab.select("pre").find { TextUtil.normaliseLineSeparators(it.text()) == stackTrace.trim() }
     }
 
     private def findTestDetails(String testName) {

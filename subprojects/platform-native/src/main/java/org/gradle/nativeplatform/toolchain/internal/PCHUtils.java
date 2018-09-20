@@ -27,6 +27,7 @@ import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class PCHUtils {
@@ -72,7 +73,7 @@ public class PCHUtils {
         File headerFileCopy = new File(generatedSourceDir, sourceFile.getName());
         try {
             FileUtils.copyFile(sourceFile, headerFileCopy);
-            FileUtils.writeStringToFile(generatedSource, "#include \"".concat(headerFileCopy.getName()).concat("\""));
+            FileUtils.writeStringToFile(generatedSource, "#include \"".concat(headerFileCopy.getName()).concat("\""), StandardCharsets.UTF_8);
             return generatedSource;
         } catch (IOException e) {
             throw new UncheckedIOException(e);

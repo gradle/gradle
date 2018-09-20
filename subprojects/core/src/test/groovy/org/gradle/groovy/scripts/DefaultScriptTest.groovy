@@ -46,7 +46,7 @@ import static org.junit.Assert.assertEquals
 class DefaultScriptTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+    public final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
 
     @Test public void testApplyMetaData() {
         ServiceRegistry serviceRegistryMock = context.mock(ServiceRegistry.class)

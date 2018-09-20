@@ -124,7 +124,7 @@ public class AnnotationProcessorDetector {
         }
 
         private List<String> readLines(File file) throws IOException {
-            return Files.readLines(file, Charsets.UTF_8, new MetadataLineProcessor());
+            return Files.asCharSource(file, Charsets.UTF_8).readLines(new MetadataLineProcessor());
         }
 
         private List<AnnotationProcessorDeclaration> detectProcessorsInJar(File jar) {

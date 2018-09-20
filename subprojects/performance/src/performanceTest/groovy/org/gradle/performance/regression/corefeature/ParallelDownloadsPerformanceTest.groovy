@@ -25,7 +25,6 @@ import org.gradle.performance.measure.MeasuredOperation
 import org.mortbay.jetty.Handler
 import org.mortbay.jetty.servlet.Context
 import org.mortbay.jetty.webapp.WebAppContext
-import spock.lang.Ignore
 
 import javax.servlet.Filter
 import javax.servlet.FilterChain
@@ -36,7 +35,6 @@ import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
 import java.util.concurrent.atomic.AtomicInteger
 
-@Ignore("Temporarily disable test waiting for nightly")
 class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
     private final static String TEST_PROJECT_NAME = 'springBootApp'
 
@@ -48,7 +46,7 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
     }
 
     def setup() {
-        runner.targetVersions = ["5.0-20180909235858+0000"]
+        runner.targetVersions = ["5.0-20180919145027+0000"]
         runner.warmUpRuns = 5
         runner.runs = 15
         runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {

@@ -43,6 +43,7 @@ import java.io.ObjectStreamException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Formatter;
@@ -146,7 +147,7 @@ public class TestFile extends File {
 
     public TestFile write(Object content) {
         try {
-            FileUtils.writeStringToFile(this, content.toString());
+            FileUtils.writeStringToFile(this, content.toString(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException(String.format("Could not write to test file '%s'", this), e);
         }
@@ -189,7 +190,7 @@ public class TestFile extends File {
     public String getText() {
         assertIsFile();
         try {
-            return FileUtils.readFileToString(this);
+            return FileUtils.readFileToString(this, StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException(String.format("Could not read from test file '%s'", this), e);
         }

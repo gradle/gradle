@@ -1,0 +1,32 @@
+// Fake NPM task that would normally execute npm with its provided arguments
+class NpmTask extends DefaultTask {
+
+    final ListProperty<String> args = project.objects.listProperty(String)
+
+    @TaskAction
+    void run() {
+        project.file("$project.buildDir/bundle.js").withOutputStream { stream ->
+            project.file("scripts").listFiles().sort().each {
+                stream.write(it.bytes)
+            }
+        }
+    }
+}
+
+// tag::bundle-task[]
+task bundle(type: NpmTask) {
+    args = ['run', 'bundle']
+
+    inputs.dir(file("scripts"))
+    inputs.files("package.json", "package-lock.json")
+
+    outputs.file("$buildDir/bundle.js")
+}
+// end::bundle-task[]
+
+task printBundle {
+    dependsOn bundle
+    doLast {
+        println file("$buildDir/bundle.js").text
+    }
+}

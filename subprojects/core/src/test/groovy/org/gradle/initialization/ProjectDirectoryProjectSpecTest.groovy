@@ -20,7 +20,6 @@ import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.GFileUtils
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -84,7 +83,7 @@ public class ProjectDirectoryProjectSpecTest extends Specification {
         e.message == "Project directory '" + dir + "' does not exist."
 
         when:
-        GFileUtils.writeStringToFile(dir, "file");
+        dir.text = "file"
         spec.containsProject(registry());
 
         then:

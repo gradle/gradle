@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal;
 
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
@@ -39,6 +38,7 @@ import org.gradle.util.ConfigureUtil;
 import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -131,7 +131,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     Iterator<T> iteratorNoFlush() {
         if (store.constantTimeIsEmpty()) {
-            return Iterators.emptyIterator();
+            return Collections.emptyIterator();
         }
 
         return new IteratorImpl(store.iteratorNoFlush());
