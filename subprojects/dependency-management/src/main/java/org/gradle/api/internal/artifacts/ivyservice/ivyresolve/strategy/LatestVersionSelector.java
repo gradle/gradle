@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import org.gradle.api.artifacts.ComponentMetadata;
 
-public class LatestVersionSelector extends AbstractStringVersionSelector implements LockingAwareSelector {
+public class LatestVersionSelector extends AbstractStringVersionSelector {
     private final String selectorStatus;
 
     public LatestVersionSelector(String selector) {
@@ -54,34 +54,5 @@ public class LatestVersionSelector extends AbstractStringVersionSelector impleme
     @Override
     public boolean canShortCircuitWhenVersionAlreadyPreselected() {
         return false;
-    }
-
-    public VersionSelector forLocking() {
-        return new LockingAwareLatestVersionSelector(getSelector());
-    }
-
-    private static class LockingAwareLatestVersionSelector extends LatestVersionSelector {
-        private LockingAwareLatestVersionSelector(String selector) {
-            super(selector);
-        }
-
-        @Override
-        public boolean accept(String candidate) {
-            // This is not right, we should really call accept with ComponentMetadata because
-            // we need to check if the status of the candidate is matching. However, this is
-            // only used in the context of dependency locking, and this method will only be
-            // called with a candidate which is assumed to pass the test.
-            return true;
-        }
-
-        @Override
-        public boolean matchesUniqueVersion() {
-            return false;
-        }
-
-        @Override
-        public boolean canShortCircuitWhenVersionAlreadyPreselected() {
-            return true;
-        }
     }
 }
