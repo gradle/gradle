@@ -62,7 +62,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
     def thisBuild = project.gradle
     def taskInfoFactory = new TaskInfoFactory(thisBuild, Stub(IncludedBuildTaskGraph))
     def dependencyResolver = new TaskDependencyResolver([new TaskInfoWorkDependencyResolver(taskInfoFactory)])
-    def taskGraph = new DefaultTaskExecutionGraph(new DefaultTaskPlanExecutor(parallelismConfiguration, executorFactory, workerLeases, cancellationToken, coordinationService), [workExecutor], buildOperationExecutor, listenerBuildOperationDecorator, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver, graphListeners, taskExecutionListeners)
+    def taskGraph = new DefaultTaskExecutionGraph(new DefaultPlanExecutor(parallelismConfiguration, executorFactory, workerLeases, cancellationToken, coordinationService), [workExecutor], buildOperationExecutor, listenerBuildOperationDecorator, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver, graphListeners, taskExecutionListeners)
     WorkerLeaseRegistry.WorkerLeaseCompletion parentWorkerLease
     def executedTasks = []
     def failures = []
@@ -336,8 +336,8 @@ class DefaultTaskExecutionGraphSpec extends Specification {
     }
 
     def "notifies graph listener before first execute"() {
-        def taskPlanExecutor = Mock(TaskPlanExecutor)
-        def taskGraph = new DefaultTaskExecutionGraph(taskPlanExecutor, [workExecutor], buildOperationExecutor, listenerBuildOperationDecorator, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver, graphListeners, taskExecutionListeners)
+        def planExecutor = Mock(PlanExecutor)
+        def taskGraph = new DefaultTaskExecutionGraph(planExecutor, [workExecutor], buildOperationExecutor, listenerBuildOperationDecorator, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver, graphListeners, taskExecutionListeners)
         TaskExecutionGraphListener listener = Mock(TaskExecutionGraphListener)
         Task a = task("a")
 
@@ -350,7 +350,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         1 * listener.graphPopulated(_)
 
         then:
-        1 * taskPlanExecutor.process(_, _, _)
+        1 * planExecutor.process(_, _, _)
 
         when:
         taskGraph.execute(failures)
@@ -360,8 +360,8 @@ class DefaultTaskExecutionGraphSpec extends Specification {
     }
 
     def "executes whenReady listener before first execute"() {
-        def taskPlanExecutor = Mock(TaskPlanExecutor)
-        def taskGraph = new DefaultTaskExecutionGraph(taskPlanExecutor, [workExecutor], buildOperationExecutor, listenerBuildOperationDecorator, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver, graphListeners, taskExecutionListeners)
+        def planExecutor = Mock(PlanExecutor)
+        def taskGraph = new DefaultTaskExecutionGraph(planExecutor, [workExecutor], buildOperationExecutor, listenerBuildOperationDecorator, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver, graphListeners, taskExecutionListeners)
         def closure = Mock(Closure)
         def action = Mock(Action)
         Task a = task("a")
@@ -377,7 +377,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         1 * action.execute(_)
 
         then:
-        1 * taskPlanExecutor.process(_, _, _)
+        1 * planExecutor.process(_, _, _)
 
         and:
         with(buildOperationExecutor.operations[0]){

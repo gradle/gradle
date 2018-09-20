@@ -43,17 +43,17 @@ import spock.lang.Unroll
 
 import static org.gradle.util.TestUtil.createChildProject
 
-class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
+class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
     FileSystem fs = NativeServicesTestFixture.instance.get(FileSystem)
 
-    DefaultTaskExecutionPlan executionPlan
+    DefaultExecutionPlan executionPlan
     def lockSetup = new LockSetup()
 
     def setup() {
         def taskInfoFactory = new TaskInfoFactory(project.gradle, Stub(IncludedBuildTaskGraph))
         def dependencyResolver = new TaskDependencyResolver([new TaskInfoWorkDependencyResolver(taskInfoFactory)])
-        executionPlan = new DefaultTaskExecutionPlan(lockSetup.workerLeaseService, project.gradle, taskInfoFactory, dependencyResolver)
+        executionPlan = new DefaultExecutionPlan(lockSetup.workerLeaseService, project.gradle, taskInfoFactory, dependencyResolver)
     }
 
     def "multiple tasks with async work from the same project can run in parallel"() {

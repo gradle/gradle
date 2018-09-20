@@ -76,16 +76,16 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A reusable implementation of TaskExecutionPlan. The {@link #addToTaskGraph(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these methods.
+ * A reusable implementation of ExecutionPlan. The {@link #addToTaskGraph(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these methods.
  */
 @NonNullApi
-public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
+public class DefaultExecutionPlan implements ExecutionPlan {
     private final Set<WorkInfo> workInUnknownState = Sets.newLinkedHashSet();
     private final Set<TaskInfo> entryTasks = new LinkedHashSet<TaskInfo>();
     private final WorkInfoMapping workInfoMapping = new WorkInfoMapping();
     private final List<WorkInfo> executionQueue = Lists.newLinkedList();
     private final Map<Project, ResourceLock> projectLocks = Maps.newHashMap();
-    private final TaskFailureCollector failureCollector = new TaskFailureCollector();
+    private final FailureCollector failureCollector = new FailureCollector();
     private final TaskInfoFactory nodeFactory;
     private final TaskDependencyResolver dependencyResolver;
     private Spec<? super Task> filter = Specs.satisfyAll();
@@ -101,9 +101,9 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final WorkerLeaseService workerLeaseService;
     private final GradleInternal gradle;
 
-    private boolean tasksCancelled;
+    private boolean buildCancelled;
 
-    public DefaultTaskExecutionPlan(WorkerLeaseService workerLeaseService, GradleInternal gradle, TaskInfoFactory taskInfoFactory, TaskDependencyResolver dependencyResolver) {
+    public DefaultExecutionPlan(WorkerLeaseService workerLeaseService, GradleInternal gradle, TaskInfoFactory taskInfoFactory, TaskDependencyResolver dependencyResolver) {
         this.workerLeaseService = workerLeaseService;
         this.gradle = gradle;
         this.nodeFactory = taskInfoFactory;
@@ -145,7 +145,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         while (!queue.isEmpty()) {
             WorkInfo node = queue.getFirst();
             if (node.getDependenciesProcessed()) {
-                // Have already visited this task - skip it
+                // Have already visited this node - skip it
                 queue.removeFirst();
                 continue;
             }
@@ -161,8 +161,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             }
 
             if (visiting.add(node)) {
-                // Have not seen this task before - add its dependencies to the head of the queue and leave this
-                // task in the queue
+                // Have not seen this node before - add its dependencies to the head of the queue and leave this
+                // node in the queue
                 // Make sure it has been configured
                 node.prepareForExecution();
                 node.resolveDependencies(dependencyResolver, new Action<WorkInfo>() {
@@ -183,7 +183,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                     workInUnknownState.add(node);
                 }
             } else {
-                // Have visited this task's dependencies - add it to the graph
+                // Have visited this node's dependencies - add it to the graph
                 queue.removeFirst();
                 visiting.remove(node);
                 node.dependenciesProcessed();
@@ -273,8 +273,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             visitingNodes.put(workInfo, currentSegment);
 
             if (!alreadyVisited) {
-                // Have not seen this task before - add its dependencies to the head of the queue and leave this
-                // task in the queue
+                // Have not seen this node before - add its dependencies to the head of the queue and leave this
+                // node in the queue
                 recordEdgeIfArrivedViaShouldRunAfter(walkedShouldRunAfterEdges, path, workInfo);
                 removeShouldRunAfterSuccessorsIfTheyImposeACycle(visitingNodes, workInfoInVisitingSegment);
                 takePlanSnapshotIfCanBeRestoredToCurrentTask(planBeforeVisiting, workInfo);
@@ -381,8 +381,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private void removeShouldRunAfterSuccessorsIfTheyImposeACycle(final HashMultimap<WorkInfo, Integer> visitingNodes, final WorkInfoInVisitingSegment taskNodeWithVisitingSegment) {
-        WorkInfo workInfo = taskNodeWithVisitingSegment.workInfo;
+    private void removeShouldRunAfterSuccessorsIfTheyImposeACycle(final HashMultimap<WorkInfo, Integer> visitingNodes, final WorkInfoInVisitingSegment nodeWithVisitingSegment) {
+        WorkInfo workInfo = nodeWithVisitingSegment.workInfo;
         if (!(workInfo instanceof TaskInfo)) {
             return;
         }
@@ -390,7 +390,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             @Override
             @SuppressWarnings("NullableProblems")
             public boolean apply(WorkInfo input) {
-                return visitingNodes.containsEntry(input, taskNodeWithVisitingSegment.visitingSegment);
+                return visitingNodes.containsEntry(input, nodeWithVisitingSegment.visitingSegment);
             }
         });
     }
@@ -420,7 +420,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             return 0;
         }
 
-        Set<WorkInfo> precedingTasks = getAllPrecedingTasks(finalizer);
+        Set<WorkInfo> precedingTasks = getAllPrecedingNodes(finalizer);
         Set<Integer> precedingTaskIndices = CollectionUtils.collect(precedingTasks, new Transformer<Integer, WorkInfo>() {
             @Override
             public Integer transform(final WorkInfo dependsOnTask) {
@@ -436,24 +436,24 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return Collections.max(precedingTaskIndices) + 1;
     }
 
-    private Set<WorkInfo> getAllPrecedingTasks(WorkInfo finalizer) {
-        Set<WorkInfo> precedingTasks = Sets.newHashSet();
-        Deque<WorkInfo> candidateTasks = new ArrayDeque<WorkInfo>();
+    private Set<WorkInfo> getAllPrecedingNodes(WorkInfo finalizer) {
+        Set<WorkInfo> precedingNodes = Sets.newHashSet();
+        Deque<WorkInfo> candidateNodes = new ArrayDeque<WorkInfo>();
 
-        // Consider every task that must run before the finalizer
-        Iterables.addAll(candidateTasks, finalizer.getAllSuccessors());
+        // Consider every node that must run before the finalizer
+        Iterables.addAll(candidateNodes, finalizer.getAllSuccessors());
 
-        // For each candidate task, add it to the preceding tasks.
-        while (!candidateTasks.isEmpty()) {
-            WorkInfo precedingTask = candidateTasks.pop();
-            if (precedingTasks.add(precedingTask) && precedingTask instanceof TaskInfo) {
-                // Any task that the preceding task must run after is also a preceding task.
-                candidateTasks.addAll(((TaskInfo) precedingTask).getMustSuccessors());
-                candidateTasks.addAll(((TaskInfo) precedingTask).getFinalizingSuccessors());
+        // For each candidate node, add it to the preceding nodes.
+        while (!candidateNodes.isEmpty()) {
+            WorkInfo precedingNode = candidateNodes.pop();
+            if (precedingNodes.add(precedingNode) && precedingNode instanceof TaskInfo) {
+                // Any node that the preceding task must run after is also a preceding node.
+                candidateNodes.addAll(((TaskInfo) precedingNode).getMustSuccessors());
+                candidateNodes.addAll(((TaskInfo) precedingNode).getFinalizingSuccessors());
             }
         }
 
-        return precedingTasks;
+        return precedingNodes;
     }
 
     private void onOrderingCycle(WorkInfo successor, WorkInfo workInfo) {
@@ -554,7 +554,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 // TODO: convert output file checks to a resource lock
                 if (!tryLockProjectFor(workInfo)
                     || !workerLease.tryLock()
-                    || !canRunWithCurrentlyExecutedTasks(workInfo, mutations)) {
+                    || !canRunWithCurrentlyExecutedNodes(workInfo, mutations)) {
                     resourceLockState.releaseLocks();
                     continue;
                 }
@@ -657,18 +657,18 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return workerLeaseService.getProjectLock(gradlePath, projectPath);
     }
 
-    private boolean canRunWithCurrentlyExecutedTasks(WorkInfo taskInfo, MutationInfo mutations) {
-        Set<String> candidateTaskDestroyables = mutations.destroyablePaths;
+    private boolean canRunWithCurrentlyExecutedNodes(WorkInfo workInfo, MutationInfo mutations) {
+        Set<String> candidateNodeDestroyables = mutations.destroyablePaths;
 
         if (!runningNodes.isEmpty()) {
-            Set<String> candidateTaskOutputs = mutations.outputPaths;
-            Set<String> candidateMutations = !candidateTaskOutputs.isEmpty() ? candidateTaskOutputs : candidateTaskDestroyables;
-            if (hasTaskWithOverlappingMutations(candidateMutations)) {
+            Set<String> candidateNodeOutputs = mutations.outputPaths;
+            Set<String> candidateMutations = !candidateNodeOutputs.isEmpty() ? candidateNodeOutputs : candidateNodeDestroyables;
+            if (hasNodeWithOverlappingMutations(candidateMutations)) {
                 return false;
             }
         }
 
-        return !doesDestroyNotYetConsumedOutputOfAnotherTask(taskInfo, candidateTaskDestroyables);
+        return !doesDestroyNotYetConsumedOutputOfAnotherNode(workInfo, candidateNodeDestroyables);
     }
 
     private static ImmutableSet<String> canonicalizedPaths(final Map<File, String> cache, Iterable<File> files) {
@@ -689,7 +689,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return builder.build();
     }
 
-    private boolean hasTaskWithOverlappingMutations(Set<String> candidateMutationPaths) {
+    private boolean hasNodeWithOverlappingMutations(Set<String> candidateMutationPaths) {
         if (!candidateMutationPaths.isEmpty()) {
             for (WorkInfo runningWork : runningNodes) {
                 MutationInfo runningMutations = workMutations.get(runningWork);
@@ -702,15 +702,15 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return false;
     }
 
-    private boolean doesDestroyNotYetConsumedOutputOfAnotherTask(WorkInfo destroyerTask, Set<String> destroyablePaths) {
+    private boolean doesDestroyNotYetConsumedOutputOfAnotherNode(WorkInfo destroyer, Set<String> destroyablePaths) {
         if (!destroyablePaths.isEmpty()) {
             for (MutationInfo producingWork : workMutations.values()) {
                 if (!producingWork.workInfo.isComplete()) {
-                    // We don't care about producing tasks that haven't finished yet
+                    // We don't care about producing nodes that haven't finished yet
                     continue;
                 }
                 if (producingWork.consumingWork.isEmpty()) {
-                    // We don't care about tasks whose output is not consumed by anyone anymore
+                    // We don't care about nodes whose output is not consumed by anyone anymore
                     continue;
                 }
                 if (!hasOverlap(destroyablePaths, producingWork.outputPaths)) {
@@ -718,8 +718,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                     continue;
                 }
                 for (WorkInfo consumer : producingWork.consumingWork) {
-                    if (doesConsumerDependOnDestroyer(consumer, destroyerTask)) {
-                        // If there's an explicit dependency from consuming task to destroyer,
+                    if (doesConsumerDependOnDestroyer(consumer, destroyer)) {
+                        // If there's an explicit dependency from consuming node to destroyer,
                         // then we accept that as the will of the user
                         continue;
                     }
@@ -839,7 +839,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     public void workComplete(WorkInfo workInfo) {
         try {
             if (!workInfo.isComplete()) {
-                enforceFinalizerTasks(workInfo);
+                enforceFinalizers(workInfo);
                 if (workInfo.isFailed()) {
                     handleFailure(workInfo);
                 }
@@ -852,7 +852,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private static void enforceFinalizerTasks(WorkInfo workInfo) {
+    private static void enforceFinalizers(WorkInfo workInfo) {
         if (!(workInfo instanceof TaskInfo)) {
             return;
         }
@@ -903,7 +903,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             }
             this.failureCollector.addFailure(workInfo.getWorkFailure());
         } catch (Exception e) {
-            // If the failure handler rethrows exception, then execution of other tasks is aborted. (--continue will collect failures)
+            // If the failure handler rethrows exception, then execution of other nodes is aborted. (--continue will collect failures)
             abortExecution();
             this.failureCollector.addFailure(e);
         }
@@ -915,7 +915,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     @Override
     public void cancelExecution() {
-        tasksCancelled = abortExecution() || tasksCancelled;
+        buildCancelled = abortExecution() || buildCancelled;
     }
 
     private boolean abortExecution(boolean abortAll) {
@@ -938,14 +938,14 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     @Override
     public void collectFailures(Collection<? super Throwable> failures) {
-        if (tasksCancelled) {
+        if (buildCancelled) {
             failures.add(new BuildCancelledException());
         }
         failures.addAll(failureCollector.getFailures());
     }
 
     @Override
-    public boolean allTasksComplete() {
+    public boolean allWorkComplete() {
         for (WorkInfo workInfo : workInfoMapping) {
             if (!workInfo.isComplete()) {
                 return false;

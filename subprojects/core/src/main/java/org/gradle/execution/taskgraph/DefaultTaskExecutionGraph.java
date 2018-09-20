@@ -59,27 +59,27 @@ import java.util.Set;
 public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskExecutionGraph.class);
 
-    private enum TaskGraphState {
+    private enum GraphState {
         EMPTY, DIRTY, POPULATED
     }
 
-    private final TaskPlanExecutor taskPlanExecutor;
+    private final PlanExecutor planExecutor;
     private final ResourceLockCoordinationService coordinationService;
     private final List<WorkInfoExecutor> workInfoExecutors;
     private final GradleInternal gradleInternal;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
     private final ListenerBroadcast<TaskExecutionListener> taskListeners;
-    private final DefaultTaskExecutionPlan taskExecutionPlan;
+    private final DefaultExecutionPlan executionPlan;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ListenerBuildOperationDecorator listenerBuildOperationDecorator;
-    private TaskGraphState taskGraphState = TaskGraphState.EMPTY;
+    private GraphState graphState = GraphState.EMPTY;
     private List<Task> allTasks;
     private boolean hasFiredWhenReady;
 
     private final Set<Task> requestedTasks = Sets.newTreeSet();
 
     public DefaultTaskExecutionGraph(
-        TaskPlanExecutor taskPlanExecutor,
+        PlanExecutor planExecutor,
         List<WorkInfoExecutor> workInfoExecutors,
         BuildOperationExecutor buildOperationExecutor,
         ListenerBuildOperationDecorator listenerBuildOperationDecorator,
@@ -91,7 +91,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
         ListenerBroadcast<TaskExecutionListener> taskListeners
     ) {
-        this.taskPlanExecutor = taskPlanExecutor;
+        this.planExecutor = planExecutor;
         this.workInfoExecutors = workInfoExecutors;
         this.buildOperationExecutor = buildOperationExecutor;
         this.listenerBuildOperationDecorator = listenerBuildOperationDecorator;
@@ -99,19 +99,19 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         this.gradleInternal = gradleInternal;
         this.graphListeners = graphListeners;
         this.taskListeners = taskListeners;
-        this.taskExecutionPlan = new DefaultTaskExecutionPlan(workerLeaseService, gradleInternal, taskInfoFactory, dependencyResolver);
+        this.executionPlan = new DefaultExecutionPlan(workerLeaseService, gradleInternal, taskInfoFactory, dependencyResolver);
     }
 
     @Override
     public void setContinueOnFailure(boolean continueOnFailure) {
-        taskExecutionPlan.setContinueOnFailure(continueOnFailure);
+        executionPlan.setContinueOnFailure(continueOnFailure);
     }
 
     @Override
     public void useFilter(Spec<? super Task> filter) {
-        Spec<? super Task> castFilter = Cast.uncheckedCast(filter != null ? filter : Specs.SATISFIES_ALL);
-        taskExecutionPlan.useFilter(castFilter);
-        taskGraphState = TaskGraphState.DIRTY;
+        Spec<? super Task> castFilter = Cast.uncheckedNonnullCast(filter != null ? filter : Specs.SATISFIES_ALL);
+        executionPlan.useFilter(castFilter);
+        graphState = GraphState.DIRTY;
     }
 
     @Override
@@ -126,8 +126,8 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             requestedTasks.add(task);
         }
 
-        taskExecutionPlan.addToTaskGraph(taskSet);
-        taskGraphState = TaskGraphState.DIRTY;
+        executionPlan.addToTaskGraph(taskSet);
+        graphState = GraphState.DIRTY;
 
         LOGGER.debug("Timing: Creating the DAG took " + clock.getElapsed());
     }
@@ -145,16 +145,16 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             buildOperationExecutor.run(new NotifyTaskGraphWhenReady(this, graphListeners.getSource(), gradleInternal));
             hasFiredWhenReady = true;
         } else if (!graphListeners.isEmpty()) {
-            LOGGER.warn("Ignoring listeners of task graph ready event, as this build (" + gradleInternal.getIdentityPath() + ") has already run tasks.");
+            LOGGER.warn("Ignoring listeners of task graph ready event, as this build (" + gradleInternal.getIdentityPath() + ") has already executed work.");
         }
         try {
-            taskPlanExecutor.process(taskExecutionPlan, failures, new BuildOperationAwareWorkItemExecutor(workInfoExecutors, buildOperationExecutor.getCurrentOperation()));
+            planExecutor.process(executionPlan, failures, new BuildOperationAwareWorkItemExecutor(workInfoExecutors, buildOperationExecutor.getCurrentOperation()));
             LOGGER.debug("Timing: Executing the DAG took " + clock.getElapsed());
         } finally {
             coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
                 @Override
                 public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                    taskExecutionPlan.clear();
+                    executionPlan.clear();
                     return ResourceLockState.Disposition.FINISHED;
                 }
             });
@@ -229,13 +229,13 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     @Override
     public boolean hasTask(Task task) {
         ensurePopulated();
-        return taskExecutionPlan.getTasks().contains(task);
+        return executionPlan.getTasks().contains(task);
     }
 
     @Override
     public boolean hasTask(String path) {
         ensurePopulated();
-        for (Task task : taskExecutionPlan.getTasks()) {
+        for (Task task : executionPlan.getTasks()) {
             if (task.getPath().equals(path)) {
                 return true;
             }
@@ -245,14 +245,14 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public int size() {
-        return taskExecutionPlan.size();
+        return executionPlan.size();
     }
 
     @Override
     public List<Task> getAllTasks() {
         ensurePopulated();
         if (allTasks == null) {
-            allTasks = ImmutableList.copyOf(taskExecutionPlan.getTasks());
+            allTasks = ImmutableList.copyOf(executionPlan.getTasks());
         }
         return allTasks;
     }
@@ -260,25 +260,25 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     @Override
     public Set<Task> getDependencies(Task task) {
         ensurePopulated();
-        return taskExecutionPlan.getDependencies(task);
+        return executionPlan.getDependencies(task);
     }
 
     private void ensurePopulated() {
-        switch (taskGraphState) {
+        switch (graphState) {
             case EMPTY:
                 throw new IllegalStateException(
                     "Task information is not available, as this task execution graph has not been populated.");
             case DIRTY:
-                taskExecutionPlan.determineExecutionPlan();
+                executionPlan.determineExecutionPlan();
                 allTasks = null;
-                taskGraphState = TaskGraphState.POPULATED;
+                graphState = GraphState.POPULATED;
                 return;
             case POPULATED:
         }
     }
 
     /**
-     * This action executes a task via the task executer wrapping everything into a build operation.
+     * This action wraps the execution of a node into a build operation.
      */
     private class BuildOperationAwareWorkItemExecutor implements Action<WorkInfo> {
         private final BuildOperationRef parentOperation;
@@ -321,7 +321,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             This is too drastic a change for the stage in the release cycle were exposing this information
             was necessary, therefore the minimal change solution was implemented.
          */
-        return taskExecutionPlan.getFilteredTasks();
+        return executionPlan.getFilteredTasks();
     }
 
     private static class NotifyTaskGraphWhenReady implements RunnableBuildOperation {

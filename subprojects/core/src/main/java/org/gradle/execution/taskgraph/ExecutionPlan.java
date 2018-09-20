@@ -27,9 +27,9 @@ import java.util.Collection;
 import java.util.Set;
 
 /**
- * Represents a graph of dependent tasks, returned in execution order.
+ * Represents a graph of dependent work items, returned in execution order.
  */
-public interface TaskExecutionPlan extends Describable {
+public interface ExecutionPlan extends Describable {
     /**
      * Selects a work item to run, returns null if there is no work remaining _or_ if no queued work is ready to run.
      */
@@ -68,7 +68,7 @@ public interface TaskExecutionPlan extends Describable {
      */
     void collectFailures(Collection<? super Throwable> failures);
 
-    boolean allTasksComplete();
+    boolean allWorkComplete();
 
     boolean hasWorkRemaining();
 

@@ -44,9 +44,9 @@ import static org.gradle.util.TestUtil.createRootProject
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 import static org.gradle.util.WrapUtil.toList
 
-class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
+class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
 
-    DefaultTaskExecutionPlan executionPlan
+    DefaultExecutionPlan executionPlan
     ProjectInternal root
     def workerLeaseService = Mock(WorkerLeaseService)
     def workerLease = Mock(WorkerLeaseRegistry.WorkerLease)
@@ -55,7 +55,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         root = createRootProject(temporaryFolder.testDirectory)
         def taskInfoFactory = new TaskInfoFactory(root.gradle, Stub(IncludedBuildTaskGraph))
         def dependencyResolver = new TaskDependencyResolver([new TaskInfoWorkDependencyResolver(taskInfoFactory)])
-        executionPlan = new DefaultTaskExecutionPlan(workerLeaseService, root.gradle, taskInfoFactory, dependencyResolver)
+        executionPlan = new DefaultExecutionPlan(workerLeaseService, root.gradle, taskInfoFactory, dependencyResolver)
         _ * workerLeaseService.getProjectLock(_, _) >> Mock(ResourceLock) {
             _ * isLocked() >> false
             _ * tryLock() >> true

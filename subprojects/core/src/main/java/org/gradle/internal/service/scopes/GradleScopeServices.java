@@ -57,10 +57,10 @@ import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
 import org.gradle.execution.taskgraph.LocalTaskInfoExecutor;
+import org.gradle.execution.taskgraph.PlanExecutor;
 import org.gradle.execution.taskgraph.TaskDependencyResolver;
 import org.gradle.execution.taskgraph.TaskInfoFactory;
 import org.gradle.execution.taskgraph.TaskInfoWorkDependencyResolver;
-import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.WorkInfoDependencyResolver;
 import org.gradle.execution.taskgraph.WorkInfoExecutor;
 import org.gradle.internal.Factory;
@@ -199,7 +199,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     }
 
     TaskExecutionGraphInternal createTaskExecutionGraph(
-        TaskPlanExecutor taskPlanExecutor,
+        PlanExecutor planExecutor,
         List<WorkInfoExecutor> workInfoExecutors,
         BuildOperationExecutor buildOperationExecutor,
         ListenerBuildOperationDecorator listenerBuildOperationDecorator,
@@ -211,7 +211,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         ListenerBroadcast<TaskExecutionListener> taskListeners,
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners
     ) {
-        return new DefaultTaskExecutionGraph(taskPlanExecutor, workInfoExecutors, buildOperationExecutor, listenerBuildOperationDecorator, workerLeaseService, coordinationService, gradleInternal, taskInfoFactory, dependencyResolver, graphListeners, taskListeners);
+        return new DefaultTaskExecutionGraph(planExecutor, workInfoExecutors, buildOperationExecutor, listenerBuildOperationDecorator, workerLeaseService, coordinationService, gradleInternal, taskInfoFactory, dependencyResolver, graphListeners, taskListeners);
     }
 
     ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {

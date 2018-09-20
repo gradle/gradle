@@ -36,7 +36,7 @@ import static org.gradle.internal.resources.DefaultResourceLockCoordinationServi
 /**
  * A queueing mechanism that only executes items once certain conditions are reached.
  */
-// TODO This class, DefaultBuildOperationQueue and TaskExecutionPlan have many of the same
+// TODO This class, DefaultBuildOperationQueue and ExecutionPlan have many of the same
 // behavior and concerns - we should look for a way to generalize this pattern.
 public class DefaultConditionalExecutionQueue<T> implements ConditionalExecutionQueue<T> {
     public static final int KEEP_ALIVE_TIME_MS = 2000;

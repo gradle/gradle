@@ -19,7 +19,7 @@ package org.gradle.execution.taskgraph;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TaskFailureCollector {
+public class FailureCollector {
 
     private final List<Throwable> failures = new ArrayList<Throwable>();
 
