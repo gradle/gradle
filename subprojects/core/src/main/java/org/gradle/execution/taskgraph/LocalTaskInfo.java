@@ -43,12 +43,13 @@ public class LocalTaskInfo extends TaskInfo {
         builder.add(task);
     }
 
-    public Throwable getWorkFailure() {
+    @Override
+    public Throwable getNodeFailure() {
         return task.getState().getFailure();
     }
 
     @Override
-    public void rethrowFailure() {
+    public void rethrowNodeFailure() {
         task.getState().rethrowFailure();
     }
 
@@ -58,22 +59,22 @@ public class LocalTaskInfo extends TaskInfo {
     }
 
     @Override
-    public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<WorkInfo> processHardSuccessor) {
-        for (WorkInfo targetNode : getDependencies(dependencyResolver)) {
+    public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
+        for (Node targetNode : getDependencies(dependencyResolver)) {
             addDependencySuccessor(targetNode);
             processHardSuccessor.execute(targetNode);
         }
-        for (WorkInfo targetNode : getFinalizedBy(dependencyResolver)) {
+        for (Node targetNode : getFinalizedBy(dependencyResolver)) {
             if (!(targetNode instanceof TaskInfo)) {
                 throw new IllegalStateException("Only tasks can be finalizers: " + targetNode);
             }
             addFinalizerNode((TaskInfo) targetNode);
             processHardSuccessor.execute(targetNode);
         }
-        for (WorkInfo targetNode : getMustRunAfter(dependencyResolver)) {
+        for (Node targetNode : getMustRunAfter(dependencyResolver)) {
             addMustSuccessor(targetNode);
         }
-        for (WorkInfo targetNode : getShouldRunAfter(dependencyResolver)) {
+        for (Node targetNode : getShouldRunAfter(dependencyResolver)) {
             addShouldSuccessor(targetNode);
         }
     }
@@ -85,25 +86,25 @@ public class LocalTaskInfo extends TaskInfo {
         }
     }
 
-    private Set<WorkInfo> getDependencies(TaskDependencyResolver dependencyResolver) {
+    private Set<Node> getDependencies(TaskDependencyResolver dependencyResolver) {
         return dependencyResolver.resolveDependenciesFor(task, task.getTaskDependencies());
     }
 
-    private Set<WorkInfo> getFinalizedBy(TaskDependencyResolver dependencyResolver) {
+    private Set<Node> getFinalizedBy(TaskDependencyResolver dependencyResolver) {
         return dependencyResolver.resolveDependenciesFor(task, task.getFinalizedBy());
     }
 
-    private Set<WorkInfo> getMustRunAfter(TaskDependencyResolver dependencyResolver) {
+    private Set<Node> getMustRunAfter(TaskDependencyResolver dependencyResolver) {
         return dependencyResolver.resolveDependenciesFor(task, task.getMustRunAfter());
     }
 
-    private Set<WorkInfo> getShouldRunAfter(TaskDependencyResolver dependencyResolver) {
+    private Set<Node> getShouldRunAfter(TaskDependencyResolver dependencyResolver) {
         return dependencyResolver.resolveDependenciesFor(task, task.getShouldRunAfter());
     }
 
     @Override
     @SuppressWarnings("NullableProblems")
-    public int compareTo(WorkInfo other) {
+    public int compareTo(Node other) {
         if (getClass() != other.getClass()) {
             return getClass().getName().compareTo(other.getClass().getName());
         }

@@ -58,14 +58,14 @@ class DefaultPlanExecutorTest extends Specification {
         then:
         1 * executorFactory.create(_) >> Mock(ManagedExecutor)
         1 * cancellationHandler.isCancellationRequested() >> false
-        1 * executionPlan.hasWorkRemaining() >> true
+        1 * executionPlan.hasNodesRemaining() >> true
         1 * executionPlan.selectNext(_, _) >> node
         1 * worker.execute(node)
 
         then:
         1 * cancellationHandler.isCancellationRequested() >> false
-        1 * executionPlan.hasWorkRemaining() >> false
-        1 * executionPlan.allWorkComplete() >> true
+        1 * executionPlan.hasNodesRemaining() >> false
+        1 * executionPlan.allNodesComplete() >> true
         1 * executionPlan.collectFailures([])
     }
 
@@ -86,16 +86,16 @@ class DefaultPlanExecutorTest extends Specification {
         1 * executionPlan.getDisplayName() >> "task plan"
         1 * executorFactory.create(_) >> Mock(ManagedExecutor)
         1 * cancellationHandler.isCancellationRequested() >> false
-        1 * executionPlan.hasWorkRemaining() >> true
+        1 * executionPlan.hasNodesRemaining() >> true
         1 * executionPlan.selectNext(_, _) >> node
         1 * worker.execute(node)
-        1 * executionPlan.workComplete(node)
+        1 * executionPlan.nodeComplete(node)
 
         then:
         1 * cancellationHandler.isCancellationRequested() >> true
         1 * executionPlan.cancelExecution()
-        1 * executionPlan.hasWorkRemaining() >> false
-        1 * executionPlan.allWorkComplete() >> true
+        1 * executionPlan.hasNodesRemaining() >> false
+        1 * executionPlan.allNodesComplete() >> true
         1 * executionPlan.collectFailures([])
         0 * executionPlan._
     }

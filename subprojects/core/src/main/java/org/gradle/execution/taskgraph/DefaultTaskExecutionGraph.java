@@ -65,7 +65,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     private final PlanExecutor planExecutor;
     private final ResourceLockCoordinationService coordinationService;
-    private final List<WorkInfoExecutor> workInfoExecutors;
+    private final List<NodeExecutor> nodeExecutors;
     private final GradleInternal gradleInternal;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
     private final ListenerBroadcast<TaskExecutionListener> taskListeners;
@@ -80,7 +80,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     public DefaultTaskExecutionGraph(
         PlanExecutor planExecutor,
-        List<WorkInfoExecutor> workInfoExecutors,
+        List<NodeExecutor> nodeExecutors,
         BuildOperationExecutor buildOperationExecutor,
         ListenerBuildOperationDecorator listenerBuildOperationDecorator,
         WorkerLeaseService workerLeaseService,
@@ -92,7 +92,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         ListenerBroadcast<TaskExecutionListener> taskListeners
     ) {
         this.planExecutor = planExecutor;
-        this.workInfoExecutors = workInfoExecutors;
+        this.nodeExecutors = nodeExecutors;
         this.buildOperationExecutor = buildOperationExecutor;
         this.listenerBuildOperationDecorator = listenerBuildOperationDecorator;
         this.coordinationService = coordinationService;
@@ -148,7 +148,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             LOGGER.warn("Ignoring listeners of task graph ready event, as this build (" + gradleInternal.getIdentityPath() + ") has already executed work.");
         }
         try {
-            planExecutor.process(executionPlan, failures, new BuildOperationAwareWorkItemExecutor(workInfoExecutors, buildOperationExecutor.getCurrentOperation()));
+            planExecutor.process(executionPlan, failures, new BuildOperationAwareExecutionAction(nodeExecutors, buildOperationExecutor.getCurrentOperation()));
             LOGGER.debug("Timing: Executing the DAG took " + clock.getElapsed());
         } finally {
             coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
@@ -280,22 +280,22 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     /**
      * This action wraps the execution of a node into a build operation.
      */
-    private class BuildOperationAwareWorkItemExecutor implements Action<WorkInfo> {
+    private class BuildOperationAwareExecutionAction implements Action<Node> {
         private final BuildOperationRef parentOperation;
-        private final List<WorkInfoExecutor> workInfoExecutors;
+        private final List<NodeExecutor> nodeExecutors;
 
-        BuildOperationAwareWorkItemExecutor(List<WorkInfoExecutor> workInfoExecutors, BuildOperationRef parentOperation) {
-            this.workInfoExecutors = workInfoExecutors;
+        BuildOperationAwareExecutionAction(List<NodeExecutor> nodeExecutors, BuildOperationRef parentOperation) {
+            this.nodeExecutors = nodeExecutors;
             this.parentOperation = parentOperation;
         }
 
         @Override
-        public void execute(WorkInfo work) {
+        public void execute(Node work) {
             BuildOperationRef previous = CurrentBuildOperationRef.instance().get();
             CurrentBuildOperationRef.instance().set(parentOperation);
             try {
-                for (WorkInfoExecutor workInfoExecutor : workInfoExecutors) {
-                    if (workInfoExecutor.execute(work)) {
+                for (NodeExecutor nodeExecutor : nodeExecutors) {
+                    if (nodeExecutor.execute(work)) {
                         return;
                     }
                 }

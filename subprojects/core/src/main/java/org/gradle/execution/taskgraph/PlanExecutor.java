@@ -26,7 +26,7 @@ import java.util.Collection;
 public interface PlanExecutor {
     /**
      * @param failures collection to collect task execution failures into. Does not need to be thread-safe
-     * @param worker worker must be thread-safe.
+     * @param nodeExecutor worker must be thread-safe.
      */
-    void process(ExecutionPlan executionPlan, Collection<? super Throwable> failures, Action<WorkInfo> worker);
+    void process(ExecutionPlan executionPlan, Collection<? super Throwable> failures, Action<Node> nodeExecutor);
 }

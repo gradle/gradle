@@ -26,23 +26,23 @@ import java.util.Set;
 
 @NonNullApi
 public class TaskDependencyResolver {
-    private final List<WorkInfoDependencyResolver> workResolvers;
-    private CachingTaskDependencyResolveContext<WorkInfo> context;
+    private final List<DependencyResolver> dependencyResolvers;
+    private CachingTaskDependencyResolveContext<Node> context;
 
-    public TaskDependencyResolver(List<WorkInfoDependencyResolver> workResolvers) {
-        this.workResolvers = workResolvers;
-        this.context = createTaskDependencyResolverContext(workResolvers);
+    public TaskDependencyResolver(List<DependencyResolver> dependencyResolvers) {
+        this.dependencyResolvers = dependencyResolvers;
+        this.context = createTaskDependencyResolverContext(dependencyResolvers);
     }
 
     public void clear() {
-        context = createTaskDependencyResolverContext(workResolvers);
+        context = createTaskDependencyResolverContext(dependencyResolvers);
     }
 
-    private static CachingTaskDependencyResolveContext<WorkInfo> createTaskDependencyResolverContext(List<WorkInfoDependencyResolver> workResolvers) {
-        return new CachingTaskDependencyResolveContext<WorkInfo>(workResolvers);
+    private static CachingTaskDependencyResolveContext<Node> createTaskDependencyResolverContext(List<DependencyResolver> workResolvers) {
+        return new CachingTaskDependencyResolveContext<Node>(workResolvers);
     }
 
-    public Set<WorkInfo> resolveDependenciesFor(@Nullable TaskInternal task, Object dependencies) {
+    public Set<Node> resolveDependenciesFor(@Nullable TaskInternal task, Object dependencies) {
         return context.getDependencies(task, dependencies);
     }
 }

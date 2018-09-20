@@ -66,12 +66,12 @@ public class DefaultPlanExecutor implements PlanExecutor {
     }
 
     @Override
-    public void process(ExecutionPlan executionPlan, Collection<? super Throwable> failures, Action<WorkInfo> worker) {
+    public void process(ExecutionPlan executionPlan, Collection<? super Throwable> failures, Action<Node> nodeExecutor) {
         ManagedExecutor executor = executorFactory.create("Execution worker for '" + executionPlan.getDisplayName() + "'");
         try {
             WorkerLease parentWorkerLease = workerLeaseService.getCurrentWorkerLease();
-            startAdditionalWorkers(executionPlan, worker, executor, parentWorkerLease);
-            new ExecutorWorker(executionPlan, worker, parentWorkerLease, cancellationToken, coordinationService).run();
+            startAdditionalWorkers(executionPlan, nodeExecutor, executor, parentWorkerLease);
+            new ExecutorWorker(executionPlan, nodeExecutor, parentWorkerLease, cancellationToken, coordinationService).run();
             awaitCompletion(executionPlan, failures);
         } finally {
             executor.stop();
@@ -85,7 +85,7 @@ public class DefaultPlanExecutor implements PlanExecutor {
         coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                if (executionPlan.allWorkComplete()) {
+                if (executionPlan.allNodesComplete()) {
                     executionPlan.collectFailures(failures);
                     return FINISHED;
                 } else {
@@ -95,24 +95,24 @@ public class DefaultPlanExecutor implements PlanExecutor {
         });
     }
 
-    private void startAdditionalWorkers(ExecutionPlan executionPlan, Action<? super WorkInfo> workExecutor, Executor executor, WorkerLease parentWorkerLease) {
+    private void startAdditionalWorkers(ExecutionPlan executionPlan, Action<? super Node> nodeExecutor, Executor executor, WorkerLease parentWorkerLease) {
         LOGGER.debug("Using {} parallel executor threads", executorCount);
 
         for (int i = 1; i < executorCount; i++) {
-            executor.execute(new ExecutorWorker(executionPlan, workExecutor, parentWorkerLease, cancellationToken, coordinationService));
+            executor.execute(new ExecutorWorker(executionPlan, nodeExecutor, parentWorkerLease, cancellationToken, coordinationService));
         }
     }
 
     private static class ExecutorWorker implements Runnable {
         private final ExecutionPlan executionPlan;
-        private final Action<? super WorkInfo> workExecutor;
+        private final Action<? super Node> nodeExecutor;
         private final WorkerLease parentWorkerLease;
         private final BuildCancellationToken cancellationToken;
         private final ResourceLockCoordinationService coordinationService;
 
-        private ExecutorWorker(ExecutionPlan executionPlan, Action<? super WorkInfo> workExecutor, WorkerLease parentWorkerLease, BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService) {
+        private ExecutorWorker(ExecutionPlan executionPlan, Action<? super Node> nodeExecutor, WorkerLease parentWorkerLease, BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService) {
             this.executionPlan = executionPlan;
-            this.workExecutor = workExecutor;
+            this.nodeExecutor = nodeExecutor;
             this.parentWorkerLease = parentWorkerLease;
             this.cancellationToken = cancellationToken;
             this.coordinationService = coordinationService;
@@ -126,12 +126,12 @@ public class DefaultPlanExecutor implements PlanExecutor {
 
             WorkerLease childLease = parentWorkerLease.createChild();
             while (true) {
-                boolean moreToExecute = executeWithWork(childLease, new Action<WorkInfo>() {
+                boolean nodesRemaining = executeNextNode(childLease, new Action<Node>() {
                     @Override
-                    public void execute(WorkInfo work) {
+                    public void execute(Node work) {
                         LOGGER.info("{} ({}) started.", work, Thread.currentThread());
                         executionTimer.reset();
-                        workExecutor.execute(work);
+                        nodeExecutor.execute(work);
                         long duration = executionTimer.getElapsedMillis();
                         busy.addAndGet(duration);
                         if (LOGGER.isInfoEnabled()) {
@@ -139,7 +139,7 @@ public class DefaultPlanExecutor implements PlanExecutor {
                         }
                     }
                 });
-                if (!moreToExecute) {
+                if (!nodesRemaining) {
                     break;
                 }
             }
@@ -152,14 +152,14 @@ public class DefaultPlanExecutor implements PlanExecutor {
         }
 
         /**
-         * Selects work that's ready to execute and executes the provided action against it. If no work is ready, blocks until some
-         * can be executed. If all work has been executed, returns false.
+         * Selects a node that's ready to execute and executes the provided action against it. If no node is ready, blocks until some
+         * can be executed.
          *
-         * @return true if there are more work waiting to execute, false if all work has been executed.
+         * @return {@code true} if there are more nodes waiting to execute, {@code false} if all nodes have been executed.
          */
-        private boolean executeWithWork(final WorkerLease workerLease, final Action<WorkInfo> workExecutor) {
-            final MutableReference<WorkInfo> selected = MutableReference.empty();
-            final MutableBoolean workRemaining = new MutableBoolean();
+        private boolean executeNextNode(final WorkerLease workerLease, final Action<Node> nodeExecutor) {
+            final MutableReference<Node> selected = MutableReference.empty();
+            final MutableBoolean nodesRemaining = new MutableBoolean();
             coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
                 @Override
                 public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
@@ -167,8 +167,8 @@ public class DefaultPlanExecutor implements PlanExecutor {
                         executionPlan.cancelExecution();
                     }
 
-                    workRemaining.set(executionPlan.hasWorkRemaining());
-                    if (!workRemaining.get()) {
+                    nodesRemaining.set(executionPlan.hasNodesRemaining());
+                    if (!nodesRemaining.get()) {
                         return FINISHED;
                     }
 
@@ -177,10 +177,10 @@ public class DefaultPlanExecutor implements PlanExecutor {
                     } catch (Throwable t) {
                         resourceLockState.releaseLocks();
                         executionPlan.abortAllAndFail(t);
-                        workRemaining.set(false);
+                        nodesRemaining.set(false);
                     }
 
-                    if (selected.get() == null && workRemaining.get()) {
+                    if (selected.get() == null && nodesRemaining.get()) {
                         return RETRY;
                     } else {
                         return FINISHED;
@@ -188,18 +188,18 @@ public class DefaultPlanExecutor implements PlanExecutor {
                 }
             });
 
-            WorkInfo selectedWorkInfo = selected.get();
-            if (selectedWorkInfo != null) {
-                execute(selectedWorkInfo, workerLease, workExecutor);
+            Node selectedNode = selected.get();
+            if (selectedNode != null) {
+                execute(selectedNode, workerLease, nodeExecutor);
             }
-            return workRemaining.get();
+            return nodesRemaining.get();
         }
 
-        private void execute(final WorkInfo selected, final WorkerLease workerLease, Action<WorkInfo> workExecutor) {
+        private void execute(final Node selected, final WorkerLease workerLease, Action<Node> nodeExecutor) {
             try {
                 if (!selected.isComplete()) {
                     try {
-                        workExecutor.execute(selected);
+                        nodeExecutor.execute(selected);
                     } catch (Throwable e) {
                         selected.setExecutionFailure(e);
                     }
@@ -208,7 +208,7 @@ public class DefaultPlanExecutor implements PlanExecutor {
                 coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
                     @Override
                     public ResourceLockState.Disposition transform(ResourceLockState state) {
-                        executionPlan.workComplete(selected);
+                        executionPlan.nodeComplete(selected);
                         return unlock(workerLease).transform(state);
                     }
                 });

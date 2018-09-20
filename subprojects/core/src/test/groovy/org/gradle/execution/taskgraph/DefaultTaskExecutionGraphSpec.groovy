@@ -51,7 +51,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
     def listenerManager = new DefaultListenerManager()
     def graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class)
     def taskExecutionListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class)
-    def workExecutor = Mock(WorkInfoExecutor)
+    def nodeExecutor = Mock(NodeExecutor)
     def buildOperationExecutor = new TestBuildOperationExecutor()
     def listenerBuildOperationDecorator = new TestListenerBuildOperationDecorator()
     def coordinationService = new DefaultResourceLockCoordinationService()
@@ -62,7 +62,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
     def thisBuild = project.gradle
     def taskInfoFactory = new TaskInfoFactory(thisBuild, Stub(IncludedBuildTaskGraph))
     def dependencyResolver = new TaskDependencyResolver([new TaskInfoWorkDependencyResolver(taskInfoFactory)])
-    def taskGraph = new DefaultTaskExecutionGraph(new DefaultPlanExecutor(parallelismConfiguration, executorFactory, workerLeases, cancellationToken, coordinationService), [workExecutor], buildOperationExecutor, listenerBuildOperationDecorator, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver, graphListeners, taskExecutionListeners)
+    def taskGraph = new DefaultTaskExecutionGraph(new DefaultPlanExecutor(parallelismConfiguration, executorFactory, workerLeases, cancellationToken, coordinationService), [nodeExecutor], buildOperationExecutor, listenerBuildOperationDecorator, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver, graphListeners, taskExecutionListeners)
     WorkerLeaseRegistry.WorkerLeaseCompletion parentWorkerLease
     def executedTasks = []
     def failures = []
@@ -70,9 +70,9 @@ class DefaultTaskExecutionGraphSpec extends Specification {
     def setup() {
         parentWorkerLease = workerLeases.getWorkerLease().start()
         _ * executorFactory.create(_) >> Mock(ManagedExecutor)
-        _ * workExecutor.execute(_ as WorkInfo) >> { WorkInfo workInfo ->
-            if (workInfo instanceof LocalTaskInfo) {
-                executedTasks << workInfo.task
+        _ * nodeExecutor.execute(_ as Node) >> { Node node ->
+            if (node instanceof LocalTaskInfo) {
+                executedTasks << node.task
                 return true
             } else {
                 return false
@@ -337,7 +337,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
 
     def "notifies graph listener before first execute"() {
         def planExecutor = Mock(PlanExecutor)
-        def taskGraph = new DefaultTaskExecutionGraph(planExecutor, [workExecutor], buildOperationExecutor, listenerBuildOperationDecorator, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver, graphListeners, taskExecutionListeners)
+        def taskGraph = new DefaultTaskExecutionGraph(planExecutor, [nodeExecutor], buildOperationExecutor, listenerBuildOperationDecorator, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver, graphListeners, taskExecutionListeners)
         TaskExecutionGraphListener listener = Mock(TaskExecutionGraphListener)
         Task a = task("a")
 
@@ -361,7 +361,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
 
     def "executes whenReady listener before first execute"() {
         def planExecutor = Mock(PlanExecutor)
-        def taskGraph = new DefaultTaskExecutionGraph(planExecutor, [workExecutor], buildOperationExecutor, listenerBuildOperationDecorator, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver, graphListeners, taskExecutionListeners)
+        def taskGraph = new DefaultTaskExecutionGraph(planExecutor, [nodeExecutor], buildOperationExecutor, listenerBuildOperationDecorator, workerLeases, coordinationService, thisBuild, taskInfoFactory, dependencyResolver, graphListeners, taskExecutionListeners)
         def closure = Mock(Closure)
         def action = Mock(Action)
         Task a = task("a")

@@ -16,6 +16,6 @@
 
 package org.gradle.execution.taskgraph;
 
-public interface WorkInfoExecutor {
-    boolean execute(WorkInfo work);
+public interface NodeExecutor {
+    boolean execute(Node node);
 }

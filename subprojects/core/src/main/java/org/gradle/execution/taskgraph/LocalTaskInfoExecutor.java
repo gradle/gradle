@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.internal.Factory;
 
-public class LocalTaskInfoExecutor implements WorkInfoExecutor {
+public class LocalTaskInfoExecutor implements NodeExecutor {
     // This currently needs to be lazy, as it uses state that is not available when the graph is created
     private final Factory<? extends TaskExecuter> taskExecuterFactory;
 
@@ -32,9 +32,9 @@ public class LocalTaskInfoExecutor implements WorkInfoExecutor {
     }
 
     @Override
-    public boolean execute(WorkInfo work) {
-        if (work instanceof LocalTaskInfo) {
-            TaskInternal task = ((LocalTaskInfo) work).getTask();
+    public boolean execute(Node node) {
+        if (node instanceof LocalTaskInfo) {
+            TaskInternal task = ((LocalTaskInfo) node).getTask();
             TaskStateInternal state = task.getState();
             if (state.getExecuted()) {
                 // Task has already been run. This can happen when the owning build is used both at configuration time and execution time

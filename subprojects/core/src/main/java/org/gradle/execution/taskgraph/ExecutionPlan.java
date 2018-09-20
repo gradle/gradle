@@ -34,9 +34,9 @@ public interface ExecutionPlan extends Describable {
      * Selects a work item to run, returns null if there is no work remaining _or_ if no queued work is ready to run.
      */
     @Nullable
-    WorkInfo selectNext(WorkerLeaseRegistry.WorkerLease workerLease, ResourceLockState resourceLockState);
+    Node selectNext(WorkerLeaseRegistry.WorkerLease workerLease, ResourceLockState resourceLockState);
 
-    void workComplete(WorkInfo workInfo);
+    void nodeComplete(Node node);
 
     void abortAllAndFail(Throwable t);
 
@@ -68,9 +68,9 @@ public interface ExecutionPlan extends Describable {
      */
     void collectFailures(Collection<? super Throwable> failures);
 
-    boolean allWorkComplete();
+    boolean allNodesComplete();
 
-    boolean hasWorkRemaining();
+    boolean hasNodesRemaining();
 
     /**
      * Returns the number of work items in the plan.

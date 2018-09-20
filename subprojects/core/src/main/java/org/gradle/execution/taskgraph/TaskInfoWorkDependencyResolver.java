@@ -24,7 +24,7 @@ import javax.annotation.Nonnull;
 /**
  * Resolves dependencies to {@link TaskInfo} objects. Uses the same logic as {@link #TASK_AS_TASK}.
  */
-public class TaskInfoWorkDependencyResolver implements WorkInfoDependencyResolver {
+public class TaskInfoWorkDependencyResolver implements DependencyResolver {
     private final TaskInfoFactory taskInfoFactory;
 
     public TaskInfoWorkDependencyResolver(TaskInfoFactory taskInfoFactory) {
@@ -32,7 +32,7 @@ public class TaskInfoWorkDependencyResolver implements WorkInfoDependencyResolve
     }
 
     @Override
-    public boolean resolve(Task task, Object node, final Action<? super WorkInfo> resolveAction) {
+    public boolean resolve(Task task, Object node, final Action<? super Node> resolveAction) {
         return TASK_AS_TASK.resolve(task, node, new Action<Task>() {
             @Override
             public void execute(@Nonnull Task task) {

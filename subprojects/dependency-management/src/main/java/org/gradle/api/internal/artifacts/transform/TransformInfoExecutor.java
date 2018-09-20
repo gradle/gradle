@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.execution.taskgraph.WorkInfo;
-import org.gradle.execution.taskgraph.WorkInfoExecutor;
+import org.gradle.execution.taskgraph.Node;
+import org.gradle.execution.taskgraph.NodeExecutor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 
-public class TransformInfoExecutor implements WorkInfoExecutor {
+public class TransformInfoExecutor implements NodeExecutor {
     private final BuildOperationExecutor buildOperationExecutor;
     private final ArtifactTransformListener transformListener;
 
@@ -30,9 +30,9 @@ public class TransformInfoExecutor implements WorkInfoExecutor {
     }
 
     @Override
-    public boolean execute(WorkInfo work) {
-        if (work instanceof TransformInfo) {
-            final TransformInfo transform = (TransformInfo) work;
+    public boolean execute(Node node) {
+        if (node instanceof TransformInfo) {
+            final TransformInfo transform = (TransformInfo) node;
             transform.execute(buildOperationExecutor, transformListener);
             return true;
         } else {

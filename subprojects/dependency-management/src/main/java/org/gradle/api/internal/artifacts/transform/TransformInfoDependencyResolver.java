@@ -18,15 +18,15 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.execution.taskgraph.WorkInfo;
-import org.gradle.execution.taskgraph.WorkInfoDependencyResolver;
+import org.gradle.execution.taskgraph.DependencyResolver;
+import org.gradle.execution.taskgraph.Node;
 
 import java.util.Collection;
 
 /**
  * Resolves dependencies to {@link TransformInfo} objects.
  */
-public class TransformInfoDependencyResolver implements WorkInfoDependencyResolver {
+public class TransformInfoDependencyResolver implements DependencyResolver {
     private final TransformInfoFactory transformInfoFactory;
 
     public TransformInfoDependencyResolver(TransformInfoFactory transformInfoFactory) {
@@ -34,7 +34,7 @@ public class TransformInfoDependencyResolver implements WorkInfoDependencyResolv
     }
 
     @Override
-    public boolean resolve(Task task, Object node, Action<? super WorkInfo> resolveAction) {
+    public boolean resolve(Task task, Object node, Action<? super Node> resolveAction) {
         if (node instanceof DefaultArtifactTransformDependency) {
             DefaultArtifactTransformDependency transformation = (DefaultArtifactTransformDependency) node;
             Collection<TransformInfo> transforms = transformInfoFactory.getOrCreate(transformation.getArtifacts(), transformation.getTransform());

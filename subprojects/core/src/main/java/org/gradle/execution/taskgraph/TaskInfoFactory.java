@@ -87,12 +87,12 @@ public class TaskInfoFactory {
         }
 
         @Override
-        public Throwable getWorkFailure() {
+        public Throwable getNodeFailure() {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public void rethrowFailure() {
+        public void rethrowNodeFailure() {
             throw new UnsupportedOperationException();
         }
 
@@ -103,7 +103,7 @@ public class TaskInfoFactory {
         }
 
         @Override
-        public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<WorkInfo> processHardSuccessor) {
+        public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
         }
 
         @Override
@@ -132,7 +132,7 @@ public class TaskInfoFactory {
         }
 
         @Override
-        public int compareTo(WorkInfo other) {
+        public int compareTo(Node other) {
             if (getClass() != other.getClass()) {
                 return getClass().getName().compareTo(other.getClass().getName());
             }

@@ -864,12 +864,12 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def getExecutedTasks() {
         def tasks = []
-        while (executionPlan.hasWorkRemaining()) {
+        while (executionPlan.hasNodesRemaining()) {
             def nextNode = executionPlan.selectNext(workerLease, Mock(ResourceLockState))
             if (nextNode != null) {
                 if (!nextNode.isComplete()) {
                     tasks << nextNode.task
-                    executionPlan.workComplete(nextNode)
+                    executionPlan.nodeComplete(nextNode)
                 }
             }
         }

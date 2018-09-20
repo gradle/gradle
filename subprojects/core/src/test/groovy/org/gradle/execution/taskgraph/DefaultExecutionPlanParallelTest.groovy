@@ -93,8 +93,8 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         selectNextTask() == null
 
         when:
-        executionPlan.workComplete(taskInfo1)
-        executionPlan.workComplete(taskInfo2)
+        executionPlan.nodeComplete(taskInfo1)
+        executionPlan.nodeComplete(taskInfo2)
         def taskInfo3 = selectNextTaskInfo()
         def taskInfo4 = selectNextTaskInfo()
 
@@ -135,7 +135,7 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         lockSetup.lockedProjects.size() == 1
 
         when:
-        executionPlan.workComplete(nonAsyncTaskInfo)
+        executionPlan.nodeComplete(nonAsyncTaskInfo)
         def asyncTask = selectNextTask()
         then:
         asyncTask == b
@@ -157,7 +157,7 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         lockSetup.lockedProjects.empty
 
         when:
-        executionPlan.workComplete(firstTaskInfo)
+        executionPlan.nodeComplete(firstTaskInfo)
         def secondTask = selectNextTask()
         then:
         secondTask == b
@@ -198,12 +198,12 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         selectNextTask() == null
 
         when:
-        executionPlan.workComplete(firstTaskInfo)
+        executionPlan.nodeComplete(firstTaskInfo)
         then:
         selectNextTask() == null
 
         when:
-        executionPlan.workComplete(secondTaskInfo)
+        executionPlan.nodeComplete(secondTaskInfo)
         then:
         selectNextTask() == c
 
@@ -292,7 +292,7 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         assert selectNextTask() == null
         assert lockSetup.lockedProjects.empty
 
-        executionPlan.workComplete(firstTaskInfo)
+        executionPlan.nodeComplete(firstTaskInfo)
         def secondTask = selectNextTask()
 
         assert [firstTaskInfo.task, secondTask] as Set == [first, second] as Set
@@ -459,13 +459,13 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         assert producerInfo.task == producer
         assert selectNextTask() == null
 
-        executionPlan.workComplete(producerInfo)
+        executionPlan.nodeComplete(producerInfo)
         def consumerInfo = selectNextTaskInfo()
 
         assert consumerInfo.task == consumer
         assert selectNextTask() == null
 
-        executionPlan.workComplete(consumerInfo)
+        executionPlan.nodeComplete(consumerInfo)
         def destroyerInfo = selectNextTaskInfo()
 
         assert destroyerInfo.task == destroyer
@@ -537,13 +537,13 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         assert destroyerInfo.task == destroyer
         assert selectNextTask() == null
 
-        executionPlan.workComplete(destroyerInfo)
+        executionPlan.nodeComplete(destroyerInfo)
         def producerInfo = selectNextTaskInfo()
 
         assert producerInfo.task == producer
         assert selectNextTask() == null
 
-        executionPlan.workComplete(producerInfo)
+        executionPlan.nodeComplete(producerInfo)
         def consumerInfo = selectNextTaskInfo()
 
         assert consumerInfo.task == consumer
@@ -606,13 +606,13 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         selectNextTask() == null
 
         when:
-        executionPlan.workComplete(firstInfo)
+        executionPlan.nodeComplete(firstInfo)
 
         then:
         selectNextTask() == null
 
         when:
-        executionPlan.workComplete(secondInfo)
+        executionPlan.nodeComplete(secondInfo)
         def finalizerInfo = selectNextTaskInfo()
 
         then:
@@ -634,7 +634,7 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         selectNextTask() == null
 
         when:
-        executionPlan.workComplete(finalizedInfo)
+        executionPlan.nodeComplete(finalizedInfo)
         selectNextTask()
 
         then:
@@ -647,7 +647,7 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
         then:
         executionPlan.getNode(finalized).isSuccessful()
-        executionPlan.getNode(finalizer).state == WorkInfo.ExecutionState.SKIPPED
+        executionPlan.getNode(finalizer).state == Node.ExecutionState.SKIPPED
     }
 
     private void addToGraphAndPopulate(Task... tasks) {

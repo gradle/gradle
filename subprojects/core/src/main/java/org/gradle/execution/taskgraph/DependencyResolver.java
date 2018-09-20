@@ -19,7 +19,7 @@ package org.gradle.execution.taskgraph;
 import org.gradle.api.internal.tasks.WorkDependencyResolver;
 
 /**
- * Resolves dependencies to {@link WorkInfo} objects.
+ * Resolves dependencies to {@link Node} objects.
  */
-public interface WorkInfoDependencyResolver extends WorkDependencyResolver<WorkInfo> {
+public interface DependencyResolver extends WorkDependencyResolver<Node> {
 }

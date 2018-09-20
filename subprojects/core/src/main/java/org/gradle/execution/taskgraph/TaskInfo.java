@@ -22,25 +22,25 @@ import com.google.common.collect.Sets;
 import java.util.NavigableSet;
 import java.util.Set;
 
-public abstract class TaskInfo extends WorkInfo {
+public abstract class TaskInfo extends Node {
 
-    private final NavigableSet<WorkInfo> mustSuccessors = Sets.newTreeSet();
-    private final NavigableSet<WorkInfo> shouldSuccessors = Sets.newTreeSet();
-    private final NavigableSet<WorkInfo> finalizers = Sets.newTreeSet();
-    private final NavigableSet<WorkInfo> finalizingSuccessors = Sets.newTreeSet();
+    private final NavigableSet<Node> mustSuccessors = Sets.newTreeSet();
+    private final NavigableSet<Node> shouldSuccessors = Sets.newTreeSet();
+    private final NavigableSet<Node> finalizers = Sets.newTreeSet();
+    private final NavigableSet<Node> finalizingSuccessors = Sets.newTreeSet();
 
     @Override
     public boolean allDependenciesComplete() {
         if (!super.allDependenciesComplete()) {
             return false;
         }
-        for (WorkInfo dependency : mustSuccessors) {
+        for (Node dependency : mustSuccessors) {
             if (!dependency.isComplete()) {
                 return false;
             }
         }
 
-        for (WorkInfo dependency : finalizingSuccessors) {
+        for (Node dependency : finalizingSuccessors) {
             if (!dependency.isComplete()) {
                 return false;
             }
@@ -49,23 +49,23 @@ public abstract class TaskInfo extends WorkInfo {
         return true;
     }
 
-    public Set<WorkInfo> getMustSuccessors() {
+    public Set<Node> getMustSuccessors() {
         return mustSuccessors;
     }
 
-    public Set<WorkInfo> getFinalizers() {
+    public Set<Node> getFinalizers() {
         return finalizers;
     }
 
-    public Set<WorkInfo> getFinalizingSuccessors() {
+    public Set<Node> getFinalizingSuccessors() {
         return finalizingSuccessors;
     }
 
-    public Set<WorkInfo> getShouldSuccessors() {
+    public Set<Node> getShouldSuccessors() {
         return shouldSuccessors;
     }
 
-    protected void addMustSuccessor(WorkInfo toNode) {
+    protected void addMustSuccessor(Node toNode) {
         mustSuccessors.add(toNode);
     }
 
@@ -78,7 +78,7 @@ public abstract class TaskInfo extends WorkInfo {
         finalizerNode.addFinalizingSuccessor(this);
     }
 
-    protected void addShouldSuccessor(WorkInfo toNode) {
+    protected void addShouldSuccessor(Node toNode) {
         shouldSuccessors.add(toNode);
     }
 
@@ -87,11 +87,11 @@ public abstract class TaskInfo extends WorkInfo {
     }
 
     @Override
-    public Iterable<WorkInfo> getAllSuccessors() {
+    public Iterable<Node> getAllSuccessors() {
         return Iterables.concat(getMustSuccessors(), getFinalizingSuccessors(), super.getAllSuccessors());
     }
     @Override
-    public Iterable<WorkInfo> getAllSuccessorsInReverseOrder() {
+    public Iterable<Node> getAllSuccessorsInReverseOrder() {
         return Iterables.concat(
             super.getAllSuccessorsInReverseOrder(),
             mustSuccessors.descendingSet(),
@@ -101,7 +101,7 @@ public abstract class TaskInfo extends WorkInfo {
     }
 
     @Override
-    public boolean hasHardSuccessor(WorkInfo successor) {
+    public boolean hasHardSuccessor(Node successor) {
         if (super.hasHardSuccessor(successor)) {
             return true;
         }
