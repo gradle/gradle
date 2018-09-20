@@ -77,7 +77,7 @@ class BuildScanPluginPerformanceTest extends Specification {
     def "large java project with and without plugin application (#scenario)"() {
         given:
         def sourceProject = "largeJavaProjectWithBuildScanPlugin"
-        def jobArgs = ['--continue', '--parallel', '--max-workers=2', '-q'] + scenarioArgs
+        def jobArgs = ['--continue', '--parallel', '--max-workers=2'] + scenarioArgs
         def opts = ['-Xms512m', '-Xmx512m']
 
         runner.testGroup = "build scan plugin"
@@ -106,6 +106,7 @@ class BuildScanPluginPerformanceTest extends Specification {
                 tasksToRun(*tasks)
                 gradleOpts(*opts)
                 expectFailure()
+
             }
         }
 
@@ -125,10 +126,10 @@ class BuildScanPluginPerformanceTest extends Specification {
         with.totalTime.average - without.totalTime.average < millis(1000)
 
         where:
-        scenario                       | tasks              | scenarioArgs
-        "help"                         | ['help']           | []
-        "clean build"                  | ['clean', 'build'] | []
-        "clean build from build cache" | ['clean', 'build'] | ['--build-cache']
-        "upToDate build"               | ['build']          | []
+        scenario                          | tasks                 | scenarioArgs
+        "help"                            | ['help']              | []
+        "clean build"                     | ['clean', 'build']    | []
+        "clean assemble from build cache" | ['clean', 'assemble'] | ['--build-cache']
+        "upToDate assemble"               | ['assemble']          | []
     }
 }
