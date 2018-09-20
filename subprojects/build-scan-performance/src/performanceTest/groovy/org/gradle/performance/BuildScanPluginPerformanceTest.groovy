@@ -72,7 +72,7 @@ class BuildScanPluginPerformanceTest extends Specification {
         }
     }
 
-    def "build scan plugin comparison"() {
+    def "large java project with and without build scan"() {
         given:
         def sourceProject = "largeJavaProjectWithBuildScanPlugin"
         def tasks = ['clean', 'build']
