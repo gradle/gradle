@@ -18,11 +18,13 @@ package org.gradle.testing
 
 
 import groovy.transform.CompileStatic
+import org.gradle.api.tasks.CacheableTask
 import org.openmbee.junit.JUnitMarshalling
 import org.openmbee.junit.model.JUnitTestCase
 import org.openmbee.junit.model.JUnitTestSuite
 
 @CompileStatic
+@CacheableTask
 class BuildScanPerformanceTest extends ReportGenerationPerformanceTest {
     private static final String TC_URL = "https://builds.gradle.org/viewLog.html?buildId="
 
