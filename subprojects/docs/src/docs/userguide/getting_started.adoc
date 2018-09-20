@@ -91,3 +91,14 @@ Here are some useful first steps on your journey to mastering Gradle:
  6. Learn how to <<authoring_maintainable_build_scripts#authoring_maintainable_build_scripts,author maintainable build scripts>> and <<organizing_gradle_projects#organizing_gradle_projects,best organize your Gradle projects>>.
 
 The user manual contains a lot of other useful information and you can find more tutorials on various Gradle features among the link:{guidesUrl}/[Gradle Guides].
+
+== Integrating 3rd-party tools with Gradle
+
+Gradle's flexibility means that it readily works with other tools, such as those listed on our <<third_party_integration#third_party_integration,Gradle & Third-party Tools>> page.
+
+There are two main modes of integration:
+
+ * A tool drives Gradle — uses it to extract information about a build and run it — via the <<embedding#embedding,Tooling API>>
+ * Gradle invokes or generates information for a tool via the 3rd-party tool's APIs — this is usually done via plugins and custom task types
+
+Tools that have existing Java-based APIs are generally straightforward to integrate. You can find many such integrations on Gradle's https://plugins.gradle.org/[plugin portal].
