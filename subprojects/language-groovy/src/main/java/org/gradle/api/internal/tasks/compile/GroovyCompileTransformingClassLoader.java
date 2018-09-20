@@ -45,7 +45,7 @@ class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
     }
 
     public GroovyCompileTransformingClassLoader(ClassLoader parent, ClassPath classPath) {
-        super(parent, classPath);
+        super("groovy-compile-loader", parent, classPath);
     }
 
     @Override

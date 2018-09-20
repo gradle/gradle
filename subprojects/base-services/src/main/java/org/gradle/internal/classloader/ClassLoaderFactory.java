@@ -26,7 +26,7 @@ public interface ClassLoaderFactory {
     /**
      * Creates a ClassLoader implementation which has only the classes from the specified URIs and the Java API visible.
      */
-    ClassLoader createIsolatedClassLoader(ClassPath classPath);
+    ClassLoader createIsolatedClassLoader(String name, ClassPath classPath);
 
     /**
      * Creates a ClassLoader implementation which has, by default, only the classes from the Java API visible, but which can allow access to selected classes from the given parent ClassLoader.

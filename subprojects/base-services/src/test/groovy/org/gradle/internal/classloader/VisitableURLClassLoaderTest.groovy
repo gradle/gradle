@@ -23,13 +23,14 @@ class VisitableURLClassLoaderTest extends Specification {
         def visitor = Mock(ClassLoaderVisitor)
         def parent = new ClassLoader(null) { }
         def classPath = [new File("a").toURI().toURL(), new File("b").toURI().toURL()]
-        def cl = new VisitableURLClassLoader(parent, classPath)
+        def cl = new VisitableURLClassLoader("test", parent, classPath)
 
         when:
         cl.visit(visitor)
 
         then:
         1 * visitor.visitSpec({it instanceof VisitableURLClassLoader.Spec}) >> { VisitableURLClassLoader.Spec spec ->
+            assert spec.name == "test"
             assert spec.classpath == classPath
         }
         1 * visitor.visitClassPath(classPath)

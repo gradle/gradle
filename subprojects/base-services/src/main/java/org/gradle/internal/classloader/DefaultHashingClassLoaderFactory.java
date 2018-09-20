@@ -35,8 +35,8 @@ public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory 
     }
 
     @Override
-    protected ClassLoader doCreateClassLoader(ClassLoader parent, ClassPath classPath) {
-        ClassLoader classLoader = super.doCreateClassLoader(parent, classPath);
+    protected ClassLoader doCreateClassLoader(String name, ClassLoader parent, ClassPath classPath) {
+        ClassLoader classLoader = super.doCreateClassLoader(name, parent, classPath);
         hashCodes.put(classLoader, calculateClassLoaderHash(classPath));
         return classLoader;
     }
@@ -49,11 +49,11 @@ public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory 
     }
 
     @Override
-    public ClassLoader createChildClassLoader(ClassLoader parent, ClassPath classPath, HashCode implementationHash) {
+    public ClassLoader createChildClassLoader(String name, ClassLoader parent, ClassPath classPath, HashCode implementationHash) {
         HashCode hashCode = implementationHash != null
             ? implementationHash
             : calculateClassLoaderHash(classPath);
-        ClassLoader classLoader = super.doCreateClassLoader(parent, classPath);
+        ClassLoader classLoader = super.doCreateClassLoader(name, parent, classPath);
         hashCodes.put(classLoader, hashCode);
         return classLoader;
     }

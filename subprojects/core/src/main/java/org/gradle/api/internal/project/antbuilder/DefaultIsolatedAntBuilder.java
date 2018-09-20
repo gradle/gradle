@@ -75,7 +75,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
             antClasspath.add(toolsJar);
         }
 
-        antLoader = classLoaderFactory.createIsolatedClassLoader(DefaultClassPath.of(antClasspath));
+        antLoader = classLoaderFactory.createIsolatedClassLoader("ant-loader", DefaultClassPath.of(antClasspath));
         FilteringClassLoader.Spec loggingLoaderSpec = new FilteringClassLoader.Spec();
         loggingLoaderSpec.allowPackage("org.slf4j");
         loggingLoaderSpec.allowPackage("org.apache.commons.logging");
@@ -94,7 +94,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
 
         // Need Transformer (part of AntBuilder API) from base services
         gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getModule("gradle-base-services").getImplementationClasspath());
-        this.antAdapterLoader = new VisitableURLClassLoader(baseAntLoader, gradleCoreUrls);
+        this.antAdapterLoader = new VisitableURLClassLoader("gradle-core-loader", baseAntLoader, gradleCoreUrls);
 
         gradleApiGroovyLoader = groovySystemLoaderFactory.forClassLoader(this.getClass().getClassLoader());
         antAdapterGroovyLoader = groovySystemLoaderFactory.forClassLoader(antAdapterLoader);
@@ -129,7 +129,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
             new Factory<ClassLoader>() {
                 @Override
                 public ClassLoader create() {
-                    return new VisitableURLClassLoader(baseAntLoader, libClasspath);
+                    return new VisitableURLClassLoader("ant-loader", baseAntLoader, libClasspath);
                 }
             }, new Action<CachedClassLoader>() {
                 @Override

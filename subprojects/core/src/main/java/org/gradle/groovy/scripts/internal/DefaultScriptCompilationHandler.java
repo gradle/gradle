@@ -374,7 +374,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         private final HashCode implementationHash;
 
         ScriptClassLoader(ScriptSource scriptSource, ClassLoader parent, ClassPath classPath, HashCode implementationHash) {
-            super(parent, classPath);
+            super("groovy-script-" + scriptSource.getFileName() + "-loader", parent, classPath);
             this.scriptSource = scriptSource;
             this.implementationHash = implementationHash;
         }

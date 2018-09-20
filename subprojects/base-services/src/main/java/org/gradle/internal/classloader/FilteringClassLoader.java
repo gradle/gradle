@@ -135,6 +135,11 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         return EXT_CLASS_LOADER.getResources(name);
     }
 
+    @Override
+    public String toString() {
+        return FilteringClassLoader.class.getSimpleName() + "(" + getParent() + ")";
+    }
+
     private boolean allowed(String resourceName) {
         if (resourceNames.contains(resourceName)) {
             return true;
