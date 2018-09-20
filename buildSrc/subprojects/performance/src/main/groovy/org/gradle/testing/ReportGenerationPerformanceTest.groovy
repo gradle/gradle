@@ -25,7 +25,6 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
-import org.gradle.api.tasks.TaskAction
 import org.gradle.process.JavaExecSpec
 import org.openmbee.junit.model.JUnitFailure
 import org.openmbee.junit.model.JUnitTestCase
@@ -40,19 +39,9 @@ abstract class ReportGenerationPerformanceTest extends PerformanceTest {
     @PathSensitive(PathSensitivity.RELATIVE)
     File reportDir
 
-    @TaskAction
-    @Override
-    void executeTests() {
-        try {
-            super.executeTests()
-        } finally {
-            generatePerformanceReport()
-        }
-    }
-
     protected abstract List<ScenarioBuildResultData> getResultsForReport()
 
-    private void generatePerformanceReport() {
+    protected void generatePerformanceReport() {
         File resultJson = generateResultJson()
         project.delete(reportDir)
         try {

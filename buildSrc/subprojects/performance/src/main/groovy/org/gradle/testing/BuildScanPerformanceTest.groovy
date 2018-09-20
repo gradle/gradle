@@ -19,6 +19,7 @@ package org.gradle.testing
 
 import groovy.transform.CompileStatic
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.TaskAction
 import org.openmbee.junit.JUnitMarshalling
 import org.openmbee.junit.model.JUnitTestCase
 import org.openmbee.junit.model.JUnitTestSuite
@@ -41,6 +42,16 @@ class BuildScanPerformanceTest extends ReportGenerationPerformanceTest {
     @Override
     File getReportDir() {
         return new File(project.getBuildDir(), "reports/performance")
+    }
+
+    @TaskAction
+    @Override
+    void executeTests() {
+        try {
+            super.executeTests()
+        } finally {
+            generatePerformanceReport()
+        }
     }
 
     @Override

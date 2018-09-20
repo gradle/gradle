@@ -114,10 +114,12 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     }
 
     @TaskAction
+    @Override
     void executeTests() {
         try {
             doExecuteTests()
         } finally {
+            generatePerformanceReport()
             testEventsGenerator.release()
         }
     }
