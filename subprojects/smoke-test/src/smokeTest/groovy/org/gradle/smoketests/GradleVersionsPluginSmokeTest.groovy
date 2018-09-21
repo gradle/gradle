@@ -16,8 +16,11 @@
 
 package org.gradle.smoketests
 
+import spock.lang.Ignore
+
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@Ignore
 class GradleVersionsPluginSmokeTest extends AbstractSmokeTest {
     def 'can check for updated versions'() {
         given:
