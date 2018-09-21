@@ -134,13 +134,16 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 });
 
                 Configuration classpath = project.getConfigurations().getByName(sourceSet.getCompileClasspathConfigurationName());
-                configureScalaCompile(project, sourceSet, classpath, incrementalAnalysisUsage);
+                Configuration incrementalAnalysisFiles = project.getConfigurations().detachedConfiguration();
+                incrementalAnalysisFiles.extendsFrom(classpath);
+                incrementalAnalysisFiles.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, incrementalAnalysisUsage);
+                configureScalaCompile(project, sourceSet, incrementalAnalysisFiles, incrementalAnalysisUsage);
             }
 
         });
     }
 
-    private static void configureScalaCompile(final Project project, final SourceSet sourceSet, final Configuration classpath, final Usage incrementalAnalysisUsage) {
+    private static void configureScalaCompile(final Project project, final SourceSet sourceSet, final Configuration incrementalAnalysisFiles, final Usage incrementalAnalysisUsage) {
         Convention scalaConvention = (Convention) InvokerHelper.getProperty(sourceSet, "convention");
         final ScalaSourceSet scalaSourceSet = scalaConvention.findPlugin(ScalaSourceSet.class);
         SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, scalaSourceSet.getScala(), project);
@@ -170,16 +173,10 @@ public class ScalaBasePlugin implements Plugin<Project> {
                         }
                     })));
                 }
-                scalaCompile.getAnalysisFiles().from(classpath.getIncoming().artifactView(new Action<ArtifactView.ViewConfiguration>() {
+                scalaCompile.getAnalysisFiles().from(incrementalAnalysisFiles.getIncoming().artifactView(new Action<ArtifactView.ViewConfiguration>() {
                     @Override
                     public void execute(ArtifactView.ViewConfiguration viewConfiguration) {
                         viewConfiguration.lenient(true);
-                        viewConfiguration.attributes(new Action<AttributeContainer>() {
-                            @Override
-                            public void execute(AttributeContainer attributeContainer) {
-                                attributeContainer.attribute(Usage.USAGE_ATTRIBUTE, incrementalAnalysisUsage);
-                            }
-                        });
                         viewConfiguration.componentFilter(new Spec<ComponentIdentifier>() {
                             @Override
                             public boolean isSatisfiedBy(ComponentIdentifier element) {

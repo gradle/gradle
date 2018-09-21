@@ -146,4 +146,63 @@ task someTask
         expect:
         succeeds(":other:resolve")
     }
+
+    def "does not leak internal configurations that may have failing dependencies"() {
+        settingsFile << """
+            include 'java', 'scala'
+        """
+        buildFile << """
+            allprojects {
+                repositories {
+                    ${jcenterRepository()}
+                }
+            }
+            project(":java") {
+                apply plugin: 'java'
+            }
+            project(":scala") {
+                apply plugin: 'scala'
+                dependencies {
+                    compile(project(":java"))
+                }
+
+                task resolveAll {
+                    doLast {
+                        configurations.each {
+                            if (it.canBeResolved) {
+                                println "Resolved " + it.name + " to  " + it.files
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        expect:
+        succeeds(":scala:resolveAll")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/6849")
+    def "can publish Scala project"() {
+        buildFile << """
+            apply plugin: 'java-library'
+            apply plugin: 'scala'
+            apply plugin: 'maven'
+        
+            repositories {
+                ${jcenterRepository()}
+            }
+        
+            //scala joint compilation for tests
+            sourceSets.test.java.srcDirs.each { sourceSets.test.scala.srcDir it }
+            sourceSets.test.java.srcDirs = []
+        
+            dependencies {
+                compile 'org.scala-lang:scala-library:2.12.6'
+            }
+        """
+        // TODO: Workaround
+        file("src/main/scala/ScalaForTestsWorkaround.scala") << "class ScalaForTestsWorkaround"
+        expect:
+        succeeds("install")
+    }
 }
