@@ -67,7 +67,8 @@ data class CIBuildModel (
                             TestCoverage(TestType.allVersionsCrossVersion, OS.windows, JvmVersion.java8),
                             TestCoverage(TestType.noDaemon, OS.linux, JvmVersion.java8),
                             TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java10),
-                            TestCoverage(TestType.platform, OS.macos, JvmVersion.java8)),
+                            TestCoverage(TestType.platform, OS.macos, JvmVersion.java8),
+                            TestCoverage(TestType.forceRealizeDependencyManagement, OS.linux, JvmVersion.java8)),
                     performanceTests = listOf(
                             PerformanceTestType.experiment)),
             Stage(StageNames.HISTORICAL_PERFORMANCE,
@@ -263,7 +264,8 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
     allVersionsCrossVersion(false, false, true),
     parallel(false, true, false),
     noDaemon(false, true, false, 240),
-    soak(false, false, false)
+    soak(false, false, false),
+    forceRealizeDependencyManagement(false, true, false)
 }
 
 enum class JvmVendor {
