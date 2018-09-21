@@ -56,7 +56,7 @@ configurations {
             componentSelection {
                 // Reject any versions with a status of 'experimental'
                 all { ComponentSelection selection ->
-                    if (selection.candidate.group == 'org.sample' && selection.metadata.status == 'experimental') {
+                    if (selection.candidate.group == 'org.sample' && selection.metadata?.status == 'experimental') {
                         selection.reject("don't use experimental candidates from 'org.sample'")
                     }
                 }
