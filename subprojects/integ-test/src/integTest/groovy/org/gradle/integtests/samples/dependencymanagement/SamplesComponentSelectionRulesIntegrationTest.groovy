@@ -83,8 +83,8 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
 
         where:
         dsl      | expectedDeprecationWarnings
-        'groovy' | 2
-        'kotlin' | 2
+        'groovy' | 0
+        'kotlin' | 0
     }
 
     @Unroll
