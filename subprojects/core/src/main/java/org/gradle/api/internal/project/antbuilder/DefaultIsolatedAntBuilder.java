@@ -75,7 +75,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
             antClasspath.add(toolsJar);
         }
 
-        antLoader = classLoaderFactory.createIsolatedClassLoader("ant-loader", DefaultClassPath.of(antClasspath));
+        antLoader = classLoaderFactory.createIsolatedClassLoader("isolated-ant-loader", DefaultClassPath.of(antClasspath));
         FilteringClassLoader.Spec loggingLoaderSpec = new FilteringClassLoader.Spec();
         loggingLoaderSpec.allowPackage("org.slf4j");
         loggingLoaderSpec.allowPackage("org.apache.commons.logging");
@@ -129,7 +129,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
             new Factory<ClassLoader>() {
                 @Override
                 public ClassLoader create() {
-                    return new VisitableURLClassLoader("ant-loader", baseAntLoader, libClasspath);
+                    return new VisitableURLClassLoader("ant-lib-loader", baseAntLoader, libClasspath);
                 }
             }, new Action<CachedClassLoader>() {
                 @Override
