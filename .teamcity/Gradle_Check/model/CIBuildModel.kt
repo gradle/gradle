@@ -67,7 +67,7 @@ data class CIBuildModel (
                             TestCoverage(TestType.allVersionsCrossVersion, OS.windows, JvmVersion.java8),
                             TestCoverage(TestType.noDaemon, OS.linux, JvmVersion.java8),
                             TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java10),
-                            TestCoverage(TestType.platform, OS.macos, JvmVersion.java8)),
+                            TestCoverage(TestType.platform, OS.macos, JvmVersion.java8),
                             TestCoverage(TestType.forceRealizeDependencyManagement, OS.linux, JvmVersion.java8)),
                     performanceTests = listOf(
                             PerformanceTestType.experiment)),
