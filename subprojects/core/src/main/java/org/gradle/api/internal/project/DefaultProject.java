@@ -42,7 +42,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DynamicObjectAware;
@@ -138,9 +137,7 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
 import static org.gradle.util.GUtil.addMaps;
 
 @NoConventionMapping
-public class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware,
-    // These two are here to work around https://github.com/gradle/gradle/issues/6027
-    FileOperations, ProcessOperations {
+public class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
 
     private static final ModelType<ServiceRegistry> SERVICE_REGISTRY_MODEL_TYPE = ModelType.of(ServiceRegistry.class);
     private static final ModelType<File> FILE_MODEL_TYPE = ModelType.of(File.class);
@@ -1421,25 +1418,5 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private void assertMutatingMethodAllowed(String methodName) {
         MutationGuards.of(getProjectConfigurator()).assertMutationAllowed(methodName, this, Project.class);
-    }
-
-    // These are here just so that ProjectInternal can implement FileOperations to work around https://github.com/gradle/gradle/issues/6027
-
-    @Override
-    @Deprecated
-    public ConfigurableFileCollection configurableFiles() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Deprecated
-    public ConfigurableFileCollection configurableFiles(Object... paths) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Deprecated
-    public FileCollection immutableFiles(Object... paths) {
-        throw new UnsupportedOperationException();
     }
 }
