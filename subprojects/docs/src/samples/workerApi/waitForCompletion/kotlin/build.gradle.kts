@@ -18,7 +18,7 @@ open class ReverseFiles @Inject constructor(val workerExecutor: WorkerExecutor) 
     fun reverseFiles() {
         // tag::wait-for-completion[]
         // Create and submit a unit of work for each file
-        getSource().forEach { file ->
+        source.forEach { file ->
             workerExecutor.submit(ReverseFile::class) {
                 isolationMode = IsolationMode.NONE
                 // Constructor parameters for the unit of work implementation

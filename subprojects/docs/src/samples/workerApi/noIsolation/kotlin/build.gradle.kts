@@ -22,7 +22,7 @@ open class ReverseFiles @Inject constructor(val workerExecutor: WorkerExecutor) 
     @TaskAction
     fun reverseFiles() {
         // Create and submit a unit of work for each file
-        getSource().forEach { file ->
+        source.forEach { file ->
             workerExecutor.submit(ReverseFile::class) {
                 // Use the minimum level of isolation
                 isolationMode = IsolationMode.NONE
