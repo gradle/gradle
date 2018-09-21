@@ -29,7 +29,7 @@ class ScenarioBuildResultData {
     List<ExecutionData> recentExecutions = []
 
     boolean isAboutToRegress() {
-        return executions.any { it.regressionPercentage > 0 && it.confidencePercentage > IndexPageGenerator.DANGEROUS_REGRESSION_CONFIDENCE_THRESHOLD }
+        return executions.any { it.regressionPercentage > 0 && it.confidencePercentage > IndexPageGenerator.ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD }
     }
 
     boolean isBuildFailed() {

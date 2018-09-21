@@ -55,14 +55,14 @@ configurations {
         resolutionStrategy {
             componentSelection {
                 // Reject any versions with a status of 'experimental'
-                all { ComponentSelection selection, ComponentMetadata metadata ->
-                    if (selection.candidate.group == 'org.sample' && metadata.status == 'experimental') {
+                all { ComponentSelection selection ->
+                    if (selection.candidate.group == 'org.sample' && selection.metadata.status == 'experimental') {
                         selection.reject("don't use experimental candidates from 'org.sample'")
                     }
                 }
                 // Accept the highest version with either a "release" branch or a status of 'milestone'
-                withModule('org.sample:api') { ComponentSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
-                    if (descriptor.branch != "release" && metadata.status != 'milestone') {
+                withModule('org.sample:api') { ComponentSelection selection ->
+                    if (selection.getDescriptor(IvyModuleDescriptor)?.branch != "release" && selection.metadata?.status != 'milestone') {
                         selection.reject("'org.sample:api' must have testing branch or milestone status")
                     }
                 }
@@ -112,8 +112,8 @@ task printTargetConfig {
 // tag::api-component-selection[]
 class RejectTestBranch {
     @Mutate
-    void evaluateRule(ComponentSelection selection, IvyModuleDescriptor ivy) {
-        if (ivy.branch == "test") {
+    void evaluateRule(ComponentSelection selection) {
+        if (selection.getDescriptor(IvyModuleDescriptor)?.branch == "test") {
             selection.reject("reject test branch")
         }
     }

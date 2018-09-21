@@ -41,7 +41,9 @@ class TestNGTestResultProcessorAdapterTest extends Specification {
     @Issue("https://github.com/gradle/gradle/issues/3545")
     def "runs onAfterClass hook only once per test class"() {
         given:
-        def testClass = Mock(ITestClass)
+        def testClass = Stub(ITestClass) {
+            getTestMethods() >> []
+        }
         resultProcessorAdapter.onBeforeClass(testClass)
 
         when:

@@ -597,6 +597,14 @@
             "changes": [
                 "Field is less accessible"
             ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.MavenDependency",
+            "member": "Method org.gradle.api.publish.maven.MavenDependency.getType()",
+            "acceptation": "Expose the Maven dependency type property",
+            "changes": [
+                "Method added to interface"
+            ]
         }
     ]
 }

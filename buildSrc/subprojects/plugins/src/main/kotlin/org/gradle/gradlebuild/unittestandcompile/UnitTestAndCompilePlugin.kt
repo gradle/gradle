@@ -46,12 +46,44 @@ import java.util.jar.Attributes
 
 
 enum class ModuleType(val compatibility: JavaVersion) {
-    UNDEFINED(JavaVersion.VERSION_1_1),
+
+    /**
+     * This module type is used by modules that contain code that is used by one
+     * of the entry points of using Gradle, such as the Wrapper, the Launcher
+     * and the Tooling API.
+     * Such entry points need to run on older Java versions than those parts of
+     * the codebase are executed from builds, if only to print a message
+     * indicating that the old JDK is not supported anymore.
+     */
     ENTRY_POINT(JavaVersion.VERSION_1_6),
+
+    /**
+     * This module type is used by modules that contain code that needs to
+     * be able to run in worker JVMs where we usually support older Java
+     * versions.
+     * Some of these modules use APIs that are not available in the specified
+     * Java version but only in parts that are not called from workers.
+     */
     WORKER(JavaVersion.VERSION_1_6),
+
+    /**
+     * This module type is used by all modules that end up in the distribution
+     * and are not used by entry points or workers.
+     */
     CORE(JavaVersion.VERSION_1_8),
-    PLUGIN(JavaVersion.VERSION_1_8),
+
+    /**
+     * This module type is used by internal modules that are not part of
+     * the distribution.
+     */
     INTERNAL(JavaVersion.VERSION_1_8),
+
+    /**
+     * This module type is used for one-off modules that would normally use
+     * {@link #ENTRY_POINT} or {@link #WORKER} but explicitly require Java 8,
+     * e.g. due to the requirements of a downstream dependency (e.g. JUnit
+     * Platform).
+     */
     REQUIRES_JAVA_8(JavaVersion.VERSION_1_8)
 }
 
@@ -215,16 +247,16 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 open class UnitTestAndCompileExtension(val project: Project) {
     val generatedResourcesDir = project.file("${project.buildDir}/generated-resources/main")
     val generatedTestResourcesDir = project.file("${project.buildDir}/generated-resources/test")
-    var moduleType: ModuleType = ModuleType.UNDEFINED
+    var moduleType: ModuleType? = null
         set(value) {
-            field = value
-            project.java.targetCompatibility = moduleType.compatibility
-            project.java.sourceCompatibility = moduleType.compatibility
+            field = value!!
+            project.java.targetCompatibility = value.compatibility
+            project.java.sourceCompatibility = value.compatibility
         }
 
     init {
         project.afterEvaluate {
-            if (this@UnitTestAndCompileExtension.moduleType == ModuleType.UNDEFINED) {
+            if (this@UnitTestAndCompileExtension.moduleType == null) {
                 throw InvalidUserDataException("gradlebuild.moduletype must be set for project $project")
             }
         }

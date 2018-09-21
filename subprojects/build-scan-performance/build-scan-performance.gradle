@@ -36,6 +36,4 @@ tasks.withType(org.gradle.testing.PerformanceTest).configureEach {
     systemProperties += [incomingArtifactDir: "${rootDir}/incoming/"]
 }
 
-tasks.withType(org.gradle.testing.PerformanceTest).configureEach{
-    finalizedBy 'performanceReport'
-}
+tasks.named("performanceAdhocTest").configure { enabled = false }

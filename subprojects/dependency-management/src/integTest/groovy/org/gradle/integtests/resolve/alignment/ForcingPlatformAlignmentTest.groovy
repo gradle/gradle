@@ -85,6 +85,196 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
     }
 
     @Unroll
+    def "fails if forcing a virtual platform version by forcing multiple leaves with different versions"() {
+        repository {
+            ['2.7.9', '2.9.4', '2.9.4.1'].each {
+                path "databind:$it -> core:$it"
+                path "databind:$it -> annotations:$it"
+                path "kotlin:$it -> core:$it"
+                path "kotlin:$it -> annotations:$it"
+            }
+        }
+
+        given:
+        buildFile << """
+            dependencies {
+                conf("$dep1") {
+                    force = true
+                }
+                conf("org:kotlin:2.9.4.1")
+
+                conf("$dep2") {
+                    force = true
+                }
+            }
+        """
+
+        and:
+        "a rule which infers module set from group and version"()
+
+        when:
+        allowAllRepositoryInteractions()
+        fails ':checkDeps'
+
+        then:
+        failureCauseContains("Multiple competing force for virtual platform org:platform")
+
+        where:
+        dep1                 | dep2
+        'org:core:2.9.4'     | 'org:databind:2.7.9'
+        'org:databind:2.7.9' | 'org:core:2.9.4'
+    }
+
+    def "fails if forcing a virtual platform version and forcing a leaf with different version"() {
+        repository {
+            ['2.7.9', '2.9.4', '2.9.4.1'].each {
+                path "databind:$it -> core:$it"
+                path "databind:$it -> annotations:$it"
+                path "kotlin:$it -> core:$it"
+                path "kotlin:$it -> annotations:$it"
+            }
+        }
+
+        given:
+        buildFile << """
+            dependencies {
+                conf("org:core:2.9.4")
+                
+                conf enforcedPlatform("org:platform:2.9.4")
+                
+                conf("org:kotlin:2.9.4.1")
+
+                conf("org:databind:2.7.9") {
+                    force = true
+                }
+            }
+        """
+
+        and:
+        "a rule which infers module set from group and version"()
+
+        when:
+        allowAllRepositoryInteractions()
+        fails ':checkDeps'
+
+        then:
+        failureCauseContains("Multiple competing force for virtual platform org:platform")
+    }
+
+    def "fails if forcing a virtual platform version by forcing multiple leaves with different versions, including transitively"() {
+        repository {
+            ['2.7.9', '2.9.4', '2.9.4.1'].each {
+                path "databind:$it -> core:$it"
+                path "databind:$it -> annotations:$it"
+                path "kotlin:$it -> core:$it"
+                path "kotlin:$it -> annotations:$it"
+            }
+        }
+
+        given:
+        settingsFile << """
+include 'other'
+"""
+        buildFile << """
+            dependencies {
+                conf project(path: ':other', configuration: 'conf')
+                conf("org:kotlin:2.9.4.1")
+
+                conf("org:databind:2.7.9") {
+                    force = true
+                }
+            }
+            
+            project(':other') {
+                configurations {
+                    conf
+                }
+                dependencies {
+                    conf("org:core:2.9.4") {
+                        force = true
+                    }
+                    components.all(InferModuleSetFromGroupAndVersion)
+                }
+            }
+        """
+
+        and:
+        "a rule which infers module set from group and version"()
+
+        when:
+        allowAllRepositoryInteractions()
+        fails ':checkDeps'
+
+        then:
+        failureCauseContains("Multiple competing force for virtual platform org:platform")
+    }
+
+    def "succeeds if forcing a virtual platform version by forcing multiple leaves with same version"() {
+        repository {
+            ['2.7.9', '2.9.4', '2.9.4.1'].each {
+                path "databind:$it -> core:$it"
+                path "databind:$it -> annotations:$it"
+                path "kotlin:$it -> core:$it"
+                path "kotlin:$it -> annotations:$it"
+            }
+        }
+
+        given:
+        buildFile << """
+            dependencies {
+                conf("org:core:2.7.9") {
+                    force = true
+                }
+                conf("org:kotlin:2.9.4.1")
+
+                conf("org:databind:2.7.9") {
+                    force = true
+                }
+            }
+        """
+
+        and:
+        "a rule which infers module set from group and version"()
+
+        expect:
+        allowAllRepositoryInteractions()
+        succeeds ':checkDeps'
+    }
+
+    def "succeeds if forcing a virtual platform version and forcing a leaf with same version"() {
+        repository {
+            ['2.7.9', '2.9.4', '2.9.4.1'].each {
+                path "databind:$it -> core:$it"
+                path "databind:$it -> annotations:$it"
+                path "kotlin:$it -> core:$it"
+                path "kotlin:$it -> annotations:$it"
+            }
+        }
+
+        given:
+        buildFile << """
+            dependencies {
+                conf("org:core:2.9.4")
+                
+                conf enforcedPlatform("org:platform:2.7.9")
+                
+                conf("org:kotlin:2.9.4.1")
+
+                conf("org:databind:2.7.9") {
+                    force = true
+                }
+            }
+        """
+
+        and:
+        "a rule which infers module set from group and version"()
+
+        expect:
+        allowAllRepositoryInteractions()
+        succeeds ':checkDeps'
+    }
+
+    @Unroll
     def "can force a virtual platform version by forcing the platform itself via a dependency"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -106,22 +296,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         "a rule which infers module set from group and version"()
 
         when:
-        repositoryInteractions {
-            group('org') {
-                ['core', 'databind', 'annotations', 'kotlin', 'platform'].each { mod ->
-                    module(mod) {
-                        ['2.7.9', '2.9.4', '2.9.4.1'].each { v ->
-                            version(v) {
-                                // Not interested in the actual interactions, especially with
-                                // the complexity introduced by permutation testing
-                                allowAll()
-                            }
-                        }
-                    }
-                }
-
-            }
-        }
+        allowAllRepositoryInteractions()
         run ':checkDeps'
 
         then:
@@ -180,22 +355,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         "a rule which infers module set from group and version"()
 
         when:
-        repositoryInteractions {
-            group('org') {
-                ['core', 'databind', 'annotations', 'kotlin', 'platform'].each { mod ->
-                    module(mod) {
-                        ['2.7.9', '2.9.4', '2.9.4.1'].each { v ->
-                            version(v) {
-                                // Not interested in the actual interactions, especially with
-                                // the complexity introduced by permutation testing
-                                allowAll()
-                            }
-                        }
-                    }
-                }
-
-            }
-        }
+        allowAllRepositoryInteractions()
         run ':checkDeps'
 
         then:
@@ -269,22 +429,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         "a rule which infers module set from group and version"()
 
         when:
-        repositoryInteractions {
-            group('org') {
-                ['core', 'databind', 'annotations', 'kotlin', 'platform'].each { mod ->
-                    module(mod) {
-                        ['2.7.9', '2.9.4', '2.9.4.1'].each { v ->
-                            version(v) {
-                                // Not interested in the actual interactions, especially with
-                                // the complexity introduced by permutation testing
-                                allowAll()
-                            }
-                        }
-                    }
-                }
-
-            }
-        }
+        allowAllRepositoryInteractions()
         run ':checkDeps'
 
         then:
@@ -354,22 +499,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         "a rule which infers module set from group and version"()
 
         when:
-        repositoryInteractions {
-            group('org') {
-                ['core', 'databind', 'annotations', 'kotlin', 'platform'].each { mod ->
-                    module(mod) {
-                        ['2.7.9', '2.9.4', '2.9.4.1'].each { v ->
-                            version(v) {
-                                // Not interested in the actual interactions, especially with
-                                // the complexity introduced by permutation testing
-                                allowAll()
-                            }
-                        }
-                    }
-                }
-
-            }
-        }
+        allowAllRepositoryInteractions()
         run ':checkDeps'
 
         then:
@@ -443,6 +573,25 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    void allowAllRepositoryInteractions() {
+        repositoryInteractions {
+            group('org') {
+                ['core', 'databind', 'annotations', 'kotlin', 'platform'].each { mod ->
+                    module(mod) {
+                        ['2.7.9', '2.9.4', '2.9.4.1'].each { v ->
+                            version(v) {
+                                // Not interested in the actual interactions, especially with
+                                // the complexity introduced by permutation testing
+                                allowAll()
+                            }
+                        }
+                    }
+                }
+
             }
         }
     }

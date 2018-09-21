@@ -39,7 +39,7 @@ abstract class ReportGenerationPerformanceTest extends PerformanceTest {
     @PathSensitive(PathSensitivity.RELATIVE)
     File reportDir
 
-    protected abstract List<ScenarioBuildResultData> getResultsForReport()
+    protected abstract List<ScenarioBuildResultData> generateResultsForReport()
 
     protected void generatePerformanceReport() {
         File resultJson = generateResultJson()
@@ -61,7 +61,7 @@ abstract class ReportGenerationPerformanceTest extends PerformanceTest {
 
     private File generateResultJson() {
         File resultJson = File.createTempFile('performanceTest', 'results.json')
-        resultJson.text = JsonOutput.toJson(resultsForReport)
+        resultJson.text = JsonOutput.toJson(generateResultsForReport())
         return resultJson
     }
 

@@ -27,8 +27,10 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ComponentStateFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
@@ -72,13 +74,14 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     private final VersionSelectorScheme versionSelectorScheme;
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
+    private final SelectorStateResolver<ComponentState> selectorStateResolver;
 
     public ResolveState(IdGenerator<Long> idGenerator, ComponentResolveResult rootResult, String rootConfigurationName, DependencyToComponentIdResolver idResolver,
                         ComponentMetaDataResolver metaDataResolver, Spec<? super DependencyMetadata> edgeFilter, AttributesSchemaInternal attributesSchema,
                         ModuleExclusions moduleExclusions, ModuleReplacementsData moduleReplacementsData,
                         ComponentSelectorConverter componentSelectorConverter, ImmutableAttributesFactory attributesFactory,
                         DependencySubstitutionApplicator dependencySubstitutionApplicator, VersionSelectorScheme versionSelectorScheme,
-                        Comparator<Version> versionComparator, VersionParser versionParser,
+                        Comparator<Version> versionComparator, VersionParser versionParser, ModuleConflictResolver conflictResolver,
                         int graphSize) {
         this.idGenerator = idGenerator;
         this.idResolver = idResolver;
@@ -104,6 +107,8 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         nodes.put(root.getResolvedConfigurationId(), root);
         root.getComponent().getModule().select(root.getComponent());
         this.replaceSelectionWithConflictResultAction = new ReplaceSelectionWithConflictResultAction(this);
+        selectorStateResolver = new SelectorStateResolver<ComponentState>(conflictResolver, this, rootVersion);
+        getModule(rootResult.getModuleVersionId().getModule()).setSelectorStateResolver(selectorStateResolver);
     }
 
     public Collection<ModuleResolveState> getModules() {
@@ -121,7 +126,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     public ModuleResolveState getModule(ModuleIdentifier id) {
         ModuleResolveState module = modules.get(id);
         if (module == null) {
-            module = new ModuleResolveState(idGenerator, id, metaDataResolver, variantNameBuilder, attributesFactory, versionComparator, versionParser);
+            module = new ModuleResolveState(idGenerator, id, metaDataResolver, variantNameBuilder, attributesFactory, versionComparator, versionParser, selectorStateResolver);
             modules.put(id, module);
         }
         return module;

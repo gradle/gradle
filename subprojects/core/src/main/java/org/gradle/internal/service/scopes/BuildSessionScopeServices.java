@@ -65,7 +65,6 @@ import org.gradle.internal.fingerprint.impl.IgnoredPathFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.NameOnlyFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.RelativePathFileCollectionFingerprinter;
-import org.gradle.internal.hash.ContentHasherFactory;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
@@ -162,8 +161,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new SplitFileHasher(globalHasher, localHasher, wellKnownFileLocations);
     }
 
-    ScriptSourceHasher createScriptSourceHasher(FileHasher fileHasher, ContentHasherFactory contentHasherFactory) {
-        return new DefaultScriptSourceHasher(fileHasher, contentHasherFactory);
+    ScriptSourceHasher createScriptSourceHasher(FileHasher fileHasher) {
+        return new DefaultScriptSourceHasher(fileHasher);
     }
 
     FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, FileSystemMirror fileSystemMirror) {

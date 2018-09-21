@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.hash;
+package org.gradle.api.internal.artifacts.dsl;
 
-import javax.annotation.Nonnull;
+import org.gradle.api.artifacts.ComponentMetadataDetails;
+import org.gradle.internal.rules.SpecRuleAction;
 
-public class DefaultContentHasherFactory implements ContentHasherFactory {
-    private static final HashCode SIGNATURE = Hashing.signature(DefaultContentHasherFactory.class);
+import java.util.Collection;
 
-    @Nonnull
-    @Override
-    public PrimitiveHasher create() {
-        PrimitiveHasher hasher = Hashing.newPrimitiveHasher();
-        hasher.putHash(SIGNATURE);
-        return hasher;
-    }
+interface MetadataRuleWrapper {
+    boolean isClassBased();
+
+    Collection<SpecConfigurableRule> getClassRules();
+
+    SpecRuleAction<? super ComponentMetadataDetails> getRule();
+
+    void addClassRule(SpecConfigurableRule ruleAction);
 }
