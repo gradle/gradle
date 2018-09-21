@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-
 import org.gradle.build.Install
-import org.gradle.gradlebuild.BuildEnvironment
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.EmptyDirectoryCheck
 import org.gradle.gradlebuild.ProjectGroups
 import org.gradle.modules.PatchExternalModules
+import org.gradle.gradlebuild.BuildEnvironment
 
 plugins {
     id 'java-base'
@@ -113,10 +113,6 @@ buildTypes {
     soakTest {
         tasks "soak:soakTest"
         projectProperties testAllVersions: true
-    }
-
-    forceRealizeDependencyManagementTest {
-        tasks "integForceRealizeTest"
     }
 }
 
