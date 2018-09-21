@@ -39,7 +39,7 @@ import java.util.stream.Stream;
 import static java.util.Comparator.comparing;
 
 public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
-    public static final int DANGEROUS_REGRESSION_CONFIDENCE_THRESHOLD = 90;
+    public static final int ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD = 90;
     private static final int DEFAULT_RETRY_COUNT = 3;
     private static final int PERFORMANCE_DATE_RETRIEVE_DAYS = 2;
     private final Set<ScenarioBuildResultData> scenarios;
@@ -150,26 +150,30 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                 scenarios.forEach(scenario -> renderScenario(index.incrementAndGet(), scenario));
             }
 
-            private String determineScenarioCss(ScenarioBuildResultData scenario) {
+            private String determineScenarioBackgroundColorCss(ScenarioBuildResultData scenario) {
                 if (!scenario.isSuccessful()) {
-                    return "danger";
+                    return "alert-danger";
                 } else if (scenario.isAboutToRegress()) {
-                    return "warning";
+                    return "alert-warning";
+                } else if (scenario.getExecutions().stream().allMatch(executionData -> executionData.getConfidencePercentage() > ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD)) {
+                    return "alert-success";
                 } else {
-                    return "success";
+                    return "alert-info";
                 }
             }
 
             private String getTextColorCss(ScenarioBuildResultData.ExecutionData executionData) {
-                if (executionData.getRegressionPercentage() <= 0 || executionData.getConfidencePercentage() < DANGEROUS_REGRESSION_CONFIDENCE_THRESHOLD) {
+                if (executionData.getRegressionPercentage() <= 0 && executionData.getConfidencePercentage() > ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD) {
                     return "text-success";
-                } else {
+                } else if (executionData.getRegressionPercentage() > 0 && executionData.getConfidencePercentage() > ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD) {
                     return "text-danger";
+                } else {
+                    return "text-dark";
                 }
             }
 
             private void renderScenario(int index, ScenarioBuildResultData scenario) {
-                div().classAttr("card m-0 p-0 alert alert-" + determineScenarioCss(scenario));
+                div().classAttr("card m-0 p-0 alert " + determineScenarioBackgroundColorCss(scenario));
                     div().id("heading" + index).classAttr("card-header");
                         div().classAttr("row align-items-center");
                             div().classAttr("col").text(String.valueOf(index)).end();
@@ -183,7 +187,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                                 } else if(!scenario.isSuccessful()) {
                                     span().classAttr("badge badge-danger").title("Regression confidence > 99% despite retries.").text("REGRESSED").end();
                                 } else if(scenario.isAboutToRegress()) {
-                                    span().classAttr("badge badge-warning").title("Regression confidence > 90%, we're going to fail soon.").text("DANGEROUS").end();
+                                    span().classAttr("badge badge-warning").title("Regression confidence > 90%, we're going to fail soon.").text("NEARLY-FAILED").end();
                                 }
                             end();
                             div().classAttr("col-2");
