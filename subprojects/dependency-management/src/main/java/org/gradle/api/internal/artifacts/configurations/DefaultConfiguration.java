@@ -23,6 +23,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
@@ -80,6 +81,8 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
@@ -107,6 +110,7 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
 import org.gradle.util.WrapUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -184,7 +188,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private final Object observationLock = new Object();
     private InternalState observedState = UNRESOLVED;
-    private final Object resolutionLock = new Object();
     private InternalState resolvedState = UNRESOLVED;
     private boolean insideBeforeResolve;
 
@@ -198,6 +201,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DomainObjectContext domainObjectContext;
     private final ImmutableAttributesFactory attributesFactory;
     private final FileCollection intrinsicFiles;
+
+    private final ProjectStateRegistry projectStateRegistry;
 
     private final DisplayName displayName;
 
@@ -216,7 +221,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
                                 NotationParser<Object, Capability> capabilityNotationParser,
                                 ImmutableAttributesFactory attributesFactory,
-                                RootComponentMetadataBuilder rootComponentMetadataBuilder
+                                RootComponentMetadataBuilder rootComponentMetadataBuilder,
+                                ProjectStateRegistry projectStateRegistry
 
     ) {
         this.identityPath = domainObjectContext.identityPath(name);
@@ -238,6 +244,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.configurationAttributes = attributesFactory.mutable();
         this.domainObjectContext = domainObjectContext;
         this.intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
+        this.projectStateRegistry = projectStateRegistry;
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
 
         displayName = Describables.memoize(new ConfigurationDescription(identityPath));
@@ -273,18 +280,34 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return name;
     }
 
-    public State getState() {
-        synchronized (resolutionLock) {
-            if (resolvedState == ARTIFACTS_RESOLVED || resolvedState == GRAPH_RESOLVED) {
-                if (cachedResolverResults.hasError()) {
-                    return State.RESOLVED_WITH_FAILURES;
-                } else {
-                    return State.RESOLVED;
-                }
-            } else {
-                return State.UNRESOLVED;
+    private <T> T withMutableProject(final Factory<T> factory) {
+        if (domainObjectContext.getProjectPath() != null) {
+            Project project = projectFinder.findProject(domainObjectContext.getProjectPath().getPath());
+            if (project != null) {
+                ProjectState projectState = projectStateRegistry.stateFor(project);
+                return projectState.withMutableState(factory);
             }
         }
+
+        return factory.create();
+    }
+
+    public State getState() {
+        return withMutableProject(new Factory<State>() {
+            @Nullable
+            @Override
+            public State create() {
+                if (resolvedState == ARTIFACTS_RESOLVED || resolvedState == GRAPH_RESOLVED) {
+                    if (cachedResolverResults.hasError()) {
+                        return State.RESOLVED_WITH_FAILURES;
+                    } else {
+                        return State.RESOLVED;
+                    }
+                } else {
+                    return State.UNRESOLVED;
+                }
+            }
+        });
     }
 
     public InternalState getResolvedState() {
@@ -502,16 +525,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return cachedResolverResults.getResolvedConfiguration();
     }
 
-    private void resolveToStateOrLater(InternalState requestedState) {
+    private void resolveToStateOrLater(final InternalState requestedState) {
         assertResolvingAllowed();
-        synchronized (resolutionLock) {
-            if (requestedState == GRAPH_RESOLVED || requestedState == ARTIFACTS_RESOLVED) {
-                resolveGraphIfRequired(requestedState);
+        withMutableProject(Factories.toFactory(new Runnable() {
+            @Override
+            public void run() {
+                if (requestedState == GRAPH_RESOLVED || requestedState == ARTIFACTS_RESOLVED) {
+                    resolveGraphIfRequired(requestedState);
+                }
+                if (requestedState == ARTIFACTS_RESOLVED) {
+                    resolveArtifactsIfRequired();
+                }
             }
-            if (requestedState == ARTIFACTS_RESOLVED) {
-                resolveArtifactsIfRequired();
-            }
-        }
+        }));
     }
 
     private void resolveGraphIfRequired(final InternalState requestedState) {
@@ -529,7 +555,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
                 final ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) getIncoming();
                 performPreResolveActions(incoming);
-                cachedResolverResults = new DefaultResolverResults();
+                if (cachedResolverResults == null) {
+                    cachedResolverResults = new DefaultResolverResults();
+                }
                 resolver.resolveGraph(DefaultConfiguration.this, cachedResolverResults);
                 dependenciesModified = false;
                 resolvedState = GRAPH_RESOLVED;
@@ -801,7 +829,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
         DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, domainObjectContext, newName,
             configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory,
-            rootComponentMetadataBuilder);
+            rootComponentMetadataBuilder, projectStateRegistry);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
@@ -1530,37 +1558,40 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public void visitDependencies(final TaskDependencyResolveContext context) {
-            synchronized (resolutionLock) {
-                if (getResolutionStrategy().resolveGraphToDetermineTaskDependencies()) {
-                    // Force graph resolution as this is required to calculate build dependencies
-                    resolveToStateOrLater(GRAPH_RESOLVED);
-                }
-                ResolverResults results;
-                if (getState() == State.UNRESOLVED) {
-                    // Traverse graph
-                    results = new DefaultResolverResults();
-                    resolver.resolveBuildDependencies(DefaultConfiguration.this, results);
-                } else {
-                    // Otherwise, already have a result, so reuse it
-                    results = cachedResolverResults;
-                }
-                SelectedArtifactSet selected = results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec, allowNoMatchingVariants);
-                final Set<Throwable> failures = new LinkedHashSet<Throwable>();
-                selected.collectBuildDependencies(new BuildDependenciesVisitor() {
-                    @Override
-                    public void visitFailure(Throwable failure) {
-                        failures.add(failure);
+            withMutableProject(Factories.toFactory(new Runnable() {
+                @Override
+                public void run() {
+                    if (getResolutionStrategy().resolveGraphToDetermineTaskDependencies()) {
+                        // Force graph resolution as this is required to calculate build dependencies
+                        resolveToStateOrLater(GRAPH_RESOLVED);
                     }
+                    ResolverResults results;
+                    if (getState() == State.UNRESOLVED) {
+                        // Traverse graph
+                        results = new DefaultResolverResults();
+                        resolver.resolveBuildDependencies(DefaultConfiguration.this, results);
+                    } else {
+                        // Otherwise, already have a result, so reuse it
+                        results = cachedResolverResults;
+                    }
+                    SelectedArtifactSet selected = results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec, allowNoMatchingVariants);
+                    final Set<Throwable> failures = new LinkedHashSet<Throwable>();
+                    selected.collectBuildDependencies(new BuildDependenciesVisitor() {
+                        @Override
+                        public void visitFailure(Throwable failure) {
+                            failures.add(failure);
+                        }
 
-                    @Override
-                    public void visitDependency(Object dep) {
-                        context.add(dep);
+                        @Override
+                        public void visitDependency(Object dep) {
+                            context.add(dep);
+                        }
+                    });
+                    if (!lenient) {
+                        rethrowFailure("task dependencies", failures);
                     }
-                });
-                if (!lenient) {
-                    rethrowFailure("task dependencies", failures);
                 }
-            }
+            }));
         }
     }
 
