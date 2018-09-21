@@ -161,7 +161,7 @@ class TaskContainerDslTest : AbstractDslTest() {
                 val t18: TaskProvider<Copy> = named<Copy>("pipistrelle") {
                     description += "C"
                     destinationDir = file("out")
-            }
+                }
     
                 val t19: TaskProvider<Task> = register("yate")
                 val t20: TaskProvider<Copy> = register("quartern", Copy::class)
