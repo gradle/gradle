@@ -54,20 +54,17 @@ configurations {
         resolutionStrategy {
             componentSelection {
                 // Reject any versions with a status of 'experimental'
-                // TODO how to pass a closure receiving two arguments here? The API needs to  be more type-safe
-                /*
-                all { ComponentSelection selection, ComponentMetadata metadata ->
-                    if (selection.candidate.group == 'org.sample' && metadata.status == 'experimental') {
-                        selection.reject("don't use experimental candidates from 'org.sample'")
+                all {
+                    if (candidate.group == "org.sample" && metadata?.status == "experimental") {
+                        reject("don't use experimental candidates from 'org.sample'")
                     }
                 }
                 // Accept the highest version with either a "release" branch or a status of 'milestone'
-                withModule("org.sample:api") { ComponentSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
-                    if (descriptor.branch != "release" && metadata.status != 'milestone') {
-                        selection.reject("'org.sample:api' must have testing branch or milestone status")
+                withModule("org.sample:api") {
+                    if (getDescriptor(IvyModuleDescriptor::class)?.branch != "release" && metadata?.status != "milestone") {
+                        reject("'org.sample:api' must have testing branch or milestone status")
                     }
                 }
-                */
             }
         }
     }
