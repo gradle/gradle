@@ -236,13 +236,16 @@ class CIConfigIntegrationTests {
 
     @Test
     fun long_ids_are_shortened() {
-        val shortenedId = TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java11, JvmVendor.oracle).asConfigurationId(CIBuildModel(), "veryLongSubprojectNameLongerThanEverythingWeHave")
+        val testCoverage = TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java11, JvmVendor.oracle)
+        val shortenedId = testCoverage.asConfigurationId(CIBuildModel(), "veryLongSubprojectNameLongerThanEverythingWeHave")
         assertTrue(shortenedId.length < 80)
         assertEquals(shortenedId, "Gradle_Check_QckFdbckCrssVrsn_Jv11_Orcl_Wndws_vryLngSbprjctNmLngrThnEvrythngWHv")
 
-        assertEquals(TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java11, JvmVendor.oracle).asConfigurationId(CIBuildModel(), "internalIntegTesting"), "Gradle_Check_QuickFeedbackCrossVersion_Java11_Oracle_Windows_iIntegT")
+        assertEquals("Gradle_Check_QuickFeedbackCrossVersion_Java11_Oracle_Windows_iIntegT", testCoverage.asConfigurationId(CIBuildModel(), "internalIntegTesting"))
 
-        assertEquals(TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java11, JvmVendor.oracle).asConfigurationId(CIBuildModel(), "buildCache"), "Gradle_Check_QuickFeedbackCrossVersion_Java11_Oracle_Windows_buildCache")
+        assertEquals("Gradle_Check_QuickFeedbackCrossVersion_Java11_Oracle_Windows_buildCache", testCoverage.asConfigurationId(CIBuildModel(), "buildCache"))
+
+        assertEquals("Gradle_Check_QuickFeedbackCrossVersion_Java11_Oracle_Windows_0", testCoverage.asConfigurationId(CIBuildModel()))
     }
 
     private fun containsSrcFileWithString(srcRoot: File, content: String, exceptions: List<String>): Boolean {
