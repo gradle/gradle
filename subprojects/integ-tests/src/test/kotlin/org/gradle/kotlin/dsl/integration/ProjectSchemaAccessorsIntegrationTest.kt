@@ -853,6 +853,63 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         build("help")
     }
 
+    @Test
+    fun `accessors to existing source sets`() {
+
+        withBuildScript("""
+            plugins {
+                java
+            }
+
+            sourceSets {
+                main {
+                    java {
+                        srcDir("src/main/java-too")
+                    }
+                }
+                val integTest by registering {
+                    java.srcDir(file("src/integTest/java"))
+                    resources.srcDir(file("src/integTest/resources"))
+                    compileClasspath += sourceSets.main.get().output + configurations.testRuntimeClasspath
+                    runtimeClasspath += output + compileClasspath
+                }
+            }
+
+            tasks {
+                val integTest by registering(Test::class) {
+                    description = "Runs the integration tests."
+                    group = "verification"
+                    testClassesDirs = sourceSets["integTest"].output.classesDirs
+                    classpath = sourceSets["integTest"].runtimeClasspath
+                    mustRunAfter(tasks.test)
+                }
+
+                check { dependsOn(integTest) }
+            }
+
+        """)
+
+        build("help")
+    }
+
+    @Test
+    fun `accessors to existing elements of extensions that are containers`() {
+
+        withBuildScript("""
+            plugins {
+                distribution
+            }
+
+            distributions {
+                main {
+                    baseName = "the-distro"
+                }
+            }
+        """)
+
+        build("help")
+    }
+
     private
     fun withFolders(folders: FoldersDslExpression) =
         projectRoot.withFolders(folders)

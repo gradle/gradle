@@ -204,7 +204,10 @@ val javaProjectSchema: ProjectSchema<String> = listOf(
             existingTaskContainerElement("test", "org.gradle.api.tasks.testing.Test"),
             existingTaskContainerElement("testClasses")
         ),
-        containerElements = configurationNames.map(::existingConfigurationContainerElement),
+        containerElements = configurationNames.map(::existingConfigurationContainerElement) + listOf(
+            existingSourceSetContainerElement("main"),
+            existingSourceSetContainerElement("test")
+        ),
         configurations = configurationNames
     )
 }
@@ -265,7 +268,10 @@ val kotlinDslProjectSchema: ProjectSchema<String> = listOf(
             existingTaskContainerElement("compileTestKotlin", "org.jetbrains.kotlin.gradle.tasks.KotlinCompile"),
             existingTaskContainerElement("inspectClassesForKotlinIC", "org.jetbrains.kotlin.gradle.tasks.InspectClassesForMultiModuleIC")
         ),
-        containerElements = configurationNames.map(::existingConfigurationContainerElement),
+        containerElements = configurationNames.map(::existingConfigurationContainerElement) + listOf(
+            ProjectSchemaEntry("org.gradle.api.NamedDomainObjectContainer<org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet>", "main", "org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet"),
+            ProjectSchemaEntry("org.gradle.api.NamedDomainObjectContainer<org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet>", "test", "org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet")
+        ),
         configurations = configurationNames
     )
 }
@@ -279,3 +285,8 @@ fun existingTaskContainerElement(name: String, type: String = "org.gradle.api.De
 private
 fun existingConfigurationContainerElement(name: String) =
     ProjectSchemaEntry("org.gradle.api.NamedDomainObjectContainer<org.gradle.api.artifacts.Configuration>", name, "org.gradle.api.internal.artifacts.configurations.DefaultConfiguration")
+
+
+private
+fun existingSourceSetContainerElement(name: String) =
+    ProjectSchemaEntry("org.gradle.api.tasks.SourceSetContainer", name, "org.gradle.api.internal.tasks.DefaultSourceSet")

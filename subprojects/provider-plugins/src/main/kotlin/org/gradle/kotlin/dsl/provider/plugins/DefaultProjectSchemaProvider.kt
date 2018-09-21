@@ -89,6 +89,11 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
                 collectSchemaOf(sourceSet, typeOfSourceSet)
             }
         }
+        if (target is NamedDomainObjectContainer<*>) {
+            accessibleContainerSchema(target.collectionSchema).forEach { schema ->
+                containerElements.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
+            }
+        }
     }
 
     collectSchemaOf(target, targetType)
