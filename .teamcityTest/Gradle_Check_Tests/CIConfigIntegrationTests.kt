@@ -3,6 +3,7 @@ import configurations.shouldBeSkipped
 import jetbrains.buildServer.configs.kotlin.v2018_1.Project
 import model.CIBuildModel
 import model.GradleSubproject
+import model.JvmVendor
 import model.JvmVersion
 import model.NoBuildCache
 import model.OS
@@ -231,6 +232,17 @@ class CIConfigIntegrationTests {
         projectFoldersWithFunctionalTests.forEach {
             assertFalse(containsSrcFileWithString(File(it, "src/integTest"), "CrossVersion", listOf("package org.gradle.testkit" ,"CrossVersionPerformanceTest")))
         }
+    }
+
+    @Test
+    fun long_ids_are_shortened() {
+        val shortenedId = TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java11, JvmVendor.oracle).asConfigurationId(CIBuildModel(), "veryLongSubprojectNameLongerThanEverythingWeHave")
+        assertTrue(shortenedId.length < 80)
+        assertEquals(shortenedId, "Gradle_Check_QckFdbckCrssVrsn_Jv11_Orcl_Wndws_vryLngSbprjctNmLngrThnEvrythngWHv")
+
+        assertEquals(TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java11, JvmVendor.oracle).asConfigurationId(CIBuildModel(), "internalIntegTesting"), "Gradle_Check_QuickFeedbackCrossVersion_Java11_Oracle_Windows_iIntegT")
+
+        assertEquals(TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java11, JvmVendor.oracle).asConfigurationId(CIBuildModel(), "buildCache"), "Gradle_Check_QuickFeedbackCrossVersion_Java11_Oracle_Windows_buildCache")
     }
 
     private fun containsSrcFileWithString(srcRoot: File, content: String, exceptions: List<String>): Boolean {

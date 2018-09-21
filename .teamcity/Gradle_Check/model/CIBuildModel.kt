@@ -217,12 +217,26 @@ data class Stage(val stageName: StageName, val specificBuilds: List<SpecificBuil
 
 data class TestCoverage(val testType: TestType, val os: OS, val testJvmVersion: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle, val buildJvmVersion: JvmVersion = JvmVersion.java9) {
     fun asId(model : CIBuildModel): String {
-        return "${model.projectPrefix}${testType.name.capitalize()}_${testJvmVersion.name.capitalize()}_${vendor.name.capitalize()}_${os.name.capitalize()}"
+        return "${model.projectPrefix}$testCoveragePrefix"
     }
 
+    private
+    val testCoveragePrefix
+        get() = "${testType.name.capitalize()}_${testJvmVersion.name.capitalize()}_${vendor.name.capitalize()}_${os.name.capitalize()}"
+
     fun asConfigurationId(model : CIBuildModel, subproject: String = ""): String {
-        val shortenedSubprojectName = subproject.replace("internal", "i").replace("Testing", "T")
-        return asId(model) + "_" + if (!subproject.isEmpty()) shortenedSubprojectName else "0"
+        val prefix = "${testCoveragePrefix}_"
+        val shortenedSubprojectName = shortenSubprojectName(model.projectPrefix, prefix + subproject)
+        return "${model.projectPrefix}" + if (!subproject.isEmpty()) shortenedSubprojectName else "0"
+    }
+
+    private
+    fun shortenSubprojectName(prefix: String, subprojectName: String): String {
+        val shortenedSubprojectName = subprojectName.replace("internal", "i").replace("Testing", "T")
+        if (shortenedSubprojectName.length + prefix.length <= 80) {
+            return shortenedSubprojectName
+        }
+        return shortenedSubprojectName.replace(Regex("[aeiou]"), "")
     }
 
     fun asName(): String {
