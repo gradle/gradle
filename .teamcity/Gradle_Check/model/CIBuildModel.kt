@@ -67,7 +67,7 @@ data class CIBuildModel (
                             TestCoverage(TestType.allVersionsCrossVersion, OS.windows, JvmVersion.java8),
                             TestCoverage(TestType.noDaemon, OS.linux, JvmVersion.java8),
                             TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java10),
-                            TestCoverage(TestType.platform, OS.macos, JvmVersion.java8))
+                            TestCoverage(TestType.platform, OS.macos, JvmVersion.java8)),
                     performanceTests = listOf(
                             PerformanceTestType.experiment)),
             Stage(StageNames.HISTORICAL_PERFORMANCE,
@@ -227,7 +227,7 @@ data class TestCoverage(val testType: TestType, val os: OS, val testJvmVersion: 
     fun asConfigurationId(model : CIBuildModel, subproject: String = ""): String {
         val prefix = "${testCoveragePrefix}_"
         val shortenedSubprojectName = shortenSubprojectName(model.projectPrefix, prefix + subproject)
-        return "${model.projectPrefix}" + if (!subproject.isEmpty()) shortenedSubprojectName else "0"
+        return model.projectPrefix + if (!subproject.isEmpty()) shortenedSubprojectName else "0"
     }
 
     private
