@@ -55,7 +55,7 @@ class BuildScanPerformanceTest extends ReportGenerationPerformanceTest {
     }
 
     @Override
-    protected List<ScenarioBuildResultData> getResultsForReport() {
+    protected List<ScenarioBuildResultData> generateResultsForReport() {
         Collection<File> xmls = reports.junitXml.destination.listFiles().findAll { it.path.endsWith(".xml") }
         List<JUnitTestSuite> testSuites = xmls.collect { JUnitMarshalling.unmarshalTestSuite(new FileInputStream(it)) }
         return testSuites.collect { extractResultFromTestSuite(it) }.flatten() as List<ScenarioBuildResultData>

@@ -125,7 +125,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     }
 
     @Override
-    protected List<ScenarioBuildResultData> getResultsForReport() {
+    protected List<ScenarioBuildResultData> generateResultsForReport() {
         finishedBuilds.collect { workerBuildId, scenarioResult ->
             new ScenarioBuildResultData(
                 scenarioName: scheduledBuilds.get(workerBuildId).id,
