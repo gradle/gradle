@@ -37,6 +37,7 @@ import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.util.Path
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
@@ -698,7 +699,6 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         }
     }
 
-
     private TaskInternal selectNextTask() {
         selectNextTaskNode()?.task
     }
@@ -707,15 +707,15 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         def nextTaskNode = executionPlan.selectNext(lockSetup.workerLease, lockSetup.createResourceLockState())
         if (nextTaskNode?.task instanceof Async) {
             def project = (ProjectInternal) nextTaskNode.task.project
-            lockSetup.projectLocks.get(project.identityPath.toString()).unlock()
+            lockSetup.projectLocks.get(project.identityPath).unlock()
         }
         return nextTaskNode
     }
 
     class LockSetup {
         int availableWorkerLeases = 5
-        Set<String> lockedProjects = [] as Set
-        Map<String, ResourceLock> projectLocks = [:]
+        Set<Path> lockedProjects = [] as Set
+        Map<Path, ResourceLock> projectLocks = [:]
         ResourceLockState currentState
 
         ResourceLockState createResourceLockState() {
@@ -742,7 +742,7 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
             return currentState
         }
         WorkerLeaseService workerLeaseService = [
-            getProjectLock: { gradlePath, projectPath ->
+            getProjectLock: { Path gradlePath, Path projectPath ->
                 if (!projectLocks.containsKey(projectPath)) {
                     projectLocks[projectPath] = new StubProjectLock(lockedProjects, projectPath)
                 }
@@ -758,9 +758,9 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
     class StubProjectLock implements ResourceLock {
         boolean locked = false
         private final String projectPath
-        private final Set<String> lockedProjects
+        private final Set<Path> lockedProjects
 
-        StubProjectLock(Set<String> lockedProjects, String projectPath) {
+        StubProjectLock(Set<Path> lockedProjects, Path projectPath) {
             this.lockedProjects = lockedProjects
             this.projectPath = projectPath
         }

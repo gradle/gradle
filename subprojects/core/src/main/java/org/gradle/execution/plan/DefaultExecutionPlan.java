@@ -652,9 +652,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private ResourceLock getOrCreateProjectLock(Project project) {
-        String gradlePath = ((GradleInternal) project.getGradle()).getIdentityPath().toString();
-        String projectPath = ((ProjectInternal) project).getIdentityPath().toString();
-        return workerLeaseService.getProjectLock(gradlePath, projectPath);
+        Path buildPath = ((ProjectInternal) project).getMutationState().getOwner().getIdentityPath();
+        Path projectPath = ((ProjectInternal) project).getIdentityPath();
+        return workerLeaseService.getProjectLock(buildPath, projectPath);
     }
 
     private boolean canRunWithCurrentlyExecutedNodes(Node node, MutationInfo mutations) {

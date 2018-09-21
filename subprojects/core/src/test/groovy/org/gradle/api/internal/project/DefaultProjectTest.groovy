@@ -146,9 +146,9 @@ class DefaultProjectTest extends Specification {
     BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
     ListenerBuildOperationDecorator listenerBuildOperationDecorator = new TestListenerBuildOperationDecorator()
     CrossProjectConfigurator crossProjectConfigurator = new BuildOperationCrossProjectConfigurator(buildOperationExecutor)
-
     ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, getClass().classLoader, new DummyClassLoaderCache())
     ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild("root-project")
+    ProjectStateRegistry projectStateRegistryMock = Stub(ProjectStateRegistry)
 
     def setup() {
         rootDir = new File("/path/root").absoluteFile
@@ -213,6 +213,9 @@ class DefaultProjectTest extends Specification {
         ModelRegistry modelRegistry = Stub(ModelRegistry)
         serviceRegistryMock.get((Type) ModelRegistry) >> modelRegistry
         serviceRegistryMock.get(ModelRegistry) >> modelRegistry
+
+        serviceRegistryMock.get((Type) ProjectStateRegistry) >> projectStateRegistryMock
+        serviceRegistryMock.get(ProjectStateRegistry) >> projectStateRegistryMock
 
         ModelSchemaStore modelSchemaStore = Stub(ModelSchemaStore)
         serviceRegistryMock.get((Type) ModelSchemaStore) >> modelSchemaStore
