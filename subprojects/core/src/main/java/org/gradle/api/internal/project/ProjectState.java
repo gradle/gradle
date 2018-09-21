@@ -59,4 +59,9 @@ public interface ProjectState {
      * Runs the given action against the public mutable state of the project. Applies best effort synchronization to prevent concurrent access to a particular project from multiple threads. However, it is currently easy for state to leak from one project to another so this is not a strong guarantee.
      */
     <T> void withMutableState(Runnable action);
+
+    /**
+     * Returns whether or not the current thread holds the mutable state for this project.
+     */
+    boolean hasMutableState();
 }

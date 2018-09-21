@@ -16,6 +16,7 @@
 
 package org.gradle.play.plugins.ide
 
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.plugins.ide.fixtures.IdeaModuleFixture
 
 import static org.gradle.plugins.ide.fixtures.IdeaFixtures.parseIml
@@ -51,6 +52,12 @@ abstract class PlayIdeaPluginIntegrationTest extends PlayIdePluginIntegrationTes
 
     abstract String[] getSourcePaths()
     abstract int getExpectedScalaClasspathSize()
+
+    @Override
+    protected ExecutionResult succeeds(String... tasks) {
+        executer.noDeprecationChecks()
+        return super.succeeds(tasks)
+    }
 
     def "IML contains path to Play app sources"() {
         applyIdePlugin()
