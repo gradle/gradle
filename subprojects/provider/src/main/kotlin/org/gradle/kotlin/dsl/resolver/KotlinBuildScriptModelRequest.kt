@@ -59,14 +59,8 @@ internal
 fun fetchKotlinBuildScriptModelFor(
     request: KotlinBuildScriptModelRequest,
     modelBuilderCustomization: ModelBuilderCustomization = {}
-): KotlinBuildScriptModel {
-
-    val connection = projectConnectionFor(request)
-    try {
-        return connection.modelBuilderFor(request).apply(modelBuilderCustomization).get()
-    } finally {
-        connection.close()
-    }
+): KotlinBuildScriptModel = projectConnectionFor(request).use { connection ->
+    connection.modelBuilderFor(request).apply(modelBuilderCustomization).get()
 }
 
 
