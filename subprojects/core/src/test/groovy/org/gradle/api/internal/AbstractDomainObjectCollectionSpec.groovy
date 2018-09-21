@@ -18,25 +18,23 @@ package org.gradle.api.internal
 
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectCollection
+import org.gradle.api.Transformer
 import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.internal.provider.CollectionProviderInternal
 import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.provider.Providers
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.internal.metaobject.ConfigureDelegate
+import org.gradle.util.ConfigureUtil
+import org.hamcrest.Matchers
 import org.junit.Assume
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallAddAllFactory
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallAddAllLaterFactory
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallAddFactory
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallAddLaterFactory
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallClearFactory
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallRemoveAllFactory
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallRemoveFactory
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallRemoveOnIteratorFactory
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallRetainAllFactory
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallNextOnIteratorFactory
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallContainsFactory
+import static org.gradle.util.Matchers.hasMessage
 import static org.gradle.util.WrapUtil.toList
+import static org.hamcrest.Matchers.startsWith
+import static org.junit.Assert.assertThat
 
 abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     abstract DomainObjectCollection<T> getContainer()
@@ -1434,109 +1432,228 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * action.execute(_)
     }
 
-    protected def getInvalidCallFromLazyConfiguration() {
+    protected List<MethodUnderTest> getMutationMethodsUnderTest() {
         return [
-            ["add(T)"               , CallAddFactory.AsAction],
-            ["add(T)"               , CallAddFactory.AsClosure],
-            ["addLater(Provider)"   , CallAddLaterFactory.AsAction],
-            ["addLater(Provider)"   , CallAddLaterFactory.AsClosure],
-            ["addAllLater(Provider)", CallAddAllLaterFactory.AsAction],
-            ["addAllLater(Provider)", CallAddAllLaterFactory.AsClosure],
-            ["addAll(Collection)"   , CallAddAllFactory.AsAction],
-            ["addAll(Collection)"   , CallAddAllFactory.AsClosure],
-            ["clear()"              , CallClearFactory.AsAction],
-            ["clear()"              , CallClearFactory.AsClosure],
-            ["remove(Object)"       , CallRemoveFactory.AsAction],
-            ["remove(Object)"       , CallRemoveFactory.AsClosure],
-            ["removeAll(Collection)", CallRemoveAllFactory.AsAction],
-            ["removeAll(Collection)", CallRemoveAllFactory.AsClosure],
-            ["retainAll(Collection)", CallRetainAllFactory.AsAction],
-            ["retainAll(Collection)", CallRetainAllFactory.AsClosure],
-            ["iterator().remove()"  , CallRemoveOnIteratorFactory.AsAction],
-            ["iterator().remove()"  , CallRemoveOnIteratorFactory.AsClosure],
+            methodUnderTest("add(T)") { container.add(b) },
+            methodUnderTest("addLater(Provider)") { container.addLater(Providers.of(b)) },
+            methodUnderTest("addAllLater(Provider)") { container.addAllLater(Providers.collectionOf(b)) },
+            methodUnderTest("addAll(Collection)") { it.container.addAll([b]) },
+            methodUnderTest("clear()") { it.container.clear() },
+            methodUnderTest("remove(Object)") { it.container.remove(b) },
+            methodUnderTest("removeAll(Collection)") { it.container.removeAll([b]) },
+            methodUnderTest("retainAll(Collection)") { container.retainAll([b]) },
+            methodUnderTest("iterator().remove()") { def iter = container.iterator(); iter.next(); iter.remove() },
         ]
     }
 
-    protected def getValidCallFromLazyConfiguration() {
+    private List<CodeUnderTest> getInvalidCallFromLazyConfiguration() {
+        return GroovyCollections.combinations(getLazyConfigurationsUnderTest(), getMutationMethodsUnderTest()).collect { configuration, method -> [new CodeUnderTest(configuration, method.asAction()), new CodeUnderTest(configuration, method.asClosure())] }.flatten()
+    }
+
+    protected List<MethodUnderTest> getQueryMethodsUnderTest() {
         return [
-            ["contains(Object)", CallContainsFactory.AsAction],
-            ["contains(Object)", CallContainsFactory.AsClosure],
-            ["iterator().next()", CallNextOnIteratorFactory.AsAction],
-            ["iterator().next()", CallNextOnIteratorFactory.AsClosure],
+            methodUnderTest("contains(Object)") { container.contains(b) },
+            methodUnderTest("iterator().next()") { def iter = container.iterator(); iter.next() }
         ]
     }
 
+    private List<CodeUnderTest> getValidCallFromLazyConfiguration() {
+        return GroovyCollections.combinations(getLazyConfigurationsUnderTest(), getQueryMethodsUnderTest()).collect { configuration, method -> [new CodeUnderTest(configuration, method.asAction()), new CodeUnderTest(configuration, method.asClosure())] }.flatten()
+    }
+
+    List<ConfigurationUnderTest> getLazyConfigurationsUnderTest() {
+        return [
+            configurationUnderTest("configureEach") { container.configureEach(it); container.add(a) },
+            configurationUnderTest("withType(Class).configureEach") { container.withType(type).configureEach(it); container.add(a) },
+        ]
+    }
+
+    MethodUnderTest methodUnderTest(String description, Closure callable) {
+        return new MethodUnderTest(description, callable)
+    }
+
+    ConfigurationUnderTest configurationUnderTest(String description, Closure callable) {
+        return new ConfigurationUnderTest(description, callable)
+    }
+
+    void setupContainerDefaults() {}
+
     @Unroll
-    def "disallow mutating when configureEach(#factoryClass.configurationType.simpleName) calls #description"() {
-        def factory = factoryClass.newInstance()
-        if (factory.isUseExternalProviders()) {
+    def "disallow mutating when #codeUnderTest.description"() {
+        setupContainerDefaults()
+        if (codeUnderTest.isUseExternalProviders()) {
             containerAllowsExternalProviders()
         }
 
         when:
-        container.configureEach(factory.create(container, b))
-        container.add(a)
+        codeUnderTest.bind(this).execute()
 
         then:
-        def ex = thrown(IllegalStateException)
-        ex.message == "${containerPublicType.simpleName}#${description} on ${container.toString()} cannot be executed in the current context."
+        Throwable ex = thrown()
+        assertHasCause(ex, "${containerPublicType.simpleName}#${codeUnderTest.method.description} on ${container.toString()} cannot be executed in the current context.")
 
         where:
-        [description, factoryClass] << getInvalidCallFromLazyConfiguration()
+        codeUnderTest << getInvalidCallFromLazyConfiguration()
+    }
+
+    private static void assertHasCause(Throwable exception, String message) {
+        List<Throwable> causes = new ArrayList<Throwable>()
+        while (exception != null) {
+            causes.add(exception)
+            exception = exception.cause
+        }
+        assertThat(causes, Matchers.hasItem(hasMessage(startsWith(message))))
     }
 
     @Unroll
-    def "disallow mutating when withType(Class).configureEach(#factoryClass.configurationType.simpleName) calls #description"() {
-        def factory = factoryClass.newInstance()
-        if (factory.isUseExternalProviders()) {
+    def "allow querying when #codeUnderTest.description"() {
+        setupContainerDefaults()
+        if (codeUnderTest.isUseExternalProviders()) {
             containerAllowsExternalProviders()
         }
 
         when:
-        container.withType(type).configureEach(factory.create(container, b))
-        container.add(a)
-
-        then:
-        def ex = thrown(IllegalStateException)
-        ex.message == "${containerPublicType.simpleName}#${description} on ${container.toString()} cannot be executed in the current context."
-
-        where:
-        [description, factoryClass] << getInvalidCallFromLazyConfiguration()
-    }
-
-    @Unroll
-    def "allow querying when configureEach(#factoryClass.configurationType.simpleName) calls #description"() {
-        def factory = factoryClass.newInstance()
-        if (factory.isUseExternalProviders()) {
-            containerAllowsExternalProviders()
-        }
-
-        when:
-        container.configureEach(factory.create(container, b))
-        container.add(a)
+        codeUnderTest.bind(this).execute()
 
         then:
         noExceptionThrown()
 
         where:
-        [description, factoryClass] << getValidCallFromLazyConfiguration()
+        codeUnderTest << getValidCallFromLazyConfiguration()
     }
 
-    @Unroll
-    def "allow querying when withType(Class).configureEach(#factoryClass.configurationType.simpleName) calls #description"() {
-        def factory = factoryClass.newInstance()
-        if (factory.isUseExternalProviders()) {
-            containerAllowsExternalProviders()
+    private static class CodeUnderTest {
+        private final ConfigurationUnderTest configuration
+        private final MethodUnderTest.ConfigurationAction<?> method
+
+        CodeUnderTest(ConfigurationUnderTest configuration, MethodUnderTest.ConfigurationAction<?> method) {
+            this.configuration = configuration
+            this.method = method
         }
 
-        when:
-        container.withType(type).configureEach(factory.create(container, b))
-        container.add(a)
+        CodeUnderTest bind(def delegate) {
+            configuration.bind(delegate)
+            method.bind(delegate)
+            return this
+        }
 
-        then:
-        noExceptionThrown()
+        void execute() {
+            configuration.configure(method.toConfigurationAction())
+        }
 
-        where:
-        [description, factoryClass] << getValidCallFromLazyConfiguration()
+        boolean isUseExternalProviders() {
+            return method.isUseExternalProviders()
+        }
+
+        String getDescription() {
+            return "${configuration.description}(${method.callableType.simpleName}) calls ${method.description}"
+        }
+    }
+
+    private static class ConfigurationUnderTest {
+        private final String description
+        private final Closure callable
+        private def delegate
+
+        ConfigurationUnderTest(String description, Closure callable) {
+            this.callable = callable
+            this.description = description
+        }
+
+        String getDescription() {
+            return description
+        }
+
+        void configure(def configurationAction) {
+            assert delegate != null, "You first need to bind the ConfigurationUnderTest with the test class instance"
+            ConfigureUtil.configureSelf(callable, configurationAction, new ConfigureDelegate(callable, delegate))
+        }
+
+        /**
+         * Bind this configuration under test with the test class instance. This binding ends up been the callable's delegate.
+         */
+        ConfigurationUnderTest bind(def delegate) {
+            this.delegate = delegate
+            return this
+        }
+    }
+
+    private static class MethodUnderTest {
+        private String description
+        private Closure callable
+        private boolean isAlreadyCalled = false
+
+        MethodUnderTest(String description, Closure callable) {
+            this.description = description
+            this.callable = callable
+        }
+
+        ConfigurationAction<Action<?>> asAction() {
+            return new AsAction()
+        }
+
+        ConfigurationAction<Closure> asClosure() {
+            return new AsClosure()
+        }
+
+        def doCall(def delegate) {
+            if (!isAlreadyCalled) {
+                try {
+                    isAlreadyCalled = true
+                    ConfigureUtil.configureSelf(callable, delegate)
+                } finally {
+                    isAlreadyCalled = false
+                }
+            }
+        }
+
+        abstract class ConfigurationAction<F> {
+            protected def delegate
+
+            abstract F toConfigurationAction()
+            abstract Class<?> getCallableType()
+
+            boolean isUseExternalProviders() {
+                return description.startsWith("addLater") || description.startsWith("addAllLater")
+            }
+
+            ConfigurationAction<F> bind(def delegate) {
+                this.delegate = delegate
+                return this
+            }
+
+            String getDescription() {
+                return MethodUnderTest.this.description
+            }
+        }
+
+        class AsAction extends ConfigurationAction<Action<?>> {
+            @Override
+            Action<?> toConfigurationAction() {
+                return new Action<Object>() {
+                    @Override
+                    void execute(Object t) {
+                        MethodUnderTest.this.doCall(delegate)
+                    }
+                }
+            }
+
+            @Override
+            Class<?> getCallableType() {
+                return Action
+            }
+        }
+
+        class AsClosure extends ConfigurationAction<Closure> {
+            @Override
+            Closure toConfigurationAction() {
+                return { MethodUnderTest.this.doCall(AsClosure.this.delegate) }
+            }
+
+            @Override
+            Class<?> getCallableType() {
+                return Closure
+            }
+        }
     }
 }
