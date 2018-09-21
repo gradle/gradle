@@ -32,7 +32,6 @@ import java.util.Collection;
 public abstract class TransformingClassLoader extends VisitableURLClassLoader {
     static {
         try {
-            //noinspection Since15
             ClassLoader.registerAsParallelCapable();
         } catch (NoSuchMethodError ignore) {
             // Not supported on Java 6

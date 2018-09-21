@@ -42,7 +42,7 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "can resolve directory relative to project directory"() {
-        def pathProvider = Stub(Provider)
+        def pathProvider = Stub(ProviderInternal)
         _ * pathProvider.get() >>> ["a", "b"]
         _ * pathProvider.present >> true
 
@@ -64,7 +64,7 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "can resolve regular file relative to project directory"() {
-        def pathProvider = Stub(Provider)
+        def pathProvider = Stub(ProviderInternal)
         _ * pathProvider.get() >>> ["a", "b"]
         _ * pathProvider.present >> true
 
@@ -86,8 +86,9 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "directory is not present when path provider is not present"() {
-        def pathProvider = Stub(Provider)
+        def pathProvider = Stub(ProviderInternal)
         _ * pathProvider.present >> false
+        _ * pathProvider.getOrNull() >> null
 
         expect:
         def provider = layout.projectDirectory.dir(pathProvider)
@@ -96,7 +97,7 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "regular file is not present when path provider is not present"() {
-        def pathProvider = Stub(Provider)
+        def pathProvider = Stub(ProviderInternal)
         _ * pathProvider.present >> false
         _ * pathProvider.getOrNull() >> null
 
@@ -122,7 +123,7 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "can create directory property"() {
-        def pathProvider = Stub(Provider)
+        def pathProvider = Stub(ProviderInternal)
         _ * pathProvider.get() >> { "../other-dir" }
         _ * pathProvider.present >> true
         def otherDir = tmpDir.file("other-dir")
@@ -176,7 +177,7 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "can create regular file property"() {
-        def pathProvider = Stub(Provider)
+        def pathProvider = Stub(ProviderInternal)
         _ * pathProvider.get() >> { "../some-file" }
         _ * pathProvider.present >> true
         def otherFile = tmpDir.file("some-file")
@@ -560,7 +561,7 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "can wrap File provider"() {
-        def fileProvider = Stub(Provider)
+        def fileProvider = Stub(ProviderInternal)
         def file1 = projectDir.file("file1")
         def file2 = projectDir.file("file2")
 
@@ -576,7 +577,7 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "resolves relative files given by File provider"() {
-        def fileProvider = Stub(Provider)
+        def fileProvider = Stub(ProviderInternal)
         def file1 = projectDir.file("file1")
         def file2 = projectDir.file("file2")
 

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.internal.hash.Hasher;
 
 public class ProviderSnapshot implements ValueSnapshot {
     private final ValueSnapshot valueSnapshot;
@@ -56,7 +56,7 @@ public class ProviderSnapshot implements ValueSnapshot {
     }
 
     @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
+    public void appendToHasher(Hasher hasher) {
         valueSnapshot.appendToHasher(hasher);
     }
 }

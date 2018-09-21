@@ -30,4 +30,10 @@ public class LockableListProperty<T> extends LockableCollectionProperty<T, List<
     protected List<T> immutableCopy(List<T> value) {
         return ImmutableList.copyOf(value);
     }
+
+    @Override
+    public LockableListProperty<T> empty() {
+        super.empty();
+        return this;
+    }
 }

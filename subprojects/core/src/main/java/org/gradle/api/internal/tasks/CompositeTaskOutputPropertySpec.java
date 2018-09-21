@@ -32,6 +32,7 @@ import org.gradle.internal.MutableBoolean;
 import org.gradle.util.DeferredUtil;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -42,11 +43,11 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
     private final OutputType outputType;
     private final ValidatingValue value;
     private final ValidationAction validationAction;
-    private final String taskName;
+    private final String taskDisplayName;
     private final FileResolver resolver;
 
-    public CompositeTaskOutputPropertySpec(String taskName, FileResolver resolver, OutputType outputType, ValidatingValue value, ValidationAction validationAction) {
-        this.taskName = taskName;
+    public CompositeTaskOutputPropertySpec(String taskDisplayName, FileResolver resolver, OutputType outputType, ValidatingValue value, ValidationAction validationAction) {
+        this.taskDisplayName = taskDisplayName;
         this.resolver = resolver;
         this.outputType = outputType;
         this.value = value;
@@ -60,7 +61,7 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
     public Iterator<TaskOutputFilePropertySpec> resolveToOutputProperties() {
         Object unpackedValue = DeferredUtil.unpack(value);
         if (unpackedValue == null) {
-            return Iterators.emptyIterator();
+            return Collections.emptyIterator();
         } else if (unpackedValue instanceof Map) {
             final Iterator<? extends Map.Entry<?, ?>> iterator = ((Map<?, ?>) unpackedValue).entrySet().iterator();
             return new AbstractIterator<TaskOutputFilePropertySpec>() {
@@ -133,6 +134,6 @@ public class CompositeTaskOutputPropertySpec extends AbstractTaskOutputPropertyS
 
     @Override
     public FileCollection getPropertyFiles() {
-        return new TaskPropertyFileCollection(taskName, "output", this, resolver, value);
+        return new TaskPropertyFileCollection(taskDisplayName, "output", this, resolver, value);
     }
 }

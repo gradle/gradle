@@ -306,21 +306,5 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         e.message == 'No value has been specified for this provider.'
     }
 
-    def "mapped provider fails when transformer returns null"() {
-        def transformer = Mock(Transformer)
-        transformer.transform(_) >> null
-
-        def property = property()
-        property.set(someValue())
-        def p = property.map(transformer)
-
-        when:
-        p.get()
-
-        then:
-        def e = thrown(IllegalStateException)
-        e.message == 'Transformer for this provider returned a null value.'
-    }
-
     static class Thing { }
 }

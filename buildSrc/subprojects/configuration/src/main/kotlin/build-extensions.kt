@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 import org.gradle.api.Project
-
-import org.gradle.kotlin.dsl.*
+import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.HasConfigurableAttributes
+import org.gradle.api.tasks.TaskOutputs
+import org.gradle.gradlebuild.BuildEnvironment
+import org.gradle.kotlin.dsl.extra
+import org.gradle.util.GradleVersion
 
 
 // This file contains Kotlin extensions for the gradle/gradle build
@@ -43,14 +48,29 @@ fun Project.libraryReason(name: String): String? =
     libraries[name]!!["because"]
 
 
-fun Project.testLibrary(name: String): Any =
-    testLibraries[name]!!
+fun Project.testLibrary(name: String): String =
+    testLibraries[name]!! as String
+
+
+// TODO: Remove this with Gradle 5 native "platform" support once we build using a compatible nightly
+val gradle5CategoryAttribute = Attribute.of("org.gradle.component.category", String::class.java)
+
+
+fun DependencyHandler.gradle5Platform(name: Any) = create(name).apply {
+    if (GradleVersion.current().baseVersion >= GradleVersion.version("5.0")) {
+        if (this is HasConfigurableAttributes<*>) {
+            attributes {
+                attribute(gradle5CategoryAttribute, "platform")
+            }
+        }
+    }
+}
 
 
 // TODO:kotlin-dsl Remove work around for https://github.com/gradle/kotlin-dsl/issues/639 once fixed
 @Suppress("unchecked_cast")
-fun Project.testLibraries(name: String): List<Any> =
-    testLibraries[name]!! as List<Any>
+fun Project.testLibraries(name: String): List<String> =
+    testLibraries[name]!! as List<String>
 
 
 val Project.maxParallelForks: Int
@@ -69,3 +89,10 @@ val Project.useAllDistribution: Boolean
 private
 fun <T> Project.ifProperty(name: String, then: T): T? =
     then.takeIf { rootProject.findProperty(name) == true }
+
+
+fun TaskOutputs.doNotCacheIfSlowInternetConnection() {
+    doNotCacheIf("Slow internet connection") {
+        BuildEnvironment.isSlowInternetConnection
+    }
+}

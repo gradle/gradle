@@ -18,7 +18,6 @@ package org.gradle.launcher.daemon.server.exec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestContext;
 import org.gradle.initialization.ReportedException;
@@ -53,9 +52,10 @@ public class ExecuteBuild extends BuildCommandOnly {
         LOGGER.debug(DaemonMessages.STARTED_BUILD);
         LOGGER.debug("Executing build with daemon context: {}", execution.getDaemonContext());
         runningStats.buildStarted();
+        DaemonConnectionBackedEventConsumer buildEventConsumer = new DaemonConnectionBackedEventConsumer(execution);
         try {
             BuildCancellationToken cancellationToken = execution.getDaemonStateControl().getCancellationToken();
-            BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(build.getBuildRequestMetaData(), cancellationToken, new DaemonConnectionBackedEventConsumer(execution));
+            BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(build.getBuildRequestMetaData(), cancellationToken, buildEventConsumer);
             if (!build.getParameters().isContinuous()) {
                 buildRequestContext.getCancellationToken().addCallback(new Runnable() {
                     @Override
@@ -76,6 +76,7 @@ public class ExecuteBuild extends BuildCommandOnly {
             */
             execution.setException(e);
         } finally {
+            buildEventConsumer.waitForFinish();
             runningStats.buildFinished();
             LOGGER.debug(DaemonMessages.FINISHED_BUILD);
         }
@@ -83,16 +84,4 @@ public class ExecuteBuild extends BuildCommandOnly {
         execution.proceed(); // ExecuteBuild should be the last action, but in case we want to decorate the result in the future
     }
 
-    private static class DaemonConnectionBackedEventConsumer implements BuildEventConsumer {
-        private final DaemonCommandExecution execution;
-
-        public DaemonConnectionBackedEventConsumer(DaemonCommandExecution execution) {
-            this.execution = execution;
-        }
-
-        @Override
-        public void dispatch(Object event) {
-            execution.getConnection().event(event);
-        }
-    }
 }

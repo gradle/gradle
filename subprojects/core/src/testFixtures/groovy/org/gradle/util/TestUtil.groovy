@@ -51,16 +51,15 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import java.rmi.server.UID
 
 import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA
-import static org.gradle.api.internal.FeaturePreviews.Feature.IMPROVED_POM_SUPPORT
 
 class TestUtil {
     public static final Closure TEST_CLOSURE = {}
 
-    private final File rootDir;
+    private final File rootDir
 
     private TestUtil(File rootDir) {
         NativeServicesTestFixture.initialize()
-        this.rootDir = rootDir;
+        this.rootDir = rootDir
     }
 
     static InstantiatorFactory instantiatorFactory() {
@@ -99,11 +98,8 @@ class TestUtil {
         return NamedObjectInstantiator.INSTANCE
     }
 
-    static FeaturePreviews featurePreviews(boolean improvedPomSupportEnabled = false, boolean gradleMetadataEnabled = false) {
+    static FeaturePreviews featurePreviews(boolean gradleMetadataEnabled = false) {
         def previews = new FeaturePreviews()
-        if (improvedPomSupportEnabled) {
-            previews.enableFeature(IMPROVED_POM_SUPPORT)
-        }
         if (gradleMetadataEnabled) {
             previews.enableFeature(GRADLE_METADATA)
         }
@@ -111,11 +107,11 @@ class TestUtil {
     }
 
     static TestUtil create(File rootDir) {
-        return new TestUtil(rootDir);
+        return new TestUtil(rootDir)
     }
 
     static TestUtil create(TestDirectoryProvider testDirectoryProvider) {
-        return new TestUtil(testDirectoryProvider.testDirectory);
+        return new TestUtil(testDirectoryProvider.testDirectory)
     }
 
     public <T extends Task> T task(Class<T> type) {
@@ -153,11 +149,11 @@ class TestUtil {
     }
 
     static ProjectBuilder builder(File rootDir) {
-        return ProjectBuilder.builder().withProjectDir(rootDir);
+        return ProjectBuilder.builder().withProjectDir(rootDir)
     }
 
     static ProjectBuilder builder(TestDirectoryProvider temporaryFolder) {
-        return builder(temporaryFolder.testDirectory);
+        return builder(temporaryFolder.testDirectory)
     }
 
     ProjectInternal rootProject() {
@@ -177,7 +173,7 @@ class TestUtil {
             .withName(name)
             .withParent(parent)
             .withProjectDir(projectDir)
-            .build();
+            .build()
     }
 
     static groovy.lang.Script createScript(String code) {
@@ -193,8 +189,8 @@ class TestUtil {
     }
 
     static Closure toClosure(ScriptSource source) {
-        CompilerConfiguration configuration = new CompilerConfiguration();
-        configuration.setScriptBaseClass(TestScript.getName());
+        CompilerConfiguration configuration = new CompilerConfiguration()
+        configuration.setScriptBaseClass(TestScript.getName())
 
         GroovyShell shell = new GroovyShell(configuration)
         Script script = shell.parse(source.resource.text)
@@ -217,7 +213,7 @@ class TestUtil {
     }
 
     static String createUniqueId() {
-        return new UID().toString();
+        return new UID().toString()
     }
 
     static ImmutableAttributes attributes(Map<String, ?> values) {

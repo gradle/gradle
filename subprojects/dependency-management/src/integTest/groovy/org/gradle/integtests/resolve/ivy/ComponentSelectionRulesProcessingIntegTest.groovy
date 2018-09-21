@@ -70,10 +70,12 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             configurations.all {
                 resolutionStrategy {
                     componentSelection {
-                        all { ComponentSelection selection, ComponentMetadata metadata ->
-                            extraRuleCandidates << selection.candidate.version
-                        }
                         all ${rules['select 1.1']}
+                        all { ComponentSelection selection ->
+                            if (selection.metadata != null) {
+                                extraRuleCandidates << selection.candidate.version
+                            }
+                        }
                     }
                 }
             }
@@ -118,8 +120,10 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             configurations.all {
                 resolutionStrategy {
                     componentSelection {
-                        all { ComponentSelection selection, IvyModuleDescriptor ivy ->
-                            selection.reject("rejecting all ivy modules")
+                        all { ComponentSelection selection ->
+                            if (selection.getDescriptor(IvyModuleDescriptor) != null) {
+                                selection.reject("rejecting all ivy modules")
+                            }
                         }
                     }
                 }
@@ -237,11 +241,15 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             configurations.all {
                 resolutionStrategy {
                     componentSelection {
-                        all { ComponentSelection vs, IvyModuleDescriptor imd, ComponentMetadata cm ->
-                            rule1candidates << vs.candidate.version
+                        all { ComponentSelection vs ->
+                            if (vs.getDescriptor(IvyModuleDescriptor) != null && vs.metadata != null) {
+                                rule1candidates << vs.candidate.version
+                            }
                         }
-                        all { ComponentSelection vs, ComponentMetadata cm ->
-                            rule2candidates << vs.candidate.version
+                        all { ComponentSelection vs ->
+                            if (vs.metadata != null) {
+                                rule2candidates << vs.candidate.version
+                            }
                         }
                     }
                 }
@@ -289,10 +297,10 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             configurations.all {
                 resolutionStrategy {
                     componentSelection {
-                        all { ComponentSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
+                        all { ComponentSelection selection ->
                             if (selection.candidate.version == '1.1') {
-                                status11 = metadata.status
-                                branch11 = descriptor.branch
+                                status11 = selection.metadata.status
+                                branch11 = selection.getDescriptor(IvyModuleDescriptor).branch
                             } else {
                                 selection.reject('not 1.1')
                             }
@@ -316,9 +324,6 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         repositoryInteractions {
             'org.utils:api' {
                 expectVersionListing()
-                '1.2' {
-                    expectGetMetadata()
-                }
                 '1.1' {
                     expectResolve()
                 }
@@ -362,9 +367,6 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         repositoryInteractions {
             'org.utils:api' {
                 expectVersionListing()
-                '1.2' {
-                    expectHeadMetadata()
-                }
                 '1.1' {
                     expectHeadMetadata()
                     withModule {

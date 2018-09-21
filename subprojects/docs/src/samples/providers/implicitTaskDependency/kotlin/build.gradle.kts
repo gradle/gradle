@@ -26,14 +26,14 @@ open class Consumer : DefaultTask() {
 val producer by tasks.creating(Producer::class)
 val consumer by tasks.creating(Consumer::class)
 
-// Wire property from producer to consumer task
-// Don't need to add a task dependency to the consumer task, this is automatically added
+// Wire the property from producer to consumer task
+// Don't need to add a task dependency to the consumer task. This is automatically added
 consumer.inputFile.set(producer.outputFile)
 
 // Set values for the producer lazily
-// Don't need to update the consumer.inputFile property, this is automatically updated
+// Don't need to update the consumer.inputFile property. This is automatically updated as producer.outputFile changes
 producer.outputFile.set(layout.buildDirectory.file("file.txt"))
 
-// Change the base output directory.
-// Don't need to update producer.outputFile and consumer.inputFile, these are automatically updated
-setBuildDir("output")
+// Change the build directory.
+// Don't need to update producer.outputFile and consumer.inputFile. These are automatically updated as the build directory changes
+buildDir = file("output")

@@ -4,8 +4,8 @@ import org.gradle.gradlebuild.test.integrationtests.SmokeTest
 
 sourceSets {
     smokeTest {
-        compileClasspath += main.output + test.output
-        runtimeClasspath += compileClasspath
+        compileClasspath += main.output
+        runtimeClasspath += main.output
     }
 }
 
@@ -55,11 +55,11 @@ tasks.register('smokeTest', SmokeTest) { SmokeTest task ->
 }
 
 plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin).configureEach { // lazy as plugin not applied yet
+    def sourceSet = sourceSets.smokeTest
     idea {
         module {
-            sourceSets.smokeTest.allSource.srcDirs.each {
-                testSourceDirs += it
-            }
+            testSourceDirs = testSourceDirs + sourceSet.groovy.srcDirs
+            testResourceDirs = testResourceDirs + sourceSet.resources.srcDirs
             scopes.TEST.plus.add(configurations.smokeTestCompile)
             scopes.TEST.plus.add(configurations.smokeTestRuntime)
         }

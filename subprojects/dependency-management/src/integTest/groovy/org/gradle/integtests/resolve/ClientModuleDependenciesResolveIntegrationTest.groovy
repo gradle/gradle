@@ -16,17 +16,11 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
-import spock.lang.Unroll
 
 class ClientModuleDependenciesResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
-    @Unroll
-    def "uses metadata from Client Module and looks up artifact in declared repositories (improvedPomSupport = #improvedPomSupport)"() {
+    def "uses metadata from Client Module and looks up artifact in declared repositories"() {
         given:
-        if (improvedPomSupport) {
-            FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
-        }
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = mavenHttpRepo("repo2")
         def projectAInRepo1 = repo1.module('group', 'projectA', '1.2')
@@ -69,16 +63,10 @@ task listJars {
         then:
         succeeds('listJars')
 
-        where:
-        improvedPomSupport << [false, true]
     }
 
-    @Unroll
-    def "can resolve nested Client Module (improvedPomSupport = #improvedPomSupport)"() {
+    def "can resolve nested Client Module"() {
         given:
-        if (improvedPomSupport) {
-            FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
-        }
         def repo = mavenHttpRepo("repo")
         def projectA = repo.module('test', 'projectA', '1.2').publish()
         def projectB = repo.module('test', 'projectB', '1.5').publish()
@@ -120,17 +108,10 @@ task listJars {
 
         then:
         succeeds('listJars')
-
-        where:
-        improvedPomSupport << [false, true]
     }
 
-    @Unroll
-    def "client module dependency ignores published artifact listing and resolves single jar file (improvedPomSupport = #improvedPomSupport)"() {
+    def "client module dependency ignores published artifact listing and resolves single jar file"() {
         given:
-        if (improvedPomSupport) {
-            FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
-        }
         def projectA = ivyHttpRepo.module('group', 'projectA', '1.2')
                 .artifact()
                 .artifact(classifier: "extra")
@@ -179,8 +160,5 @@ task listClientModuleJars {
 
         then:
         succeeds('listClientModuleJars')
-
-        where:
-        improvedPomSupport << [false, true]
     }
 }

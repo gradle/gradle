@@ -199,7 +199,7 @@ task resolve {
 }
 """
 
-        def resolve = new ResolveTestFixture(buildFile)
+        def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
         resolve.prepare()
 
         when:
@@ -237,7 +237,7 @@ dependencies {
 }
 """
 
-        def resolve = new ResolveTestFixture(buildFile)
+        def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
         resolve.prepare()
 
         when:
@@ -675,7 +675,7 @@ dependencies {
 }
 """
 
-        def resolve = new ResolveTestFixture(buildFile)
+        def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
         resolve.prepare()
 
         when:
@@ -713,7 +713,7 @@ dependencies {
 }
 """
 
-        def resolve = new ResolveTestFixture(buildFile)
+        def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
         resolve.prepare()
 
         when:
@@ -1568,7 +1568,7 @@ task checkDeps(dependsOn: configurations.compile) {
         mavenRepo.module('org', 'baz', '1.2').dependsOn(foo12).publish()
         mavenRepo.module('org', 'bar', '1.1').dependsOn(baz11).publish()
 
-        ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf")
+        ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
         buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
@@ -1677,7 +1677,8 @@ task checkDeps(dependsOn: configurations.compile) {
 
     }
 
-    def 'optional dependency marked as no longer pending reverts to pending if hard edge disappears'() {
+    @Unroll
+    def 'optional dependency marked as no longer pending reverts to pending if hard edge disappears (remover depends on optional #dependsOptional)'() {
         given:
         def optional = mavenRepo.module('org', 'optional', '1.0').publish()
         def main = mavenRepo.module('org', 'main', '1.0').dependsOn(optional, optional: true).publish()
@@ -1686,11 +1687,11 @@ task checkDeps(dependsOn: configurations.compile) {
         def bom = mavenRepo.module("org", "bom", "1.0")
         bom.hasPackaging('pom')
         bom.dependencyConstraint(root11)
+        if (dependsOptional) {
+            bom.dependencyConstraint(optional)
+        }
         bom.publish()
 
-        settingsFile << """
-enableFeaturePreview('IMPROVED_POM_SUPPORT')
-"""
         buildFile << """
 plugins {
     id 'java'
@@ -1705,7 +1706,7 @@ repositories {
 
 dependencies {
     implementation 'org.a:root'
-    implementation 'org:bom:1.0'
+    implementation platform('org:bom:1.0')
     constraints {
         implementation 'org.a:root:1.0'
     }
@@ -1716,6 +1717,9 @@ dependencies {
 
         then:
         outputDoesNotContain('org:optional')
+
+        where:
+        dependsOptional << [true, false]
     }
 
 }

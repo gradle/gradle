@@ -86,8 +86,4 @@ public class AndSpec<T> extends CompositeSpec<T> {
         return uncheckedCast(EMPTY);
     }
 
-    @Override
-    public int hashCode() {
-        return 7 * super.hashCode();
-    }
 }

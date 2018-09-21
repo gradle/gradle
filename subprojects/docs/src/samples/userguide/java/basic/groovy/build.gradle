@@ -57,9 +57,15 @@ dependencies {
     asciidoclet 'org.asciidoctor:asciidoclet:1.+'
 }
 
+task configureJavadoc {
+    doLast {
+        javadoc.options.doclet = 'org.asciidoctor.Asciidoclet'
+        javadoc.options.docletpath = configurations.asciidoclet.files.toList()
+    }
+}
+
 javadoc {
-    options.docletpath = configurations.asciidoclet.files.toList()
-    options.doclet = 'org.asciidoctor.Asciidoclet'
+    dependsOn configureJavadoc
 }
 // end::using-custom-doclet[]
 

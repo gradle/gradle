@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model.maven;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -117,7 +118,7 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
         for (int i = 0; i < configurationsCount; i++) {
             String configurationName = decoder.readString();
             Configuration configuration = configurationDefinitions.get(configurationName);
-            ImmutableList<String> hierarchy = LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions);
+            ImmutableSet<String> hierarchy = LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions);
             ImmutableAttributes attributes = getAttributeContainerSerializer().read(decoder);
             ImmutableCapabilities capabilities = readCapabilities(decoder);
 
@@ -133,7 +134,7 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
                         break;
                     case MAVEN_DEPENDENCY_METADATA:
                         MavenDependencyDescriptor mavenDependencyDescriptor = readMavenDependency(decoder);
-                        ModuleDependencyMetadata dependencyMetadata = RealisedMavenModuleResolveMetadata.contextualize(configurationMetadata, metadata.getId(), mavenDependencyDescriptor, metadata.isImprovedPomSupportEnabled());
+                        ModuleDependencyMetadata dependencyMetadata = RealisedMavenModuleResolveMetadata.contextualize(configurationMetadata, metadata.getId(), mavenDependencyDescriptor);
                         builder.add(dependencyMetadata.withReason(decoder.readNullableString()));
                         break;
                     case IVY_DEPENDENCY_METADATA:

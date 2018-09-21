@@ -57,7 +57,7 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
     public MessageHubBackedObjectConnection(ExecutorFactory executorFactory, ConnectCompletion completion) {
         Action<Throwable> errorHandler = new Action<Throwable>() {
             public void execute(Throwable throwable) {
-                if (!aborted) {
+                if (!aborted && !Thread.currentThread().isInterrupted()) {
                     LOGGER.error("Unexpected exception thrown.", throwable);
                 }
             }

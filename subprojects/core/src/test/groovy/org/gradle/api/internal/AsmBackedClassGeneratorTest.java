@@ -56,6 +56,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.internal.AbstractClassGeneratorTestGroovy.BeanWithGroovyBoolean;
+import static org.gradle.api.reflect.TypeOf.typeOf;
 import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.TestUtil.TEST_CLOSURE;
 import static org.gradle.util.TestUtil.call;
@@ -818,7 +819,7 @@ public class AsmBackedClassGeneratorTest {
     public void generatesDslObjectCompatibleObject() throws Exception {
         DslObject dslObject = new DslObject(JavaReflectionUtil.newInstance(generator.generate(Bean.class)));
         assertEquals(Bean.class, dslObject.getDeclaredType());
-        assertEquals(TypeOf.typeOf(Bean.class), dslObject.getPublicType());
+        assertEquals(typeOf(Bean.class), dslObject.getPublicType());
         assertNotNull(dslObject.getConventionMapping());
         assertNotNull(dslObject.getConvention());
         assertNotNull(dslObject.getExtensions());
@@ -828,7 +829,7 @@ public class AsmBackedClassGeneratorTest {
     @Test
     public void honorsPublicType() throws Exception {
         DslObject dslObject = new DslObject(JavaReflectionUtil.newInstance(generator.generate(BeanWithPublicType.class)));
-        assertEquals(TypeOf.typeOf(Bean.class), dslObject.getPublicType());
+        assertEquals(typeOf(Bean.class), dslObject.getPublicType());
     }
 
     @Test
@@ -943,7 +944,7 @@ public class AsmBackedClassGeneratorTest {
     public static class BeanWithPublicType extends Bean implements HasPublicType {
         @Override
         public TypeOf<?> getPublicType() {
-            return TypeOf.typeOf(Bean.class);
+            return typeOf(Bean.class);
         }
     }
 

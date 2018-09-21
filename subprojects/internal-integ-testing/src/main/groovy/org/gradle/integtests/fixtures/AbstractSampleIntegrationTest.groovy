@@ -18,6 +18,6 @@ package org.gradle.integtests.fixtures
 
 abstract class AbstractSampleIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 }

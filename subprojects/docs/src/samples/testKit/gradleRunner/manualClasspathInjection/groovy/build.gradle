@@ -1,0 +1,36 @@
+plugins {
+    id 'groovy'
+}
+
+dependencies {
+    implementation localGroovy()
+    implementation gradleApi()
+    testImplementation gradleTestKit()
+    testImplementation('org.spockframework:spock-core:1.1-groovy-2.4') {
+        exclude module: 'groovy-all'
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::test-logic-classpath[]
+// Write the plugin's classpath to a file to share with the tests
+task createClasspathManifest {
+    def outputDir = file("$buildDir/$name")
+
+    inputs.files sourceSets.main.runtimeClasspath
+    outputs.dir outputDir
+
+    doLast {
+        outputDir.mkdirs()
+        file("$outputDir/plugin-classpath.txt").text = sourceSets.main.runtimeClasspath.join("\n")
+    }
+}
+
+// Add the classpath file to the test runtime classpath
+dependencies {
+    testRuntimeOnly files(createClasspathManifest)
+}
+// end::test-logic-classpath[]

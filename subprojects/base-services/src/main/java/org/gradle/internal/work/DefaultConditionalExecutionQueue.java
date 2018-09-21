@@ -125,11 +125,14 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
     private class ExecutionRunner implements Runnable {
         @Override
         public void run() {
-            ConditionalExecution operation;
-            while ((operation = waitForNextOperation()) != null) {
-                runBatch(operation);
+            try {
+                ConditionalExecution operation;
+                while ((operation = waitForNextOperation()) != null) {
+                    runBatch(operation);
+                }
+            } finally {
+                shutDown();
             }
-            shutDown();
         }
 
         private ConditionalExecution waitForNextOperation() {
@@ -141,7 +144,7 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
                     try {
                         workAvailable.await();
                     } catch (InterruptedException e) {
-                        throw new UncheckedException(e);
+                        throw UncheckedException.throwAsUncheckedException(e);
                     }
                 }
 
@@ -210,8 +213,6 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
         private void runExecution(ConditionalExecution execution) {
             try {
                 execution.getExecution().run();
-            } catch (Throwable t) {
-                execution.registerFailure(t);
             } finally {
                 coordinationService.withStateLock(unlock(execution.getResourceLock()));
                 execution.complete();

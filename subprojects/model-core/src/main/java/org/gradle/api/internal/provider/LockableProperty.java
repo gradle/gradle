@@ -42,6 +42,12 @@ public class LockableProperty<T> extends AbstractLockableProperty<T> implements 
     }
 
     @Override
+    public Property<T> value(T value) {
+        set(value);
+        return this;
+    }
+
+    @Override
     public void lockNow() {
         super.lockNow();
         delegate = null;

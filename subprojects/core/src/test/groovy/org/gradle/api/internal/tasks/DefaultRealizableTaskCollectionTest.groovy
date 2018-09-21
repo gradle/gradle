@@ -28,7 +28,7 @@ class DefaultRealizableTaskCollectionTest extends Specification {
 
     def instantiator = DirectInstantiator.INSTANCE
     
-    def "realizes a nodes link of a given type"() {
+    def "realizes a nodes link of a given type when task dependencies visited"() {
         given:
         ModelRegistryHelper registry = new ModelRegistryHelper()
         ModelPath path = ModelPath.path("tasks")
@@ -40,7 +40,7 @@ class DefaultRealizableTaskCollectionTest extends Specification {
         }
 
         when:
-        new DefaultRealizableTaskCollection(realizableType, Mock(DefaultTaskCollection), registry.node(path), instantiator).realizeRuleTaskTypes()
+        new DefaultRealizableTaskCollection(realizableType, Stub(TaskCollection), registry.node(path), instantiator).visitDependencies(Stub(TaskDependencyResolveContext))
 
         then:
         registry.state(taskPath) == ModelNode.State.GraphClosed
@@ -64,8 +64,8 @@ class DefaultRealizableTaskCollectionTest extends Specification {
         }
 
         when:
-        def collection = new DefaultRealizableTaskCollection(BasicTask, Mock(DefaultTaskCollection), registry.node(path), instantiator)
-        collection.realizeRuleTaskTypes()
+        def collection = new DefaultRealizableTaskCollection(BasicTask, Stub(TaskCollection), registry.node(path), instantiator)
+        collection.visitDependencies(Stub(TaskDependencyResolveContext))
 
         then:
         registry.state("tasks.redundant") == ModelNode.State.Discovered
@@ -85,9 +85,9 @@ class DefaultRealizableTaskCollectionTest extends Specification {
 
 
         when:
-        DefaultRealizableTaskCollection collection = new DefaultRealizableTaskCollection(Class, Mock(TaskCollection), registry.node(path), instantiator)
-        collection.realizeRuleTaskTypes()
-        collection.realizeRuleTaskTypes()
+        DefaultRealizableTaskCollection collection = new DefaultRealizableTaskCollection(Class, Stub(TaskCollection), registry.node(path), instantiator)
+        collection.visitDependencies(Stub(TaskDependencyResolveContext))
+        collection.visitDependencies(Stub(TaskDependencyResolveContext))
 
         then:
         noExceptionThrown()

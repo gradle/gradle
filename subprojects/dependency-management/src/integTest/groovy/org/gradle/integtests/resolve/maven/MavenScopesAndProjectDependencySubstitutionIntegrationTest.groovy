@@ -24,6 +24,7 @@ class MavenScopesAndProjectDependencySubstitutionIntegrationTest extends Abstrac
 
     def setup() {
         resolve.prepare()
+        resolve.expectDefaultConfiguration("runtime")
         settingsFile << """
             rootProject.name = 'testproject'
             include 'child1', 'child2'
@@ -43,13 +44,14 @@ class MavenScopesAndProjectDependencySubstitutionIntegrationTest extends Abstrac
         """
     }
 
-    def "when no target configuration is specified then a dependency on maven module includes the compile, runtime and master configurations of target project when they are present"() {
+    def "when no target configuration is specified then a dependency on maven module includes the default configuration of target project when they are present"() {
         mavenRepo.module("org.test", "m1", "1.0").publish()
         mavenRepo.module("org.test", "m2", "1.0").publish()
         mavenRepo.module("org.test", "m3", "1.0").publish()
         mavenRepo.module("org.test", "maven", "1.0")
             .dependsOn("org.test", "replaced", "1.0")
             .publish()
+        mavenRepo.module("org.test", "dont-ignore-me", "1.0").publish()
 
         buildFile << """
 project(':child1') {
@@ -73,7 +75,7 @@ project(':child2') {
         runtime 'org.test:m2:1.0'
         master 'org.test:m3:1.0'
         other 'org.test.ignore-me:1.0'
-        "default" 'org.test.ignore-me:1.0'
+        "default" 'org.test:dont-ignore-me:1.0'
     }
 }
 """
@@ -85,9 +87,7 @@ project(':child2') {
                     edge('org.test:replaced:1.0', 'project :child2', 'testproject:child2:') {
                         noArtifacts()
                         selectedByRule()
-                        module('org.test:m1:1.0')
-                        module('org.test:m2:1.0')
-                        module('org.test:m3:1.0')
+                        module('org.test:dont-ignore-me:1.0')
                     }
                 }
             }
@@ -137,12 +137,13 @@ project(':child2') {
         }
     }
 
-    def "a dependency on compile scope of maven module includes the compile and master configurations of target project when they are present"() {
+    def "a dependency on compile scope of maven module includes the default of target project when they are present"() {
         mavenRepo.module("org.test", "m1", "1.0").publish()
         mavenRepo.module("org.test", "m2", "1.0").publish()
         mavenRepo.module("org.test", "maven", "1.0")
             .dependsOn("org.test", "replaced", "1.0")
             .publish()
+        mavenRepo.module("org.test", "dont-ignore-me", "1.0").publish()
 
         buildFile << """
 project(':child1') {
@@ -166,7 +167,7 @@ project(':child2') {
         master 'org.test:m2:1.0'
         runtime 'org.test.ignore-me:1.0'
         other 'org.test.ignore-me:1.0'
-        "default" 'org.test.ignore-me:1.0'
+        "default" 'org.test:dont-ignore-me:1.0'
     }
 }
 """
@@ -179,8 +180,7 @@ project(':child2') {
                     edge('org.test:replaced:1.0', 'project :child2', 'testproject:child2:') {
                         selectedByRule()
                         noArtifacts()
-                        module('org.test:m1:1.0')
-                        module('org.test:m2:1.0')
+                        module('org.test:dont-ignore-me:1.0')
                     }
                 }
             }

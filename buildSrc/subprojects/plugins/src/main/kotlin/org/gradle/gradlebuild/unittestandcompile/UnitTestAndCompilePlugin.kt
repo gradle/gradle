@@ -25,8 +25,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Named
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ComponentMetadataContext
-import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.compile.CompileOptions
@@ -38,6 +36,8 @@ import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.BuildEnvironment.agentNum
 import org.gradle.gradlebuild.java.AvailableJavaInstallations
 import org.gradle.kotlin.dsl.*
+import org.gradle.plugins.ide.idea.IdeaPlugin
+import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.process.CommandLineArgumentProvider
 import java.util.concurrent.Callable
 import testLibraries
@@ -46,12 +46,44 @@ import java.util.jar.Attributes
 
 
 enum class ModuleType(val compatibility: JavaVersion) {
-    UNDEFINED(JavaVersion.VERSION_1_1),
+
+    /**
+     * This module type is used by modules that contain code that is used by one
+     * of the entry points of using Gradle, such as the Wrapper, the Launcher
+     * and the Tooling API.
+     * Such entry points need to run on older Java versions than those parts of
+     * the codebase are executed from builds, if only to print a message
+     * indicating that the old JDK is not supported anymore.
+     */
     ENTRY_POINT(JavaVersion.VERSION_1_6),
+
+    /**
+     * This module type is used by modules that contain code that needs to
+     * be able to run in worker JVMs where we usually support older Java
+     * versions.
+     * Some of these modules use APIs that are not available in the specified
+     * Java version but only in parts that are not called from workers.
+     */
     WORKER(JavaVersion.VERSION_1_6),
-    CORE(JavaVersion.VERSION_1_7),
-    PLUGIN(JavaVersion.VERSION_1_7),
-    INTERNAL(JavaVersion.VERSION_1_7),
+
+    /**
+     * This module type is used by all modules that end up in the distribution
+     * and are not used by entry points or workers.
+     */
+    CORE(JavaVersion.VERSION_1_8),
+
+    /**
+     * This module type is used by internal modules that are not part of
+     * the distribution.
+     */
+    INTERNAL(JavaVersion.VERSION_1_8),
+
+    /**
+     * This module type is used for one-off modules that would normally use
+     * {@link #ENTRY_POINT} or {@link #WORKER} but explicitly require Java 8,
+     * e.g. due to the requirements of a downstream dependency (e.g. JUnit
+     * Platform).
+     */
     REQUIRES_JAVA_8(JavaVersion.VERSION_1_8)
 }
 
@@ -108,6 +140,14 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     fun Project.addGeneratedResources(gradlebuildJava: UnitTestAndCompileExtension) {
         val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class)
         java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), gradlebuildJava.generatedResourcesDir)
+        plugins.withType<IdeaPlugin> {
+            configure<IdeaModel> {
+                module {
+                    resourceDirs = resourceDirs + gradlebuildJava.generatedResourcesDir
+                    testResourceDirs = testResourceDirs + gradlebuildJava.generatedTestResourcesDir
+                }
+            }
+        }
     }
 
     private
@@ -118,10 +158,6 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             testCompile(library("groovy"))
             testCompile(testLibrary("spock"))
             testLibraries("jmock").forEach { testCompile(it) }
-
-            components {
-                withModule("org.spockframework:spock-core", SpockCoreRule::class.java)
-            }
         }
     }
 
@@ -211,31 +247,17 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 open class UnitTestAndCompileExtension(val project: Project) {
     val generatedResourcesDir = project.file("${project.buildDir}/generated-resources/main")
     val generatedTestResourcesDir = project.file("${project.buildDir}/generated-resources/test")
-    var moduleType: ModuleType = ModuleType.UNDEFINED
+    var moduleType: ModuleType? = null
         set(value) {
-            field = value
-            project.java.targetCompatibility = moduleType.compatibility
-            project.java.sourceCompatibility = moduleType.compatibility
+            field = value!!
+            project.java.targetCompatibility = value.compatibility
+            project.java.sourceCompatibility = value.compatibility
         }
 
     init {
         project.afterEvaluate {
-            if (this@UnitTestAndCompileExtension.moduleType == ModuleType.UNDEFINED) {
+            if (this@UnitTestAndCompileExtension.moduleType == null) {
                 throw InvalidUserDataException("gradlebuild.moduletype must be set for project $project")
-            }
-        }
-    }
-}
-
-
-open class SpockCoreRule : ComponentMetadataRule {
-    override fun execute(context: ComponentMetadataContext) {
-        context.details.allVariants {
-            withDependencyConstraints {
-                filter { it.group == "org.objenesis" }.forEach {
-                    it.version { prefer("1.2") }
-                    it.because("1.2 is required by Gradle and part of the distribution")
-                }
             }
         }
     }

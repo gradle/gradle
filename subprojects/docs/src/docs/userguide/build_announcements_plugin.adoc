@@ -15,12 +15,9 @@
 [[build_announcements_plugin]]
 = The Build Announcements Plugin
 
-
-[NOTE]
+[CAUTION]
 ====
-
-The build announcements plugin is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
-
+This plugin is deprecated and will be removed in the next major Gradle release. New builds should not use this plugin.
 ====
 
 The build announcements plugin uses the <<announce_plugin.adoc#announce_plugin,announce>> plugin to send local announcements on important events in the build.

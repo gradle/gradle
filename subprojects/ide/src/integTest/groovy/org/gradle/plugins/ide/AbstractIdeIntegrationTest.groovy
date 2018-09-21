@@ -28,7 +28,7 @@ import org.junit.Before
 abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
     @Before
     void setUp() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
     protected ExecutionResult runTask(taskName, settingsScript = "rootProject.name = 'root'", buildScript) {

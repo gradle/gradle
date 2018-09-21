@@ -23,7 +23,7 @@ dependencies {
     implementation libraries.commons_io.coordinates
     implementation libraries.kryo.coordinates
 
-    testFixturesCompile project(':internalIntegTesting')
+    testFixturesApi project(':internalIntegTesting')
 }
 
 gradlebuildJava {

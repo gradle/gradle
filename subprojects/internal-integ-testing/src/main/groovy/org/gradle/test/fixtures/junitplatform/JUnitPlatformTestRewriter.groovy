@@ -71,7 +71,7 @@ class JUnitPlatformTestRewriter {
     }
 
     static rewriteBuildFileWithVintage(File buildFile, String dependencyVersion) {
-        rewriteBuildFileInDir(buildFile, "org.junit.vintage:junit-vintage-engine:${dependencyVersion}")
+        rewriteBuildFileInDir(buildFile, "org.junit.vintage:junit-vintage-engine:${dependencyVersion}','junit:junit:4.12")
     }
 
     static rewriteJavaFilesWithJupiterAnno(File rootProject) {

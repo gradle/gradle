@@ -30,6 +30,8 @@ import java.util.Set;
  * with associated include and exclude patterns.</p>
  *
  * <p>{@code SourceDirectorySet} extends {@link FileTree}. The contents of the file tree represent the source files of this set, arranged in a hierarchy. The file tree is live and reflects changes to the source directories and their contents.</p>
+ *
+ * <p>You can create an instance of {@code SourceDirectorySet} using the {@link org.gradle.api.model.ObjectFactory#sourceDirectorySet(String, String)} method.</p>
  */
 @UnmanagedStruct
 public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, Describable {

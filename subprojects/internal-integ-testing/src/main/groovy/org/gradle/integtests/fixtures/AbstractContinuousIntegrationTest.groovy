@@ -25,13 +25,17 @@ import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.testing.internal.util.RetryRule
-import org.junit.Rule
+import spock.lang.Retry
 
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
+import static org.gradle.integtests.fixtures.RetryConditions.onBuildTimeout
 import static org.gradle.util.TestPrecondition.PULL_REQUEST_BUILD
+import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 
+@Retry(condition = { onBuildTimeout(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec {
 
     private static final int WAIT_FOR_WATCHING_TIMEOUT_SECONDS = PULL_REQUEST_BUILD.fulfilled ? 60 : 30
@@ -39,9 +43,6 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     private static final boolean OS_IS_WINDOWS = OperatingSystem.current().isWindows()
     private static final String CHANGE_DETECTED_OUTPUT = "Change detected, executing build..."
     private static final String WAITING_FOR_CHANGES_OUTPUT = "Waiting for changes to input files of tasks..."
-
-    @Rule
-    RetryRule timeoutRetryRule = RetryRuleUtil.retryContinuousBuildSpecificationOnTimeout(this)
 
     GradleHandle gradle
 
@@ -266,8 +267,9 @@ $lastOutput
                 gradle.abort()
             } else {
                 gradle.cancel()
+                ExecutorService executorService = Executors.newCachedThreadPool()
                 try {
-                    new SimpleTimeLimiter().callWithTimeout(
+                    SimpleTimeLimiter.create(executorService).callWithTimeout(
                         { gradle.waitForExit() },
                         shutdownTimeout, TimeUnit.SECONDS, false
                     )
@@ -276,6 +278,8 @@ $lastOutput
                     if (!ignoreShutdownTimeoutException) {
                         throw e
                     }
+                } finally {
+                    executorService.shutdownNow()
                 }
             }
         }

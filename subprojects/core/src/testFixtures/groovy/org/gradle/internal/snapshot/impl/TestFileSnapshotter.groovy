@@ -29,13 +29,13 @@ class TestFileSnapshotter implements FileSystemSnapshotter {
 
     @Override
     HashCode getRegularFileContentHash(File file) {
-        return file.isFile() ? Hashing.md5().hashBytes(file.bytes) : null
+        return file.isFile() ? Hashing.hashBytes(file.bytes) : null
     }
 
     @Override
     FileSystemLocationSnapshot snapshot(File file) {
         if (file.isFile()) {
-            return new RegularFileSnapshot(file.absolutePath, file.name, Hashing.md5().hashBytes(file.bytes), file.lastModified())
+            return new RegularFileSnapshot(file.absolutePath, file.name, Hashing.hashBytes(file.bytes), file.lastModified())
         }
         if (!file.exists()) {
             return new MissingFileSnapshot(file.absolutePath, file.name)

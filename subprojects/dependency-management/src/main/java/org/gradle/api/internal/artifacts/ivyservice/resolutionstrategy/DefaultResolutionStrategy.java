@@ -164,7 +164,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return assumeFluidDependencies || dependencySubstitutions.hasRules() || globalDependencySubstitutionRules.hasRules() || vcsResolver.hasRules();
     }
 
-    public DefaultResolutionStrategy setForcedModules(Object ... moduleVersionSelectorNotations) {
+    public DefaultResolutionStrategy setForcedModules(Object... moduleVersionSelectorNotations) {
         mutationValidator.validateMutation(STRATEGY);
         this.forcedModules.clear();
         force(moduleVersionSelectorNotations);

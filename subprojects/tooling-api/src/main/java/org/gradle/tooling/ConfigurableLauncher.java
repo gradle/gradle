@@ -37,7 +37,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher> extends Lo
      * @since 1.0
      */
     @Override
-    T withArguments(String ... arguments);
+    T withArguments(String... arguments);
 
     /**
      * {@inheritDoc}

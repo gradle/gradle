@@ -40,6 +40,7 @@ import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MavenVersionUtils;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -116,6 +117,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final Set<MavenDependencyInternal> apiDependencies = new LinkedHashSet<MavenDependencyInternal>();
     private final Set<MavenDependency> runtimeDependencyConstraints = new LinkedHashSet<MavenDependency>();
     private final Set<MavenDependency> apiDependencyConstraints = new LinkedHashSet<MavenDependency>();
+    private final Set<MavenDependency> importDependencyConstraints = new LinkedHashSet<MavenDependency>();
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final FeaturePreviews featurePreviews;
     private final ImmutableAttributesFactory immutableAttributesFactory;
@@ -251,7 +253,11 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                     if (dependency instanceof ProjectDependency) {
                         addProjectDependency((ProjectDependency) dependency, globalExcludes, dependencies);
                     } else {
-                        addModuleDependency(dependency, globalExcludes, dependencies);
+                        if (PlatformSupport.isTargettingPlatform(dependency)) {
+                            addImportDependencyConstraint(dependency);
+                        } else {
+                            addModuleDependency(dependency, globalExcludes, dependencies);
+                        }
                     }
                 }
             }
@@ -262,6 +268,10 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                 }
             }
         }
+    }
+
+    private void addImportDependencyConstraint(ModuleDependency dependency) {
+        importDependencyConstraints.add(new DefaultMavenDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion(), "pom"));
     }
 
     private List<UsageContext> getSortedUsageContexts() {
@@ -393,6 +403,12 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     public Set<MavenDependency> getRuntimeDependencyConstraints() {
         populateFromComponent();
         return runtimeDependencyConstraints;
+    }
+
+    @Override
+    public Set<MavenDependency> getImportDependencyConstraints() {
+        populateFromComponent();
+        return importDependencyConstraints;
     }
 
     public Set<MavenDependencyInternal> getRuntimeDependencies() {

@@ -16,15 +16,17 @@
 
 package org.gradle.binarycompatibility
 
-import groovy.json.JsonBuilder
-import groovy.json.JsonSlurper
+import com.google.gson.Gson
+import com.google.gson.stream.JsonWriter
 
 class AcceptedApiChangesJsonFileManager {
 
     void emptyAcceptedApiChanges(File jsonFile) {
-        def slurped = new JsonSlurper().parse(jsonFile)
-        JsonBuilder jsonBuilder = new JsonBuilder(slurped)
-        jsonBuilder.content.acceptedApiChanges = []
-        jsonFile.write(jsonBuilder.toPrettyString())
+        jsonFile.withWriter { fileWriter ->
+            def writer = new JsonWriter(fileWriter)
+            writer.setIndent("    ")
+            new Gson().toJson([acceptedApiChanges: []], Object, writer)
+            writer.close()
+        }
     }
 }

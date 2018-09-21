@@ -148,7 +148,6 @@ public abstract class AbstractTaskOutputPackagingBenchmark {
         packer.unpack(sample, accessor.createTargetFactory("unpack-" + accessorName, Level.Iteration));
     }
 
-    @SuppressWarnings("Since15")
     private static class DefaultDirectoryProvider implements DirectoryProvider {
         private Path tempDir;
         private Path iterationDir;

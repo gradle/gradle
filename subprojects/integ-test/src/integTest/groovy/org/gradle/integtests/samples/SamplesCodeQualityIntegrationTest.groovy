@@ -21,12 +21,10 @@ import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
-@Ignore('work in progress')
 @Requires(KOTLIN_SCRIPT)
 class SamplesCodeQualityIntegrationTest extends AbstractSampleIntegrationTest {
 
@@ -40,7 +38,12 @@ class SamplesCodeQualityIntegrationTest extends AbstractSampleIntegrationTest {
         TestFile buildDir = projectDir.file('build')
 
         when:
-        executer.inDirectory(projectDir).requireGradleDistribution().withTasks('check').run()
+        executer
+            .inDirectory(projectDir)
+            .requireGradleDistribution()
+            .withTasks('check')
+            .expectDeprecationWarnings(2) // jdepend and findbugs are deprecated
+            .run()
 
         then:
         buildDir.file('reports/checkstyle/main.xml').assertDoesNotExist()

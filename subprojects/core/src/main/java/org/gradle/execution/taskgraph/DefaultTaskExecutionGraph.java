@@ -74,6 +74,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final ListenerBuildOperationDecorator listenerBuildOperationDecorator;
     private TaskGraphState taskGraphState = TaskGraphState.EMPTY;
     private List<Task> allTasks;
+    private boolean hasFiredWhenReady;
 
     private final Set<Task> requestedTasks = Sets.newTreeSet();
 
@@ -140,7 +141,12 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     public void execute(Collection<? super Throwable> failures) {
         Timer clock = Time.startTimer();
         ensurePopulated();
-        buildOperationExecutor.run(new NotifyTaskGraphWhenReady(this, graphListeners.getSource(), gradleInternal));
+        if (!hasFiredWhenReady) {
+            buildOperationExecutor.run(new NotifyTaskGraphWhenReady(this, graphListeners.getSource(), gradleInternal));
+            hasFiredWhenReady = true;
+        } else if (!graphListeners.isEmpty()) {
+            LOGGER.warn("Ignoring listeners of task graph ready event, as this build (" + gradleInternal.getIdentityPath() + ") has already run tasks.");
+        }
         try {
             taskPlanExecutor.process(taskExecutionPlan, failures, new BuildOperationAwareWorkItemExecutor(workInfoExecutors, buildOperationExecutor.getCurrentOperation()));
             LOGGER.debug("Timing: Executing the DAG took " + clock.getElapsed());

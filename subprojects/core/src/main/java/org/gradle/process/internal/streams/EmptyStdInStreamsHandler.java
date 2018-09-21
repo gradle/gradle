@@ -42,4 +42,8 @@ public class EmptyStdInStreamsHandler implements StreamsHandler {
     @Override
     public void stop() {
     }
+
+    @Override
+    public void disconnect() {
+    }
 }

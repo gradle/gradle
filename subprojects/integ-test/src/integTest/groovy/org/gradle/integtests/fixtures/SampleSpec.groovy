@@ -18,22 +18,21 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import org.junit.rules.RuleChain
+import org.junit.rules.TestRule
 import spock.lang.Specification
 
 class SampleSpec extends Specification {
 
-    @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
-
-    @Rule
     Sample sample = new Sample(testDirectoryProvider, 'java/multiproject')
+    @Rule TestRule rule = RuleChain.outerRule(testDirectoryProvider).around(sample)
 
     def 'sample dir'() {
         // Sample.dir is named after sample, test method and test class
         expect:
         sample.dir.name == 'multiproject'
-        sample.dir.parentFile.name == 'java'
-        sample.dir.parentFile.parentFile.parentFile.name == 'sample_dir'
-        sample.dir.parentFile.parentFile.parentFile.parentFile.name == 'SampleSpec'
+        sample.dir.parentFile.parentFile.name == 'sample_dir'
+        sample.dir.parentFile.parentFile.parentFile.name == 'SampleSpec'
     }
 }

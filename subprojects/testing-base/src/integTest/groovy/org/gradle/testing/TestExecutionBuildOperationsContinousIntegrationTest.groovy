@@ -50,7 +50,7 @@ class TestExecutionBuildOperationsContinousIntegrationTest extends AbstractConti
     }
 
     def setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
     def "emits test operations for continuous builds"() {

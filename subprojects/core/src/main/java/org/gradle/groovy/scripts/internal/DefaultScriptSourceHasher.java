@@ -18,22 +18,22 @@ package org.gradle.groovy.scripts.internal;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.hash.ContentHasherFactory;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.hash.PrimitiveHasher;
 import org.gradle.internal.resource.TextResource;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 
 public class DefaultScriptSourceHasher implements ScriptSourceHasher {
-    private final FileHasher fileHasher;
-    private final ContentHasherFactory contentHasherFactory;
+    private static final HashCode SIGNATURE = Hashing.signature(DefaultScriptSourceHasher.class);
 
-    public DefaultScriptSourceHasher(FileHasher fileHasher, ContentHasherFactory contentHasherFactory) {
+    private final FileHasher fileHasher;
+
+    public DefaultScriptSourceHasher(FileHasher fileHasher) {
         this.fileHasher = fileHasher;
-        this.contentHasherFactory = contentHasherFactory;
     }
 
     @Override
@@ -50,7 +50,8 @@ public class DefaultScriptSourceHasher implements ScriptSourceHasher {
                 throw e;
             }
         }
-        Hasher hasher = contentHasherFactory.create();
+        PrimitiveHasher hasher = Hashing.newPrimitiveHasher();
+        hasher.putHash(SIGNATURE);
         hasher.putString(resource.getText());
         return hasher.hash();
     }

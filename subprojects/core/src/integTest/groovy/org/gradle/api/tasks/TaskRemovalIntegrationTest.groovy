@@ -115,15 +115,17 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task foo(type: Zip) {}
             ${code}
+
+            // need at least one task to execute anything
+            task dummy
         """
 
         when:
         executer.expectDeprecationWarning()
-        succeeds "help"
+        succeeds ("dummy")
 
         then:
-        outputContains("The ${description} method has been deprecated. This is scheduled to become an error in Gradle 6.0. Prefer disabling the task instead, see Task.setEnabled(boolean).")
-
+        outputContains("The ${description} method has been deprecated. This is scheduled to be removed in Gradle 6.0. Prefer disabling the task instead, see Task.setEnabled(boolean).")
         where:
         description                                | code
         "TaskContainer.remove(Object)"             | "tasks.remove(foo)"

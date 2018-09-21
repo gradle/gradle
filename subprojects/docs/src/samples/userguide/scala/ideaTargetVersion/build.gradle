@@ -1,8 +1,0 @@
-apply plugin: "scala"
-apply plugin: "idea"
-
-// tag::scala-idea-target-version[]
-idea {
-    targetVersion = "13"
-}
-// end::scala-idea-target-version[]

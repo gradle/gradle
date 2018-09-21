@@ -41,7 +41,7 @@ abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationS
     private static final Pattern TEST_CASE_RESULT_PATTERN = ~/(.*)(\w+)\(\) (PASSED|FAILED|SKIPPED|STANDARD_OUT)/
 
     def setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
     @Override
@@ -94,7 +94,7 @@ abstract class JUnitMultiVersionIntegrationSpec extends MultiVersionIntegrationS
         if (isJupiter()) {
             return "org.junit.jupiter:junit-jupiter-api:${dependencyVersion}','org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}"
         } else if (isVintage()) {
-            return "org.junit.vintage:junit-vintage-engine:${dependencyVersion}"
+            return "org.junit.vintage:junit-vintage-engine:${dependencyVersion}','junit:junit:4.12"
         } else {
             return "junit:junit:${version}"
         }

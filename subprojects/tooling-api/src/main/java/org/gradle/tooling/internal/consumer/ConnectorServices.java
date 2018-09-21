@@ -61,8 +61,7 @@ public class ConnectorServices {
     }
 
     private static void checkJavaVersion() {
-        UnsupportedJavaRuntimeException.javaDeprecationWarning();
-        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle Tooling API", JavaVersion.VERSION_1_7);
+        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle Tooling API", JavaVersion.VERSION_1_8);
     }
 
     private static class ConnectorServiceRegistry extends DefaultServiceRegistry {

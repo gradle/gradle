@@ -45,6 +45,7 @@ import org.gradle.util.TestUtil
 import javax.inject.Inject
 
 class DefaultIvyArtifactRepositoryTest extends Specification {
+    final instantiator = TestUtil.instantiatorFactory().decorate()
     final FileResolver fileResolver = Mock()
     final RepositoryTransportFactory transportFactory = Mock()
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
@@ -58,7 +59,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final ModuleMetadataParser moduleMetadataParser = new ModuleMetadataParser(Mock(ImmutableAttributesFactory), moduleIdentifierFactory, Mock(NamedObjectInstantiator))
     final IvyMutableModuleMetadataFactory metadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory())
 
-    final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(fileResolver, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager, moduleIdentifierFactory, TestUtil.instantiatorFactory(), Mock(FileResourceRepository), moduleMetadataParser, TestUtil.featurePreviews(), metadataFactory, TestUtil.valueSnapshotter(), Mock(ObjectFactory))
+    final DefaultIvyArtifactRepository repository = instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager, moduleIdentifierFactory, TestUtil.instantiatorFactory(), Mock(FileResourceRepository), moduleMetadataParser, TestUtil.featurePreviews(), metadataFactory, TestUtil.valueSnapshotter(), Mock(ObjectFactory))
 
     def "default values"() {
         expect:
@@ -184,7 +185,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     def "uses specified base url with configured pattern layout"() {
         repository.name = 'name'
         repository.url = 'http://host'
-        repository.layout 'pattern', {
+        repository.patternLayout {
             artifact '[module]/[revision]/[artifact](.[ext])'
             ivy '[module]/[revision]/ivy.xml'
         }
@@ -210,7 +211,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     def "when requested uses maven patterns with configured pattern layout"() {
         repository.name = 'name'
         repository.url = 'http://host'
-        repository.layout 'pattern', {
+        repository.patternLayout {
             artifact '[module]/[revision]/[artifact](.[ext])'
             ivy '[module]/[revision]/ivy.xml'
             m2compatible = true
@@ -260,7 +261,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     def "uses artifact pattern for ivy files when no ivy pattern provided"() {
         repository.name = 'name'
         repository.url = 'http://host'
-        repository.layout 'pattern', {
+        repository.patternLayout {
             artifact '[layoutPattern]'
         }
         repository.artifactPattern 'http://other/[additionalPattern]'

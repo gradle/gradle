@@ -328,7 +328,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         fails("helloWorld")
 
         then:
-        failureDescriptionContains("could not resolve plugin artifact 'foo:bar:1.0'")
+        failureDescriptionContains("could not resolve plugin module 'foo:bar:1.0'")
     }
 
     def "succeeds build for resolvable custom artifact"() {
@@ -371,7 +371,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
                 repositories {
                     ivy {
                         url "${repo.uri}"
-                        layout("pattern") {
+                        patternLayout {
                             ivy '[organisation]/[module]/[revision]/[module]-[revision].ivy'
                             artifact '[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]'
                             m2compatible true

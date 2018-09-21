@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
@@ -70,7 +71,7 @@ abstract class ExternalDependencyDescriptorTest extends Specification {
 
     def configuration(String name, String... parents) {
         def config = Stub(ConfigurationMetadata)
-        config.hierarchy >> ([name] as Set) + (parents as Set)
+        config.hierarchy >> ImmutableSet.copyOf(([name] as Set) + (parents as Set))
         return config
     }
 }

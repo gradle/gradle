@@ -98,13 +98,11 @@ To find out more about defining repositories, have a look at <<declaring_reposit
 
 Dependency configurations are also used to publish files. Gradle calls these files _publication artifacts_, or usually just _artifacts_. As a user you will need to tell Gradle where to publish the artifacts. You do this by declaring repositories for the `uploadArchives` task. Here's an example of publishing to a Maven repository:
 
-=== Example: Publishing to a Maven repository
-
-[source.multi-language-sample,groovy]
-.build.gradle
-----
-include::{samplesPath}/userguide/artifacts/maven/build.gradle[tag=upload-file]
-----
+.Publishing to a Maven repository
+====
+include::sample[dir="userguide/artifacts/maven/groovy",files="build.gradle[tags=upload-file]"]
+include::sample[dir="userguide/artifacts/maven/kotlin",files="build.gradle.kts[tags=upload-file]"]
+====
 
 Now, when you run `gradle uploadArchives`, Gradle will build the JAR file, generate a `.pom` file and upload the artifacts.
 

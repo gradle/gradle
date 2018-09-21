@@ -25,7 +25,7 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
  * should not be required.
  */
 class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends AbstractIntegrationSpec {
-    private final ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf")
+    private final ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
 
     def setup() {
         settingsFile << "rootProject.name = 'test'"

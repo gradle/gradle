@@ -117,7 +117,9 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             a = task(withOptions, description: 'description')
             a = task(withOptionsAndAction, description: 'description') << { }
             a = task(anotherWithAction).doFirst\n{}
-            task all(dependsOn: tasks as List)
+            task all(dependsOn: [":anotherWithAction", ":dynamic", ":emptyOptions",
+            ":nothing", ":string", ":stringWithAction", ":stringWithOptions", ":stringWithOptionsAndAction",
+            ":withAction", ":withOptions", ":withOptionsAndAction"])
         """
 
         expect:
@@ -141,7 +143,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             [withDescription, asMethod].each {
                 assert 'value' == it.description
             }
-            task all(dependsOn: tasks as List)
+            task all(dependsOn: ["withDescription", "asMethod", "asStatement", "dynamic", "asExpression", "postConfigure"])
             class TestTask extends DefaultTask { String property }
         """
 
@@ -166,7 +168,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             cl.call('i')
             assert 'value' == f.property
             assert 'value' == i.property
-            task all(dependsOn: tasks as List)
+            task all(dependsOn: [":a", ":d", ":e", ":f", ":g", ":h", ":i"])
         """
 
         expect:
@@ -218,7 +220,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             include "child"
         """
         file("child/build.gradle") << """
-            tasks.all {
+            tasks.configureEach {
                 throw new RuntimeException("broken task")
             }
             tasks.create("broken")
@@ -597,7 +599,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         succeeds("help")
 
         then:
-        outputContains("The add() method has been deprecated. This method will cause an error in Gradle 6.0. Please use the create() or register() method instead.")
+        outputContains("Using method TaskContainer.add() has been deprecated. This will fail with an error in Gradle 6.0. Please use the TaskContainer.register() method instead.")
     }
 
     def "cannot add a pre-created task provider to the task container"() {
@@ -631,7 +633,25 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             def schema = tasks.collectionSchema.elements.collectEntries { e ->
                 [ e.name, e.publicType.simpleName ]
             }
-            assert schema.size() == 4
+            assert schema.size() == 16
+            
+            assert schema["help"] == "Help"
+            
+            assert schema["projects"] == "ProjectReportTask"
+            assert schema["tasks"] == "TaskReportTask"
+            assert schema["properties"] == "PropertyReportTask"
+            
+            assert schema["dependencyInsight"] == "DependencyInsightReportTask"
+            assert schema["dependencies"] == "DependencyReportTask"
+            assert schema["buildEnvironment"] == "BuildEnvironmentReportTask"
+            
+            assert schema["components"] == "ComponentReport"
+            assert schema["model"] == "ModelReport"
+            assert schema["dependentComponents"] == "DependentComponentsReport"
+            
+            assert schema["init"] == "InitBuild"
+            assert schema["wrapper"] == "Wrapper"
+            
             assert schema["foo"] == "Foo"
             assert schema["bar"] == "Foo"
             assert schema["builtInTask"] == "Copy"

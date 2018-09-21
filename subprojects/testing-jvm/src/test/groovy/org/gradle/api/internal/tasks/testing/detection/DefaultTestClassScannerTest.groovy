@@ -41,16 +41,16 @@ class DefaultTestClassScannerTest extends Specification {
         then:
         1 * detector.startDetection(processor)
         then:
-        1 * detector.processTestClass(new File("class1.class"))
-        then:
-        1 * detector.processTestClass(new File("class2.class"))
-        then:
         1 * files.visit(_) >> { args ->
             FileVisitor visitor = args[0]
             assert visitor
             visitor.visitFile(mockFileVisitDetails('class1'))
             visitor.visitFile(mockFileVisitDetails('class2'))
         }
+        then:
+        1 * detector.processTestClass(new File("class1.class"))
+        then:
+        1 * detector.processTestClass(new File("class2.class"))
 
         0 * _._
     }

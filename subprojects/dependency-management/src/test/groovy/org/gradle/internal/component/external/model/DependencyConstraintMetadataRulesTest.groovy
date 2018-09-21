@@ -29,7 +29,7 @@ import org.gradle.util.TestUtil
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class DependencyConstraintMetadataRulesTest extends AbstractDependencyMetadataRulesTest {
-    private final mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews(true))
+    private final mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
 
     @Override
     boolean addAllDependenciesAsConstraints() {
@@ -43,7 +43,7 @@ class DependencyConstraintMetadataRulesTest extends AbstractDependencyMetadataRu
             variantAction(variantName, action))
     }
 
-    def "maven optional dependencies are accessible as dependency constraints"() {
+    def "maven optional dependencies are not accessible as dependency constraints"() {
         given:
         def mavenMetadata = mavenMetadataFactory.create(componentIdentifier, [
             new MavenDependencyDescriptor(MavenScope.Compile, MavenDependencyType.DEPENDENCY, newSelector(DefaultModuleIdentifier.newId("org", "notOptional"), "1.0"), null, []),
@@ -62,8 +62,7 @@ class DependencyConstraintMetadataRulesTest extends AbstractDependencyMetadataRu
 
         then:
         def dependencies = selectTargetConfigurationMetadata(mavenMetadata).dependencies
-        dependencies.size() == 2
+        dependencies.size() == 1
         !dependencies[0].constraint
-        dependencies[1].constraint
     }
 }

@@ -30,7 +30,7 @@ class SamplesJavaProjectWithIntTestsIntegrationTest extends AbstractIntegrationT
 
     @Before
     void setup() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
     @Test

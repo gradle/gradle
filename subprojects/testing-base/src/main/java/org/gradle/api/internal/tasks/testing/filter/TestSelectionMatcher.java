@@ -158,7 +158,7 @@ public class TestSelectionMatcher {
         }
 
         private boolean lastClassNameElementMatchesPenultimatePatternElement(String[] className, int index) {
-            return index == segments.length - 2 && index == className.length - 1 && className[index].equals(segments[index]);
+            return index == segments.length - 2 && index == className.length - 1 && classNameMatch(className[index], segments[index]);
         }
 
         private boolean lastClassNameElementMatchesLastPatternElement(String[] className, int index) {
@@ -186,6 +186,18 @@ public class TestSelectionMatcher {
         return simpleName;
     }
 
+    // Foo can match both Foo and Foo$NestedClass
+    // https://github.com/gradle/gradle/issues/5763
+    private static boolean classNameMatch(String simpleClassName, String patternSimpleClassName) {
+        if (simpleClassName.equals(patternSimpleClassName)) {
+            return true;
+        } else if (patternSimpleClassName.contains("$")) {
+            return simpleClassName.equals(patternSimpleClassName.substring(0, patternSimpleClassName.indexOf('$')));
+        } else {
+            return false;
+        }
+    }
+
     private interface LastElementMatcher {
         boolean match(String classElement, String patternElement);
     }
@@ -193,14 +205,14 @@ public class TestSelectionMatcher {
     private static class NoWildcardMatcher implements LastElementMatcher {
         @Override
         public boolean match(String classElement, String patternElement) {
-            return classElement.equals(patternElement);
+            return classNameMatch(classElement, patternElement);
         }
     }
 
     private static class WildcardMatcher implements LastElementMatcher {
         @Override
         public boolean match(String classElement, String patternElement) {
-            return classElement.startsWith(patternElement);
+            return classElement.startsWith(patternElement) || classNameMatch(classElement, patternElement);
         }
     }
 

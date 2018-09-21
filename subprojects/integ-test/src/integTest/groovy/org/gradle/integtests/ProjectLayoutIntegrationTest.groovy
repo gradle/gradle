@@ -35,7 +35,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationTest {
 
     @Before
     void setUp() {
-        useRepositoryMirrors()
+        executer.withRepositoryMirrors()
     }
 
     @Test

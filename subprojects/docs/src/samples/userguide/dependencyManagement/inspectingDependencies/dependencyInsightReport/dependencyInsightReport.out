@@ -1,6 +1,8 @@
 commons-codec:commons-codec:1.7
-   variant "default+runtime" [
-      org.gradle.status = release (not requested)
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime (not requested)
+      org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
       - By conflict resolution : between versions 1.7 and 1.6

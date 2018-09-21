@@ -57,16 +57,16 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
 
         // static classes are used for the actions to avoid implicitly dragging project/tasks into the model registry
         String projectName = project.toString();
-        tasks.addPlaceholderAction(ProjectInternal.HELP_TASK, Help.class, new HelpAction());
-        tasks.addPlaceholderAction(ProjectInternal.PROJECTS_TASK, ProjectReportTask.class, new ProjectReportTaskAction(projectName));
-        tasks.addPlaceholderAction(ProjectInternal.TASKS_TASK, TaskReportTask.class, new TaskReportTaskAction(projectName, project.getChildProjects().isEmpty()));
-        tasks.addPlaceholderAction(PROPERTIES_TASK, PropertyReportTask.class, new PropertyReportTaskAction(projectName));
-        tasks.addPlaceholderAction(DEPENDENCY_INSIGHT_TASK, DependencyInsightReportTask.class, new DependencyInsightReportTaskAction(projectName));
-        tasks.addPlaceholderAction(DEPENDENCIES_TASK, DependencyReportTask.class, new DependencyReportTaskAction(projectName));
-        tasks.addPlaceholderAction(BuildEnvironmentReportTask.TASK_NAME, BuildEnvironmentReportTask.class, new BuildEnvironmentReportTaskAction(projectName));
-        tasks.addPlaceholderAction(COMPONENTS_TASK, ComponentReport.class, new ComponentReportAction(projectName));
-        tasks.addPlaceholderAction(MODEL_TASK, ModelReport.class, new ModelReportAction(projectName));
-        tasks.addPlaceholderAction(DEPENDENT_COMPONENTS_TASK, DependentComponentsReport.class, new DependentComponentsReportAction(projectName));
+        tasks.register(ProjectInternal.HELP_TASK, Help.class, new HelpAction());
+        tasks.register(ProjectInternal.PROJECTS_TASK, ProjectReportTask.class, new ProjectReportTaskAction(projectName));
+        tasks.register(ProjectInternal.TASKS_TASK, TaskReportTask.class, new TaskReportTaskAction(projectName, project.getChildProjects().isEmpty()));
+        tasks.register(PROPERTIES_TASK, PropertyReportTask.class, new PropertyReportTaskAction(projectName));
+        tasks.register(DEPENDENCY_INSIGHT_TASK, DependencyInsightReportTask.class, new DependencyInsightReportTaskAction(projectName));
+        tasks.register(DEPENDENCIES_TASK, DependencyReportTask.class, new DependencyReportTaskAction(projectName));
+        tasks.register(BuildEnvironmentReportTask.TASK_NAME, BuildEnvironmentReportTask.class, new BuildEnvironmentReportTaskAction(projectName));
+        tasks.register(COMPONENTS_TASK, ComponentReport.class, new ComponentReportAction(projectName));
+        tasks.register(MODEL_TASK, ModelReport.class, new ModelReportAction(projectName));
+        tasks.register(DEPENDENT_COMPONENTS_TASK, DependentComponentsReport.class, new DependentComponentsReportAction(projectName));
     }
 
     private static class HelpAction implements Action<Help> {

@@ -191,6 +191,14 @@ class DefaultSettingsTest extends Specification {
         settings.dynamicProp == 'value'
     }
 
+    def 'can get and set dynamic properties on extension'() {
+        when:
+        settings.extensions.dynamicProperty = 'valued'
+
+        then:
+        settings.dynamicProperty == 'valued'
+    }
+
     def 'fails on missing property'() {
         when:
         settings.unknownProp

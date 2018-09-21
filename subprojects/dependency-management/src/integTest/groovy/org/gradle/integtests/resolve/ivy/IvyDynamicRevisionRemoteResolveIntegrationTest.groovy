@@ -241,7 +241,11 @@ dependencies {
 configurations {
     staticVersions {
         // Force load the metadata
-        resolutionStrategy.componentSelection.all { ComponentSelection s, ComponentMetadata d -> if (d.status != 'release') { s.reject('nope') } }
+        resolutionStrategy.componentSelection.all { ComponentSelection s -> 
+            if (s.metadata.status != 'release') { 
+                s.reject('nope') 
+            } 
+        }
     }
     compile
 }
@@ -801,7 +805,7 @@ dependencies {
         mavenModule.artifact.sha1.expectGet()
 
         then:
-        checkResolve "org.test:a:[1.0,2.0)": "org.test:a:1.1"
+        checkResolve "org.test:a:[1.0,2.0)": "org.test:a:1.1:runtime"
     }
 
     def "can resolve dynamic versions from repository with multiple ivy patterns"() {

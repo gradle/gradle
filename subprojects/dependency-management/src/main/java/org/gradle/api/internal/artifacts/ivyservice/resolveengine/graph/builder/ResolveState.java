@@ -27,8 +27,10 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ComponentStateFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
@@ -52,14 +54,14 @@ import java.util.Map;
  */
 class ResolveState implements ComponentStateFactory<ComponentState> {
     private final Spec<? super DependencyMetadata> edgeFilter;
-    private final Map<ModuleIdentifier, ModuleResolveState> modules = new LinkedHashMap<ModuleIdentifier, ModuleResolveState>();
-    private final Map<ResolvedConfigurationIdentifier, NodeState> nodes = new LinkedHashMap<ResolvedConfigurationIdentifier, NodeState>();
-    private final Map<ComponentSelector, SelectorState> selectors = new LinkedHashMap<ComponentSelector, SelectorState>();
+    private final Map<ModuleIdentifier, ModuleResolveState> modules;
+    private final Map<ResolvedConfigurationIdentifier, NodeState> nodes;
+    private final Map<ComponentSelector, SelectorState> selectors;
     private final RootNode root;
     private final IdGenerator<Long> idGenerator;
     private final DependencyToComponentIdResolver idResolver;
     private final ComponentMetaDataResolver metaDataResolver;
-    private final Deque<NodeState> queue = new ArrayDeque<NodeState>();
+    private final Deque<NodeState> queue;
     private final AttributesSchemaInternal attributesSchema;
     private final ModuleExclusions moduleExclusions;
     private final DeselectVersionAction deselectVersionAction = new DeselectVersionAction(this);
@@ -72,14 +74,15 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     private final VersionSelectorScheme versionSelectorScheme;
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
-    private final DefaultPendingDependenciesHandler pendingDependenciesHandler;
+    private final SelectorStateResolver<ComponentState> selectorStateResolver;
 
     public ResolveState(IdGenerator<Long> idGenerator, ComponentResolveResult rootResult, String rootConfigurationName, DependencyToComponentIdResolver idResolver,
                         ComponentMetaDataResolver metaDataResolver, Spec<? super DependencyMetadata> edgeFilter, AttributesSchemaInternal attributesSchema,
                         ModuleExclusions moduleExclusions, ModuleReplacementsData moduleReplacementsData,
                         ComponentSelectorConverter componentSelectorConverter, ImmutableAttributesFactory attributesFactory,
                         DependencySubstitutionApplicator dependencySubstitutionApplicator, VersionSelectorScheme versionSelectorScheme,
-                        Comparator<Version> versionComparator, VersionParser versionParser) {
+                        Comparator<Version> versionComparator, VersionParser versionParser, ModuleConflictResolver conflictResolver,
+                        int graphSize) {
         this.idGenerator = idGenerator;
         this.idResolver = idResolver;
         this.metaDataResolver = metaDataResolver;
@@ -93,6 +96,10 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
+        this.modules = new LinkedHashMap<ModuleIdentifier, ModuleResolveState>(graphSize);
+        this.nodes = new LinkedHashMap<ResolvedConfigurationIdentifier, NodeState>(3*graphSize/2);
+        this.selectors = new LinkedHashMap<ComponentSelector, SelectorState>(5*graphSize/2);
+        this.queue = new ArrayDeque<NodeState>(graphSize);
         ComponentState rootVersion = getRevision(rootResult.getId(), rootResult.getModuleVersionId(), rootResult.getMetadata());
         final ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(rootVersion.getId(), rootConfigurationName);
         ConfigurationMetadata configurationMetadata = rootVersion.getMetadata().getConfiguration(id.getConfiguration());
@@ -100,11 +107,8 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         nodes.put(root.getResolvedConfigurationId(), root);
         root.getComponent().getModule().select(root.getComponent());
         this.replaceSelectionWithConflictResultAction = new ReplaceSelectionWithConflictResultAction(this);
-        pendingDependenciesHandler = new DefaultPendingDependenciesHandler();
-    }
-
-    PendingDependenciesHandler getPendingDependenciesHandler() {
-        return pendingDependenciesHandler;
+        selectorStateResolver = new SelectorStateResolver<ComponentState>(conflictResolver, this, rootVersion);
+        getModule(rootResult.getModuleVersionId().getModule()).setSelectorStateResolver(selectorStateResolver);
     }
 
     public Collection<ModuleResolveState> getModules() {
@@ -122,7 +126,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     public ModuleResolveState getModule(ModuleIdentifier id) {
         ModuleResolveState module = modules.get(id);
         if (module == null) {
-            module = new ModuleResolveState(idGenerator, id, metaDataResolver, variantNameBuilder, attributesFactory, versionComparator, versionParser);
+            module = new ModuleResolveState(idGenerator, id, metaDataResolver, variantNameBuilder, attributesFactory, versionComparator, versionParser, selectorStateResolver);
             modules.put(id, module);
         }
         return module;
@@ -230,5 +234,9 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
 
     public DependencySubstitutionApplicator getDependencySubstitutionApplicator() {
         return dependencySubstitutionApplicator;
+    }
+
+    PendingDependenciesVisitor newPendingDependenciesVisitor() {
+        return new DefaultPendingDependenciesVisitor(this);
     }
 }

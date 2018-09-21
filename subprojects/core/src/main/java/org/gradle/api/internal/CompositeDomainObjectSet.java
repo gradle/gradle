@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal;
 
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
@@ -200,7 +199,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         @SuppressWarnings("unchecked")
         public Iterator<T> iterator() {
             if (store.isEmpty()) {
-                return Iterators.emptyIterator();
+                return Collections.emptyIterator();
             }
             if (store.size() == 1) {
                 return (Iterator<T>) store.get(0).iterator();
@@ -305,6 +304,11 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         @Override
         public void realizeExternal(ProviderInternal<? extends T> provider) {
 
+        }
+
+        @Override
+        public MutationGuard getMutationGuard() {
+            throw new UnsupportedOperationException();
         }
     }
 }

@@ -23,6 +23,7 @@ import org.gradle.gradlebuild.ProjectGroups.implementationPluginProjects
 import org.gradle.gradlebuild.ProjectGroups.javaProjects
 import org.gradle.gradlebuild.ProjectGroups.pluginProjects
 import org.gradle.gradlebuild.ProjectGroups.publishedProjects
+import org.gradle.util.GradleVersion
 
 plugins {
     `java-base`
@@ -278,6 +279,7 @@ tasks.register<PatchExternalModules>("patchExternalModules") {
     coreModules = coreRuntime
     modulesToPatch = this@Build_gradle.externalModules
     destination = patchedExternalModulesDir
+    outputs.doNotCacheIfSlowInternetConnection()
 }
 
 evaluationDependsOn(":distributions")

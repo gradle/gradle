@@ -21,7 +21,7 @@ import org.gradle.util.VersionNumber
 class GroovyCoverage {
     final static String NEWEST = GroovySystem.version
 
-    final static String[] ALL = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', NEWEST]
+    final static String[] ALL = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', NEWEST]
 
     private final static List<VersionNumber> ALL_VERSIONS = ALL.collect { VersionNumber.parse(it) }
 

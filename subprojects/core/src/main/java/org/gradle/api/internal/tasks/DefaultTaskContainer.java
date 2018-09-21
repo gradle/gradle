@@ -93,7 +93,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private final TaskStatistics statistics;
     private final CrossProjectConfigurator crossProjectConfigurator;
     private final boolean eagerlyCreateLazyTasks;
-    private final Map<String, TaskProvider<? extends Task>> placeholders = Maps.newLinkedHashMap();
 
     private MutableModelNode modelNode;
 
@@ -222,22 +221,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private <T extends Task> void addTask(T task, boolean replaceExisting) {
         String name = task.getName();
 
-        TaskProvider<? extends Task> placeholderProvider = placeholders.remove(name);
-        if (placeholderProvider != null) {
-            if (!replaceExisting) {
-                if (modelNode != null) {
-                    modelNode.removeLink(name);
-                }
-                warnAboutPlaceholderDeprecation(name);
-            }
-        }
-
         if (replaceExisting) {
             Task existing = findByNameWithoutRules(name);
             if (existing != null) {
-                DeprecationLogger.nagUserWith("Replacing a task that may have been used by other plugins can cause problems.",
-                    "This behavior has been deprecated and is scheduled to become an error in Gradle 6.0.",
-                    "",
+                DeprecationLogger.nagUserOfDeprecated("Replacing a task that may have been used by other plugins",
                     "Use a different name for this task ('" + name + "') or avoid creating the original task you are trying to replace.");
                 removeInternal(existing);
             } else {
@@ -247,10 +234,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
                     final Action<? super T> onCreate;
                     if (!taskProvider.getType().isAssignableFrom(task.getClass())) {
-                        DeprecationLogger.nagUserWith(
-                            "Replacing an existing task with an incompatible type.",
-                            "This behavior has been deprecated and is scheduled to become an error in Gradle 6.0.",
-                            "",
+                        DeprecationLogger.nagUserOfDeprecated(
+                            "Replacing an existing task with an incompatible type",
                             "Use a different name for this task ('" + name + "'), use a compatible type (" + ((TaskInternal)task).getTaskIdentity().type.getName() + ") or avoid creating the original task you are trying to replace.");
                         onCreate = getEventRegister().getAddActions();
                     } else {
@@ -260,11 +245,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                     add(task, onCreate);
                     return; // Exit early as we are reusing the create actions from the provider
                 } else {
-                    DeprecationLogger.nagUserWith(
-                        "Unnecessarily replacing a task that does not exist.",
-                        "This behavior has been deprecated and is scheduled to become an error in Gradle 6.0.",
-                        "Try using create() or register() directly instead.",
-                        "You attempted to replace a task named '" + name + "', but no task exists with that name already.");
+                    DeprecationLogger.nagUserOfDeprecated(
+                        "Unnecessarily replacing a task that does not exist",
+                        "Try using create() or register() directly instead. You attempted to replace a task named '" + name + "', but no task exists with that name already.");
                 }
             }
         } else if (hasWithName(name)) {
@@ -488,19 +471,16 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public SortedSet<String> getNames() {
         SortedSet<String> names = super.getNames();
-        if (placeholders.isEmpty() && modelNode == null) {
+        if (modelNode == null) {
             return names;
-        }
-        TreeSet<String> allNames = new TreeSet<String>(names);
-        allNames.addAll(placeholders.keySet());
-        if (modelNode != null) {
+        } else {
+            TreeSet<String> allNames = new TreeSet<String>(names);
             allNames.addAll(modelNode.getLinkNames());
+            return allNames;
         }
-        return allNames;
     }
 
     public void realize() {
-        flushPlaceholders();
         if (modelNode != null) {
             project.getModelRegistry().realizeNode(modelNode.getPath());
         }
@@ -511,15 +491,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         project.fireDeferredConfiguration();
         if (modelNode != null) {
             project.getModelRegistry().atStateOrLater(modelNode.getPath(), ModelNode.State.SelfClosed);
-        }
-    }
-
-    private void flushPlaceholders() {
-        // @formatter:off
-        for (Iterator<TaskProvider<?>> iterator = placeholders.values().iterator(); iterator.hasNext();) {
-            // @formatter:on
-            iterator.next().get();
-            iterator.remove();
         }
     }
 
@@ -535,11 +506,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
      * @return true if this method _may_ have done some work.
      */
     private boolean maybeCreateTasks(String name) {
-        TaskProvider<?> placeholder = placeholders.remove(name);
-        if (placeholder != null) {
-            placeholder.get();
-            return true;
-        }
         if (modelNode != null && modelNode.hasLink(name)) {
             realizeTask(MODEL_PATH.child(name), ModelNode.State.Initialized);
             return true;
@@ -555,43 +521,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (!maybeCreateTasks(name)) {
             return null;
         }
-        placeholders.remove(name);
         return super.findByNameWithoutRules(name);
     }
 
     private Task realizeTask(ModelPath taskPath, ModelNode.State minState) {
         return project.getModelRegistry().atStateOrLater(taskPath, ModelType.of(Task.class), minState);
-    }
-
-    public <T extends Task> void addPlaceholderAction(final String placeholderName, final Class<T> taskType, final Action<? super T> configure) {
-        if (findByNameWithoutRules(placeholderName) == null) {
-            final TaskIdentity<T> identity = TaskIdentity.create(placeholderName, taskType, project);
-            buildOperationExecutor.run(new RunnableBuildOperation() {
-                @Override
-                public void run(BuildOperationContext context) {
-                    TaskCreatingProvider<T> provider = Cast.uncheckedCast(getInstantiator()
-                        .newInstance(TaskCreatingProvider.class, DefaultTaskContainer.this, identity, configure, NO_ARGS)
-                    );
-                    placeholders.put(placeholderName, provider);
-                    deferredElementKnown(placeholderName, provider);
-                    context.setResult(REGISTER_RESULT);
-                }
-
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return registerDescriptor(identity);
-                }
-            });
-        } else {
-            warnAboutPlaceholderDeprecation(placeholderName);
-        }
-    }
-
-    private void warnAboutPlaceholderDeprecation(String placeholderName) {
-        DeprecationLogger.nagUserOfDeprecated(
-            "Creating a custom task named '" + placeholderName + "'",
-            "You can configure the existing task using the '" + placeholderName + " { }' syntax or create your custom task under a different name."
-        );
     }
 
     public <U extends Task> NamedDomainObjectContainer<U> containerWithType(Class<U> type) {
@@ -607,14 +541,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
-    public void whenElementKnown(Action<? super ElementInfo<Task>> action) {
-        super.whenElementKnown(action);
-        for (Map.Entry<String, TaskProvider<?>> entry : placeholders.entrySet()) {
-            deferredElementKnown(entry.getKey(), entry.getValue());
-        }
-    }
-
-    @Override
     public <S extends Task> TaskCollection<S> withType(Class<S> type) {
         Instantiator instantiator = getInstantiator();
         return Cast.uncheckedCast(instantiator.newInstance(DefaultRealizableTaskCollection.class, type, super.withType(type), modelNode, instantiator));
@@ -623,7 +549,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public boolean remove(Object o) {
         warnAboutRemoveMethodDeprecation("remove(Object)");
-        return super.remove(o);
+        return removeInternal(o);
     }
 
     private boolean removeInternal(Object o) {
@@ -683,14 +609,13 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     private void warnAboutRemoveMethodDeprecation(String methodName) {
-        DeprecationLogger.nagUserWith(String.format("The TaskContainer.%s method has been deprecated.", methodName), "This is scheduled to become an error in Gradle 6.0.", "Prefer disabling the task instead, see Task.setEnabled(boolean).", "");
+        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskContainer." + methodName, "Prefer disabling the task instead, see Task.setEnabled(boolean).");
     }
 
     // Cannot be private due to reflective instantiation
     public class TaskCreatingProvider<I extends Task> extends AbstractDomainObjectCreatingProvider<I> implements TaskProvider<I> {
         private final TaskIdentity<I> identity;
         private Object[] constructorArgs;
-
 
         public TaskCreatingProvider(TaskIdentity<I> identity, @Nullable Action<? super I> configureAction, Object... constructorArgs) {
             super(identity.name, identity.type, configureAction);
@@ -704,8 +629,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
 
         @Override
-        protected Action<? super I> wrap(Action action) {
-            return MutationGuards.of(crossProjectConfigurator).withMutationDisabled(action);
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            context.add(get());
+            return true;
+        }
+
+        @Override
+        protected Action<? super I> withMutationDisabled(Action action) {
+            return MutationGuards.of(crossProjectConfigurator).withMutationDisabled(super.withMutationDisabled(action));
         }
 
         @Override
@@ -765,14 +696,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Deprecated
     @Override
     public boolean add(Task o) {
-        DeprecationLogger.nagUserOfReplacedMethodWithCustomRemoval("add()", "create() or register()", "This method will cause an error in Gradle 6.0.");
+        DeprecationLogger.nagUserOfReplacedMethodInvocation("TaskContainer.add()", "TaskContainer.register()");
         return addInternal(o);
     }
 
     @Deprecated
     @Override
     public boolean addAll(Collection<? extends Task> c) {
-        DeprecationLogger.nagUserOfReplacedMethodWithCustomRemoval("addAll()", "create() or register()", "This method will cause an error in Gradle 6.0.");
+        DeprecationLogger.nagUserOfDiscontinuedMethodInvocation("TaskContainer.addAll()");
         return addAllInternal(c);
     }
 

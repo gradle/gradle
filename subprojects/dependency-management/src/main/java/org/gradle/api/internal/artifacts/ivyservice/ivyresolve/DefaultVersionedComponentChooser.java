@@ -193,7 +193,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
     }
 
     private RejectedByRuleVersion isRejectedByRule(ModuleComponentIdentifier candidateIdentifier, Collection<SpecRuleAction<? super ComponentSelection>> rules, MetadataProvider metadataProvider) {
-        ComponentSelectionInternal selection = new DefaultComponentSelection(candidateIdentifier);
+        ComponentSelectionInternal selection = new DefaultComponentSelection(candidateIdentifier, metadataProvider);
         rulesProcessor.apply(selection, rules, metadataProvider);
         if (selection.isRejected()) {
             return new RejectedByRuleVersion(candidateIdentifier, selection.getRejectionReason());

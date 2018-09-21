@@ -39,7 +39,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
 
     def baseBuild
     def baseSettings
-    def resolve = new ResolveTestFixture(buildFile, "conf")
+    def resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
 
     def setup() {
         (9..13).each {

@@ -18,87 +18,71 @@ package org.gradle.api.internal.tasks.util
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.process.ProcessForkOptions
 import org.gradle.process.internal.DefaultProcessForkOptions
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.gradle.testing.internal.util.Specification
 
-import static org.gradle.util.Matchers.isEmptyMap
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.assertThat
+class DefaultProcessForkOptionsTest extends Specification {
+    def baseDir = new File("base-dir")
+    def resolver = Mock(FileResolver.class) {
+        resolve(".") >> baseDir
+    }
+    def options = new DefaultProcessForkOptions(resolver)
 
-@RunWith(JMock.class)
-public class DefaultProcessForkOptionsTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final FileResolver resolver = context.mock(FileResolver.class)
-    private DefaultProcessForkOptions options
-    private final File baseDir = new File("base-dir")
-
-    @Before
-    public void setup() {
-        options = new DefaultProcessForkOptions(resolver)
-        context.checking {
-            allowing(resolver).resolve(".")
-            will(returnValue(baseDir))
-        }
+    def defaultValues() {
+        expect:
+        options.executable == null
+        !options.environment.empty
     }
 
-    @Test
-    public void defaultValues() {
-        assertThat(options.executable, nullValue())
-        assertThat(options.environment, not(isEmptyMap()))
-    }
-
-    @Test
-    public void resolvesWorkingDirectoryOnGet() {
-        context.checking {
-            one(resolver).resolve(12)
-            will(returnValue(baseDir))
-        }
-
+    def resolvesWorkingDirectoryOnGet() {
+        when:
         options.workingDir = 12
 
-        assertThat(options.workingDir, equalTo(baseDir))
+        then:
+        1 * resolver.resolve(12) >> baseDir
+        options.workingDir == baseDir
     }
 
-    @Test
-    public void convertsEnvironmentToString() {
+    def convertsEnvironmentToString() {
+        when:
         options.environment = [key1: 12, key2: "${1+2}", key3: null]
 
-        assertThat(options.actualEnvironment, equalTo(key1: '12', key2: '3', key3: 'null'))
+        then:
+        options.actualEnvironment == [key1: '12', key2: '3', key3: 'null']
     }
 
-    @Test
-    public void canAddEnvironmentVariables() {
+    def canAddEnvironmentVariables() {
+        when:
         options.environment = [:]
 
-        assertThat(options.environment, equalTo([:]))
+        then:
+        options.environment == [:]
 
+        when:
         options.environment('key', 12)
 
-        assertThat(options.environment, equalTo([key: 12]))
-        assertThat(options.actualEnvironment, equalTo([key: '12']))
+        then:
+        options.environment == [key: 12]
+        options.actualEnvironment == [key: '12']
 
+        when:
         options.environment(key2: "value")
 
-        assertThat(options.environment, equalTo([key: 12, key2: "value"]))
+        then:
+        options.environment == [key: 12, key2: "value"]
     }
 
-    @Test
-    public void canCopyToTargetOptions() {
+    def canCopyToTargetOptions() {
+        given:
+        def target = Mock(ProcessForkOptions)
+
+        when:
         options.executable('executable')
         options.environment('key', 12)
-
-        ProcessForkOptions target = context.mock(ProcessForkOptions.class)
-        context.checking {
-            one(target).setWorkingDir(baseDir)
-            one(target).setExecutable('executable' as Object)
-            one(target).setEnvironment(withParam(not(isEmptyMap())))
-        }
-
         options.copyTo(target)
+
+        then:
+        1 * target.setWorkingDir(baseDir)
+        1 * target.setExecutable('executable')
+        1 * target.setEnvironment({ !it.empty })
     }
 }
-
-

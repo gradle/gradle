@@ -37,7 +37,7 @@ abstract class AbstractSmokeTest extends Specification {
          */
 
         // https://plugins.gradle.org/plugin/nebula.dependency-recommender
-        static nebulaDependencyRecommender = "6.1.1"
+        static nebulaDependencyRecommender = "6.1.4"
 
         // https://plugins.gradle.org/plugin/nebula.plugin-plugin
         static nebulaPluginPlugin = "7.1.9"
@@ -92,6 +92,9 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.ajoberstar.grgit
         static grgit = "3.0.0-beta.1"
+
+        // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
+        static gradleVersions = "0.20.0"
     }
 
     static class Versions implements Iterable<String> {
@@ -120,8 +123,11 @@ abstract class AbstractSmokeTest extends Specification {
     @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
     File buildFile
 
+    File settingsFile
+
     def setup() {
         buildFile = new File(testProjectDir.root, defaultBuildFileName)
+        settingsFile = new File(testProjectDir.root, "settings.gradle")
     }
 
     protected String getDefaultBuildFileName() {

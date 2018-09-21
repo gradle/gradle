@@ -94,4 +94,29 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
      */
     @Incubating
     TaskProvider<T> named(String name) throws UnknownTaskException;
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 5.0
+     */
+    @Incubating
+    TaskProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownTaskException;
+
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 5.0
+     */
+    @Incubating
+    <S extends T> TaskProvider<S> named(String name, Class<S> type) throws UnknownTaskException;
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 5.0
+     */
+    @Incubating
+    <S extends T> TaskProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownTaskException;
 }

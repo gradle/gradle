@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
@@ -24,7 +25,7 @@ import java.util.Collection;
 public abstract class LockableCollectionProperty<T, C extends Collection<T>> extends AbstractLockableProperty<C> implements CollectionPropertyInternal<T, C> {
     private CollectionPropertyInternal<T, C> delegate;
 
-    public LockableCollectionProperty(CollectionPropertyInternal<T, C> delegate) {
+    protected LockableCollectionProperty(CollectionPropertyInternal<T, C> delegate) {
         super(delegate);
         this.delegate = delegate;
     }
@@ -74,6 +75,13 @@ public abstract class LockableCollectionProperty<T, C extends Collection<T>> ext
     public void set(Provider<? extends Iterable<? extends T>> provider) {
         assertNotLocked();
         delegate.set(provider);
+    }
+
+    @Override
+    public HasMultipleValues<T> empty() {
+        assertNotLocked();
+        delegate.empty();
+        return this;
     }
 
     @Override

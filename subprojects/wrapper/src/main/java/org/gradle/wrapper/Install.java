@@ -182,6 +182,7 @@ public class Install {
         } catch (IOException e) {
             errorMessage = e.getMessage();
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             errorMessage = e.getMessage();
         }
         if (errorMessage != null) {

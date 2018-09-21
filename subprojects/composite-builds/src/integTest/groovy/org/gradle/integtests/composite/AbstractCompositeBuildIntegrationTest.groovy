@@ -19,12 +19,12 @@ package org.gradle.integtests.composite
 import com.google.common.collect.Lists
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.operations.BuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.test.fixtures.file.TestFile
+
 /**
  * Tests for composite build.
  */
@@ -147,10 +147,8 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
     def pluginProjectBuild(String name) {
         def className = name.capitalize()
         singleProjectBuild(name) {
-            FeaturePreviewsFixture.enableStablePublishing(settingsFile)
             buildFile << """
 apply plugin: 'java-gradle-plugin'
-apply plugin: 'maven-publish'
 
 gradlePlugin {
     plugins {

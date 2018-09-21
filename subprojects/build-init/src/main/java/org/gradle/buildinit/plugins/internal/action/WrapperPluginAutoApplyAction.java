@@ -17,12 +17,11 @@
 package org.gradle.buildinit.plugins.internal.action;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.buildinit.tasks.internal.TaskConfiguration;
 import org.gradle.configuration.project.ProjectConfigureAction;
 
 public class WrapperPluginAutoApplyAction implements ProjectConfigureAction {
     @Override
     public void execute(ProjectInternal project) {
-        TaskConfiguration.addWrapperPlaceholder(project);
+        project.getPluginManager().apply("org.gradle.wrapper");
     }
 }

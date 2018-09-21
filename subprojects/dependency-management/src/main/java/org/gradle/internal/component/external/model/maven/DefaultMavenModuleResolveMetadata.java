@@ -19,12 +19,14 @@ package org.gradle.internal.component.external.model.maven;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.changedetection.state.CoercingStringValueSnapshot;
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.internal.Factory;
+import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.AbstractLazyModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata;
@@ -40,9 +42,10 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * {@link AbstractLazyModuleComponentResolveMetadata Lazy version} of a {@link MavenModuleResolveMetadata}.
@@ -52,12 +55,10 @@ import java.util.List;
 public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
 
     public static final String POM_PACKAGING = "pom";
-    static final Collection<String> JAR_PACKAGINGS = Arrays.asList("jar", "ejb", "bundle", "maven-plugin", "eclipse-plugin");
-    // We need to work with the 'String' version of the usage attribute, since this is expected for all providers by the `PreferJavaRuntimeVariant` schema
-    static final Attribute<String> USAGE_ATTRIBUTE = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class);
+    static final Set<String> JAR_PACKAGINGS = ImmutableSet.of("jar", "ejb", "bundle", "maven-plugin", "eclipse-plugin");
 
-    private final boolean improvedPomSupportEnabled;
     private final NamedObjectInstantiator objectInstantiator;
+    private final MavenImmutableAttributesFactory mavenImmutableAttributesFactory;
 
     private final ImmutableList<MavenDependencyDescriptor> dependencies;
     private final String packaging;
@@ -66,10 +67,13 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
 
     private ImmutableList<? extends ConfigurationMetadata> derivedVariants;
 
+    private boolean filterConstraints = true;
+    private MavenDependencyDescriptor[] dependenciesAsArray;
+
     DefaultMavenModuleResolveMetadata(DefaultMutableMavenModuleResolveMetadata metadata) {
         super(metadata);
-        this.improvedPomSupportEnabled = metadata.isImprovedPomSupportEnabled();
         this.objectInstantiator = metadata.getObjectInstantiator();
+        this.mavenImmutableAttributesFactory = (MavenImmutableAttributesFactory) metadata.getAttributesFactory();
         packaging = metadata.getPackaging();
         relocated = metadata.isRelocated();
         snapshotTimestamp = metadata.getSnapshotTimestamp();
@@ -78,8 +82,8 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
 
     private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSource source) {
         super(metadata, source);
-        this.improvedPomSupportEnabled = metadata.improvedPomSupportEnabled;
         this.objectInstantiator = metadata.objectInstantiator;
+        this.mavenImmutableAttributesFactory = metadata.mavenImmutableAttributesFactory;
         packaging = metadata.packaging;
         relocated = metadata.relocated;
         snapshotTimestamp = metadata.snapshotTimestamp;
@@ -89,10 +93,16 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     }
 
     @Override
-    protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableList<String> parents, VariantMetadataRules componentMetadataRules) {
+    protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableSet<String> parents, VariantMetadataRules componentMetadataRules) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = getArtifactsForConfiguration(name);
-        DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts, componentMetadataRules, ImmutableList.<ExcludeMetadata>of(), getAttributes());
-        configuration.setDependencies(filterDependencies(configuration));
+        final DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(componentId, name, transitive, visible, parents, artifacts, componentMetadataRules, ImmutableList.<ExcludeMetadata>of(), getAttributes());
+        configuration.setConfigDependenciesFactory(new Factory<List<ModuleDependencyMetadata>>() {
+            @Nullable
+            @Override
+            public List<ModuleDependencyMetadata> create() {
+                return filterDependencies(configuration);
+            }
+        });
         return configuration;
     }
 
@@ -103,15 +113,48 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
 
     private ImmutableList<? extends ConfigurationMetadata> getDerivedVariants() {
         if (derivedVariants == null) {
+            filterConstraints = false;
+            DefaultConfigurationMetadata compileConfiguration = (DefaultConfigurationMetadata) getConfiguration("compile");
+            DefaultConfigurationMetadata runtimeConfiguration = (DefaultConfigurationMetadata) getConfiguration("runtime");
             derivedVariants = ImmutableList.of(
-                withUsageAttribute((DefaultConfigurationMetadata) getConfiguration("compile"), Usage.JAVA_API, getAttributesFactory()),
-                withUsageAttribute((DefaultConfigurationMetadata) getConfiguration("runtime"), Usage.JAVA_RUNTIME, getAttributesFactory()));
+                libraryWithUsageAttribute(compileConfiguration, Usage.JAVA_API),
+                libraryWithUsageAttribute(runtimeConfiguration, Usage.JAVA_RUNTIME),
+                platformWithUsageAttribute(compileConfiguration, Usage.JAVA_API, false),
+                platformWithUsageAttribute(runtimeConfiguration, Usage.JAVA_RUNTIME, false),
+                platformWithUsageAttribute(compileConfiguration, Usage.JAVA_API, true),
+                platformWithUsageAttribute(runtimeConfiguration, Usage.JAVA_RUNTIME, true));
         }
         return derivedVariants;
     }
 
-    private ConfigurationMetadata withUsageAttribute(DefaultConfigurationMetadata conf, String usage, ImmutableAttributesFactory attributesFactory) {
-        return conf.withAttributes(attributesFactory.concat(getAttributes().asImmutable(), USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator)));
+    @Override
+    protected ConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions, Map<String, ConfigurationMetadata> configurations) {
+        DefaultConfigurationMetadata md = (DefaultConfigurationMetadata) super.populateConfigurationFromDescriptor(name, configurationDefinitions, configurations);
+        if (filterConstraints && md != null) {
+            // if the first call to getConfiguration is done before getDerivedVariants() is called
+            // then it means we're using the legacy matching, without attributes, and that the metadata
+            // we construct should _not_ include the constraints. We keep the constraints in the descriptors
+            // because if we actually use attribute matching, we can select the platform variant which
+            // does use constraints.
+            return md.withoutConstraints();
+        }
+        return md;
+    }
+
+    private ConfigurationMetadata libraryWithUsageAttribute(DefaultConfigurationMetadata conf, String usage) {
+        ImmutableAttributes attributes = mavenImmutableAttributesFactory.libraryWithUsage(getAttributes().asImmutable(), usage);
+        return conf.withAttributes(attributes).withoutConstraints();
+    }
+
+    private ConfigurationMetadata platformWithUsageAttribute(DefaultConfigurationMetadata conf, String usage, boolean enforcedPlatform) {
+        ImmutableAttributes attributes = mavenImmutableAttributesFactory.platformWithUsage(getAttributes().asImmutable(), usage, enforcedPlatform);
+        String prefix = enforcedPlatform ? "enforced-platform-" : "platform-";
+        DefaultConfigurationMetadata metadata = conf.withAttributes(prefix + conf.getName(), attributes);
+        metadata = metadata.withConstraintsOnly();
+        if (enforcedPlatform) {
+            metadata = metadata.withForcedDependencies();
+        }
+        return metadata;
     }
 
     private ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(String name) {
@@ -125,24 +168,46 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     }
 
     private ImmutableList<ModuleDependencyMetadata> filterDependencies(DefaultConfigurationMetadata config) {
-        ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = ImmutableList.builder();
+        if (dependencies.isEmpty()) {
+            return ImmutableList.of();
+        }
+        int size = dependencies.size();
+        // If we're reaching this point, we're very likely going to iterate on the dependencies
+        // several times. It appears that iterating using `dependencies` is expensive because of
+        // the creation of an iterator and checking bounds. Iterating an array is faster.
+        if (dependenciesAsArray == null) {
+            dependenciesAsArray = dependencies.toArray(new MavenDependencyDescriptor[0]);
+        }
+        ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = null;
         boolean isOptionalConfiguration = "optional".equals(config.getName());
-
-        for (MavenDependencyDescriptor dependency : dependencies) {
+        ImmutableSet<String> hierarchy = config.getHierarchy();
+        for (MavenDependencyDescriptor dependency : dependenciesAsArray) {
             if (isOptionalConfiguration && includeInOptionalConfiguration(dependency)) {
-                filteredDependencies.add(new OptionalConfigurationDependencyMetadata(config, getId(), dependency));
-            } else if (include(dependency, config.getHierarchy())) {
-                filteredDependencies.add(contextualize(config, getId(), dependency));
+                ModuleDependencyMetadata element = new OptionalConfigurationDependencyMetadata(config, getId(), dependency);
+                if (size == 1) {
+                    return ImmutableList.of(element);
+                }
+                if (filteredDependencies == null) {
+                    filteredDependencies = ImmutableList.builder();
+                }
+                filteredDependencies.add(element);
+            } else if (include(dependency, hierarchy)) {
+                ModuleDependencyMetadata element = contextualize(config, getId(), dependency);
+                if (size == 1) {
+                    return ImmutableList.of(element);
+                }
+                if (filteredDependencies == null) {
+                    filteredDependencies = ImmutableList.builder();
+                }
+                filteredDependencies.add(element);
             }
         }
-        return filteredDependencies.build();
+        return filteredDependencies == null ? ImmutableList.<ModuleDependencyMetadata>of() : filteredDependencies.build();
     }
 
     private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming) {
         ConfigurationBoundExternalDependencyMetadata dependency = new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming);
-        if (improvedPomSupportEnabled) {
-            dependency.alwaysUseAttributeMatching();
-        }
+        dependency.alwaysUseAttributeMatching();
         return dependency;
     }
 
@@ -155,15 +220,10 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     }
 
     private boolean include(MavenDependencyDescriptor dependency, Collection<String> hierarchy) {
-        MavenScope dependencyScope = dependency.getScope();
-        if (dependency.isOptional() && ignoreOptionalDependencies()) {
+        if (dependency.isOptional()) {
             return false;
         }
-        return hierarchy.contains(dependencyScope.getLowerName());
-    }
-
-    private boolean ignoreOptionalDependencies() {
-        return !improvedPomSupportEnabled;
+        return hierarchy.contains(dependency.getScope().getLowerName());
     }
 
     @Override
@@ -173,7 +233,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
 
     @Override
     public MutableMavenModuleResolveMetadata asMutable() {
-        return new DefaultMutableMavenModuleResolveMetadata(this, objectInstantiator, improvedPomSupportEnabled);
+        return new DefaultMutableMavenModuleResolveMetadata(this, objectInstantiator);
     }
 
     public String getPackaging() {
@@ -192,16 +252,12 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         return JAR_PACKAGINGS.contains(packaging);
     }
 
-    boolean isImprovedPomSupportEnabled() {
-        return improvedPomSupportEnabled;
-    }
-
     public NamedObjectInstantiator getObjectInstantiator() {
         return objectInstantiator;
     }
 
     private boolean isJavaLibrary() {
-        return improvedPomSupportEnabled && (isKnownJarPackaging() || isPomPackaging());
+        return isKnownJarPackaging() || isPomPackaging();
     }
 
     @Nullable
@@ -252,9 +308,9 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
      * Adapts a MavenDependencyDescriptor to `DependencyMetadata` for the magic "optional" configuration.
      *
      * This configuration has special semantics:
-     *  - Dependencies in the "optional" configuration are _never_ themselves optional (ie not 'pending')
-     *  - Dependencies in the "optional" configuration can have dependency artifacts, even if the dependency is flagged as 'optional'.
-     *    (For a standard configuration, any dependency flagged as 'optional' will have no dependency artifacts).
+     * - Dependencies in the "optional" configuration are _never_ themselves optional (ie not 'pending')
+     * - Dependencies in the "optional" configuration can have dependency artifacts, even if the dependency is flagged as 'optional'.
+     * (For a standard configuration, any dependency flagged as 'optional' will have no dependency artifacts).
      */
     static class OptionalConfigurationDependencyMetadata extends ConfigurationBoundExternalDependencyMetadata {
         private final MavenDependencyDescriptor dependencyDescriptor;

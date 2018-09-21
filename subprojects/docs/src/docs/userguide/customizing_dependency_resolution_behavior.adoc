@@ -241,7 +241,9 @@ include::sample[dir="userguide/dependencyManagement/customizingResolution/select
 include::sample[dir="userguide/dependencyManagement/customizingResolution/selectionRule/kotlin",files="build.gradle.kts[tags=targeted-component-selection]"]
 ====
 
-Component selection rules can also consider component metadata when selecting a version. Possible metadata arguments that can be considered are link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadata.html[ComponentMetadata] and link:{javadocPath}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor].
+Component selection rules can also consider component metadata when selecting a version.
+Possible additional metadata that can be considered are link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadata.html[ComponentMetadata] and link:{javadocPath}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor].
+Note that this extra information may not always be available and thus should be checked for `null` values.
 
 .Component selection rule with metadata
 ====
@@ -249,20 +251,25 @@ include::sample[dir="userguide/dependencyManagement/customizingResolution/select
 include::sample[dir="userguide/dependencyManagement/customizingResolution/selectionRule/kotlin",files="build.gradle.kts[tags=component-selection-with-metadata]"]
 ====
 
-Note that a link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection] argument is _always_ required as the first parameter when declaring a component selection rule with additional Ivy metadata parameters, but the metadata parameters can be declared in any order.
+Note that a link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection] argument is _always_ required as parameter when declaring a component selection rule.
 
 Lastly, component selection rules can also be defined using a _rule source_ object. A rule source object is any object that contains exactly one method that defines the rule action and is annotated with `@Mutate`.
 
 This method:
 
 * must return void.
-* must have link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection] as the first argument.
-* may have additional parameters of type link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadata.html[ComponentMetadata] and/or link:{javadocPath}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor].
+* must have link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection] as its argument.
 
 .Component selection rule using a rule source object
 ====
 include::sample[dir="userguide/dependencyManagement/customizingResolution/selectionRule/groovy",files="build.gradle[tags=api-component-selection]"]
 include::sample[dir="userguide/dependencyManagement/customizingResolution/selectionRule/kotlin",files="build.gradle.kts[tags=api-component-selection]"]
+====
+
+[NOTE]
+====
+Declaring additional arguments on component selection rules is deprecated and scheduled for removal in Gradle 6.0.
+Use instead the added methods on link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection].
 ====
 
 [[sec:module_replacement]]

@@ -30,6 +30,7 @@ import org.gradle.test.fixtures.file.TestFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -160,7 +161,8 @@ public class MSBuildExecutor {
 
     private static String fileContents(File file) {
         try {
-            return FileUtils.readFileToString(file);
+            // TODO this should not be using the default charset because it's not an input and might introduce flakiness
+            return FileUtils.readFileToString(file, Charset.defaultCharset());
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
