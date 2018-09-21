@@ -20,7 +20,6 @@ import org.gradle.api.Incubating
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExternalModuleDependency
@@ -44,12 +43,6 @@ class ScriptHandlerScope(scriptHandler: ScriptHandler) : ScriptHandler by script
      * The dependencies of the script.
      */
     val dependencies by unsafeLazy { DependencyHandlerScope(scriptHandler.dependencies) }
-
-    /**
-     * The script classpath configuration.
-     */
-    val ConfigurationContainer.classpath: Configuration
-        get() = getByName(CLASSPATH_CONFIGURATION)
 
     /**
      * The script classpath configuration.

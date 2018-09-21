@@ -237,12 +237,6 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
     codeForAccessor(name) {
         """
             /**
-             * The '$original' configuration.
-             */
-            val ConfigurationContainer.`$kotlinIdentifier`: Configuration
-                get() = getByName("$stringLiteral")
-
-            /**
              * Adds a dependency to the '$original' configuration.
              *
              * @param dependencyNotation notation for the dependency to be added.
