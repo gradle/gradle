@@ -316,15 +316,11 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     protected T removeByName(String name) {
         T it = getByName(name);
-        if (it != null) {
-            if (remove(it)) {
-                return it;
-            } else {
-                // unclear what the best thing to do here would be
-                throw new IllegalStateException(String.format("found '%s' with name '%s' but remove() returned false", it, name));
-            }
+        if (remove(it)) {
+            return it;
         } else {
-            return null;
+            // unclear what the best thing to do here would be
+            throw new IllegalStateException(String.format("found '%s' with name '%s' but remove() returned false", it, name));
         }
     }
 
