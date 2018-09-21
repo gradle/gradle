@@ -133,6 +133,11 @@ buildTypes {
         tasks("soak:soakTest")
         projectProperties("testAllVersions" to true)
     }
+
+    // Used to run the dependency management engine in "force component realization" mode
+    create("forceRealizeDependencyManagementTest") {
+        tasks("integForceRealizeTest")
+    }
 }
 
 allprojects {
