@@ -29,7 +29,7 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.Copy
 import org.gradle.gradlebuild.BuildEnvironment
-import org.gradle.gradlebuild.ProjectGroups.projectsRequiringJava8
+import org.gradle.gradlebuild.ProjectGroups.projectsRequiringLanguageLevel8
 import org.gradle.gradlebuild.PublicApi
 import org.gradle.gradlebuild.docs.PegDown
 import org.gradle.kotlin.dsl.*
@@ -53,6 +53,7 @@ import org.jetbrains.gradle.ext.Remote
 import org.jetbrains.gradle.ext.RunConfiguration
 import org.gradle.plugins.ide.idea.model.Module
 import org.gradle.plugins.ide.idea.model.ModuleLibrary
+import org.jetbrains.gradle.ext.ActionDelegationConfig
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -222,6 +223,10 @@ open class IdePlugin : Plugin<Project> {
                     // configureInspections()
                     configureRunConfigurations(rootProject)
                     doNotDetectFrameworks("android", "web")
+                    delegateActions {
+                        delegateBuildRunToGradle = false
+                        testRunner = ActionDelegationConfig.TestRunner.PLATFORM
+                    }
                 }
             }
         }
@@ -374,7 +379,7 @@ open class IdePlugin : Plugin<Project> {
     fun Project.configureLanguageLevel(ideaModule: IdeaModule) {
         @Suppress("UNCHECKED_CAST")
         val ideaLanguageLevel =
-            if (ideaModule.project in projectsRequiringJava8) "1.8"
+            if (ideaModule.project in projectsRequiringLanguageLevel8) "1.8"
             else "1.7"
         // Force everything to Java 7, pending detangling some int test cycles or switching to project-per-source-set mapping
         ideaModule.languageLevel = IdeaLanguageLevel(ideaLanguageLevel)
@@ -578,6 +583,9 @@ fun ProjectSettings.copyright(configuration: CopyrightConfiguration.() -> kotlin
 
 
 fun ProjectSettings.codeStyle(configuration: CodeStyleConfig.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
+
+
+fun ProjectSettings.delegateActions(configuration: ActionDelegationConfig.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
 
 
 fun ProjectSettings.inspections(configuration: NamedDomainObjectContainer<Inspection>.() -> kotlin.Unit) = (this as ExtensionAware).configure<NamedDomainObjectContainer<Inspection>> {

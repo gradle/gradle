@@ -38,7 +38,6 @@ class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
 
     static {
         try {
-            //noinspection Since15
             ClassLoader.registerAsParallelCapable();
         } catch (NoSuchMethodError ignore) {
             // Not supported on Java 6

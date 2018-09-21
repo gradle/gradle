@@ -21,8 +21,6 @@ import org.gradle.api.Transformer;
 import org.gradle.internal.IoActions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.JavaBeanDumper;
-import org.yaml.snakeyaml.Loader;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
@@ -65,8 +63,8 @@ class SwiftDepsHandler {
         return IoActions.withResource(new FileInputStream(moduleSwiftDeps), new Transformer<SwiftDeps, FileInputStream>() {
             @Override
             public SwiftDeps transform(FileInputStream fileInputStream) {
-                Yaml yaml = new Yaml(new Loader(new Constructor(SwiftDeps.class)));
-                return (SwiftDeps) yaml.load(fileInputStream);
+                Yaml yaml = new Yaml(new Constructor(SwiftDeps.class));
+                return yaml.loadAs(fileInputStream, SwiftDeps.class);
             }
         });
     }
@@ -85,7 +83,7 @@ class SwiftDepsHandler {
         IoActions.writeTextFile(moduleSwiftDeps, new Action<BufferedWriter>() {
             @Override
             public void execute(BufferedWriter bufferedWriter) {
-                JavaBeanDumper yaml = new JavaBeanDumper(false);
+                Yaml yaml = new Yaml();
                 yaml.dump(swiftDeps, bufferedWriter);
             }
         });

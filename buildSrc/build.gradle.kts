@@ -42,6 +42,11 @@ subprojects {
         applyKotlinProjectConventions()
     }
 
+    configure<JavaPluginExtension> {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    
     apply(plugin = "idea")
     apply(plugin = "eclipse")
 

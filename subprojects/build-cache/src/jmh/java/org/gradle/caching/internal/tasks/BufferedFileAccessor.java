@@ -24,7 +24,6 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-@SuppressWarnings("Since15")
 public class BufferedFileAccessor extends AbstractFileAccessor {
     private final int bufferSize;
 

@@ -220,7 +220,6 @@ public class PropertyValidationAccess {
     }
 
     private static class InputOnFileTypeValidator implements PropertyValidator {
-        @SuppressWarnings("Since15")
         @Nullable
         @Override
         public String validate(boolean cacheable, PropertyMetadata metadata) {

@@ -679,11 +679,33 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (allArtifacts != null) {
             return;
         }
-        this.inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
-        for (Configuration configuration : this.extendsFrom) {
-            inheritedArtifacts.addCollection(configuration.getAllArtifacts());
+        DisplayName displayName = Describables.of(this.displayName, "all artifacts");
+
+        if (!canBeMutated && extendsFrom.isEmpty()) {
+            // No further mutation is allowed and there's no parent: the artifact set corresponds to this configuration own artifacts
+            this.allArtifacts = new DefaultPublishArtifactSet(displayName, ownArtifacts, fileCollectionFactory);
+            return;
         }
-        this.allArtifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "all artifacts"), inheritedArtifacts, fileCollectionFactory);
+
+        if (canBeMutated) {
+            // If the configuration can still be mutated, we need to create a composite
+            inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
+        }
+        for (Configuration configuration : this.extendsFrom) {
+            PublishArtifactSet allArtifacts = configuration.getAllArtifacts();
+            if (inheritedArtifacts!= null || !allArtifacts.isEmpty()) {
+                if (inheritedArtifacts == null) {
+                    // This configuration cannot be mutated, but some parent configurations provide artifacts
+                    inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
+                }
+                inheritedArtifacts.addCollection(allArtifacts);
+            }
+        }
+        if (inheritedArtifacts != null) {
+            this.allArtifacts = new DefaultPublishArtifactSet(displayName, inheritedArtifacts, fileCollectionFactory);
+        } else {
+            this.allArtifacts = new DefaultPublishArtifactSet(displayName, ownArtifacts, fileCollectionFactory);
+        }
     }
 
     public Set<ExcludeRule> getExcludeRules() {

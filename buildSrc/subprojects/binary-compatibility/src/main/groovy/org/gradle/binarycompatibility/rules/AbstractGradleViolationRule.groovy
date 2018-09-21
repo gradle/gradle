@@ -177,12 +177,12 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         return violation
     }
 
-    String prettyPrintJson(def acceptanceJson) {
+    private static String prettyPrintJson(def acceptanceJson) {
         def stringWriter = new StringWriter()
-        def writer = new JsonWriter(stringWriter)
-        writer.setIndent("    ")
-        new Gson().toJson(acceptanceJson, AcceptedApiChange, writer)
-        writer.close()
+        new JsonWriter(stringWriter).withCloseable { writer ->
+            writer.setIndent("    ")
+            new Gson().toJson(acceptanceJson, AcceptedApiChange, writer)
+        }
         return stringWriter.toString()
     }
 

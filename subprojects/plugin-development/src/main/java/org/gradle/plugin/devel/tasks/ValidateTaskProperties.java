@@ -198,7 +198,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
             File output = outputFile.get().getAsFile();
             //noinspection ResultOfMethodCallIgnored
             output.createNewFile();
-            Files.write(Joiner.on('\n').join(problemMessages), output, Charsets.UTF_8);
+            Files.asCharSink(output, Charsets.UTF_8).write(Joiner.on('\n').join(problemMessages));
         }
     }
 

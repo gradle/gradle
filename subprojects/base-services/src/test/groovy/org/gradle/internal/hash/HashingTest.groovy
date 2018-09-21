@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal
+package org.gradle.internal.hash
 
 import spock.lang.Specification
 
-class DefaultBuildCacheHasherTest extends Specification {
+class HashingTest extends Specification {
 
     def 'null does not collide with other values'() {
         expect:
-        def hasher = new DefaultBuildCacheHasher()
+        def hasher = Hashing.newHasher()
         hasher.putNull()
         def hash = hasher.hash()
         hash != hashKey("abc")
@@ -41,18 +41,19 @@ class DefaultBuildCacheHasherTest extends Specification {
     }
 
     def hashKey(String value) {
-        def hasher = new DefaultBuildCacheHasher()
-        hasher.putString(value).hash()
+        def hasher = Hashing.newHasher()
+        hasher.putString(value)
+        return hasher.hash()
     }
 
     def hashStrings(List<String> strings) {
-        def hasher = new DefaultBuildCacheHasher()
+        def hasher = Hashing.newHasher()
         strings.each { hasher.putString(it) }
         hasher.hash()
     }
 
     def hashKey(List<List<Integer>> bytes) {
-        def hasher = new DefaultBuildCacheHasher()
+        def hasher = Hashing.newHasher()
         bytes.each {
             if (it.size() == 1) {
                 hasher.putByte(it[0] as byte)

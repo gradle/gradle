@@ -901,6 +901,17 @@ dl {
     margin-bottom: 0.625rem;
 }
 
+.sr-only {
+    border: 0;
+    clip: rect(0, 0, 0, 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+}
+
 /* Layout */
 .main-content > .appendix,
 .main-content > .book,

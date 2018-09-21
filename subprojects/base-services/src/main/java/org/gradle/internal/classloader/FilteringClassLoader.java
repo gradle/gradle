@@ -47,7 +47,6 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
             SYSTEM_PACKAGES.add(p.getName());
         }
         try {
-            //noinspection Since15
             ClassLoader.registerAsParallelCapable();
         } catch (NoSuchMethodError ignore) {
             // Not supported on Java 6

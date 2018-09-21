@@ -19,8 +19,8 @@ package org.gradle.api.internal.attributes;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.changedetection.state.AbstractIsolatableScalarValue;
 import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
-import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.Hasher;
 
 public class AttributeDefinitionSnapshot extends AbstractIsolatableScalarValue<Attribute<?>> {
 
@@ -32,7 +32,7 @@ public class AttributeDefinitionSnapshot extends AbstractIsolatableScalarValue<A
     }
 
     @Override
-    public void appendToHasher(BuildCacheHasher hasher) {
+    public void appendToHasher(Hasher hasher) {
         hasher.putString(getValue().getName());
         Class<?> type = getValue().getType();
         ImplementationSnapshot.of(type, classLoaderHasher).appendToHasher(hasher);

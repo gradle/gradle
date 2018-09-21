@@ -35,8 +35,6 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactP
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataSource;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.specs.Spec;
-import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.ivypublish.IvyModuleArtifactPublishMetadata;
@@ -56,6 +54,8 @@ import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
@@ -499,7 +499,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     private String generateId(ExternalResourceResolver resolver) {
-        DefaultBuildCacheHasher cacheHasher = new DefaultBuildCacheHasher();
+        Hasher cacheHasher = Hashing.newHasher();
         cacheHasher.putString(getClass().getName());
         cacheHasher.putInt(resolver.ivyPatterns.size());
         for (ResourcePattern ivyPattern : ivyPatterns) {
@@ -513,7 +513,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         return cacheHasher.hash().toString();
     }
 
-    protected void appendId(BuildCacheHasher hasher) {
+    protected void appendId(Hasher hasher) {
         getMetadataSources().appendId(hasher);
     }
 

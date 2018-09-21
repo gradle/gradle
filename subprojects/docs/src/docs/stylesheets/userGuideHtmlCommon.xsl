@@ -111,6 +111,7 @@
                                 </g>
                             </g>
                         </svg></a>
+                    <div class="site-header__doc-type sr-only">DSL Reference</div>
                     <div class="site-header-version">
                         <xsl:value-of select="//releaseinfo[1]"/>
                     </div>

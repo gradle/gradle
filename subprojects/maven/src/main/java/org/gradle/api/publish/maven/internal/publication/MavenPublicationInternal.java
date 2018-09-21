@@ -48,6 +48,8 @@ public interface MavenPublicationInternal extends MavenPublication, PublicationI
 
     Set<MavenDependency> getRuntimeDependencyConstraints();
 
+    Set<MavenDependency> getImportDependencyConstraints();
+
     Set<MavenDependencyInternal> getApiDependencies();
 
     Set<MavenDependencyInternal> getRuntimeDependencies();

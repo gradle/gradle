@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.snapshot;
 
 /**
  * This service can tell whether a file is in a location controlled by Gradle,

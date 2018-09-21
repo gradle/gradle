@@ -70,7 +70,7 @@ class ConfigurableClassLoaderHierarchyHasherTest extends Specification {
     }
 
     private static HashCode hashFor(Object... values) {
-        def hasher = Hashing.md5().newHasher()
+        def hasher = Hashing.newHasher()
         values.each {
             if (it instanceof String) {
                 hasher.putString(it)

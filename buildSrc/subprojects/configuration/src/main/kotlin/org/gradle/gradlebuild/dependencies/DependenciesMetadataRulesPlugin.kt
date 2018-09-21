@@ -40,7 +40,7 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 withModule(library("maven3"), MavenDependencyCleaningRule::class.java)
                 withLibraryDependencies(library("awsS3_core"), DependencyRemovalByNameRule::class, setOf("jackson-dataformat-cbor"))
                 withLibraryDependencies(library("jgit"), DependencyRemovalByGroupRule::class, setOf("com.googlecode.javaewah"))
-                withLibraryDependencies(library("maven3_wagon_http_shared4"), DependencyRemovalByGroupRule::class, setOf("org.jsoup"))
+                withLibraryDependencies(library("maven3_wagon_http_shared"), DependencyRemovalByGroupRule::class, setOf("org.jsoup"))
                 withLibraryDependencies(library("aether_connector"), DependencyRemovalByGroupRule::class, setOf("org.sonatype.sisu"))
                 withLibraryDependencies(library("maven3_compat"), DependencyRemovalByGroupRule::class, setOf("org.sonatype.sisu"))
                 withLibraryDependencies(library("maven3_plugin_api"), DependencyRemovalByGroupRule::class, setOf("org.sonatype.sisu"))
@@ -53,10 +53,10 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 withLibraryDependencies("org.spockframework:spock-core", DependencyRemovalByNameRule::class,
                     setOf("groovy-groovysh", "groovy-json", "groovy-macro", "groovy-nio", "groovy-sql", "groovy-templates", "groovy-test", "groovy-xml"))
                 withModule("org.jmock:jmock-legacy", ReplaceCglibNodepWithCglibRule::class.java)
-                withModule("cglib:cglib", NoAntRule::class.java)
+                withLibraryDependencies("cglib:cglib", DependencyRemovalByNameRule::class, setOf("ant"))
 
-                withModule("org.junit.jupiter:junit-jupiter-api", DowngradeOpentest4jRule::class.java)
-                withModule("org.junit.platform:junit-platform-engine", DowngradeOpentest4jRule::class.java)
+                // asciidoctorj depends on a lot of stuff, which causes `Can't create process, argument list too long` on Windows
+                withLibraryDependencies("org.gradle:sample-discovery", DependencyRemovalByNameRule::class, setOf("asciidoctorj", "asciidoctorj-api"))
 
                 withModule("jaxen:jaxen", DowngradeXmlApisRule::class.java)
                 withModule("jdom:jdom", DowngradeXmlApisRule::class.java)
@@ -64,7 +64,7 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 withModule("jaxen:jaxen", DowngradeXmlApisRule::class.java)
 
                 // Test dependencies - minify: remove unused transitive dependencies
-                withLibraryDependencies("org.littleshoot:littleproxy", DependencyRemovalByNameRule::class,
+                withLibraryDependencies("org.gradle.org.littleshoot:littleproxy", DependencyRemovalByNameRule::class,
                     setOf("barchart-udt-bundle", "guava", "commons-cli"))
             }
         }
@@ -229,20 +229,6 @@ fun ComponentMetadataHandler.withLibraryDependencies(module: String, kClass: KCl
 }
 
 
-open class DowngradeOpentest4jRule : ComponentMetadataRule {
-    override fun execute(context: ComponentMetadataContext) {
-        context.details.allVariants {
-            withDependencies {
-                filter { it.group == "org.opentest4j" }.forEach {
-                    it.version { strictly("1.0.0") }
-                    it.because("1.1.0 has has issue https://github.com/ota4j-team/opentest4j/issues/49")
-                }
-            }
-        }
-    }
-}
-
-
 open class DowngradeXmlApisRule : ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         context.details.allVariants {
@@ -265,18 +251,6 @@ open class ReplaceCglibNodepWithCglibRule : ComponentMetadataRule {
                     add("${it.group}:cglib:3.2.7")
                 }
                 removeAll { it.name == "cglib-nodep" }
-            }
-        }
-    }
-}
-
-
-open class NoAntRule : ComponentMetadataRule {
-    override fun execute(context: ComponentMetadataContext) {
-        context.details.allVariants {
-            withDependencies {
-                // because Gradle requires a different Ant version
-                removeAll { it.name == "ant" }
             }
         }
     }

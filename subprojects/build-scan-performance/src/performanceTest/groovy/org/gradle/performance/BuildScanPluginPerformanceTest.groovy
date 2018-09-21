@@ -31,6 +31,7 @@ import org.junit.experimental.categories.Category
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
@@ -50,7 +51,7 @@ class BuildScanPluginPerformanceTest extends Specification {
     protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     CrossBuildPerformanceTestRunner runner
 
-    private int warmupBuilds = 1
+    private int warmupBuilds = 2
     private int measuredBuilds = 7
 
     void setup() {
@@ -62,27 +63,25 @@ class BuildScanPluginPerformanceTest extends Specification {
         def versionJsonData = new JsonSlurper().parse(buildStampJsonFile) as Map<String, ?>
         assert versionJsonData.commitId
         def pluginCommitId = versionJsonData.commitId as String
-
         runner = new BuildScanPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(buildContext)), resultStore, pluginCommitId, buildContext) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)
                 builder.workingDirectory = tmpDir.testDirectory
+
             }
         }
     }
 
-    def "build scan plugin comparison"() {
+    @Unroll
+    def "large java project with and without plugin application (#scenario)"() {
         given:
         def sourceProject = "largeJavaProjectWithBuildScanPlugin"
-        def tasks = ['clean', 'build']
-        def jobArgs = ['--continue', '--parallel', '--max-workers=2', '-q']
-        def opts = ['-Xms256m', '-Xmx256m']
+        def jobArgs = ['--continue', '--parallel', '--max-workers=2'] + scenarioArgs
+        def opts = ['-Xms512m', '-Xmx512m']
 
         runner.testGroup = "build scan plugin"
-        runner.testId = "large java project with and without build scan"
-
-
+        runner.testId = "large java project with and without plugin application ($scenario)"
         runner.baseline {
             warmUpCount warmupBuilds
             invocationCount measuredBuilds
@@ -107,6 +106,7 @@ class BuildScanPluginPerformanceTest extends Specification {
                 tasksToRun(*tasks)
                 gradleOpts(*opts)
                 expectFailure()
+
             }
         }
 
@@ -116,7 +116,20 @@ class BuildScanPluginPerformanceTest extends Specification {
         then:
         def (with, without) = [results.buildResult(WITH_PLUGIN_LABEL), results.buildResult(WITHOUT_PLUGIN_LABEL)]
 
+        println "\nspeed statistics ${without.name}: "
+        println without.getSpeedStats()
+
+        println "\nspeed statistics ${with.name}: "
+        println with.getSpeedStats()
+
         // cannot be more than 1s slower
         with.totalTime.average - without.totalTime.average < millis(1000)
+
+        where:
+        scenario                          | tasks                 | scenarioArgs
+        "help"                            | ['help']              | []
+        "clean build"                     | ['clean', 'build']    | []
+        "clean assemble from build cache" | ['clean', 'assemble'] | ['--build-cache']
+        "upToDate assemble"               | ['assemble']          | []
     }
 }

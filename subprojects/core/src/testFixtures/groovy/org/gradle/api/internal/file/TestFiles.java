@@ -21,7 +21,6 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.internal.hash.DefaultContentHasherFactory;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -97,7 +96,7 @@ public class TestFiles {
     }
 
     public static DefaultStreamHasher streamHasher() {
-        return new DefaultStreamHasher(new DefaultContentHasherFactory());
+        return new DefaultStreamHasher();
     }
 
     public static DefaultFileHasher fileHasher() {

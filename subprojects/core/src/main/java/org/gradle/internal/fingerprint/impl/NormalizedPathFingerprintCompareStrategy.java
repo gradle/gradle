@@ -21,8 +21,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
-import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.hash.Hasher;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -104,11 +104,11 @@ public class NormalizedPathFingerprintCompareStrategy implements FingerprintComp
     }
 
     @Override
-    public void appendToHasher(BuildCacheHasher hasher, Collection<FileSystemLocationFingerprint> fingerprints) {
+    public void appendToHasher(Hasher hasher, Collection<FileSystemLocationFingerprint> fingerprints) {
         appendSortedToHasher(hasher, fingerprints);
     }
 
-    public static void appendSortedToHasher(BuildCacheHasher hasher, Collection<FileSystemLocationFingerprint> fingerprints) {
+    public static void appendSortedToHasher(Hasher hasher, Collection<FileSystemLocationFingerprint> fingerprints) {
         List<FileSystemLocationFingerprint> sortedFingerprints = Lists.newArrayList(fingerprints);
         Collections.sort(sortedFingerprints);
         for (FileSystemLocationFingerprint normalizedSnapshot : sortedFingerprints) {

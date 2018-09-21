@@ -33,7 +33,7 @@ import java.util.Map;
 
 public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollectionFingerprint {
 
-    private static final HashCode SIGNATURE = Hashing.md5().hashString(EmptyCurrentFileCollectionFingerprint.class.getName());
+    private static final HashCode SIGNATURE = Hashing.signature(EmptyCurrentFileCollectionFingerprint.class);
 
     private final FingerprintingStrategy.Identifier identifier;
 

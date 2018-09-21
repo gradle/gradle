@@ -56,7 +56,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 import java.util.List;
 
-@SuppressWarnings("Since15")
 public class DirectorySnapshotter {
     private final FileHasher hasher;
     private final FileSystem fileSystem;

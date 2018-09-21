@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.console;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 /**
@@ -61,7 +62,7 @@ public class Cursor {
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this.getClass())
+        return MoreObjects.toStringHelper(this.getClass())
             .add("row", row)
             .add("col", col)
             .toString();

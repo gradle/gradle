@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.artifacts.dsl;
 
-import org.gradle.caching.internal.BuildCacheHasher;
+import org.gradle.api.artifacts.ComponentMetadataDetails;
+import org.gradle.internal.rules.SpecRuleAction;
 
-/**
- * A snapshot of the state of some thing.
- */
-public interface Hashable {
-    /**
-     * Appends the snapshot to the given hasher.
-     */
-    void appendToHasher(BuildCacheHasher hasher);
+import java.util.Collection;
+
+interface MetadataRuleWrapper {
+    boolean isClassBased();
+
+    Collection<SpecConfigurableRule> getClassRules();
+
+    SpecRuleAction<? super ComponentMetadataDetails> getRule();
+
+    void addClassRule(SpecConfigurableRule ruleAction);
 }

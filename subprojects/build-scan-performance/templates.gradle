@@ -16,12 +16,6 @@
 import groovy.json.JsonSlurper
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 
-tasks.withType(JvmProjectGeneratorTask).configureEach {
-    if(project.hasProperty("springDmPluginVersion")) {
-        templateArgs['springDmPluginVersion'] = springDmPluginVersion
-    }
-}
-
 tasks.register("largeJavaProjectWithBuildScanPlugin", JvmProjectGeneratorTask) {
     doFirst {
         templateArgs.buildScanPluginVersion = {

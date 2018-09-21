@@ -12,7 +12,7 @@
         "providedBy": [
             "com.google.collections:google-collections"
         ],
-        "selected": "com.google.guava:guava-jdk5"
+        "selected": "com.google.guava:guava"
     },
     {
         "name": "junit",

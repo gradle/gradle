@@ -52,6 +52,6 @@ public class ModuleMap implements Serializable {
     }
 
     public HashCode getHashCode() {
-        return Hashing.md5().hashString(moduleName + CollectionUtils.join("", publicHeaderPaths));
+        return Hashing.hashString(moduleName + CollectionUtils.join("", publicHeaderPaths));
     }
 }

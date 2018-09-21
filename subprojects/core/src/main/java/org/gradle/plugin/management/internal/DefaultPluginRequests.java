@@ -16,8 +16,7 @@
 
 package org.gradle.plugin.management.internal;
 
-import com.google.common.collect.Iterators;
-
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -60,7 +59,7 @@ public class DefaultPluginRequests implements PluginRequests {
 
         @Override
         public Iterator<PluginRequestInternal> iterator() {
-            return Iterators.emptyIterator();
+            return Collections.emptyIterator();
         }
     }
 }

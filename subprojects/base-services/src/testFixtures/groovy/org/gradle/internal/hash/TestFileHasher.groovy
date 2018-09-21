@@ -20,12 +20,11 @@ import com.google.common.io.Files
 import org.gradle.api.UncheckedIOException
 import org.gradle.api.file.FileTreeElement
 import org.gradle.internal.file.FileMetadataSnapshot
-import org.gradle.internal.io.NullOutputStream
 
 class TestFileHasher implements FileHasher {
     @Override
     HashCode hash(File file) {
-        HashingOutputStream hashingStream = new HashingOutputStream(Hashing.md5(), NullOutputStream.INSTANCE);
+        HashingOutputStream hashingStream = Hashing.primitiveStreamHasher();
         try {
             Files.copy(file, hashingStream);
         } catch (IOException e) {

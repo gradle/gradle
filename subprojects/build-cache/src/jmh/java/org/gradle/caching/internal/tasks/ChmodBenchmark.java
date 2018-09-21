@@ -46,7 +46,7 @@ import static java.nio.file.attribute.PosixFilePermission.*;
 @Warmup(iterations = 10)
 @Measurement(iterations = 10)
 @State(Scope.Benchmark)
-@SuppressWarnings({"Since15", "OctalInteger"})
+@SuppressWarnings("OctalInteger")
 public class ChmodBenchmark {
     private static final int DEFAULT_JAVA6_FILE_PERMISSIONS = 0644;
     private static final Set<PosixFilePermission> DEFAULT_JAVA7_FILE_PERMISSIONS = EnumSet.of(
