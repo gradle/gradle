@@ -34,7 +34,6 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
     @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
     def "can run resolveConfiguration sample with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
-        if(expectedDeprecationWarnings) executer.expectDeprecationWarnings(expectedDeprecationWarnings)
 
         when:
         run "resolveConfiguration"
@@ -45,16 +44,13 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
         output.contains "** Accepted version: 1.3.0"
 
         where:
-        dsl      | expectedDeprecationWarnings
-        'groovy' | 0
-        'kotlin' | 1
+        dsl << ['groovy', 'kotlin']
     }
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
     def "can run reject sample with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
-        if(expectedDeprecationWarnings) executer.expectDeprecationWarnings(expectedDeprecationWarnings)
 
         when:
         run "printRejectConfig"
@@ -63,16 +59,13 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
         output.contains "Resolved: api-1.4.jar"
 
         where:
-        dsl      | expectedDeprecationWarnings
-        'groovy' | 0
-        'kotlin' | 1
+        dsl << ['groovy', 'kotlin']
     }
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
     def "can run metadata rules sample with #dsl dsl"() {
         executer.inDirectory(sample.dir)
-        if(expectedDeprecationWarnings) executer.expectDeprecationWarnings(expectedDeprecationWarnings)
 
         when:
         run "printMetadataRulesConfig"
@@ -82,16 +75,13 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
         output.contains "Resolved: lib-1.9.jar"
 
         where:
-        dsl      | expectedDeprecationWarnings
-        'groovy' | 0
-        'kotlin' | 0
+        dsl << ['groovy', 'kotlin']
     }
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
     def "can run targeted rule sample with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
-        if(expectedDeprecationWarnings) executer.expectDeprecationWarnings(expectedDeprecationWarnings)
 
         when:
         run "printTargetConfig"
@@ -100,16 +90,13 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
         output.contains "Resolved: api-1.4.jar"
 
         where:
-        dsl      | expectedDeprecationWarnings
-        'groovy' | 0
-        'kotlin' | 1
+        dsl << ['groovy', 'kotlin']
     }
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
     def "can run rules source sample with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
-        if(expectedDeprecationWarnings) executer.expectDeprecationWarnings(expectedDeprecationWarnings)
 
         when:
         run "printRuleSourceConfig"
@@ -118,8 +105,6 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
         output.contains "Resolved: api-1.4.jar"
 
         where:
-        dsl      | expectedDeprecationWarnings
-        'groovy' | 0
-        'kotlin' | 1
+        dsl << ['groovy', 'kotlin']
     }
 }

@@ -111,8 +111,8 @@ task("printTargetConfig") {
 // tag::api-component-selection[]
 class RejectTestBranch {
     @Mutate
-    fun evaluateRule(selection: ComponentSelection, ivy: IvyModuleDescriptor) {
-        if (ivy.branch == "test") {
+    fun evaluateRule(selection: ComponentSelection) {
+        if (selection.getDescriptor(IvyModuleDescriptor::class)?.branch == "test") {
             selection.reject("reject test branch")
         }
     }
