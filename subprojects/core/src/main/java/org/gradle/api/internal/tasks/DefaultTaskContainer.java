@@ -108,6 +108,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public Task create(Map<String, ?> options) {
+        assertMutable("create(Map<String, ?>)");
         return doCreate(options, Actions.doNothing());
     }
 
@@ -270,6 +271,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public Task create(Map<String, ?> options, Closure configureClosure) throws InvalidUserDataException {
+        assertMutable("create(Map<String, ?>, Closure)");
         return doCreate(options, ConfigureUtil.configureUsing(configureClosure));
     }
 
@@ -281,6 +283,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public <T extends Task> T create(final String name, final Class<T> type, final Object... constructorArgs) throws InvalidUserDataException {
+        assertMutable("create(String, Class, Object...)");
         return doCreate(name, type, constructorArgs, Actions.doNothing());
     }
 
@@ -336,6 +339,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public Task replace(String name) {
+        assertMutable("replace(String)");
         return replace(name, DefaultTask.class);
     }
 
@@ -377,6 +381,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public <T extends Task> TaskProvider<T> register(String name, Class<T> type, Object... constructorArgs) {
+        assertMutable("register(String, Class, Object...)");
         return registerTask(name, type, null, constructorArgs);
     }
 
@@ -410,6 +415,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public <T extends Task> T replace(final String name, final Class<T> type) {
+        assertMutable("replace(String, Class)");
         final TaskIdentity<T> identity = TaskIdentity.create(name, type, project);
         return buildOperationExecutor.call(new CallableBuildOperation<T>() {
             @Override

@@ -136,6 +136,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     @Override
     public boolean addAll(Collection<? extends T> c) {
+        assertMutable("addAll(Collection<T>)");
         boolean changed = super.addAll(c);
         if (changed) {
             for (T t : c) {
