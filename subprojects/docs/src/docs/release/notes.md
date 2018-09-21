@@ -286,6 +286,11 @@ task myOtherTask {
 
 The `IdeaModule` Tooling API model element contains methods to retrieve resources and test resources so those elements were removed from the result of  `IdeaModule#getSourceDirs()` and `IdeaModule#getTestSourceDirs()`.
 
+### Source task `source` field access
+
+In previous Gradle versions the `source` filed in `SourceTask` was accessible from subclasses.
+This is not the case anymore as the `source` filed is now declared as `private`.
+
 ### Changes to previously deprecated APIs
 
 - The `org.gradle.plugins.signing.Signature` methods `getToSignArtifact()` and `setFile(File)` are removed.
