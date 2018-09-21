@@ -98,7 +98,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         def a = brokenTask("a", failure)
 
         given:
-        taskGraph.addTasks([a])
+        taskGraph.addEntryTasks([a])
 
         when:
         taskGraph.execute(failures)
@@ -115,7 +115,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         cancellationToken.cancellationRequested >>> [false, true]
 
         when:
-        taskGraph.addTasks([a, b])
+        taskGraph.addEntryTasks([a, b])
         taskGraph.execute(failures)
 
         then:
@@ -132,7 +132,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         cancellationToken.cancellationRequested >>> [false, false, true]
 
         when:
-        taskGraph.addTasks([a, b])
+        taskGraph.addEntryTasks([a, b])
         taskGraph.execute(failures)
 
         then:
@@ -145,7 +145,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         cancellationToken.cancellationRequested >>> [true]
 
         when:
-        taskGraph.addTasks([])
+        taskGraph.addEntryTasks([])
         taskGraph.execute(failures)
 
         then:
@@ -159,7 +159,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         Task d = task("d", c)
 
         when:
-        taskGraph.addTasks([d])
+        taskGraph.addEntryTasks([d])
         taskGraph.execute(failures)
 
         then:
@@ -174,7 +174,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         Task d = task("d", b, a, c)
 
         when:
-        taskGraph.addTasks([d])
+        taskGraph.addEntryTasks([d])
         taskGraph.execute(failures)
 
         then:
@@ -188,7 +188,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         Task c = task("c")
 
         when:
-        taskGraph.addTasks([b, c, a])
+        taskGraph.addEntryTasks([b, c, a])
         taskGraph.execute(failures)
 
         then:
@@ -203,8 +203,8 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         Task d = task("d")
 
         when:
-        taskGraph.addTasks([c, b])
-        taskGraph.addTasks([d, a])
+        taskGraph.addEntryTasks([c, b])
+        taskGraph.addEntryTasks([d, a])
         taskGraph.execute(failures)
 
         then:
@@ -220,8 +220,8 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         Task e = task("e", b, d)
 
         when:
-        taskGraph.addTasks([c])
-        taskGraph.addTasks([e])
+        taskGraph.addEntryTasks([c])
+        taskGraph.addEntryTasks([e])
         taskGraph.execute(failures)
 
         then:
@@ -236,7 +236,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         Task d = task("d", c)
 
         when:
-        taskGraph.addTasks([d])
+        taskGraph.addEntryTasks([d])
 
         then:
         taskGraph.hasTask(":a")
@@ -257,7 +257,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         Task a = task("a", b)
 
         when:
-        taskGraph.addTasks([a])
+        taskGraph.addEntryTasks([a])
 
         then:
         taskGraph.allTasks == [c, d, b, a]
@@ -291,7 +291,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         Task b = task("b", a)
 
         when:
-        taskGraph.addTasks([b])
+        taskGraph.addEntryTasks([b])
         taskGraph.execute(failures)
 
         then:
@@ -306,7 +306,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         Task c = task("c")
 
         when:
-        taskGraph.addTasks([b])
+        taskGraph.addEntryTasks([b])
         taskGraph.execute(failures)
 
         then:
@@ -316,7 +316,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         when:
         def failures2 = []
         executedTasks.clear()
-        taskGraph.addTasks([c])
+        taskGraph.addEntryTasks([c])
 
         then:
         taskGraph.allTasks == [c]
@@ -336,7 +336,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         addDependencies(a, c)
 
         when:
-        taskGraph.addTasks([c])
+        taskGraph.addEntryTasks([c])
         taskGraph.execute(failures)
 
         then:
@@ -351,7 +351,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
 
         when:
         taskGraph.addTaskExecutionGraphListener(listener)
-        taskGraph.addTasks([a])
+        taskGraph.addEntryTasks([a])
         taskGraph.execute(failures)
 
         then:
@@ -377,7 +377,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         when:
         taskGraph.whenReady(closure)
         taskGraph.whenReady(action)
-        taskGraph.addTasks([a])
+        taskGraph.addEntryTasks([a])
         taskGraph.execute(failures)
 
         then:
@@ -407,7 +407,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         final Task a = brokenTask("a", failure)
         final Task b = task("b")
 
-        taskGraph.addTasks([a, b])
+        taskGraph.addEntryTasks([a, b])
 
         when:
         taskGraph.execute(failures)
@@ -423,7 +423,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
         final Task b = task("b")
 
         when:
-        taskGraph.addTasks([a, b])
+        taskGraph.addEntryTasks([a, b])
         taskGraph.execute(failures)
 
         then:
@@ -486,7 +486,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
 
         when:
         taskGraph.useFilter(spec)
-        taskGraph.addTasks([a, b])
+        taskGraph.addEntryTasks([a, b])
 
         then:
         taskGraph.allTasks == [b]
@@ -511,7 +511,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
 
         when:
         taskGraph.useFilter(spec)
-        taskGraph.addTasks([c])
+        taskGraph.addEntryTasks([c])
 
         then:
         taskGraph.allTasks == [b, c]
@@ -537,7 +537,7 @@ class DefaultTaskExecutionGraphSpec extends Specification {
                 return element != b
             }
         })
-        taskGraph.addTasks([a, c])
+        taskGraph.addEntryTasks([a, c])
         taskGraph.execute(failures)
 
         then:

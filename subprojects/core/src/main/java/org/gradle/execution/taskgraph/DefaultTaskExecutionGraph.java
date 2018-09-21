@@ -120,7 +120,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     @Override
-    public void addTasks(Iterable<? extends Task> tasks) {
+    public void addEntryTasks(Iterable<? extends Task> tasks) {
         assert tasks != null;
 
         final Timer clock = Time.startTimer();
@@ -131,7 +131,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             requestedTasks.add(task);
         }
 
-        executionPlan.addToTaskGraph(taskSet);
+        executionPlan.addEntryTasks(taskSet);
         graphState = GraphState.DIRTY;
 
         LOGGER.debug("Timing: Creating the DAG took " + clock.getElapsed());
@@ -321,7 +321,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         /*
             Note: we currently extract this information from the execution plan because it's
             buried under functions in #filter. This could be detangled/simplified by introducing
-            excludeTasks(Iterable<Task>) as an analog to addTasks(Iterable<Task>).
+            excludeTasks(Iterable<Task>) as an analog to addEntryTasks(Iterable<Task>).
 
             This is too drastic a change for the stage in the release cycle were exposing this information
             was necessary, therefore the minimal change solution was implemented.

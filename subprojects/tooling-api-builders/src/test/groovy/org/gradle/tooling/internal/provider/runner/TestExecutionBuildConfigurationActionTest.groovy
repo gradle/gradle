@@ -79,7 +79,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         buildConfigurationAction.configure(buildContext)
         then:
         0 * projectInternal.getAllprojects() >> [projectInternal]
-        _ * taskGraph.addTasks({ args -> assert args.size() == 0 })
+        _ * taskGraph.addEntryTasks({ args -> assert args.size() == 0 })
     }
 
     @Unroll

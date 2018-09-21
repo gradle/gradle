@@ -82,8 +82,8 @@ class TaskNameResolvingBuildConfigurationActionSpec extends Specification {
         then:
         1 * parser.parseTasks(request1) >> [selection1]
         1 * parser.parseTasks(request2) >> [selection2]
-        1 * taskGraph.addTasks(tasks1)
-        1 * taskGraph.addTasks(tasks2)
+        1 * taskGraph.addEntryTasks(tasks1)
+        1 * taskGraph.addEntryTasks(tasks2)
         1 * context.proceed()
         _ * context.gradle >> gradle
         0 * context._()

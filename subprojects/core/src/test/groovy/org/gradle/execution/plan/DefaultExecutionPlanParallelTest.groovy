@@ -651,7 +651,7 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
     }
 
     private void addToGraphAndPopulate(Task... tasks) {
-        executionPlan.addToTaskGraph(Arrays.asList(tasks))
+        executionPlan.addEntryTasks(Arrays.asList(tasks))
         executionPlan.determineExecutionPlan()
     }
 

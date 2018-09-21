@@ -76,7 +76,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A reusable implementation of ExecutionPlan. The {@link #addToTaskGraph(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these methods.
+ * A reusable implementation of ExecutionPlan. The {@link #addEntryTasks(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these methods.
  */
 @NonNullApi
 public class DefaultExecutionPlan implements ExecutionPlan {
@@ -124,7 +124,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return nodeMapping.get(task);
     }
 
-    public void addToTaskGraph(Collection<? extends Task> tasks) {
+    public void addEntryTasks(Collection<? extends Task> tasks) {
         final Deque<Node> queue = new ArrayDeque<Node>();
 
         List<Task> sortedTasks = new ArrayList<Task>(tasks);

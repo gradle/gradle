@@ -112,8 +112,8 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
         Task d = task("d")
 
         when:
-        executionPlan.addToTaskGraph(toList(c, b))
-        executionPlan.addToTaskGraph(toList(d, a))
+        executionPlan.addEntryTasks(toList(c, b))
+        executionPlan.addEntryTasks(toList(d, a))
         executionPlan.determineExecutionPlan()
 
         then:
@@ -146,8 +146,8 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
         Task e = task("e", dependsOn: [b, d])
 
         when:
-        executionPlan.addToTaskGraph(toList(c))
-        executionPlan.addToTaskGraph(toList(e))
+        executionPlan.addEntryTasks(toList(c))
+        executionPlan.addEntryTasks(toList(e))
         executionPlan.determineExecutionPlan()
 
         then:
@@ -174,8 +174,8 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
         Task c = task("c", (orderingRule): [b])
 
         when:
-        executionPlan.addToTaskGraph([c])
-        executionPlan.addToTaskGraph([b])
+        executionPlan.addEntryTasks([c])
+        executionPlan.addEntryTasks([b])
         executionPlan.determineExecutionPlan()
 
         then:
@@ -339,8 +339,8 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
         Task finalized = task("finalized", finalizedBy: [finalizer], didWork: false)
 
         when:
-        executionPlan.addToTaskGraph([finalized])
-        executionPlan.addToTaskGraph([dependsOnFinalizer])
+        executionPlan.addEntryTasks([finalized])
+        executionPlan.addEntryTasks([dependsOnFinalizer])
         executionPlan.determineExecutionPlan()
 
         then:
@@ -507,10 +507,10 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
         Task c = task("c", dependsOn: [b])
         Task d = task("d", dependsOn: [c])
         relationships(a, mustRunAfter: [c])
-        executionPlan.addToTaskGraph([d])
+        executionPlan.addEntryTasks([d])
 
         when:
-        executionPlan.addToTaskGraph([a])
+        executionPlan.addEntryTasks([a])
         executionPlan.determineExecutionPlan()
 
         then:
@@ -849,7 +849,7 @@ class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     private void addToGraphAndPopulate(List tasks) {
-        executionPlan.addToTaskGraph(tasks)
+        executionPlan.addEntryTasks(tasks)
         executionPlan.determineExecutionPlan()
     }
 
