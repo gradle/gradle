@@ -221,6 +221,7 @@ The default tool versions of the following code quality plugins have been update
 
 Several libraries that are used by Gradle have been upgraded:
 
+- Groovy was upgraded from 2.4.15 to 2.5.2 (see http://groovy-lang.org/releasenotes/groovy-2.5.html about the changes in this release).
 - Ant has been upgraded from 1.9.11 to 1.9.13.
 - The AWS SDK used to access S3 backed Maven/Ivy repositories has been upgraded from 1.11.267 to 1.11.407.
 - The BND library used by the OSGi plugin has been upgraded from 3.4.0 to 4.0.0.
@@ -284,6 +285,11 @@ task myOtherTask {
 ### Source and test source dirs in `IdeaModule` no longer contain resources
 
 The `IdeaModule` Tooling API model element contains methods to retrieve resources and test resources so those elements were removed from the result of  `IdeaModule#getSourceDirs()` and `IdeaModule#getTestSourceDirs()`.
+
+### Source task `source` field access
+
+In previous Gradle versions the `source` filed in `SourceTask` was accessible from subclasses.
+This is not the case anymore as the `source` filed is now declared as `private`.
 
 ### Changes to previously deprecated APIs
 

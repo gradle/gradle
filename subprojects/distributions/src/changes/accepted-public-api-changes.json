@@ -591,6 +591,14 @@
             "acceptation": "Upgrading to Java 8 seems to have changed the byte code slightly, probably introducing a bridge method."
         },
         {
+            "type": "org.gradle.api.tasks.SourceTask",
+            "member": "Field source",
+            "acceptation": "Prohibit direct access to field, see https://github.com/gradle/gradle/issues/6641",
+            "changes": [
+                "Field is less accessible"
+            ]
+        },
+        {
             "type": "org.gradle.api.publish.maven.MavenDependency",
             "member": "Method org.gradle.api.publish.maven.MavenDependency.getType()",
             "acceptation": "Expose the Maven dependency type property",
