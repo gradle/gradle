@@ -78,60 +78,6 @@ public class Providers {
         return new FixedValueProvider<T>(value);
     }
 
-    public static <T> CollectionProviderInternal<T, Collection<T>> collectionOf(final T... values) {
-        return new CollectionProviderInternal<T, Collection<T>>() {
-            @Nullable
-            @Override
-            public Class<Collection<T>> getType() {
-                return Cast.uncheckedCast(List.class);
-            }
-
-            @Override
-            public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-                return false;
-            }
-
-            @Override
-            public Collection<T> get() {
-                return Arrays.asList(values);
-            }
-
-            @Nullable
-            @Override
-            public Collection<T> getOrNull() {
-                return get();
-            }
-
-            @Override
-            public Collection<T> getOrElse(Collection<T> defaultValue) {
-                return get();
-            }
-
-            @Override
-            public <S> ProviderInternal<S> map(Transformer<? extends S, ? super Collection<T>> transformer) {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public boolean isPresent() {
-                return values.length > 0;
-            }
-
-            @Override
-            public Class<? extends T> getElementType() {
-                if (values.length == 0) {
-                    throw new UnsupportedOperationException("Need to have at least one element");
-                }
-                return Cast.uncheckedCast(values[0].getClass());
-            }
-
-            @Override
-            public int size() {
-                return values.length;
-            }
-        };
-    }
-
     public static <T> ProviderInternal<T> internal(final Provider<T> value) {
         return Cast.uncheckedCast(value);
     }
