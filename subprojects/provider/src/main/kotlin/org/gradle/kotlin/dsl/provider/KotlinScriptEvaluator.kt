@@ -287,12 +287,11 @@ private
 fun Settings.addKotlinEapRepository() {
 
     gradle.settingsEvaluated {
-        if (pluginManagement.repositories.isEmpty()) {
-            pluginManagement.run {
-                repositories.run {
-                    kotlinEap()
-                    gradlePluginPortal()
-                }
+        pluginManagement.repositories.run {
+            val wasEmpty = isEmpty()
+            kotlinEap()
+            if (wasEmpty) {
+                gradlePluginPortal()
             }
         }
     }
