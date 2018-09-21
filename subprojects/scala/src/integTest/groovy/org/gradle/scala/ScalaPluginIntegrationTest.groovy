@@ -147,6 +147,7 @@ task someTask
         succeeds(":other:resolve")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/6854")
     def "does not leak internal configurations that may have failing dependencies"() {
         settingsFile << """
             include 'java', 'scala'
@@ -182,7 +183,7 @@ task someTask
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6849")
-    def "can publish Scala project"() {
+    def "can publish project with Java sources and Scala tests"() {
         buildFile << """
             apply plugin: 'java-library'
             apply plugin: 'scala'
@@ -192,14 +193,19 @@ task someTask
                 ${jcenterRepository()}
             }
         
-            //scala joint compilation for tests
-            sourceSets.test.java.srcDirs.each { sourceSets.test.scala.srcDir it }
-            sourceSets.test.java.srcDirs = []
-        
             dependencies {
                 compile 'org.scala-lang:scala-library:2.12.6'
             }
         """
+        file("src/main/java/Bar.java") << """
+            public class Bar {}
+        """
+        file("src/test/scala/Foo.scala") << """
+            trait Foo {
+                val bar: Bar
+            }
+        """
+
         // TODO: Workaround
         file("src/main/scala/ScalaForTestsWorkaround.scala") << "class ScalaForTestsWorkaround"
         expect:
