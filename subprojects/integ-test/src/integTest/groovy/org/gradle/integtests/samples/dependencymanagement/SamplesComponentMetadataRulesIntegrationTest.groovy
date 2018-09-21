@@ -49,7 +49,7 @@ class SamplesComponentMetadataRulesIntegrationTest extends AbstractIntegrationSp
     @Unroll
     @UsesSample('userguide/dependencyManagement/customizingResolution/metadataRule')
     def "can run custom status scheme with module sample with #dsl dsl" () {
-        executer.inDirectory(sample.dir)
+        executer.inDirectory(sample.dir.file(dsl))
 
         when:
         succeeds "listLib"
@@ -64,7 +64,7 @@ class SamplesComponentMetadataRulesIntegrationTest extends AbstractIntegrationSp
     @Unroll
     @UsesSample('userguide/dependencyManagement/customizingResolution/metadataRule')
     def "can run ivy metadata rule with #dsl dsl" () {
-        executer.inDirectory(sample.dir)
+        executer.inDirectory(sample.dir.file(dsl))
 
         when:
         succeeds "listWithIvyRule"
@@ -79,7 +79,7 @@ class SamplesComponentMetadataRulesIntegrationTest extends AbstractIntegrationSp
     @Unroll
     @UsesSample('userguide/dependencyManagement/customizingResolution/metadataRule')
     def "can run custom status scheme with parameterized class rule sample with #dsl dsl" () {
-        executer.inDirectory(sample.dir)
+        executer.inDirectory(sample.dir.file(dsl))
 
         when:
         succeeds "listWithConfiguredRule"

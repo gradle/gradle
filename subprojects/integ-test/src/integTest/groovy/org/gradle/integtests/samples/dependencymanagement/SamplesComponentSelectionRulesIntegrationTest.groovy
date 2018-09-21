@@ -65,7 +65,7 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
     @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
     def "can run metadata rules sample with #dsl dsl"() {
-        executer.inDirectory(sample.dir)
+        executer.inDirectory(sample.dir.file(dsl))
 
         when:
         run "printMetadataRulesConfig"
