@@ -825,6 +825,34 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         build("help")
     }
 
+    @Test
+    fun `accessors to existing tasks`() {
+
+        withBuildScript("""
+            plugins {
+                java
+            }
+
+            tasks.compileJava {
+                options.isWarnings = true
+            }
+
+            tasks {
+                val myCheck by registering {
+                    dependsOn(testClasses)
+                    doLast {
+                        println(testClasses.get().description)
+                    }
+                }
+                test {
+                    dependsOn(myCheck)
+                }
+            }
+        """)
+
+        build("help")
+    }
+
     private
     fun withFolders(folders: FoldersDslExpression) =
         projectRoot.withFolders(folders)

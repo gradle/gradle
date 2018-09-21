@@ -38,6 +38,7 @@ interface ProjectSchemaProvider {
 data class ProjectSchema<out T>(
     val extensions: List<ProjectSchemaEntry<T>>,
     val conventions: List<ProjectSchemaEntry<T>>,
+    val tasks: List<ProjectSchemaEntry<T>>,
     val containerElements: List<ProjectSchemaEntry<T>>,
     val configurations: List<String>
 ) : Serializable {
@@ -46,12 +47,14 @@ data class ProjectSchema<out T>(
         ProjectSchema(
             extensions.map { it.map(f) },
             conventions.map { it.map(f) },
+            tasks.map { it.map(f) },
             containerElements.map { it.map(f) },
             configurations.toList())
 
     fun isNotEmpty(): Boolean =
         extensions.isNotEmpty()
             || conventions.isNotEmpty()
+            || tasks.isNotEmpty()
             || containerElements.isNotEmpty()
             || configurations.isNotEmpty()
 }
@@ -82,6 +85,7 @@ fun loadMultiProjectSchemaFrom(file: File) =
         ProjectSchema(
             extensions = loadSchemaEntryListFrom(value["extensions"]),
             conventions = loadSchemaEntryListFrom(value["conventions"]),
+            tasks = loadSchemaEntryListFrom(value["tasks"]),
             containerElements = loadSchemaEntryListFrom(value["containerElements"]),
             configurations = value["configurations"] as? List<String> ?: emptyList())
     }

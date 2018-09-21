@@ -58,6 +58,7 @@ class KotlinDslAccessorsSnapshotTaskIntegrationTest : AbstractIntegrationTest() 
             mapOf(
                 "extensions" to { schema: ProjectSchema<String> -> schema.extensions },
                 "conventions" to { schema: ProjectSchema<String> -> schema.conventions },
+                "tasks" to { schema: ProjectSchema<String> -> schema.tasks },
                 "containerElements" to { schema: ProjectSchema<String> -> schema.containerElements },
                 "configurations" to { schema: ProjectSchema<String> -> schema.configurations }
             ).forEach { schemaPartName, schemaPartSupplier ->
@@ -78,6 +79,7 @@ fun ProjectSchema<String>.sortedForComparison(): ProjectSchema<String> =
     ProjectSchema(
         extensions.sortedWith(projectSchemaEntryComparator),
         conventions.sortedWith(projectSchemaEntryComparator),
+        tasks.sortedWith(projectSchemaEntryComparator),
         containerElements.sortedWith(projectSchemaEntryComparator),
         configurations.sorted()
     )
@@ -94,6 +96,7 @@ operator fun ProjectSchema<String>.plus(schema: ProjectSchema<String>) =
     ProjectSchema(
         extensions + schema.extensions,
         conventions + schema.conventions,
+        tasks + schema.tasks,
         containerElements + schema.containerElements,
         configurations + schema.configurations
     )
@@ -105,6 +108,18 @@ val defaultProjectSchema = ProjectSchema(
         ProjectSchemaEntry("org.gradle.api.Project", "ext", "org.gradle.api.plugins.ExtraPropertiesExtension")
     ),
     conventions = emptyList(),
+    tasks = listOf(
+        existingTaskContainerElement("buildEnvironment", "org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask"),
+        existingTaskContainerElement("components", "org.gradle.api.reporting.components.ComponentReport"),
+        existingTaskContainerElement("dependencies", "org.gradle.api.tasks.diagnostics.DependencyReportTask"),
+        existingTaskContainerElement("dependencyInsight", "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask"),
+        existingTaskContainerElement("dependentComponents", "org.gradle.api.reporting.dependents.DependentComponentsReport"),
+        existingTaskContainerElement("help", "org.gradle.configuration.Help"),
+        existingTaskContainerElement("model", "org.gradle.api.reporting.model.ModelReport"),
+        existingTaskContainerElement("projects", "org.gradle.api.tasks.diagnostics.ProjectReportTask"),
+        existingTaskContainerElement("properties", "org.gradle.api.tasks.diagnostics.PropertyReportTask"),
+        existingTaskContainerElement("tasks", "org.gradle.api.tasks.diagnostics.TaskReportTask")
+    ),
     containerElements = emptyList(),
     configurations = emptyList()
 )
@@ -118,6 +133,12 @@ val baseProjectSchema = defaultProjectSchema + ProjectSchema(
     ),
     conventions = listOf(
         ProjectSchemaEntry("org.gradle.api.Project", "base", "org.gradle.api.plugins.BasePluginConvention")
+    ),
+    tasks = listOf(
+        existingTaskContainerElement("assemble"),
+        existingTaskContainerElement("build"),
+        existingTaskContainerElement("check"),
+        existingTaskContainerElement("clean", "org.gradle.api.tasks.Delete")
     ),
     containerElements = listOf(
         existingConfigurationContainerElement("archives"),
@@ -133,6 +154,12 @@ private
 val rootProjectSchema = baseProjectSchema + ProjectSchema(
     extensions = emptyList(),
     conventions = emptyList(),
+    tasks = listOf(
+        existingTaskContainerElement("init", "org.gradle.buildinit.tasks.InitBuild"),
+        existingTaskContainerElement("wrapper", "org.gradle.api.tasks.wrapper.Wrapper"),
+        existingTaskContainerElement("kotlinDslAccessorsReport", "org.gradle.kotlin.dsl.accessors.tasks.PrintAccessors"),
+        existingTaskContainerElement("kotlinDslAccessorsSnapshot", "org.gradle.kotlin.dsl.accessors.tasks.UpdateProjectSchema")
+    ),
     containerElements = emptyList(),
     configurations = emptyList()
 )
@@ -164,6 +191,19 @@ val javaProjectSchema: ProjectSchema<String> = listOf(
         conventions = listOf(
             ProjectSchemaEntry("org.gradle.api.Project", "java", "org.gradle.api.plugins.JavaPluginConvention")
         ),
+        tasks = listOf(
+            existingTaskContainerElement("buildDependents"),
+            existingTaskContainerElement("buildNeeded"),
+            existingTaskContainerElement("classes"),
+            existingTaskContainerElement("compileJava", "org.gradle.api.tasks.compile.JavaCompile"),
+            existingTaskContainerElement("compileTestJava", "org.gradle.api.tasks.compile.JavaCompile"),
+            existingTaskContainerElement("jar", "org.gradle.api.tasks.bundling.Jar"),
+            existingTaskContainerElement("javadoc", "org.gradle.api.tasks.javadoc.Javadoc"),
+            existingTaskContainerElement("processResources", "org.gradle.language.jvm.tasks.ProcessResources"),
+            existingTaskContainerElement("processTestResources", "org.gradle.language.jvm.tasks.ProcessResources"),
+            existingTaskContainerElement("test", "org.gradle.api.tasks.testing.Test"),
+            existingTaskContainerElement("testClasses")
+        ),
         containerElements = configurationNames.map(::existingConfigurationContainerElement),
         configurations = configurationNames
     )
@@ -177,6 +217,11 @@ val groovyProjectSchema: ProjectSchema<String> = javaProjectSchema + ProjectSche
         ProjectSchemaEntry("org.gradle.api.tasks.GroovyRuntime", "ext", "org.gradle.api.plugins.ExtraPropertiesExtension")
     ),
     conventions = emptyList(),
+    tasks = listOf(
+        existingTaskContainerElement("compileGroovy", "org.gradle.api.tasks.compile.GroovyCompile"),
+        existingTaskContainerElement("compileTestGroovy", "org.gradle.api.tasks.compile.GroovyCompile"),
+        existingTaskContainerElement("groovydoc", "org.gradle.api.tasks.javadoc.Groovydoc")
+    ),
     containerElements = emptyList(),
     configurations = emptyList()
 )
@@ -214,10 +259,21 @@ val kotlinDslProjectSchema: ProjectSchema<String> = listOf(
             ProjectSchemaEntry("org.jetbrains.kotlin.gradle.scripting.ScriptingExtension", "ext", "org.gradle.api.plugins.ExtraPropertiesExtension")
         ),
         conventions = emptyList(),
+        tasks = listOf(
+            existingTaskContainerElement("mainClasses"),
+            existingTaskContainerElement("compileKotlin", "org.jetbrains.kotlin.gradle.tasks.KotlinCompile"),
+            existingTaskContainerElement("compileTestKotlin", "org.jetbrains.kotlin.gradle.tasks.KotlinCompile"),
+            existingTaskContainerElement("inspectClassesForKotlinIC", "org.jetbrains.kotlin.gradle.tasks.InspectClassesForMultiModuleIC")
+        ),
         containerElements = configurationNames.map(::existingConfigurationContainerElement),
         configurations = configurationNames
     )
 }
+
+
+private
+fun existingTaskContainerElement(name: String, type: String = "org.gradle.api.DefaultTask") =
+    ProjectSchemaEntry("org.gradle.api.tasks.TaskContainer", name, type)
 
 
 private

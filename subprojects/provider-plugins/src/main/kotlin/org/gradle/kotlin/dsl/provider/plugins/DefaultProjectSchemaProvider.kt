@@ -26,6 +26,7 @@ import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.reflect.TypeOf
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.api.tasks.TaskContainer
 
 import org.gradle.kotlin.dsl.accessors.ProjectSchema
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
@@ -39,6 +40,7 @@ class DefaultProjectSchemaProvider : ProjectSchemaProvider {
             ProjectSchema(
                 targetSchema.extensions,
                 targetSchema.conventions,
+                targetSchema.tasks,
                 targetSchema.containerElements,
                 accessibleConfigurationsOf(project))
         }
@@ -49,6 +51,7 @@ private
 data class TargetTypedSchema(
     val extensions: List<ProjectSchemaEntry<TypeOf<*>>>,
     val conventions: List<ProjectSchemaEntry<TypeOf<*>>>,
+    val tasks: List<ProjectSchemaEntry<TypeOf<*>>>,
     val containerElements: List<ProjectSchemaEntry<TypeOf<*>>>
 )
 
@@ -58,6 +61,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
 
     val extensions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
     val conventions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
+    val tasks = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
     val containerElements = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
 
     fun collectSchemaOf(target: Any, targetType: TypeOf<*>) {
@@ -77,6 +81,9 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
             accessibleContainerSchema(target.configurations.collectionSchema).forEach { schema ->
                 containerElements.add(ProjectSchemaEntry(typeOfConfigurationContainer, schema.name, schema.publicType))
             }
+            accessibleContainerSchema(target.tasks.collectionSchema).forEach { schema ->
+                tasks.add(ProjectSchemaEntry(typeOfTaskContainer, schema.name, schema.publicType))
+            }
             // WARN eagerly realize all source sets
             sourceSetsOf(target)?.forEach { sourceSet ->
                 collectSchemaOf(sourceSet, typeOfSourceSet)
@@ -86,7 +93,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
 
     collectSchemaOf(target, targetType)
 
-    return TargetTypedSchema(extensions.distinct(), conventions.distinct(), containerElements.distinct())
+    return TargetTypedSchema(extensions.distinct(), conventions.distinct(), tasks.distinct(), containerElements.distinct())
 }
 
 
@@ -146,6 +153,10 @@ val typeOfConfigurationContainer = typeOf<NamedDomainObjectContainer<Configurati
 
 private
 val typeOfSourceSet = typeOf<SourceSet>()
+
+
+private
+val typeOfTaskContainer = typeOf<TaskContainer>()
 
 
 internal
