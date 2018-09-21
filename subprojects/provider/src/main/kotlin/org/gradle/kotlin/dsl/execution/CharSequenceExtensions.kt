@@ -16,8 +16,6 @@
 
 package org.gradle.kotlin.dsl.execution
 
-import kotlin.coroutines.experimental.buildSequence
-
 
 internal
 fun CharSequence.linePreservingSubstring(range: IntRange): String =
@@ -70,7 +68,7 @@ fun CharSequence.lineAndColumnFor(index: Int): Pair<Int, Int> {
 
 
 internal
-fun CharSequence.splitIncluding(delimiter: Char) = buildSequence {
+fun CharSequence.splitIncluding(delimiter: Char) = sequence {
     var startIndex = 0
     while (true) {
         val endIndex = indexOf(delimiter, startIndex) + 1

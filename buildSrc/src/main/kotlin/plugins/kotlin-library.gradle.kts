@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-import accessors.kotlin
-
-import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope
@@ -27,10 +24,6 @@ plugins {
     id("org.gradle.kotlin.ktlint-convention")
 }
 
-kotlin {
-    experimental.coroutines = Coroutines.ENABLE
-}
-
 tasks {
 
     withType<KotlinCompile>().configureEach {
@@ -38,7 +31,7 @@ tasks {
             freeCompilerArgs += listOf(
                 "-java-parameters",
                 "-Xjsr305=strict",
-                "-Xprogressive",
+                "-progressive",
                 "-Xskip-runtime-version-check")
         }
     }

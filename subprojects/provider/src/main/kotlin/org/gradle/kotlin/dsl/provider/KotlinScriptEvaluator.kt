@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
@@ -57,6 +58,7 @@ import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
+import org.gradle.kotlin.dsl.support.kotlinEap
 import org.gradle.kotlin.dsl.support.transitiveClosureOf
 
 import org.gradle.plugin.management.internal.DefaultPluginRequests
@@ -199,6 +201,10 @@ class StandardKotlinScriptEvaluator(
                 scriptHost.scriptHandler as ScriptHandlerInternal?,
                 null,
                 scriptHost.targetScope)
+
+            (scriptHost.target as? Settings)?.run {
+                addKotlinEapRepository()
+            }
         }
 
         override fun cachedClassFor(
@@ -273,6 +279,26 @@ class StandardKotlinScriptEvaluator(
 
         override val implicitImports: List<String>
             get() = this@StandardKotlinScriptEvaluator.implicitImports.list
+    }
+}
+
+
+private
+fun Settings.addKotlinEapRepository() {
+
+    gradle.settingsEvaluated {
+        pluginManagement.repositories.run {
+            val wasEmpty = isEmpty()
+            kotlinEap()
+            if (wasEmpty) {
+                gradlePluginPortal()
+            }
+        }
+    }
+
+    gradle.beforeProject { project ->
+        project.buildscript.repositories.kotlinEap()
+        project.repositories.kotlinEap()
     }
 }
 

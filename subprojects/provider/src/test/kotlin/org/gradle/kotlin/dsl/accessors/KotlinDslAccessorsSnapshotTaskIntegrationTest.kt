@@ -219,9 +219,11 @@ val kotlinDslProjectSchema: ProjectSchema<String> =
             "kaptTest",
             "kotlinCompilerClasspath",
             "kotlinCompilerPluginClasspath",
+            "kotlinScriptDef",
             "runtimeOnlyDependenciesMetadata",
             "testApi", "testApiDependenciesMetadata",
             "testCompileOnlyDependenciesMetadata",
+            "testKotlinScriptDef",
             "testImplementationDependenciesMetadata",
             "testRuntimeOnlyDependenciesMetadata"
         )).sorted())

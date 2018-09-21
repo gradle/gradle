@@ -16,6 +16,7 @@ dependencies {
     compile(project(":tooling-models"))
     compile(futureKotlin("stdlib-jdk8"))
     compile(futureKotlin("reflect"))
+    compile(futureKotlin("script-runtime"))
     compile(futureKotlin("compiler-embeddable"))
     compile(futureKotlin("sam-with-receiver-compiler-plugin")) {
         isTransitive = false

@@ -1,8 +1,6 @@
 package samples
 
-import kotlin.coroutines.experimental.*
-
-val fibonacci = buildSequence {
+val fibonacci = sequence {
 
     var a = 0
     var b = 1
