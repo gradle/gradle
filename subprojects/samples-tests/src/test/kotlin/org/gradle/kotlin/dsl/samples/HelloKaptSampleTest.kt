@@ -6,11 +6,9 @@ import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 
 import org.junit.Assert.assertThat
-import org.junit.Ignore
 import org.junit.Test
 
 
-@Ignore("wip: Kotlin 1.3")
 class HelloKaptSampleTest : AbstractSampleTest("hello-kapt") {
 
     @Test

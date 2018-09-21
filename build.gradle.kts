@@ -100,8 +100,7 @@ val customInstallation by task<Copy> {
 val benchmark by task<integration.Benchmark> {
     excludingSamplesMatching(
         "android",
-        "source-control",
-        "hello-kapt"
+        "source-control"
     )
     latestInstallation = customInstallationDir
     dependsOn(customInstallation)
