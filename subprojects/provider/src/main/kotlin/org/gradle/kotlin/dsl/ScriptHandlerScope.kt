@@ -17,6 +17,8 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Incubating
+import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
@@ -48,6 +50,12 @@ class ScriptHandlerScope(scriptHandler: ScriptHandler) : ScriptHandler by script
      */
     val ConfigurationContainer.classpath: Configuration
         get() = getByName(CLASSPATH_CONFIGURATION)
+
+    /**
+     * The script classpath configuration.
+     */
+    val NamedDomainObjectContainer<Configuration>.classpath: NamedDomainObjectProvider<Configuration>
+        get() = named(CLASSPATH_CONFIGURATION)
 
     /**
      * Adds a dependency to the script classpath.

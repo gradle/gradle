@@ -801,6 +801,30 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             containsString("Type of `myConvention` receiver is MyConvention"))
     }
 
+    @Test
+    fun `accessors to existing configurations`() {
+
+        withBuildScript("""
+            plugins {
+                java
+            }
+
+            configurations {
+                runtimeOnly {
+                    extendsFrom(implementation.get())
+                }
+            }
+
+            configurations.implementation {
+                resolutionStrategy {
+                    failOnVersionConflict()
+                }
+            }
+        """)
+
+        build("help")
+    }
+
     private
     fun withFolders(folders: FoldersDslExpression) =
         projectRoot.withFolders(folders)
