@@ -25,8 +25,8 @@ import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import java.io.File
 import java.net.URI
 
-import kotlin.coroutines.experimental.Continuation
-import kotlin.coroutines.experimental.suspendCoroutine
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.suspendCoroutine
 
 import kotlin.script.dependencies.KotlinScriptExternalDependencies
 import kotlin.script.dependencies.ScriptContents
@@ -224,13 +224,10 @@ object RequestQueue {
 
     private
     fun handle(request: KotlinBuildScriptModelRequest, k: Continuation<KotlinBuildScriptModel>) {
-        val response =
-            try {
+        k.resumeWith(
+            runCatching {
                 fetchKotlinBuildScriptModelFor(request)
-            } catch (e: Throwable) {
-                k.resumeWithException(e)
-                return
             }
-        k.resume(response)
+        )
     }
 }
