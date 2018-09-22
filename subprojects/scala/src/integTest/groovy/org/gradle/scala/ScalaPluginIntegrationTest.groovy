@@ -184,6 +184,7 @@ task someTask
 
     @Issue("https://github.com/gradle/gradle/issues/6849")
     def "can publish project with Java sources and Scala tests"() {
+        using m2
         buildFile << """
             apply plugin: 'java-library'
             apply plugin: 'scala'
