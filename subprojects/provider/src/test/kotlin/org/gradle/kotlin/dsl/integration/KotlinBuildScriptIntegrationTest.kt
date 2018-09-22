@@ -4,12 +4,41 @@ import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 
 import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.CoreMatchers.equalTo
 
 import org.junit.Assert.assertThat
 import org.junit.Test
 
 
 class KotlinBuildScriptIntegrationTest : AbstractIntegrationTest() {
+
+    @Test
+    fun `can use Kotlin 1 dot 3 language features`() {
+
+        withBuildScript("""
+
+            // Coroutines are no longer experimental
+            val coroutine = sequence {
+                // Unsigned integer types
+                yield(42UL)
+            }
+
+            task("test") {
+                doLast {
+                    // Capturing when
+                    when (val value = coroutine.first()) {
+                        42UL -> print("42!")
+                        else -> throw IllegalStateException()
+                    }
+                }
+            }
+        """)
+
+        assertThat(
+            build("test", "-q").output,
+            equalTo("42!")
+        )
+    }
 
     @Test
     fun `use of the plugins block on nested project block fails with reasonable error message`() {
