@@ -7,7 +7,9 @@ import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Assert.fail
 
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.PrintStream
 
 import java.net.URLClassLoader
 
@@ -49,3 +51,22 @@ fun classLoaderFor(vararg classPath: File): URLClassLoader =
 
 val File.normalisedPath
     get() = TextUtil.normaliseFileSeparators(path)
+
+
+fun assertStandardOutputOf(expected: String, action: () -> Unit): Unit =
+    assertThat(
+        standardOutputOf(action),
+        equalToMultiLineString(expected)
+    )
+
+
+fun standardOutputOf(action: () -> Unit): String =
+    ByteArrayOutputStream().also {
+        val out = System.out
+        try {
+            System.setOut(PrintStream(it, true))
+            action()
+        } finally {
+            System.setOut(out)
+        }
+    }.toString("utf8")

@@ -45,7 +45,7 @@ import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
 
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
-import org.gradle.kotlin.dsl.fixtures.equalToMultiLineString
+import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
 import org.gradle.kotlin.dsl.fixtures.testCompilationClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 
@@ -59,9 +59,7 @@ import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
 
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.PrintStream
 
 import java.util.Arrays.fill
 
@@ -572,23 +570,3 @@ fun fragment(identifier: String, body: String, prefix: String = ""): ProgramSour
         (identifierEnd + 2)..source.text.lastIndex
     )
 }
-
-
-internal
-fun assertStandardOutputOf(expected: String, action: () -> Unit): Unit =
-    assertThat(
-        standardOutputOf(action),
-        equalToMultiLineString(expected))
-
-
-internal
-fun standardOutputOf(action: () -> Unit): String =
-    ByteArrayOutputStream().also {
-        val out = System.out
-        try {
-            System.setOut(PrintStream(it, true))
-            action()
-        } finally {
-            System.setOut(out)
-        }
-    }.toString("utf8")

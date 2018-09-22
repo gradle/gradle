@@ -16,6 +16,7 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.assertFailsWith
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
+import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.joinLines
 import org.gradle.kotlin.dsl.fixtures.withFolders
@@ -260,7 +261,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
                 """)
 
-                withFile( "build.gradle.kts", """
+                withFile("build.gradle.kts", """
 
                     plugins {
                         `kotlin-dsl`
@@ -329,6 +330,31 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
                 containsString("org.acme.my-other-plugin applied!")
             )
         )
+    }
+
+    @Test
+    fun `precompiled script plugins can use Kotlin 1 dot 3 language features`() {
+
+        givenPrecompiledKotlinScript("my-plugin.gradle.kts", """
+
+            // Coroutines are no longer experimental
+            val coroutine = sequence {
+                // Unsigned integer types
+                yield(42UL)
+            }
+
+            when (val value = coroutine.first()) {
+                42UL -> print("42!")
+                else -> throw IllegalStateException()
+            }
+        """)
+
+        assertStandardOutputOf("42!") {
+            instantiatePrecompiledScriptOf(
+                mock<Project>(),
+                "My_plugin_gradle"
+            )
+        }
     }
 
     private
