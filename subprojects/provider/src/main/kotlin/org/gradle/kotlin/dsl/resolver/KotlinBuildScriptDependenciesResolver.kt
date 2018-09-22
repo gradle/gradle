@@ -59,9 +59,7 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
     object Messages {
         const val failure = "Script dependencies resolution failed"
         const val failureUsingPrevious = "Script dependencies resolution failed, using previous dependencies"
-        const val exceptions = "There were some errors during script dependencies resolution, some dependencies might be missing"
-        const val exceptionsUsingPrevious = "There were some errors during script dependencies resolution, using previous dependencies"
-
+        const val exceptions = "There were some errors during script dependencies resolution"
     }
 
     private
@@ -130,7 +128,7 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
             previousDependencies != null && previousDependencies.classpath.count() > response.classPath.size ->
                 previousDependencies.also {
                     logger.log(ResolvedToPreviousWithErrors(scriptFile, previousDependencies, response.exceptions))
-                    report.warning(Messages.exceptionsUsingPrevious)
+                    report.warning(Messages.exceptions)
                 }
             else ->
                 dependenciesFrom(response).also {
