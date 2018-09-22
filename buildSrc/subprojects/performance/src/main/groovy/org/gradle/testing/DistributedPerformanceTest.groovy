@@ -17,10 +17,10 @@
 package org.gradle.testing
 
 import com.google.common.base.Splitter
+import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
-import groovy.xml.XmlUtil
 import groovyx.net.http.ContentType
 import groovyx.net.http.HttpResponseException
 import groovyx.net.http.RESTClient
@@ -129,8 +129,8 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
         finishedBuilds.collect { workerBuildId, scenarioResult ->
             new ScenarioBuildResultData(
                 scenarioName: scheduledBuilds.get(workerBuildId).id,
-                webUrl: findWebUrlInXml(scenarioResult.buildResultXml),
-                successful: findStatusInXml(scenarioResult.buildResultXml),
+                webUrl: scenarioResult.buildResult.webUrl.toString(),
+                successful: scenarioResult.buildResult.status == 'SUCCESS',
                 testFailure: collectFailures(scenarioResult.testSuite))
         }
     }
@@ -162,71 +162,107 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     private void schedule(Scenario scenario, String lastChangeId) {
-        def buildRequest = """
-                <build${branchName ? " branchName=\"${branchName}\"" : ""}>
-                    <buildType id="${buildTypeId}"/>
-                    <properties>
-                        <property name="scenario" value="${scenario.id}"/>
-                        <property name="templates" value="${scenario.templates.join(' ')}"/>
-                        <property name="baselines" value="${baselines ?: 'defaults'}"/>
-                        <property name="warmups" value="${warmups ?: 'defaults'}"/>
-                        <property name="runs" value="${runs ?: 'defaults'}"/>
-                        <property name="checks" value="${checks ?: 'all'}"/>
-                        <property name="channel" value="${channel ?: 'commits'}"/>
-                    </properties>
-                    ${renderLastChange(lastChangeId)}
-                </build>
-            """
-        logger.info("Scheduling $scenario.id, estimated runtime: $scenario.estimatedRuntime, coordinatorBuildId: $buildId, lastChangeId: $lastChangeId, build request: $buildRequest")
-        def response = client.post(
-            path: "buildQueue",
-            requestContentType: ContentType.XML,
-            body: buildRequest
-        )
-        String workerBuildId = response.data.@id
+        def requestBody = [
+            buildTypeId: buildTypeId,
+            properties: [
+                property: [
+                    [name: 'scenario', value: scenario.id],
+                    [name: 'templates', value: scenario.templates.join(' ')],
+                    [name: 'baselines', value: baselines ?: 'defaults'],
+                    [name: 'warmups', value: warmups ?: 'defaults'],
+                    [name: 'runs', value: runs ?: 'defaults'],
+                    [name: 'checks', value: checks ?: 'all'],
+                    [name: 'channel', value: channel ?: 'commits'],
+                ]
+            ]
+        ]
+        if (branchName) {
+            requestBody['branchName'] = branchName
+        }
+        if (lastChangeId) {
+            requestBody['lastChanges'] = [change: [[id: lastChangeId]]]
+        }
+        println("Scheduling $scenario.id, estimated runtime: $scenario.estimatedRuntime, coordinatorBuildId: $buildId, lastChangeId: $lastChangeId, build request: $requestBody")
+
+        Map response = httpPost(path: 'buildQueue', requestContentType: ContentType.JSON, body: JsonOutput.toJson(requestBody))
+
+        /*
+        {
+            "id": 14585813,
+            "buildTypeId": "Gradle_Check_NoDaemon_Java8_Oracle_Windows_workers",
+            "number": "921",
+            "status": "FAILURE",
+            "state": "finished",
+            "branchName": "master",
+            "href": "/app/rest/builds/id:14585813",
+            "webUrl": "https://builds.gradle.org/viewLog.html?buildId=14585813&buildTypeId=Gradle_Check_NoDaemon_Java8_Oracle_Windows_workers",
+            "statusText": "Gradle exception (new); exit code 1 (new)",
+            "buildType": {
+                "id": "Gradle_Check_NoDaemon_Java8_Oracle_Windows_workers",
+                "name": "Test Coverage - NoDaemon Java8 Oracle Windows (workers)",
+                "projectName": "Gradle / Check / Release Accept / Test Coverage - NoDaemon Java8 Oracle Windows",
+                "projectId": "Gradle_Check_NoDaemon_Java8_Oracle_Windows",
+                "href": "/app/rest/buildTypes/id:Gradle_Check_NoDaemon_Java8_Oracle_Windows_workers",
+                "webUrl": "https://builds.gradle.org/viewType.html?buildTypeId=Gradle_Check_NoDaemon_Java8_Oracle_Windows_workers"
+            },
+            "lastChanges": {
+                "change": [{
+                    "id": 476592,
+                    "version": "46ea4a59b549acea726dde8caa87307237a9679e",
+                    "username": "gary",
+                    "date": "20180730T194944+0000",
+                    "href": "/app/rest/changes/id:476592",
+                    "webUrl": "https://builds.gradle.org/viewModification.html?modId=476592&personal=false"
+                }],
+                "count": 1
+            },
+            ...
+        }
+        */
+
+        String workerBuildId = response.id
         cancellationToken.addCallback {
             cancel(workerBuildId)
         }
-        def scheduledChangeId = findLastChangeIdInXml(response.data)
+        def scheduledChangeId = findLastChangeIdInJson(response)
         if (lastChangeId && scheduledChangeId != lastChangeId) {
-            throw new RuntimeException("The requested change id is different than the actual one. requested change id: $lastChangeId in coordinatorBuildId: $buildId, actual change id: $scheduledChangeId in workerBuildId: $workerBuildId\nresponse: ${xmlToString(response.data)}")
+            throw new RuntimeException("The requested change id is different than the actual one. requested change id: $lastChangeId in coordinatorBuildId: $buildId, actual change id: $scheduledChangeId in workerBuildId: $workerBuildId\nresponse: $response")
         }
         scheduledBuilds.put(workerBuildId, scenario)
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private static String xmlToString(xmlObject) {
-        if (xmlObject != null) {
-            try {
-                return XmlUtil.serialize(xmlObject)
-            } catch (e) {
-                // ignore errors
-            }
+    private CoordinatorBuild resolveCoordinatorBuild() {
+        if (buildId) {
+            Map response = httpGet(path: "builds/id:$buildId")
+            return new CoordinatorBuild(id: buildId, lastChangeId: findLastChangeIdInJson(response), buildTypeId: response.buildTypeId)
         }
         return null
     }
 
-    private String renderLastChange(lastChangeId) {
-        if (lastChangeId) {
-            return """
-                <lastChanges>
-                    <change id="$lastChangeId"/>
-                </lastChanges>
-            """
-        } else {
-            return ""
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private String findLastChangeIdInJson(Map responseJson) {
+        responseJson.lastChanges.change[0].id
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private Map httpGet(Map params) {
+        try {
+            return client.get(params).data
+        } catch (HttpResponseException ex) {
+            println("Get response ${ex.response.status}\n${ex.response.data}")
+            throw ex
         }
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private CoordinatorBuild resolveCoordinatorBuild() {
-        if (buildId) {
-            def response = client.get(path: "builds/id:$buildId")
-            if (response.success) {
-                return new CoordinatorBuild(id: buildId, lastChangeId: findLastChangeIdInXml(response.data), buildTypeId: response.data.@buildTypeId.text())
-            }
+    private Map httpPost(Map params) {
+        try {
+            return client.post(params).data
+        } catch (HttpResponseException ex) {
+            println("Get response ${ex.response.status}\n${ex.response.data}")
+            throw ex
         }
-        return null
     }
 
     void waitForTestsCompletion() {
@@ -253,14 +289,9 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private String findLastChangeIdInXml(xmlroot) {
-        xmlroot.lastChanges.change[0].@id.text()
-    }
-
-    @TypeChecked(TypeCheckingMode.SKIP)
     private boolean checkResult(String jobId) {
-        def response = client.get(path: "builds/id:$jobId")
-        boolean finished = response.data.@state == "finished"
+        Map response = httpGet(path: "builds/id:$jobId", requestContentType: ContentType.JSON)
+        boolean finished = response.state == "finished"
         if (finished) {
             collectPerformanceTestResults(response, jobId)
         }
@@ -268,28 +299,19 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private void collectPerformanceTestResults(def response, String jobId) {
+    private void collectPerformanceTestResults(Map response, String jobId) {
         try {
-            JUnitTestSuite testSuite = fetchTestResult(response.data)
-            finishedBuilds.put(jobId, new ScenarioResult(name: scheduledBuilds.get(jobId).id, buildResultXml: response.data, testSuite: testSuite))
-            fireTestListener(testSuite, response.data)
+            JUnitTestSuite testSuite = fetchTestResult(response)
+            finishedBuilds.put(jobId, new ScenarioResult(name: scheduledBuilds.get(jobId).id, buildResult: response, testSuite: testSuite))
+            fireTestListener(testSuite, response)
         } catch (e) {
             e.printStackTrace(System.err)
         }
     }
 
-    @TypeChecked(TypeCheckingMode.SKIP)
-    private boolean findStatusInXml(xmlroot) {
-        xmlroot.@status.toString() == 'SUCCESS'
-    }
-
-    @TypeChecked(TypeCheckingMode.SKIP)
-    private String findWebUrlInXml(xmlroot) {
-        xmlroot.@webUrl.toString()
-    }
-
     void cancel(String buildId) {
         try {
+            println("Cancelling: " + buildId)
             cancel(buildId, "buildQueue")
         } catch (HttpResponseException eq) {
             rethrowIfNonRecoverable(eq)
@@ -308,32 +330,42 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     }
 
     void cancel(String workerBuildId, String endpoint) {
-        String link = XmlUtil.escapeXml("$teamCityUrl/viewLog.html?buildId=$buildId&buildTypeId=$buildTypeId")
-        String cancelRequest = """<buildCancelRequest comment="Coordinator build was canceled: $link" readdIntoQueue="false" />"""
-        client.post(
-            path: "$endpoint/id:$workerBuildId",
-            requestContentType: ContentType.XML,
-            body: cancelRequest
-        )
+        String link = "$teamCityUrl/viewLog.html?buildId=$buildId&buildTypeId=$buildTypeId"
+        Map cancelRequest = [buildCancelRequest: [commend: "Coordinator build was canceled: $link", readdIntoQueue: "false"]]
+        httpPost(path: "$endpoint/id:$workerBuildId", requestContentType: ContentType.JSON, body: JsonOutput.toJson(cancelRequest))
     }
 
-    private void fireTestListener(JUnitTestSuite result, Object build) {
-        testEventsGenerator.processTestSuite(result, build)
+    private void fireTestListener(JUnitTestSuite result, Map buildResult) {
+        testEventsGenerator.processTestSuite(result, buildResult)
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private JUnitTestSuite fetchTestResult(buildData) {
+    private JUnitTestSuite fetchTestResult(Map buildData) {
         JUnitTestSuite testSuite = null
-        def artifactsUri = buildData?.artifacts?.@href?.text()
+        def artifactsUri = buildData?.artifacts?.href
         if (artifactsUri) {
-            def resultArtifacts = client.get(path: "${artifactsUri}/results/${project.name}/build/")
-            if (resultArtifacts.success) {
-                def zipName = "test-results-${workerTestTaskName}.zip".toString()
-                def fileNode = resultArtifacts.data.file.find {
-                    it.@name.text() == zipName
+            def resultArtifacts = httpGet(path: "${artifactsUri}/results/${project.name}/build/")
+            /*
+                {
+                    "count": 1,
+                    "file": [
+                    {
+                        "name": "test-results-fullPerformanceTest.zip",
+                        "size": 972,
+                        "modificationTime": "20180921T004828+0000",
+                        "href": "/app/rest/9.1/builds/id:15973459/artifacts/metadata/results/performance/build/test-results-fullPerformanceTest.zip",
+                        "content": {
+                        "href": "/app/rest/9.1/builds/id:15973459/artifacts/content/results/performance/build/test-results-fullPerformanceTest.zip"
+                    }
+                    }
+                ]
                 }
+            */
+            if (resultArtifacts.count > 0) {
+                def zipName = "test-results-${workerTestTaskName}.zip".toString()
+                def fileNode = resultArtifacts.file.find { it.name == zipName }
                 if (fileNode) {
-                    def contentUri = fileNode.content.@href.text()
+                    def contentUri = fileNode.content.href
                     client.get(path: contentUri, contentType: ContentType.BINARY) {
                         resp, inputStream ->
                             testSuite = parseXmlsInZip(inputStream)
@@ -360,7 +392,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     private void checkForErrors() {
-        def failedBuilds = finishedBuilds.values().findAll { it.buildResultXml.@status != "SUCCESS" }
+        def failedBuilds = finishedBuilds.values().findAll { it.buildResult.status != "SUCCESS" }
         if (failedBuilds) {
             throw new GradleException("${failedBuilds.size()} performance tests failed. See $reportDir for details.")
         }
@@ -370,6 +402,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
         client = new RESTClient("$teamCityUrl/httpAuth/app/rest/9.1")
         client.auth.basic(teamCityUsername, teamCityPassword)
         client.headers['Origin'] = teamCityUrl
+        client.headers['Accept'] = ContentType.JSON.toString()
         client
     }
 
@@ -388,7 +421,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
 
     private static class ScenarioResult {
         String name
-        Object buildResultXml
+        Map buildResult
         JUnitTestSuite testSuite
     }
 }
