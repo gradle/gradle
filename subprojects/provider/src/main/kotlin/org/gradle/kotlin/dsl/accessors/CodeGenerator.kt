@@ -22,8 +22,6 @@ import org.gradle.api.plugins.ExtensionAware
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
 
-import kotlin.coroutines.experimental.buildSequence
-
 
 internal
 fun ProjectSchema<TypeAccessibility>.forEachAccessor(action: (String) -> Unit) {
@@ -32,7 +30,7 @@ fun ProjectSchema<TypeAccessibility>.forEachAccessor(action: (String) -> Unit) {
 
 
 internal
-fun ProjectSchema<TypeAccessibility>.extensionAccessors(): Sequence<String> = buildSequence {
+fun ProjectSchema<TypeAccessibility>.extensionAccessors(): Sequence<String> = sequence {
 
     val seen = SeenAccessorSpecs()
 
@@ -59,7 +57,7 @@ fun ProjectSchema<TypeAccessibility>.extensionAccessors(): Sequence<String> = bu
 
 
 internal
-fun <T> ProjectSchema<T>.configurationAccessors(): Sequence<String> = buildSequence {
+fun <T> ProjectSchema<T>.configurationAccessors(): Sequence<String> = sequence {
     configurations.map(::accessorNameSpec).forEach { spec ->
         configurationAccessorFor(spec)?.let {
             yield(it)

@@ -2,15 +2,11 @@ import org.jetbrains.kotlin.gradle.dsl.Coroutines
 
 plugins {
     application
-    kotlin("jvm") version "1.2.70"
+    kotlin("jvm") version "1.3.0-rc-57"
 }
 
 application {
     mainClassName = "samples.HelloCoroutinesKt"
-}
-
-kotlin { // configure<org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension>
-    experimental.coroutines = Coroutines.ENABLE
 }
 
 dependencies {

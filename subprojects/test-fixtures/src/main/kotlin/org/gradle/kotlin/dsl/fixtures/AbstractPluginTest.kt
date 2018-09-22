@@ -34,6 +34,7 @@ open class AbstractPluginTest : AbstractIntegrationTest() {
         """
             repositories {
                 $testRepositories
+                kotlinEap()
                 gradlePluginPortal()
             }
         """
