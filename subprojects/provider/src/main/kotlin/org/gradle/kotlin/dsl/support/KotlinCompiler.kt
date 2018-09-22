@@ -188,8 +188,8 @@ fun compilerConfigurationFor(messageCollector: MessageCollector): CompilerConfig
 
 private
 val gradleKotlinDslLanguageVersionSettings = LanguageVersionSettingsImpl(
-    languageVersion = LanguageVersion.KOTLIN_1_2,
-    apiVersion = ApiVersion.KOTLIN_1_2,
+    languageVersion = LanguageVersion.KOTLIN_1_3,
+    apiVersion = ApiVersion.KOTLIN_1_3,
     specificFeatures = mapOf(
         LanguageFeature.NewInference to LanguageFeature.State.ENABLED,
         LanguageFeature.SamConversionForKotlinFunctions to LanguageFeature.State.ENABLED
