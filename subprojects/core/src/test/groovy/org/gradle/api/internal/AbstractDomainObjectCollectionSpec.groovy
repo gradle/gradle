@@ -18,15 +18,9 @@ package org.gradle.api.internal
 
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectCollection
-import org.gradle.api.Transformer
 import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.internal.provider.CollectionProviderInternal
 import org.gradle.api.internal.provider.ProviderInternal
-import org.gradle.api.internal.provider.Providers
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext
-import org.gradle.internal.Pair
-import org.gradle.internal.metaobject.ConfigureDelegate
-import org.gradle.util.ConfigureUtil
 import org.hamcrest.Matchers
 import org.junit.Assume
 import spock.lang.Specification

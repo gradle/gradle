@@ -21,9 +21,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 
 public class Providers {
     public static final String NULL_TRANSFORMER_RESULT = "Transformer for this provider returned a null value.";
