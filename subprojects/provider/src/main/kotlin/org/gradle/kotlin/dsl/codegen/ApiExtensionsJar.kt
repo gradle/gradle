@@ -101,12 +101,17 @@ class ApiExtensionsJarGenerator(
 
 
 internal
-fun compileKotlinApiExtensionsTo(outputDirectory: File, sourceFiles: Collection<File>, classPath: Collection<File>) {
+fun compileKotlinApiExtensionsTo(
+    outputDirectory: File,
+    sourceFiles: Collection<File>,
+    classPath: Collection<File>,
+    logger: org.slf4j.Logger = loggerFor<ApiExtensionsJarGenerator>()
+) {
 
     val success = compileToDirectory(
         outputDirectory,
         sourceFiles,
-        loggerFor<ApiExtensionsJarGenerator>(),
+        logger,
         classPath = classPath
     )
 

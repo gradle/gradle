@@ -16,6 +16,10 @@
 
 package org.gradle.kotlin.dsl.codegen
 
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.inOrder
+import com.nhaarman.mockito_kotlin.mock
+
 import org.gradle.api.specs.Specs
 
 import org.gradle.kotlin.dsl.accessors.TestWithClassPath
@@ -29,7 +33,10 @@ import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.junit.Assert.assertThat
 import org.junit.Test
 
+import org.slf4j.Logger
+
 import java.io.File
+
 import java.util.function.Consumer
 
 import kotlin.reflect.KClass
@@ -317,11 +324,20 @@ class GradleApiExtensionsTest : TestWithClassPath() {
             }
         }
 
+        val logger = mock<Logger> {
+            on { isTraceEnabled } doReturn false
+        }
         compileKotlinApiExtensionsTo(
             file("out").also { it.mkdirs() },
             generatedSourceFiles + usageFiles,
-            apiJars
+            apiJars,
+            logger
         )
+        // Assert no warnings were emitted
+        inOrder(logger) {
+            verify(logger).isTraceEnabled
+            verifyNoMoreInteractions()
+        }
     }
 }
 

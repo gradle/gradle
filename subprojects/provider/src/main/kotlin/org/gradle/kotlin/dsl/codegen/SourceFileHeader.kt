@@ -26,6 +26,11 @@ internal
 fun fileHeaderFor(packageName: String) =
     """$licenseHeader
 
+@file:Suppress(
+    "redundant_projection",
+    "nothing_to_inline"
+)
+
 package $packageName
 """
 
