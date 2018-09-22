@@ -107,7 +107,7 @@ fun jitProjectSchemaOf(project: Project) =
 
 internal
 fun <T> ProjectSchema<T>.groupedByTarget(): Map<T, ProjectSchema<T>> =
-    flatMapGroupedByEntryKind()
+    entriesPairedWithEntryKind()
         .groupBy { (entry, _) -> entry.target }
         .mapValues { (_, entries) ->
             ProjectSchema(
@@ -120,7 +120,7 @@ fun <T> ProjectSchema<T>.groupedByTarget(): Map<T, ProjectSchema<T>> =
 
 
 private
-fun <T> ProjectSchema<T>.flatMapGroupedByEntryKind() =
+fun <T> ProjectSchema<T>.entriesPairedWithEntryKind() =
     (extensions.map { it to EntryKind.Extension }
         + conventions.map { it to EntryKind.Convention }
         + containerElements.map { it to EntryKind.ContainerElement })
