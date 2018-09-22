@@ -16,10 +16,10 @@
 
 package org.gradle.kotlin.dsl.resolver
 
-import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver.Messages
-
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.customInstallation
+
+import org.gradle.kotlin.dsl.tooling.models.EditorMessages
 
 import kotlin.script.dependencies.KotlinScriptExternalDependencies
 import kotlin.script.dependencies.ScriptContents
@@ -146,7 +146,7 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
 
         recorder.apply {
             assertLastEventIsInstanceOf(ResolvedDependenciesWithErrors::class)
-            assertSingleFileWarningReport(Messages.exceptions)
+            assertSingleFileWarningReport(EditorMessages.exceptions)
         }
     }
 
@@ -168,7 +168,7 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
 
         recorder.apply {
             assertLastEventIsInstanceOf(ResolvedDependenciesWithErrors::class)
-            assertSingleFileWarningReport(Messages.exceptions)
+            assertSingleFileWarningReport(EditorMessages.exceptions)
         }
     }
 
@@ -186,7 +186,7 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
 
         recorder.apply {
             assertLastEventIsInstanceOf(ResolvedDependenciesWithErrors::class)
-            assertSingleFileWarningReport(Messages.exceptions)
+            assertSingleFileWarningReport(EditorMessages.exceptions)
         }
     }
 
@@ -205,7 +205,7 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
 
         recorder.apply {
             assertLastEventIsInstanceOf(ResolvedDependenciesWithErrors::class)
-            assertSingleFileWarningReport(Messages.exceptions)
+            assertSingleFileWarningReport(EditorMessages.exceptions)
         }
     }
 

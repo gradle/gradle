@@ -151,6 +151,7 @@ object DefaultResolverEventLogger : ResolverEventLogger {
                 "classPath" to compactStringFor(classPath),
                 "sourcePath" to compactStringFor(sourcePath),
                 "implicitImports" to compactStringFor(implicitImports, '.'),
+                "editorReports" to editorReports.toString(),
                 "exceptions" to stringForExceptions(exceptions, indentation)),
             indentation)
     }

@@ -20,6 +20,8 @@ package org.gradle.kotlin.dsl.resolver
 import org.gradle.kotlin.dsl.concurrent.EventLoop
 import org.gradle.kotlin.dsl.concurrent.future
 
+import org.gradle.kotlin.dsl.tooling.models.EditorMessages
+import org.gradle.kotlin.dsl.tooling.models.EditorReport
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 
 import java.io.File
@@ -53,14 +55,16 @@ fun Report.error(message: String, position: Position? = null) =
     invoke(ReportSeverity.ERROR, message, position)
 
 
-class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
-
-    internal
-    object Messages {
-        const val failure = "Script dependencies resolution failed"
-        const val failureUsingPrevious = "Script dependencies resolution failed, using previous dependencies"
-        const val exceptions = "There were some errors during script dependencies resolution"
+private
+fun Report.editorReports(editorReports: List<EditorReport>) {
+    editorReports.forEach { editorReport ->
+        // TODO map properly
+        warning(editorReport.message)
     }
+}
+
+
+class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
 
     private
     val logger: ResolverEventLogger
@@ -100,8 +104,8 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
                 previousDependencies)
         } catch (e: Exception) {
             logger.log(ResolutionFailure(script.file, e))
-            if (previousDependencies == null) report.error(Messages.failure)
-            else report.warning(Messages.failureUsingPrevious)
+            if (previousDependencies == null) report.error(EditorMessages.failure)
+            else report.warning(EditorMessages.failureUsingPrevious)
             previousDependencies
         }
     }
@@ -120,6 +124,8 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
         val response = RequestQueue.post(request)
         logger.log(ReceivedModelResponse(scriptFile, response))
 
+        report.editorReports(response.editorReports)
+
         return when {
             response.exceptions.isEmpty() ->
                 dependenciesFrom(response).also {
@@ -128,12 +134,10 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
             previousDependencies != null && previousDependencies.classpath.count() > response.classPath.size ->
                 previousDependencies.also {
                     logger.log(ResolvedToPreviousWithErrors(scriptFile, previousDependencies, response.exceptions))
-                    report.warning(Messages.exceptions)
                 }
             else ->
                 dependenciesFrom(response).also {
                     logger.log(ResolvedDependenciesWithErrors(scriptFile, it, response.exceptions))
-                    report.warning(Messages.exceptions)
                 }
         }
     }
