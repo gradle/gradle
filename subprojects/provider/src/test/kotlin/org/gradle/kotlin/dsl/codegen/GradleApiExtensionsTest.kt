@@ -16,9 +16,11 @@
 
 package org.gradle.kotlin.dsl.codegen
 
+import com.nhaarman.mockito_kotlin.atMost
 import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 
 import org.gradle.api.specs.Specs
 
@@ -334,10 +336,8 @@ class GradleApiExtensionsTest : TestWithClassPath() {
             logger
         )
         // Assert no warnings were emitted
-        inOrder(logger) {
-            verify(logger).isTraceEnabled
-            verifyNoMoreInteractions()
-        }
+        verify(logger, atMost(1)).isTraceEnabled
+        verifyNoMoreInteractions(logger)
     }
 }
 
