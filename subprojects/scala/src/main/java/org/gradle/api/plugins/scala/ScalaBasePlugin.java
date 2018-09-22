@@ -28,7 +28,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
