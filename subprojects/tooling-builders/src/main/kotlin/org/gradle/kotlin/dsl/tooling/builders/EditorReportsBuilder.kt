@@ -29,7 +29,7 @@ internal
 fun buildEditorReportsFor(scriptFile: File?, exceptions: List<Exception>): List<EditorReport> =
     if (exceptions.isEmpty()) emptyList()
     else listOf(
-        wholeFileWarning(EditorMessages.exceptions)
+        wholeFileWarning(EditorMessages.buildConfigurationFailed)
     )
 
 

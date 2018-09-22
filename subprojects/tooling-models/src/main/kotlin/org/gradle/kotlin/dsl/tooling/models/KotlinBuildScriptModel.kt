@@ -51,5 +51,6 @@ interface EditorPosition {
 object EditorMessages {
     const val failure = "Script dependencies resolution failed"
     const val failureUsingPrevious = "Script dependencies resolution failed, using previous dependencies"
-    const val exceptions = "There were some errors during script dependencies resolution"
+
+    const val buildConfigurationFailed = "Build configuration failed, run 'gradle tasks' for more information"
 }
