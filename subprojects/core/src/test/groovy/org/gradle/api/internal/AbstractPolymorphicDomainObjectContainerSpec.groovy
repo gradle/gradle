@@ -23,15 +23,12 @@ abstract class AbstractPolymorphicDomainObjectContainerSpec<T> extends AbstractN
     abstract NamedDomainObjectCollection<T> getContainer()
 
     @Override
-    protected List<MethodUnderTest> getMutationMethodsUnderTest() {
-        def result = []
-        result.addAll(super.getMutationMethodsUnderTest())
-        result.addAll([
-            methodUnderTest("create(String, Class)") { container.create("b", container.type) },
-            methodUnderTest("create(String, Class, Action)") { container.create("b", container.type, Actions.doNothing()) },
-            methodUnderTest("register(String, Class)") { container.register("b", container.type) },
-            methodUnderTest("register(String, Class, Action)") { container.register("b", container.type, Actions.doNothing()) },
-        ])
-        return result
+    protected Map<String, Closure> getMutatingMethods() {
+        return super.getMutatingMethods() + [
+            "create(String, Class)": { it.container.create("b", it.container.type) },
+            "create(String, Class, Action)": { it.container.create("b", it.container.type, Actions.doNothing()) },
+            "register(String, Class)": { it.container.register("b", it.container.type) },
+            "register(String, Class, Action)": { it.container.register("b", it.container.type, Actions.doNothing()) },
+        ]
     }
 }

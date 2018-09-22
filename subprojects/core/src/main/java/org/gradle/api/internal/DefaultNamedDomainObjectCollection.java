@@ -821,7 +821,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected NamedDomainObjectProvider<? extends T> createExistingProvider(String name, T object) {
-        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingNamedDomainObjectProvider.class, this, name));
+        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingNamedDomainObjectProvider.class, this, name, new DslObject(object).getDeclaredType()));
     }
 
     protected abstract class AbstractNamedDomainObjectProvider<I extends T> extends AbstractReadOnlyProvider<I> implements Named, NamedDomainObjectProvider<I> {
@@ -856,10 +856,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected class ExistingNamedDomainObjectProvider<I extends T> extends AbstractNamedDomainObjectProvider<I> {
-        public ExistingNamedDomainObjectProvider(String name) {
-            this(name, (Class<I>) DefaultNamedDomainObjectCollection.this.getType());
-        }
-
         public ExistingNamedDomainObjectProvider(String name, Class type) {
            super(name, type);
         }

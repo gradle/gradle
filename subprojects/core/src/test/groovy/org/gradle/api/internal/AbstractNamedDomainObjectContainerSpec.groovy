@@ -24,26 +24,12 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
     abstract NamedDomainObjectCollection<T> getContainer()
 
     @Override
-    protected List<MethodUnderTest> getMutationMethodsUnderTest() {
-        def result = []
-        result.addAll(super.getMutationMethodsUnderTest())
-        result.addAll([
-            methodUnderTest("create(String)") { container.create("b") },
-            methodUnderTest("create(String, Closure)") { container.create("b") {} },
-            methodUnderTest("create(String, Action)") { container.create("b", Actions.doNothing()) },
-            methodUnderTest("register(String)") { container.register("b") },
-            methodUnderTest("register(String, Action)") { container.register("b", Actions.doNothing()) },
-        ])
-        return result
-    }
-
-    @Override
-    List<ConfigurationUnderTest> getLazyConfigurationsUnderTest() {
-        List<ConfigurationUnderTest> result = []
-        result.addAll(super.getLazyConfigurationsUnderTest())
-        result.addAll([
-            configurationUnderTest("creating NamedDomainObjectProvider.configure") { def a = container.register("a"); a.configure(it); a.get() }
-        ])
-        return result
+    protected Map<String, Closure> getMutatingMethods() {
+        return super.getMutatingMethods() + [
+            "create(String)": { it.container.create("b") },
+            "create(String, Action)": { it.container.create("b", Actions.doNothing()) },
+            "register(String)": { it.container.register("b") },
+            "register(String, Action)": { it.container.register("b", Actions.doNothing()) },
+        ]
     }
 }

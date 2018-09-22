@@ -17,27 +17,80 @@
 package org.gradle.api.internal
 
 import org.gradle.api.NamedDomainObjectCollection
+import spock.lang.Unroll
 
 abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomainObjectCollectionSpec<T> {
     abstract NamedDomainObjectCollection<T> getContainer()
 
     @Override
-    protected List<MethodUnderTest> getQueryMethodsUnderTest() {
-        def result = []
-        result.addAll(super.getQueryMethodsUnderTest())
-        result.addAll([
-            methodUnderTest("getByName(String)") { container.getByName("a") },
-        ])
-        return result
+    protected Map<String, Closure> getQueryMethods() {
+        return super.getQueryMethods() + [
+            "getByName(String)": { it.container.getByName("a") },
+        ]
     }
 
-    @Override
-    List<ConfigurationUnderTest> getLazyConfigurationsUnderTest() {
-        List<ConfigurationUnderTest> result = []
-        result.addAll(super.getLazyConfigurationsUnderTest())
-        result.addAll([
-            configurationUnderTest("existing NamedDomainObjectProvider.configure") { container.add(a); container.named("a").configure(it) }
-        ])
-        return result
+    @Unroll
+    def "disallow mutating from named actions using #mutatingMethods.key"() {
+        setupContainerDefaults()
+        container.add(a)
+        String methodUnderTest = mutatingMethods.key
+        Closure method = mutatingMethods.value
+        when:
+        container.named("a").configure {
+            method(this)
+        }
+        then:
+        def ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
+
+        when:
+        container.named("a") {
+            method(this)
+        }
+        then:
+        ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
+
+        when:
+        container.named("a", getType()) {
+            method(this)
+        }
+        then:
+        ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
+
+        where:
+        mutatingMethods << getMutatingMethods()
+    }
+
+    @Unroll
+    def "allow query methods from named using #queryMethods.key"() {
+        setupContainerDefaults()
+        container.add(a)
+        String methodUnderTest = queryMethods.key
+        Closure method = queryMethods.value
+        when:
+        container.named("a").configure {
+            method(this)
+        }
+        then:
+        noExceptionThrown()
+
+        when:
+        container.named("a") {
+            method(this)
+        }
+        then:
+        noExceptionThrown()
+
+        when:
+        container.named("a", getType()) {
+            method(this)
+        }
+        then:
+        noExceptionThrown()
+
+        where:
+        queryMethods << getQueryMethods()
     }
 }

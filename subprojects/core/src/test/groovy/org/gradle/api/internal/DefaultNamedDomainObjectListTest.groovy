@@ -462,18 +462,15 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
     }
 
     @Override
-    protected List<MethodUnderTest> getMutationMethodsUnderTest() {
-        def result = []
-        result.addAll(super.getMutationMethodsUnderTest())
-        result.addAll([
-            methodUnderTest("add(int, T)") { container.add(0, b) },
-            methodUnderTest("addAll(int, Collection)") { container.addAll(0, [b]) },
-            methodUnderTest("set(int, T)") { container.set(0, b) },
-            methodUnderTest("remove(int)") { container.remove(0) },
-            methodUnderTest("listIterator().add(T)") { def iter = container.listIterator(); iter.next(); iter.add(b) },
-            methodUnderTest("listIterator().set(T)") { def iter = container.listIterator(); iter.next(); iter.set(b) },
-            methodUnderTest("listIterator().remove()") { def iter = container.listIterator(); iter.next(); iter.remove() },
-        ])
-        return result
+    protected Map<String, Closure> getMutatingMethods() {
+        return super.getMutatingMethods() + [
+            "add(int, T)": { it.container.add(0, it.b) },
+            "addAll(int, Collection)": { it.container.addAll(0, [it.b]) },
+            "set(int, T)": { it.container.set(0, it.b) },
+            "remove(int)": { it.container.remove(0) },
+            "listIterator().add(T)": { def iter = it.container.listIterator(); iter.next(); iter.add(it.b) },
+            "listIterator().set(T)": { def iter = it.container.listIterator(); iter.next(); iter.set(it.b) },
+            "listIterator().remove()": { def iter = it.container.listIterator(); iter.next(); iter.remove() },
+        ]
     }
 }
