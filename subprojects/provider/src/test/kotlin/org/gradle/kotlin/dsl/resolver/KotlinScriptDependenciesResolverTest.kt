@@ -229,7 +229,7 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
             environment(*env),
             recorder,
             null
-        ).get()!!
+        ).get().also { assertThat("resolved script dependencies", it, notNullValue()) }!!
 
     private
     fun withPrecompiledScriptBuildSrc() {
