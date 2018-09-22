@@ -38,7 +38,6 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
 import static org.gradle.performance.measure.Duration.millis
 
 @Category(PerformanceRegressionTest)
