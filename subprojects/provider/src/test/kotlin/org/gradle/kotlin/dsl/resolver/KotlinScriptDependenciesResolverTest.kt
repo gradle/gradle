@@ -186,7 +186,7 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
 
         recorder.apply {
             assertLastEventIsInstanceOf(ResolvedDependenciesWithErrors::class)
-            assertSingleLineErrorReport("Configuration with name 'doNotExists' not found.", 2)
+            assertSingleLineErrorReport("Configuration with name 'doNotExists' not found.", 1)
         }
     }
 

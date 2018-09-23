@@ -72,7 +72,7 @@ fun EditorReportSeverity.toIdeSeverity(): ReportSeverity =
 
 private
 fun EditorPosition.toIdePosition(): Position =
-    Position(line, column)
+    Position(if (line == 0) 0 else line - 1, column)
 
 
 class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
