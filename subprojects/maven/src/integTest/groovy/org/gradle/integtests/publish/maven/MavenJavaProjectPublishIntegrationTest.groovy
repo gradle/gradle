@@ -168,7 +168,7 @@ dependencies {
 }
 configurations.compile.withDependencies { deps ->
     deps.each { dep ->
-        dep.version { prefer '3.2.2' }
+        dep.version { require '3.2.2' }
     }
 }
 

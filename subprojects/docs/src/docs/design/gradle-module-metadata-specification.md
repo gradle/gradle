@@ -94,12 +94,18 @@ This value must contain an array with zero or more elements. Each element must b
 
 - `group`: The group of the dependency.
 - `module`: The module of the dependency.
-- `version`: optional. The version constraint of the dependency. Has the same meaning as in the Gradle DSL. A version constraint consists of:
-   - `prefers`: optional. The preferred version for this dependency
-   - `rejects`: optional. An array of rejected versions for this dependency.
+- `version`: optional. The version constraint of the dependency.
 - `excludes`: optional. Defines the exclusions that apply to this dependency. 
 - `reason`: optional. A explanation why the dependency is used. Can typically be used to explain why a specific version is requested.
 - `attributes`: optional. If set, attributes will override the consumer attributes during dependency resolution for this specific dependency.
+
+#### `version` value
+
+This value defines the version constraint of a dependency or dependency constraint. Has the same meaning as `version` in the Gradle DSL. A version constraint consists of:
+- `requires`: optional. The required version for this dependency.
+- `prefers`: optional. The preferred version for this dependency.
+- `strictly`: optional. A strictly enforced version requirement for this dependency.
+- `rejects`: optional: An array of rejected versions for this dependency.
 
 #### `excludes` value
 
@@ -118,9 +124,7 @@ This value must contain an array with zero or more elements. Each element must b
 
 - `group`: The group of the dependency constraint.
 - `module`: The module of the dependency constraint.
-- `version`: optional. The version constraint of the dependency constraint. Has the same meaning as in the Gradle DSL. A version constraint consists of:
-   - `prefers`: optional. The preferred version for this dependency constraint
-   - `rejects`: optional. An array of rejected versions for this dependency constraint.
+- `version`: optional. The version constraint of the dependency constraint.
 - `reason`: optional. A explanation why the constraint is used. Can typically be used to explain why a specific version is rejected, or from where a platform comes from.
 - `attributes`: optional. If set, attributes will override the consumer attributes during dependency resolution for this specific dependency.
 
@@ -169,7 +173,7 @@ This value must contain an array with zero or more elements. Each element must b
                 { 
                     "group": "some.group", 
                     "module": "other-lib", 
-                    "version": { "prefers": "3.4" },
+                    "version": { "requires": "3.4" },
                     "excludes": [
                         { "group": "*", "module": "excluded-lib" }
                     ],
@@ -197,7 +201,7 @@ This value must contain an array with zero or more elements. Each element must b
                 { 
                     "group": "some.group", 
                     "module": "other-lib", 
-                    "version": { "prefers": "3.4", "rejects": ["3.4.1"] } 
+                    "version": { "requires": "[3.0, 4.0)", "prefers": "3.4", "rejects": ["3.4.1"] } 
                 }
             ]
         }

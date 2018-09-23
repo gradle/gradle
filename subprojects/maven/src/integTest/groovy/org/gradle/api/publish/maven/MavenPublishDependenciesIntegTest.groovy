@@ -167,7 +167,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
             }
             configurations.compile.withDependencies { deps ->
                 deps.each { dep ->
-                    dep.version { prefer 'X' }
+                    dep.version { require 'X' }
                 }
                 deps.add project.dependencies.create("org.test:dep2:1.0")
             }

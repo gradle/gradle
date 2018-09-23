@@ -343,7 +343,7 @@ dependencies {
 }
 """
         when:
-        // TODO:DAZ Should not need to load the maven-metadata to get the version list
+        // TODO Should not need to load the maven-metadata to get the version list
         module1.rootMetaData.expectGet()
         module1.pom.expectGet()
 

@@ -16,9 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -145,12 +145,12 @@ public class ComponentResolversChain {
         }
 
         @Override
-        public void resolve(DependencyMetadata dependency, ResolvedVersionConstraint versionConstraint, BuildableComponentIdResolveResult result) {
+        public void resolve(DependencyMetadata dependency, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result) {
             for (DependencyToComponentIdResolver resolver : resolvers) {
                 if (result.hasResult()) {
                     return;
                 }
-                resolver.resolve(dependency, versionConstraint, result);
+                resolver.resolve(dependency, acceptor, rejector, result);
             }
         }
     }

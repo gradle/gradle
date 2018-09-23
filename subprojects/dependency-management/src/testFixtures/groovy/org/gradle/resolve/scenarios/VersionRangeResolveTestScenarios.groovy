@@ -50,6 +50,7 @@ class VersionRangeResolveTestScenarios {
     public static final RANGE_10_14 = range(10, 14)
     public static final RANGE_10_16 = range(10, 16)
     public static final RANGE_10_OR_HIGHER = dynamic("[10,)")
+    public static final RANGE_11_OR_HIGHER = dynamic("[11,)")
     public static final RANGE_12_OR_LOWER = dynamic("(,12]")
     public static final RANGE_MORE_THAN_10 = dynamic("(10,)")
     public static final RANGE_LESS_THAN_12 = dynamic("(,12)")
@@ -59,13 +60,32 @@ class VersionRangeResolveTestScenarios {
     public static final RANGE_12_14 = range(12, 14)
     public static final RANGE_13_14 = range(13, 14)
     public static final RANGE_14_16 = range(14, 16)
+    public static final RANGE_10_12_AND_PREFER_11 = requireAndPrefer(10, 12, 11)
 
     public static final DYNAMIC_PLUS = dynamic('+')
     public static final DYNAMIC_LATEST = dynamic( 'latest.integration')
 
-    public static final REJECT_11 = reject(11)
-    public static final REJECT_12 = reject(12)
-    public static final REJECT_13 = reject(13)
+    public static final REJECT_11 = reject("11")
+    public static final REJECT_12 = reject("12")
+    public static final REJECT_13 = reject("13")
+    public static final REJECT_10_11 = reject("[10,11]")
+    public static final REJECT_9_14 = reject("[9,14]")
+    public static final REJECT_ALL = reject("+")
+    public static final REJECT_10_OR_HIGHER = reject("[10,)")
+
+    public static final StrictPermutationsProvider SCENARIOS_SINGLE = StrictPermutationsProvider.check(
+        versions: [FIXED_12],
+        expected: "12"
+    ).and(
+        versions: [PREFER_12],
+        expected: "12"
+    ).and(
+        versions: [RANGE_10_12],
+        expected: "12"
+    ).and(
+        versions: [RANGE_10_12_AND_PREFER_11],
+        expected: "11"
+    )
 
     public static final StrictPermutationsProvider SCENARIOS_EMPTY = StrictPermutationsProvider.check(
         versions: [EMPTY, FIXED_12],
@@ -90,7 +110,7 @@ class VersionRangeResolveTestScenarios {
         conflicts: true
     ).and(
         versions: [PREFER_11, PREFER_10_12],
-        expected: "11",
+        expected: "12",
         conflicts: true
     ).and(
         versions: [PREFER_12, PREFER_10_11],
@@ -98,15 +118,15 @@ class VersionRangeResolveTestScenarios {
         conflicts: true
     ).and(
         versions: [PREFER_11, PREFER_12, PREFER_10_14],
-        expected: "12",
+        expected: "13",
         conflicts: true
     ).and(
         versions: [PREFER_10_11, PREFER_12, PREFER_10_14],
-        expected: "12",
+        expected: "13",
         conflicts: true
     ).and(
         versions: [PREFER_10_11, PREFER_10_12, PREFER_10_14],
-        expected: "11"
+        expected: "13"
     ).and(
         versions: [PREFER_12, FIXED_11],
         expected: "11",
@@ -114,7 +134,8 @@ class VersionRangeResolveTestScenarios {
     ).and(
         versions: [PREFER_11, FIXED_12],
         expected: "12",
-        expectedStrict: [IGNORE, "12"]
+        expectedStrict: [IGNORE, "12"],
+        conflicts: true // TODO:DAZ Should not be any conflict resolution here
     ).and(
         versions: [PREFER_12, RANGE_10_11],
         expected: "11",
@@ -130,7 +151,8 @@ class VersionRangeResolveTestScenarios {
     ).and(
         versions: [PREFER_11, RANGE_12_14],
         expected: "13",
-        expectedStrict: [IGNORE, "13"]
+        expectedStrict: [IGNORE, "13"],
+        conflicts: true // TODO:DAZ Should not be any conflict resolution here
     ).and(
         versions: [PREFER_11, PREFER_12, RANGE_10_14],
         expected: "12",
@@ -211,6 +233,17 @@ class VersionRangeResolveTestScenarios {
         expected: "12",
         expectedStrict: ["12", IGNORE]
     ).and(
+        versions: [RANGE_10_11, RANGE_10_OR_HIGHER],
+        expected: "11",
+        expectedStrict: ["11", IGNORE]
+    ).and(
+        versions: [RANGE_10_14, RANGE_10_OR_HIGHER],
+        expected: "13",
+        expectedStrict: ["13", IGNORE]
+    ).and(
+        versions: [RANGE_10_OR_HIGHER, RANGE_11_OR_HIGHER],
+        expected: "13"
+    ).and(
         versions: [FIXED_12, RANGE_MORE_THAN_10],
         expected: "12",
         expectedStrict: ["12", IGNORE]
@@ -285,6 +318,9 @@ class VersionRangeResolveTestScenarios {
         versions: [FIXED_12, REJECT_13],
         expected: "12"
     ).and(
+        versions: [FIXED_10, REJECT_10_11],
+        expected: REJECTED
+    ).and(
         versions: [RANGE_10_12, REJECT_11],
         expected: "12"
     ).and(
@@ -293,6 +329,45 @@ class VersionRangeResolveTestScenarios {
     ).and(
         versions: [RANGE_10_12, REJECT_13],
         expected: "12"
+    ).and(
+        versions: [RANGE_10_12, REJECT_10_11],
+        expected: "12"
+    ).and(
+        versions: [RANGE_10_12, REJECT_9_14],
+        expected: REJECTED
+    ).and(
+        versions: [RANGE_10_12, REJECT_10_OR_HIGHER],
+        expected: REJECTED
+    ).and(
+        versions: [RANGE_11_OR_HIGHER, REJECT_11],
+        expected: "13"
+    ).and(
+        versions: [RANGE_10_OR_HIGHER, REJECT_10_11],
+        expected: "13"
+    ).and(
+        versions: [RANGE_10_OR_HIGHER, REJECT_13],
+        expected: "12"
+    ).and(
+        versions: [RANGE_10_OR_HIGHER, REJECT_9_14],
+        expected: REJECTED
+    ).and(
+        versions: [RANGE_10_OR_HIGHER, REJECT_10_OR_HIGHER],
+        expected: REJECTED
+    ).and(
+        versions: [DYNAMIC_PLUS, REJECT_11],
+        expected: "13"
+    ).and(
+        versions: [DYNAMIC_PLUS, REJECT_13],
+        expected: "12"
+    ).and(
+        versions: [DYNAMIC_PLUS, REJECT_10_11],
+        expected: "13"
+    ).and(
+        versions: [DYNAMIC_PLUS, REJECT_9_14],
+        expected: REJECTED
+    ).and(
+        versions: [DYNAMIC_PLUS, REJECT_ALL],
+        expected: REJECTED
     )
 
     public static final StrictPermutationsProvider SCENARIOS_THREE_DEPENDENCIES = StrictPermutationsProvider.check(
@@ -461,7 +536,7 @@ class VersionRangeResolveTestScenarios {
         return vs
     }
 
-    private static RenderableVersion reject(int version) {
+    private static RenderableVersion reject(String version) {
         def vs = new RejectVersion()
         vs.version = version
         vs
@@ -470,6 +545,13 @@ class VersionRangeResolveTestScenarios {
     private static RenderableVersion strict(RenderableVersion input) {
         def v = new StrictVersion()
         v.version = input.version
+        v
+    }
+
+    private static RenderableVersion requireAndPrefer(int low, int high, int prefer) {
+        def v = new CombinedVersion()
+        v.require = "[${low},${high}]"
+        v.prefer = "${prefer}"
         v
     }
 
@@ -505,9 +587,7 @@ class VersionRangeResolveTestScenarios {
 
         @Override
         VersionConstraint getVersionConstraint() {
-            def vc = new DefaultMutableVersionConstraint(version)
-            vc.strictly(version)
-            return vc
+            DefaultMutableVersionConstraint.withStrictVersion(version)
         }
 
         @Override
@@ -526,7 +606,7 @@ class VersionRangeResolveTestScenarios {
 
         @Override
         VersionConstraint getVersionConstraint() {
-            def vc = new DefaultMutableVersionConstraint(version)
+            def vc = new DefaultMutableVersionConstraint('')
             vc.prefer(version)
             return vc
         }
@@ -539,6 +619,34 @@ class VersionRangeResolveTestScenarios {
         @Override
         String toString() {
             return "prefer(" + version + ")"
+        }
+    }
+
+    static class CombinedVersion implements RenderableVersion {
+        String require
+        String prefer
+
+        @Override
+        VersionConstraint getVersionConstraint() {
+            def vc = new DefaultMutableVersionConstraint('')
+            vc.prefer(prefer)
+            vc.require(require)
+            return vc
+        }
+
+        @Override
+        String render() {
+            return "('org:foo') { version { prefer '${prefer}'; require '${require}' }"
+        }
+
+        @Override
+        String toString() {
+            return "require(" + require + ") prefer(" + prefer + ")"
+        }
+
+        @Override
+        String getVersion() {
+            return require + "/" + prefer
         }
     }
 

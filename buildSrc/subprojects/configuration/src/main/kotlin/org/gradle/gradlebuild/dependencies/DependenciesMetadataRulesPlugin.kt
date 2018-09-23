@@ -234,7 +234,7 @@ open class DowngradeXmlApisRule : ComponentMetadataRule {
         context.details.allVariants {
             withDependencies {
                 filter { it.group == "xml-apis" }.forEach {
-                    it.version { prefer("1.4.01") }
+                    it.version { require("1.4.01") }
                     it.because("Gradle has trouble with the versioning scheme and pom redirects in higher versions")
                 }
             }

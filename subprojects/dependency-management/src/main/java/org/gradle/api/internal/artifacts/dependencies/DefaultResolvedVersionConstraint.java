@@ -26,9 +26,9 @@ import java.util.List;
 
 public class DefaultResolvedVersionConstraint implements ResolvedVersionConstraint {
     private final VersionSelector preferredVersionSelector;
+    private final VersionSelector requiredVersionSelector;
     private final VersionSelector rejectedVersionsSelector;
     private final boolean rejectAll;
-    private final boolean prefer;
 
     public DefaultResolvedVersionConstraint(VersionConstraint parent, VersionSelectorScheme scheme) {
         this(parent.getRequiredVersion(), parent.getPreferredVersion(), parent.getStrictVersion(), parent.getRejectedVersions(), scheme);
@@ -39,9 +39,9 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
         // For now, required and preferred are treated the same
 
         boolean strict = !strictVersion.isEmpty();
-        prefer = requiredVersion.isEmpty() && !preferredVersion.isEmpty();
-        String version = strict ? strictVersion : prefer ? preferredVersion : requiredVersion;
-        this.preferredVersionSelector = scheme.parseSelector(version);
+        String version = strict ? strictVersion : requiredVersion;
+        this.requiredVersionSelector = scheme.parseSelector(version);
+        this.preferredVersionSelector = preferredVersion.isEmpty() ? null : scheme.parseSelector(preferredVersion);
 
         if (strict) {
             if (!rejectedVersions.isEmpty()) {
@@ -60,17 +60,6 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
         return versionSelectorScheme.complementForRejection(preferredSelector);
     }
 
-    private DefaultResolvedVersionConstraint(VersionSelector preferredVersionSelector, VersionSelector rejectedVersionsSelector, boolean prefer) {
-        this.preferredVersionSelector = preferredVersionSelector;
-        this.rejectedVersionsSelector = rejectedVersionsSelector;
-        rejectAll = false;
-        this.prefer = prefer;
-    }
-
-    public ResolvedVersionConstraint withRejectSelector(VersionSelector rejectSelector) {
-        return new DefaultResolvedVersionConstraint(this.preferredVersionSelector, rejectSelector, this.prefer);
-    }
-
     private static VersionSelector toRejectSelector(VersionSelectorScheme scheme, List<String> rejectedVersions) {
         if (rejectedVersions.size()>1) {
             return UnionVersionSelector.of(rejectedVersions, scheme);
@@ -84,6 +73,11 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
     }
 
     @Override
+    public VersionSelector getRequiredSelector() {
+        return requiredVersionSelector;
+    }
+
+    @Override
     public VersionSelector getRejectedSelector() {
         return rejectedVersionsSelector;
     }
@@ -91,11 +85,6 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
     @Override
     public boolean isRejectAll() {
         return rejectAll;
-    }
-
-    @Override
-    public boolean isPrefer() {
-        return prefer;
     }
 
     private static boolean isRejectAll(String preferredVersion, List<String> rejectedVersions) {
