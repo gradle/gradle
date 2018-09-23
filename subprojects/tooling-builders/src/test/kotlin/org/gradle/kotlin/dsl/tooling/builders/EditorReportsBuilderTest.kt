@@ -40,7 +40,8 @@ class EditorReportsBuilderTest : TestWithTempFiles() {
 
         val reports = buildEditorReportsFor(
             script,
-            listOf(LocationAwareException(Exception("BOOM"), script.canonicalPath, 3))
+            listOf(LocationAwareException(Exception("BOOM"), script.canonicalPath, 3)),
+            true
         )
 
         assertThat(reports.size, equalTo(1))
@@ -58,7 +59,8 @@ class EditorReportsBuilderTest : TestWithTempFiles() {
 
         val reports = buildEditorReportsFor(
             script,
-            listOf(LocationAwareException(Exception("BOOM"), script.canonicalPath, 3))
+            listOf(LocationAwareException(Exception("BOOM"), script.canonicalPath, 3)),
+            true
         )
 
         assertThat(reports.size, equalTo(1))
@@ -80,7 +82,8 @@ class EditorReportsBuilderTest : TestWithTempFiles() {
             listOf(
                 LocationAwareException(java.lang.Exception(null as String?), script.canonicalPath, 1),
                 LocationAwareException(java.lang.Exception(""), script.canonicalPath, 2)
-            )
+            ),
+            true
         )
 
         assertThat(reports.size, equalTo(2))
@@ -88,7 +91,7 @@ class EditorReportsBuilderTest : TestWithTempFiles() {
             assertThat(report.severity, equalTo(EditorReportSeverity.ERROR))
             assertThat(report.position, notNullValue())
             assertThat(report.position!!.line, equalTo(idx + 1))
-            assertThat(report.message, equalTo(EditorMessages.defaultErrorMessageFor(java.lang.Exception())))
+            assertThat(report.message, equalTo(EditorMessages.defaultLocationAwareHintMessageFor(java.lang.Exception())))
         }
     }
 

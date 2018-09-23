@@ -173,9 +173,29 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `report line error on runtime failure in currently edited script`() {
+    fun `report file error on runtime failure in currently edited script`() {
+        withDefaultSettings()
+        val editedScript = withBuildScript("""
+            configurations.getByName("doNotExists")
+        """)
+
+        resolvedScriptDependencies(editedScript).apply {
+            assertContainsBasicDependencies()
+        }
+
+        recorder.apply {
+            assertLastEventIsInstanceOf(ResolvedDependenciesWithErrors::class)
+            assertSingleFileErrorReport(EditorMessages.buildConfigurationFailedInCurrentScript)
+        }
+    }
+
+    @Test
+    fun `report line error on runtime failure in currently edited script when location aware hints are enabled`() {
 
         withDefaultSettings()
+        withFile("gradle.properties", """
+            ${EditorReports.locationAwareEditorHintsPropertyName}=true
+        """)
         val editedScript = withBuildScript("""
             configurations.getByName("doNotExists")
         """)
@@ -339,9 +359,17 @@ class ResolverTestRecorder : ResolverEventLogger, (ReportSeverity, String, Posit
     }
 
     fun assertSingleFileWarningReport(message: String) {
+        assertSingleFileReport(ReportSeverity.WARNING, message)
+    }
+
+    fun assertSingleFileErrorReport(message: String) {
+        assertSingleFileReport(ReportSeverity.ERROR, message)
+    }
+
+    fun assertSingleFileReport(severity: ReportSeverity, message: String) {
         assertSingleEditorReport()
         reports.single().let { report ->
-            assertThat(report.severity, equalTo(ReportSeverity.WARNING))
+            assertThat(report.severity, equalTo(severity))
             assertThat(report.position, nullValue())
             assertThat(report.message, equalTo(message))
         }

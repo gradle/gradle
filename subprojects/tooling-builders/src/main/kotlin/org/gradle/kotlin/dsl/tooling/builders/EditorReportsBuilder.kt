@@ -29,13 +29,13 @@ import java.io.Serializable
 
 
 internal
-fun buildEditorReportsFor(scriptFile: File?, exceptions: List<Exception>): List<EditorReport> =
+fun buildEditorReportsFor(scriptFile: File?, exceptions: List<Exception>, locationAwareHints: Boolean): List<EditorReport> =
     if (scriptFile == null || exceptions.isEmpty()) emptyList()
-    else inferEditorReportsFrom(scriptFile.canonicalFile, exceptions.asSequence())
+    else inferEditorReportsFrom(scriptFile.canonicalFile, exceptions.asSequence(), locationAwareHints)
 
 
 private
-fun inferEditorReportsFrom(scriptFile: File, exceptions: Sequence<Exception>): List<EditorReport> {
+fun inferEditorReportsFrom(scriptFile: File, exceptions: Sequence<Exception>, locationAwareHints: Boolean): List<EditorReport> {
 
     val locatedExceptions =
         exceptions.findLocationAwareExceptions()
@@ -45,14 +45,18 @@ fun inferEditorReportsFrom(scriptFile: File, exceptions: Sequence<Exception>): L
 
     reportExceptionsNotLocatedIn(scriptFile, locatedExceptions, reports)
 
-    reportRuntimeExceptionsLocatedIn(scriptFile, locatedExceptions, reports)
+    reportRuntimeExceptionsLocatedIn(scriptFile, locatedExceptions, locationAwareHints, reports)
 
     return reports
 }
 
 
 private
-fun reportExceptionsNotLocatedIn(scriptFile: File, exceptions: Sequence<LocationAwareException>, reports: MutableList<EditorReport>) {
+fun reportExceptionsNotLocatedIn(
+    scriptFile: File,
+    exceptions: Sequence<LocationAwareException>,
+    reports: MutableList<EditorReport>
+) {
     if (exceptions.anyNotLocatedIn(scriptFile.path)) {
         reports.add(wholeFileWarning(EditorMessages.buildConfigurationFailed))
     }
@@ -60,10 +64,15 @@ fun reportExceptionsNotLocatedIn(scriptFile: File, exceptions: Sequence<Location
 
 
 private
-fun reportRuntimeExceptionsLocatedIn(scriptFile: File, exceptions: Sequence<LocationAwareException>, reports: MutableList<EditorReport>) {
-    val actualLinesRange = scriptFile.readLinesRange()
+fun reportRuntimeExceptionsLocatedIn(
+    scriptFile: File,
+    exceptions: Sequence<LocationAwareException>,
+    locationAwareHints: Boolean,
+    reports: MutableList<EditorReport>
+) {
+    val actualLinesRange = if (locationAwareHints) scriptFile.readLinesRange() else LongRange.EMPTY
     exceptions.runtimeFailuresLocatedIn(scriptFile.path).forEach { failure ->
-        if (failure.lineNumber in actualLinesRange) {
+        if (locationAwareHints && failure.lineNumber in actualLinesRange) {
             reports.add(lineError(messageForLocationAwareEditorHint(failure), failure.lineNumber))
         } else {
             reports.add(wholeFileError(EditorMessages.buildConfigurationFailedInCurrentScript))
@@ -119,7 +128,7 @@ val LocationAwareException.isCausedByScriptCompilationException
 private
 fun messageForLocationAwareEditorHint(failure: LocationAwareException): String {
     val cause = failure.cause!!
-    return cause.message?.takeIf { it.isNotBlank() } ?: EditorMessages.defaultErrorMessageFor(cause)
+    return cause.message?.takeIf { it.isNotBlank() } ?: EditorMessages.defaultLocationAwareHintMessageFor(cause)
 }
 
 

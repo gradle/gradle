@@ -17,20 +17,30 @@
 package org.gradle.kotlin.dsl.resolver
 
 
+object EditorReports {
+
+    const val locationAwareEditorHintsPropertyName = "org.gradle.kotlin.dsl.internal.locationAwareEditorHints"
+}
+
+
 object EditorMessages {
 
     private
     const val ideLogs = "see IDE logs for more information"
 
+    internal
     const val failure = "Script dependencies resolution failed, $ideLogs"
+
+    internal
     const val failureUsingPrevious = "Script dependencies resolution failed, using previous dependencies, $ideLogs"
 
     private
     const val gradleTasks = "run 'gradle tasks' for more information"
 
     const val buildConfigurationFailed = "Build configuration failed, $gradleTasks"
+
     const val buildConfigurationFailedInCurrentScript = "This script caused build configuration to fail, $gradleTasks"
 
-    fun defaultErrorMessageFor(cause: Throwable) =
-        "${cause::class.java.name}, $gradleTasks"
+    fun defaultLocationAwareHintMessageFor(runtimeFailure: Throwable) =
+        "${runtimeFailure::class.java.name}, $gradleTasks"
 }

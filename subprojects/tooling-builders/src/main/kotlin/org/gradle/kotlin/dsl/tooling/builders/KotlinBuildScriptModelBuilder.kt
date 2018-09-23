@@ -47,6 +47,7 @@ import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.provider.KotlinScriptEvaluator
 import org.gradle.kotlin.dsl.provider.ignoringErrors
 
+import org.gradle.kotlin.dsl.resolver.EditorReports
 import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 import org.gradle.kotlin.dsl.resolver.SourcePathProvider
 import org.gradle.kotlin.dsl.resolver.kotlinBuildScriptModelTarget
@@ -319,7 +320,7 @@ data class KotlinScriptTargetModelBuilder(
             (scriptClassPath + accessorsClassPath.bin).asFiles,
             (gradleSource() + classpathSources + accessorsClassPath.src).asFiles,
             implicitImports,
-            buildEditorReportsFor(scriptFile, classPathModeExceptionCollector.exceptions),
+            buildEditorReportsFor(classPathModeExceptionCollector.exceptions),
             classPathModeExceptionCollector.exceptions)
     }
 
@@ -340,6 +341,14 @@ data class KotlinScriptTargetModelBuilder(
 
     val implicitImports
         get() = project.scriptImplicitImports
+
+    private
+    fun buildEditorReportsFor(exceptions: List<Exception>) =
+        buildEditorReportsFor(
+            scriptFile,
+            exceptions,
+            project.isLocationAwareEditorHintsEnabled
+        )
 }
 
 
@@ -404,6 +413,11 @@ val Project.hierarchy: Sequence<Project>
             yield(project)
         }
     }
+
+
+private
+val Project.isLocationAwareEditorHintsEnabled: Boolean
+    get() = findProperty(EditorReports.locationAwareEditorHintsPropertyName) == "true"
 
 
 private
