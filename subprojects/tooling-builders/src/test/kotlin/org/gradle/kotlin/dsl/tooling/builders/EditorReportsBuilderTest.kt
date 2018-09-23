@@ -75,5 +75,5 @@ class EditorReportsBuilderTest : TestWithTempFiles() {
 
     private
     fun withTwoLinesScript() =
-        file("empty.gradle.kts").also { it.writeText("\n\n") }
+        file("two.gradle.kts").also { it.writeText("\n\n") }
 }

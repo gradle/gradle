@@ -36,22 +36,39 @@ fun buildEditorReportsFor(scriptFile: File?, exceptions: List<Exception>): List<
 
 private
 fun inferEditorReportsFrom(scriptFile: File, exceptions: Sequence<Exception>): List<EditorReport> {
-    val locatedExceptions = exceptions.findLocationAwareExceptions()
-    val reports = mutableListOf<EditorReport>()
-    if (locatedExceptions.anyNotLocatedIn(scriptFile.path)) {
+
+    val locatedExceptions =
+        exceptions.findLocationAwareExceptions()
+
+    val reports =
+        mutableListOf<EditorReport>()
+
+    reportExceptionsNotLocatedIn(scriptFile, locatedExceptions, reports)
+
+    reportRuntimeExceptionsLocatedIn(scriptFile, locatedExceptions, reports)
+
+    return reports
+}
+
+
+private
+fun reportExceptionsNotLocatedIn(scriptFile: File, exceptions: Sequence<LocationAwareException>, reports: MutableList<EditorReport>) {
+    if (exceptions.anyNotLocatedIn(scriptFile.path)) {
         reports.add(wholeFileWarning(EditorMessages.buildConfigurationFailed))
     }
+}
+
+
+private
+fun reportRuntimeExceptionsLocatedIn(scriptFile: File, exceptions: Sequence<LocationAwareException>, reports: MutableList<EditorReport>) {
     val actualLinesRange = scriptFile.readLinesRange()
-    locatedExceptions.runtimeFailuresLocatedIn(scriptFile.path).forEach { failure ->
+    exceptions.runtimeFailuresLocatedIn(scriptFile.path).forEach { failure ->
         if (failure.lineNumber in actualLinesRange) {
-            val cause = failure.cause!!
-            val message = cause.message?.takeIf { it.isNotBlank() } ?: EditorMessages.defaultErrorMessageFor(cause)
-            reports.add(lineError(message, failure.lineNumber))
+            reports.add(lineError(messageForLocationAwareEditorHint(failure), failure.lineNumber))
         } else {
             reports.add(wholeFileError(EditorMessages.buildConfigurationFailedInCurrentScript))
         }
     }
-    return reports
 }
 
 
@@ -71,11 +88,6 @@ tailrec fun firstLocationAwareCauseOrNull(ex: Throwable): LocationAwareException
 private
 fun Sequence<LocationAwareException>.anyNotLocatedIn(scriptPath: String): Boolean =
     any { it.message?.contains(scriptPath) != true }
-
-
-private
-fun File.readLinesRange() =
-    1..readLines().size
 
 
 private
@@ -102,6 +114,13 @@ tailrec fun Throwable.runtimeFailureLocatedIn(scriptPath: String): LocationAware
 private
 val LocationAwareException.isCausedByScriptCompilationException
     get() = cause?.let { it::class.java.name == "org.gradle.kotlin.dsl.support.ScriptCompilationException" } == true
+
+
+private
+fun messageForLocationAwareEditorHint(failure: LocationAwareException): String {
+    val cause = failure.cause!!
+    return cause.message?.takeIf { it.isNotBlank() } ?: EditorMessages.defaultErrorMessageFor(cause)
+}
 
 
 private
@@ -132,3 +151,8 @@ data class DefaultEditorPosition(
     override val line: Int,
     override val column: Int = 0
 ) : EditorPosition, Serializable
+
+
+private
+fun File.readLinesRange() =
+    1..readLines().size
