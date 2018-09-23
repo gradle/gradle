@@ -16,15 +16,15 @@
 
 package org.gradle.kotlin.dsl.resolver
 
-import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
-import org.gradle.kotlin.dsl.fixtures.customInstallation
-
 import org.gradle.kotlin.dsl.tooling.models.EditorMessages
 
 import kotlin.script.dependencies.KotlinScriptExternalDependencies
 import kotlin.script.dependencies.ScriptContents
 import kotlin.script.dependencies.ScriptContents.Position
 import kotlin.script.dependencies.ScriptDependenciesResolver.ReportSeverity
+
+import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.customInstallation
 
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
@@ -175,7 +175,7 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `do not report file warning on runtime failure in currently edited script`() {
+    fun `report line error on runtime failure in currently edited script`() {
 
         withDefaultSettings()
         val editedScript = withBuildScript("""
@@ -188,10 +188,9 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
 
         recorder.apply {
             assertLastEventIsInstanceOf(ResolvedDependenciesWithErrors::class)
-            assertNoEditorReport()
+            assertSingleLineErrorReport("Configuration with name 'doNotExists' not found.", 2)
         }
     }
-
 
     @Test
     fun `report file warning on runtime failure in another script`() {
@@ -337,11 +336,25 @@ class ResolverTestRecorder : ResolverEventLogger, (ReportSeverity, String, Posit
         assertTrue(reports.isEmpty())
     }
 
-    fun assertSingleFileWarningReport(message: String) {
+    fun assertSingleEditorReport() {
         assertThat(reports.size, equalTo(1))
+    }
+
+    fun assertSingleFileWarningReport(message: String) {
+        assertSingleEditorReport()
         reports.single().let { report ->
             assertThat(report.severity, equalTo(ReportSeverity.WARNING))
             assertThat(report.position, nullValue())
+            assertThat(report.message, equalTo(message))
+        }
+    }
+
+    fun assertSingleLineErrorReport(message: String, line: Int) {
+        assertSingleEditorReport()
+        reports.single().let { report ->
+            assertThat(report.severity, equalTo(ReportSeverity.ERROR))
+            assertThat(report.position, notNullValue())
+            assertThat(report.position!!.line, equalTo(line))
             assertThat(report.message, equalTo(message))
         }
     }

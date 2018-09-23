@@ -36,9 +36,7 @@ interface EditorReport {
 }
 
 
-enum class EditorReportSeverity {
-    WARNING
-}
+enum class EditorReportSeverity { WARNING, ERROR }
 
 
 interface EditorPosition {

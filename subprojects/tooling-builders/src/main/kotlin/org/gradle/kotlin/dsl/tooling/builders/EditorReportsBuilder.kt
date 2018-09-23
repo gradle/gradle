@@ -21,6 +21,8 @@ import org.gradle.kotlin.dsl.tooling.models.EditorPosition
 import org.gradle.kotlin.dsl.tooling.models.EditorReport
 import org.gradle.kotlin.dsl.tooling.models.EditorReportSeverity
 
+import org.gradle.internal.exceptions.LocationAwareException
+
 import java.io.File
 import java.io.Serializable
 
@@ -37,24 +39,51 @@ fun inferEditorReportsFrom(scriptPath: String, exceptions: Sequence<Exception>):
     if (exceptions.containsExceptionChainUnrelatedTo(scriptPath)) {
         reports.add(wholeFileWarning(EditorMessages.buildConfigurationFailed))
     }
+    exceptions.runtimeFailuresLocatedIn(scriptPath).forEach { ex ->
+        reports.add(lineError(ex.cause!!.message!!, ex.lineNumber))
+    }
     return reports
 }
 
 
 private
 fun Sequence<Exception>.containsExceptionChainUnrelatedTo(scriptPath: String): Boolean =
-    map { joinedCausesMessagesOf(it) }.any { !it.contains(scriptPath) }
+    map { it.joinedCausesMessagesOf() }.any { !it.contains(scriptPath) }
 
 
 private
-tailrec fun joinedCausesMessagesOf(ex: Throwable, message: String = ""): String {
-    var joined = message
-    if (ex.message != null) {
-        joined += "\n${ex.message}"
-    }
-    val cause = ex.cause ?: return joined
-    return joinedCausesMessagesOf(cause, joined)
+tailrec fun Throwable.joinedCausesMessagesOf(acc: String = ""): String {
+    var joined = acc
+    if (message != null) joined += "\n$message"
+    val next = cause ?: return joined
+    return next.joinedCausesMessagesOf(joined)
 }
+
+
+private
+fun Sequence<Exception>.runtimeFailuresLocatedIn(scriptPath: String): Sequence<LocationAwareException> =
+    mapNotNull { it.runtimeFailureLocatedIn(scriptPath) }
+
+
+private
+tailrec fun Throwable.runtimeFailureLocatedIn(scriptPath: String): LocationAwareException? {
+    if (this is LocationAwareException && message?.contains(scriptPath) == true) {
+        return if (isCausedByScriptCompilationException) null
+        else this
+    }
+    val next = cause ?: return null
+    return next.runtimeFailureLocatedIn(scriptPath)
+}
+
+
+/**
+ * Check if this [LocationAwareException] is caused by a Gradle Kotlin DSL `ScriptCompilationException`.
+ *
+ * Compares class names because `ScriptCompilationException` from :provider isn't available here.
+ */
+private
+val LocationAwareException.isCausedByScriptCompilationException
+    get() = cause?.let { it::class.java.name == "org.gradle.kotlin.dsl.support.ScriptCompilationException" } == true
 
 
 private
@@ -63,8 +92,20 @@ fun wholeFileWarning(message: String) =
 
 
 private
+fun lineError(message: String, line: Int) =
+    DefaultEditorReport(EditorReportSeverity.ERROR, message, DefaultEditorPosition(line))
+
+
+private
 data class DefaultEditorReport(
     override val severity: EditorReportSeverity,
     override val message: String,
     override val position: EditorPosition? = null
 ) : EditorReport, Serializable
+
+
+private
+data class DefaultEditorPosition(
+    override val line: Int,
+    override val column: Int = 0
+) : EditorPosition, Serializable

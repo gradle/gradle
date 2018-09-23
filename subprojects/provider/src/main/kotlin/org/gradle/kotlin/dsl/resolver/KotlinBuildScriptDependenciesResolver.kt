@@ -21,7 +21,9 @@ import org.gradle.kotlin.dsl.concurrent.EventLoop
 import org.gradle.kotlin.dsl.concurrent.future
 
 import org.gradle.kotlin.dsl.tooling.models.EditorMessages
+import org.gradle.kotlin.dsl.tooling.models.EditorPosition
 import org.gradle.kotlin.dsl.tooling.models.EditorReport
+import org.gradle.kotlin.dsl.tooling.models.EditorReportSeverity
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 
 import java.io.File
@@ -56,12 +58,22 @@ fun Report.error(message: String, position: Position? = null) =
 
 
 private
-fun Report.editorReports(editorReports: List<EditorReport>) {
-    editorReports.forEach { editorReport ->
-        // TODO map properly
-        warning(editorReport.message)
-    }
+fun Report.editorReport(editorReport: EditorReport) = editorReport.run {
+    invoke(severity.toIdeSeverity(), message, position?.toIdePosition())
 }
+
+
+private
+fun EditorReportSeverity.toIdeSeverity(): ReportSeverity =
+    when (this) {
+        EditorReportSeverity.WARNING -> ReportSeverity.WARNING
+        EditorReportSeverity.ERROR -> ReportSeverity.ERROR
+    }
+
+
+private
+fun EditorPosition.toIdePosition(): Position =
+    Position(line, column)
 
 
 class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
@@ -124,7 +136,9 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
         val response = RequestQueue.post(request)
         logger.log(ReceivedModelResponse(scriptFile, response))
 
-        report.editorReports(response.editorReports)
+        response.editorReports.forEach { editorReport ->
+            report.editorReport(editorReport)
+        }
 
         return when {
             response.exceptions.isEmpty() ->
