@@ -47,13 +47,13 @@ typealias Report = (ReportSeverity, String, Position?) -> Unit
 
 
 private
-fun Report.warning(message: String, position: Position? = null) =
-    invoke(ReportSeverity.WARNING, message, position)
+fun Report.error(message: String, position: Position? = null) =
+    invoke(ReportSeverity.ERROR, message, position)
 
 
 private
-fun Report.error(message: String, position: Position? = null) =
-    invoke(ReportSeverity.ERROR, message, position)
+fun Report.fatal(message: String, position: Position? = null) =
+    invoke(ReportSeverity.FATAL, message, position)
 
 
 private
@@ -115,8 +115,8 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
                 previousDependencies)
         } catch (e: Exception) {
             logger.log(ResolutionFailure(script.file, e))
-            if (previousDependencies == null) report.error(EditorMessages.failure)
-            else report.warning(EditorMessages.failureUsingPrevious)
+            if (previousDependencies == null) report.fatal(EditorMessages.failure)
+            else report.error(EditorMessages.failureUsingPrevious)
             previousDependencies
         }
     }
