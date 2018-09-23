@@ -229,16 +229,13 @@ dependencies {
 
     @Unroll
     def "can update a single lock entry when using #version"() {
-        mavenRepo.module('org', 'bar', '1.0').publish()
-        mavenRepo.module('org', 'bar', '1.1').publish()
-        mavenRepo.module('org', 'bar', '2.0').publish()
-        mavenRepo.module('org', 'bar', '2.1').publish()
-        mavenRepo.module('org', 'bar', '2.2-SNAPSHOT').withNonUniqueSnapshots().publish()
-        mavenRepo.module('org', 'foo', '1.0').publish()
-        mavenRepo.module('org', 'foo', '1.1').publish()
-        mavenRepo.module('org', 'foo', '2.0').publish()
-        mavenRepo.module('org', 'foo', '2.1').publish()
-        mavenRepo.module('org', 'foo', '2.2-SNAPSHOT').withNonUniqueSnapshots().publish()
+        ['bar', 'baz', 'foo'].each { artifactId ->
+            mavenRepo.module('org', artifactId, '1.0').publish()
+            mavenRepo.module('org', artifactId, '1.1').publish()
+            mavenRepo.module('org', artifactId, '2.0').publish()
+            mavenRepo.module('org', artifactId, '2.1').publish()
+            mavenRepo.module('org', artifactId, '2.2-SNAPSHOT').withNonUniqueSnapshots().publish()
+        }
 
         buildFile << """
 dependencyLocking {
@@ -255,16 +252,18 @@ configurations {
 }
 dependencies {
     lockedConf 'org:bar:$version'
+    lockedConf 'org:baz:1.0' // Ensure the fact that '1.0' is from a lock isn't masked by a real dependency
+    lockedConf 'org:baz:$version'
     lockedConf 'org:foo:$version'
 }
 """
-        lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0', 'org:baz:1.0', 'org:foo:1.0'])
 
         when:
         succeeds 'dependencies', '--update-locks', 'org:foo'
 
         then:
-        lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0', "org:foo:$expectedVersion"])
+        lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0', 'org:baz:1.0', "org:foo:$expectedVersion"])
 
         where:
         version              | expectedVersion
