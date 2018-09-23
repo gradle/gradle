@@ -26,7 +26,6 @@ import org.gradle.internal.exceptions.LocationAwareException
 
 import java.io.File
 import java.io.Serializable
-import java.util.Scanner
 
 
 internal
@@ -164,13 +163,23 @@ fun File.readLinesRange() =
 
 private
 fun File.countLines(): Long {
-    Scanner(this).use { scanner ->
+    inputStream().buffered().use { input ->
+
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        val newLine = '\n'.toByte()
+
         var count = 0L
-        while (scanner.hasNextLine()) {
-            count++
-            scanner.nextLine()
+        var noNewLineBeforeEOF = false
+        var readCount = input.read(buffer)
+
+        while (readCount != -1) {
+            for (idx in 0 until readCount) {
+                if (buffer[idx] == newLine) count++
+            }
+            noNewLineBeforeEOF = buffer[readCount - 1] != newLine
+            readCount = input.read(buffer)
         }
-        if (scanner.hasNext()) count++
+        if (noNewLineBeforeEOF) count++
         return count
     }
 }
