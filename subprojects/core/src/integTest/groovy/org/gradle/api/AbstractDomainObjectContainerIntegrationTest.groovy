@@ -23,24 +23,6 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
     abstract String makeContainer()
     abstract String disallowMutationMessage(String assertingMethod)
 
-    Map<String, String> getQueryCodeUnderTest() {
-        [
-            "getByName(String)":    "testContainer.getByName('unrealized')",
-            "named(String)":        "testContainer.named('unrealized')",
-            "findAll(Closure)":     "testContainer.findAll { it.name == 'unrealized' }",
-            "findByName(String)":   "testContainer.findByName('unrealized')",
-            "TaskProvider.get()":   "unrealized.get()",
-            "iterator()":           "for (def element : testContainer) { println element.name }",
-        ]
-    }
-
-    Map<String, String> getMutationCodeUnderTest() {
-        [
-            "create(String)":   "testContainer.create('c')",
-            "register(String)": "testContainer.register('c')",
-        ]
-    }
-
     def setup() {
         buildFile << """
             def testContainer = ${makeContainer()}
@@ -49,6 +31,18 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
             def realized = testContainer.register('realized')
             realized.get()
         """
+    }
+
+    Map<String, String> getQueryMethods() {
+        [
+            "getByName(String)":    "testContainer.getByName('unrealized')",
+            "named(String)":        "testContainer.named('unrealized')",
+            "named(String, Class)": "testContainer.named('unrealized', testContainer.type)",
+            "findAll(Closure)":     "testContainer.findAll { it.name == 'unrealized' }",
+            "findByName(String)":   "testContainer.findByName('unrealized')",
+            "TaskProvider.get()":   "unrealized.get()",
+            "iterator()":           "for (def element : testContainer) { println element.name }",
+        ]
     }
 
     @Unroll
@@ -64,7 +58,7 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         succeeds "help"
 
         where:
-        queryMethod << getQueryCodeUnderTest()
+        queryMethod << getQueryMethods()
     }
 
     @Unroll
@@ -80,7 +74,7 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         succeeds "help"
 
         where:
-        queryMethod << getQueryCodeUnderTest()
+        queryMethod << getQueryMethods()
     }
 
     @Unroll
@@ -96,7 +90,7 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         succeeds "help"
 
         where:
-        queryMethod << getQueryCodeUnderTest()
+        queryMethod << getQueryMethods()
     }
 
     @Unroll
@@ -112,74 +106,82 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         succeeds "help"
 
         where:
-        queryMethod << getQueryCodeUnderTest()
+        queryMethod << getQueryMethods()
+    }
+
+    Map<String, String> getMutationMethods() {
+        [
+            "create(String)":   "testContainer.create('c')",
+            "register(String)": "testContainer.register('c')",
+        ]
     }
 
     @Unroll
-    def "cannot execute mutation method #queryMethod.key from configureEach"() {
+    def "cannot execute mutation method #mutationMethod.key from configureEach"() {
         buildFile << """
             testContainer.configureEach {
-                ${queryMethod.value}
+                ${mutationMethod.value}
             }
             toBeRealized.get()
         """
 
         expect:
         fails "help"
-        failure.assertHasCause(disallowMutationMessage(queryMethod.key))
+        failure.assertHasCause(disallowMutationMessage(mutationMethod.key))
 
         where:
-        queryMethod << getMutationCodeUnderTest()
+        mutationMethod << getMutationMethods()
     }
 
     @Unroll
-    def "cannot execute mutation method #queryMethod.key from withType.configureEach"() {
+    def "cannot execute mutation method #mutationMethod.key from withType.configureEach"() {
         buildFile << """
             testContainer.withType(testContainer.type).configureEach {
-                ${queryMethod.value}
+                ${mutationMethod.value}
             }
             toBeRealized.get()
         """
 
         expect:
         fails "help"
-        failure.assertHasCause(disallowMutationMessage(queryMethod.key))
+        failure.assertHasCause(disallowMutationMessage(mutationMethod.key))
 
         where:
-        queryMethod << getMutationCodeUnderTest()
+        mutationMethod << getMutationMethods()
     }
 
     @Unroll
-    def "cannot execute mutation method #queryMethod.key from Provider.configure"() {
+    def "cannot execute mutation method #mutationMethod.key from Provider.configure"() {
         buildFile << """
             toBeRealized.configure {
-                ${queryMethod.value}
+                ${mutationMethod.value}
             }
             toBeRealized.get()
         """
 
         expect:
         fails "help"
-        failure.assertHasCause(disallowMutationMessage(queryMethod.key))
+        failure.assertHasCause(disallowMutationMessage(mutationMethod.key))
 
         where:
-        queryMethod << getMutationCodeUnderTest()
+        mutationMethod << getMutationMethods()
     }
 
     @Unroll
-    def "cannot execute mutation method #queryMethod.key from Provider.configure (realized)"() {
+    def "cannot execute mutation method #mutationMethod.key from Provider.configure (realized)"() {
         buildFile << """
             realized.configure {
-                ${queryMethod.value}
+                ${mutationMethod.value}
             }
             toBeRealized.get()
         """
 
         expect:
         fails "help"
-        failure.assertHasCause(disallowMutationMessage(queryMethod.key))
+        failure.assertHasCause(disallowMutationMessage(mutationMethod.key))
 
         where:
-        queryMethod << getMutationCodeUnderTest()
+        mutationMethod << getMutationMethods()
     }
+
 }
