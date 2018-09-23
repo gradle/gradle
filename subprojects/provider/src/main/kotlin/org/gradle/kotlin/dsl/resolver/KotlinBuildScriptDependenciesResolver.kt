@@ -20,7 +20,6 @@ package org.gradle.kotlin.dsl.resolver
 import org.gradle.kotlin.dsl.concurrent.EventLoop
 import org.gradle.kotlin.dsl.concurrent.future
 
-import org.gradle.kotlin.dsl.tooling.models.EditorMessages
 import org.gradle.kotlin.dsl.tooling.models.EditorPosition
 import org.gradle.kotlin.dsl.tooling.models.EditorReport
 import org.gradle.kotlin.dsl.tooling.models.EditorReportSeverity

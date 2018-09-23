@@ -44,19 +44,3 @@ interface EditorPosition {
     val line: Int
     val column: Int
 }
-
-
-object EditorMessages {
-    const val failure = "Script dependencies resolution failed"
-    const val failureUsingPrevious = "Script dependencies resolution failed, using previous dependencies"
-
-    private
-    const val forMoreInformation = "run 'gradle tasks' for more information"
-
-    const val buildConfigurationFailed = "Build configuration failed, $forMoreInformation"
-    const val buildConfigurationFailedInCurrentScript = "This script caused build configuration to fail, $forMoreInformation"
-
-
-    fun defaultErrorMessageFor(cause: Throwable) =
-        "${cause::class.java.name}, $forMoreInformation"
-}

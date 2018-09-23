@@ -16,8 +16,9 @@
 
 package org.gradle.kotlin.dsl.tooling.builders
 
-import org.gradle.kotlin.dsl.tooling.models.EditorMessages
 import org.gradle.kotlin.dsl.tooling.models.EditorReportSeverity
+
+import org.gradle.kotlin.dsl.resolver.EditorMessages
 
 import org.gradle.internal.exceptions.LocationAwareException
 
