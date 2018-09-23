@@ -27,10 +27,34 @@ import java.io.Serializable
 
 internal
 fun buildEditorReportsFor(scriptFile: File?, exceptions: List<Exception>): List<EditorReport> =
-    if (exceptions.isEmpty()) emptyList()
-    else listOf(
-        wholeFileWarning(EditorMessages.buildConfigurationFailed)
-    )
+    if (scriptFile == null || exceptions.isEmpty()) emptyList()
+    else inferEditorReportsFrom(scriptFile.canonicalFile.path, exceptions.asSequence())
+
+
+private
+fun inferEditorReportsFrom(scriptPath: String, exceptions: Sequence<Exception>): List<EditorReport> {
+    val reports = mutableListOf<EditorReport>()
+    if (exceptions.containsExceptionChainUnrelatedTo(scriptPath)) {
+        reports.add(wholeFileWarning(EditorMessages.buildConfigurationFailed))
+    }
+    return reports
+}
+
+
+private
+fun Sequence<Exception>.containsExceptionChainUnrelatedTo(scriptPath: String): Boolean =
+    map { joinedCausesMessagesOf(it) }.any { !it.contains(scriptPath) }
+
+
+private
+tailrec fun joinedCausesMessagesOf(ex: Throwable, message: String = ""): String {
+    var joined = message
+    if (ex.message != null) {
+        joined += "\n${ex.message}"
+    }
+    val cause = ex.cause ?: return joined
+    return joinedCausesMessagesOf(cause, joined)
+}
 
 
 private

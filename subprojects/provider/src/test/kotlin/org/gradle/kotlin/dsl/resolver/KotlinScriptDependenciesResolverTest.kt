@@ -31,6 +31,7 @@ import com.nhaarman.mockito_kotlin.mock
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.CoreMatchers.instanceOf
+import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.CoreMatchers.nullValue
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
@@ -133,7 +134,8 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `report file warning on script compilation failure in currently edited script`() {
+    fun `do not report file warning on script compilation failure in currently edited script`() {
+        // because the IDE already provides user feedback for those
 
         withDefaultSettings()
         val editedScript = withBuildScript("""
@@ -146,7 +148,7 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
 
         recorder.apply {
             assertLastEventIsInstanceOf(ResolvedDependenciesWithErrors::class)
-            assertSingleFileWarningReport(EditorMessages.exceptions)
+            assertNoEditorReport()
         }
     }
 
@@ -168,12 +170,12 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
 
         recorder.apply {
             assertLastEventIsInstanceOf(ResolvedDependenciesWithErrors::class)
-            assertSingleFileWarningReport(EditorMessages.exceptions)
+            assertSingleFileWarningReport(EditorMessages.buildConfigurationFailed)
         }
     }
 
     @Test
-    fun `report file warning on runtime failure in currently edited script`() {
+    fun `do not report file warning on runtime failure in currently edited script`() {
 
         withDefaultSettings()
         val editedScript = withBuildScript("""
@@ -186,7 +188,7 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
 
         recorder.apply {
             assertLastEventIsInstanceOf(ResolvedDependenciesWithErrors::class)
-            assertSingleFileWarningReport(EditorMessages.exceptions)
+            assertNoEditorReport()
         }
     }
 
@@ -194,10 +196,15 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
     @Test
     fun `report file warning on runtime failure in another script`() {
 
-        withDefaultSettings()
-        val editedScript = withBuildScript("""
+        withSettings("""
+            include("a", "b")
+        """)
+        withBuildScript("")
+        withBuildScriptIn("a", """
             configurations.getByName("doNotExists")
         """)
+        val editedScript = withBuildScriptIn("b", "")
+
 
         resolvedScriptDependencies(editedScript).apply {
             assertContainsBasicDependencies()
@@ -205,7 +212,7 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
 
         recorder.apply {
             assertLastEventIsInstanceOf(ResolvedDependenciesWithErrors::class)
-            assertSingleFileWarningReport(EditorMessages.exceptions)
+            assertSingleFileWarningReport(EditorMessages.buildConfigurationFailed)
         }
     }
 
@@ -290,11 +297,13 @@ class ResolverTestRecorder : ResolverEventLogger, (ReportSeverity, String, Posit
 
     override fun log(event: ResolverEvent) {
         DefaultResolverEventLogger.prettyPrint(event).let { prettyPrinted ->
+            println(prettyPrinted)
             events.add(LogEvent(event, prettyPrinted))
         }
     }
 
     override fun invoke(severity: ReportSeverity, message: String, position: Position?) {
+        println("[IDEA_REPORT] $severity $message $position")
         reports.add(IdeReport(severity, message, position))
     }
 
@@ -314,7 +323,7 @@ class ResolverTestRecorder : ResolverEventLogger, (ReportSeverity, String, Posit
             )
         )
         assertThat(events.size, equalTo(4))
-        assertTrue(reports.isEmpty())
+        assertNoEditorReport()
     }
 
     fun <T : ResolverEvent> assertLastEventIsInstanceOf(eventType: KClass<T>) {
@@ -322,6 +331,10 @@ class ResolverTestRecorder : ResolverEventLogger, (ReportSeverity, String, Posit
             events.last().event,
             instanceOf(eventType.java)
         )
+    }
+
+    fun assertNoEditorReport() {
+        assertTrue(reports.isEmpty())
     }
 
     fun assertSingleFileWarningReport(message: String) {
