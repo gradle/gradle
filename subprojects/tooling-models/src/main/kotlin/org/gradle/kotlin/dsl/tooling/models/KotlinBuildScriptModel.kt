@@ -51,4 +51,5 @@ object EditorMessages {
     const val failureUsingPrevious = "Script dependencies resolution failed, using previous dependencies"
 
     const val buildConfigurationFailed = "Build configuration failed, run 'gradle tasks' for more information"
+    const val buildConfigurationFailedInCurrentScript = "This script caused build configuration to fail, run 'gradle tasks' for more information"
 }

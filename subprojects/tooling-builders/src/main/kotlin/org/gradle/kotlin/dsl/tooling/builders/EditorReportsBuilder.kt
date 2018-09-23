@@ -30,20 +30,30 @@ import java.io.Serializable
 internal
 fun buildEditorReportsFor(scriptFile: File?, exceptions: List<Exception>): List<EditorReport> =
     if (scriptFile == null || exceptions.isEmpty()) emptyList()
-    else inferEditorReportsFrom(scriptFile.canonicalFile.path, exceptions.asSequence())
+    else inferEditorReportsFrom(scriptFile.canonicalFile, exceptions.asSequence())
 
 
 private
-fun inferEditorReportsFrom(scriptPath: String, exceptions: Sequence<Exception>): List<EditorReport> {
+fun inferEditorReportsFrom(scriptFile: File, exceptions: Sequence<Exception>): List<EditorReport> {
     val reports = mutableListOf<EditorReport>()
-    if (exceptions.containsExceptionChainUnrelatedTo(scriptPath)) {
+    if (exceptions.containsExceptionChainUnrelatedTo(scriptFile.path)) {
         reports.add(wholeFileWarning(EditorMessages.buildConfigurationFailed))
     }
-    exceptions.runtimeFailuresLocatedIn(scriptPath).forEach { ex ->
-        reports.add(lineError(ex.cause!!.message!!, ex.lineNumber))
+    val actualLinesRange = scriptFile.readLinesRange()
+    exceptions.runtimeFailuresLocatedIn(scriptFile.path).forEach { failure ->
+        if (failure.lineNumber in actualLinesRange) {
+            reports.add(lineError(failure.cause!!.message!!, failure.lineNumber))
+        } else {
+            reports.add(wholeFileError(EditorMessages.buildConfigurationFailedInCurrentScript))
+        }
     }
     return reports
 }
+
+
+private
+fun File.readLinesRange() =
+    1..readLines().size
 
 
 private
@@ -89,6 +99,11 @@ val LocationAwareException.isCausedByScriptCompilationException
 private
 fun wholeFileWarning(message: String) =
     DefaultEditorReport(EditorReportSeverity.WARNING, message)
+
+
+private
+fun wholeFileError(message: String) =
+    DefaultEditorReport(EditorReportSeverity.ERROR, message)
 
 
 private
