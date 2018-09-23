@@ -301,6 +301,7 @@ class NodeState implements DependencyGraphNode {
      * This may be better done as a decorator on ConfigurationMetadata.getDependencies()
      */
     static DependencyState maybeSubstitute(DependencyState dependencyState, DependencySubstitutionApplicator dependencySubstitutionApplicator) {
+        // TODO:DAZ Instead of building a separate list of reasons, we should be modifying the
         DependencySubstitutionApplicator.SubstitutionResult substitutionResult = dependencySubstitutionApplicator.apply(dependencyState.getDependency());
         if (substitutionResult.hasFailure()) {
             dependencyState.failure = new ModuleVersionResolveException(dependencyState.getRequested(), substitutionResult.getFailure());

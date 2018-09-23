@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
@@ -26,21 +27,22 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Default
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.internal.Describables;
 
-import static org.gradle.api.artifacts.result.ComponentSelectionCause.REQUESTED;
+import java.util.List;
+
 import static org.gradle.api.artifacts.result.ComponentSelectionCause.SELECTED_BY_RULE;
 
 public class DefaultDependencySubstitution implements DependencySubstitutionInternal {
     private final ComponentSelector requested;
-    private ComponentSelectionDescriptorInternal selectionDescription;
+    private final List<ComponentSelectionDescriptorInternal> reasons = Lists.newArrayList();
     private ComponentSelector target;
 
     public DefaultDependencySubstitution(ComponentSelector requested, String reason) {
         this.requested = requested;
         this.target = requested;
         if (reason != null) {
-            this.selectionDescription = ComponentSelectionReasons.REQUESTED.withReason(Describables.of(reason));
+            reasons.add(ComponentSelectionReasons.REQUESTED.withReason(Describables.of(reason)));
         } else {
-            this.selectionDescription = ComponentSelectionReasons.REQUESTED;
+            reasons.add(ComponentSelectionReasons.REQUESTED);
         }
     }
 
@@ -62,13 +64,13 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
     @Override
     public void useTarget(Object notation, ComponentSelectionDescriptor selectionDescription) {
         this.target = ComponentSelectorParsers.parser().parseNotation(notation);
-        this.selectionDescription = (ComponentSelectionDescriptorInternal) selectionDescription;
+        this.reasons.add((ComponentSelectionDescriptorInternal) selectionDescription);
         validateTarget(target);
     }
 
     @Override
-    public ComponentSelectionDescriptorInternal getSelectionDescription() {
-        return selectionDescription;
+    public List<ComponentSelectionDescriptorInternal> getSelectionDescription() {
+        return reasons;
     }
 
     @Override
@@ -78,7 +80,7 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
 
     @Override
     public boolean isUpdated() {
-        return selectionDescription.getCause() != REQUESTED;
+        return reasons.size() > 1;
     }
 
     public static void validateTarget(ComponentSelector componentSelector) {

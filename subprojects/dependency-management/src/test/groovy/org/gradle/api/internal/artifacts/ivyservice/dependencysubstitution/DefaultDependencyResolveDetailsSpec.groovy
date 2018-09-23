@@ -22,9 +22,11 @@ import org.gradle.api.artifacts.result.ComponentSelectionCause
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import spock.lang.Specification
+
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.REQUESTED
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.SELECTED_BY_RULE
 
 class DefaultDependencyResolveDetailsSpec extends Specification {
 
@@ -36,7 +38,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         details.requested == newVersionSelector("org", "foo", "1.0")
         details.target == newVersionSelector("org", "foo", "1.0")
         !details.delegate.updated
-        details.delegate.selectionDescription == ComponentSelectionReasons.REQUESTED
+        details.delegate.selectionDescription == [REQUESTED]
 
         when:
         details.useVersion("1.0") //the same version
@@ -45,7 +47,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         details.requested == newVersionSelector("org", "foo", "1.0")
         details.target == newVersionSelector("org", "foo", "1.0")
         details.delegate.updated
-        details.delegate.selectionDescription == ComponentSelectionReasons.SELECTED_BY_RULE
+        details.delegate.selectionDescription == [REQUESTED, SELECTED_BY_RULE]
 
         when:
         details.useVersion("2.0") //different version
@@ -54,7 +56,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         details.requested == newVersionSelector("org", "foo", "1.0")
         details.target == newVersionSelector("org", "foo", "2.0")
         details.delegate.updated
-        details.delegate.selectionDescription == ComponentSelectionReasons.SELECTED_BY_RULE
+        details.delegate.selectionDescription == [REQUESTED, SELECTED_BY_RULE, SELECTED_BY_RULE]
     }
 
     def "does not allow null version"() {
@@ -76,7 +78,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         then:
         details.target.toString() == 'org:bar:2.0'
         details.delegate.updated
-        details.delegate.selectionDescription == ComponentSelectionReasons.SELECTED_BY_RULE
+        details.delegate.selectionDescription == [REQUESTED, SELECTED_BY_RULE]
     }
 
     def "can mix configuring version and target module"() {
@@ -111,8 +113,8 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         then:
         details.target.toString() == 'org:bar:2.0'
         details.delegate.updated
-        details.delegate.selectionDescription.cause == ComponentSelectionCause.SELECTED_BY_RULE
-        details.delegate.selectionDescription.description == "forcefully upgrade dependency"
+        details.delegate.selectionDescription.last().cause == ComponentSelectionCause.SELECTED_BY_RULE
+        details.delegate.selectionDescription.last().description == "forcefully upgrade dependency"
 
     }
 
@@ -126,8 +128,8 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         then:
         details.target.toString() == 'org:foo:2.0'
         details.delegate.updated
-        details.delegate.selectionDescription.cause == ComponentSelectionCause.SELECTED_BY_RULE
-        details.delegate.selectionDescription.description == "forcefully upgrade dependency"
+        details.delegate.selectionDescription.last().cause == ComponentSelectionCause.SELECTED_BY_RULE
+        details.delegate.selectionDescription.last().description == "forcefully upgrade dependency"
 
     }
 
@@ -141,8 +143,8 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         then:
         details.target.toString() == 'org:bar:2.0'
         details.delegate.updated
-        details.delegate.selectionDescription.cause == ComponentSelectionCause.SELECTED_BY_RULE
-        details.delegate.selectionDescription.description == "forcefully upgrade dependency"
+        details.delegate.selectionDescription.last().cause == ComponentSelectionCause.SELECTED_BY_RULE
+        details.delegate.selectionDescription.last().description == "forcefully upgrade dependency"
 
     }
 
@@ -156,8 +158,8 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         then:
         details.target.toString() == 'org:foo:2.0'
         details.delegate.updated
-        details.delegate.selectionDescription.cause == ComponentSelectionCause.SELECTED_BY_RULE
-        details.delegate.selectionDescription.description == "forcefully upgrade dependency"
+        details.delegate.selectionDescription.last().cause == ComponentSelectionCause.SELECTED_BY_RULE
+        details.delegate.selectionDescription.last().description == "forcefully upgrade dependency"
 
     }
 
@@ -168,8 +170,8 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         then:
         details.target.toString() == 'org:foo:1.0'
         !details.delegate.updated
-        details.delegate.selectionDescription.cause == ComponentSelectionCause.REQUESTED
-        details.delegate.selectionDescription.description == "with a custom description"
+        details.delegate.selectionDescription.last().cause == ComponentSelectionCause.REQUESTED
+        details.delegate.selectionDescription.last().description == "with a custom description"
 
     }
 
@@ -184,8 +186,8 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         then:
         details.target.toString() == 'org:foo:2.0'
         details.delegate.updated
-        details.delegate.selectionDescription.cause == ComponentSelectionCause.SELECTED_BY_RULE
-        details.delegate.selectionDescription.description == "forcefully upgrade dependency"
+        details.delegate.selectionDescription.last().cause == ComponentSelectionCause.SELECTED_BY_RULE
+        details.delegate.selectionDescription.last().description == "forcefully upgrade dependency"
 
     }
 

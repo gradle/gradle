@@ -203,7 +203,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    void "can unforce the version"()
+    void "can override forced version with rule"()
     {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
@@ -233,7 +233,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     deps.each {
                         assert it.selected.id.version == '1.3'
                         def reason = it.selected.selectionReason
-                        assert !reason.forced
+                        assert reason.forced
                         assert reason.selectedByRule
                     }
                 }
@@ -278,7 +278,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     deps.each {
                         assert it.selected.id.version == '1.3'
                         def reason = it.selected.selectionReason
-                        assert !reason.forced
+                        assert reason.forced
                         assert reason.selectedByRule
                     }
                 }
