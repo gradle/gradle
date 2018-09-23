@@ -42,7 +42,9 @@ fun inferEditorReportsFrom(scriptFile: File, exceptions: Sequence<Exception>): L
     val actualLinesRange = scriptFile.readLinesRange()
     exceptions.runtimeFailuresLocatedIn(scriptFile.path).forEach { failure ->
         if (failure.lineNumber in actualLinesRange) {
-            reports.add(lineError(failure.cause!!.message!!, failure.lineNumber))
+            val cause = failure.cause!!
+            val message = cause.message?.takeIf { it.isNotBlank() } ?: EditorMessages.defaultErrorMessageFor(cause)
+            reports.add(lineError(message, failure.lineNumber))
         } else {
             reports.add(wholeFileError(EditorMessages.buildConfigurationFailedInCurrentScript))
         }
@@ -119,7 +121,7 @@ data class DefaultEditorReport(
 ) : EditorReport, Serializable
 
 
-private
+internal
 data class DefaultEditorPosition(
     override val line: Int,
     override val column: Int = 0
