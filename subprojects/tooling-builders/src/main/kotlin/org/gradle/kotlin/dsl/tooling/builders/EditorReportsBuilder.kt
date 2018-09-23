@@ -26,6 +26,7 @@ import org.gradle.internal.exceptions.LocationAwareException
 
 import java.io.File
 import java.io.Serializable
+import java.util.Scanner
 
 
 internal
@@ -153,6 +154,23 @@ data class DefaultEditorPosition(
 ) : EditorPosition, Serializable
 
 
-private
+internal
 fun File.readLinesRange() =
-    1..readLines().size
+    countLines().let { count ->
+        if (count == 0L) 0..0L
+        else 1..count
+    }
+
+
+private
+fun File.countLines(): Long {
+    Scanner(this).use { scanner ->
+        var count = 0L
+        while (scanner.hasNextLine()) {
+            count++
+            scanner.nextLine()
+        }
+        if (scanner.hasNext()) count++
+        return count
+    }
+}

@@ -52,6 +52,25 @@ class EditorReportsBuilderTest : TestWithTempFiles() {
     }
 
     @Test
+    fun `report line warning on runtime failure in currently edited script last line without new line before eof`() {
+
+        val script = file("some.gradle.kts").also { it.writeText("\n\nno-new-line") }
+
+        val reports = buildEditorReportsFor(
+            script,
+            listOf(LocationAwareException(Exception("BOOM"), script.canonicalPath, 3))
+        )
+
+        assertThat(reports.size, equalTo(1))
+        reports.single().let { report ->
+            assertThat(report.severity, equalTo(EditorReportSeverity.ERROR))
+            assertThat(report.position, notNullValue())
+            assertThat(report.position!!.line, equalTo(3))
+            assertThat(report.message, equalTo("BOOM"))
+        }
+    }
+
+    @Test
     fun `report line error on runtime failure in currently edited script with cause without message`() {
 
         val script = withTwoLinesScript()
@@ -71,6 +90,30 @@ class EditorReportsBuilderTest : TestWithTempFiles() {
             assertThat(report.position!!.line, equalTo(idx + 1))
             assertThat(report.message, equalTo(EditorMessages.defaultErrorMessageFor(java.lang.Exception())))
         }
+    }
+
+    @Test
+    fun `valid line number range for file`() {
+
+        val file = file("script.gradle.kts")
+
+        file.writeText("")
+        assertThat(file.readLinesRange(), equalTo(0..0L))
+
+        file.writeText("some")
+        assertThat(file.readLinesRange(), equalTo(1..1L))
+
+        file.writeText("some\n")
+        assertThat(file.readLinesRange(), equalTo(1..1L))
+
+        file.writeText("some\nmore")
+        assertThat(file.readLinesRange(), equalTo(1..2L))
+
+        file.writeText("some\nmore\n")
+        assertThat(file.readLinesRange(), equalTo(1..2L))
+
+        file.writeText("some\nmore\nthings")
+        assertThat(file.readLinesRange(), equalTo(1..3L))
     }
 
     private
