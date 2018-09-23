@@ -36,12 +36,13 @@ fun buildEditorReportsFor(scriptFile: File?, exceptions: List<Exception>): List<
 
 private
 fun inferEditorReportsFrom(scriptFile: File, exceptions: Sequence<Exception>): List<EditorReport> {
+    val locatedExceptions = exceptions.findLocationAwareExceptions()
     val reports = mutableListOf<EditorReport>()
-    if (exceptions.containsExceptionChainUnrelatedTo(scriptFile.path)) {
+    if (locatedExceptions.anyNotLocatedIn(scriptFile.path)) {
         reports.add(wholeFileWarning(EditorMessages.buildConfigurationFailed))
     }
     val actualLinesRange = scriptFile.readLinesRange()
-    exceptions.runtimeFailuresLocatedIn(scriptFile.path).forEach { failure ->
+    locatedExceptions.runtimeFailuresLocatedIn(scriptFile.path).forEach { failure ->
         if (failure.lineNumber in actualLinesRange) {
             val cause = failure.cause!!
             val message = cause.message?.takeIf { it.isNotBlank() } ?: EditorMessages.defaultErrorMessageFor(cause)
@@ -55,26 +56,30 @@ fun inferEditorReportsFrom(scriptFile: File, exceptions: Sequence<Exception>): L
 
 
 private
+fun Sequence<Exception>.findLocationAwareExceptions(): Sequence<LocationAwareException> =
+    mapNotNull(::firstLocationAwareCauseOrNull)
+
+
+private
+tailrec fun firstLocationAwareCauseOrNull(ex: Throwable): LocationAwareException? {
+    if (ex is LocationAwareException) return ex
+    val cause = ex.cause ?: return null
+    return firstLocationAwareCauseOrNull(cause)
+}
+
+
+private
+fun Sequence<LocationAwareException>.anyNotLocatedIn(scriptPath: String): Boolean =
+    any { it.message?.contains(scriptPath) != true }
+
+
+private
 fun File.readLinesRange() =
     1..readLines().size
 
 
 private
-fun Sequence<Exception>.containsExceptionChainUnrelatedTo(scriptPath: String): Boolean =
-    map { it.joinedCausesMessagesOf() }.any { !it.contains(scriptPath) }
-
-
-private
-tailrec fun Throwable.joinedCausesMessagesOf(acc: String = ""): String {
-    var joined = acc
-    if (message != null) joined += "\n$message"
-    val next = cause ?: return joined
-    return next.joinedCausesMessagesOf(joined)
-}
-
-
-private
-fun Sequence<Exception>.runtimeFailuresLocatedIn(scriptPath: String): Sequence<LocationAwareException> =
+fun Sequence<LocationAwareException>.runtimeFailuresLocatedIn(scriptPath: String): Sequence<LocationAwareException> =
     mapNotNull { it.runtimeFailureLocatedIn(scriptPath) }
 
 
