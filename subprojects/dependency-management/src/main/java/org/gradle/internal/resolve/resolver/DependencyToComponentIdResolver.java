@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resolve.resolver;
 
-import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 
@@ -26,5 +26,5 @@ public interface DependencyToComponentIdResolver {
      *
      * <p>At some point in the future, this should resolve to a set of candidates rather than a single instance.
      */
-    void resolve(DependencyMetadata dependency, ResolvedVersionConstraint versionConstraint, BuildableComponentIdResolveResult result);
+    void resolve(DependencyMetadata dependency, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result);
 }

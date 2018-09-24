@@ -55,7 +55,7 @@ class ProjectDependencyResolverTest extends Specification {
         def id = newProjectId(":project")
 
         when:
-        resolver.resolve(dependencyMetaData, null, result)
+        resolver.resolve(dependencyMetaData, null, null, result)
 
         then:
         1 * componentIdentifierFactory.createProjectComponentIdentifier(selector) >> id
@@ -85,7 +85,7 @@ class ProjectDependencyResolverTest extends Specification {
         def targetModuleId = Stub(ModuleIdentifier)
 
         when:
-        resolver.resolve(dependencyMetaData, null, result)
+        resolver.resolve(dependencyMetaData, null, null, result)
 
         then:
         0 * registry.getComponent(_)

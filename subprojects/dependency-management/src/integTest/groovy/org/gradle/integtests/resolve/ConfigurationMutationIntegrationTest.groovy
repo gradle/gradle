@@ -142,11 +142,11 @@ dependencies {
 configurations.compile.withDependencies { deps ->
     def foo = deps.find { it.name == 'foo' }
     assert foo.version == null
-    foo.version { prefer '1.0' }
+    foo.version { require '1.0' }
 
     def bar = deps.find { it.name == 'bar' }
     assert bar.version == '2.2'
-    bar.version { prefer null }
+    bar.version { require null }
 }
 configurations.compile.withDependencies { deps ->
     def bar = deps.find { it.name == 'bar' }
@@ -294,7 +294,7 @@ include 'consumer', 'producer'
             withDependencies { deps ->
                 deps.each {
                     it.version {
-                        prefer '3.4'
+                        require '3.4'
                     }
                 }
                 deps.add(project.dependencies.create("org:added-dependency:3.4"))

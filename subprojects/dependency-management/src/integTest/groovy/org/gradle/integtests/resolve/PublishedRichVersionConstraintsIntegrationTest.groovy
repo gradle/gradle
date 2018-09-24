@@ -25,7 +25,7 @@ import spock.lang.Unroll
 @RequiredFeatures(
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 )
-class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
+class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
     def "should not downgrade dependency version when an external transitive dependency has strict version"() {
         given:
         repository {

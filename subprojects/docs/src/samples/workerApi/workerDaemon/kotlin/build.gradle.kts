@@ -36,7 +36,7 @@ open class ReverseFiles @Inject constructor(val workerExecutor: WorkerExecutor) 
     @TaskAction
     fun reverseFiles() {
         // Create and submit a unit of work for each file
-        getSource().forEach { file ->
+        source.forEach { file ->
             // tag::worker-daemon[]
             workerExecutor.submit(ReverseFile::class) {
                 // Run this work in an isolated process

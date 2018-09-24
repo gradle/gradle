@@ -58,20 +58,20 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
     abstract boolean isAutoDependencySubstitution();
 
     @Unroll
-    def "project dependency (#versionInProject) vs external dependency (#versionExternal) resolves to winner, when preferProjectModules=#preferProjectModules and forceVersion=#forceVersion and depSubstitution=#depSubstitution"() {
+    def "project dependency (#projectDep) vs external dependency (#transitiveDep) resolves to winner (#winner), when preferProjectModules=#preferProjectModules and force=#force and depSubstitution=#depSubstitution"() {
         given:
         //required for composite builds
         buildTestFixture.withBuildInSubDir()
 
         //publish all the versions of ModuleC that we might need
-        mavenRepo.module("myorg", "ModuleC", versionExternal).publish()
-        mavenRepo.module("myorg", "ModuleC", versionInProject).publish()
-        if (forceVersion != null) {
-            mavenRepo.module("myorg", "ModuleC", forceVersion).publish()
+        mavenRepo.module("myorg", "ModuleC", transitiveDep).publish()
+        mavenRepo.module("myorg", "ModuleC", projectDep).publish()
+        if (force != null) {
+            mavenRepo.module("myorg", "ModuleC", force).publish()
         }
 
         //publish ModuleB:1.0 and declare its dependency to ModuleC:$versionExternal
-        mavenRepo.module("myorg", "ModuleB", '1.0').dependsOn("myorg", "ModuleC", versionExternal).publish()
+        mavenRepo.module("myorg", "ModuleB", '1.0').dependsOn("myorg", "ModuleC", transitiveDep).publish()
 
         //setup the project structure
         settingsFile << "$includeMechanism 'ModuleC'\n$includeMechanism 'ProjectA'\n"
@@ -85,11 +85,13 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
         if (preferProjectModules) {
             preferProjectModulesOption = 'preferProjectModules()'
         }
-        if (forceVersion != null) {
-            forcedVersionOption = "conf ('myorg:ModuleC:$forceVersion') { force = true }"
+        if (force != null) {
+            forcedVersionOption = "conf ('myorg:ModuleC:$force') { force = true }"
         }
         if (!autoDependencySubstitution) { //only interpret depSubstitution in scenario without auto substitution (multi-project builds)
             depSubstitutionOption = depSubstitution;
+        } else {
+            winner = 'projectId("ModuleC")'
         }
 
         buildFile << """
@@ -100,7 +102,7 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
 """
         moduleDefinition('ModuleC', """
             group "myorg"
-            version = $versionInProject
+            version = $projectDep
 
             configurations { conf }
             configurations.create("default").extendsFrom(configurations.conf)
@@ -118,46 +120,39 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
 
             dependencies {
                 conf "myorg:ModuleB:1.0"
-                conf ${declareDependency('ModuleC', versionInProject)}
+                conf ${declareDependency('ModuleC', projectDep)}
                 $forcedVersionOption
             }
 
-            ${check('ModuleC', declaredDependencyId('ModuleC', versionInProject),'conf', autoDependencySubstitution ? winnerAutoSubstitution : winner)}
+            ${check('ModuleC', declaredDependencyId('ModuleC', projectDep), 'conf', winner)}
 """)
 
         then:
         succeeds('check')
 
         where:
-                                versionInProject | versionExternal | winner                                | winnerAutoSubstitution | preferProjectModules | forceVersion | depSubstitution
-                                // === without preferProjectModules() ===
-        /*project <  external*/ "1.9"            | "2.0"           | 'moduleId("myorg", "ModuleC", "2.0")' | 'projectId("ModuleC")' | false                | null          | ''
-        /*project == external*/ "2.0"            | "2.0"           | 'projectId("ModuleC")'                | 'projectId("ModuleC")' | false                | null          | ''
-        /*project >  external*/ "2.1"            | "2.0"           | 'projectId("ModuleC")'                | 'projectId("ModuleC")' | false                | null          | ''
-                                // === with preferProjectModules() ===
-        /*project <  external*/ "1.9"            | "2.0"           | 'projectId("ModuleC")'                | 'projectId("ModuleC")' | true                 | null          | ''
-        /*project == external*/ "2.0"            | "2.0"           | 'projectId("ModuleC")'                | 'projectId("ModuleC")' | true                 | null          | ''
-        /*project >  external*/ "2.1"            | "2.0"           | 'projectId("ModuleC")'                | 'projectId("ModuleC")' | true                 | null          | ''
-                                // === without preferProjectModules() but dependency substitution ===
-        /*project <  external*/ "1.9"            | "2.0"           | 'moduleId("myorg", "ModuleC", "2.0")' | 'projectId("ModuleC")' | false                | null          | "substitute project(':ModuleC') with module('myorg:ModuleC:1.9')"
-        /*project == external*/ "2.0"            | "2.0"           | 'moduleId("myorg", "ModuleC", "2.0")' | 'projectId("ModuleC")' | false                | null          | "substitute project(':ModuleC') with module('myorg:ModuleC:2.0')"
-        /*project >  external*/ "2.1"            | "2.0"           | 'moduleId("myorg", "ModuleC", "2.1")' | 'projectId("ModuleC")' | false                | null          | "substitute project(':ModuleC') with module('myorg:ModuleC:2.1')"
-                                // === with preferProjectModules() but dependency substitution <- no change, substitution wins ===
-        /*project <  external*/ "1.9"            | "2.0"           | 'moduleId("myorg", "ModuleC", "2.0")' | 'projectId("ModuleC")' | true                 | null          | "substitute project(':ModuleC') with module('myorg:ModuleC:1.9')"
-        /*project == external*/ "2.0"            | "2.0"           | 'moduleId("myorg", "ModuleC", "2.0")' | 'projectId("ModuleC")' | true                 | null          | "substitute project(':ModuleC') with module('myorg:ModuleC:2.0')"
-        /*project >  external*/ "2.1"            | "2.0"           | 'moduleId("myorg", "ModuleC", "2.1")' | 'projectId("ModuleC")' | true                 | null          | "substitute project(':ModuleC') with module('myorg:ModuleC:2.1')"
-                                // === with dependency substitution (same effect as preferProjectModules() only for the explicitly substituted dependency) ===
-        /*project <  external*/ "1.9"            | "2.0"           | 'projectId("ModuleC")'                | 'projectId("ModuleC")' | false                | null          | "substitute module('myorg:ModuleC') with project(':ModuleC')"
-        /*project == external*/ "2.0"            | "2.0"           | 'projectId("ModuleC")'                | 'projectId("ModuleC")' | false                | null          | "substitute module('myorg:ModuleC') with project(':ModuleC')"
-        /*project >  external*/ "2.1"            | "2.0"           | 'projectId("ModuleC")'                | 'projectId("ModuleC")' | false                | null          | "substitute module('myorg:ModuleC') with project(':ModuleC')"
-                                // === Force: without preferProjectModules() ===
-        /*project != forced  */ "1.9"            | "2.0"           | 'moduleId("myorg", "ModuleC", "1.5")' | 'projectId("ModuleC")' | false                | '1.5'         | ''
-        /*project == forced  */ "1.9"            | "2.0"           | 'projectId("ModuleC")'                | 'projectId("ModuleC")' | false                | '1.9'         | ''
-        /*project != forced  */ "1.9"            | "2.0"           | 'projectId("ModuleC")'                | 'projectId("ModuleC")' | false                | '1.5'         | "substitute module('myorg:ModuleC') with project(':ModuleC')"
-        /*project == forced  */ "1.9"            | "2.0"           | 'projectId("ModuleC")'                | 'projectId("ModuleC")' | false                | '1.9'         | "substitute module('myorg:ModuleC') with project(':ModuleC')"
-                                // === Force: with preferProjectModules() <- no change ===
-        /*project != forced  */ "1.9"            | "2.0"           | 'moduleId("myorg", "ModuleC", "1.5")' | 'projectId("ModuleC")' | true                 | '1.5'         | ''
-        /*project == forced  */ "1.9"            | "2.0"           | 'projectId("ModuleC")'                | 'projectId("ModuleC")' | true                 | '1.9'         | ''
+        projectDep | transitiveDep | winner                                | preferProjectModules | force | depSubstitution
+//        "1.9"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.0")' | false                | null  | ''
+//        "2.0"      | "2.0"         | 'projectId("ModuleC")'                | false                | null  | ''
+        "2.1"      | "2.0"         | 'projectId("ModuleC")'                | false                | null  | ''
+        "1.9"      | "2.0"         | 'projectId("ModuleC")'                | true                 | null  | ''
+        "2.0"      | "2.0"         | 'projectId("ModuleC")'                | true                 | null  | ''
+        "2.1"      | "2.0"         | 'projectId("ModuleC")'                | true                 | null  | ''
+        "1.9"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.0")' | false                | null  | "substitute project(':ModuleC') with module('myorg:ModuleC:1.9')"
+        "2.0"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.0")' | false                | null  | "substitute project(':ModuleC') with module('myorg:ModuleC:2.0')"
+        "2.1"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.1")' | false                | null  | "substitute project(':ModuleC') with module('myorg:ModuleC:2.1')"
+        "1.9"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.0")' | true                 | null  | "substitute project(':ModuleC') with module('myorg:ModuleC:1.9')"
+        "2.0"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.0")' | true                 | null  | "substitute project(':ModuleC') with module('myorg:ModuleC:2.0')"
+        "2.1"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.1")' | true                 | null  | "substitute project(':ModuleC') with module('myorg:ModuleC:2.1')"
+        "1.9"      | "2.0"         | 'projectId("ModuleC")'                | false                | null  | "substitute module('myorg:ModuleC') with project(':ModuleC')"
+        "2.0"      | "2.0"         | 'projectId("ModuleC")'                | false                | null  | "substitute module('myorg:ModuleC') with project(':ModuleC')"
+        "2.1"      | "2.0"         | 'projectId("ModuleC")'                | false                | null  | "substitute module('myorg:ModuleC') with project(':ModuleC')"
+        "1.9"      | "2.0"         | 'moduleId("myorg", "ModuleC", "1.5")' | false                | '1.5' | ''
+        "1.9"      | "2.0"         | 'projectId("ModuleC")'                | false                | '1.9' | ''
+        "1.9"      | "2.0"         | 'projectId("ModuleC")'                | false                | '1.5' | "substitute module('myorg:ModuleC') with project(':ModuleC')"
+        "1.9"      | "2.0"         | 'projectId("ModuleC")'                | false                | '1.9' | "substitute module('myorg:ModuleC') with project(':ModuleC')"
+        "1.9"      | "2.0"         | 'moduleId("myorg", "ModuleC", "1.5")' | true                 | '1.5' | ''
+        "1.9"      | "2.0"         | 'projectId("ModuleC")'                | true                 | '1.9' | ''
     }
 
 

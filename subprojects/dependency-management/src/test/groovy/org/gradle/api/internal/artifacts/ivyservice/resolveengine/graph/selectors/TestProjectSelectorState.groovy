@@ -39,6 +39,7 @@ class TestProjectSelectorState implements ResolvableSelectorState {
         return null
     }
 
+
     @Override
     ComponentSelector getSelector() {
         return DefaultProjectComponentSelector.newSelector(projectId)
@@ -49,6 +50,11 @@ class TestProjectSelectorState implements ResolvableSelectorState {
         def result = new DefaultBuildableComponentIdResolveResult()
         result.resolved(projectId, DefaultModuleVersionIdentifier.newId("org", projectId.projectName, VERSION))
         return result
+    }
+
+    @Override
+    ComponentIdResolveResult resolvePrefer(VersionSelector allRejects) {
+        return null
     }
 
     @Override
@@ -65,5 +71,9 @@ class TestProjectSelectorState implements ResolvableSelectorState {
         return false;
     }
 
+    @Override
+    boolean isFromLock() {
+        return false
+    }
 }
 

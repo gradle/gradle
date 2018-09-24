@@ -29,7 +29,11 @@ class ScenarioBuildResultData {
     List<ExecutionData> recentExecutions = []
 
     boolean isAboutToRegress() {
-        return executions.any { it.regressionPercentage > 0 && it.confidencePercentage > IndexPageGenerator.ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD }
+        return executions.any { it.confidentToSayWorse() }
+    }
+
+    boolean isImproved() {
+        return executionsToDisplayInRow.every { it.confidentToSayBetter() }
     }
 
     boolean isBuildFailed() {
@@ -41,11 +45,27 @@ class ScenarioBuildResultData {
     }
 
     double getRegressionSortKey() {
-        return executions.empty ? Double.NEGATIVE_INFINITY : executions[0].confidencePercentage * Math.signum(executions[0].regressionPercentage)
+        double signum = Math.signum(executions[0].regressionPercentage)
+        if (signum == 0.0d) {
+            signum = -1.0
+        }
+        return executions.empty ? Double.NEGATIVE_INFINITY : executions[0].confidencePercentage * signum
+    }
+
+    double getRegressionPercentage() {
+        return executions.empty ? Double.NEGATIVE_INFINITY : executions[0].getRegressionPercentage()
     }
 
     List<ExecutionData> getExecutions() {
         return currentCommitExecutions.isEmpty() ? recentExecutions : currentCommitExecutions
+    }
+
+    List<ExecutionData> getExecutionsToDisplayInRow() {
+        if (fromCache) {
+            return executions.subList(0, Math.min(1, executions.size()))
+        } else {
+            return executions
+        }
     }
 
     static class ExecutionData {
@@ -77,6 +97,14 @@ class ScenarioBuildResultData {
 
         String getFormattedConfidence() {
             String.format("%.1f%%", confidencePercentage)
+        }
+
+        boolean confidentToSayBetter() {
+            return regressionPercentage <= 0 && confidencePercentage > IndexPageGenerator.ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD
+        }
+
+        boolean confidentToSayWorse() {
+            return regressionPercentage > 0 && confidencePercentage > IndexPageGenerator.ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD
         }
     }
 }

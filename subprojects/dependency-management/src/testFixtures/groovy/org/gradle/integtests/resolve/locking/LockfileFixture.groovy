@@ -30,14 +30,17 @@ class LockfileFixture {
         lockFile.writelns(lines.sort())
     }
 
-    void verifyLockfile(String configurationName, List<String> modules) {
+    void verifyLockfile(String configurationName, List<String> expectedModules) {
         def lockFile = testDirectory.file(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER, "$configurationName$LockFileReaderWriter.FILE_SUFFIX")
         assert lockFile.exists()
-        def builder = new StringBuilder(LockFileReaderWriter.LOCKFILE_HEADER)
-        modules.sort().each {
-            builder.append(it).append("\n")
+        def lockedModules = []
+        lockFile.eachLine { String line ->
+            if (!line.startsWith('#')) {
+                lockedModules << line
+            }
         }
-        assert lockFile.text == builder.toString()
+
+        assert lockedModules as Set == expectedModules as Set
     }
 
     void expectMissing(String configurationName) {

@@ -66,6 +66,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
             .thenComparing(ScenarioBuildResultData::isSuccessful)
             .thenComparing(comparing(ScenarioBuildResultData::isAboutToRegress).reversed())
             .thenComparing(comparing(ScenarioBuildResultData::getRegressionSortKey).reversed())
+            .thenComparing(comparing(ScenarioBuildResultData::getRegressionPercentage).reversed())
             .thenComparing(ScenarioBuildResultData::getScenarioName);
         return data.collect(() -> new TreeSet<>(comparator), TreeSet::add, TreeSet::addAll);
     }
@@ -155,7 +156,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     return "alert-danger";
                 } else if (scenario.isAboutToRegress()) {
                     return "alert-warning";
-                } else if (scenario.getExecutions().stream().allMatch(executionData -> executionData.getConfidencePercentage() > ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD)) {
+                } else if (scenario.isImproved()) {
                     return "alert-success";
                 } else {
                     return "alert-info";
@@ -163,9 +164,9 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
             }
 
             private String getTextColorCss(ScenarioBuildResultData.ExecutionData executionData) {
-                if (executionData.getRegressionPercentage() <= 0 && executionData.getConfidencePercentage() > ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD) {
+                if (executionData.confidentToSayBetter()) {
                     return "text-success";
-                } else if (executionData.getRegressionPercentage() > 0 && executionData.getConfidencePercentage() > ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD) {
+                } else if (executionData.confidentToSayWorse()) {
                     return "text-danger";
                 } else {
                     return "text-dark";
@@ -188,6 +189,8 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                                     span().classAttr("badge badge-danger").title("Regression confidence > 99% despite retries.").text("REGRESSED").end();
                                 } else if(scenario.isAboutToRegress()) {
                                     span().classAttr("badge badge-warning").title("Regression confidence > 90%, we're going to fail soon.").text("NEARLY-FAILED").end();
+                                } else if(scenario.isImproved()) {
+                                    span().classAttr("badge badge-success").title("Improvement confidence > 90%, rebaseline it to keep this improvement! :-)").text("IMPROVED").end();
                                 }
                             end();
                             div().classAttr("col-2");
@@ -199,11 +202,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                                 if(scenario.isBuildFailed()) {
                                     text("N/A");
                                 } else {
-                                    List<ScenarioBuildResultData.ExecutionData> executions = scenario.getExecutions();
-                                    if (scenario.isFromCache()) {
-                                        executions = executions.subList(0, Math.min(1, executions.size()));
-                                    }
-                                    executions.forEach(execution -> {
+                                    scenario.getExecutionsToDisplayInRow().forEach(execution -> {
                                         div().classAttr("row");
                                         div().classAttr("col " + getTextColorCss(execution)).text(execution.getFormattedRegression()).end();
                                         div().classAttr("col " + getTextColorCss(execution)).text(execution.getFormattedConfidence()).end();

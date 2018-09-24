@@ -334,9 +334,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                         }
                     }
                 }
-                implementation("commons-collections:commons-collections") {
+                implementation("commons-collections:commons-collections:[3.2, 4)") {
                     version { 
-                        prefer '[3.2, 4)'
                         reject '3.2.1', '[3.2.2,)'
                     }
                 }
@@ -371,9 +370,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         }
 
         javaLibrary.parsedModuleMetadata.variant('runtime') {
-            dependency('commons-collections:commons-collections:') {
+            dependency('commons-collections:commons-collections:[3.2, 4)') {
                 noMoreExcludes()
-                prefers '[3.2, 4)'
                 rejects '3.2.1', '[3.2.2,)'
             }
             constraint('commons-logging:commons-logging:') {
