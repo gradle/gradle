@@ -18,31 +18,24 @@ package org.gradle.api
 
 class NamedDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
     @Override
-    String getContainerUnderTest() {
-        return "aContainer"
-    }
-
-    @Override
-    String getBaseElementType() {
-        return "SomeType"
-    }
-
-    @Override
     String disallowMutationMessage(String assertingMethod) {
-        return "NamedDomainObjectContainer#$assertingMethod on $baseElementType container cannot be executed in the current context."
+        return "NamedDomainObjectContainer#$assertingMethod on SomeType container cannot be executed in the current context."
+    }
+
+    @Override
+    String makeContainer() {
+        return "project.container(SomeType)"
     }
 
     def setup() {
         buildFile << """
-            class $baseElementType implements Named {
+            class SomeType implements Named {
                 final String name
 
-                ${baseElementType}(String name) {
+                SomeType(String name) {
                     this.name = name
                 }
-            }
-
-            def ${containerUnderTest} = project.container($baseElementType)
+            } 
         """
     }
 }

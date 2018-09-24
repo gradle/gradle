@@ -20,8 +20,6 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Namer
 import org.gradle.internal.reflect.DirectInstantiator
 
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.*
-
 class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollectionSpec<CharSequence> {
     final Namer<Object> toStringNamer = new Namer<Object>() {
         String determineName(Object object) {
@@ -464,23 +462,15 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
     }
 
     @Override
-    protected def getInvalidCallFromLazyConfiguration() {
-        def result = []
-        result.addAll(super.getInvalidCallFromLazyConfiguration())
-        result.add(["add(int, T)"            , CallInsertFactory.AsAction])
-        result.add(["add(int, T)"            , CallInsertFactory.AsClosure])
-        result.add(["addAll(int, Collection)", CallInsertAllFactory.AsAction])
-        result.add(["addAll(int, Collection)", CallInsertAllFactory.AsClosure])
-        result.add(["set(int, T)"            , CallSetFactory.AsAction])
-        result.add(["set(int, T)"            , CallSetFactory.AsClosure])
-        result.add(["remove(int)"            , CallRemoveWithIndexFactory.AsAction])
-        result.add(["remove(int)"            , CallRemoveWithIndexFactory.AsClosure])
-        result.add(["listIterator().add(T)"  , CallAddOnListIteratorFactory.AsAction])
-        result.add(["listIterator().add(T)"  , CallAddOnListIteratorFactory.AsClosure])
-        result.add(["listIterator().set(T)"  , CallSetOnListIteratorFactory.AsAction])
-        result.add(["listIterator().set(T)"  , CallSetOnListIteratorFactory.AsClosure])
-        result.add(["listIterator().remove()", CallRemoveOnListIteratorFactory.AsAction])
-        result.add(["listIterator().remove()", CallRemoveOnListIteratorFactory.AsClosure])
-        return result
+    protected Map<String, Closure> getMutatingMethods() {
+        return super.getMutatingMethods() + [
+            "add(int, T)": { it.container.add(0, it.b) },
+            "addAll(int, Collection)": { it.container.addAll(0, [it.b]) },
+            "set(int, T)": { it.container.set(0, it.b) },
+            "remove(int)": { it.container.remove(0) },
+            "listIterator().add(T)": { def iter = it.container.listIterator(); iter.next(); iter.add(it.b) },
+            "listIterator().set(T)": { def iter = it.container.listIterator(); iter.next(); iter.set(it.b) },
+            "listIterator().remove()": { def iter = it.container.listIterator(); iter.next(); iter.remove() },
+        ]
     }
 }

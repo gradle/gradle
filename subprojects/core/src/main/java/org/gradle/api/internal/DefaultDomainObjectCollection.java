@@ -287,7 +287,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public boolean addAll(Collection<? extends T> c) {
-        assertMutable("addAll(Collection)");
+        assertMutable("addAll(Collection<T>)");
         boolean changed = false;
         for (T o : c) {
             if (doAdd(o, eventRegister.getAddActions())) {

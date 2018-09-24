@@ -21,22 +21,15 @@ import org.gradle.api.DomainObjectCollection
 import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.internal.provider.CollectionProviderInternal
 import org.gradle.api.internal.provider.ProviderInternal
+import org.hamcrest.Matchers
 import org.junit.Assume
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallAddAllFactory
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallAddAllLaterFactory
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallAddFactory
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallAddLaterFactory
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallClearFactory
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallRemoveAllFactory
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallRemoveFactory
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallRemoveOnIteratorFactory
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallRetainAllFactory
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallNextOnIteratorFactory
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.CallContainsFactory
+import static org.gradle.util.Matchers.hasMessage
 import static org.gradle.util.WrapUtil.toList
+import static org.hamcrest.Matchers.startsWith
+import static org.junit.Assert.assertThat
 
 abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     abstract DomainObjectCollection<T> getContainer()
@@ -1434,109 +1427,87 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * action.execute(_)
     }
 
-    protected def getInvalidCallFromLazyConfiguration() {
+    void setupContainerDefaults() {}
+
+    @Unroll
+    def "disallow mutating from common methods when #mutatingMethods.key"() {
+        setupContainerDefaults()
+        container.add(a)
+        String methodUnderTest = mutatingMethods.key
+        Closure method = mutatingMethods.value
+        when:
+        container.configureEach {
+            method(this)
+        }
+        then:
+        def ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
+
+        when:
+        container.withType(container.type).configureEach {
+            method(this)
+        }
+        then:
+        ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
+
+        where:
+        mutatingMethods << getMutatingMethods()
+    }
+
+    protected Map<String, Closure> getMutatingMethods() {
+        // TODO:
+        // "addLater(Provider)"    | { it.addLater(Providers.of(b)) }
+        // "addAllLater(Provider)" | { it.addAllLater(Providers.collectionOf(b)) }
         return [
-            ["add(T)"               , CallAddFactory.AsAction],
-            ["add(T)"               , CallAddFactory.AsClosure],
-            ["addLater(Provider)"   , CallAddLaterFactory.AsAction],
-            ["addLater(Provider)"   , CallAddLaterFactory.AsClosure],
-            ["addAllLater(Provider)", CallAddAllLaterFactory.AsAction],
-            ["addAllLater(Provider)", CallAddAllLaterFactory.AsClosure],
-            ["addAll(Collection)"   , CallAddAllFactory.AsAction],
-            ["addAll(Collection)"   , CallAddAllFactory.AsClosure],
-            ["clear()"              , CallClearFactory.AsAction],
-            ["clear()"              , CallClearFactory.AsClosure],
-            ["remove(Object)"       , CallRemoveFactory.AsAction],
-            ["remove(Object)"       , CallRemoveFactory.AsClosure],
-            ["removeAll(Collection)", CallRemoveAllFactory.AsAction],
-            ["removeAll(Collection)", CallRemoveAllFactory.AsClosure],
-            ["retainAll(Collection)", CallRetainAllFactory.AsAction],
-            ["retainAll(Collection)", CallRetainAllFactory.AsClosure],
-            ["iterator().remove()"  , CallRemoveOnIteratorFactory.AsAction],
-            ["iterator().remove()"  , CallRemoveOnIteratorFactory.AsClosure],
+            "add(T)": { it.container.add(b) },
+            "addAll(Collection<T>)": { it.container.addAll([b]) },
+            "clear()": { it.container.clear() },
+            "remove(Object)": { it.container.remove(b) },
+            "removeAll(Collection)": { it.container.removeAll([b]) },
+            "retainAll(Collection)": { it.container.retainAll([b]) },
+            "iterator().remove()": { def iter = it.container.iterator(); iter.next(); iter.remove() },
         ]
     }
 
-    protected def getValidCallFromLazyConfiguration() {
-        return [
-            ["contains(Object)", CallContainsFactory.AsAction],
-            ["contains(Object)", CallContainsFactory.AsClosure],
-            ["iterator().next()", CallNextOnIteratorFactory.AsAction],
-            ["iterator().next()", CallNextOnIteratorFactory.AsClosure],
-        ]
+    protected void assertDoesNotAllowMethod(Throwable exception, String methodUnderTest) {
+        String message = "${containerPublicType.simpleName}#${methodUnderTest} on ${container.toString()} cannot be executed in the current context."
+        List<Throwable> causes = new ArrayList<Throwable>()
+        while (exception != null) {
+            causes.add(exception)
+            exception = exception.cause
+        }
+        assertThat(causes, Matchers.hasItem(hasMessage(startsWith(message))))
     }
 
     @Unroll
-    def "disallow mutating when configureEach(#factoryClass.configurationType.simpleName) calls #description"() {
-        def factory = factoryClass.newInstance()
-        if (factory.isUseExternalProviders()) {
-            containerAllowsExternalProviders()
-        }
-
-        when:
-        container.configureEach(factory.create(container, b))
+    def "allow common querying methods when #queryMethods.key"() {
+        setupContainerDefaults()
         container.add(a)
-
+        String methodUnderTest = queryMethods.key
+        Closure method = queryMethods.value
+        when:
+        container.configureEach {
+            method(this)
+        }
         then:
-        def ex = thrown(IllegalStateException)
-        ex.message == "${containerPublicType.simpleName}#${description} on ${container.toString()} cannot be executed in the current context."
-
-        where:
-        [description, factoryClass] << getInvalidCallFromLazyConfiguration()
-    }
-
-    @Unroll
-    def "disallow mutating when withType(Class).configureEach(#factoryClass.configurationType.simpleName) calls #description"() {
-        def factory = factoryClass.newInstance()
-        if (factory.isUseExternalProviders()) {
-            containerAllowsExternalProviders()
-        }
+        noExceptionThrown()
 
         when:
-        container.withType(type).configureEach(factory.create(container, b))
-        container.add(a)
-
-        then:
-        def ex = thrown(IllegalStateException)
-        ex.message == "${containerPublicType.simpleName}#${description} on ${container.toString()} cannot be executed in the current context."
-
-        where:
-        [description, factoryClass] << getInvalidCallFromLazyConfiguration()
-    }
-
-    @Unroll
-    def "allow querying when configureEach(#factoryClass.configurationType.simpleName) calls #description"() {
-        def factory = factoryClass.newInstance()
-        if (factory.isUseExternalProviders()) {
-            containerAllowsExternalProviders()
+        container.withType(container.type).configureEach {
+            method(this)
         }
-
-        when:
-        container.configureEach(factory.create(container, b))
-        container.add(a)
-
         then:
         noExceptionThrown()
 
         where:
-        [description, factoryClass] << getValidCallFromLazyConfiguration()
+        queryMethods << getQueryMethods()
     }
 
-    @Unroll
-    def "allow querying when withType(Class).configureEach(#factoryClass.configurationType.simpleName) calls #description"() {
-        def factory = factoryClass.newInstance()
-        if (factory.isUseExternalProviders()) {
-            containerAllowsExternalProviders()
-        }
-
-        when:
-        container.withType(type).configureEach(factory.create(container, b))
-        container.add(a)
-
-        then:
-        noExceptionThrown()
-
-        where:
-        [description, factoryClass] << getValidCallFromLazyConfiguration()
+    protected Map<String, Closure> getQueryMethods() {
+        return [
+            "contains(Object)": { it.container.contains(it.getB()) },
+            "iterator().next()": { def iter = it.container.iterator(); iter.next() },
+        ]
     }
 }

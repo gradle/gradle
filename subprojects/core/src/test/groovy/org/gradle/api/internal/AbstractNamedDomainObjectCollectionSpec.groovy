@@ -19,54 +19,78 @@ package org.gradle.api.internal
 import org.gradle.api.NamedDomainObjectCollection
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.DomainObjectCollectionConfigurationFactories.*
-
 abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomainObjectCollectionSpec<T> {
     abstract NamedDomainObjectCollection<T> getContainer()
 
     @Override
-    protected def getValidCallFromLazyConfiguration() {
-        def result = []
-        result.addAll(super.getValidCallFromLazyConfiguration())
-        result.add(["getByName(String)", CallGetByNameFactory.AsAction])
-        result.add(["getByName(String)", CallGetByNameFactory.AsClosure])
-        return result
+    protected Map<String, Closure> getQueryMethods() {
+        return super.getQueryMethods() + [
+            "getByName(String)": { it.container.getByName("a") },
+        ]
     }
 
     @Unroll
-    def "disallow mutating when NamedDomainObjectProvider.configure(#factoryClass.configurationType.simpleName) calls #description"() {
-        def factory = factoryClass.newInstance()
-        if (factory.isUseExternalProviders()) {
-            containerAllowsExternalProviders()
+    def "disallow mutating from named actions using #mutatingMethods.key"() {
+        setupContainerDefaults()
+        container.add(a)
+        String methodUnderTest = mutatingMethods.key
+        Closure method = mutatingMethods.value
+        when:
+        container.named("a").configure {
+            method(this)
         }
+        then:
+        def ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
 
         when:
-        container.add(a)
-        container.named("a").configure(factory.create(container, b))
-
+        container.named("a") {
+            method(this)
+        }
         then:
-        def ex = thrown(IllegalStateException)
-        ex.message == "${containerPublicType.simpleName}#${description} on ${container.toString()} cannot be executed in the current context."
+        ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
+
+        when:
+        container.named("a", getType()) {
+            method(this)
+        }
+        then:
+        ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
 
         where:
-        [description, factoryClass] << getInvalidCallFromLazyConfiguration()
+        mutatingMethods << getMutatingMethods()
     }
 
     @Unroll
-    def "allow querying when NamedDomainObjectProvider.configure(#factoryClass.configurationType.simpleName) calls #description"() {
-        def factory = factoryClass.newInstance()
-        if (factory.isUseExternalProviders()) {
-            containerAllowsExternalProviders()
+    def "allow query methods from named using #queryMethods.key"() {
+        setupContainerDefaults()
+        container.add(a)
+        String methodUnderTest = queryMethods.key
+        Closure method = queryMethods.value
+        when:
+        container.named("a").configure {
+            method(this)
         }
+        then:
+        noExceptionThrown()
 
         when:
-        container.add(a)
-        container.named("a").configure(factory.create(container, b))
+        container.named("a") {
+            method(this)
+        }
+        then:
+        noExceptionThrown()
 
+        when:
+        container.named("a", getType()) {
+            method(this)
+        }
         then:
         noExceptionThrown()
 
         where:
-        [description, factoryClass] << getValidCallFromLazyConfiguration()
+        queryMethods << getQueryMethods()
     }
 }

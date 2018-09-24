@@ -16,52 +16,20 @@
 
 package org.gradle.api.internal
 
+
 import org.gradle.api.NamedDomainObjectCollection
-import spock.lang.Unroll
+import org.gradle.internal.Actions
 
 abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDomainObjectCollectionSpec<T> {
     abstract NamedDomainObjectCollection<T> getContainer()
 
-    abstract void behaveLikeNamedContainer()
-
-    @Unroll
-    def "disallow mutating when creating NamedDomainObjectProvider.configure(#factoryClass.configurationType.simpleName) calls #description"() {
-        behaveLikeNamedContainer()
-        def factory = factoryClass.newInstance()
-        if (factory.isUseExternalProviders()) {
-            containerAllowsExternalProviders()
-        }
-
-        when:
-        def a = container.register("a")
-        a.configure(factory.create(container, b))
-        a.get()
-
-        then:
-        def ex = thrown(RuntimeException)
-        ex.cause.message == "${containerPublicType.simpleName}#${description} on ${container.toString()} cannot be executed in the current context."
-
-        where:
-        [description, factoryClass] << getInvalidCallFromLazyConfiguration()
-    }
-
-    @Unroll
-    def "allow querying when creating NamedDomainObjectProvider.configure(#factoryClass.configurationType.simpleName) calls #description"() {
-        behaveLikeNamedContainer()
-        def factory = factoryClass.newInstance()
-        if (factory.isUseExternalProviders()) {
-            containerAllowsExternalProviders()
-        }
-
-        when:
-        def a = container.register("a")
-        a.configure(factory.create(container, b))
-        a.get()
-
-        then:
-        noExceptionThrown()
-
-        where:
-        [description, factoryClass] << getValidCallFromLazyConfiguration()
+    @Override
+    protected Map<String, Closure> getMutatingMethods() {
+        return super.getMutatingMethods() + [
+            "create(String)": { it.container.create("b") },
+            "create(String, Action)": { it.container.create("b", Actions.doNothing()) },
+            "register(String)": { it.container.register("b") },
+            "register(String, Action)": { it.container.register("b", Actions.doNothing()) },
+        ]
     }
 }

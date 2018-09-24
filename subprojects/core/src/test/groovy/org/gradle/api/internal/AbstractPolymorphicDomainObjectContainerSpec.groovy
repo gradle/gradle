@@ -17,7 +17,18 @@
 package org.gradle.api.internal
 
 import org.gradle.api.NamedDomainObjectCollection
+import org.gradle.internal.Actions
 
 abstract class AbstractPolymorphicDomainObjectContainerSpec<T> extends AbstractNamedDomainObjectContainerSpec<T> {
     abstract NamedDomainObjectCollection<T> getContainer()
+
+    @Override
+    protected Map<String, Closure> getMutatingMethods() {
+        return super.getMutatingMethods() + [
+            "create(String, Class)": { it.container.create("b", it.container.type) },
+            "create(String, Class, Action)": { it.container.create("b", it.container.type, Actions.doNothing()) },
+            "register(String, Class)": { it.container.register("b", it.container.type) },
+            "register(String, Class, Action)": { it.container.register("b", it.container.type, Actions.doNothing()) },
+        ]
+    }
 }

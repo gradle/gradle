@@ -44,7 +44,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
     boolean externalProviderAllowed = true
 
     @Override
-    void behaveLikeNamedContainer() {
+    void setupContainerDefaults() {
         container.registerDefaultFactory({ new DefaultPerson(name: it) } as NamedDomainObjectFactory )
     }
 
