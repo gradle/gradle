@@ -114,12 +114,12 @@ class MavenPomRelocationIntegrationTest extends AbstractHttpDependencyResolution
 
     def createBuildFileWithDependency(String groupId, String artifactId) {
         buildFile << """
+apply plugin: 'java-library'
 repositories { maven { url '${mavenHttpRepo.uri}' } }
-configurations { compile }
-dependencies { compile '${groupId}:${artifactId}:1.0' }
+dependencies { implementation '${groupId}:${artifactId}:1.0' }
 task retrieve(type: Sync) {
     into 'libs'
-    from configurations.compile
+    from configurations.compileClasspath
 }
 """
     }
