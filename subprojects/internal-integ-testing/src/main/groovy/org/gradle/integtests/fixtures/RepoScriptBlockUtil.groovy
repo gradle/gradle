@@ -126,6 +126,10 @@ class RepoScriptBlockUtil {
         }
     }
 
+    static String kotlinEapRepositoryDefinition(GradleDsl dsl = GROOVY) {
+        MirroredRepository.KOTLIN_EAP.getRepositoryDefinition(dsl)
+    }
+
     static String jcenterRepositoryDefinition(GradleDsl dsl = GROOVY) {
         MirroredRepository.JCENTER.getRepositoryDefinition(dsl)
     }
