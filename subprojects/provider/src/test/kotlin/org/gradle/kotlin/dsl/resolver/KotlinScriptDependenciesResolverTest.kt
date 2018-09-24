@@ -31,6 +31,7 @@ import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.CoreMatchers.nullValue
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -129,6 +130,45 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
         assertSucceeds(withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
             require(this is Project)
         """))
+    }
+
+    @Test
+    fun `report file fatality on TAPI failure`() {
+        // thus disabling syntax highlighting
+
+        withDefaultSettings()
+        val editedScript = withBuildScript("")
+
+        val wrongEnv = arrayOf("gradleHome" to existing("absent"))
+        resolvedScriptDependencies(editedScript, env = *wrongEnv).apply {
+            assertThat(this, nullValue())
+        }
+
+        recorder.apply {
+            assertLastEventIsInstanceOf(ResolutionFailure::class)
+            assertSingleFileReport(ReportSeverity.FATAL, EditorMessages.failure)
+        }
+    }
+
+    @Test
+    fun `report file error on TAPI failure when reusing previous dependencies`() {
+
+        withDefaultSettings()
+        val editedScript = withBuildScript("")
+
+        val previous = resolvedScriptDependencies(editedScript).apply {
+            assertContainsBasicDependencies()
+        }
+
+        val wrongEnv = arrayOf("gradleHome" to existing("absent"))
+        resolvedScriptDependencies(editedScript, previous, *wrongEnv).apply {
+            assertSame(previous, this)
+        }
+
+        recorder.apply {
+            assertLastEventIsInstanceOf(ResolutionFailure::class)
+            assertSingleFileReport(ReportSeverity.ERROR, EditorMessages.failureUsingPrevious)
+        }
     }
 
     @Test
@@ -247,13 +287,17 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
         ) + entries.toMap()
 
     private
-    fun resolvedScriptDependencies(scriptFile: File? = null, vararg env: Pair<String, Any?>) =
+    fun resolvedScriptDependencies(
+        scriptFile: File? = null,
+        previousDependencies: KotlinScriptExternalDependencies? = null,
+        vararg env: Pair<String, Any?>
+    ) =
         resolver.resolve(
             scriptContentFor(scriptFile),
             environment(*env),
             recorder,
-            null
-        ).get().also { assertThat("resolved script dependencies", it, notNullValue()) }!!
+            previousDependencies
+        ).get()
 
     private
     fun withPrecompiledScriptBuildSrc() {
@@ -271,7 +315,8 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
     fun assertSucceeds(editedScript: File? = null) {
 
         resolvedScriptDependencies(editedScript).apply {
-            assertContainsBasicDependencies()
+            assertThat(this, notNullValue())
+            this!!.assertContainsBasicDependencies()
         }
 
         recorder.apply {
@@ -280,7 +325,9 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
     }
 
     private
-    fun KotlinScriptExternalDependencies.assertContainsBasicDependencies() {
+    fun KotlinScriptExternalDependencies?.assertContainsBasicDependencies() {
+        assertThat(this, notNullValue())
+        this as KotlinScriptExternalDependencies
         assertTrue(classpath.toList().isNotEmpty())
         assertTrue(imports.toList().isNotEmpty())
         assertTrue(sources.toList().isNotEmpty())
@@ -320,7 +367,7 @@ class ResolverTestRecorder : ResolverEventLogger, (ReportSeverity, String, Posit
     }
 
     override fun invoke(severity: ReportSeverity, message: String, position: Position?) {
-        println("[IDEA_REPORT] $severity $message $position")
+        println("[EDITOR_$severity] '$message' ${position?.line ?: ""}")
         reports.add(IdeReport(severity, message, position))
     }
 
