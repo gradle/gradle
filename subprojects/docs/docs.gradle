@@ -154,7 +154,7 @@ def imageFiles = fileTree(userguideSrcDir) {
 }
 def resourceFiles = imageFiles + cssFiles
 
-def samples = tasks.register("samples", Copy) {
+def samples = tasks.register("samples", Sync) {
     from samplesSrcDir
     into samplesDir
 
@@ -163,7 +163,7 @@ def samples = tasks.register("samples", Copy) {
     exclude '**/.gradle/**'
 }
 
-tasks.register("userguideStyleSheets", Copy) {
+tasks.register("userguideStyleSheets", Sync) {
     File stylesheetsDir = new File(srcDocsDir, 'stylesheets')
     into new File(buildDir, 'stylesheets')
     from(stylesheetsDir) {
@@ -361,7 +361,7 @@ def userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask) {
 }
 
 // Avoid overlapping outputs by copying exactly what we want from other intermediate tasks
-def userguide = tasks.register("userguide", Copy) {
+def userguide = tasks.register("userguide", Sync) {
     dependsOn userguideMultiPage, userguideSinglePage
     description = 'Generates the userguide HTML and PDF'
     group = 'documentation'
