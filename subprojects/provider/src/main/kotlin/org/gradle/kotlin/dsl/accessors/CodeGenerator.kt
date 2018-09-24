@@ -34,15 +34,22 @@ fun ProjectSchema<TypeAccessibility>.extensionAccessors(): Sequence<String> = se
 
     val seen = SeenAccessorSpecs()
 
-    extensions.mapNotNull(::typedAccessorSpec).forEach { spec ->
+    extensions.asSequence().mapNotNull(::typedAccessorSpec).forEach { spec ->
         extensionAccessorFor(spec)?.let { extensionAccessor ->
             yield(extensionAccessor)
             seen.add(spec)
         }
     }
 
-    conventions.mapNotNull(::typedAccessorSpec).filterNot(seen::hasConflict).forEach { spec ->
+    conventions.asSequence().mapNotNull(::typedAccessorSpec).filterNot(seen::hasConflict).forEach { spec ->
         conventionAccessorFor(spec)?.let {
+            yield(it)
+            seen.add(spec)
+        }
+    }
+
+    containerElements.asSequence().mapNotNull(::typedAccessorSpec).filterNot(seen::hasConflict).forEach { spec ->
+        existingContainerElementAccessorFor(spec)?.let {
             yield(it)
         }
     }
@@ -185,15 +192,48 @@ fun inaccessibleConventionAccessorFor(targetType: String, name: AccessorNameSpec
 
 
 private
+fun existingContainerElementAccessorFor(spec: TypedAccessorSpec): String? = spec.run {
+    codeForAccessor(name) {
+        when (typeAccess) {
+            is TypeAccessibility.Accessible -> accessibleExistingContainerElementAccessorFor(targetTypeAccess.type, name, typeAccess.type)
+            is TypeAccessibility.Inaccessible -> inaccessibleExistingContainerElementAccessorFor(targetTypeAccess.type, name, typeAccess)
+        }
+    }
+}
+
+
+private
+fun accessibleExistingContainerElementAccessorFor(targetType: String, name: AccessorNameSpec, type: String): String = name.run {
+    """
+        /**
+         * Provides the existing [$original][$type] element.
+         */
+        val $targetType.`$kotlinIdentifier`: NamedDomainObjectProvider<$type>
+            get() = named<$type>("$stringLiteral")
+
+    """
+}
+
+
+private
+fun inaccessibleExistingContainerElementAccessorFor(targetType: String, name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
+    """
+        /**
+         * Provides the existing [$original][${typeAccess.type}] element.
+         *
+         * ${documentInaccessibilityReasons(name, typeAccess)}
+         */
+        val $targetType.`$kotlinIdentifier`: NamedDomainObjectProvider<Any>
+            get() = named("$stringLiteral")
+
+    """
+}
+
+
+private
 fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
     codeForAccessor(name) {
         """
-            /**
-             * The '$original' configuration.
-             */
-            val ConfigurationContainer.`$kotlinIdentifier`: Configuration
-                get() = getByName("$stringLiteral")
-
             /**
              * Adds a dependency to the '$original' configuration.
              *

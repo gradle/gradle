@@ -181,6 +181,7 @@ class ProjectSchemaTest : TestWithClassPath() {
                     ProjectSchemaEntry("Project", "base", "Base"),
                     ProjectSchemaEntry("Task", "meta", "Meta")
                 ),
+                containerElements = emptyList(),
                 configurations = listOf(
                     "api",
                     "implementation"
@@ -202,6 +203,7 @@ class ProjectSchemaTest : TestWithClassPath() {
                         conventions = listOf(
                             ProjectSchemaEntry("Project", "base", "Base")
                         ),
+                        containerElements = emptyList(),
                         configurations = emptyList()
                     ),
 
@@ -212,6 +214,7 @@ class ProjectSchemaTest : TestWithClassPath() {
                         conventions = listOf(
                             ProjectSchemaEntry("Task", "meta", "Meta")
                         ),
+                        containerElements = emptyList(),
                         configurations = emptyList()
                     )
                 )
@@ -224,6 +227,7 @@ class ProjectSchemaTest : TestWithClassPath() {
         ProjectSchema(
             extensions = pairs.map { ProjectSchemaEntry(Project::class.java.name!!, it.first, it.second) },
             conventions = emptyList(),
+            containerElements = emptyList(),
             configurations = emptyList())
 
     private

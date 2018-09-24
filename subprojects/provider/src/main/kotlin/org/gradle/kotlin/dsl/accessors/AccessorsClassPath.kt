@@ -107,19 +107,32 @@ fun jitProjectSchemaOf(project: Project) =
 
 internal
 fun <T> ProjectSchema<T>.groupedByTarget(): Map<T, ProjectSchema<T>> =
-    (extensions.map { it to EntryKind.Extension } + conventions.map { it to EntryKind.Convention })
+    entriesPairedWithEntryKind()
         .groupBy { (entry, _) -> entry.target }
         .mapValues { (_, entries) ->
             ProjectSchema(
-                extensions = entries.mapNotNull { (entry, kind) -> entry.takeIf { kind == EntryKind.Extension } },
-                conventions = entries.mapNotNull { (entry, kind) -> entry.takeIf { kind == EntryKind.Convention } },
+                extensions = entries.projectSchemaEntriesOf(EntryKind.Extension),
+                conventions = entries.projectSchemaEntriesOf(EntryKind.Convention),
+                containerElements = entries.projectSchemaEntriesOf(EntryKind.ContainerElement),
                 configurations = emptyList()
             )
         }
 
 
 private
-enum class EntryKind { Extension, Convention }
+fun <T> ProjectSchema<T>.entriesPairedWithEntryKind() =
+    (extensions.map { it to EntryKind.Extension }
+        + conventions.map { it to EntryKind.Convention }
+        + containerElements.map { it to EntryKind.ContainerElement })
+
+
+private
+fun <T> List<Pair<ProjectSchemaEntry<T>, EntryKind>>.projectSchemaEntriesOf(entryKind: EntryKind) =
+    mapNotNull { (entry, kind) -> entry.takeIf { kind == entryKind } }
+
+
+private
+enum class EntryKind { Extension, Convention, ContainerElement }
 
 
 internal
@@ -573,6 +586,7 @@ fun writeAccessorsTo(writer: BufferedWriter, accessors: Sequence<String>, import
         write(fileHeader)
         newLine()
         appendln("import org.gradle.api.Incubating")
+        appendln("import org.gradle.api.NamedDomainObjectProvider")
         appendln("import org.gradle.api.Project")
         appendln("import org.gradle.api.artifacts.Configuration")
         appendln("import org.gradle.api.artifacts.ConfigurationContainer")
