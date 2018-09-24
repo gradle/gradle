@@ -18,7 +18,10 @@ package org.gradle.kotlin.dsl.plugins.dsl
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-import org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
+import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
+
+import org.gradle.kotlin.dsl.plugins.base.KotlinDslBasePlugin
+import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins
 
 import org.gradle.kotlin.dsl.*
 
@@ -26,46 +29,20 @@ import org.gradle.kotlin.dsl.*
 /**
  * The `kotlin-dsl` plugin.
  *
- * - Applies the `embedded-kotlin` plugin
- * - Adds the `gradleKotlinDsl()` dependency to the `compileOnly` and `testImplementation` configurations
- * - Configures the Kotlin DSL compiler plugins
+ * - Applies the `java-gradle-plugin` plugin
+ * - Applies the `kotlin-dsl.base` plugin
+ * - Applies the `kotlin-dsl.precompiled-script-plugins` plugin
  *
- * You can use the `kotlinDslPluginOptions` extension of type [KotlinDslPluginOptions] to configure the plugin.
- *
- * @see KotlinDslPluginOptions
- * @see org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
+ * @see JavaGradlePluginPlugin
+ * @see KotlinDslBasePlugin
+ * @see PrecompiledScriptPlugins
  */
 class KotlinDslPlugin : Plugin<Project> {
 
-    override fun apply(project: Project) {
-        project.run {
+    override fun apply(project: Project): Unit = project.run {
 
-            applyEmbeddedKotlinPlugin()
-            createOptionsExtension()
-            applyKotlinDslCompilerPlugins()
-            addGradleKotlinDslDependencyTo("compileOnly", "testImplementation")
-        }
-    }
-
-    private
-    fun Project.applyEmbeddedKotlinPlugin() {
-        plugins.apply(EmbeddedKotlinPlugin::class.java)
-    }
-
-    private
-    fun Project.createOptionsExtension() {
-        extensions.add("kotlinDslPluginOptions", KotlinDslPluginOptions(objects))
-    }
-
-    private
-    fun Project.applyKotlinDslCompilerPlugins() {
-        plugins.apply(KotlinDslCompilerPlugins::class.java)
-    }
-
-    private
-    fun Project.addGradleKotlinDslDependencyTo(vararg configurations: String) {
-        configurations.forEach {
-            dependencies.add(it, gradleKotlinDsl())
-        }
+        apply<JavaGradlePluginPlugin>()
+        apply<KotlinDslBasePlugin>()
+        apply<PrecompiledScriptPlugins>()
     }
 }
