@@ -20,6 +20,9 @@ package org.gradle.kotlin.dsl.resolver
 import org.gradle.kotlin.dsl.concurrent.EventLoop
 import org.gradle.kotlin.dsl.concurrent.future
 
+import org.gradle.kotlin.dsl.tooling.models.EditorPosition
+import org.gradle.kotlin.dsl.tooling.models.EditorReport
+import org.gradle.kotlin.dsl.tooling.models.EditorReportSeverity
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 
 import java.io.File
@@ -44,16 +47,48 @@ typealias Report = (ReportSeverity, String, Position?) -> Unit
 
 
 private
-fun Report.warning(message: String, position: Position? = null) =
-    invoke(ReportSeverity.WARNING, message, position)
-
-
-private
 fun Report.error(message: String, position: Position? = null) =
     invoke(ReportSeverity.ERROR, message, position)
 
 
+private
+fun Report.fatal(message: String, position: Position? = null) =
+    invoke(ReportSeverity.FATAL, message, position)
+
+
+private
+fun Report.editorReport(editorReport: EditorReport) = editorReport.run {
+    invoke(severity.toIdeSeverity(), message, position?.toIdePosition())
+}
+
+
+private
+fun EditorReportSeverity.toIdeSeverity(): ReportSeverity =
+    when (this) {
+        EditorReportSeverity.WARNING -> ReportSeverity.WARNING
+        EditorReportSeverity.ERROR -> ReportSeverity.ERROR
+    }
+
+
+private
+fun EditorPosition.toIdePosition(): Position =
+    Position(if (line == 0) 0 else line - 1, column)
+
+
 class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
+
+    private
+    val logger: ResolverEventLogger
+
+    @Suppress("unused")
+    constructor() {
+        logger = DefaultResolverEventLogger
+    }
+
+    internal
+    constructor(logger: ResolverEventLogger) {
+        this.logger = logger
+    }
 
     override fun resolve(
         script: ScriptContents,
@@ -72,16 +107,16 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
     ) = future {
 
         try {
-            log(ResolutionRequest(script.file, environment, previousDependencies))
+            logger.log(ResolutionRequest(script.file, environment, previousDependencies))
             assembleDependenciesFrom(
                 script.file,
                 environment!!,
                 report,
                 previousDependencies)
         } catch (e: Exception) {
-            log(ResolutionFailure(script.file, e))
-            if (previousDependencies == null) report.error("Script dependencies resolution failed")
-            else report.warning("Script dependencies resolution failed, using previous dependencies")
+            logger.log(ResolutionFailure(script.file, e))
+            if (previousDependencies == null) report.fatal(EditorMessages.failure)
+            else report.error(EditorMessages.failureUsingPrevious)
             previousDependencies
         }
     }
@@ -95,25 +130,27 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
     ): KotlinScriptExternalDependencies {
 
         val request = modelRequestFrom(scriptFile, environment)
-        log(SubmittedModelRequest(scriptFile, request))
+        logger.log(SubmittedModelRequest(scriptFile, request))
 
         val response = RequestQueue.post(request)
-        log(ReceivedModelResponse(scriptFile, response))
+        logger.log(ReceivedModelResponse(scriptFile, response))
+
+        response.editorReports.forEach { editorReport ->
+            report.editorReport(editorReport)
+        }
 
         return when {
             response.exceptions.isEmpty() ->
                 dependenciesFrom(response).also {
-                    log(ResolvedDependencies(scriptFile, it))
+                    logger.log(ResolvedDependencies(scriptFile, it))
                 }
             previousDependencies != null && previousDependencies.classpath.count() > response.classPath.size ->
                 previousDependencies.also {
-                    log(ResolvedToPreviousWithErrors(scriptFile, previousDependencies, response.exceptions))
-                    report.warning("There were some errors during script dependencies resolution, using previous dependencies")
+                    logger.log(ResolvedToPreviousWithErrors(scriptFile, previousDependencies, response.exceptions))
                 }
             else ->
                 dependenciesFrom(response).also {
-                    log(ResolvedDependenciesWithErrors(scriptFile, it, response.exceptions))
-                    report.warning("There were some errors during script dependencies resolution, some dependencies might be missing")
+                    logger.log(ResolvedDependenciesWithErrors(scriptFile, it, response.exceptions))
                 }
         }
     }
@@ -153,10 +190,6 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
             response.sourcePath,
             response.implicitImports
         )
-
-    private
-    fun log(event: ResolverEvent) =
-        ResolverEventLogger.log(event)
 }
 
 

@@ -23,5 +23,24 @@ interface KotlinBuildScriptModel {
     val classPath: List<File>
     val sourcePath: List<File>
     val implicitImports: List<String>
+    val editorReports: List<EditorReport>
     val exceptions: List<Exception>
+}
+
+
+interface EditorReport {
+
+    val severity: EditorReportSeverity
+    val message: String
+    val position: EditorPosition?
+}
+
+
+enum class EditorReportSeverity { WARNING, ERROR }
+
+
+interface EditorPosition {
+
+    val line: Int
+    val column: Int
 }
