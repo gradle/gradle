@@ -90,7 +90,7 @@ class RepoScriptBlockUtil {
     }
 
     static String jcenterRepository(GradleDsl dsl = GROOVY) {
-        return """
+        """
             repositories {
                 ${jcenterRepositoryDefinition(dsl)}
             }
