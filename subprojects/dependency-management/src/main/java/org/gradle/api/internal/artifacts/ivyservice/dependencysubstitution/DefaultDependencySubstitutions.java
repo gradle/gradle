@@ -267,6 +267,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             ModuleVersionSelector requested = componentSelectorConverter.getSelector(substitution.getRequested());
             DefaultDependencyResolveDetails details = new DefaultDependencyResolveDetails((DependencySubstitutionInternal) substitution, requested);
             delegate.execute(details);
+            details.complete();
         }
     }
 }
