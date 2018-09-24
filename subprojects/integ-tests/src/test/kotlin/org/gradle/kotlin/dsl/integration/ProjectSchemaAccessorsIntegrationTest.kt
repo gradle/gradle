@@ -352,8 +352,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             plugins {
                 `kotlin-dsl`
-                `kotlin-dsl-precompiled-script-plugins`
-                `java-gradle-plugin`
             }
 
             $repositoriesBlock
@@ -581,7 +579,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         withFile("buildSrc/build.gradle.kts", """
             plugins {
                 `kotlin-dsl`
-                `java-gradle-plugin`
             }
 
             gradlePlugin {
@@ -634,7 +631,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
         withBuildScriptIn("buildSrc", """
             plugins {
-                `java-gradle-plugin`
                 `kotlin-dsl`
             }
 
@@ -728,7 +724,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
         withBuildScriptIn("buildSrc", """
             plugins {
-                `java-gradle-plugin`
                 `kotlin-dsl`
             }
 

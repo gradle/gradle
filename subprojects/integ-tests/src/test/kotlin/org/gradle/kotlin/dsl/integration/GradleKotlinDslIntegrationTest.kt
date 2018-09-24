@@ -830,7 +830,6 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
             plugins {
                 `kotlin-dsl`
-                `java-gradle-plugin`
             }
 
             gradlePlugin {

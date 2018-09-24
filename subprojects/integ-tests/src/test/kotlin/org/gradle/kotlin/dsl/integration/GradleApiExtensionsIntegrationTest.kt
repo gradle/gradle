@@ -142,8 +142,6 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
         withBuildScriptIn("buildSrc", """
             plugins {
                 `kotlin-dsl`
-                `kotlin-dsl-precompiled-script-plugins`
-                `java-gradle-plugin`
             }
 
             $repositoriesBlock

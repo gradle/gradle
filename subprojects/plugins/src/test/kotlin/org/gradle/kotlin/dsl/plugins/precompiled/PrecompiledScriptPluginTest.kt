@@ -100,7 +100,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
         // given:
         val expectedMessage = "Not on my watch!"
 
-        withPrecompiledScriptPluginsPlus("java-gradle-plugin")
+        withKotlinDslPluginPlus()
 
         withFile("src/main/kotlin/my-project-script.gradle.kts", """
             throw IllegalStateException("$expectedMessage")
@@ -195,7 +195,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
                 withFile(
                     "build.gradle.kts",
-                    scriptWithPrecompiledScriptPluginsPlus("java-gradle-plugin"))
+                    scriptWithKotlinDslPluginPlus())
             }
         }
 
@@ -265,8 +265,6 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
                     plugins {
                         `kotlin-dsl`
-                        `kotlin-dsl-precompiled-script-plugins`
-                        `java-gradle-plugin`
                         `maven-publish`
                     }
 
@@ -359,7 +357,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
     private
     fun givenPrecompiledKotlinScript(fileName: String, code: String) {
-        withPrecompiledScriptPluginsPlus()
+        withKotlinDslPluginPlus()
         withFile("src/main/kotlin/$fileName", code)
         compileKotlin()
     }
@@ -376,15 +374,14 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
             .loadClass(className)
 
     private
-    fun withPrecompiledScriptPluginsPlus(vararg additionalPlugins: String) =
-        withBuildScript(scriptWithPrecompiledScriptPluginsPlus(*additionalPlugins))
+    fun withKotlinDslPluginPlus(vararg additionalPlugins: String) =
+        withBuildScript(scriptWithKotlinDslPluginPlus(*additionalPlugins))
 
     private
-    fun scriptWithPrecompiledScriptPluginsPlus(vararg additionalPlugins: String): String =
+    fun scriptWithKotlinDslPluginPlus(vararg additionalPlugins: String): String =
         """
             plugins {
                 `kotlin-dsl`
-                `kotlin-dsl-precompiled-script-plugins`
                 ${additionalPlugins.asIterable().joinLines { "`$it`" }}
             }
 
