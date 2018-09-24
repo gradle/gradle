@@ -172,3 +172,59 @@ However often BOMs are not only providing versions as recommendations, but also 
 include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/constraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
 include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/constraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
 ====
+
+[[sec:version_alignment]]
+== Dependency version alignment
+=== Handling inconsistent module versions
+Gradle supports aligning versions of modules which belong to the same "platform". It is often preferable, for example, that the API and implementation modules of a component are using the same version. However, because of the game of transitive dependency resolution, it is possible that different modules belonging to the same platform end up using different versions.
+For example, your project may depend on the `jackson-databind` and `vert.x` libraries, as illustrated below:
+
+.A dependency on the Jackson library
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/dependencyAlignment/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/dependencyAlignment/kotlin",files="build.gradle.kts[tags=dependencies]"]
+====
+
+Because `vert.x` depends on `jackson-core`, we would actually resolve the following dependency versions:
+
+- `jackson-core` version `2.9.5` (brought by `vertx-core`)
+- `jackson-databind` version `2.9.5` (by conflict resolution)
+- `jackson-annotation` version `2.9.0` (dependency of `jackson-databind:2.9.5`)
+
+It's easy to end up with a set of versions which do not work well together. To fix this, Gradle supports dependency version alignment, which is supported by the concept of platform. A platform represents a set of modules which "work well together". Either because they are actually published as a whole (when one of the members of the platform is published, all other modules are also published with the same version), or because someone tested modules and indicates that they work well together (typically, the Spring Platform).
+
+=== Declaring participation in a platform
+
+We can fix the example above by declaring that all Jackson modules "belong to" the same platform.
+
+.An alignment rule
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/dependencyAlignment/groovy",files="build.gradle[tags=alignment-rule]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/dependencyAlignment/kotlin",files="build.gradle.kts[tags=alignment-rule]"]
+====
+
+By using the `belongsTo` keyword, we declare that all modules belong to the same _virtual platform_, which is treated specially by the engine, in particular with regards to alignment. We can use the rule by adding it to the component metadata rules:
+
+.Using the rule
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/dependencyAlignment/groovy",files="build.gradle[tags=use_rule]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/dependencyAlignment/kotlin",files="build.gradle.kts[tags=use_rule]"]
+====
+
+Then all versions in the example above would align to `2.9.5`. However, Gradle would let you override that choice by specifying a dependency on the Jackson platform:
+
+.Forceful platform downgrade
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/dependencyAlignment/groovy",files="build.gradle[tags=enforced_platform]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/dependencyAlignment/kotlin",files="build.gradle.kts[tags=enforced_platform]"]
+====
+
+=== Virtual vs published platforms
+
+A platform defined by a component metadata rule for which the `belongsTo` target module isn't published on a repository is called a virtual platform. A virtual platform is considered specially by the engine and participates in dependency resolution like a published module, but triggers dependency version alignment.
+On the other hand, we can find "real" platforms published on public repositories. Typical examples include BOMs, like the Spring BOM. They differ in the sense that a published platform may refer to modules which are effectively different things. For example the Spring BOM declares dependencies on Spring as well as Apache Groovy. Obviously those things are versioned differently, so it doesn't make sense to align in this case. In other words, if a platform is _published_, Gradle trusts its metadata, and will not try to align dependency versions of this platform.
+
+[NOTE]
+====
+Gradle doesn't yet support publishing platforms. It can <<bom_import, consume BOMs>>, or declare participation to a virtual platform, but it's not yet possible to declare and publish an adhoc platform module.
+====
