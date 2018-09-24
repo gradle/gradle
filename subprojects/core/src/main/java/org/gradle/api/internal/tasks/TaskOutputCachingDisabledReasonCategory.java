@@ -73,25 +73,25 @@ public enum TaskOutputCachingDisabledReasonCategory {
     OVERLAPPING_OUTPUTS,
 
     /**
-     * The generated build cache key is invalid. Reasons for invalid cache keys:
+     * The task implementation is not cacheable. Reasons for non-cacheable task implemenations:
      * <ul>
-     *     <li>some type used as an input to the task is loaded via a custom classloader Gradle wasn't able to track,</li>
-     *     <li>a Java lambda was used as an input (see https://github.com/gradle/gradle/issues/5510).</li>
+     *     <li>the task type is loaded via a custom classloader Gradle wasn't able to track,</li>
+     *     <li>a Java lambda was used to implement the task (see https://github.com/gradle/gradle/issues/5510).</li>
      * </ul>
      */
     NON_CACHEABLE_TASK_IMPLEMENTATION,
     
     /**
-     * The generated build cache key is invalid. Reasons for invalid cache keys:
+     * One of the task actions is not cacheable. Reasons for non-cacheable task action:
      * <ul>
-     *     <li>some type used as an input to the task is loaded via a custom classloader Gradle wasn't able to track,</li>
-     *     <li>a Java lambda was used as an input (see https://github.com/gradle/gradle/issues/5510).</li>
+     *     <li>a task action is loaded via a custom classloader Gradle wasn't able to track,</li>
+     *     <li>a Java lambda was used as a task action (see https://github.com/gradle/gradle/issues/5510).</li>
      * </ul>
      */
     NON_CACHEABLE_TASK_ACTION,
 
     /**
-     * The generated build cache key is invalid. Reasons for invalid cache keys:
+     * One of the task inputs is not cacheable. Reasons for non-cacheable task inputs:
      * <ul>
      *     <li>some type used as an input to the task is loaded via a custom classloader Gradle wasn't able to track,</li>
      *     <li>a Java lambda was used as an input (see https://github.com/gradle/gradle/issues/5510).</li>

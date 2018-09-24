@@ -243,13 +243,6 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
         assertInvalidNonCacheableTask(':myTask', nonCacheableActionReason)
     }
 
-    def "test replacing"() {
-        expect:
-        'Caching disabled for task \':myTask\': Task action \'LambdaAction$$Lambda$306/104701466\' was implemented by a Java lambda'
-            .replaceAll('\\$\\$Lambda\\$[0-9]+/[0-9]+', '\\$\\$Lambda\\$<non-deterministic>') ==
-            'Caching disabled for task \':myTask\': Task action \'LambdaAction$$Lambda$<non-deterministic>\' was implemented by a Java lambda'
-    }
-
     private void assertInvalidNonCacheableTask(String taskPath, String reason) {
         assert output.replaceAll('\\$\\$Lambda\\$[0-9]+/[0-9]+', '\\$\\$Lambda\\$<non-deterministic>')
             .contains("Caching disabled for task '${taskPath}': ${reason}")
