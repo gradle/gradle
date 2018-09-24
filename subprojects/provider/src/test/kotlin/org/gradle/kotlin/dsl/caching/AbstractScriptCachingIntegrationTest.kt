@@ -21,6 +21,8 @@ import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
 import org.gradle.testkit.runner.BuildResult
 
+import java.io.File
+
 
 abstract class AbstractScriptCachingIntegrationTest : AbstractIntegrationTest() {
 
@@ -60,9 +62,8 @@ abstract class AbstractScriptCachingIntegrationTest : AbstractIntegrationTest() 
         createTempDir(directory = uniqueGradleHomesDir).normalisedPath
 
     private
-    val uniqueGradleHomesDir by lazy {
-        existing("unique-gradle-homes").apply {
+    val uniqueGradleHomesDir: File
+        get() = existing("unique-gradle-homes").apply {
             mkdir()
         }
-    }
 }
