@@ -201,6 +201,8 @@ val kotlinDslProjectSchema: ProjectSchema<String> = listOf(
 ).let { configurationNames ->
     javaProjectSchema + ProjectSchema(
         extensions = listOf(
+            ProjectSchemaEntry("org.gradle.api.Project", "gradlePlugin", "org.gradle.plugin.devel.GradlePluginDevelopmentExtension"),
+            ProjectSchemaEntry("org.gradle.plugin.devel.GradlePluginDevelopmentExtension", "ext", "org.gradle.api.plugins.ExtraPropertiesExtension"),
             ProjectSchemaEntry("org.gradle.api.Project", "kotlin", "org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension"),
             ProjectSchemaEntry("org.gradle.api.Project", "kotlinDslPluginOptions", "org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPluginOptions"),
             ProjectSchemaEntry("org.gradle.api.Project", "samWithReceiver", "org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverExtension"),
