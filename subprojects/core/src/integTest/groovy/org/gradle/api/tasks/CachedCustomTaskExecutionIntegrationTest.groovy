@@ -626,7 +626,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         when:
         withBuildCache().run "customTask", "--info"
         then:
-        output.contains "Caching disabled for task ':customTask': Invalid build cache key was generated"
+        output.contains "Caching disabled for task ':customTask': Task class was loaded with an unknown classloader"
     }
 
     def "task with custom action loaded with custom classloader is not cached"() {
@@ -668,7 +668,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         when:
         withBuildCache().run "customTask", "--info"
         then:
-        output.contains "Caching disabled for task ':customTask': Invalid build cache key was generated"
+        output.contains "Caching disabled for task ':customTask': Task action 'CustomTaskAction' was loaded with an unknown classloader"
     }
 
     def "task stays up-to-date after loaded from cache"() {

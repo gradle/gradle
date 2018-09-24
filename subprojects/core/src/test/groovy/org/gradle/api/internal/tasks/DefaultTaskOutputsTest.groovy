@@ -21,6 +21,7 @@ import org.gradle.api.internal.OverlappingOutputs
 import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.changedetection.state.ImplementationSnapshot
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.project.ProjectInternal
@@ -30,6 +31,7 @@ import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder
+import org.gradle.internal.hash.HashCode
 import org.gradle.util.DeferredUtil
 import org.gradle.util.UsesNativeServices
 import spock.lang.Issue
@@ -406,15 +408,33 @@ class DefaultTaskOutputsTest extends Specification {
         cachingState.enabled
 
         def builder = new DefaultTaskOutputCachingBuildCacheKeyBuilder()
-        builder.inputPropertyImplementationUnknown("someProperty")
+        builder.inputPropertyNotCacheable("someProperty", "was implemented by a Java lambda")
         def invalidBuildCacheKey = builder.build()
         when:
         cachingState = outputs.getCachingState(taskPropertiesWithCacheableOutput, invalidBuildCacheKey)
 
         then:
         !cachingState.enabled
-        cachingState.disabledReason == "Invalid build cache key was generated"
-        cachingState.disabledReasonCategory == TaskOutputCachingDisabledReasonCategory.INVALID_BUILD_CACHE_KEY
+        cachingState.disabledReason == "Non-cacheable inputs: property 'someProperty' was implemented by a Java lambda"
+        cachingState.disabledReasonCategory == TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_INPUTS
+
+        when:
+        builder.appendTaskActionImplementations([ImplementationSnapshot.of('org.my.package.MyPlugin$$Lambda$1/23246642345', HashCode.fromInt(12345))])
+        invalidBuildCacheKey = builder.build()
+        cachingState = outputs.getCachingState(taskPropertiesWithCacheableOutput, invalidBuildCacheKey)
+        then:
+        !cachingState.enabled
+        cachingState.disabledReason == 'Task action \'org.my.package.MyPlugin$$Lambda$1/23246642345\' was implemented by a Java lambda'
+        cachingState.disabledReasonCategory == TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TASK_ACTION
+
+        when:
+        builder.appendTaskImplementation(ImplementationSnapshot.of("org.gradle.TaskType", null))
+        invalidBuildCacheKey = builder.build()
+        cachingState = outputs.getCachingState(taskPropertiesWithCacheableOutput, invalidBuildCacheKey)
+        then:
+        !cachingState.enabled
+        cachingState.disabledReason == "Task class was loaded with an unknown classloader"
+        cachingState.disabledReasonCategory == TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TASK_IMPLEMENTATION
 
         when:
         def taskHistory = Mock(TaskExecutionHistory)

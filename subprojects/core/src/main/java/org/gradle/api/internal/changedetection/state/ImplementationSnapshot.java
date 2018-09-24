@@ -171,7 +171,7 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
 
         @Override
         public void appendToHasher(Hasher hasher) {
-            hasher.markAsInvalid();
+            hasher.markAsInvalid(getUnknownReason());
         }
 
         @Override
@@ -228,7 +228,7 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
 
         @Override
         public void appendToHasher(Hasher hasher) {
-            hasher.markAsInvalid();
+            hasher.markAsInvalid(getUnknownReason());
         }
 
         @Override

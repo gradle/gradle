@@ -79,5 +79,23 @@ public enum TaskOutputCachingDisabledReasonCategory {
      *     <li>a Java lambda was used as an input (see https://github.com/gradle/gradle/issues/5510).</li>
      * </ul>
      */
-    INVALID_BUILD_CACHE_KEY
+    NON_CACHEABLE_TASK_IMPLEMENTATION,
+    
+    /**
+     * The generated build cache key is invalid. Reasons for invalid cache keys:
+     * <ul>
+     *     <li>some type used as an input to the task is loaded via a custom classloader Gradle wasn't able to track,</li>
+     *     <li>a Java lambda was used as an input (see https://github.com/gradle/gradle/issues/5510).</li>
+     * </ul>
+     */
+    NON_CACHEABLE_TASK_ACTION,
+
+    /**
+     * The generated build cache key is invalid. Reasons for invalid cache keys:
+     * <ul>
+     *     <li>some type used as an input to the task is loaded via a custom classloader Gradle wasn't able to track,</li>
+     *     <li>a Java lambda was used as an input (see https://github.com/gradle/gradle/issues/5510).</li>
+     * </ul>
+     */
+    NON_CACHEABLE_INPUTS
 }

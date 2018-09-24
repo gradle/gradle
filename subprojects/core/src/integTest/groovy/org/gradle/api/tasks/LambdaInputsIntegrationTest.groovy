@@ -121,18 +121,19 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
         """
 
         buildFile.makeOlder()
+        def nonCacheableInputsReason = "Non-cacheable inputs: property 'action' was implemented by a Java lambda"
 
         when:
         withBuildCache().run 'myTask', "--info"
         then:
         executedAndNotSkipped(':myTask')
-        assertInvalidBuildCacheKeyGenerated(':myTask')
+        assertInvalidNonCacheableTask(':myTask', nonCacheableInputsReason)
 
         when:
         withBuildCache().run 'myTask', "--info"
         then:
         executedAndNotSkipped(':myTask')
-        assertInvalidBuildCacheKeyGenerated(':myTask')
+        assertInvalidNonCacheableTask(':myTask', nonCacheableInputsReason)
     }
 
     private TestFile setupTaskClassWithActionProperty() {
@@ -227,22 +228,31 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
 
             myTask.doLast(LambdaAction.ACTION)
         """
+        def nonCacheableActionReason = 'Task action \'LambdaAction$$Lambda$<non-deterministic>\' was implemented by a Java lambda'
 
         when:
         withBuildCache().run "myTask", "-info"
         then:
         executedAndNotSkipped(":myTask")
-        assertInvalidBuildCacheKeyGenerated(':myTask')
+        assertInvalidNonCacheableTask(':myTask', nonCacheableActionReason)
 
         when:
         withBuildCache().run "myTask", "--info"
         then:
         executedAndNotSkipped(":myTask")
-        assertInvalidBuildCacheKeyGenerated(':myTask')
+        assertInvalidNonCacheableTask(':myTask', nonCacheableActionReason)
     }
 
-    private void assertInvalidBuildCacheKeyGenerated(String taskPath) {
-        assert output.contains("Caching disabled for task '${taskPath}': Invalid build cache key was generated")
+    def "test replacing"() {
+        expect:
+        'Caching disabled for task \':myTask\': Task action \'LambdaAction$$Lambda$306/104701466\' was implemented by a Java lambda'
+            .replaceAll('\\$\\$Lambda\\$[0-9]+/[0-9]+', '\\$\\$Lambda\\$<non-deterministic>') ==
+            'Caching disabled for task \':myTask\': Task action \'LambdaAction$$Lambda$<non-deterministic>\' was implemented by a Java lambda'
+    }
+
+    private void assertInvalidNonCacheableTask(String taskPath, String reason) {
+        assert output.replaceAll('\\$\\$Lambda\\$[0-9]+/[0-9]+', '\\$\\$Lambda\\$<non-deterministic>')
+            .contains("Caching disabled for task '${taskPath}': ${reason}")
     }
 
     private TestFile setupCustomTask() {

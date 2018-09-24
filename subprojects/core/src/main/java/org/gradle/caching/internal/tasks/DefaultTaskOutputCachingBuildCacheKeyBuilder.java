@@ -20,7 +20,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.changedetection.state.ImplementationSnapshot;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -31,21 +30,17 @@ import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 @NonNullApi
 public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputCachingBuildCacheKeyBuilder {
 
     private final Hasher hasher = Hashing.newHasher();
     private final Path taskPath;
-    private String taskClass;
-    private HashCode classLoaderHash;
-    private List<HashCode> actionClassLoaderHashes;
-    private ImmutableList<String> actionTypes;
+    private ImplementationSnapshot taskImplementation;
+    private ImmutableList<ImplementationSnapshot> actionImplementations;
     private final ImmutableSortedMap.Builder<String, HashCode> inputValueHashes = ImmutableSortedMap.naturalOrder();
     private final ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> inputFiles = ImmutableSortedMap.naturalOrder();
-    private final ImmutableSortedSet.Builder<String> inputPropertiesLoadedByUnknownClassLoader = ImmutableSortedSet.naturalOrder();
+    private final ImmutableSortedMap.Builder<String, String> nonCacheableInputProperties = ImmutableSortedMap.naturalOrder();
     private final ImmutableSortedSet.Builder<String> outputPropertyNames = ImmutableSortedSet.naturalOrder();
 
     public DefaultTaskOutputCachingBuildCacheKeyBuilder(Path taskPath) {
@@ -54,24 +49,19 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
 
     @Override
     public void appendTaskImplementation(ImplementationSnapshot taskImplementation) {
-        this.taskClass = taskImplementation.getTypeName();
-        this.classLoaderHash = taskImplementation.getClassLoaderHash();
+        this.taskImplementation = taskImplementation;
         taskImplementation.appendToHasher(hasher);
     }
 
     @Override
     public void appendTaskActionImplementations(Collection<ImplementationSnapshot> taskActionImplementations) {
-        ImmutableList.Builder<String> actionTypes = ImmutableList.builder();
-        List<HashCode> actionClassLoaderHashes = Lists.newArrayListWithCapacity(taskActionImplementations.size());
+        ImmutableList.Builder<ImplementationSnapshot> builder = ImmutableList.builder();
         for (ImplementationSnapshot actionImpl : taskActionImplementations) {
-            actionTypes.add(actionImpl.getTypeName());
-            actionClassLoaderHashes.add(actionImpl.getClassLoaderHash());
-            
+            builder.add(actionImpl);
             actionImpl.appendToHasher(hasher);
         }
 
-        this.actionTypes = actionTypes.build();
-        this.actionClassLoaderHashes = Collections.unmodifiableList(actionClassLoaderHashes);
+        this.actionImplementations = builder.build();
     }
 
     @Override
@@ -89,9 +79,9 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
     }
 
     @Override
-    public void inputPropertyImplementationUnknown(String propertyName) {
-        hasher.markAsInvalid();
-        inputPropertiesLoadedByUnknownClassLoader.add(propertyName);
+    public void inputPropertyNotCacheable(String propertyName, String nonCacheableReason) {
+        hasher.markAsInvalid(nonCacheableReason);
+        nonCacheableInputProperties.put(propertyName, nonCacheableReason);
     }
 
     @Override
@@ -102,7 +92,7 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
 
     @Override
     public TaskOutputCachingBuildCacheKey build() {
-        BuildCacheKeyInputs inputs = new BuildCacheKeyInputs(taskClass, classLoaderHash, actionClassLoaderHashes, actionTypes, inputValueHashes.build(), inputFiles.build(), inputPropertiesLoadedByUnknownClassLoader.build(), outputPropertyNames.build());
+        BuildCacheKeyInputs inputs = new BuildCacheKeyInputs(taskImplementation, actionImplementations, inputValueHashes.build(), inputFiles.build(), nonCacheableInputProperties.build(), outputPropertyNames.build());
         HashCode hash;
         if (!hasher.isValid()) {
             hash = null;

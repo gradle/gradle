@@ -52,7 +52,7 @@ public class TaskCacheKeyCalculator {
                 HashCode hash = newHasher.hash();
                 builder.appendInputValuePropertyHash(entry.getKey(), hash);
             } else {
-                builder.inputPropertyImplementationUnknown(entry.getKey());
+                builder.inputPropertyNotCacheable(entry.getKey(), newHasher.getInvalidReason());
             }
         }
 
