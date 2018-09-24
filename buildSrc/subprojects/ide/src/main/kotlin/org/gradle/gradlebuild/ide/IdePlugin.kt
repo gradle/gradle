@@ -555,7 +555,7 @@ open class IdePlugin : Plugin<Project> {
             vmParameter.add("-XX:MaxPermSize=512m")
         }
         return vmParameter.joinToString(" ") {
-            if (it.contains(" ")) "\"$it\""
+            if (it.contains(" ") || it.contains("\$")) "\"$it\""
             else it
         }
     }
