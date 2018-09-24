@@ -201,7 +201,7 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
         @Override
         @Nullable
         public String getUnknownReason() {
-            return "was implemented by a Java lambda";
+            return "was implemented by a Java lambda. Use an anonymous inner class instead.";
         }
 
         @Override

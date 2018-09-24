@@ -194,6 +194,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
         """            
             myTask.doLast(project.hasProperty("changed") ? LambdaActionChanged.ACTION : LambdaActionOriginal.ACTION)
         """
+        def outOfDateMessage = "Task ':myTask' has an additional action that was implemented by a Java lambda. Use an anonymous inner class instead."
 
         when:
         run "myTask"
@@ -204,13 +205,13 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
         run "myTask", "--info"
         then:
         executedAndNotSkipped(":myTask")
-        output.contains("Task ':myTask' has an additional action that was implemented by a Java lambda")
+        output.contains(outOfDateMessage)
 
         when:
         run "myTask", "-Pchanged", "--info"
         then:
         executedAndNotSkipped(":myTask")
-        output.contains("Task ':myTask' has an additional action that was implemented by a Java lambda")
+        output.contains(outOfDateMessage)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5510")
