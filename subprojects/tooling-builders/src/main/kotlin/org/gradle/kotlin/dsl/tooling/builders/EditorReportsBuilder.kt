@@ -73,9 +73,9 @@ fun reportRuntimeExceptionsLocatedIn(
     val actualLinesRange = if (locationAwareHints) scriptFile.readLinesRange() else LongRange.EMPTY
     exceptions.runtimeFailuresLocatedIn(scriptFile.path).forEach { failure ->
         if (locationAwareHints && failure.lineNumber in actualLinesRange) {
-            reports.add(lineError(messageForLocationAwareEditorHint(failure), failure.lineNumber))
+            reports.add(lineWarning(messageForLocationAwareEditorHint(failure), failure.lineNumber))
         } else {
-            reports.add(wholeFileError(EditorMessages.buildConfigurationFailedInCurrentScript))
+            reports.add(wholeFileWarning(EditorMessages.buildConfigurationFailedInCurrentScript))
         }
     }
 }
@@ -138,13 +138,8 @@ fun wholeFileWarning(message: String) =
 
 
 private
-fun wholeFileError(message: String) =
-    DefaultEditorReport(EditorReportSeverity.ERROR, message)
-
-
-private
-fun lineError(message: String, line: Int) =
-    DefaultEditorReport(EditorReportSeverity.ERROR, message, DefaultEditorPosition(line))
+fun lineWarning(message: String, line: Int) =
+    DefaultEditorReport(EditorReportSeverity.WARNING, message, DefaultEditorPosition(line))
 
 
 private

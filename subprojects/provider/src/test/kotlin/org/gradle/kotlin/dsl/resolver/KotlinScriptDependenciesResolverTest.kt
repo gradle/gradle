@@ -173,7 +173,7 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `report file error on runtime failure in currently edited script`() {
+    fun `report file warning on runtime failure in currently edited script`() {
         withDefaultSettings()
         val editedScript = withBuildScript("""
             configurations.getByName("doNotExists")
@@ -185,12 +185,12 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
 
         recorder.apply {
             assertLastEventIsInstanceOf(ResolvedDependenciesWithErrors::class)
-            assertSingleFileErrorReport(EditorMessages.buildConfigurationFailedInCurrentScript)
+            assertSingleFileWarningReport(EditorMessages.buildConfigurationFailedInCurrentScript)
         }
     }
 
     @Test
-    fun `report line error on runtime failure in currently edited script when location aware hints are enabled`() {
+    fun `report line warning on runtime failure in currently edited script when location aware hints are enabled`() {
 
         withDefaultSettings()
         withFile("gradle.properties", """
@@ -206,7 +206,7 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
 
         recorder.apply {
             assertLastEventIsInstanceOf(ResolvedDependenciesWithErrors::class)
-            assertSingleLineErrorReport("Configuration with name 'doNotExists' not found.", 1)
+            assertSingleLineWarningReport("Configuration with name 'doNotExists' not found.", 1)
         }
     }
 
@@ -362,10 +362,6 @@ class ResolverTestRecorder : ResolverEventLogger, (ReportSeverity, String, Posit
         assertSingleFileReport(ReportSeverity.WARNING, message)
     }
 
-    fun assertSingleFileErrorReport(message: String) {
-        assertSingleFileReport(ReportSeverity.ERROR, message)
-    }
-
     fun assertSingleFileReport(severity: ReportSeverity, message: String) {
         assertSingleEditorReport()
         reports.single().let { report ->
@@ -375,10 +371,10 @@ class ResolverTestRecorder : ResolverEventLogger, (ReportSeverity, String, Posit
         }
     }
 
-    fun assertSingleLineErrorReport(message: String, line: Int) {
+    fun assertSingleLineWarningReport(message: String, line: Int) {
         assertSingleEditorReport()
         reports.single().let { report ->
-            assertThat(report.severity, equalTo(ReportSeverity.ERROR))
+            assertThat(report.severity, equalTo(ReportSeverity.WARNING))
             assertThat(report.position, notNullValue())
             assertThat(report.position!!.line, equalTo(line))
             assertThat(report.message, equalTo(message))

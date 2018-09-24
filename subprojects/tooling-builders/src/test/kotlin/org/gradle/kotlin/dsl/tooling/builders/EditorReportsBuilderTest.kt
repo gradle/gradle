@@ -34,7 +34,7 @@ import org.junit.Test
 class EditorReportsBuilderTest : TestWithTempFiles() {
 
     @Test
-    fun `report file error on runtime failure in currently edited script on out of range line number`() {
+    fun `report file warning on runtime failure in currently edited script on out of range line number`() {
 
         val script = withTwoLinesScript()
 
@@ -46,7 +46,7 @@ class EditorReportsBuilderTest : TestWithTempFiles() {
 
         assertThat(reports.size, equalTo(1))
         reports.single().let { report ->
-            assertThat(report.severity, equalTo(EditorReportSeverity.ERROR))
+            assertThat(report.severity, equalTo(EditorReportSeverity.WARNING))
             assertThat(report.position, nullValue())
             assertThat(report.message, equalTo(EditorMessages.buildConfigurationFailedInCurrentScript))
         }
@@ -65,7 +65,7 @@ class EditorReportsBuilderTest : TestWithTempFiles() {
 
         assertThat(reports.size, equalTo(1))
         reports.single().let { report ->
-            assertThat(report.severity, equalTo(EditorReportSeverity.ERROR))
+            assertThat(report.severity, equalTo(EditorReportSeverity.WARNING))
             assertThat(report.position, notNullValue())
             assertThat(report.position!!.line, equalTo(3))
             assertThat(report.message, equalTo("BOOM"))
@@ -73,7 +73,7 @@ class EditorReportsBuilderTest : TestWithTempFiles() {
     }
 
     @Test
-    fun `report line error on runtime failure in currently edited script with cause without message`() {
+    fun `report line warning on runtime failure in currently edited script with cause without message`() {
 
         val script = withTwoLinesScript()
 
@@ -88,7 +88,7 @@ class EditorReportsBuilderTest : TestWithTempFiles() {
 
         assertThat(reports.size, equalTo(2))
         reports.forEachIndexed { idx, report ->
-            assertThat(report.severity, equalTo(EditorReportSeverity.ERROR))
+            assertThat(report.severity, equalTo(EditorReportSeverity.WARNING))
             assertThat(report.position, notNullValue())
             assertThat(report.position!!.line, equalTo(idx + 1))
             assertThat(report.message, equalTo(EditorMessages.defaultLocationAwareHintMessageFor(java.lang.Exception())))
