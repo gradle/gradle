@@ -364,7 +364,7 @@ public class Hashing {
         @Override
         public HashCode hash() {
             if (!isValid()) {
-                throw new IllegalStateException("Hash is not valid");
+                throw new IllegalStateException("Hash is not valid: " + getInvalidReason());
             }
             return hasher.hash();
         }

@@ -121,7 +121,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
         """
 
         buildFile.makeOlder()
-        def nonCacheableInputsReason = "Non-cacheable inputs: property 'action' was implemented by a Java lambda"
+        def nonCacheableInputsReason = "Non-cacheable inputs: property 'action' was implemented by a Java lambda. Use an anonymous inner class instead."
 
         when:
         withBuildCache().run 'myTask', "--info"
@@ -229,7 +229,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
 
             myTask.doLast(LambdaAction.ACTION)
         """
-        def nonCacheableActionReason = 'Task action \'LambdaAction$$Lambda$<non-deterministic>\' was implemented by a Java lambda'
+        def nonCacheableActionReason = 'Task action \'LambdaAction$$Lambda$<non-deterministic>\' was implemented by a Java lambda. Use an anonymous inner class instead.'
 
         when:
         withBuildCache().run "myTask", "-info"
