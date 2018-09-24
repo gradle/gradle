@@ -13,19 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.runtimeshaded;
+package org.gradle.internal.util;
 
 import org.gradle.api.Action;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 
-class Trie {
+public class Trie implements Comparable<Trie> {
     private final char c;
     private final boolean terminal;
     private final Trie[] transitions;
+
+    public static Trie from(String... words) {
+        return from(Arrays.asList(words));
+    }
+
+    public static Trie from(Iterable<String> words) {
+        Builder builder = new Builder();
+        for (String word : words) {
+            builder.addWord(word);
+        }
+        return builder.build();
+    }
+
+    public static Builder builder() {
+        return new Trie.Builder();
+    }
 
     private Trie(char c, boolean terminal, Trie[] transitions) {
         this.c = c;
@@ -36,10 +52,6 @@ class Trie {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        return toString(sb);
-    }
-
-    private String toString(StringBuilder sb) {
         sb.append(c).append(terminal ? "(terminal)\n" : "\n");
         sb.append("Next: ");
         for (Trie transition : transitions) {
@@ -49,6 +61,14 @@ class Trie {
         return sb.toString();
     }
 
+    @Override
+    public int compareTo(@Nonnull Trie o) {
+        return c - o.c;
+    }
+
+    /**
+     * Checks if the trie contains the given character sequence or any prefixes of the sequence.
+     */
     public boolean find(CharSequence seq) {
         if (seq.length() == 0) {
             return false;
@@ -111,7 +131,7 @@ class Trie {
             this.c = c;
         }
 
-        public Builder addTransition(char c, boolean terminal) {
+        private Builder addTransition(char c, boolean terminal) {
             Builder b = null;
             for (Builder transition : transitions) {
                 if (transition.c == c) {
@@ -142,12 +162,7 @@ class Trie {
                 Builder transition = this.transitions.get(i);
                 transitions[i] = transition.build();
             }
-            Arrays.sort(transitions, new Comparator<Trie>() {
-                @Override
-                public int compare(Trie o1, Trie o2) {
-                    return o1.c - o2.c;
-                }
-            });
+            Arrays.sort(transitions);
             return new Trie(c, terminal, transitions);
         }
     }

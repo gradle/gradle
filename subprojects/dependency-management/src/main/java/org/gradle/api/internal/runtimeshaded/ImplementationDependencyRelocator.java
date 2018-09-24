@@ -18,6 +18,7 @@ package org.gradle.api.internal.runtimeshaded;
 
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.util.Trie;
 import org.objectweb.asm.commons.Remapper;
 
 import java.io.BufferedReader;
