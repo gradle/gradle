@@ -1,4 +1,4 @@
-digraph javaPluginConfigurations {
+digraph javaMainConfigurations {
 
     rankdir = BT;
     node [fontname="Sans", shape=box, style=filled, fillcolor=chartreuse];

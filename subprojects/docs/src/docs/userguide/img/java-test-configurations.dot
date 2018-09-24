@@ -1,4 +1,4 @@
-digraph javaPluginConfigurations {
+digraph javaTestConfigurations {
 
     rankdir = BT;
     node [fontname="Sans", shape=box, style=filled, fillcolor=chartreuse];
@@ -29,9 +29,6 @@ digraph javaPluginConfigurations {
     testRuntimeClasspath -> {testRuntimeOnly testRuntime testImplementation}
 
     /* tasks */
-    test -> testRuntime [style=dashed label="uses"]
+    test -> testRuntimeClasspath [style=dashed label="uses"]
     compileTestJava -> testCompileClasspath [style=dashed label="uses"]
-
-    /* control for layout */
-    test -> testRuntimeClasspath [style=invis]
 }
