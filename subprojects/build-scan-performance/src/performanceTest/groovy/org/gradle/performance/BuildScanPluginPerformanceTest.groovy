@@ -19,12 +19,17 @@ package org.gradle.performance
 import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.performance.categories.PerformanceRegressionTest
+import org.gradle.performance.fixture.BuildExperimentInvocationInfo
+import org.gradle.performance.fixture.BuildExperimentListener
+import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.BuildScanPerformanceTestRunner
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
+import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.results.BuildScanResultsStore
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.junit.experimental.categories.Category
@@ -91,7 +96,10 @@ class BuildScanPluginPerformanceTest extends Specification {
                 args(*jobArgs)
                 tasksToRun(*tasks)
                 gradleOpts(*opts)
-                expectFailure()
+                if (withFailure) {
+                    expectFailure()
+                }
+                listener(buildExperimentListener)
             }
         }
 
@@ -105,8 +113,10 @@ class BuildScanPluginPerformanceTest extends Specification {
                 args("-Dscan", "-Dscan.dump")
                 tasksToRun(*tasks)
                 gradleOpts(*opts)
-                expectFailure()
-
+                if (withFailure) {
+                    expectFailure()
+                }
+                listener(buildExperimentListener)
             }
         }
 
@@ -126,10 +136,41 @@ class BuildScanPluginPerformanceTest extends Specification {
         with.totalTime.average - without.totalTime.average < millis(1000)
 
         where:
-        scenario                          | tasks                 | scenarioArgs
-        "help"                            | ['help']              | []
-        "clean build"                     | ['clean', 'build']    | []
-        "clean assemble from build cache" | ['clean', 'assemble'] | ['--build-cache']
-        "upToDate assemble"               | ['assemble']          | []
+        scenario                           | tasks                 | withFailure | scenarioArgs      | buildExperimentListener
+        "help"                             | ['help']              | false       | []                | null
+        "clean build"                      | ['clean', 'build']    | true        | []                | null
+        "upToDate assemble"                | ['assemble']          | false       | []                | null
+        "clean assemble"                   | ['clean', 'assemble'] | false       | []                | null
+        "clean assemble from build cache"  | ['clean', 'assemble'] | false       | ['--build-cache'] | buildCacheSetup()
+        "clean assemble empty build cache" | ['clean', 'assemble'] | false       | ['--build-cache'] | cleanBuildCacheSetup()
+    }
+
+    private BuildCacheSetupExperimentListenerAdapter buildCacheSetup() {
+        new BuildCacheSetupExperimentListenerAdapter()
+    }
+
+    def cleanBuildCacheSetup() {
+        return new BuildCacheSetupExperimentListenerAdapter() {
+            @Override
+            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
+                def buildCacheDirectory = new TestFile(invocationInfo.projectDir, 'local-build-cache')
+                buildCacheDirectory.deleteDir()
+            }
+        }
+    }
+
+    class BuildCacheSetupExperimentListenerAdapter extends BuildExperimentListenerAdapter {
+        void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir) {
+            def projectTestDir = new TestFile(projectDir)
+            def cacheDir = projectTestDir.file('local-build-cache')
+            def settingsFile = projectTestDir.file('settings.gradle')
+            settingsFile << """
+                    buildCache {
+                        local {
+                            directory = '${cacheDir.absoluteFile.toURI()}'
+                        }
+                    }
+                """.stripIndent()
+        }
     }
 }

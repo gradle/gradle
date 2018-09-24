@@ -35,5 +35,3 @@ gradlebuildJava {
 tasks.withType(org.gradle.testing.PerformanceTest).configureEach {
     systemProperties += [incomingArtifactDir: "${rootDir}/incoming/"]
 }
-
-tasks.named("performanceAdhocTest").configure { enabled = false }

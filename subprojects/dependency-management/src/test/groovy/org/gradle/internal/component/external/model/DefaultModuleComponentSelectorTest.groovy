@@ -49,7 +49,7 @@ class DefaultModuleComponentSelectorTest extends Specification {
         selector.module == 'some-name'
         selector.version == '1.0'
         selector.versionConstraint.requiredVersion == '1.0'
-        selector.versionConstraint.preferredVersion == '1.0'
+        selector.versionConstraint.preferredVersion == ''
         selector.versionConstraint.strictVersion == ''
         selector.versionConstraint.rejectedVersions == []
         selector.displayName == 'some-group:some-name:1.0'
@@ -119,7 +119,7 @@ class DefaultModuleComponentSelectorTest extends Specification {
         selector.module == 'some-name'
         selector.version == '1.0'
         selector.versionConstraint.requiredVersion == '1.0'
-        selector.versionConstraint.preferredVersion == '1.0'
+        selector.versionConstraint.preferredVersion == ''
         selector.versionConstraint.strictVersion == ''
         selector.versionConstraint.rejectedVersions == []
         selector.displayName == 'some-group:some-name:1.0'
@@ -138,7 +138,7 @@ class DefaultModuleComponentSelectorTest extends Specification {
         selector.module == 'some-name'
         selector.version == '1.0'
         selector.versionConstraint.requiredVersion == '1.0'
-        selector.versionConstraint.preferredVersion == '1.0'
+        selector.versionConstraint.preferredVersion == ''
         selector.versionConstraint.strictVersion == ''
         selector.versionConstraint.rejectedVersions == []
         selector.attributes.keySet() == [customAttr, otherAttr] as Set

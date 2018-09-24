@@ -39,6 +39,11 @@ public interface ResolvableSelectorState {
     ComponentIdResolveResult resolve(VersionSelector allRejects);
 
     /**
+     * Resolve the prefer constraint of the selector to a component identifier.
+     */
+    ComponentIdResolveResult resolvePrefer(VersionSelector allRejects);
+
+    /**
      * Marks the selector as resolved with the passed in failure.
      *
      * @param failure the failure to record
@@ -53,5 +58,7 @@ public interface ResolvableSelectorState {
     void markResolved();
 
     boolean isForce();
+
+    boolean isFromLock();
 
 }
