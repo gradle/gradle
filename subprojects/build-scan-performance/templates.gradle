@@ -28,13 +28,17 @@ tasks.register("largeJavaProjectWithBuildScanPlugin", JvmProjectGeneratorTask) {
     }
 
     dependencyGraph {
-        size = 100
-        depth = 4
-        useSnapshotVersions = true
+        size = 200
+        depth = 5
+        useSnapshotVersions = false // snapshots should not have a build scan specific performance impact
     }
 
-    projects = 25
-    sourceFiles = 25
+    buildSrcTemplate = 'buildsrc-plugins'
+    projects = 250
+    sourceFiles = 100
+    testSourceFiles = 3 // verbose tests are time consuming
+    filesPerPackage = 25
+    linesOfCodePerSourceFile = 150
     subProjectTemplates = ['project-with-source', 'with-verbose-junit']
-    templateArgs = [fullTestLogging: true, halfTestsFail: true]
+    templateArgs = [fullTestLogging: true, halfTestsFail: true, projectDependencies:true, manyPlugins:true]
 }
