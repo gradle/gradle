@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy.internal.publication;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
@@ -38,6 +39,7 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -46,6 +48,8 @@ import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.java.JavaLibraryPlatform;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.internal.CompositePublicationArtifactSet;
 import org.gradle.api.publish.internal.DefaultPublicationArtifactSet;
@@ -85,6 +89,8 @@ import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
 
 public class DefaultIvyPublication implements IvyPublicationInternal {
 
+    private final static Logger LOG = Logging.getLogger(DefaultIvyPublication.class);
+
     private static final Comparator<? super UsageContext> USAGE_ORDERING = new Comparator<UsageContext>() {
         @Override
         public int compare(UsageContext left, UsageContext right) {
@@ -98,6 +104,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
             return left.getUsage().getName().compareTo(right.getUsage().getName());
         }
     };
+    @VisibleForTesting
+    public static final String INCOMPATIBLE_FEATURE = " uses dependency management feature(s) like constraints or platform support that will most likely make the produced Ivy file incomplete and/or not consumable by Ivy compatible solutions.";
 
     private final String name;
     private final IvyModuleDescriptorSpecInternal descriptor;
@@ -229,6 +237,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         if (component == null) {
             return;
         }
+        boolean unsupportedDependencyFeatureUsed = false;
         configurations.maybeCreate("default");
 
         Set<PublishArtifact> seenArtifacts = Sets.newHashSet();
@@ -253,14 +262,26 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                     if (dependency instanceof ProjectDependency) {
                         addProjectDependency((ProjectDependency) dependency, confMapping);
                     } else {
+                        if (PlatformSupport.isTargettingPlatform(dependency)) {
+                            unsupportedDependencyFeatureUsed = true;
+                        }
                         addExternalDependency((ExternalDependency) dependency, confMapping);
                     }
                 }
+            }
+            if (!usageContext.getDependencyConstraints().isEmpty()) {
+                unsupportedDependencyFeatureUsed = true;
+            }
+            if (!usageContext.getCapabilities().isEmpty()) {
+                unsupportedDependencyFeatureUsed = true;
             }
 
             for (ExcludeRule excludeRule : usageContext.getGlobalExcludes()) {
                 globalExcludes.add(new DefaultIvyExcludeRule(excludeRule, conf));
             }
+        }
+        if (unsupportedDependencyFeatureUsed) {
+            LOG.lifecycle(getDisplayName() + INCOMPATIBLE_FEATURE);
         }
     }
 
