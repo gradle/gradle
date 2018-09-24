@@ -21,19 +21,11 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.resources.ResourceLock;
 
-import java.util.concurrent.Callable;
-
 public interface WorkerLeaseService extends WorkerLeaseRegistry, ProjectLeaseRegistry, Stoppable {
     /**
      * Returns the maximum number of worker leases that this service will grant at any given time. Note that the actual limit may vary over time but will never _exceed_ the value returned by this method.
      */
     int getMaxWorkerCount();
-
-    /**
-     * Runs a given {@link Callable} while the specified locks are being held, releasing
-     * the locks upon completion.  Blocks until the specified locks can be obtained.
-     */
-    <T> T withLocks(Iterable<? extends ResourceLock> locks, Callable<T> callable);
 
     /**
      * Runs a given {@link Factory} while the specified locks are being held, releasing
@@ -46,13 +38,6 @@ public interface WorkerLeaseService extends WorkerLeaseRegistry, ProjectLeaseReg
      * the locks upon completion.  Blocks until the specified locks can be obtained.
      */
     void withLocks(Iterable<? extends ResourceLock> locks, Runnable runnable);
-
-    /**
-     * Runs a given {@link Callable} while the specified locks are released and then reacquire the locks
-     * upon completion.  If the locks cannot be immediately reacquired, the current worker lease will be released
-     * and the method will block until the locks are reacquired.
-     */
-    <T> T withoutLocks(Iterable<? extends ResourceLock> locks, Callable<T> callable);
 
     /**
      * Runs a given {@link Factory} while the specified locks are released and then reacquire the locks

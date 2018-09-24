@@ -21,7 +21,6 @@ import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Path;
 
 import java.util.Collection;
-import java.util.concurrent.Callable;
 
 public class StopShieldingWorkerLeaseService implements WorkerLeaseService {
 
@@ -37,11 +36,6 @@ public class StopShieldingWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    public <T> T withLocks(Iterable<? extends ResourceLock> locks, Callable<T> action) {
-        return delegate.withLocks(locks, action);
-    }
-
-    @Override
     public <T> T withLocks(Iterable<? extends ResourceLock> locks, Factory<T> factory) {
         return delegate.withLocks(locks, factory);
     }
@@ -49,11 +43,6 @@ public class StopShieldingWorkerLeaseService implements WorkerLeaseService {
     @Override
     public void withLocks(Iterable<? extends ResourceLock> locks, Runnable action) {
         delegate.withLocks(locks, action);
-    }
-
-    @Override
-    public <T> T withoutLocks(Iterable<? extends ResourceLock> locks, Callable<T> action) {
-        return delegate.withoutLocks(locks, action);
     }
 
     @Override
@@ -92,8 +81,8 @@ public class StopShieldingWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    public <T> T withoutProjectLock(Callable<T> action) {
-        return delegate.withoutProjectLock(action);
+    public <T> T withoutProjectLock(Factory<T> factory) {
+        return delegate.withoutProjectLock(factory);
     }
 
     @Override

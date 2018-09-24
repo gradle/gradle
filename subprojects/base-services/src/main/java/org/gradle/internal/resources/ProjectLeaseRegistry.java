@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resources;
 
+import org.gradle.internal.Factory;
 import org.gradle.util.Path;
 
 import java.util.Collection;
@@ -33,11 +34,11 @@ public interface ProjectLeaseRegistry {
 
     /**
      * Releases all project locks held by the current thread and executes the {@link Callable}.  Upon completion of the
-     * {@link Callable}, if a lock was held at the time the method was called, then it will be reacquired.  If no locks were held at the
+     * {@link Factory}, if a lock was held at the time the method was called, then it will be reacquired.  If no locks were held at the
      * time the method was called, then no attempt will be made to reacquire a lock on completion.  While blocking to reacquire the project
      * lock, all worker leases held by the thread will be released and reacquired once the project lock is obtained.
      */
-    <T> T withoutProjectLock(Callable<T> action);
+    <T> T withoutProjectLock(Factory<T> action);
 
     /**
      * Releases all project locks held by the current thread and executes the {@link Runnable}.  Upon completion of the

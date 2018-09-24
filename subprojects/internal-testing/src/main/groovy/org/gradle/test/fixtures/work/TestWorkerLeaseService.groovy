@@ -22,8 +22,6 @@ import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.util.Path
 
-import java.util.concurrent.Callable
-
 
 class TestWorkerLeaseService implements WorkerLeaseService {
     @Override
@@ -61,18 +59,13 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    def <T> T withoutProjectLock(Callable<T> action) {
+    def <T> T withoutProjectLock(Factory<T> action) {
         return action.call()
     }
 
     @Override
     WorkerLeaseRegistry.WorkerLease getWorkerLease() {
         return workerLease()
-    }
-
-    @Override
-    def <T> T withLocks(Iterable<? extends ResourceLock> locks, Callable<T> action) {
-        return action.call()
     }
 
     @Override
@@ -85,10 +78,6 @@ class TestWorkerLeaseService implements WorkerLeaseService {
         action.run()
     }
 
-    @Override
-    def <T> T withoutLocks(Iterable<? extends ResourceLock> locks, Callable<T> action) {
-        return action.call()
-    }
 
     @Override
     def <T> T withoutLocks(Iterable<? extends ResourceLock> locks, Factory<T> factory) {

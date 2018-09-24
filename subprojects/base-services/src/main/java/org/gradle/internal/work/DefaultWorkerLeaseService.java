@@ -26,7 +26,6 @@ import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ParallelismConfigurationListener;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.resources.AbstractResourceLockRegistry;
@@ -44,7 +43,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.lock;
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.tryLock;
@@ -144,21 +142,16 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
         return projectLockRegistry.getResourceLocksByCurrentThread();
     }
 
+
     @Override
-    public <T> T withoutProjectLock(Callable<T> action) {
-        final Iterable<? extends ResourceLock> projectLocks = projectLockRegistry.getResourceLocksByCurrentThread();
-        return withoutLocks(projectLocks, action);
+    public void withoutProjectLock(Runnable runnable) {
+        withoutProjectLock(Factories.toFactory(runnable));
     }
 
     @Override
-    public void withoutProjectLock(Runnable action) {
+    public <T> T withoutProjectLock(Factory<T> factory) {
         final Iterable<? extends ResourceLock> projectLocks = projectLockRegistry.getResourceLocksByCurrentThread();
-        withoutLocks(projectLocks, action);
-    }
-
-    @Override
-    public <T> T withLocks(Iterable<? extends ResourceLock> locks, Callable<T> callable) {
-        return withLocks(locks, Factories.toFactory(callable));
+        return withoutLocks(projectLocks, factory);
     }
 
     @Override
@@ -200,11 +193,6 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
     }
 
     @Override
-    public <T> T withoutLocks(Iterable<? extends ResourceLock> locks, Callable<T> callable) {
-        return withoutLocks(locks, Factories.toFactory(callable));
-    }
-
-    @Override
     public void withoutLocks(Iterable<? extends ResourceLock> locks, Runnable runnable) {
         withoutLocks(locks, Factories.toFactory(runnable));
     }
@@ -218,8 +206,6 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
         coordinationService.withStateLock(unlock(locks));
         try {
             return factory.create();
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
         } finally {
             if (!coordinationService.withStateLock(tryLock(locks))) {
                 releaseWorkerLeaseAndWaitFor(locks);
