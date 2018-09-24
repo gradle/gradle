@@ -67,7 +67,13 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
                 withLocalBuildCacheSettings(buildCacheDir)
 
             val buildFile =
-                withBuildScript("""println("$expectedOutput")""")
+                withBuildScript("""
+                    plugins {
+                        java // force the generation of accessors
+                    }
+
+                    println("$expectedOutput")
+                """)
 
             return cachedSettingsFile(settingsFile, hasBody = true) to cachedBuildFile(buildFile, hasBody = true)
         }
