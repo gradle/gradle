@@ -165,7 +165,10 @@ In the example, the versions of `gson` and `dom4j` are provided by the Spring Bo
 
 Gradle treats all entries in the `<dependencyManagement>` block of a BOM similar to <<#sec:dependency_constraints,Gradle's dependency constraints>>. This means that any version defined in the `<dependencyManagement>` block can impact the dependency resolution result. In order to qualify as a BOM, a `.pom` file needs to have `<packaging>pom</packaging>` set.
 
-[NOTE]
+However often BOMs are not only providing versions as recommendations, but also a way to override any over version found in the graph. You can enable this behavior by using the `enforcedPlatform` keyword, instead of `platform`, when importing the BOM:
+
+.Importing a BOM, making sure the versions it defines override any other version found in the graph
 ====
-Importing dependency constraints from Maven BOMs is active by default with Gradle 5.0+. For using it in Gradle 4.6+, you need to activate it by adding `enableFeaturePreview("IMPROVED_POM_SUPPORT")` to your settings file.
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/constraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/constraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
 ====
