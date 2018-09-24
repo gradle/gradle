@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph
+package org.gradle.execution.plan
 
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
@@ -44,18 +44,18 @@ import static org.gradle.util.TestUtil.createRootProject
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 import static org.gradle.util.WrapUtil.toList
 
-class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
+class DefaultExecutionPlanTest extends AbstractProjectBuilderSpec {
 
-    DefaultTaskExecutionPlan executionPlan
+    DefaultExecutionPlan executionPlan
     ProjectInternal root
     def workerLeaseService = Mock(WorkerLeaseService)
     def workerLease = Mock(WorkerLeaseRegistry.WorkerLease)
 
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory)
-        def taskInfoFactory = new TaskInfoFactory(root.gradle, Stub(IncludedBuildTaskGraph))
-        def dependencyResolver = new TaskDependencyResolver([new TaskInfoWorkDependencyResolver(taskInfoFactory)])
-        executionPlan = new DefaultTaskExecutionPlan(workerLeaseService, root.gradle, taskInfoFactory, dependencyResolver)
+        def taskNodeFactory = new TaskNodeFactory(root.gradle, Stub(IncludedBuildTaskGraph))
+        def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
+        executionPlan = new DefaultExecutionPlan(workerLeaseService, root.gradle, taskNodeFactory, dependencyResolver)
         _ * workerLeaseService.getProjectLock(_, _) >> Mock(ResourceLock) {
             _ * isLocked() >> false
             _ * tryLock() >> true
@@ -112,8 +112,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         Task d = task("d")
 
         when:
-        executionPlan.addToTaskGraph(toList(c, b))
-        executionPlan.addToTaskGraph(toList(d, a))
+        executionPlan.addEntryTasks(toList(c, b))
+        executionPlan.addEntryTasks(toList(d, a))
         executionPlan.determineExecutionPlan()
 
         then:
@@ -146,8 +146,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         Task e = task("e", dependsOn: [b, d])
 
         when:
-        executionPlan.addToTaskGraph(toList(c))
-        executionPlan.addToTaskGraph(toList(e))
+        executionPlan.addEntryTasks(toList(c))
+        executionPlan.addEntryTasks(toList(e))
         executionPlan.determineExecutionPlan()
 
         then:
@@ -174,8 +174,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         Task c = task("c", (orderingRule): [b])
 
         when:
-        executionPlan.addToTaskGraph([c])
-        executionPlan.addToTaskGraph([b])
+        executionPlan.addEntryTasks([c])
+        executionPlan.addEntryTasks([b])
         executionPlan.determineExecutionPlan()
 
         then:
@@ -339,8 +339,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         Task finalized = task("finalized", finalizedBy: [finalizer], didWork: false)
 
         when:
-        executionPlan.addToTaskGraph([finalized])
-        executionPlan.addToTaskGraph([dependsOnFinalizer])
+        executionPlan.addEntryTasks([finalized])
+        executionPlan.addEntryTasks([dependsOnFinalizer])
         executionPlan.determineExecutionPlan()
 
         then:
@@ -507,10 +507,10 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         Task c = task("c", dependsOn: [b])
         Task d = task("d", dependsOn: [c])
         relationships(a, mustRunAfter: [c])
-        executionPlan.addToTaskGraph([d])
+        executionPlan.addEntryTasks([d])
 
         when:
-        executionPlan.addToTaskGraph([a])
+        executionPlan.addEntryTasks([a])
         executionPlan.determineExecutionPlan()
 
         then:
@@ -849,7 +849,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     private void addToGraphAndPopulate(List tasks) {
-        executionPlan.addToTaskGraph(tasks)
+        executionPlan.addEntryTasks(tasks)
         executionPlan.determineExecutionPlan()
     }
 
@@ -864,12 +864,12 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def getExecutedTasks() {
         def tasks = []
-        while (executionPlan.hasWorkRemaining()) {
+        while (executionPlan.hasNodesRemaining()) {
             def nextNode = executionPlan.selectNext(workerLease, Mock(ResourceLockState))
             if (nextNode != null) {
                 if (!nextNode.isComplete()) {
                     tasks << nextNode.task
-                    executionPlan.workComplete(nextNode)
+                    executionPlan.nodeComplete(nextNode)
                 }
             }
         }

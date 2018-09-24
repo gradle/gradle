@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph;
+package org.gradle.execution.plan;
 
-import org.gradle.api.Action;
-
-import java.util.Collection;
+import org.gradle.api.internal.tasks.WorkDependencyResolver;
 
 /**
- * Will be merged with {@link org.gradle.internal.operations.BuildOperationExecutor}
+ * Resolves dependencies to {@link Node} objects.
  */
-public interface TaskPlanExecutor {
-    /**
-     * @param taskFailures collection to collect task execution failures into. Does not need to be thread-safe
-     * @param taskWorker worker must be thread-safe.
-     */
-    void process(TaskExecutionPlan taskExecutionPlan, Collection<? super Throwable> failures, Action<WorkInfo> taskWorker);
+public interface DependencyResolver extends WorkDependencyResolver<Node> {
 }

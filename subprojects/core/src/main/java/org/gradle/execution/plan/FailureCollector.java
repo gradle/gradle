@@ -14,8 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph;
+package org.gradle.execution.plan;
 
-public interface WorkInfoExecutor {
-    boolean execute(WorkInfo work);
+import java.util.ArrayList;
+import java.util.List;
+
+public class FailureCollector {
+
+    private final List<Throwable> failures = new ArrayList<Throwable>();
+
+    public void addFailure(Throwable throwable) {
+        failures.add(throwable);
+    }
+
+    public List<Throwable> getFailures() {
+        return failures;
+    }
+
+    public void clearFailures() {
+        failures.clear();
+    }
 }

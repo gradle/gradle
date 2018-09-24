@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph
+package org.gradle.execution.plan
 
 import org.gradle.api.Action
 import org.gradle.api.Project
@@ -30,8 +30,8 @@ import org.gradle.internal.resources.ResourceLockState
 import org.gradle.internal.work.WorkerLeaseService
 import spock.lang.Specification
 
-class DefaultTaskPlanExecutorTest extends Specification {
-    def taskPlan = Mock(TaskExecutionPlan)
+class DefaultPlanExecutorTest extends Specification {
+    def executionPlan = Mock(ExecutionPlan)
     def worker = Mock(Action)
     def executorFactory = Mock(ExecutorFactory)
     def cancellationHandler = Mock(BuildCancellationToken)
@@ -40,12 +40,12 @@ class DefaultTaskPlanExecutorTest extends Specification {
             transformer[0].transform(Stub(ResourceLockState))
         }
     }
-    def executor = new DefaultTaskPlanExecutor(new DefaultParallelismConfiguration(false, 1), executorFactory, Stub(WorkerLeaseService), cancellationHandler, coordinationService)
+    def executor = new DefaultPlanExecutor(new DefaultParallelismConfiguration(false, 1), executorFactory, Stub(WorkerLeaseService), cancellationHandler, coordinationService)
 
     def "executes tasks until no further tasks remain"() {
         def gradle = Mock(Gradle)
         def project = Mock(Project)
-        def node = Mock(LocalTaskInfo)
+        def node = Mock(LocalTaskNode)
         def task = Mock(TaskInternal)
         def state = Mock(TaskStateInternal)
         project.gradle >> gradle
@@ -53,26 +53,26 @@ class DefaultTaskPlanExecutorTest extends Specification {
         task.state >> state
 
         when:
-        executor.process(taskPlan, [], worker)
+        executor.process(executionPlan, [], worker)
 
         then:
         1 * executorFactory.create(_) >> Mock(ManagedExecutor)
         1 * cancellationHandler.isCancellationRequested() >> false
-        1 * taskPlan.hasWorkRemaining() >> true
-        1 * taskPlan.selectNext(_, _) >> node
+        1 * executionPlan.hasNodesRemaining() >> true
+        1 * executionPlan.selectNext(_, _) >> node
         1 * worker.execute(node)
 
         then:
         1 * cancellationHandler.isCancellationRequested() >> false
-        1 * taskPlan.hasWorkRemaining() >> false
-        1 * taskPlan.allTasksComplete() >> true
-        1 * taskPlan.collectFailures([])
+        1 * executionPlan.hasNodesRemaining() >> false
+        1 * executionPlan.allNodesComplete() >> true
+        1 * executionPlan.collectFailures([])
     }
 
     def "execution is canceled when cancellation requested"() {
         def gradle = Mock(Gradle)
         def project = Mock(Project)
-        def node = Mock(LocalTaskInfo)
+        def node = Mock(LocalTaskNode)
         def task = Mock(TaskInternal)
         def state = Mock(TaskStateInternal)
         project.gradle >> gradle
@@ -80,23 +80,23 @@ class DefaultTaskPlanExecutorTest extends Specification {
         task.state >> state
 
         when:
-        executor.process(taskPlan, [], worker)
+        executor.process(executionPlan, [], worker)
 
         then:
-        1 * taskPlan.getDisplayName() >> "task plan"
+        1 * executionPlan.getDisplayName() >> "task plan"
         1 * executorFactory.create(_) >> Mock(ManagedExecutor)
         1 * cancellationHandler.isCancellationRequested() >> false
-        1 * taskPlan.hasWorkRemaining() >> true
-        1 * taskPlan.selectNext(_, _) >> node
+        1 * executionPlan.hasNodesRemaining() >> true
+        1 * executionPlan.selectNext(_, _) >> node
         1 * worker.execute(node)
-        1 * taskPlan.workComplete(node)
+        1 * executionPlan.nodeComplete(node)
 
         then:
         1 * cancellationHandler.isCancellationRequested() >> true
-        1 * taskPlan.cancelExecution()
-        1 * taskPlan.hasWorkRemaining() >> false
-        1 * taskPlan.allTasksComplete() >> true
-        1 * taskPlan.collectFailures([])
-        0 * taskPlan._
+        1 * executionPlan.cancelExecution()
+        1 * executionPlan.hasNodesRemaining() >> false
+        1 * executionPlan.allNodesComplete() >> true
+        1 * executionPlan.collectFailures([])
+        0 * executionPlan._
     }
 }

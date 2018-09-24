@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph
+package org.gradle.execution.plan
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
@@ -24,7 +24,7 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.service.ServiceRegistry
 import spock.lang.Specification
 
-class TaskInfoFactoryTest extends Specification {
+class TaskNodeFactoryTest extends Specification {
     def gradle = Stub(GradleInternal)
     def project = Stub(ProjectInternal)
     def graph
@@ -40,7 +40,7 @@ class TaskInfoFactoryTest extends Specification {
         services.get(BuildState) >> Stub(BuildState)
         project.gradle >> gradle
 
-        graph = new TaskInfoFactory(gradle, Stub(IncludedBuildTaskGraph))
+        graph = new TaskNodeFactory(gradle, Stub(IncludedBuildTaskGraph))
     }
 
     private TaskInternal task(String name) {

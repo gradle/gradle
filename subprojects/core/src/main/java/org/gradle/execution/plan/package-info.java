@@ -13,13 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.execution.plan;
 
-package org.gradle.api.internal.artifacts.transform;
-
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
-
-import java.util.Collection;
-
-public interface TransformInfoFactory {
-    Collection<TransformInfo> getOrCreate(ResolvedArtifactSet artifactSet, ArtifactTransformer transformer);
-}
+import org.gradle.api.NonNullApi;

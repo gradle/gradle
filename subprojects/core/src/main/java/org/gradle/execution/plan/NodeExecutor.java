@@ -14,24 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph;
+package org.gradle.execution.plan;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class TaskFailureCollector {
-
-    private final List<Throwable> failures = new ArrayList<Throwable>();
-
-    public void addFailure(Throwable throwable) {
-        failures.add(throwable);
-    }
-
-    public List<Throwable> getFailures() {
-        return failures;
-    }
-
-    public void clearFailures() {
-        failures.clear();
-    }
+public interface NodeExecutor {
+    boolean execute(Node node);
 }

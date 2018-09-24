@@ -28,13 +28,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class DefaultTransformInfoFactory implements TransformInfoFactory {
-    private final Map<ArtifactTransformKey, TransformInfo> transformations = Maps.newConcurrentMap();
+public class DefaultTransformNodeFactory implements TransformNodeFactory {
+    private final Map<ArtifactTransformKey, TransformNode> transformations = Maps.newConcurrentMap();
 
     @Override
-    public Collection<TransformInfo> getOrCreate(ResolvedArtifactSet artifactSet, ArtifactTransformer transformer) {
+    public Collection<TransformNode> getOrCreate(ResolvedArtifactSet artifactSet, ArtifactTransformer transformer) {
         final List<UserCodeBackedTransformer> transformerChain = unpackTransformerChain(transformer);
-        final ImmutableList.Builder<TransformInfo> builder = ImmutableList.builder();
+        final ImmutableList.Builder<TransformNode> builder = ImmutableList.builder();
         CompositeResolvedArtifactSet.visitHierarchy(artifactSet, new CompositeResolvedArtifactSet.ResolvedArtifactSetVisitor() {
             @Override
             public boolean visitArtifactSet(ResolvedArtifactSet set) {
@@ -46,27 +46,27 @@ public class DefaultTransformInfoFactory implements TransformInfoFactory {
                         BuildableSingleResolvedArtifactSet.class.getSimpleName(), set.getClass().getName()));
                 }
                 BuildableSingleResolvedArtifactSet singleArtifactSet = (BuildableSingleResolvedArtifactSet) set;
-                TransformInfo transformInfo = getOrCreate(singleArtifactSet, transformerChain);
-                builder.add(transformInfo);
+                TransformNode transformNode = getOrCreate(singleArtifactSet, transformerChain);
+                builder.add(transformNode);
                 return true;
             }
         });
         return builder.build();
     }
 
-    private TransformInfo getOrCreate(BuildableSingleResolvedArtifactSet singleArtifactSet, List<UserCodeBackedTransformer> transformerChain) {
+    private TransformNode getOrCreate(BuildableSingleResolvedArtifactSet singleArtifactSet, List<UserCodeBackedTransformer> transformerChain) {
         ArtifactTransformKey key = new ArtifactTransformKey(singleArtifactSet.getArtifactId(), transformerChain);
-        TransformInfo transformInfo = transformations.get(key);
-        if (transformInfo == null) {
+        TransformNode transformNode = transformations.get(key);
+        if (transformNode == null) {
             if (transformerChain.size() == 1) {
-                transformInfo = TransformInfo.initial(transformerChain.iterator().next(), singleArtifactSet);
+                transformNode = TransformNode.initial(transformerChain.iterator().next(), singleArtifactSet);
             } else {
-                TransformInfo previous = getOrCreate(singleArtifactSet, transformerChain.subList(0, transformerChain.size() - 1));
-                transformInfo = TransformInfo.chained(transformerChain.get(transformerChain.size() - 1), previous, singleArtifactSet.getArtifactId());
+                TransformNode previous = getOrCreate(singleArtifactSet, transformerChain.subList(0, transformerChain.size() - 1));
+                transformNode = TransformNode.chained(transformerChain.get(transformerChain.size() - 1), previous, singleArtifactSet.getArtifactId());
             }
-            transformations.put(key, transformInfo);
+            transformations.put(key, transformNode);
         }
-        return transformInfo;
+        return transformNode;
     }
 
     private static List<UserCodeBackedTransformer> unpackTransformerChain(ArtifactTransformer transformer) {

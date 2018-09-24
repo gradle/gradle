@@ -18,28 +18,28 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.execution.taskgraph.WorkInfo;
-import org.gradle.execution.taskgraph.WorkInfoDependencyResolver;
+import org.gradle.execution.plan.DependencyResolver;
+import org.gradle.execution.plan.Node;
 
 import java.util.Collection;
 
 /**
- * Resolves dependencies to {@link TransformInfo} objects.
+ * Resolves dependencies to {@link TransformNode} objects.
  */
-public class TransformInfoDependencyResolver implements WorkInfoDependencyResolver {
-    private final TransformInfoFactory transformInfoFactory;
+public class TransformNodeDependencyResolver implements DependencyResolver {
+    private final TransformNodeFactory transformNodeFactory;
 
-    public TransformInfoDependencyResolver(TransformInfoFactory transformInfoFactory) {
-        this.transformInfoFactory = transformInfoFactory;
+    public TransformNodeDependencyResolver(TransformNodeFactory transformNodeFactory) {
+        this.transformNodeFactory = transformNodeFactory;
     }
 
     @Override
-    public boolean resolve(Task task, Object node, Action<? super WorkInfo> resolveAction) {
+    public boolean resolve(Task task, Object node, Action<? super Node> resolveAction) {
         if (node instanceof DefaultArtifactTransformDependency) {
             DefaultArtifactTransformDependency transformation = (DefaultArtifactTransformDependency) node;
-            Collection<TransformInfo> transforms = transformInfoFactory.getOrCreate(transformation.getArtifacts(), transformation.getTransform());
-            for (TransformInfo transformInfo : transforms) {
-                resolveAction.execute(transformInfo);
+            Collection<TransformNode> transforms = transformNodeFactory.getOrCreate(transformation.getArtifacts(), transformation.getTransform());
+            for (TransformNode transformNode : transforms) {
+                resolveAction.execute(transformNode);
             }
             return true;
         }

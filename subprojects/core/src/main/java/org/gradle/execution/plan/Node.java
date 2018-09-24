@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph;
+package org.gradle.execution.plan;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
@@ -30,7 +30,7 @@ import java.util.Set;
 /**
  * A node in the execution graph that represents some executable code with potential dependencies on other nodes.
  */
-public abstract class WorkInfo implements Comparable<WorkInfo> {
+public abstract class Node implements Comparable<Node> {
 
     @VisibleForTesting
     enum ExecutionState {
@@ -40,10 +40,10 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
     private ExecutionState state;
     private boolean dependenciesProcessed;
     private Throwable executionFailure;
-    private final NavigableSet<WorkInfo> dependencySuccessors = Sets.newTreeSet();
-    private final NavigableSet<WorkInfo> dependencyPredecessors = Sets.newTreeSet();
+    private final NavigableSet<Node> dependencySuccessors = Sets.newTreeSet();
+    private final NavigableSet<Node> dependencyPredecessors = Sets.newTreeSet();
 
-    public WorkInfo() {
+    public Node() {
         this.state = ExecutionState.UNKNOWN;
     }
 
@@ -92,13 +92,17 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
     }
 
     public boolean isFailed() {
-        return getWorkFailure() != null || getExecutionFailure() != null;
+        return getNodeFailure() != null || getExecutionFailure() != null;
     }
 
+    /**
+     * Returns any error that happened during the execution of the node itself,
+     * i.e. a task action has thrown an exception.
+     */
     @Nullable
-    public abstract Throwable getWorkFailure();
+    public abstract Throwable getNodeFailure();
 
-    public abstract void rethrowFailure();
+    public abstract void rethrowNodeFailure();
 
     public void startExecution() {
         assert isReady();
@@ -142,26 +146,32 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
         this.executionFailure = failure;
     }
 
+    /**
+     * Returns any error that happened in the execution engine while processing this node,
+     * i.e. there was a {@link NullPointerException} in the {@link ExecutionPlan} code.
+     * Always leads to the abortion of the build.
+     */
+    @Nullable
     public Throwable getExecutionFailure() {
         return this.executionFailure;
     }
 
-    public Set<WorkInfo> getDependencyPredecessors() {
+    public Set<Node> getDependencyPredecessors() {
         return dependencyPredecessors;
     }
 
-    public Set<WorkInfo> getDependencySuccessors() {
+    public Set<Node> getDependencySuccessors() {
         return dependencySuccessors;
     }
 
-    protected void addDependencySuccessor(WorkInfo toNode) {
+    protected void addDependencySuccessor(Node toNode) {
         dependencySuccessors.add(toNode);
         toNode.dependencyPredecessors.add(this);
     }
 
     @OverridingMethodsMustInvokeSuper
     public boolean allDependenciesComplete() {
-        for (WorkInfo dependency : dependencySuccessors) {
+        for (Node dependency : dependencySuccessors) {
             if (!dependency.isComplete()) {
                 return false;
             }
@@ -171,7 +181,7 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
     }
 
     public boolean allDependenciesSuccessful() {
-        for (WorkInfo dependency : dependencySuccessors) {
+        for (Node dependency : dependencySuccessors) {
             if (!dependency.isSuccessful()) {
                 return false;
             }
@@ -181,7 +191,7 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
 
     public abstract void prepareForExecution();
 
-    public abstract void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<WorkInfo> processHardSuccessor);
+    public abstract void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor);
 
     public boolean getDependenciesProcessed() {
         return dependenciesProcessed;
@@ -192,12 +202,12 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
     }
 
     @OverridingMethodsMustInvokeSuper
-    public Iterable<WorkInfo> getAllSuccessors() {
+    public Iterable<Node> getAllSuccessors() {
         return dependencySuccessors;
     }
 
     @OverridingMethodsMustInvokeSuper
-    public Iterable<WorkInfo> getAllSuccessorsInReverseOrder() {
+    public Iterable<Node> getAllSuccessorsInReverseOrder() {
         return dependencySuccessors.descendingSet();
     }
 
@@ -205,7 +215,7 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
      * Returns if the node has the given node as a hard successor, i.e. a non-removable relationship.
      */
     @OverridingMethodsMustInvokeSuper
-    public boolean hasHardSuccessor(WorkInfo successor) {
+    public boolean hasHardSuccessor(Node successor) {
         return dependencySuccessors.contains(successor);
     }
 

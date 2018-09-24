@@ -63,9 +63,9 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
-import org.gradle.execution.TaskExecutionGraphInternal;
-import org.gradle.execution.taskgraph.DefaultTaskPlanExecutor;
-import org.gradle.execution.taskgraph.TaskPlanExecutor;
+import org.gradle.execution.plan.DefaultPlanExecutor;
+import org.gradle.execution.plan.PlanExecutor;
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
@@ -226,7 +226,7 @@ public class TaskExecutionServices {
         );
     }
 
-    TaskPlanExecutor createTaskExecutorFactory(
+    PlanExecutor createTaskExecutorFactory(
         ParallelismConfigurationManager parallelismConfigurationManager,
         ExecutorFactory executorFactory,
         WorkerLeaseService workerLeaseService,
@@ -238,7 +238,7 @@ public class TaskExecutionServices {
         }
 
         // TODO: Make task plan executor respond to changes in parallelism configuration
-        return new DefaultTaskPlanExecutor(
+        return new DefaultPlanExecutor(
             parallelismConfigurationManager.getParallelismConfiguration(),
             executorFactory,
             workerLeaseService,

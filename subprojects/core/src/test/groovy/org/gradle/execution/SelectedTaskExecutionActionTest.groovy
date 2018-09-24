@@ -19,6 +19,7 @@ import org.gradle.StartParameter
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.tasks.TaskState
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import spock.lang.Specification
 
 class SelectedTaskExecutionActionTest extends Specification {

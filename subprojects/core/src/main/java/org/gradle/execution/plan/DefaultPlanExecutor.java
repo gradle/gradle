@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph;
+package org.gradle.execution.plan;
 
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
@@ -44,15 +44,15 @@ import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISH
 import static org.gradle.internal.resources.ResourceLockState.Disposition.RETRY;
 
 @NonNullApi
-public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
-    private static final Logger LOGGER = Logging.getLogger(DefaultTaskPlanExecutor.class);
+public class DefaultPlanExecutor implements PlanExecutor {
+    private static final Logger LOGGER = Logging.getLogger(DefaultPlanExecutor.class);
     private final int executorCount;
     private final ExecutorFactory executorFactory;
     private final WorkerLeaseService workerLeaseService;
     private final BuildCancellationToken cancellationToken;
     private final ResourceLockCoordinationService coordinationService;
 
-    public DefaultTaskPlanExecutor(ParallelismConfiguration parallelismConfiguration, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService, BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService) {
+    public DefaultPlanExecutor(ParallelismConfiguration parallelismConfiguration, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService, BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService) {
         this.executorFactory = executorFactory;
         this.cancellationToken = cancellationToken;
         this.coordinationService = coordinationService;
@@ -66,27 +66,27 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
     }
 
     @Override
-    public void process(TaskExecutionPlan taskExecutionPlan, Collection<? super Throwable> failures, Action<WorkInfo> workExecutor) {
-        ManagedExecutor executor = executorFactory.create("Task worker for '" + taskExecutionPlan.getDisplayName() + "'");
+    public void process(ExecutionPlan executionPlan, Collection<? super Throwable> failures, Action<Node> nodeExecutor) {
+        ManagedExecutor executor = executorFactory.create("Execution worker for '" + executionPlan.getDisplayName() + "'");
         try {
             WorkerLease parentWorkerLease = workerLeaseService.getCurrentWorkerLease();
-            startAdditionalWorkers(taskExecutionPlan, workExecutor, executor, parentWorkerLease);
-            new ExecutorWorker(taskExecutionPlan, workExecutor, parentWorkerLease, cancellationToken, coordinationService).run();
-            awaitCompletion(taskExecutionPlan, failures);
+            startAdditionalWorkers(executionPlan, nodeExecutor, executor, parentWorkerLease);
+            new ExecutorWorker(executionPlan, nodeExecutor, parentWorkerLease, cancellationToken, coordinationService).run();
+            awaitCompletion(executionPlan, failures);
         } finally {
             executor.stop();
         }
     }
 
     /**
-     * Blocks until all tasks in the plan have been processed. This method will only return when every task in the plan has either completed, failed or been skipped.
+     * Blocks until all nodes in the plan have been processed. This method will only return when every node in the plan has either completed, failed or been skipped.
      */
-    private void awaitCompletion(final TaskExecutionPlan taskExecutionPlan, final Collection<? super Throwable> taskFailures) {
+    private void awaitCompletion(final ExecutionPlan executionPlan, final Collection<? super Throwable> failures) {
         coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                if (taskExecutionPlan.allTasksComplete()) {
-                    taskExecutionPlan.collectFailures(taskFailures);
+                if (executionPlan.allNodesComplete()) {
+                    executionPlan.collectFailures(failures);
                     return FINISHED;
                 } else {
                     return RETRY;
@@ -95,24 +95,24 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
         });
     }
 
-    private void startAdditionalWorkers(TaskExecutionPlan taskExecutionPlan, Action<? super WorkInfo> workExecutor, Executor executor, WorkerLease parentWorkerLease) {
+    private void startAdditionalWorkers(ExecutionPlan executionPlan, Action<? super Node> nodeExecutor, Executor executor, WorkerLease parentWorkerLease) {
         LOGGER.debug("Using {} parallel executor threads", executorCount);
 
         for (int i = 1; i < executorCount; i++) {
-            executor.execute(new ExecutorWorker(taskExecutionPlan, workExecutor, parentWorkerLease, cancellationToken, coordinationService));
+            executor.execute(new ExecutorWorker(executionPlan, nodeExecutor, parentWorkerLease, cancellationToken, coordinationService));
         }
     }
 
     private static class ExecutorWorker implements Runnable {
-        private final TaskExecutionPlan taskExecutionPlan;
-        private final Action<? super WorkInfo> workExecutor;
+        private final ExecutionPlan executionPlan;
+        private final Action<? super Node> nodeExecutor;
         private final WorkerLease parentWorkerLease;
         private final BuildCancellationToken cancellationToken;
         private final ResourceLockCoordinationService coordinationService;
 
-        private ExecutorWorker(TaskExecutionPlan taskExecutionPlan, Action<? super WorkInfo> workExecutor, WorkerLease parentWorkerLease, BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService) {
-            this.taskExecutionPlan = taskExecutionPlan;
-            this.workExecutor = workExecutor;
+        private ExecutorWorker(ExecutionPlan executionPlan, Action<? super Node> nodeExecutor, WorkerLease parentWorkerLease, BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService) {
+            this.executionPlan = executionPlan;
+            this.nodeExecutor = nodeExecutor;
             this.parentWorkerLease = parentWorkerLease;
             this.cancellationToken = cancellationToken;
             this.coordinationService = coordinationService;
@@ -122,63 +122,65 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
         public void run() {
             final AtomicLong busy = new AtomicLong(0);
             Timer totalTimer = Time.startTimer();
-            final Timer taskTimer = Time.startTimer();
+            final Timer executionTimer = Time.startTimer();
 
             WorkerLease childLease = parentWorkerLease.createChild();
-            boolean moreTasksToExecute = true;
-            while (moreTasksToExecute) {
-                moreTasksToExecute = executeWithWork(childLease, new Action<WorkInfo>() {
+            while (true) {
+                boolean nodesRemaining = executeNextNode(childLease, new Action<Node>() {
                     @Override
-                    public void execute(WorkInfo work) {
+                    public void execute(Node work) {
                         LOGGER.info("{} ({}) started.", work, Thread.currentThread());
-                        taskTimer.reset();
-                        workExecutor.execute(work);
-                        long taskDuration = taskTimer.getElapsedMillis();
-                        busy.addAndGet(taskDuration);
+                        executionTimer.reset();
+                        nodeExecutor.execute(work);
+                        long duration = executionTimer.getElapsedMillis();
+                        busy.addAndGet(duration);
                         if (LOGGER.isInfoEnabled()) {
-                            LOGGER.info("{} ({}) completed. Took {}.", work, Thread.currentThread(), TimeFormatting.formatDurationVerbose(taskDuration));
+                            LOGGER.info("{} ({}) completed. Took {}.", work, Thread.currentThread(), TimeFormatting.formatDurationVerbose(duration));
                         }
                     }
                 });
+                if (!nodesRemaining) {
+                    break;
+                }
             }
 
             long total = totalTimer.getElapsedMillis();
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Task worker [{}] finished, busy: {}, idle: {}", Thread.currentThread(), TimeFormatting.formatDurationVerbose(busy.get()), TimeFormatting.formatDurationVerbose(total - busy.get()));
+                LOGGER.debug("Execution worker [{}] finished, busy: {}, idle: {}", Thread.currentThread(), TimeFormatting.formatDurationVerbose(busy.get()), TimeFormatting.formatDurationVerbose(total - busy.get()));
             }
         }
 
         /**
-         * Selects work that's ready to execute and executes the provided action against it. If no work is ready, blocks until some
-         * can be executed. If all work has been executed, returns false.
+         * Selects a node that's ready to execute and executes the provided action against it. If no node is ready, blocks until some
+         * can be executed.
          *
-         * @return true if there are more work waiting to execute, false if all work has been executed.
+         * @return {@code true} if there are more nodes waiting to execute, {@code false} if all nodes have been executed.
          */
-        private boolean executeWithWork(final WorkerLease workerLease, final Action<WorkInfo> workExecutor) {
-            final MutableReference<WorkInfo> selected = MutableReference.empty();
-            final MutableBoolean workRemaining = new MutableBoolean();
+        private boolean executeNextNode(final WorkerLease workerLease, final Action<Node> nodeExecutor) {
+            final MutableReference<Node> selected = MutableReference.empty();
+            final MutableBoolean nodesRemaining = new MutableBoolean();
             coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
                 @Override
                 public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
                     if (cancellationToken.isCancellationRequested()) {
-                        taskExecutionPlan.cancelExecution();
+                        executionPlan.cancelExecution();
                     }
 
-                    workRemaining.set(taskExecutionPlan.hasWorkRemaining());
-                    if (!workRemaining.get()) {
+                    nodesRemaining.set(executionPlan.hasNodesRemaining());
+                    if (!nodesRemaining.get()) {
                         return FINISHED;
                     }
 
                     try {
-                        selected.set(taskExecutionPlan.selectNext(workerLease, resourceLockState));
+                        selected.set(executionPlan.selectNext(workerLease, resourceLockState));
                     } catch (Throwable t) {
                         resourceLockState.releaseLocks();
-                        taskExecutionPlan.abortAllAndFail(t);
-                        workRemaining.set(false);
+                        executionPlan.abortAllAndFail(t);
+                        nodesRemaining.set(false);
                     }
 
-                    if (selected.get() == null && workRemaining.get()) {
+                    if (selected.get() == null && nodesRemaining.get()) {
                         return RETRY;
                     } else {
                         return FINISHED;
@@ -186,18 +188,18 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
                 }
             });
 
-            WorkInfo selectedWorkInfo = selected.get();
-            if (selectedWorkInfo != null) {
-                execute(selectedWorkInfo, workerLease, workExecutor);
+            Node selectedNode = selected.get();
+            if (selectedNode != null) {
+                execute(selectedNode, workerLease, nodeExecutor);
             }
-            return workRemaining.get();
+            return nodesRemaining.get();
         }
 
-        private void execute(final WorkInfo selected, final WorkerLease workerLease, Action<WorkInfo> workExecutor) {
+        private void execute(final Node selected, final WorkerLease workerLease, Action<Node> nodeExecutor) {
             try {
                 if (!selected.isComplete()) {
                     try {
-                        workExecutor.execute(selected);
+                        nodeExecutor.execute(selected);
                     } catch (Throwable e) {
                         selected.setExecutionFailure(e);
                     }
@@ -206,7 +208,7 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
                 coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
                     @Override
                     public ResourceLockState.Disposition transform(ResourceLockState state) {
-                        taskExecutionPlan.workComplete(selected);
+                        executionPlan.nodeComplete(selected);
                         return unlock(workerLease).transform(state);
                     }
                 });

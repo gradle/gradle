@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.execution;
+package org.gradle.execution.taskgraph;
 
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
@@ -33,7 +33,7 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
      * Adds the given tasks and their dependencies to this graph. Tasks are executed in an arbitrary order. The tasks
      * are executed before any tasks from a subsequent call to this method are executed.
      */
-    void addTasks(Iterable<? extends Task> tasks);
+    void addEntryTasks(Iterable<? extends Task> tasks);
 
     /**
      * Does the work to populate the task graph based on tasks that have been added. Does not fire events.

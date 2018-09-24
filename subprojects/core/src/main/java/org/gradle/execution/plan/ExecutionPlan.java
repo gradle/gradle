@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph;
+package org.gradle.execution.plan;
 
 import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
@@ -27,16 +27,16 @@ import java.util.Collection;
 import java.util.Set;
 
 /**
- * Represents a graph of dependent tasks, returned in execution order.
+ * Represents a graph of dependent work items, returned in execution order.
  */
-public interface TaskExecutionPlan extends Describable {
+public interface ExecutionPlan extends Describable {
     /**
      * Selects a work item to run, returns null if there is no work remaining _or_ if no queued work is ready to run.
      */
     @Nullable
-    WorkInfo selectNext(WorkerLeaseRegistry.WorkerLease workerLease, ResourceLockState resourceLockState);
+    Node selectNext(WorkerLeaseRegistry.WorkerLease workerLease, ResourceLockState resourceLockState);
 
-    void workComplete(WorkInfo workInfo);
+    void nodeComplete(Node node);
 
     void abortAllAndFail(Throwable t);
 
@@ -68,9 +68,9 @@ public interface TaskExecutionPlan extends Describable {
      */
     void collectFailures(Collection<? super Throwable> failures);
 
-    boolean allTasksComplete();
+    boolean allNodesComplete();
 
-    boolean hasWorkRemaining();
+    boolean hasNodesRemaining();
 
     /**
      * Returns the number of work items in the plan.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph;
+package org.gradle.execution.plan;
 
 
 import com.google.common.collect.ImmutableCollection;
@@ -32,13 +32,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class TaskInfoFactory {
-    private final Map<Task, TaskInfo> nodes = new HashMap<Task, TaskInfo>();
+public class TaskNodeFactory {
+    private final Map<Task, TaskNode> nodes = new HashMap<Task, TaskNode>();
     private final IncludedBuildTaskGraph taskGraph;
     private final GradleInternal thisBuild;
     private final BuildIdentifier currentBuildId;
 
-    public TaskInfoFactory(GradleInternal thisBuild, IncludedBuildTaskGraph taskGraph) {
+    public TaskNodeFactory(GradleInternal thisBuild, IncludedBuildTaskGraph taskGraph) {
         this.thisBuild = thisBuild;
         currentBuildId = thisBuild.getServices().get(BuildState.class).getBuildIdentifier();
         this.taskGraph = taskGraph;
@@ -48,11 +48,11 @@ public class TaskInfoFactory {
         return nodes.keySet();
     }
 
-    public TaskInfo getOrCreateNode(Task task) {
-        TaskInfo node = nodes.get(task);
+    public TaskNode getOrCreateNode(Task task) {
+        TaskNode node = nodes.get(task);
         if (node == null) {
             if (task.getProject().getGradle() == thisBuild) {
-                node = new LocalTaskInfo((TaskInternal) task);
+                node = new LocalTaskNode((TaskInternal) task);
             } else {
                 node = new TaskInAnotherBuild((TaskInternal) task, currentBuildId, taskGraph);
             }
@@ -65,7 +65,7 @@ public class TaskInfoFactory {
         nodes.clear();
     }
 
-    private static class TaskInAnotherBuild extends TaskInfo {
+    private static class TaskInAnotherBuild extends TaskNode {
         private final BuildIdentifier thisBuild;
         private final IncludedBuildTaskGraph taskGraph;
         private final BuildIdentifier targetBuild;
@@ -87,12 +87,12 @@ public class TaskInfoFactory {
         }
 
         @Override
-        public Throwable getWorkFailure() {
+        public Throwable getNodeFailure() {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public void rethrowFailure() {
+        public void rethrowNodeFailure() {
             throw new UnsupportedOperationException();
         }
 
@@ -103,7 +103,7 @@ public class TaskInfoFactory {
         }
 
         @Override
-        public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<WorkInfo> processHardSuccessor) {
+        public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
         }
 
         @Override
@@ -132,12 +132,12 @@ public class TaskInfoFactory {
         }
 
         @Override
-        public int compareTo(WorkInfo other) {
+        public int compareTo(Node other) {
             if (getClass() != other.getClass()) {
                 return getClass().getName().compareTo(other.getClass().getName());
             }
-            TaskInAnotherBuild taskInfo = (TaskInAnotherBuild) other;
-            return task.getIdentityPath().compareTo(taskInfo.task.getIdentityPath());
+            TaskInAnotherBuild taskNode = (TaskInAnotherBuild) other;
+            return task.getIdentityPath().compareTo(taskNode.task.getIdentityPath());
         }
 
         @Override

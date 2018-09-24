@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph;
+package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.tasks.WorkDependencyResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 
-/**
- * Resolves dependencies to {@link WorkInfo} objects.
- */
-public interface WorkInfoDependencyResolver extends WorkDependencyResolver<WorkInfo> {
+import java.util.Collection;
+
+public interface TransformNodeFactory {
+    Collection<TransformNode> getOrCreate(ResolvedArtifactSet artifactSet, ArtifactTransformer transformer);
 }

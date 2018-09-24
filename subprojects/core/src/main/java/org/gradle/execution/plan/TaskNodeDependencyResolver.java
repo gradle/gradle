@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.taskgraph;
+package org.gradle.execution.plan;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
@@ -22,21 +22,21 @@ import org.gradle.api.Task;
 import javax.annotation.Nonnull;
 
 /**
- * Resolves dependencies to {@link TaskInfo} objects. Uses the same logic as {@link #TASK_AS_TASK}.
+ * Resolves dependencies to {@link TaskNode} objects. Uses the same logic as {@link #TASK_AS_TASK}.
  */
-public class TaskInfoWorkDependencyResolver implements WorkInfoDependencyResolver {
-    private final TaskInfoFactory taskInfoFactory;
+public class TaskNodeDependencyResolver implements DependencyResolver {
+    private final TaskNodeFactory taskNodeFactory;
 
-    public TaskInfoWorkDependencyResolver(TaskInfoFactory taskInfoFactory) {
-        this.taskInfoFactory = taskInfoFactory;
+    public TaskNodeDependencyResolver(TaskNodeFactory taskNodeFactory) {
+        this.taskNodeFactory = taskNodeFactory;
     }
 
     @Override
-    public boolean resolve(Task task, Object node, final Action<? super WorkInfo> resolveAction) {
+    public boolean resolve(Task task, Object node, final Action<? super Node> resolveAction) {
         return TASK_AS_TASK.resolve(task, node, new Action<Task>() {
             @Override
             public void execute(@Nonnull Task task) {
-                resolveAction.execute(taskInfoFactory.getOrCreateNode(task));
+                resolveAction.execute(taskNodeFactory.getOrCreateNode(task));
             }
         });
     }
