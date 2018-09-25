@@ -151,7 +151,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
 
         expect:
-        changes == ["During the previous execution task ':test' was loaded with an unknown classloader (class 'org.gradle.api.internal.changedetection.rules.TaskTypeTaskStateChangesTest\$SimpleTask')."]
+        changes == ["During the previous execution of the task ':test', it was loaded with an unknown classloader (class 'org.gradle.api.internal.changedetection.rules.TaskTypeTaskStateChangesTest\$SimpleTask')."]
     }
 
     def "not up-to-date when task action was previously loaded with an unknown classloader"() {
@@ -161,7 +161,7 @@ class TaskTypeTaskStateChangesTest extends Specification {
         def changes = collectChanges(new TaskTypeTaskStateChanges(previous, current, task))
 
         expect:
-        changes == ["During the previous execution task ':test' had an additional action that was loaded with an unknown classloader (class 'org.gradle.api.internal.changedetection.rules.TaskTypeTaskStateChangesTest\$TestAction')."]
+        changes == ["During the previous execution of the task ':test', it had an additional action that was loaded with an unknown classloader (class 'org.gradle.api.internal.changedetection.rules.TaskTypeTaskStateChangesTest\$TestAction')."]
     }
 
     List<String> collectChanges(TaskTypeTaskStateChanges stateChanges) {
