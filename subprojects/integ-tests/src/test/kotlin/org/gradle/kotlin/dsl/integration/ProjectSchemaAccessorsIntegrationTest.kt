@@ -361,11 +361,13 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    fun `can configure deferred configurable extension`() {
+    fun `can configure publishing extension`() {
+
+        withSettings("""
+            enableFeaturePreview("STABLE_PUBLISHING")
+        """)
 
         withBuildScript("""
-
-            import org.gradle.api.publish.maven.MavenPublication
 
             plugins {
                 `java-library`
