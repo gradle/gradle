@@ -113,6 +113,7 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         [
             "create(String)":   "testContainer.create('mutate')",
             "register(String)": "testContainer.register('mutate')",
+            "getByName(String, Action)":    "testContainer.getByName('realized') {}",
         ]
     }
 
@@ -208,6 +209,36 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
                 if (it.name == "realized") {
                     ${method.value}
                 }
+            }
+        """
+
+        expect:
+        succeeds "help"
+
+        where:
+        method << getQueryMethods() + getMutationMethods()
+    }
+
+    @Unroll
+    def "can execute query and mutation methods #method.key from getByName"() {
+        buildFile << """
+            testContainer.getByName("realized") {
+                ${method.value}
+            }
+        """
+
+        expect:
+        succeeds "help"
+
+        where:
+        method << getQueryMethods() + getMutationMethods()
+    }
+
+    @Unroll
+    def "can execute query and mutation methods #method.key from withType.getByName"() {
+        buildFile << """
+            testContainer.withType(testContainer.type).getByName("realized") {
+                ${method.value}
             }
         """
 
