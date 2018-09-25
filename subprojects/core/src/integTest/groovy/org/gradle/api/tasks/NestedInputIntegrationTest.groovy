@@ -760,8 +760,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         when:
         withBuildCache().run "customTask", "--info", "-D${BuildCacheDebugLoggingOption.GRADLE_PROPERTY}=true"
         then:
-        output.contains "Non-cacheable inputs: property 'bean' was loaded with an unknown classloader."
-        output.contains "Caching disabled for task ':customTask': Non-cacheable inputs: property 'bean' was loaded with an unknown classloader"
+        output.contains "Caching disabled for task ':customTask': Non-cacheable inputs: property 'bean' was loaded with an unknown classloader (class 'NestedBean')."
     }
 
     def "task with nested bean loaded with custom classloader is never up-to-date"() {

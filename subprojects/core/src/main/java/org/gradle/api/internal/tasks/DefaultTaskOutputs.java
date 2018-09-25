@@ -181,7 +181,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         if (actionImplementations != null && !actionImplementations.isEmpty()) {
             for (ImplementationSnapshot actionImplementation : actionImplementations) {
                 if (actionImplementation.isUnknown()) {
-                    return DefaultTaskOutputCachingState.disabled(NON_CACHEABLE_TASK_ACTION, "Task action '" + actionImplementation.getTypeName() + "' " + actionImplementation.getUnknownReason());
+                    return DefaultTaskOutputCachingState.disabled(NON_CACHEABLE_TASK_ACTION, "Task action " + actionImplementation.getUnknownReason());
                 }
             }
         }

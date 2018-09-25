@@ -408,14 +408,14 @@ class DefaultTaskOutputsTest extends Specification {
         cachingState.enabled
 
         def builder = new DefaultTaskOutputCachingBuildCacheKeyBuilder()
-        builder.inputPropertyNotCacheable("someProperty", "was implemented by a Java lambda")
+        builder.inputPropertyNotCacheable("someProperty", 'was implemented by the Java lambda \'org.my.package.MyPlugin$$Lambda$5/342523421\'')
         def invalidBuildCacheKey = builder.build()
         when:
         cachingState = outputs.getCachingState(taskPropertiesWithCacheableOutput, invalidBuildCacheKey)
 
         then:
         !cachingState.enabled
-        cachingState.disabledReason == "Non-cacheable inputs: property 'someProperty' was implemented by a Java lambda"
+        cachingState.disabledReason == 'Non-cacheable inputs: property \'someProperty\' was implemented by the Java lambda \'org.my.package.MyPlugin$$Lambda$5/342523421\''
         cachingState.disabledReasonCategory == TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_INPUTS
 
         when:
@@ -424,7 +424,7 @@ class DefaultTaskOutputsTest extends Specification {
         cachingState = outputs.getCachingState(taskPropertiesWithCacheableOutput, invalidBuildCacheKey)
         then:
         !cachingState.enabled
-        cachingState.disabledReason == 'Task action \'org.my.package.MyPlugin$$Lambda$1/23246642345\' was implemented by a Java lambda. Use an anonymous inner class instead.'
+        cachingState.disabledReason == 'Task action was implemented by the Java lambda \'org.my.package.MyPlugin$$Lambda$1/23246642345\'. Use an anonymous inner class instead.'
         cachingState.disabledReasonCategory == TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TASK_ACTION
 
         when:
@@ -433,7 +433,7 @@ class DefaultTaskOutputsTest extends Specification {
         cachingState = outputs.getCachingState(taskPropertiesWithCacheableOutput, invalidBuildCacheKey)
         then:
         !cachingState.enabled
-        cachingState.disabledReason == "Task class was loaded with an unknown classloader"
+        cachingState.disabledReason == "Task class was loaded with an unknown classloader (class 'org.gradle.TaskType')."
         cachingState.disabledReasonCategory == TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TASK_IMPLEMENTATION
 
         when:
