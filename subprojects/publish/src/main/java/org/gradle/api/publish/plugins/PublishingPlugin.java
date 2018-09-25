@@ -31,11 +31,9 @@ import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.DefaultPublicationContainer;
 import org.gradle.api.publish.internal.DefaultPublishingExtension;
-import org.gradle.api.publish.internal.DeferredConfigurablePublishingExtension;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 
@@ -67,7 +65,7 @@ public class PublishingPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         RepositoryHandler repositories = publicationServices.createRepositoryHandler();
         PublicationContainer publications = instantiator.newInstance(DefaultPublicationContainer.class, instantiator);
-        PublishingExtension extension = project.getExtensions().create(PublishingExtension.class, PublishingExtension.NAME, determineExtensionClass(), repositories, publications);
+        PublishingExtension extension = project.getExtensions().create(PublishingExtension.class, PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
         project.getTasks().register(PUBLISH_LIFECYCLE_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task task) {
@@ -85,31 +83,13 @@ public class PublishingPlugin implements Plugin<Project> {
         bridgeToSoftwareModelIfNeeded((ProjectInternal) project);
     }
 
-    private Class<? extends PublishingExtension> determineExtensionClass() {
-        if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.STABLE_PUBLISHING)) {
-            return DefaultPublishingExtension.class;
-        } else {
-            DeprecationLogger.nagUserWithDeprecatedBuildInvocationFeature(
-                "As part of making the publishing plugins stable, the 'deferred configurable' behavior of the 'publishing {}' block",
-                "In Gradle 5.0 the 'enableFeaturePreview('STABLE_PUBLISHING')' flag will be removed and the new behavior will become the default.",
-                    "Please add 'enableFeaturePreview('STABLE_PUBLISHING')' to your settings file and do a test run by publishing to a local repository. " +
-                    "If all artifacts are published as expected, there is nothing else to do. " +
-                    "If the published artifacts change unexpectedly, please see the migration guide for more details: " + documentationRegistry.getDocumentationFor("publishing_maven", "publishing_maven:deferred_configuration") + ".");
-            return DeferredConfigurablePublishingExtension.class;
-        }
-    }
-
     private void bridgeToSoftwareModelIfNeeded(ProjectInternal project) {
-        if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.STABLE_PUBLISHING)) {
-            project.addRuleBasedPluginListener(new RuleBasedPluginListener() {
-                @Override
-                public void prepareForRuleBasedPlugins(Project project) {
-                    project.getPluginManager().apply(PublishingPluginRules.class);
-                }
-            });
-        } else {
-            project.getPluginManager().apply(PublishingPluginRules.class);
-        }
+        project.addRuleBasedPluginListener(new RuleBasedPluginListener() {
+            @Override
+            public void prepareForRuleBasedPlugins(Project project) {
+                project.getPluginManager().apply(PublishingPluginRules.class);
+            }
+        });
     }
 
 }
