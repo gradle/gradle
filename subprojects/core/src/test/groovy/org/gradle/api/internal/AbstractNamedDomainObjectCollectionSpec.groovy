@@ -54,6 +54,24 @@ abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomain
         ex = thrown(Throwable)
         assertDoesNotAllowMethod(ex, methodUnderTest)
 
+        when:
+        container.withType(container.type).named("a").configure(method)
+        then:
+        ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
+
+        when:
+        container.withType(container.type).named("a", method)
+        then:
+        ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
+
+        when:
+        container.withType(container.type).named("a", getType(), method)
+        then:
+        ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
+
         where:
         mutatingMethods << getMutatingMethods()
     }
@@ -77,6 +95,21 @@ abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomain
 
         when:
         container.named("a", getType(), method)
+        then:
+        noExceptionThrown()
+
+        when:
+        container.withType(container.type).named("a").configure(method)
+        then:
+        noExceptionThrown()
+
+        when:
+        container.withType(container.type).named("a", method)
+        then:
+        noExceptionThrown()
+
+        when:
+        container.withType(container.type).named("a", getType(), method)
         then:
         noExceptionThrown()
 
