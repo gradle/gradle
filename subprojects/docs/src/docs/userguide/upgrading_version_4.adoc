@@ -49,6 +49,7 @@ Read the sections relevant to the version of Gradle you're upgrading from in ord
 == Upgrading from 4.10 and earlier
 
  * The `enableFeaturePreview('IMPROVED_POM_SUPPORT')` flag is no longer necessary
+ * The `enableFeaturePreview('STABLE_PUBLISHING')` flag is no longer necessary
 
 === Potential breaking changes
 
@@ -59,6 +60,8 @@ There is only one change that was not previously deprecated:
  * Optional dependency declarations in POMs no longer influence the version of a dependency that Gradle picks.
 +
 This change is only applicable if you had the `IMPROVED_POM_SUPPORT` preview feature enabled.
+ * The evaluation of the `publishing {}` block is no longer deferred until needed but behaves like any other block.
+   Please use `afterEvaluate {}` if you need to defer evaluation.
 
 The following breaking changes will appear as deprecation warnings with Gradle 4.10:
 

@@ -329,6 +329,13 @@ The left shift (`<<`) operator acted as an alias for adding a `doLast` action to
 Previously, it was deprecated for project and domain object names to be empty, start or end with `.` or contain any of the following characters: `/\:<>"?*|`.
 The use of such names now causes the build to fail.
 
+### Evaluation of the `publishing {}` block is now eager
+
+In Gradle 4.8, the old behavior of the `publishing {}` block to defer its evaluation was deprecated.
+A new behavior that made its evaluation eager (like for any other block) was introduced and switched on using `enableFeaturePreview('STABLE_PUBLISHING')`.
+Now, the old behavior has been removed and switching on the new one is no longer necessary. 
+If you need to defer evaluation, please use `afterEvaluate {}`.
+
 ### Changes to previously deprecated APIs
 
 - The `org.gradle.plugins.signing.Signature` methods `getToSignArtifact()` and `setFile(File)` are removed.

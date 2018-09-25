@@ -20,8 +20,6 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA
-import static org.gradle.api.internal.FeaturePreviews.Feature.IMPROVED_POM_SUPPORT
-import static org.gradle.api.internal.FeaturePreviews.Feature.STABLE_PUBLISHING
 
 class FeaturePreviewsTest extends Specification {
 
@@ -33,7 +31,7 @@ class FeaturePreviewsTest extends Specification {
         then:
         !result
         where:
-        feature << [IMPROVED_POM_SUPPORT, GRADLE_METADATA]
+        feature << FeaturePreviews.Feature.values()
     }
 
     @Unroll
@@ -84,6 +82,6 @@ class FeaturePreviewsTest extends Specification {
         given:
         def previews = new FeaturePreviews()
         expect:
-        previews.getActiveFeatures() == [GRADLE_METADATA, STABLE_PUBLISHING] as Set
+        previews.getActiveFeatures() == [GRADLE_METADATA] as Set
     }
 }

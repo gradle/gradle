@@ -1,1 +1,1 @@
-enableFeaturePreview("STABLE_PUBLISHING")
+rootProject.name = "maven-publish"
