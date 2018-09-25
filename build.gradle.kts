@@ -2,6 +2,7 @@ import groovy.lang.GroovyObject
 
 import org.jetbrains.gradle.ext.CopyrightConfiguration
 import org.jetbrains.gradle.ext.ProjectSettings
+import org.jetbrains.gradle.ext.TaskTriggersConfig
 
 import java.time.LocalDate
 
@@ -114,6 +115,12 @@ idea {
         configure<ProjectSettings> {
             this as ExtensionAware
             doNotDetectFrameworks("android", "web")
+            configure<TaskTriggersConfig> {
+                // Build the `customInstallation` after the initial import to:
+                // 1. ensure generated code is available to the IDE
+                // 2. allow integration tests to be executed
+                afterSync(customInstallation.get())
+            }
             configure<CopyrightConfiguration> {
                 useDefault = "ASL2"
                 profiles {
