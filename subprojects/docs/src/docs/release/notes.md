@@ -312,6 +312,7 @@ This is not the case anymore as the `source` filed is now declared as `private`.
 - Removed `JavaBasePlugin.configureForSourceSet`
 - Removed `JDepend.classesDir`
 - Removed `IdeaPlugin.performPostEvaluationActions` and `EclipsePlugin.performPostEvaluationActions`
+- Removed the internal `@Option` and `@OptionValues` annotations from the `org.gradle.api.internal.tasks.options` package.
 - Forbid passing `null` as configuration action to the methods `from` and `to` on `CopySpec`.
 - Removed the property `bootClasspath` from `CompileOptions`.
 - Validation problems for inputs or outputs registered via the runtime API now fail the build.

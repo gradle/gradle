@@ -33,13 +33,6 @@ public class FieldOptionElement extends AbstractOptionElement {
         return new FieldOptionElement(field, optionName, option, optionType, notationParser);
     }
 
-    public static FieldOptionElement create(org.gradle.api.internal.tasks.options.Option option, Field field, OptionValueNotationParserFactory optionValueNotationParserFactory){
-        String optionName = calOptionName(option, field);
-        Class<?> optionType = calculateOptionType(field.getType());
-        NotationParser<CharSequence, ?> notationParser = createNotationParserOrFail(optionValueNotationParserFactory, optionName, optionType, field.getDeclaringClass());
-        return new FieldOptionElement(field, optionName, option, optionType, notationParser);
-    }
-
     private final Field field;
 
     public FieldOptionElement(Field field, String optionName, Option option, Class<?> optionType, NotationParser<CharSequence, ?> notationParser) {
@@ -48,21 +41,7 @@ public class FieldOptionElement extends AbstractOptionElement {
         getSetter();
     }
 
-    public FieldOptionElement(Field field, String optionName, org.gradle.api.internal.tasks.options.Option option, Class<?> optionType, NotationParser<CharSequence, ?> notationParser) {
-        super(optionName, option, optionType, field.getDeclaringClass(), notationParser);
-        this.field = field;
-        getSetter();
-    }
-
     private static String calOptionName(Option option, Field field) {
-        if (option.option().length() == 0) {
-            return field.getName();
-        } else {
-            return option.option();
-        }
-    }
-
-    private static String calOptionName(org.gradle.api.internal.tasks.options.Option option, Field field) {
         if (option.option().length() == 0) {
             return field.getName();
         } else {
