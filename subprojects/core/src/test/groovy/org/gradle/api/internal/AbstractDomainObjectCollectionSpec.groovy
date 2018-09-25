@@ -1499,6 +1499,36 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         queryMethods << getQueryMethods()
     }
 
+    @Unroll
+    def "allow common querying and mutating methods when #methods.key"() {
+        setupContainerDefaults()
+        container.add(a)
+        Closure method = bind(methods.value)
+
+        when:
+        container.all(noReentry(method))
+        then:
+        noExceptionThrown()
+
+        where:
+        methods << getQueryMethods() + getMutatingMethods()
+    }
+
+    @Unroll
+    def "allow common querying and mutating methods when #methods.key on filtered container"() {
+        setupContainerDefaults()
+        container.add(a)
+        Closure method = bind(methods.value)
+
+        when:
+        container.withType(container.type).all(noReentry(method))
+        then:
+        noExceptionThrown()
+
+        where:
+        methods << getQueryMethods() + getMutatingMethods()
+    }
+
     protected Map<String, Closure> getQueryMethods() {
         return [
             "contains(Object)": { container.contains(b) },
@@ -1510,6 +1540,21 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def thiz = this
         return {
             ConfigureUtil.configureSelf(delegateClosure, it, new ConfigureDelegate(delegateClosure, thiz))
+        }
+    }
+
+    protected Closure noReentry(Closure delegateClosure) {
+        boolean entryAllowed = true
+        return {
+            if (entryAllowed) {
+                boolean oldEntryAllowed = entryAllowed
+                entryAllowed = false
+                try {
+                    ConfigureUtil.configure(delegateClosure, it)
+                } finally {
+                    entryAllowed = oldEntryAllowed
+                }
+            }
         }
     }
 }
