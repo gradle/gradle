@@ -18,6 +18,7 @@ package org.gradle.api.internal
 
 import org.gradle.api.NamedDomainObjectCollection
 import org.gradle.internal.Actions
+import spock.lang.Unroll
 
 abstract class AbstractPolymorphicDomainObjectContainerSpec<T> extends AbstractNamedDomainObjectContainerSpec<T> {
     abstract NamedDomainObjectCollection<T> getContainer()
@@ -30,5 +31,36 @@ abstract class AbstractPolymorphicDomainObjectContainerSpec<T> extends AbstractN
             "register(String, Class)": { container.register("b", container.type) },
             "register(String, Class, Action)": { container.register("b", container.type, Actions.doNothing()) },
         ]
+    }
+
+    @Unroll
+    def "disallow mutating from register with type actions using #mutatingMethods.key"() {
+        setupContainerDefaults()
+        String methodUnderTest = mutatingMethods.key
+        Closure method = bind(mutatingMethods.value)
+
+        when:
+        container.register("a", container.type, method).get()
+        then:
+        def ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
+
+        where:
+        mutatingMethods << getMutatingMethods()
+    }
+
+    @Unroll
+    def "allow query methods from register with type using #queryMethods.key"() {
+        setupContainerDefaults()
+        String methodUnderTest = queryMethods.key
+        Closure method = bind(queryMethods.value)
+
+        when:
+        container.register("a", container.type, method).get()
+        then:
+        noExceptionThrown()
+
+        where:
+        queryMethods << getQueryMethods()
     }
 }

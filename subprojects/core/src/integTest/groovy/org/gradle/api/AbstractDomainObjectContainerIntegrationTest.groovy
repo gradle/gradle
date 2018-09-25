@@ -109,6 +109,20 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         queryMethod << getQueryMethods()
     }
 
+    def "can execute query method #queryMethod.key from register"() {
+        buildFile << """
+            testContainer.register("a") {
+                ${queryMethod.value}
+            }.get()
+        """
+
+        expect:
+        succeeds "help"
+
+        where:
+        queryMethod << getQueryMethods()
+    }
+
     Map<String, String> getMutationMethods() {
         [
             "create(String)":   "testContainer.create('mutate')",
@@ -174,6 +188,22 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
                 ${mutationMethod.value}
             }
             toBeRealized.get()
+        """
+
+        expect:
+        fails "help"
+        failure.assertHasCause(disallowMutationMessage(mutationMethod.key))
+
+        where:
+        mutationMethod << getMutationMethods()
+    }
+
+    @Unroll
+    def "cannot execute mutation method #mutationMethod.key from register"() {
+        buildFile << """
+            testContainer.register("a") {
+                ${mutationMethod.value}
+            }.get()
         """
 
         expect:

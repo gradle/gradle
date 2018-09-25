@@ -898,7 +898,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             this.onCreate = ImmutableActionSet.<I>empty().mergeFrom(getEventRegister().getAddActions());
 
             if (configureAction != null) {
-                configure(getMutationGuard().withMutationEnabled(configureAction));
+                configure(configureAction);
             }
         }
 
