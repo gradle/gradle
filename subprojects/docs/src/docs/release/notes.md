@@ -159,6 +159,7 @@ The following are the features that have been promoted in this Gradle release.
 ### Some long existing incubating features have been promoted
 
 - `IncrementalTaskInputs` and `InputFileDetails`
+- `FileNormalizer` and its subclasses
 
 ## Fixed issues
 

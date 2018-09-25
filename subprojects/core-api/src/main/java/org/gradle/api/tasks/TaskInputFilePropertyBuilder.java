@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -68,6 +67,5 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder {
      *
      * @since 4.3
      */
-    @Incubating
     TaskInputFilePropertyBuilder withNormalizer(Class<? extends FileNormalizer> normalizer);
 }
