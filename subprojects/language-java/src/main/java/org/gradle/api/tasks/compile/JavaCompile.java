@@ -75,7 +75,7 @@ public class JavaCompile extends AbstractCompile {
      * {@inheritDoc}
      */
     @Override
-    @PathSensitive(PathSensitivity.NAME_ONLY)
+    @PathSensitive(PathSensitivity.RELATIVE)
     public FileTree getSource() {
         return super.getSource();
     }
