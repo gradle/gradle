@@ -40,8 +40,6 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
-import org.objectweb.asm.ClassWriter.COMPUTE_FRAMES
-import org.objectweb.asm.ClassWriter.COMPUTE_MAXS
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.ASM6
 import org.objectweb.asm.Type
@@ -149,14 +147,14 @@ class GradleApiParameterNamesTransform @Inject constructor(
     private
     val JarEntry.isGradleApi
         get() = name.endsWith(".class")
-            && name != "package-info.class"
+            && !name.endsWith("package-info.class")
             && gradleApiMetadata.spec.isSatisfiedBy(RelativePath.parse(true, name))
 
     private
     fun JarFile.transformEntryIntoOutputDirectory(entry: JarEntry) {
         getInputStream(entry).use { input ->
             val reader = ClassReader(input)
-            val writer = ClassWriter(COMPUTE_MAXS and COMPUTE_FRAMES)
+            val writer = ClassWriter(0)
             val visitor = ParameterNamesClassVisitor(writer, gradleApiMetadata.parameterNamesSupplier)
             reader.accept(visitor, 0)
             outputDirectory.resolve(entry.name)
