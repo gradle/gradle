@@ -34,7 +34,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.SELECTED_BY_RULE
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.SELECTED_BY_RULE
 
 class DefaultDependencySubstitutionsSpec extends Specification {
     ComponentIdentifierFactory componentIdentifierFactory = Mock(ComponentIdentifierFactory)

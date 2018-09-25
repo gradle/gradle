@@ -35,7 +35,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -216,9 +216,9 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public ComponentSelectionReasonInternal getSelectionReason() {
         if (root) {
-            return VersionSelectionReasons.root();
+            return ComponentSelectionReasons.root();
         }
-        ComponentSelectionReasonInternal reason = VersionSelectionReasons.empty();
+        ComponentSelectionReasonInternal reason = ComponentSelectionReasons.empty();
         for (final SelectorState selectorState : module.getSelectors()) {
             if (selectorState.getFailure() == null) {
                 selectorState.addReasonsForSelector(reason, new RejectedBySelectorDescriptorBuilder(selectorState));
@@ -341,9 +341,9 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
                 registerRejections((RejectedBySelectorVersion) rejectedVersion, version);
             } else if (rejectedVersion instanceof RejectedByRuleVersion) {
                 String reason = ((RejectedByRuleVersion) rejectedVersion).getReason();
-                addCause(VersionSelectionReasons.REJECTION.withReason(new RejectedByRuleReason(version, reason)));
+                addCause(ComponentSelectionReasons.REJECTION.withReason(new RejectedByRuleReason(version, reason)));
             } else if (rejectedVersion instanceof RejectedByAttributesVersion) {
-                addCause(VersionSelectionReasons.REJECTION.withReason(new RejectedByAttributesReason((RejectedByAttributesVersion) rejectedVersion)));
+                addCause(ComponentSelectionReasons.REJECTION.withReason(new RejectedByAttributesReason((RejectedByAttributesVersion) rejectedVersion)));
             }
         }
     }

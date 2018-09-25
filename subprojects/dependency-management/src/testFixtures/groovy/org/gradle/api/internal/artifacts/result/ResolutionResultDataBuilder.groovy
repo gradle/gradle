@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons
 import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
@@ -40,10 +40,10 @@ class ResolutionResultDataBuilder {
 
     static DefaultUnresolvedDependencyResult newUnresolvedDependency(String group='x', String module='x', String version='1', String selectedVersion='1') {
         def requested = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, module), new DefaultMutableVersionConstraint(version))
-        new DefaultUnresolvedDependencyResult(requested, VersionSelectionReasons.requested(), newModule(group, module, selectedVersion), new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId(group, module), version), "broken"))
+        new DefaultUnresolvedDependencyResult(requested, ComponentSelectionReasons.requested(), newModule(group, module, selectedVersion), new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId(group, module), version), "broken"))
     }
 
-    static DefaultResolvedComponentResult newModule(String group='a', String module='a', String version='1', ComponentSelectionReason selectionReason = VersionSelectionReasons.requested(), ResolvedVariantResult variant = newVariant(), String repoId = null) {
+    static DefaultResolvedComponentResult newModule(String group='a', String module='a', String version='1', ComponentSelectionReason selectionReason = ComponentSelectionReasons.requested(), ResolvedVariantResult variant = newVariant(), String repoId = null) {
         new DefaultResolvedComponentResult(newId(group, module, version), selectionReason, new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, module), version), variant, repoId)
     }
 

@@ -124,8 +124,8 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     def "includes selection reason"() {
         given:
         node("a")
-        node("b", VersionSelectionReasons.of([VersionSelectionReasons.FORCED]))
-        node("c", VersionSelectionReasons.of([VersionSelectionReasons.CONFLICT_RESOLUTION]))
+        node("b", ComponentSelectionReasons.of([ComponentSelectionReasons.FORCED]))
+        node("c", ComponentSelectionReasons.of([ComponentSelectionReasons.CONFLICT_RESOLUTION]))
         node("d")
         resolvedConf("a", [dep("b"), dep("c"), dep("d", new RuntimeException("Boo!"))])
         resolvedConf("b", [])
@@ -239,12 +239,12 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 """
     }
 
-    private void node(String module, ComponentSelectionReason reason = VersionSelectionReasons.requested()) {
+    private void node(String module, ComponentSelectionReason reason = ComponentSelectionReasons.requested()) {
         DummyModuleVersionSelection moduleVersion = comp(module, reason)
         builder.visitComponent(moduleVersion)
     }
 
-    private DummyModuleVersionSelection comp(String module, ComponentSelectionReason reason = VersionSelectionReasons.requested()) {
+    private DummyModuleVersionSelection comp(String module, ComponentSelectionReason reason = ComponentSelectionReasons.requested()) {
         def moduleVersion = new DummyModuleVersionSelection(resultId: id(module), moduleVersion: newId(DefaultModuleIdentifier.newId("x", module), "1"), selectionReason: reason, componentId: new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId("x", module), "1"))
         moduleVersion
     }

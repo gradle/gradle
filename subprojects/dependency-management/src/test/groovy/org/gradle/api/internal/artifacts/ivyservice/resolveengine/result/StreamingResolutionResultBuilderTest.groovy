@@ -36,7 +36,7 @@ import spock.lang.Specification
 
 import static java.util.Collections.emptySet
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultPrinter.printGraph
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.*
+import static ComponentSelectionReasons.*
 
 class StreamingResolutionResultBuilderTest extends Specification {
 

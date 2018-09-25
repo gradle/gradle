@@ -29,7 +29,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons
 import org.gradle.internal.Actions
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.locking.NoOpDependencyLockingProvider
@@ -109,7 +109,7 @@ class DefaultResolutionStrategySpec extends Specification {
         _ * globalDependencySubstitutions.ruleAction >> Actions.doNothing()
         _ * details.getRequested() >> DefaultModuleComponentSelector.newSelector(mid, new DefaultMutableVersionConstraint("1.0"))
         _ * details.getOldRequested() >> newSelector(mid, "1.0")
-        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(mid, "2.0"), VersionSelectionReasons.FORCED)
+        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(mid, "2.0"), ComponentSelectionReasons.FORCED)
         0 * details._
     }
 
@@ -138,7 +138,7 @@ class DefaultResolutionStrategySpec extends Specification {
         dependencySubstitutions.ruleAction >> substitutionAction
         _ * details.requested >> DefaultModuleComponentSelector.newSelector(mid, new DefaultMutableVersionConstraint("1.0"))
         _ * details.oldRequested >> newSelector(mid, "1.0")
-        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(mid, "2.0"), VersionSelectionReasons.FORCED)
+        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(mid, "2.0"), ComponentSelectionReasons.FORCED)
         _ * globalDependencySubstitutions.ruleAction >> Actions.doNothing()
 
         then: //user rules follow:

@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictResolutionDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
@@ -206,7 +206,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         if (details.hasFailure()) {
             throw UncheckedException.throwAsUncheckedException(details.getFailure());
         } else {
-            ComponentSelectionDescriptorInternal desc = VersionSelectionReasons.CONFLICT_RESOLUTION;
+            ComponentSelectionDescriptorInternal desc = ComponentSelectionReasons.CONFLICT_RESOLUTION;
             selected.addCause(desc.withReason(new VersionConflictResolutionDetails(candidates)));
         }
         return selected;

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor
+import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.internal.Describables
 import org.gradle.internal.serialize.AbstractDecoder
 import org.gradle.internal.serialize.AbstractEncoder
@@ -27,11 +28,11 @@ import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedEncoder
 
 class ComponentSelectionReasonSerializerTest extends SerializerSpec {
     private final static ComponentSelectionDescriptorInternal[] REASONS_FOR_TEST = [
-            VersionSelectionReasons.SELECTED_BY_RULE,
-            VersionSelectionReasons.CONFLICT_RESOLUTION,
-            VersionSelectionReasons.CONSTRAINT,
-            VersionSelectionReasons.REJECTION,
-            VersionSelectionReasons.FORCED
+            ComponentSelectionReasons.SELECTED_BY_RULE,
+            ComponentSelectionReasons.CONFLICT_RESOLUTION,
+            ComponentSelectionReasons.CONSTRAINT,
+            ComponentSelectionReasons.REJECTION,
+            ComponentSelectionReasons.FORCED
     ] as ComponentSelectionDescriptorInternal[]
 
 
@@ -49,22 +50,22 @@ class ComponentSelectionReasonSerializerTest extends SerializerSpec {
 
     def "serializes"() {
         expect:
-        check(VersionSelectionReasons.CONFLICT_RESOLUTION)
-        check(VersionSelectionReasons.FORCED)
-        check(VersionSelectionReasons.REQUESTED)
-        check(VersionSelectionReasons.ROOT)
-        check(VersionSelectionReasons.SELECTED_BY_RULE)
-        check(VersionSelectionReasons.REQUESTED, VersionSelectionReasons.SELECTED_BY_RULE)
+        check(ComponentSelectionReasons.CONFLICT_RESOLUTION)
+        check(ComponentSelectionReasons.FORCED)
+        check(ComponentSelectionReasons.REQUESTED)
+        check(ComponentSelectionReasons.ROOT)
+        check(ComponentSelectionReasons.SELECTED_BY_RULE)
+        check(ComponentSelectionReasons.REQUESTED, ComponentSelectionReasons.SELECTED_BY_RULE)
     }
 
     def "serializes custom reasons"() {
         expect:
-        check(VersionSelectionReasons.CONFLICT_RESOLUTION.withReason(Describables.of("my conflict resolution")))
-        check(VersionSelectionReasons.FORCED.withReason(Describables.of("forced by me")))
-        check(VersionSelectionReasons.REQUESTED.withReason(Describables.of("I really asked for it")))
-        check(VersionSelectionReasons.ROOT.withReason(Describables.of("I know this is the root of the graph")))
-        check(VersionSelectionReasons.SELECTED_BY_RULE.withReason(Describables.of("Wouldn't it be nice to add custom reasons?")))
-        check(VersionSelectionReasons.REQUESTED, VersionSelectionReasons.SELECTED_BY_RULE.withReason(Describables.of("More details!")))
+        check(ComponentSelectionReasons.CONFLICT_RESOLUTION.withReason(Describables.of("my conflict resolution")))
+        check(ComponentSelectionReasons.FORCED.withReason(Describables.of("forced by me")))
+        check(ComponentSelectionReasons.REQUESTED.withReason(Describables.of("I really asked for it")))
+        check(ComponentSelectionReasons.ROOT.withReason(Describables.of("I know this is the root of the graph")))
+        check(ComponentSelectionReasons.SELECTED_BY_RULE.withReason(Describables.of("Wouldn't it be nice to add custom reasons?")))
+        check(ComponentSelectionReasons.REQUESTED, ComponentSelectionReasons.SELECTED_BY_RULE.withReason(Describables.of("More details!")))
     }
 
     def "multiple writes of the same custom reason"() {
@@ -80,18 +81,18 @@ class ComponentSelectionReasonSerializerTest extends SerializerSpec {
     }
 
     void check(ComponentSelectionDescriptor... reasons) {
-        def reason = VersionSelectionReasons.of(Arrays.asList(reasons))
+        def reason = ComponentSelectionReasons.of(Arrays.asList(reasons))
         def result = serialize(reason, serializer)
         assert result == reason
     }
 
-    private static ComponentSelectionReasonInternal withReason(String reason) {
-        VersionSelectionReasons.of([VersionSelectionReasons.SELECTED_BY_RULE.withReason(Describables.of(reason))])
+    private static ComponentSelectionReason withReason(String reason) {
+        ComponentSelectionReasons.of(ComponentSelectionReasons.SELECTED_BY_RULE.withReason(Describables.of(reason)))
     }
 
-    private static ComponentSelectionReasonInternal withReasons(String... reasons) {
+    private static ComponentSelectionReason withReasons(String... reasons) {
         int idx = -1
-        VersionSelectionReasons.of(reasons.collect {
+        ComponentSelectionReasons.of(reasons.collect {
             reason(++idx).withReason(Describables.of(it))
         })
     }
@@ -101,7 +102,7 @@ class ComponentSelectionReasonSerializerTest extends SerializerSpec {
     }
 
     @Override
-    def <T> T serialize(T value, Serializer<T> serializer) {
+    <T> T serialize(T value, Serializer<T> serializer) {
         def bytes = toBytes(value, serializer)
         return fromBytes(bytes, serializer)
     }

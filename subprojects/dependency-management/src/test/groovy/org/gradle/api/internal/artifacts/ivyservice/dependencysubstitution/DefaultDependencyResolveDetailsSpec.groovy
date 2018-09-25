@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.result.ComponentSelectionCause
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import spock.lang.Specification
 
@@ -36,7 +36,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         details.requested == newVersionSelector("org", "foo", "1.0")
         details.target == newVersionSelector("org", "foo", "1.0")
         !details.delegate.updated
-        details.delegate.selectionDescription == VersionSelectionReasons.REQUESTED
+        details.delegate.selectionDescription == ComponentSelectionReasons.REQUESTED
 
         when:
         details.useVersion("1.0") //the same version
@@ -45,7 +45,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         details.requested == newVersionSelector("org", "foo", "1.0")
         details.target == newVersionSelector("org", "foo", "1.0")
         details.delegate.updated
-        details.delegate.selectionDescription == VersionSelectionReasons.SELECTED_BY_RULE
+        details.delegate.selectionDescription == ComponentSelectionReasons.SELECTED_BY_RULE
 
         when:
         details.useVersion("2.0") //different version
@@ -54,7 +54,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         details.requested == newVersionSelector("org", "foo", "1.0")
         details.target == newVersionSelector("org", "foo", "2.0")
         details.delegate.updated
-        details.delegate.selectionDescription == VersionSelectionReasons.SELECTED_BY_RULE
+        details.delegate.selectionDescription == ComponentSelectionReasons.SELECTED_BY_RULE
     }
 
     def "does not allow null version"() {
@@ -76,7 +76,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         then:
         details.target.toString() == 'org:bar:2.0'
         details.delegate.updated
-        details.delegate.selectionDescription == VersionSelectionReasons.SELECTED_BY_RULE
+        details.delegate.selectionDescription == ComponentSelectionReasons.SELECTED_BY_RULE
     }
 
     def "can mix configuring version and target module"() {

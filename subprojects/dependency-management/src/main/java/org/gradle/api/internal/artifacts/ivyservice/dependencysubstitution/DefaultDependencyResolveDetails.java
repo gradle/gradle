@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 
@@ -46,11 +46,9 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
     }
 
     private ComponentSelectionDescriptorInternal selectionReason() {
-        ComponentSelectionDescriptorInternal reason = VersionSelectionReasons.SELECTED_BY_RULE;
-        if (customDescription != null) {
-            reason = reason.withReason(Describables.of(customDescription));
-        }
-        return reason;
+        return customDescription == null
+            ? ComponentSelectionReasons.SELECTED_BY_RULE
+            : ComponentSelectionReasons.SELECTED_BY_RULE.withReason(Describables.of(customDescription));
     }
 
     @Override

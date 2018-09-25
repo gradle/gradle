@@ -29,7 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -43,8 +43,8 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResu
 
 import java.util.Set;
 
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.CONSTRAINT;
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.REQUESTED;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.CONSTRAINT;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.REQUESTED;
 
 /**
  * Resolution state for a given module version selector.
@@ -260,7 +260,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
     public ComponentSelectionReasonInternal getSelectionReason() {
         // Create a component selection reason specific to this selector.
-        return addReasonsForSelector(VersionSelectionReasons.empty(), IDENTITY);
+        return addReasonsForSelector(ComponentSelectionReasons.empty(), IDENTITY);
     }
 
     ComponentSelectionReasonInternal addReasonsForSelector(ComponentSelectionReasonInternal selectionReason, Transformer<ComponentSelectionDescriptorInternal, ComponentSelectionDescriptorInternal> transformer) {

@@ -34,7 +34,7 @@ public class ComponentSelectionReasonSerializer implements Serializer<ComponentS
 
     public ComponentSelectionReason read(Decoder decoder) throws IOException {
         List<ComponentSelectionDescriptor> descriptions = readDescriptions(decoder);
-        return VersionSelectionReasons.of(descriptions);
+        return ComponentSelectionReasons.of(descriptions);
     }
 
     private List<ComponentSelectionDescriptor> readDescriptions(Decoder decoder) throws IOException {

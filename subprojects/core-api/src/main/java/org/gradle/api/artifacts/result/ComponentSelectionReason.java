@@ -67,6 +67,15 @@ public interface ComponentSelectionReason {
     boolean isCompositeSubstitution();
 
     /**
+     * Informs whether the selected component version has been influenced by a dependency constraint.
+     *
+     * @return true if a dependency constraint influenced the selection of this component
+     *
+     * @since 4.6
+     */
+    boolean isConstrained();
+
+    /**
      * Returns a human-consumable description of this selection reason.
      *
      * @deprecated Use {@link #getDescriptions()} instead
@@ -83,14 +92,4 @@ public interface ComponentSelectionReason {
      */
     @Incubating
     List<ComponentSelectionDescriptor> getDescriptions();
-
-    /**
-     * Informs whether the selected component version has been influenced by a dependency constraint.
-     *
-     * @return true if a dependency constraint influenced the selection of this component
-     *
-     * @since 4.6
-     */
-    @Incubating
-    boolean isConstrained();
 }

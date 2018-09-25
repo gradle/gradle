@@ -28,7 +28,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-public class VersionSelectionReasons {
+public class ComponentSelectionReasons {
     public static final ComponentSelectionDescriptorInternal REQUESTED = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.REQUESTED);
     public static final ComponentSelectionDescriptorInternal ROOT = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.ROOT);
     public static final ComponentSelectionDescriptorInternal FORCED = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.FORCED);
