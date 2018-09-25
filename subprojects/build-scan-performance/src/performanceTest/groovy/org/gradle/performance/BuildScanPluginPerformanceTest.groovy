@@ -140,7 +140,6 @@ class BuildScanPluginPerformanceTest extends Specification {
         "help"                             | ['help']              | false       | []                | null
         "clean build"                      | ['clean', 'build']    | true        | []                | null
         "upToDate assemble"                | ['assemble']          | false       | []                | null
-        "clean assemble"                   | ['clean', 'assemble'] | false       | []                | null
         "clean assemble from build cache"  | ['clean', 'assemble'] | false       | ['--build-cache'] | buildCacheSetup()
         "clean assemble empty build cache" | ['clean', 'assemble'] | false       | ['--build-cache'] | cleanBuildCacheSetup()
     }
