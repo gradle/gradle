@@ -19,7 +19,7 @@ package org.gradle.process.internal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 
-@IntegrationTestTimeout(60)
+@IntegrationTestTimeout(120)
 class ErrorInWorkerSocketIntegrationTest extends AbstractIntegrationSpec {
     private static final String MESSAGE = 'This breaks socket connection threads in worker process deliberately'
 
