@@ -226,6 +226,7 @@ include::sample[dir="userguide/dependencyManagement/managingTransitiveDependenci
 include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/dependencyAlignment/kotlin",files="build.gradle.kts[tags=enforced_platform]"]
 ====
 
+[[sec:virtual_platform]]
 === Virtual vs published platforms
 
 A platform defined by a component metadata rule for which the `belongsTo` target module isn't published on a repository is called a virtual platform.
