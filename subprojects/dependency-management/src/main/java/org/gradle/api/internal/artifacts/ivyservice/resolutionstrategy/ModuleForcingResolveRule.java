@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
@@ -35,10 +34,7 @@ public class ModuleForcingResolveRule implements Action<DependencySubstitutionIn
 
     private final Map<ModuleIdentifier, String> forcedModules;
 
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-
-    public ModuleForcingResolveRule(Collection<? extends ModuleVersionSelector> forcedModules, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
+    public ModuleForcingResolveRule(Collection<? extends ModuleVersionSelector> forcedModules) {
         if (!forcedModules.isEmpty()) {
             this.forcedModules = new HashMap<ModuleIdentifier, String>();
             for (ModuleVersionSelector module : forcedModules) {
