@@ -26,18 +26,23 @@ object EditorReports {
 object EditorMessages {
 
     private
+    const val usingPrevious = "using previous dependencies"
+
+    private
     const val ideLogs = "see IDE logs for more information"
 
     internal
     const val failure = "Script dependencies resolution failed, $ideLogs"
 
     internal
-    const val failureUsingPrevious = "Script dependencies resolution failed, using previous dependencies, $ideLogs"
+    const val failureUsingPrevious = "Script dependencies resolution failed, $usingPrevious, $ideLogs"
 
     private
     const val gradleTasks = "run 'gradle tasks' for more information"
 
     const val buildConfigurationFailed = "Build configuration failed, $gradleTasks"
+
+    const val buildConfigurationFailedUsingPrevious = "Build configuration failed, $usingPrevious, $gradleTasks"
 
     const val buildConfigurationFailedInCurrentScript = "This script caused build configuration to fail, $gradleTasks"
 

@@ -172,6 +172,53 @@ class KotlinScriptDependenciesResolverTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `report file fatality on early build configuration failure`() {
+        // thus disabling syntax highlighting
+
+        withKotlinBuildSrc()
+        withFile("buildSrc/src/main/kotlin/Foo.kt", """
+            BOOM
+        """)
+
+        withDefaultSettings()
+        val editedScript = withBuildScript("")
+
+        resolvedScriptDependencies(editedScript).apply {
+            assertThat(this, nullValue())
+        }
+
+        recorder.apply {
+            assertLastEventIsInstanceOf(ResolutionFailure::class)
+            assertSingleFileReport(ReportSeverity.FATAL, EditorMessages.buildConfigurationFailed)
+        }
+    }
+
+    @Test
+    fun `report file warning on early build configuration failure when reusing previous dependencies`() {
+
+        withKotlinBuildSrc()
+        val buildSrcKotlinSource = withFile("buildSrc/src/main/kotlin/Foo.kt", "")
+
+        withDefaultSettings()
+        val editedScript = withBuildScript("")
+
+        val previous = resolvedScriptDependencies(editedScript).apply {
+            assertContainsBasicDependencies()
+        }
+
+        buildSrcKotlinSource.writeText("BOOM")
+
+        resolvedScriptDependencies(editedScript, previous).apply {
+            assertContainsBasicDependencies()
+        }
+
+        recorder.apply {
+            assertLastEventIsInstanceOf(ResolutionFailure::class)
+            assertSingleFileReport(ReportSeverity.WARNING, EditorMessages.buildConfigurationFailedUsingPrevious)
+        }
+    }
+
+    @Test
     fun `do not report file warning on script compilation failure in currently edited script`() {
         // because the IDE already provides user feedback for those
 

@@ -25,6 +25,8 @@ import org.gradle.kotlin.dsl.tooling.models.EditorReport
 import org.gradle.kotlin.dsl.tooling.models.EditorReportSeverity
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 
+import org.gradle.tooling.BuildException
+
 import java.io.File
 import java.net.URI
 
@@ -44,6 +46,11 @@ typealias Environment = Map<String, Any?>
 
 private
 typealias Report = (ReportSeverity, String, Position?) -> Unit
+
+
+private
+fun Report.warning(message: String, position: Position? = null) =
+    invoke(ReportSeverity.WARNING, message, position)
 
 
 private
@@ -113,6 +120,11 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
                 environment!!,
                 report,
                 previousDependencies)
+        } catch (e: BuildException) {
+            logger.log(ResolutionFailure(script.file, e))
+            if (previousDependencies == null) report.fatal(EditorMessages.buildConfigurationFailed)
+            else report.warning(EditorMessages.buildConfigurationFailedUsingPrevious)
+            previousDependencies
         } catch (e: Exception) {
             logger.log(ResolutionFailure(script.file, e))
             if (previousDependencies == null) report.fatal(EditorMessages.failure)
