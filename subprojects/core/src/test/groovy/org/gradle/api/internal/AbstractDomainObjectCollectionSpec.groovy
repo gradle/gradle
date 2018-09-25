@@ -1515,13 +1515,28 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     @Unroll
-    def "allow common querying and mutating methods when #methods.key on filtered container"() {
+    def "allow common querying and mutating methods when #methods.key on filtered container by type"() {
         setupContainerDefaults()
         container.add(a)
         Closure method = bind(methods.value)
 
         when:
         container.withType(container.type).all(noReentry(method))
+        then:
+        noExceptionThrown()
+
+        where:
+        methods << getQueryMethods() + getMutatingMethods()
+    }
+
+    @Unroll
+    def "allow common querying and mutating methods when #methods.key on filtered container by spec"() {
+        setupContainerDefaults()
+        container.add(a)
+        Closure method = bind(methods.value)
+
+        when:
+        container.matching({ it in container.type }).all(noReentry(method))
         then:
         noExceptionThrown()
 
