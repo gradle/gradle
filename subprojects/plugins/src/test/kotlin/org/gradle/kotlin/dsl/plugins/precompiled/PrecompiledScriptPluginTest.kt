@@ -258,6 +258,8 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
                     $pluginManagementBlock
 
+                    enableFeaturePreview("STABLE_PUBLISHING")
+
                 """)
 
                 withFile("build.gradle.kts", """

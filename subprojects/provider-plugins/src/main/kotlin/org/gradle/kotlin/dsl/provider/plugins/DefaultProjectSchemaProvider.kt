@@ -64,9 +64,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
         if (target is ExtensionAware) {
             accessibleExtensionsSchema(target.extensions.extensionsSchema).forEach { schema ->
                 extensions.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
-                if (!schema.isDeferredConfigurable) {
-                    collectSchemaOf(target.extensions.getByName(schema.name), schema.publicType)
-                }
+                collectSchemaOf(target.extensions.getByName(schema.name), schema.publicType)
             }
         }
         if (target is Project) {
