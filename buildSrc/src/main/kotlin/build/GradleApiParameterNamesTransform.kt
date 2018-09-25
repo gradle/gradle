@@ -36,7 +36,6 @@ import org.gradle.kotlin.dsl.codegen.parameterNamesFor
 import org.gradle.kotlin.dsl.support.gradleApiMetadataFrom
 import org.gradle.kotlin.dsl.support.gradleApiMetadataModuleName
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.gradle.kotlin.dsl.support.zipTo
 
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
@@ -48,6 +47,7 @@ import org.objectweb.asm.Type
 import java.io.File
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
+import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 
 import kotlin.LazyThreadSafetyMode.NONE
@@ -138,20 +138,35 @@ class GradleApiParameterNamesTransform @Inject constructor(
 
     override fun transform(input: File): MutableList<File> =
         when (input.name) {
-            gradleApiJarFileName -> {
-                val classesDir = outputDirectory.resolve("classes")
-                JarFile(input).use { jar ->
-                    jar.entries().asSequence().filterNot { it.isDirectory }.forEach { entry ->
-                        if (entry.isGradleApi) jar.transformEntryIntoOutputDirectory(entry, classesDir)
-                        else jar.writeEntryToOutputDirectory(entry, classesDir)
-                    }
-                }
-                val outputJarFile = outputDirectory.resolve(gradleApiJarWithParameterNamesFileName)
-                zipTo(outputJarFile, classesDir)
-                mutableListOf(outputJarFile)
-            }
+            gradleApiJarFileName -> mutableListOf(outputDirectory.resolve(gradleApiJarWithParameterNamesFileName).also { outputFile ->
+                transformGradleApiJar(input, outputFile)
+            })
             else -> mutableListOf(input)
         }
+
+    private
+    fun transformGradleApiJar(inputFile: File, outputFile: File) {
+        JarFile(inputFile).use { inputJar ->
+            writingJar(outputFile) { zipOutputStream ->
+                transformGradleApiJarEntries(inputJar, zipOutputStream)
+            }
+        }
+    }
+
+    private
+    fun writingJar(outputJarFile: File, action: (ZipOutputStream) -> Unit) {
+        outputJarFile.outputStream().buffered().use { fileStream ->
+            ZipOutputStream(fileStream).use(action)
+        }
+    }
+
+    private
+    fun transformGradleApiJarEntries(inputJar: JarFile, zipOutputStream: ZipOutputStream) {
+        inputJar.entries().asSequence().filterNot { it.isDirectory }.forEach { entry ->
+            if (entry.isGradleApi) inputJar.transformJarEntry(entry, zipOutputStream)
+            else inputJar.copyJarEntry(entry, zipOutputStream)
+        }
+    }
 
     private
     val JarEntry.isGradleApi
@@ -160,15 +175,15 @@ class GradleApiParameterNamesTransform @Inject constructor(
             && gradleApiMetadata.spec.isSatisfiedBy(RelativePath.parse(true, name))
 
     private
-    fun JarFile.transformEntryIntoOutputDirectory(entry: JarEntry, classesDir: File) {
-        getInputStream(entry).use { input ->
+    fun JarFile.transformJarEntry(entry: JarEntry, outputJar: ZipOutputStream) {
+        getInputStream(entry).buffered().use { input ->
             val reader = ClassReader(input)
             val writer = ClassWriter(0)
             val visitor = ParameterNamesClassVisitor(writer, gradleApiMetadata.parameterNamesSupplier)
             reader.accept(visitor, 0)
-            classesDir.resolve(entry.name)
-                .also { it.parentFile.mkdirs() }
-                .writeBytes(writer.toByteArray())
+            outputJar.putNextEntry(JarEntry(entry.name))
+            outputJar.write(writer.toByteArray())
+            outputJar.closeEntry()
         }
     }
 
@@ -178,14 +193,13 @@ class GradleApiParameterNamesTransform @Inject constructor(
     }
 
     private
-    fun JarFile.writeEntryToOutputDirectory(entry: JarEntry, classesDir: File) =
-        getInputStream(entry).use { input ->
-            classesDir.resolve(entry.name)
-                .also { it.parentFile.mkdirs() }
-                .outputStream().use { output ->
-                    input.copyTo(output)
-                }
+    fun JarFile.copyJarEntry(entry: JarEntry, zipOutputStream: ZipOutputStream) {
+        getInputStream(entry).buffered().use { input ->
+            zipOutputStream.putNextEntry(JarEntry(entry.name))
+            input.copyTo(zipOutputStream)
+            zipOutputStream.closeEntry()
         }
+    }
 }
 
 
