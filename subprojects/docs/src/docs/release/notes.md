@@ -325,6 +325,11 @@ This is not the case anymore as the `source` filed is now declared as `private`.
 - `BasePluginConvention` is now abstract.
 - `ProjectReportsPluginConvention` is now abstract.
 
+### Implicit imports for internal classes have been removed
+
+Classes in the internal `org.gradle.util` package are no longer implicitly imported by default.
+Please either stop using internal classes (recommended) or import them explicitly at the top of your build file.
+
 ### System properties `test.single` and `test.debug` have been removed
 
 The `test.single` filter mechanism has been removed. You must select tests from the command-line with [`--tests`](userguide/java_testing.html#simple_name_pattern).
