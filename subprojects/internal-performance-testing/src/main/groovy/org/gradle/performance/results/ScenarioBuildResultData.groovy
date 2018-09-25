@@ -45,11 +45,15 @@ class ScenarioBuildResultData {
     }
 
     double getRegressionSortKey() {
-        double signum = Math.signum(executions[0].regressionPercentage)
+        if (executions.empty) {
+            return Double.NEGATIVE_INFINITY
+        }
+        def firstExecution = executions[0]
+        double signum = Math.signum(firstExecution.regressionPercentage)
         if (signum == 0.0d) {
             signum = -1.0
         }
-        return executions.empty ? Double.NEGATIVE_INFINITY : executions[0].confidencePercentage * signum
+        return firstExecution.confidencePercentage * signum
     }
 
     double getRegressionPercentage() {
