@@ -19,6 +19,7 @@ package org.gradle.api.internal
 
 import org.gradle.api.NamedDomainObjectCollection
 import org.gradle.internal.Actions
+import spock.lang.Unroll
 
 abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDomainObjectCollectionSpec<T> {
     abstract NamedDomainObjectCollection<T> getContainer()
@@ -31,5 +32,20 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
             "register(String)": { container.register("b") },
             "register(String, Action)": { container.register("b", Actions.doNothing()) },
         ]
+    }
+
+    @Unroll
+    def "allow query and mutating methods from create using #methods.key"() {
+        setupContainerDefaults()
+        String methodUnderTest = methods.key
+        Closure method = bind(methods.value)
+
+        when:
+        container.create("a", method)
+        then:
+        noExceptionThrown()
+
+        where:
+        methods << getQueryMethods() + getMutatingMethods()
     }
 }
