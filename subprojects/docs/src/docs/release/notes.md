@@ -312,6 +312,7 @@ This is not the case anymore as the `source` filed is now declared as `private`.
 - Removed `JavaBasePlugin.configureForSourceSet`
 - Removed `JDepend.classesDir`
 - Removed `IdeaPlugin.performPostEvaluationActions` and `EclipsePlugin.performPostEvaluationActions`
+- Removed `ConfigurableReport.setDestination(Object)`
 - Forbid passing `null` as configuration action to the methods `from` and `to` on `CopySpec`.
 - Removed the property `bootClasspath` from `CompileOptions`.
 - Validation problems for inputs or outputs registered via the runtime API now fail the build.
