@@ -42,6 +42,9 @@ dependencies {
     compile("commons-beanutils:commons-beanutils:1.8.3") {
         exclude group: 'commons-logging'
     }
+    constraints {
+        compile "org.apache.commons:commons-math3:3.0"
+    }
 }
 
 uploadArchives {
@@ -61,11 +64,13 @@ uploadArchives {
 
         ivyModule.assertArtifactsPublished("ivy-1.9.xml", "publishTest-1.9.jar")
 
-        ivyModule.parsedIvy.dependencies.size() == 4
+        ivyModule.parsedIvy.dependencies.size() == 5
         ivyModule.parsedIvy.dependencies["commons-collections:commons-collections:3.2.2"].hasConf("compile->default")
         ivyModule.parsedIvy.dependencies["commons-io:commons-io:1.4"].hasConf("runtime->default")
         ivyModule.parsedIvy.dependencies["javax.servlet:servlet-api:2.5"].hasConf("compileOnly->default")
         ivyModule.parsedIvy.dependencies["commons-beanutils:commons-beanutils:1.8.3"].exclusions[0].org == 'commons-logging'
+        // Not ideal, but documents the way this works for now
+        ivyModule.parsedIvy.dependencies["org.apache.commons:commons-math3:3.0"].hasConf("compile->default")
 
         ivyModule.parsedIvy.exclusions.collect { it.org + ":" + it.module + "@" + it.conf} == ["foo:bar@compile"]
     }
