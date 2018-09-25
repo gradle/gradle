@@ -169,8 +169,8 @@ However often BOMs are not only providing versions as recommendations, but also 
 
 .Importing a BOM, making sure the versions it defines override any other version found
 ====
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/constraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/constraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/enforcedConstraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/enforcedConstraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
 ====
 
 [[sec:version_alignment]]
