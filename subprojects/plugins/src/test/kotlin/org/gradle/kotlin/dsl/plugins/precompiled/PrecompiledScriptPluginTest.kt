@@ -18,7 +18,6 @@ import org.gradle.kotlin.dsl.fixtures.assertFailsWith
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
-import org.gradle.kotlin.dsl.fixtures.joinLines
 import org.gradle.kotlin.dsl.fixtures.withFolders
 
 import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
@@ -100,7 +99,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
         // given:
         val expectedMessage = "Not on my watch!"
 
-        withKotlinDslPluginPlus()
+        withKotlinDslPlugin()
 
         withFile("src/main/kotlin/my-project-script.gradle.kts", """
             throw IllegalStateException("$expectedMessage")
@@ -195,7 +194,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
                 withFile(
                     "build.gradle.kts",
-                    scriptWithKotlinDslPluginPlus())
+                    scriptWithKotlinDslPlugin())
             }
         }
 
@@ -357,7 +356,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
     private
     fun givenPrecompiledKotlinScript(fileName: String, code: String) {
-        withKotlinDslPluginPlus()
+        withKotlinDslPlugin()
         withFile("src/main/kotlin/$fileName", code)
         compileKotlin()
     }
@@ -374,15 +373,14 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
             .loadClass(className)
 
     private
-    fun withKotlinDslPluginPlus(vararg additionalPlugins: String) =
-        withBuildScript(scriptWithKotlinDslPluginPlus(*additionalPlugins))
+    fun withKotlinDslPlugin() =
+        withBuildScript(scriptWithKotlinDslPlugin())
 
     private
-    fun scriptWithKotlinDslPluginPlus(vararg additionalPlugins: String): String =
+    fun scriptWithKotlinDslPlugin(): String =
         """
             plugins {
                 `kotlin-dsl`
-                ${additionalPlugins.asIterable().joinLines { "`$it`" }}
             }
 
             $repositoriesBlock
