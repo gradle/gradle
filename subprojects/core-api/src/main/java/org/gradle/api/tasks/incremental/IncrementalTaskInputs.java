@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.incremental;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 
 /**
@@ -71,7 +70,6 @@ import org.gradle.api.NonExtensible;
  *     <li>{@link #outOfDate} must be executed before {@link #removed} is called.</li>
  * </ul>
  */
-@Incubating
 @NonExtensible
 public interface IncrementalTaskInputs {
     /**

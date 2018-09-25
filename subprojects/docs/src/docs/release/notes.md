@@ -156,6 +156,10 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
+### Some long existing incubating features have been promoted
+
+- `IncrementalTaskInputs` and `InputFileDetails`
+
 ## Fixed issues
 
 ### Reporting of TestNG classes/methods
