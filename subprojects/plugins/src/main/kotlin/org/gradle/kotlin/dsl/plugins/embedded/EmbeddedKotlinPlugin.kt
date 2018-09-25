@@ -58,7 +58,7 @@ open class EmbeddedKotlinPlugin @Inject internal constructor(
                 embeddedKotlinConfiguration.name,
                 "stdlib-jdk8", "reflect")
 
-            listOf(COMPILE_ONLY_CONFIGURATION_NAME, TEST_IMPLEMENTATION_CONFIGURATION_NAME).forEach {
+            kotlinArtifactConfigurationNames.forEach {
                 configurations.getByName(it).extendsFrom(embeddedKotlinConfiguration)
             }
 
@@ -83,3 +83,8 @@ fun Logger.warnOnDifferentKotlinVersion(kotlinVersion: String?) {
         )
     }
 }
+
+
+internal
+val kotlinArtifactConfigurationNames =
+    listOf(COMPILE_ONLY_CONFIGURATION_NAME, TEST_IMPLEMENTATION_CONFIGURATION_NAME)

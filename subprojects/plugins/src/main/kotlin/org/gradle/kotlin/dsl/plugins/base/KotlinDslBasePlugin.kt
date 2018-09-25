@@ -19,12 +19,10 @@ package org.gradle.kotlin.dsl.plugins.base
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
-import org.gradle.api.plugins.JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME
-
 import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslCompilerPlugins
 import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPluginOptions
 import org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
+import org.gradle.kotlin.dsl.plugins.embedded.kotlinArtifactConfigurationNames
 
 import org.gradle.kotlin.dsl.*
 
@@ -48,10 +46,7 @@ class KotlinDslBasePlugin : Plugin<Project> {
         apply<EmbeddedKotlinPlugin>()
         createOptionsExtension()
         apply<KotlinDslCompilerPlugins>()
-        addGradleKotlinDslDependencyTo(
-            COMPILE_ONLY_CONFIGURATION_NAME,
-            TEST_IMPLEMENTATION_CONFIGURATION_NAME
-        )
+        addGradleKotlinDslDependencyTo(kotlinArtifactConfigurationNames)
     }
 
     private
@@ -59,7 +54,7 @@ class KotlinDslBasePlugin : Plugin<Project> {
         extensions.add("kotlinDslPluginOptions", KotlinDslPluginOptions(objects))
 
     private
-    fun Project.addGradleKotlinDslDependencyTo(vararg configurations: String) =
+    fun Project.addGradleKotlinDslDependencyTo(configurations: List<String>) =
         configurations.forEach {
             dependencies.add(it, gradleKotlinDsl())
         }
