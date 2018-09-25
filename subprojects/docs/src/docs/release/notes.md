@@ -160,6 +160,7 @@ The following are the features that have been promoted in this Gradle release.
 
 - `IncrementalTaskInputs` and `InputFileDetails`
 - `FileNormalizer` and its subclasses
+- `@LocalState` and `TaskLocalState`
 
 ## Fixed issues
 

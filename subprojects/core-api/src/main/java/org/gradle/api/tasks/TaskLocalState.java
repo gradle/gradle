@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -26,7 +25,6 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @since 4.3
  */
-@Incubating
 @HasInternalProtocol
 public interface TaskLocalState {
     /**
