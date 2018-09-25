@@ -424,7 +424,7 @@ class DefaultTaskOutputsTest extends Specification {
         cachingState = outputs.getCachingState(taskPropertiesWithCacheableOutput, invalidBuildCacheKey)
         then:
         !cachingState.enabled
-        cachingState.disabledReason == 'Task action was implemented by the Java lambda \'org.my.package.MyPlugin$$Lambda$1/23246642345\'. Use an anonymous inner class instead.'
+        cachingState.disabledReason == 'Task action was implemented by the Java lambda \'org.my.package.MyPlugin$$Lambda$1/23246642345\'. Using Java lambdas is not supported, use an (anonymous) inner class instead.'
         cachingState.disabledReasonCategory == TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TASK_ACTION
 
         when:
