@@ -36,6 +36,7 @@ import org.gradle.kotlin.dsl.codegen.parameterNamesFor
 import org.gradle.kotlin.dsl.support.gradleApiMetadataFrom
 import org.gradle.kotlin.dsl.support.gradleApiMetadataModuleName
 import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.kotlin.dsl.support.zipTo
 
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
@@ -131,15 +132,23 @@ class GradleApiParameterNamesTransform @Inject constructor(
     val gradleApiJarFileName =
         "gradle-api-$gradleVersion.jar"
 
+    private
+    val gradleApiJarWithParameterNamesFileName =
+        "gradle-api-$gradleVersion-with-parameter-names.jar"
+
     override fun transform(input: File): MutableList<File> =
         when (input.name) {
-            gradleApiJarFileName -> mutableListOf(outputDirectory).also {
+            gradleApiJarFileName -> {
+                val classesDir = outputDirectory.resolve("classes")
                 JarFile(input).use { jar ->
                     jar.entries().asSequence().filterNot { it.isDirectory }.forEach { entry ->
-                        if (entry.isGradleApi) jar.transformEntryIntoOutputDirectory(entry)
-                        else jar.writeEntryToOutputDirectory(entry)
+                        if (entry.isGradleApi) jar.transformEntryIntoOutputDirectory(entry, classesDir)
+                        else jar.writeEntryToOutputDirectory(entry, classesDir)
                     }
                 }
+                val outputJarFile = outputDirectory.resolve(gradleApiJarWithParameterNamesFileName)
+                zipTo(outputJarFile, classesDir)
+                mutableListOf(outputJarFile)
             }
             else -> mutableListOf(input)
         }
@@ -151,13 +160,13 @@ class GradleApiParameterNamesTransform @Inject constructor(
             && gradleApiMetadata.spec.isSatisfiedBy(RelativePath.parse(true, name))
 
     private
-    fun JarFile.transformEntryIntoOutputDirectory(entry: JarEntry) {
+    fun JarFile.transformEntryIntoOutputDirectory(entry: JarEntry, classesDir: File) {
         getInputStream(entry).use { input ->
             val reader = ClassReader(input)
             val writer = ClassWriter(0)
             val visitor = ParameterNamesClassVisitor(writer, gradleApiMetadata.parameterNamesSupplier)
             reader.accept(visitor, 0)
-            outputDirectory.resolve(entry.name)
+            classesDir.resolve(entry.name)
                 .also { it.parentFile.mkdirs() }
                 .writeBytes(writer.toByteArray())
         }
@@ -169,9 +178,9 @@ class GradleApiParameterNamesTransform @Inject constructor(
     }
 
     private
-    fun JarFile.writeEntryToOutputDirectory(entry: JarEntry) =
+    fun JarFile.writeEntryToOutputDirectory(entry: JarEntry, classesDir: File) =
         getInputStream(entry).use { input ->
-            outputDirectory.resolve(entry.name)
+            classesDir.resolve(entry.name)
                 .also { it.parentFile.mkdirs() }
                 .outputStream().use { output ->
                     input.copyTo(output)

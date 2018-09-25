@@ -30,13 +30,11 @@ import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.Matcher
 
 import org.junit.Assert.assertThat
-import org.junit.Ignore
 import org.junit.Test
 
 import kotlin.reflect.KClass
 
 
-@Ignore("wip: ProjectBuilder is broken after the latest Gradle update")
 class TaskContainerDslTest : AbstractDslTest() {
 
     @Test
