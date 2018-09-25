@@ -17,6 +17,7 @@
 package org.gradle.api.internal
 
 import org.gradle.api.NamedDomainObjectCollection
+import org.gradle.internal.Actions
 import spock.lang.Unroll
 
 abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomainObjectCollectionSpec<T> {
@@ -26,6 +27,13 @@ abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomain
     protected Map<String, Closure> getQueryMethods() {
         return super.getQueryMethods() + [
             "getByName(String)": { container.getByName("a") },
+        ]
+    }
+
+    @Override
+    protected Map<String, Closure> getMutatingMethods() {
+        return super.getMutatingMethods() + [
+            "getByName(String, Action)": { container.getByName("a", Actions.doNothing()) }
         ]
     }
 
@@ -148,5 +156,50 @@ abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomain
 
         where:
         queryMethods << getQueryMethods()
+    }
+
+    @Unroll
+    def "allow common querying and mutating methods when #methods.key within getByName configuration action"() {
+        setupContainerDefaults()
+        container.add(a)
+        Closure method = bind(methods.value)
+
+        when:
+        container.getByName("a", noReentry(method))
+        then:
+        noExceptionThrown()
+
+        where:
+        methods << getQueryMethods() + getMutatingMethods()
+    }
+
+    @Unroll
+    def "allow common querying and mutating methods when #methods.key within getByName configuration action on filtered container by type"() {
+        setupContainerDefaults()
+        container.add(a)
+        Closure method = bind(methods.value)
+
+        when:
+        container.withType(container.type).getByName("a", noReentry(method))
+        then:
+        noExceptionThrown()
+
+        where:
+        methods << getQueryMethods() + getMutatingMethods()
+    }
+
+    @Unroll
+    def "allow common querying and mutating methods when #methods.key within getByName configuration action on filtered container by spec"() {
+        setupContainerDefaults()
+        container.add(a)
+        Closure method = bind(methods.value)
+
+        when:
+        container.matching({ it in container.type }).getByName("a", noReentry(method))
+        then:
+        noExceptionThrown()
+
+        where:
+        methods << getQueryMethods() + getMutatingMethods()
     }
 }
