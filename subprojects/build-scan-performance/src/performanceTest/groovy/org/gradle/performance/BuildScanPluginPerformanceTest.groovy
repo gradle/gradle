@@ -132,7 +132,7 @@ class BuildScanPluginPerformanceTest extends Specification {
         println "\nspeed statistics ${with.name}: "
         println with.getSpeedStats()
 
-        // cannot be more than 1s slower
+        // cannot be more than 1s slower (TODO probably convert that into a percentage value)
         with.totalTime.average - without.totalTime.average < millis(1000)
 
         where:

@@ -39,6 +39,7 @@ import org.gradle.internal.reflect.NoSuchMethodException;
 import org.gradle.internal.reflect.NoSuchPropertyException;
 import org.gradle.internal.reflect.PropertyAccessor;
 import org.gradle.internal.reflect.PropertyMutator;
+import org.gradle.internal.util.Trie;
 import org.gradle.process.internal.streams.EncodedStream;
 import org.gradle.process.internal.worker.GradleWorkerMain;
 import org.objectweb.asm.ClassReader;
@@ -154,6 +155,8 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
                 PropertyMutator.class,
                 Factory.class,
                 Spec.class,
+                Action.class,
+                Trie.class,
                 JavaVersion.class);
             Set<Class<?>> result = new HashSet<Class<?>>(classes);
             for (Class<?> klass : classes) {

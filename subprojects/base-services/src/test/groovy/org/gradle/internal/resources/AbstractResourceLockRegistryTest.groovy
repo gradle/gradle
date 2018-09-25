@@ -70,13 +70,13 @@ class AbstractResourceLockRegistryTest extends Specification {
         thread.join()
     }
 
-    static class TestRegistry extends AbstractResourceLockRegistry {
+    static class TestRegistry extends AbstractResourceLockRegistry<String, ResourceLock> {
         TestRegistry(ResourceLockCoordinationService coordinationService) {
             super(coordinationService)
         }
 
         def getResourceLock(String displayName) {
-            return getOrRegisterResourceLock(displayName, new AbstractResourceLockRegistry.ResourceLockProducer() {
+            return getOrRegisterResourceLock(displayName, new AbstractResourceLockRegistry.ResourceLockProducer<String, ResourceLock>() {
                 @Override
                 ResourceLock create(String name, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
                     return new TestTrackedResourceLock(name, coordinationService, lockAction, unlockAction)

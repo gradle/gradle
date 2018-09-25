@@ -136,6 +136,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     @Override
     public boolean addAll(Collection<? extends T> c) {
+        assertMutable("addAll(Collection<T>)");
         boolean changed = super.addAll(c);
         if (changed) {
             for (T t : c) {
@@ -316,15 +317,11 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     protected T removeByName(String name) {
         T it = getByName(name);
-        if (it != null) {
-            if (remove(it)) {
-                return it;
-            } else {
-                // unclear what the best thing to do here would be
-                throw new IllegalStateException(String.format("found '%s' with name '%s' but remove() returned false", it, name));
-            }
+        if (remove(it)) {
+            return it;
         } else {
-            return null;
+            // unclear what the best thing to do here would be
+            throw new IllegalStateException(String.format("found '%s' with name '%s' but remove() returned false", it, name));
         }
     }
 
@@ -824,7 +821,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected NamedDomainObjectProvider<? extends T> createExistingProvider(String name, T object) {
-        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingNamedDomainObjectProvider.class, this, name));
+        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingNamedDomainObjectProvider.class, this, name, new DslObject(object).getDeclaredType()));
     }
 
     protected abstract class AbstractNamedDomainObjectProvider<I extends T> extends AbstractReadOnlyProvider<I> implements Named, NamedDomainObjectProvider<I> {
@@ -859,10 +856,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected class ExistingNamedDomainObjectProvider<I extends T> extends AbstractNamedDomainObjectProvider<I> {
-        public ExistingNamedDomainObjectProvider(String name) {
-            this(name, (Class<I>) DefaultNamedDomainObjectCollection.this.getType());
-        }
-
         public ExistingNamedDomainObjectProvider(String name, Class type) {
            super(name, type);
         }

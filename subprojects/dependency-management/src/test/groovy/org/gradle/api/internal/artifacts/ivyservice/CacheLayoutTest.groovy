@@ -54,10 +54,10 @@ class CacheLayoutTest extends Specification {
 
         then:
         cacheLayout.name == 'metadata'
-        cacheLayout.key == 'metadata-2.67'
-        cacheLayout.version == CacheVersion.parse("2.67")
-        cacheLayout.version.toString() == '2.67'
-        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/metadata-2.67')
+        cacheLayout.key == 'metadata-2.68'
+        cacheLayout.version == CacheVersion.parse("2.68")
+        cacheLayout.version.toString() == '2.68'
+        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/metadata-2.68')
         !cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("1.9-rc-1")).present
         cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("1.9-rc-2")).get() == CacheVersion.of(2, 1)
     }

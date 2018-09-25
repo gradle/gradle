@@ -18,13 +18,8 @@ package org.gradle.api
 
 class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
     @Override
-    String getContainerUnderTest() {
+    String makeContainer() {
         return "tasks"
-    }
-
-    @Override
-    String getBaseElementType() {
-        return "DefaultTask"
     }
 
     @Override

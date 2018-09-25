@@ -155,11 +155,11 @@ fun Project.applyGroovyProjectConventions() {
     dependencies {
         compile(localGroovy())
         val spockGroovyVersion = groovy.lang.GroovySystem.getVersion().substring(0, 3)
-        testCompile("org.spockframework:spock-core:1.2-RC2-groovy-${spockGroovyVersion}") {
+        testCompile("org.spockframework:spock-core:1.2-groovy-${spockGroovyVersion}") {
             exclude(group = "org.codehaus.groovy")
         }
-        testCompile("cglib:cglib:3.2.7")
-        testCompile("org.objenesis:objenesis:2.4")
+        testCompile("net.bytebuddy:byte-buddy:1.8.21")
+        testCompile("org.objenesis:objenesis:2.6")
     }
 
     tasks.withType<GroovyCompile>().configureEach {

@@ -108,7 +108,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
 
     @Override
     protected Optional<ImmutableList<? extends ConfigurationMetadata>> maybeDeriveVariants() {
-        return isJavaLibrary() ? Optional.<ImmutableList<? extends ConfigurationMetadata>>of(getDerivedVariants()) : Optional.<ImmutableList<? extends ConfigurationMetadata>>absent();
+        return Optional.<ImmutableList<? extends ConfigurationMetadata>>of(getDerivedVariants());
     }
 
     private ImmutableList<? extends ConfigurationMetadata> getDerivedVariants() {
@@ -254,10 +254,6 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
 
     public NamedObjectInstantiator getObjectInstantiator() {
         return objectInstantiator;
-    }
-
-    private boolean isJavaLibrary() {
-        return isKnownJarPackaging() || isPomPackaging();
     }
 
     @Nullable

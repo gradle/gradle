@@ -87,22 +87,19 @@ public class FileSystemSnapshotFilter {
     /**
      * Adapts a {@link FileSystemLocationSnapshot} to the {@link FileTreeElement} interface, e.g. to allow
      * passing it to a {@link org.gradle.api.tasks.util.PatternSet} for filtering.
-     *
-     * The fields on this class are prefixed with _ to avoid users from accidentally referencing them
-     * in dynamic Groovy code.
      */
     private static class LogicalFileTreeElement extends AbstractFileTreeElement {
-        private final Iterable<String> _relativePathIterable;
-        private final FileSystem _fileSystem;
-        private final FileSystemLocationSnapshot _snapshot;
-        private RelativePath _relativePath;
-        private File _file;
+        private final Iterable<String> relativePathIterable;
+        private final FileSystem fileSystem;
+        private final FileSystemLocationSnapshot snapshot;
+        private RelativePath relativePath;
+        private File file;
 
         public LogicalFileTreeElement(FileSystemLocationSnapshot snapshot, Iterable<String> relativePathIterable, FileSystem fileSystem) {
             super(fileSystem);
-            this._snapshot = snapshot;
-            this._relativePathIterable = relativePathIterable;
-            this._fileSystem = fileSystem;
+            this.snapshot = snapshot;
+            this.relativePathIterable = relativePathIterable;
+            this.fileSystem = fileSystem;
         }
 
         @Override
@@ -112,15 +109,15 @@ public class FileSystemSnapshotFilter {
 
         @Override
         public File getFile() {
-            if (_file == null) {
-                _file = new File(_snapshot.getAbsolutePath());
+            if (file == null) {
+                file = new File(snapshot.getAbsolutePath());
             }
-            return _file;
+            return file;
         }
 
         @Override
         public boolean isDirectory() {
-            return _snapshot.getType() == FileType.Directory;
+            return snapshot.getType() == FileType.Directory;
         }
 
         @Override
@@ -140,15 +137,15 @@ public class FileSystemSnapshotFilter {
 
         @Override
         public RelativePath getRelativePath() {
-            if (_relativePath == null) {
-                _relativePath = new RelativePath(!isDirectory(), Iterables.toArray(_relativePathIterable, String.class));
+            if (relativePath == null) {
+                relativePath = new RelativePath(!isDirectory(), Iterables.toArray(relativePathIterable, String.class));
             }
-            return _relativePath;
+            return relativePath;
         }
 
         @Override
         public int getMode() {
-            return _fileSystem.getUnixMode(getFile());
+            return fileSystem.getUnixMode(getFile());
         }
     }
 }

@@ -38,6 +38,8 @@ import org.gradle.api.tasks.testing.TestOutputListener
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.process.CommandLineArgumentProvider
 import org.openmbee.junit.JUnitMarshalling
+import org.openmbee.junit.model.JUnitFailure
+import org.openmbee.junit.model.JUnitTestCase
 import org.openmbee.junit.model.JUnitTestSuite
 
 import javax.inject.Inject
@@ -306,7 +308,12 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
             fireTestListener(testSuite, response)
         } catch (e) {
             e.printStackTrace(System.err)
+            finishedBuilds.put(jobId, new ScenarioResult(name: scheduledBuilds.get(jobId).id, buildResult: response, testSuite: testSuiteWithFailureText(response.statusText)))
         }
+    }
+
+    private static JUnitTestSuite testSuiteWithFailureText(String failureText) {
+        new JUnitTestSuite(testCases: [new JUnitTestCase(failures: [new JUnitFailure(value: failureText)])])
     }
 
     void cancel(String buildId) {

@@ -71,6 +71,8 @@ import static org.gradle.api.internal.artifacts.repositories.resolver.VirtualCom
 
 public class DefaultComponentMetadataProcessor implements ComponentMetadataProcessor {
 
+    private final static boolean FORCE_REALIZE = Boolean.getBoolean("org.gradle.integtest.force.realize.metadata");
+
     private static final Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext> DETAILS_TO_RESULT = new Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext>() {
             @Override
             public ModuleComponentResolveMetadata transform(WrappingComponentMetadataContext componentMetadataContext) {
@@ -79,16 +81,17 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
             }
         };
 
-    // This method and the next one can be used to force realisation and serialization, making sure all required state will be cached
-    private ModuleComponentResolveMetadata forceRealisation(ModuleComponentResolveMetadata metadata) {
-        if (metadata instanceof DefaultIvyModuleResolveMetadata) {
-            metadata = RealisedIvyModuleResolveMetadata.transform((DefaultIvyModuleResolveMetadata) metadata);
-        } else if (metadata instanceof DefaultMavenModuleResolveMetadata) {
-            metadata = RealisedMavenModuleResolveMetadata.transform((DefaultMavenModuleResolveMetadata) metadata);
-        } else {
-            throw new IllegalStateException("Invalid type received: " + metadata.getClass());
+    private ModuleComponentResolveMetadata maybeForceRealisation(ModuleComponentResolveMetadata metadata) {
+        if (FORCE_REALIZE) {
+            if (metadata instanceof DefaultIvyModuleResolveMetadata) {
+                metadata = RealisedIvyModuleResolveMetadata.transform((DefaultIvyModuleResolveMetadata) metadata);
+            } else if (metadata instanceof DefaultMavenModuleResolveMetadata) {
+                metadata = RealisedMavenModuleResolveMetadata.transform((DefaultMavenModuleResolveMetadata) metadata);
+            } else {
+                throw new IllegalStateException("Invalid type received: " + metadata.getClass());
+            }
+            metadata = forceSerialization(metadata);
         }
-        metadata = forceSerialization(metadata);
         return metadata;
     }
 
@@ -159,14 +162,14 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
     public ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata metadata) {
         ModuleComponentResolveMetadata updatedMetadata;
         if (metadataRuleContainer.isEmpty()) {
-            updatedMetadata = metadata;
+            updatedMetadata = maybeForceRealisation(metadata);
         } else if (metadataRuleContainer.isClassBasedRulesOnly()) {
             updatedMetadata = processClassRuleWithCaching(metadata, metadataResolutionContext);
         } else {
             MutableModuleComponentResolveMetadata mutableMetadata = metadata.asMutable();
             ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, mutableMetadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser);
             processAllRules(metadata, details, metadata.getModuleVersionId());
-            updatedMetadata = mutableMetadata.asImmutable();
+            updatedMetadata = maybeForceRealisation(mutableMetadata.asImmutable());
         }
 
         if (!updatedMetadata.getStatusScheme().contains(updatedMetadata.getStatus())) {
