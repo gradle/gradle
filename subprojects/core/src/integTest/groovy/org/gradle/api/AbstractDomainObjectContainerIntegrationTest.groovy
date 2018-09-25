@@ -36,8 +36,8 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
 
     Map<String, String> getMutationCodeUnderTest() {
         [
-            "create(String)":   "testContainer.create('c')",
-            "register(String)": "testContainer.register('c')",
+            "create(String)":   "testContainer.create('c' + it.name)",
+            "register(String)": "testContainer.register('c' + it.name)",
         ]
     }
 
@@ -181,5 +181,39 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
 
         where:
         queryMethod << getMutationCodeUnderTest()
+    }
+
+    @Unroll
+    def "can execute query and mutating methods #method.key from all"() {
+        buildFile << """
+            testContainer.all {
+                if (!it.name.startsWith("c")) {
+                    ${method.value}
+                }
+            }
+        """
+
+        expect:
+        succeeds "help"
+
+        where:
+        method << getQueryCodeUnderTest() + getMutationCodeUnderTest()
+    }
+
+    @Unroll
+    def "can execute query and mutating methods #method.key from withType.all"() {
+        buildFile << """
+            testContainer.withType(testContainer.type).all {
+                if (!it.name.startsWith("c")) {
+                    ${method.value}
+                }
+            }
+        """
+
+        expect:
+        succeeds "help"
+
+        where:
+        method << getQueryCodeUnderTest() + getMutationCodeUnderTest()
     }
 }
