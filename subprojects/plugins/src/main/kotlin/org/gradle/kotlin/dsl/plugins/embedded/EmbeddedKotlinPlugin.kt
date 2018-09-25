@@ -19,6 +19,9 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.logging.Logger
 
+import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
+import org.gradle.api.plugins.JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME
+
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 
@@ -55,7 +58,7 @@ open class EmbeddedKotlinPlugin @Inject internal constructor(
                 embeddedKotlinConfiguration.name,
                 "stdlib-jdk8", "reflect")
 
-            listOf("compileOnly", "testImplementation").forEach {
+            kotlinArtifactConfigurationNames.forEach {
                 configurations.getByName(it).extendsFrom(embeddedKotlinConfiguration)
             }
 
@@ -80,3 +83,8 @@ fun Logger.warnOnDifferentKotlinVersion(kotlinVersion: String?) {
         )
     }
 }
+
+
+internal
+val kotlinArtifactConfigurationNames =
+    listOf(COMPILE_ONLY_CONFIGURATION_NAME, TEST_IMPLEMENTATION_CONFIGURATION_NAME)

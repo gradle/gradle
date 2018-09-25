@@ -24,7 +24,15 @@ import org.junit.Test
 class ProjectWithBuildSrcSampleTest : AbstractSampleTest("project-with-buildSrc") {
 
     @Test
-    fun `testProfile`() {
+    fun `test precompiled script plugin`() {
+        assertThat(
+            build("myReport").output,
+            containsString("my.flag = true")
+        )
+    }
+
+    @Test
+    fun `test profile`() {
         val output = build("printProfile").output
         assertThat(
             output,
@@ -37,7 +45,7 @@ class ProjectWithBuildSrcSampleTest : AbstractSampleTest("project-with-buildSrc"
     }
 
     @Test
-    fun `testProfile with property`() {
+    fun `test profile with property`() {
         val output = build("printProfile", "-Pprofile=prod").output
         assertThat(
             output,
