@@ -35,4 +35,9 @@ public class ${testClassName} {
     public void testThree() throws Exception {
         assertEquals(production.getProperty(), "value");
     }
+
+    @org.junit.Test
+    public void testFour() throws Exception {
+        assertEquals(production.getProperty(), "value");
+        }
 }
