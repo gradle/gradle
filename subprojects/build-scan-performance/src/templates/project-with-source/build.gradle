@@ -2,6 +2,18 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
 
+
+<% if (binding.hasVariable("manyPlugins")) { (1..25).findAll { it % 3 == 0 }.each { %>
+    apply plugin: "org.gradle.build.gen${it}"
+    <% } %>
+    <% } %>
+
+
+<% if (binding.hasVariable("manyScripts")) { (1..30).findAll { it % 5 == 0 }.each { %>
+    apply from "\$rootProject.projectDir/gradle/script-plugin${it}.gradle"
+    <% } %>
+    <% } %>
+
 repositories {
 <% if (repository) { %>
     maven {
@@ -17,10 +29,6 @@ repositories {
     }
 <% } %>
 
-<% if (binding.hasVariable("manyPlugins")) { (0..24).each { %>
-    apply plugin: "org.gradle.build.gen${it}"
-    <% } %>
-<% } %>
 
 <% if (binding.hasVariable("springDmPluginVersion")) {%>
 apply plugin: "io.spring.dependency-management"

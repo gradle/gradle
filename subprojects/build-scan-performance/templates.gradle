@@ -39,6 +39,23 @@ tasks.register("largeJavaProjectWithBuildScanPlugin", JvmProjectGeneratorTask) {
     testSourceFiles = 3 // verbose tests are time consuming
     filesPerPackage = 25
     linesOfCodePerSourceFile = 150
+    rootProjectTemplates = ['root']
     subProjectTemplates = ['project-with-source', 'with-verbose-junit']
     templateArgs = [fullTestLogging: true, halfTestsFail: true, projectDependencies:true, manyPlugins:true]
+
+    doLast {
+        def scriptPlugins = 30
+        def nesting = 5
+        def groupedScriptIds = ((1..scriptPlugins).groupBy{ it % ((int)(scriptPlugins/nesting))}.values())
+        def gradleFolder =  new File(destDir, 'gradle')
+        gradleFolder.mkdirs()
+        scriptPlugins.each { scriptPluginId ->
+            def nestedScriptId = groupedScriptIds.find {it.contains(scriptPluginId)}.find { it > scriptPluginId }
+            def maybeApplyNestedScript = nestedScriptId ? "apply from: \'script-plugin${nestedScriptId}.gradle'" : ''
+            new File(gradleFolder, "script-plugin${scriptPluginId}.gradle").text = """ 
+                ${maybeApplyNestedScript}
+                println "project \${project.path} applies 'script-plugin${scriptPluginId}.gradle}'"
+            """
+        }
+    }
 }

@@ -1,7 +1,5 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +13,20 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-plugins {
-    id 'gradlebuild.classycle'
+
+buildscript {
+    repositories {
+        maven {
+            url 'https://repo.gradle.org/gradle/enterprise-libs-snapshots-local/'
+        }
+    }
+
+    dependencies {
+        classpath "com.gradle:build-scan-plugin:${buildScanPluginVersion}"
+    }
 }
 
-apply from: 'templates.gradle'
-
-dependencies {
-    // so that all Gradle features are available
-    performanceTestRuntime allTestRuntimeDependencies
-
-    testFixturesApi project(':internalPerformanceTesting')
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
-}
-
-tasks.withType(org.gradle.testing.PerformanceTest).configureEach {
-    systemProperties += [incomingArtifactDir: "${rootDir}/incoming/"]
+if (System.getProperty('enableScan')) {
+    apply plugin: 'com.gradle.build-scan'
+    buildScan { termsOfServiceUrl = 'https://gradle.com/terms-of-service'; termsOfServiceAgree = 'yes' }
 }

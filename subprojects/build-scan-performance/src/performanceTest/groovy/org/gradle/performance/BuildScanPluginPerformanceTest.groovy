@@ -110,7 +110,7 @@ class BuildScanPluginPerformanceTest extends Specification {
             displayName(WITH_PLUGIN_LABEL)
             invocation {
                 args(*jobArgs)
-                args("-Dscan", "-Dscan.dump")
+                args("--scan", "-DenableScan=true", "-Dscan.dump")
                 tasksToRun(*tasks)
                 gradleOpts(*opts)
                 if (withFailure) {
@@ -136,40 +136,36 @@ class BuildScanPluginPerformanceTest extends Specification {
         with.totalTime.average - without.totalTime.average < millis(1000)
 
         where:
-        scenario                           | tasks                 | withFailure | scenarioArgs      | buildExperimentListener
-        "help"                             | ['help']              | false       | []                | null
-        "clean build"                      | ['clean', 'build']    | true        | []                | null
-        "upToDate assemble"                | ['assemble']          | false       | []                | null
-        "clean assemble from build cache"  | ['clean', 'assemble'] | false       | ['--build-cache'] | buildCacheSetup()
-        "clean assemble empty build cache" | ['clean', 'assemble'] | false       | ['--build-cache'] | cleanBuildCacheSetup()
+        scenario                       | tasks              | withFailure | scenarioArgs      | buildExperimentListener
+        "help"                         | ['help']           | false       | []                | null
+        "clean build partially cached" | ['clean', 'build'] | true        | ['--build-cache'] | partiallyBuildCacheClean()
     }
 
-    private BuildCacheSetupExperimentListenerAdapter buildCacheSetup() {
-        new BuildCacheSetupExperimentListenerAdapter()
-    }
-
-    def cleanBuildCacheSetup() {
-        return new BuildCacheSetupExperimentListenerAdapter() {
-            @Override
-            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
-                def buildCacheDirectory = new TestFile(invocationInfo.projectDir, 'local-build-cache')
-                buildCacheDirectory.deleteDir()
-            }
-        }
-    }
-
-    class BuildCacheSetupExperimentListenerAdapter extends BuildExperimentListenerAdapter {
-        void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir) {
-            def projectTestDir = new TestFile(projectDir)
-            def cacheDir = projectTestDir.file('local-build-cache')
-            def settingsFile = projectTestDir.file('settings.gradle')
-            settingsFile << """
+    def partiallyBuildCacheClean() {
+        return new BuildExperimentListenerAdapter() {
+            void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir) {
+                def projectTestDir = new TestFile(projectDir)
+                def cacheDir = projectTestDir.file('local-build-cache')
+                def settingsFile = projectTestDir.file('settings.gradle')
+                settingsFile << """
                     buildCache {
                         local {
                             directory = '${cacheDir.absoluteFile.toURI()}'
                         }
                     }
                 """.stripIndent()
+            }
+
+            @Override
+            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
+                def buildCacheDirectory = new TestFile(invocationInfo.projectDir, 'local-build-cache')
+                def cacheEntries = buildCacheDirectory.listFiles().sort()
+                cacheEntries.eachWithIndex { TestFile entry, int i ->
+                    if (i % 2 == 0) {
+                        entry.delete()
+                    }
+                }
+            }
         }
     }
 }
