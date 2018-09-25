@@ -23,10 +23,4 @@ class FeaturePreviewsFixture {
 enableFeaturePreview("GRADLE_METADATA")
 """
     }
-
-    static void enableStablePublishing(File settings) {
-        settings << """
-enableFeaturePreview("STABLE_PUBLISHING")
-"""
-    }
 }

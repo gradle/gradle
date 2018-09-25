@@ -17,7 +17,6 @@
 package org.gradle.integtests.composite
 
 
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.util.Matchers
 import spock.lang.Ignore
@@ -256,7 +255,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 
     private void publishPluginWithDependency() {
         dependency pluginBuild, 'org.test:pluginDependencyA:1.0'
-        FeaturePreviewsFixture.enableStablePublishing(pluginBuild.settingsFile)
         pluginBuild.buildFile << """
             apply plugin: 'maven-publish'
             publishing {
@@ -271,7 +269,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
     }
 
     private void publishPlugin() {
-        FeaturePreviewsFixture.enableStablePublishing(pluginBuild.settingsFile)
         pluginBuild.buildFile << """
             apply plugin: 'maven-publish'
             publishing {
