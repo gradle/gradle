@@ -362,6 +362,8 @@ If you need to defer evaluation, please use `afterEvaluate {}`.
 - Removed `IdeaPlugin.performPostEvaluationActions` and `EclipsePlugin.performPostEvaluationActions`
 - Removed `ConfigurableReport.setDestination(Object)`
 - Removed the internal `@Option` and `@OptionValues` annotations from the `org.gradle.api.internal.tasks.options` package.
+- Removed the `@DeferredConfigurable` annotation.
+- Removed the method `isDeferredConfigurable` from `ExtensionSchema`
 - Forbid passing `null` as configuration action to the methods `from` and `to` on `CopySpec`.
 - Removed the property `bootClasspath` from `CompileOptions`.
 - Validation problems for inputs or outputs registered via the runtime API now fail the build.
