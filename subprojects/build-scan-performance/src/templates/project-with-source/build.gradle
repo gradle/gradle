@@ -10,7 +10,7 @@ apply plugin: 'idea'
 
 
 <% if (binding.hasVariable("manyScripts")) { (1..30).findAll { it % 5 == 0 }.each { %>
-    apply from "\$rootProject.projectDir/gradle/script-plugin${it}.gradle"
+    apply from: "\${rootProject.projectDir.absolutePath}/gradle/script-plugin${it}.gradle"
     <% } %>
     <% } %>
 
