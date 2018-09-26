@@ -21,7 +21,6 @@ import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
-import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
@@ -29,6 +28,7 @@ import org.gradle.api.specs.AndSpec;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -38,14 +38,12 @@ import java.util.Map;
 public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStateRepository {
 
     private final StartParameter startParameter;
-    private final TaskHistoryRepository taskHistoryRepository;
     private final TaskArtifactStateRepository repository;
     private final Instantiator instantiator;
 
-    public ShortCircuitTaskArtifactStateRepository(StartParameter startParameter, Instantiator instantiator, TaskHistoryRepository taskHistoryRepository, TaskArtifactStateRepository repository) {
+    public ShortCircuitTaskArtifactStateRepository(StartParameter startParameter, Instantiator instantiator, TaskArtifactStateRepository repository) {
         this.startParameter = startParameter;
         this.instantiator = instantiator;
-        this.taskHistoryRepository = taskHistoryRepository;
         this.repository = repository;
     }
 
@@ -65,11 +63,11 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         TaskArtifactState state = repository.getStateFor(task, taskProperties);
 
         if (startParameter.isRerunTasks()) {
-            return new RerunTaskArtifactState(state, task, taskHistoryRepository.getHistory(task, taskProperties), "Executed with '--rerun-tasks'.");
+            return new RerunTaskArtifactState(state, task, "Executed with '--rerun-tasks'.");
         }
 
         if (!upToDateSpec.isSatisfiedBy(task)) {
-            return new RerunTaskArtifactState(state, task, taskHistoryRepository.getHistory(task, taskProperties), "Task.upToDateWhen is false.");
+            return new RerunTaskArtifactState(state, task, "Task.upToDateWhen is false.");
         }
 
         return state;
@@ -78,13 +76,11 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
     private class RerunTaskArtifactState implements TaskArtifactState {
         private final TaskArtifactState delegate;
         private final TaskInternal task;
-        private final TaskHistoryRepository.History taskHistory;
         private final String reason;
 
-        private RerunTaskArtifactState(TaskArtifactState delegate, TaskInternal task, TaskHistoryRepository.History taskHistory, String reason) {
+        private RerunTaskArtifactState(TaskArtifactState delegate, TaskInternal task, String reason) {
             this.delegate = delegate;
             this.task = task;
-            this.taskHistory = taskHistory;
             this.reason = reason;
         }
 
@@ -98,7 +94,12 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
 
         @Override
         public IncrementalTaskInputs getInputChanges() {
-            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, taskHistory.getCurrentExecution());
+            return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, getInputFileFingerprints());
+        }
+
+        @Override
+        public Iterable<? extends FileCollectionFingerprint> getInputFileFingerprints() {
+            return delegate.getInputFileFingerprints();
         }
 
         @Override

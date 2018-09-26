@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 
 import java.util.Collection;
@@ -39,6 +40,8 @@ public interface TaskArtifactState {
     boolean isUpToDate(Collection<String> messages);
 
     IncrementalTaskInputs getInputChanges();
+
+    Iterable<? extends FileCollectionFingerprint> getInputFileFingerprints();
 
     /**
      * Returns whether it is okay to use results loaded from cache instead of executing the task.

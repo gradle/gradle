@@ -243,7 +243,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
         TaskInternal inputFilesRemoved = builder.withInputFiles(file: [inputFile], dir: [], missingFile: [missingInputFile]).task()
 
         then:
-        inputsOutOfDate(inputFilesRemoved).withRemovedFiles(inputDirFile.parentFile, inputDirFile)
+        inputsOutOfDate(inputFilesRemoved).withRemovedFiles(inputDir, inputDirFile)
     }
 
     def "artifacts are not up to date when any input file has changed hash"() {

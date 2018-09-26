@@ -101,11 +101,16 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
             IncrementalTaskInputs taskInputs;
             if (outputsRemoved || getStates().isRebuildRequired()) {
-                taskInputs = instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, history.getCurrentExecution());
+                taskInputs = instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, getInputFileFingerprints());
             } else {
                 taskInputs = instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, getStates().getInputFilesChanges());
             }
             return taskInputs;
+        }
+
+        @Override
+        public Iterable<? extends FileCollectionFingerprint> getInputFileFingerprints() {
+            return history.getCurrentExecution().getInputFingerprints().values();
         }
 
         @Override
