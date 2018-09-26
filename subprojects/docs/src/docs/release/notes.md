@@ -206,6 +206,13 @@ The previously deprecated support for Play Framework 2.2 has been removed.
 
 See [above](#jacoco-plugin-now-works-with-the-build-cache-and-parallel-test-execution) for details.
 
+### Checkstyle plugin config directory in multi-project builds
+
+Gradle will now, by convention, only look for Checkstyle configuration files in the root project's _config/checkstyle_ directory.
+Checkstyle configuration files in subprojects — the old by-convention location — will be ignored unless you explicitly configure their path
+via [`checkstyle.configDir`](dsl/org.gradle.api.plugins.quality.CheckstyleExtension.html#org.gradle.api.plugins.quality.CheckstyleExtension:configDir)
+or [`checkstyle.config`](dsl/org.gradle.api.plugins.quality.CheckstyleExtension.html#org.gradle.api.plugins.quality.CheckstyleExtension:config).
+
 ### Updated default tool versions
 
 The default tool versions of the following code quality plugins have been updated:
