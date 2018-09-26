@@ -360,6 +360,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     @Override
     public NamedDomainObjectProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownDomainObjectException {
+        assertMutable("named(String, Action)");
         NamedDomainObjectProvider<T> provider = named(name);
         provider.configure(configurationAction);
         return provider;
@@ -381,6 +382,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     @Override
     public <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownDomainObjectException {
+        assertMutable("named(String, Class, Action)");
         NamedDomainObjectProvider<S> provider = named(name, type);
         provider.configure(configurationAction);
         return provider;
@@ -860,6 +862,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         public void configure(Action<? super I> action) {
+            assertMutable("NamedDomainObjectProvider.configure(Action)");
             withMutationDisabled(action).execute(get());
         }
 
@@ -908,6 +911,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Override
         public void configure(final Action<? super I> action) {
+            assertMutable("NamedDomainObjectProvider.configure(Action)");
             Action<? super I> wrappedAction = withMutationDisabled(action);
             if (object != null) {
                 // Already realized, just run the action now

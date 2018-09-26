@@ -21,6 +21,7 @@ import org.gradle.api.DomainObjectCollection
 import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.internal.provider.CollectionProviderInternal
 import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.internal.Actions
 import org.gradle.internal.metaobject.ConfigureDelegate
 import org.gradle.util.ConfigureUtil
 import org.hamcrest.Matchers
@@ -1472,6 +1473,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
             "removeAll(Collection)": { container.removeAll([b]) },
             "retainAll(Collection)": { container.retainAll([b]) },
             "iterator().remove()": { def iter = container.iterator(); iter.next(); iter.remove() },
+            "configureEach(Action)": { container.configureEach(Actions.doNothing()) },
         ]
     }
 

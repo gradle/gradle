@@ -145,6 +145,9 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
             "create(String)": "testContainer.create('mutate')",
             "register(String)": "testContainer.register('mutate')",
             "getByName(String, Action)": "testContainer.getByName('realized') {}",
+            "configureEach(Action)": "testContainer.configureEach {}",
+            "NamedDomainObjectProvider.configure(Action)": "toBeRealized.configure {}",
+            "named(String, Action)": "testContainer.named('realized') {}"
         ]
     }
 

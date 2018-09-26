@@ -31,6 +31,7 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
             "create(String, Action)": { container.create("b", Actions.doNothing()) },
             "register(String)": { container.register("b") },
             "register(String, Action)": { container.register("b", Actions.doNothing()) },
+            "NamedDomainObjectProvider.configure(Action)": { container.named("a").configure(Actions.doNothing()) }
         ]
     }
 
