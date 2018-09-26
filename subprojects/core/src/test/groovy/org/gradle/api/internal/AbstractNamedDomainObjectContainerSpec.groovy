@@ -26,10 +26,10 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
     @Override
     protected Map<String, Closure> getMutatingMethods() {
         return super.getMutatingMethods() + [
-            "create(String)": { it.container.create("b") },
-            "create(String, Action)": { it.container.create("b", Actions.doNothing()) },
-            "register(String)": { it.container.register("b") },
-            "register(String, Action)": { it.container.register("b", Actions.doNothing()) },
+            "create(String)": { container.create("b") },
+            "create(String, Action)": { container.create("b", Actions.doNothing()) },
+            "register(String)": { container.register("b") },
+            "register(String, Action)": { container.register("b", Actions.doNothing()) },
         ]
     }
 }

@@ -25,7 +25,7 @@ abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomain
     @Override
     protected Map<String, Closure> getQueryMethods() {
         return super.getQueryMethods() + [
-            "getByName(String)": { it.container.getByName("a") },
+            "getByName(String)": { container.getByName("a") },
         ]
     }
 
@@ -34,27 +34,58 @@ abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomain
         setupContainerDefaults()
         container.add(a)
         String methodUnderTest = mutatingMethods.key
-        Closure method = mutatingMethods.value
+        Closure method = bind(mutatingMethods.value)
+
         when:
-        container.named("a").configure {
-            method(this)
-        }
+        container.named("a").configure(method)
         then:
         def ex = thrown(Throwable)
         assertDoesNotAllowMethod(ex, methodUnderTest)
 
         when:
-        container.named("a") {
-            method(this)
-        }
+        container.named("a", method)
         then:
         ex = thrown(Throwable)
         assertDoesNotAllowMethod(ex, methodUnderTest)
 
         when:
-        container.named("a", getType()) {
-            method(this)
-        }
+        container.named("a", getType(), method)
+        then:
+        ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
+
+        when:
+        container.withType(container.type).named("a").configure(method)
+        then:
+        ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
+
+        when:
+        container.withType(container.type).named("a", method)
+        then:
+        ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
+
+        when:
+        container.withType(container.type).named("a", getType(), method)
+        then:
+        ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
+
+        when:
+        container.matching({ it in container.type }).named("a").configure(method)
+        then:
+        ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
+
+        when:
+        container.matching({ it in container.type }).named("a", method)
+        then:
+        ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
+
+        when:
+        container.matching({ it in container.type }).named("a", getType(), method)
         then:
         ex = thrown(Throwable)
         assertDoesNotAllowMethod(ex, methodUnderTest)
@@ -68,25 +99,50 @@ abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomain
         setupContainerDefaults()
         container.add(a)
         String methodUnderTest = queryMethods.key
-        Closure method = queryMethods.value
+        Closure method = bind(queryMethods.value)
+
         when:
-        container.named("a").configure {
-            method(this)
-        }
+        container.named("a").configure(method)
         then:
         noExceptionThrown()
 
         when:
-        container.named("a") {
-            method(this)
-        }
+        container.named("a", method)
         then:
         noExceptionThrown()
 
         when:
-        container.named("a", getType()) {
-            method(this)
-        }
+        container.named("a", getType(), method)
+        then:
+        noExceptionThrown()
+
+        when:
+        container.withType(container.type).named("a").configure(method)
+        then:
+        noExceptionThrown()
+
+        when:
+        container.withType(container.type).named("a", method)
+        then:
+        noExceptionThrown()
+
+        when:
+        container.withType(container.type).named("a", getType(), method)
+        then:
+        noExceptionThrown()
+
+        when:
+        container.matching({ it in container.type }).named("a").configure(method)
+        then:
+        noExceptionThrown()
+
+        when:
+        container.matching({ it in container.type }).named("a", method)
+        then:
+        noExceptionThrown()
+
+        when:
+        container.matching({ it in container.type }).named("a", getType(), method)
         then:
         noExceptionThrown()
 
