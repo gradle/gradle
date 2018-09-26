@@ -82,7 +82,6 @@ public class CommandLineConverterTestSupport {
             assertEquals(expectedCurrentDir.getAbsoluteFile(), startParameter.getCurrentDir().getAbsoluteFile());
         }
         assertEquals(expectedProjectDir, startParameter.getProjectDir());
-        assertEquals(expectedSearchUpwards, startParameter.isSearchUpwards());
         assertEquals(expectedProjectProperties, startParameter.getProjectProperties());
         assertEquals(expectedSystemProperties, startParameter.getSystemPropertiesArgs());
         assertEquals(expectedGradleUserHome.getAbsoluteFile(), startParameter.getGradleUserHomeDir().getAbsoluteFile());
