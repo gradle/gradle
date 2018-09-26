@@ -309,8 +309,10 @@ This is not the case anymore as the `source` filed is now declared as `private`.
 - Removed the type `RegularFileVar`.
 - Removed the type `DirectoryVar`.
 - Removed the type `PropertyState`.
-- Removed `JavaBasePlugin.configureForSourceSet`
-- Removed `JDepend.classesDir`
+- Removed the method `configureForSourceSet` from `JavaBasePlugin`
+- Removed the property `classesDir` from `JDepend`.
+- Removed the property `testClassesDir` from `Test`.
+- Removed the property `classesDir` from `SourceSetOutput`.
 - Removed `IdeaPlugin.performPostEvaluationActions` and `EclipsePlugin.performPostEvaluationActions`
 - Removed the internal `@Option` and `@OptionValues` annotations from the `org.gradle.api.internal.tasks.options` package.
 - Forbid passing `null` as configuration action to the methods `from` and `to` on `CopySpec`.

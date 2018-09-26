@@ -176,7 +176,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
             sourceSets {
                 moreTests {
                     java.srcDir "src/test"
-                    output.classesDir = file("build/classes/moreTests")
+                    ${separateClassesDirs(targetVersion) ? "java.outputDir" : "output.classesDir"} = file("build/classes/moreTests")
                     compileClasspath = compileClasspath + sourceSets.test.compileClasspath
                     runtimeClasspath = runtimeClasspath + sourceSets.test.runtimeClasspath
                 }
@@ -184,7 +184,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
 
             task secondTest(type:Test) {
                 classpath = sourceSets.moreTests.runtimeClasspath
-                testClassesDir = sourceSets.moreTests.output.classesDir
+                ${separateClassesDirs(targetVersion) ? "testClassesDirs" : "testClassesDir"} = sourceSets.moreTests.output.${separateClassesDirs(targetVersion) ? "classesDirs" : "classesDir"}
             }
 
             build.dependsOn secondTest
@@ -218,6 +218,10 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
                 }
             }
         """
+    }
+
+    static boolean separateClassesDirs(GradleVersion version) {
+        version.baseVersion >= GradleVersion.version("4.0")
     }
 
     def changeTestSource() {
