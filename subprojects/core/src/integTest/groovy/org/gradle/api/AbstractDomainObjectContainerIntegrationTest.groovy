@@ -217,4 +217,19 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         where:
         method << getQueryMethods() + getMutationMethods()
     }
+
+    @Unroll
+    def "can execute query and mutating methods #method.key from create(String)"() {
+        buildFile << """
+            testContainer.create("a") {
+                ${method.value}
+            }
+        """
+
+        expect:
+        succeeds "help"
+
+        where:
+        method << getQueryMethods() + getMutationMethods()
+    }
 }
