@@ -340,6 +340,10 @@ The left shift (`<<`) operator acted as an alias for adding a `doLast` action to
 - `BasePluginConvention` is now abstract.
 - `ProjectReportsPluginConvention` is now abstract.
 
+### Removal of deprecated CLI options
+
+- Removed `--no-search-upward` (`-u`) option.
+
 ### Implicit imports for internal classes have been removed
 
 Classes in the internal `org.gradle.util` package are no longer implicitly imported by default.
