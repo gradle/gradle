@@ -42,7 +42,6 @@ public class CommandLineConverterTestSupport {
     protected File expectedProjectDir;
     protected List<String> expectedTaskNames = WrapUtil.toList();
     protected Set<String> expectedExcludedTasks = WrapUtil.toSet();
-    protected boolean buildProjectDependencies = true;
     protected Map<String, String> expectedSystemProperties = new HashMap<String, String>();
     protected Map<String, String> expectedProjectProperties = new HashMap<String, String>();
     protected List<File> expectedInitScripts = new ArrayList<File>();
@@ -77,7 +76,6 @@ public class CommandLineConverterTestSupport {
     protected void checkStartParameter(StartParameter startParameter) {
         assertEquals(expectedBuildFile, startParameter.getBuildFile());
         assertEquals(expectedTaskNames, startParameter.getTaskNames());
-        assertEquals(buildProjectDependencies, startParameter.isBuildProjectDependencies());
         if(expectedCurrentDir != null) {
             assertEquals(expectedCurrentDir.getAbsoluteFile(), startParameter.getCurrentDir().getAbsoluteFile());
         }

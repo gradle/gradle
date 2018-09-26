@@ -223,18 +223,6 @@ public class DefaultCommandLineConverterTest extends CommandLineConverterTestSup
     }
 
     @Test
-    public void withNoProjectDependencyRebuild() {
-        buildProjectDependencies = false;
-        checkConversion("--no-rebuild");
-    }
-
-    @Test
-    public void withNoProjectDependencyRebuildShortFlag() {
-        buildProjectDependencies = false;
-        checkConversion("-a");
-    }
-
-    @Test
     public void withQuietLoggingOptions() {
         expectedLogLevel = LogLevel.QUIET;
         checkConversion("-q");

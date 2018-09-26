@@ -33,14 +33,12 @@ import java.util.List;
  * Collects all artifacts and their build dependencies.
  */
 public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisitor {
-    private final boolean buildProjectDependencies;
     private final ResolutionStrategy.SortOrder sortOrder;
     private final List<ArtifactSet> artifactSetsById = new ArrayList<ArtifactSet>();
     private final BuildIdentifier thisBuild;
 
-    public DefaultResolvedArtifactsBuilder(BuildIdentifier thisBuild, boolean buildProjectDependencies, ResolutionStrategy.SortOrder sortOrder) {
+    public DefaultResolvedArtifactsBuilder(BuildIdentifier thisBuild, ResolutionStrategy.SortOrder sortOrder) {
         this.thisBuild = thisBuild;
-        this.buildProjectDependencies = buildProjectDependencies;
         this.sortOrder = sortOrder;
     }
 
@@ -59,20 +57,15 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
 
     @Override
     public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts) {
-        // Don't collect build dependencies if not required
-        if (!buildProjectDependencies) {
-            artifacts = new NoBuildDependenciesArtifactSet(artifacts);
-        } else {
-            ConfigurationMetadata configurationMetadata = to.getMetadata();
-            if (configurationMetadata instanceof LocalConfigurationMetadata) {
-                // For a dependency from _another_ build to _this_ build, don't make the artifact buildable
-                // Making these artifacts buildable leads to poor error reporting due to direct task dependency cycle (losing the intervening build dependencies)
-                ComponentIdentifier incomingId = from.getOwner().getComponentId();
-                ComponentIdentifier outgoingId = to.getOwner().getComponentId();
-                if (incomingId instanceof ProjectComponentIdentifier && outgoingId instanceof ProjectComponentIdentifier) {
-                    if (!isCurrentBuild(incomingId) && isCurrentBuild(outgoingId)) {
-                        artifacts = new NoBuildDependenciesArtifactSet(artifacts);
-                    }
+        ConfigurationMetadata configurationMetadata = to.getMetadata();
+        if (configurationMetadata instanceof LocalConfigurationMetadata) {
+            // For a dependency from _another_ build to _this_ build, don't make the artifact buildable
+            // Making these artifacts buildable leads to poor error reporting due to direct task dependency cycle (losing the intervening build dependencies)
+            ComponentIdentifier incomingId = from.getOwner().getComponentId();
+            ComponentIdentifier outgoingId = to.getOwner().getComponentId();
+            if (incomingId instanceof ProjectComponentIdentifier && outgoingId instanceof ProjectComponentIdentifier) {
+                if (!isCurrentBuild(incomingId) && isCurrentBuild(outgoingId)) {
+                    artifacts = new NoBuildDependenciesArtifactSet(artifacts);
                 }
             }
         }

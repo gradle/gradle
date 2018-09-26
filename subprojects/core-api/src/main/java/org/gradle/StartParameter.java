@@ -455,8 +455,12 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     /**
      * Returns true if project dependencies are to be built, false if they should not be. The default is true.
+     *
+     * @deprecated This flag is no longer used and simply defaults to 'true'.
      */
+    @Deprecated
     public boolean isBuildProjectDependencies() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("StartParameter.isBuildProjectDependencies()");
         return buildProjectDependencies;
     }
 
@@ -464,8 +468,11 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Specifies whether project dependencies should be built. Defaults to true.
      *
      * @return this
+     * @deprecated This flag is no longer used.
      */
+    @Deprecated
     public StartParameter setBuildProjectDependencies(boolean build) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("StartParameter.setBuildProjectDependencies()");
         this.buildProjectDependencies = build;
         return this;
     }

@@ -203,7 +203,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
     class ResolveResult implements DependencyGraphVisitor, DependencyArtifactsVisitor {
         public final List<Throwable> notFound = new LinkedList<Throwable>();
-        public DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(thisBuild, true, ResolutionStrategy.SortOrder.DEFAULT);
+        public DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(thisBuild, ResolutionStrategy.SortOrder.DEFAULT);
         public SelectedArtifactResults artifactsResults;
 
         @Override

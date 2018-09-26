@@ -110,9 +110,12 @@ in the next major Gradle version (Gradle 6.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
 
-### StartParameter.interactive flag
+### StartParameter properties
 
-The `interactive` flag is deprecated and will be removed in Gradle 6.0.
+The following properties are deprecated and will be removed in Gradle 6.0.
+
+- `interactive`
+- `buildProjectDependencies`
 
 ### Removing tasks from TaskContainer
 
@@ -191,6 +194,12 @@ Now when the last non-constraint edge to a dependency disappears, all constraint
 
 Gradle can no longer be run on Java 7, but requires Java 8 as the minimum build JVM version.
 However, you can still use forked compilation and testing to build and test software for Java 6 and above.
+
+### Removed command-line options
+
+- The `-a`/`--no-rebuild` command-line option has been removed.
+  It avoided a full rebuild of dependent projects in a multi-project builds and was introduced in a very early version of Gradle.
+  Since then Gradle optimized its up-to-date checking for project dependencies which rendered the option obsolete.
 
 ### Java Library Distribution Plugin utilizes Java Library Plugin
 

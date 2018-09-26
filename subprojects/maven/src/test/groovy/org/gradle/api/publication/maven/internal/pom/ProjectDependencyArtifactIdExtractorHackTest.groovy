@@ -27,7 +27,7 @@ class ProjectDependencyArtifactIdExtractorHackTest extends AbstractProjectBuilde
     def extractor
 
     def setup() {
-        extractor = new ProjectDependencyArtifactIdExtractorHack(new DefaultProjectDependency(project, null, true))
+        extractor = new ProjectDependencyArtifactIdExtractorHack(new DefaultProjectDependency(project, null))
     }
 
     def "artifact ID defaults to project name if neither archivesBaseName nor mavenDeployer.pom.artifactId is configured"() {

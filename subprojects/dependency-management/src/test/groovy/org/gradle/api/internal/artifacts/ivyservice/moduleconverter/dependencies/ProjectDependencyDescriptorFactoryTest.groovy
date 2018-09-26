@@ -64,6 +64,6 @@ class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDescripto
         dependencyProject.setGroup("someGroup")
         dependencyProject.setVersion("someVersion")
         dependencyProject.configurations.create(dependencyConfiguration)
-        return new DefaultProjectDependency(dependencyProject, dependencyConfiguration, {} as ProjectAccessListener, true)
+        return new DefaultProjectDependency(dependencyProject, dependencyConfiguration, {} as ProjectAccessListener)
     }
 }

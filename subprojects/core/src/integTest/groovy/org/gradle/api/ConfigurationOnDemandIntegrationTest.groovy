@@ -255,34 +255,6 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":impl", ":api")
     }
 
-    def "respects buildProjectDependencies setting"() {
-        settingsFile << "include 'api', 'impl', 'other'"
-        file("impl/build.gradle") << """
-            apply plugin: 'java'
-            dependencies { compile project(":api") }
-        """
-        file("api/build.gradle") << "apply plugin: 'java'"
-        // Provide a source file so that the compile task doesn't skip resolving inputs
-        file("impl/src/main/java/Foo.java") << "public class Foo {}"
-
-        when:
-        run("impl:build")
-
-        then:
-        executed ":api:jar", ":impl:jar"
-        fixture.assertProjectsConfigured(":", ":impl", ":api")
-
-        when:
-        executer.expectDeprecationWarning()
-        run("impl:build", "--no-rebuild") // impl -> api
-
-        then:
-        executed ":impl:jar"
-        notExecuted ":api:jar"
-        // :api is configured to resolve impl.compile configuration
-        fixture.assertProjectsConfigured(":", ":impl", ":api")
-    }
-
     def "respects external task dependencies"() {
         settingsFile << "include 'api', 'impl', 'other'"
         file("build.gradle") << "allprojects { task foo }"
