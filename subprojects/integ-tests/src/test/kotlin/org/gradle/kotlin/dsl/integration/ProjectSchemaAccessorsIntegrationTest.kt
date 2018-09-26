@@ -878,7 +878,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     group = "verification"
                     testClassesDirs = sourceSets["integTest"].output.classesDirs
                     classpath = sourceSets["integTest"].runtimeClasspath
-                    mustRunAfter(tasks.test)
+                    mustRunAfter(project.tasks.test)
                 }
 
                 check { dependsOn(integTest) }
