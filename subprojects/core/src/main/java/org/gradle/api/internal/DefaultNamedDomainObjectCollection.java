@@ -334,13 +334,12 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     public T getByName(String name, Closure configureClosure) throws UnknownDomainObjectException {
-        T t = getByName(name);
-        ConfigureUtil.configure(configureClosure, t);
-        return t;
+        return getByName(name, ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
     public T getByName(String name, Action<? super T> configureAction) throws UnknownDomainObjectException {
+        assertMutable("getByName(String, Action)");
         T t = getByName(name);
         configureAction.execute(t);
         return t;
