@@ -78,6 +78,22 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
     }
 
     @Unroll
+    def "can execute query method #queryMethod.key from matching.configureEach"() {
+        buildFile << """
+            testContainer.matching({ it in testContainer.type }).configureEach {
+                ${queryMethod.value}
+            }
+            toBeRealized.get()
+        """
+
+        expect:
+        succeeds "help"
+
+        where:
+        queryMethod << getQueryMethods()
+    }
+
+    @Unroll
     def "can execute query method #queryMethod.key from Provider.configure"() {
         buildFile << """
             toBeRealized.configure {
@@ -138,6 +154,23 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
     def "cannot execute mutation method #mutationMethod.key from withType.configureEach"() {
         buildFile << """
             testContainer.withType(testContainer.type).configureEach {
+                ${mutationMethod.value}
+            }
+            toBeRealized.get()
+        """
+
+        expect:
+        fails "help"
+        failure.assertHasCause(disallowMutationMessage(mutationMethod.key))
+
+        where:
+        mutationMethod << getMutationMethods()
+    }
+
+    @Unroll
+    def "cannot execute mutation method #mutationMethod.key from matching.configureEach"() {
+        buildFile << """
+            testContainer.matching({ it in testContainer.type }).configureEach {
                 ${mutationMethod.value}
             }
             toBeRealized.get()

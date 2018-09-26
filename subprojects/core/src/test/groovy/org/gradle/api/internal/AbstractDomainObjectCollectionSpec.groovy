@@ -1450,6 +1450,12 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         ex = thrown(Throwable)
         assertDoesNotAllowMethod(ex, methodUnderTest)
 
+        when:
+        container.matching({ it in container.type }).configureEach(method)
+        then:
+        ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
+
         where:
         mutatingMethods << getMutatingMethods()
     }
@@ -1492,6 +1498,11 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         when:
         container.withType(container.type).configureEach(method)
+        then:
+        noExceptionThrown()
+
+        when:
+        container.matching({ it in container.type }).configureEach(method)
         then:
         noExceptionThrown()
 
