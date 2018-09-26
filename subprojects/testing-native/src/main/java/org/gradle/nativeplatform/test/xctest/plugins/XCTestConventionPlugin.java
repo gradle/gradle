@@ -38,7 +38,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.internal.DefaultUsageContext;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.internal.NativeComponentFactory;
@@ -46,6 +45,7 @@ import org.gradle.language.nativeplatform.internal.BuildType;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.ProductionSwiftComponent;
+import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftPlatform;
@@ -363,9 +363,8 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 testExecutable.getImportPathConfiguration().getDependencies().add(compileDependency);
 
                 // Configure test binary to link against tested component compiled objects
-                // Configure test binary to link against tested component compiled objects
                 ConfigurableFileCollection testableObjects = project.files();
-                if (testedComponent instanceof CppApplication) {
+                if (testedComponent instanceof SwiftApplication) {
                     TaskProvider<UnexportMainSymbol> unexportMainSymbol = tasks.register("relocateMainForTest", UnexportMainSymbol.class, new Action<UnexportMainSymbol>() {
                         @Override
                         public void execute(UnexportMainSymbol unexportMainSymbol) {
