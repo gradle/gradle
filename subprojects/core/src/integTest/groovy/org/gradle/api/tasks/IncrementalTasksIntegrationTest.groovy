@@ -383,7 +383,6 @@ ext.added = ['file3.txt', 'file4.txt']
             class MyTask extends DefaultTask {
                 @${inputAnnotation}
                 File input
-                File child
                 @OutputFile
                 File output
                 
@@ -393,14 +392,13 @@ ext.added = ['file3.txt', 'file4.txt']
                     inputs.outOfDate {
                         out << file.name
                     }
-                    assert out.contains(child.name)
+                    assert out.contains('child')
                     output.text = out.join('\\n')
                 }
             }           
             
             task myTask(type: MyTask) {
                 input = mkdir(inputDir)
-                child = new File(input, "child")
                 output = file("build/output.txt")
             }          
         """

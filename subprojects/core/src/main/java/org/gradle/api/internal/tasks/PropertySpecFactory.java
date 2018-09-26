@@ -21,15 +21,15 @@ public interface PropertySpecFactory {
 
     DeclaredTaskInputFileProperty createInputFilesSpec(ValidatingValue paths);
 
-    DeclaredTaskInputFileProperty createInputDirSpec(ValidatingValue dirPath);
+    DeclaredTaskInputFileProperty createInputDirSpec(ValidatingValue path);
 
     DefaultTaskInputPropertySpec createInputPropertySpec(String name, ValidatingValue value);
 
     DeclaredTaskOutputFileProperty createOutputFileSpec(ValidatingValue path);
 
-    DeclaredTaskOutputFileProperty createOutputDirSpec(ValidatingValue dirPath);
+    DeclaredTaskOutputFileProperty createOutputDirSpec(ValidatingValue path);
 
     DeclaredTaskOutputFileProperty createOutputFilesSpec(ValidatingValue paths);
 
-    DeclaredTaskOutputFileProperty createOutputDirsSpec(ValidatingValue dirPaths);
+    DeclaredTaskOutputFileProperty createOutputDirsSpec(ValidatingValue paths);
 }
