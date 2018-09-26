@@ -18,7 +18,6 @@ package org.gradle.cache.internal;
 import org.gradle.api.Action;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
-import org.gradle.cache.CacheValidator;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
@@ -56,7 +55,6 @@ public class DefaultCacheRepository implements CacheRepository {
         final String key;
         final File baseDir;
         Map<String, ?> properties = Collections.emptyMap();
-        CacheValidator validator;
         Action<? super PersistentCache> initializer;
         CleanupAction cleanup;
         LockOptions lockOptions = mode(FileLockManager.LockMode.Shared);
@@ -88,11 +86,6 @@ public class DefaultCacheRepository implements CacheRepository {
             return this;
         }
 
-        public CacheBuilder withValidator(CacheValidator validator) {
-            this.validator = validator;
-            return this;
-        }
-
         public CacheBuilder withDisplayName(String displayName) {
             this.displayName = displayName;
             return this;
@@ -121,7 +114,7 @@ public class DefaultCacheRepository implements CacheRepository {
             } else {
                 cacheBaseDir = cacheScopeMapping.getBaseDirectory(scope, key, versionStrategy);
             }
-            return factory.open(cacheBaseDir, displayName, validator, properties, lockTarget, lockOptions, initializer, cleanup);
+            return factory.open(cacheBaseDir, displayName, properties, lockTarget, lockOptions, initializer, cleanup);
         }
     }
 }

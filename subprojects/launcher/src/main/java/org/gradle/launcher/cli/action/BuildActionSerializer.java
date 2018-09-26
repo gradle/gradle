@@ -111,7 +111,6 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isContinueOnFailure());
             encoder.writeBoolean(startParameter.isOffline());
             encoder.writeBoolean(startParameter.isRefreshDependencies());
-            encoder.writeBoolean(startParameter.isRecompileScripts());
             encoder.writeBoolean(startParameter.isBuildCacheEnabled());
             encoder.writeBoolean(startParameter.isBuildCacheDebugLogging());
             encoder.writeBoolean(startParameter.isConfigureOnDemand());
@@ -182,7 +181,6 @@ public class BuildActionSerializer {
             startParameter.setContinueOnFailure(decoder.readBoolean());
             startParameter.setOffline(decoder.readBoolean());
             startParameter.setRefreshDependencies(decoder.readBoolean());
-            startParameter.setRecompileScripts(decoder.readBoolean());
             startParameter.setBuildCacheEnabled(decoder.readBoolean());
             startParameter.setBuildCacheDebugLogging(decoder.readBoolean());
             startParameter.setConfigureOnDemand(decoder.readBoolean());
