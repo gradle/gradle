@@ -19,6 +19,8 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
 
+import javax.annotation.Nullable;
+
 /**
  * A {@code GroovySourceSetConvention} defines the properties and methods added to a {@link SourceSet} by the {@link
  * org.gradle.api.plugins.GroovyPlugin}.
@@ -40,7 +42,7 @@ public interface GroovySourceSet {
      * @param configureClosure The closure to use to configure the Groovy source.
      * @return this
      */
-    GroovySourceSet groovy(Closure configureClosure);
+    GroovySourceSet groovy(@Nullable Closure configureClosure);
 
     /**
      * Configures the Groovy source for this set.
