@@ -35,6 +35,8 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
+
 import static org.gradle.util.ConfigureUtil.configure;
 
 public class DefaultSourceSet implements SourceSet, DynamicObjectAware {
@@ -116,7 +118,7 @@ public class DefaultSourceSet implements SourceSet, DynamicObjectAware {
         return getTaskName(null, "jar");
     }
 
-    public String getTaskName(String verb, String target) {
+    public String getTaskName(@Nullable String verb, @Nullable String target) {
         return namingScheme.getTaskName(verb, target);
     }
 
@@ -223,7 +225,7 @@ public class DefaultSourceSet implements SourceSet, DynamicObjectAware {
         return javaSource;
     }
 
-    public SourceSet java(Closure configureClosure) {
+    public SourceSet java(@Nullable Closure configureClosure) {
         configure(configureClosure, getJava());
         return this;
     }
@@ -242,7 +244,7 @@ public class DefaultSourceSet implements SourceSet, DynamicObjectAware {
         return resources;
     }
 
-    public SourceSet resources(Closure configureClosure) {
+    public SourceSet resources(@Nullable Closure configureClosure) {
         configure(configureClosure, getResources());
         return this;
     }
