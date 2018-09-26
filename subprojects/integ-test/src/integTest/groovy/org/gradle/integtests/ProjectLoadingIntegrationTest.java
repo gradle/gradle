@@ -17,7 +17,6 @@ package org.gradle.integtests;
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest;
 import org.gradle.integtests.fixtures.executer.ExecutionFailure;
-import org.gradle.integtests.fixtures.executer.ExecutionResult;
 import org.gradle.test.fixtures.file.TestFile;
 import org.junit.Test;
 import spock.lang.Issue;
@@ -229,52 +228,29 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void ignoresMultiProjectBuildInParentDirectoryWhichDoesNotMeetDefaultProjectCriteria() {
-        testFile("settings.gradle").write("include 'another'");
-        testFile("gradle.properties").writelns("prop=value2", "otherProp=value");
-
-        TestFile subDirectory = getTestDirectory().file("subdirectory");
-        TestFile buildFile = subDirectory.file("build.gradle");
-        buildFile.writelns("task('do-stuff') {",
-                "doLast {",
-                "assert prop == 'value'",
-                "assert !project.hasProperty('otherProp')",
-                "}",
-                "}");
-        testFile("subdirectory/gradle.properties").write("prop=value");
-
-        inDirectory(subDirectory).withTasks("do-stuff").expectDeprecationWarning().run();
-        usingProjectDir(subDirectory).withTasks("do-stuff").expectDeprecationWarning().run();
-        usingBuildFile(buildFile).withTasks("do-stuff").expectDeprecationWarning().run();
-    }
-
-    @Test
-    public void deprecationWarningAppearsWhenNestedBuildHasNoSettingsFile() {
+    public void buildFailsWhenNestedBuildHasNoSettingsFile() {
         testFile("settings.gradle").write("include 'another'");
 
         TestFile subDirectory = getTestDirectory().file("sub");
         TestFile subBuildFile = subDirectory.file("sub.gradle").write("");
         subDirectory.file("build.gradle").write("");
 
-        ExecutionResult result = inDirectory(subDirectory).withTasks("help").expectDeprecationWarning().run();
-        result.assertOutputContains("Support for nested build without a settings file was deprecated.");
-        result.assertOutputContains("You should create a empty settings file in " + subDirectory.getAbsolutePath());
+        ExecutionFailure result = inDirectory(subDirectory).withTasks("help").runWithFailure();
+        result.assertHasDescription(String.format("No projects in this build have project directory '%s'.", subDirectory));
 
-        result = usingBuildFile(subBuildFile).inDirectory(subDirectory).withTasks("help").expectDeprecationWarning().run();
-        result.assertOutputContains("Support for nested build without a settings file was deprecated.");
-        result.assertOutputContains("You should create a empty settings file in " + subDirectory.getAbsolutePath());
+        result = usingBuildFile(subBuildFile).inDirectory(subDirectory).withTasks("help").runWithFailure();
+        result.assertHasDescription(String.format("No projects in this build have build file '%s'.", subBuildFile));
 
-        result = usingProjectDir(subDirectory).withTasks("help").expectDeprecationWarning().run();
-        result.assertOutputContains("Support for nested build without a settings file was deprecated.");
-        result.assertOutputContains("You should create a empty settings file in " + subDirectory.getAbsolutePath());
-    }
+        result = usingProjectDir(subDirectory).withTasks("help").runWithFailure();
+        result.assertHasDescription(String.format("No projects in this build have project directory '%s'.", subDirectory));
+   }
 
     @Test
-    public void noDeprecationWarningAppearsWhenUsingRootProject() {
+    public void canTargetRootProjectDirectoryFromSubDirectory() {
         testFile("settings.gradle").write("include 'another'");
 
         TestFile subDirectory = getTestDirectory().file("sub");
-        subDirectory.file("build.gradle").write("");
+        subDirectory.file("build.gradle").write("throw new RuntimeException()");
 
         usingProjectDir(getTestDirectory()).inDirectory(subDirectory).withTasks("help").run();
     }

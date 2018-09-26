@@ -22,9 +22,6 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
-import org.gradle.util.DeprecationLogger;
-
-import java.io.File;
 
 /**
  * Handles locating and processing setting.gradle files.  Also deals with the buildSrc module, since that modules is
@@ -48,7 +45,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
         SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, startParameter);
 
         ProjectSpec spec = ProjectSpecs.forStartParameter(startParameter, settings);
-        if (useEmptySettings(settings, spec, startParameter)) {
+        if (useEmptySettings(spec, settings, startParameter)) {
             settings = createEmptySettings(gradle, startParameter);
         }
 
@@ -56,7 +53,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
         return settings;
     }
 
-    private boolean useEmptySettings(SettingsInternal loadedSettings, ProjectSpec spec, StartParameter startParameter) {
+    private boolean useEmptySettings(ProjectSpec spec, SettingsInternal loadedSettings, StartParameter startParameter) {
         // Never use empty settings when the settings were explicitly set
         if (startParameter.getSettingsFile() != null) {
             return false;
@@ -66,14 +63,12 @@ public class DefaultSettingsLoader implements SettingsLoader {
             return false;
         }
 
-        // Use an empty settings for a secondary build file located in the same directory as the settings file.
-        File projectDir = startParameter.getProjectDir() == null ? startParameter.getCurrentDir() : startParameter.getProjectDir();
-        if (loadedSettings.getSettingsDir().equals(projectDir)) {
+        // Use an empty settings for a target build file located in the same directory as the settings file.
+        if (startParameter.getProjectDir() != null && loadedSettings.getSettingsDir().equals(startParameter.getProjectDir())) {
             return true;
         }
 
-        DeprecationLogger.nagUserWith("Support for nested build without a settings file was deprecated.", "You should create a empty settings file in " + projectDir.getAbsolutePath() + ".");
-        return true;
+        return false;
     }
 
     private SettingsInternal createEmptySettings(GradleInternal gradle, StartParameter startParameter) {
