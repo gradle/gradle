@@ -22,11 +22,11 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import java.io.File;
 import java.util.List;
 
-public class DefaultProjectSpec extends AbstractProjectSpec {
+public class CurrentDirectoryProjectSpec extends AbstractProjectSpec {
     private final boolean useRootWhenNoMatch;
     private final File currentDir;
 
-    public DefaultProjectSpec(File currentDir, SettingsInternal settings) {
+    public CurrentDirectoryProjectSpec(File currentDir, SettingsInternal settings) {
         this.currentDir = currentDir;
         this.useRootWhenNoMatch = currentDir.equals(settings.getSettingsDir());
     }
