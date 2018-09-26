@@ -376,6 +376,7 @@ We would like to thank the following community members for making contributions 
 - [Cliffred van Velzen](https://github.com/cliffred) - Allow logging null value (gradle/gradle#6665)
 - [Artem Zinnatullin](https://github.com/artem-zinnatullin) - Update HttpCore from 4.4.9 to 4.4.10 and HttpClient from 4.5.5 to 4.5.6 (gradle/gradle#6709)
 - [Jakub Strzyżewski](https://github.com/shindouj) - Improve exception message for missing repository credentials when publishing (gradle/gradle#6379)
+- [Alex Saveau](https://github.com/SUPERCILEX) - Report all files in directory as changed for incremental task for non-incremental change (gradle/gradle#6019)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
