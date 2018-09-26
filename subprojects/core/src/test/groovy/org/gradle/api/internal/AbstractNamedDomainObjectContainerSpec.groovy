@@ -48,4 +48,34 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
         where:
         methods << getQueryMethods() + getMutatingMethods()
     }
+
+    def "disallow mutating from register actions using #mutatingMethods.key"() {
+        setupContainerDefaults()
+        String methodUnderTest = mutatingMethods.key
+        Closure method = bind(mutatingMethods.value)
+
+        when:
+        container.register("a", method).get()
+        then:
+        def ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
+
+        where:
+        mutatingMethods << getMutatingMethods()
+    }
+
+    @Unroll
+    def "allow query methods from register using #queryMethods.key"() {
+        setupContainerDefaults()
+        String methodUnderTest = queryMethods.key
+        Closure method = bind(queryMethods.value)
+
+        when:
+        container.register("a", method).get()
+        then:
+        noExceptionThrown()
+
+        where:
+        queryMethods << getQueryMethods()
+    }
 }

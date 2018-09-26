@@ -47,4 +47,34 @@ abstract class AbstractPolymorphicDomainObjectContainerSpec<T> extends AbstractN
         where:
         methods << getQueryMethods() + getMutatingMethods()
     }
+
+    def "disallow mutating from register with type actions using #mutatingMethods.key"() {
+        setupContainerDefaults()
+        String methodUnderTest = mutatingMethods.key
+        Closure method = bind(mutatingMethods.value)
+
+        when:
+        container.register("a", container.type, method).get()
+        then:
+        def ex = thrown(Throwable)
+        assertDoesNotAllowMethod(ex, methodUnderTest)
+
+        where:
+        mutatingMethods << getMutatingMethods()
+    }
+
+    @Unroll
+    def "allow query methods from register with type using #queryMethods.key"() {
+        setupContainerDefaults()
+        String methodUnderTest = queryMethods.key
+        Closure method = bind(queryMethods.value)
+
+        when:
+        container.register("a", container.type, method).get()
+        then:
+        noExceptionThrown()
+
+        where:
+        queryMethods << getQueryMethods()
+    }
 }
