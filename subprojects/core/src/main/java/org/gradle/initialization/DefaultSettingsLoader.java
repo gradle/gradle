@@ -48,45 +48,45 @@ public class DefaultSettingsLoader implements SettingsLoader {
         SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, startParameter);
 
         ProjectSpec spec = ProjectSpecs.forStartParameter(startParameter, settings);
-
-        if (spec.containsProject(settings.getProjectRegistry())) {
-            setDefaultProject(spec, settings);
-            return settings;
+        if (useEmptySettings(settings, spec, startParameter)) {
+            settings = createEmptySettings(gradle, startParameter);
         }
 
-        deprecateWarningIfNecessary(startParameter, settings);
+        setDefaultProject(spec, settings);
+        return settings;
+    }
 
-        // Try again with empty settings
+    private boolean useEmptySettings(SettingsInternal loadedSettings, ProjectSpec spec, StartParameter startParameter) {
+        // Never use empty settings when the settings were explicitly set
+        if (startParameter.getSettingsFile() != null) {
+            return false;
+        }
+        // Use the loaded settings if it includes the target project (based on build file, project dir or current dir)
+        if (spec.containsProject(loadedSettings.getProjectRegistry())) {
+            return false;
+        }
+
+        // Use an empty settings for a secondary build file located in the same directory as the settings file.
+        File projectDir = startParameter.getProjectDir() == null ? startParameter.getCurrentDir() : startParameter.getProjectDir();
+        if (loadedSettings.getSettingsDir().equals(projectDir)) {
+            return true;
+        }
+
+        DeprecationLogger.nagUserWith("Support for nested build without a settings file was deprecated.", "You should create a empty settings file in " + projectDir.getAbsolutePath() + ".");
+        return true;
+    }
+
+    private SettingsInternal createEmptySettings(GradleInternal gradle, StartParameter startParameter) {
         StartParameter noSearchParameter = startParameter.newInstance();
         noSearchParameter.useEmptySettings();
-        settings = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter);
+        SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter);
 
         // Set explicit build file, if required
         if (noSearchParameter.getBuildFile() != null) {
             ProjectDescriptor rootProject = settings.getRootProject();
             rootProject.setBuildFileName(noSearchParameter.getBuildFile().getName());
         }
-        setDefaultProject(spec, settings);
-
         return settings;
-    }
-
-    private void deprecateWarningIfNecessary(StartParameter startParameter, SettingsInternal settings) {
-        if (startParameter.getSettingsFile() != null) {
-            return;
-        }
-
-        File projectDir = startParameter.getProjectDir() == null ? startParameter.getCurrentDir() : startParameter.getProjectDir();
-        if (settings.getSettingsDir().equals(projectDir)) {
-            // settings only project, see ProjectLoadingIntegrationTest.settingsFileGetsIgnoredWhenUsingSettingsOnlyDirectoryAsProjectDirectory
-            return;
-        }
-        for (ProjectDescriptor project : settings.getProjectRegistry().getAllProjects()) {
-            if (project.getProjectDir().equals(projectDir)) {
-                return;
-            }
-        }
-        DeprecationLogger.nagUserWith("Support for nested build without a settings file was deprecated.", "You should create a empty settings file in " + projectDir.getAbsolutePath() + ".");
     }
 
     private void setDefaultProject(ProjectSpec spec, SettingsInternal settings) {
