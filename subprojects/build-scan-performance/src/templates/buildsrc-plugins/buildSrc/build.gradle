@@ -38,7 +38,7 @@ tasks.register('generatePluginSources') {
             public class GeneratedPlugin${i} implements Plugin<Project> {
                 public void apply(Project project) {
                     ${maybeApplyNestedPluginCode(i)}
-//                    System.out.println("plugin GeneratedPlugin${i} applied to " + project.getPath());
+                    System.out.println("plugin GeneratedPlugin${i} applied to " + project.getPath());
                 }
             }
             """
