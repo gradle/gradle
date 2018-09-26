@@ -192,6 +192,28 @@ Now when the last non-constraint edge to a dependency disappears, all constraint
 Gradle can no longer be run on Java 7, but requires Java 8 as the minimum build JVM version.
 However, you can still use forked compilation and testing to build and test software for Java 6 and above.
 
+### Configuration Avoidance API disallows common configuration errors
+
+The [configuration avoidance API](userguide/task_configuration_avoidance.html) introduced in Gradle 4.9 allows you to avoid creating and configuring tasks that are never used.
+
+With the existing API, this example adds two tasks (`foo` and `bar`):
+```
+tasks.create("foo") {
+    tasks.create("bar")
+}
+```
+
+When converting this to use the new API, something surprising happens: `bar` doesn't exist.  The new API only executes configuration actions when necessary, 
+so the `register()` for task `bar` only executes when `foo` is configured. 
+
+```
+tasks.register("foo") {
+    tasks.register("bar") // WRONG
+}
+```
+
+To avoid this, Gradle now detects this and prevents modification to the underlying container (through `create` or `register`) when using the new API. 
+
 ### Java Library Distribution Plugin utilizes Java Library Plugin
 
 The [Java Library Distribution Plugin](userguide/java_library_distribution_plugin.html) is now based on the
