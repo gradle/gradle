@@ -21,6 +21,7 @@ import spock.lang.Unroll
 
 abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractIntegrationSpec {
     abstract String makeContainer()
+
     abstract String disallowMutationMessage(String assertingMethod)
 
     def setup() {
@@ -35,13 +36,13 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
 
     Map<String, String> getQueryMethods() {
         [
-            "getByName(String)":    "testContainer.getByName('unrealized')",
-            "named(String)":        "testContainer.named('unrealized')",
+            "getByName(String)": "testContainer.getByName('unrealized')",
+            "named(String)": "testContainer.named('unrealized')",
             "named(String, Class)": "testContainer.named('unrealized', testContainer.type)",
-            "findAll(Closure)":     "testContainer.findAll { it.name == 'unrealized' }",
-            "findByName(String)":   "testContainer.findByName('unrealized')",
-            "TaskProvider.get()":   "unrealized.get()",
-            "iterator()":           "for (def element : testContainer) { println element.name }",
+            "findAll(Closure)": "testContainer.findAll { it.name == 'unrealized' }",
+            "findByName(String)": "testContainer.findByName('unrealized')",
+            "TaskProvider.get()": "unrealized.get()",
+            "iterator()": "for (def element : testContainer) { println element.name }",
         ]
     }
 
@@ -127,9 +128,9 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
 
     Map<String, String> getMutationMethods() {
         [
-            "create(String)":   "testContainer.create('mutate')",
+            "create(String)": "testContainer.create('mutate')",
             "register(String)": "testContainer.register('mutate')",
-            "getByName(String, Action)":    "testContainer.getByName('realized') {}",
+            "getByName(String, Action)": "testContainer.getByName('realized') {}",
         ]
     }
 
@@ -271,6 +272,21 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
     def "can execute query and mutation methods #method.key from withType.getByName"() {
         buildFile << """
             testContainer.withType(testContainer.type).getByName("realized") {
+                ${method.value}
+            }
+        """
+
+        expect:
+        succeeds "help"
+
+        where:
+        method << getQueryMethods() + getMutationMethods()
+    }
+
+    @Unroll
+    def "can execute query and mutating methods #method.key from create(String)"() {
+        buildFile << """
+            testContainer.create("a") {
                 ${method.value}
             }
         """
