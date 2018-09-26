@@ -34,14 +34,14 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 apply plugin: 'java'
 description = 'this is a project'
 '''
-        file('settings.gradle').text = 'rootProject.name = \"test project\"'
+        file('settings.gradle').text = 'rootProject.name = \"test_project\"'
 
         when:
         IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
 
         then:
         project.parent == null
-        project.name == 'test project'
+        project.name == 'test_project'
         project.description == null
         project.children.size() == 1
         project.children[0] instanceof IdeaModule

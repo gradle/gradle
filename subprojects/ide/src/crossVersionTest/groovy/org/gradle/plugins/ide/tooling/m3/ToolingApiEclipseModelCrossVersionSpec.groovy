@@ -28,13 +28,13 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 apply plugin: 'java'
 description = 'this is a project'
 '''
-        projectDir.file('settings.gradle').text = 'rootProject.name = \"test project\"'
+        projectDir.file('settings.gradle').text = 'rootProject.name = \"test_project\"'
 
         when:
         HierarchicalEclipseProject minimalProject = loadToolingModel(HierarchicalEclipseProject)
 
         then:
-        minimalProject.name == 'test project'
+        minimalProject.name == 'test_project'
         minimalProject.description == 'this is a project'
         minimalProject.projectDirectory == projectDir
         minimalProject.parent == null
@@ -44,7 +44,7 @@ description = 'this is a project'
         EclipseProject fullProject = loadToolingModel(EclipseProject)
 
         then:
-        fullProject.name == 'test project'
+        fullProject.name == 'test_project'
         fullProject.description == 'this is a project'
         fullProject.projectDirectory == projectDir
         fullProject.parent == null

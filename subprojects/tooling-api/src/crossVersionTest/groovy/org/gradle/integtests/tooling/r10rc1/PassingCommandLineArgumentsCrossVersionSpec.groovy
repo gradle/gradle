@@ -129,10 +129,11 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
         given:
         file('.myGradle').createDir()
         file('build.gradle') << "assert gradle.gradleUserHomeDir.name.endsWith('.myGradle')"
+        toolingApi.requireIsolatedDaemons()
 
         when:
         withConnection {
-            it.newBuild().withArguments('-p', '.myGradle').run()
+            it.newBuild().withArguments('-g', '.myGradle').run()
         }
 
         then:

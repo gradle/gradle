@@ -25,7 +25,7 @@ import org.gradle.test.fixtures.file.TestFile
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=3.2")
     def "can use multiple action implementations with different classpath roots and loaded from same ClassLoader"() {
-        settingsFile.text = 'rootProject.name = "not broken"'
+        settingsFile.text = 'rootProject.name = "not_broken"'
 
         // Ensure daemon is reused
         toolingApi.requireIsolatedDaemons()
@@ -47,15 +47,15 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         def l1 = withConnection { c ->
             return c.action(action1.getConstructor().newInstance()).run()
         }
-        l1 == ["not broken 1"]
+        l1 == ["not_broken 1"]
         def l2 = withConnection { c ->
             return c.action(action2.getConstructor().newInstance()).run()
         }
-        l2 == ["not broken 2"]
+        l2 == ["not_broken 2"]
     }
 
     def "can use multiple action implementations with different classpath roots and loaded from different ClassLoaders"() {
-        settingsFile.text = 'rootProject.name = "not broken"'
+        settingsFile.text = 'rootProject.name = "not_broken"'
 
         // Ensure daemon is reused
         toolingApi.requireIsolatedDaemons()
@@ -79,11 +79,11 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         def l1 = withConnection { c ->
             return c.action(action1.getConstructor().newInstance()).run()
         }
-        l1 == ["not broken 1"]
+        l1 == ["not_broken 1"]
         def l2 = withConnection { c ->
             return c.action(action2.getConstructor().newInstance()).run()
         }
-        l2 == ["not broken 1"]
+        l2 == ["not_broken 1"]
     }
 
     void copyClassTo(Class<?> cl, TestFile rootDir) {
