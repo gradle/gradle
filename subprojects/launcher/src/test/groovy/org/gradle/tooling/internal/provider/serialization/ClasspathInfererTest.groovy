@@ -41,7 +41,7 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
         expect:
         def classpath = []
         factory.getClassPathFor(actionClass, classpath)
-        def loader = new VisitableURLClassLoader(ClassLoader.systemClassLoader.parent, classpath)
+        def loader = new VisitableURLClassLoader("test", ClassLoader.systemClassLoader.parent, classpath)
         def action = JavaReflectionUtil.newInstance(loader.loadClass(CustomAction.name))
         action.execute(null)
     }
@@ -53,7 +53,7 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
         expect:
         def classpath = []
         factory.getClassPathFor(actionClass, classpath)
-        def loader = new VisitableURLClassLoader(ClassLoader.systemClassLoader.parent, classpath)
+        def loader = new VisitableURLClassLoader("test", ClassLoader.systemClassLoader.parent, classpath)
         def action = JavaReflectionUtil.newInstance(loader.loadClass(CustomAction.name))
         action.execute(null)
     }
@@ -66,7 +66,7 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
         expect:
         def classpath = []
         factory.getClassPathFor(actionClass, classpath)
-        def loader = new VisitableURLClassLoader(ClassLoader.systemClassLoader.parent, classpath)
+        def loader = new VisitableURLClassLoader("test", ClassLoader.systemClassLoader.parent, classpath)
         def action = JavaReflectionUtil.newInstance(loader.loadClass(CustomAction.name))
         action.execute(null)
     }
@@ -79,7 +79,7 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
         expect:
         def classpath = []
         factory.getClassPathFor(actionClass, classpath)
-        def loader = new VisitableURLClassLoader(ClassLoader.systemClassLoader.parent, classpath)
+        def loader = new VisitableURLClassLoader("test", ClassLoader.systemClassLoader.parent, classpath)
         def action = JavaReflectionUtil.newInstance(loader.loadClass(CustomAction.name))
         action.execute(null)
     }
@@ -95,7 +95,7 @@ class ClasspathInfererTest extends AbstractClassGraphSpec {
         factory.getClassPathFor(actionClass, classpath)
         def loader
         try {
-            loader = new VisitableURLClassLoader(ClassLoader.systemClassLoader.parent, classpath)
+            loader = new VisitableURLClassLoader("test", ClassLoader.systemClassLoader.parent, classpath)
             def action = JavaReflectionUtil.newInstance(loader.loadClass(CustomAction.name))
             action.execute(null)
         } finally {

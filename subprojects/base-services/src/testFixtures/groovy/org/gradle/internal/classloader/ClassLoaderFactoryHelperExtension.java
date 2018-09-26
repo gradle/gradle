@@ -22,7 +22,7 @@ import java.io.File;
 import java.util.Collection;
 
 public class ClassLoaderFactoryHelperExtension {
-    public static ClassLoader createIsolatedClassLoader(ClassLoaderFactory factory, Collection<File> files) {
-        return factory.createIsolatedClassLoader(DefaultClassPath.of(files));
+    public static ClassLoader createIsolatedClassLoader(ClassLoaderFactory factory, String name, Collection<File> files) {
+        return factory.createIsolatedClassLoader(name, DefaultClassPath.of(files));
     }
 }

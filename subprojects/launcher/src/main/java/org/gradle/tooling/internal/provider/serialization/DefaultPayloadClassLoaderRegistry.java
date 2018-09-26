@@ -167,7 +167,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
                 if (visitor.classPath == null) {
                     visitor.spec = SystemClassLoaderSpec.INSTANCE;
                 } else {
-                    visitor.spec = new VisitableURLClassLoader.Spec(CollectionUtils.toList(visitor.classPath));
+                    visitor.spec = new VisitableURLClassLoader.Spec("unknown-loader", CollectionUtils.toList(visitor.classPath));
                 }
             }
 

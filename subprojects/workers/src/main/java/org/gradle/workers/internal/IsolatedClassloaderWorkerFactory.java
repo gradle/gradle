@@ -112,7 +112,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     }
 
     private ClassLoader createActionClasspathLoader(DaemonForkOptions forkOptions) {
-        return classLoaderFactory.createIsolatedClassLoader(DefaultClassPath.of(forkOptions.getClasspath()));
+        return classLoaderFactory.createIsolatedClassLoader("worker-action-loader", DefaultClassPath.of(forkOptions.getClasspath()));
     }
 
     private ClassLoader createWorkerClassLoader(ClassLoader actionClasspathLoader, Iterable<String> sharedPackages, Class<?> actionClass) {
@@ -136,7 +136,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
 
         ClassLoader actionAndGradleApiLoader = new CachingClassLoader(new MultiParentClassLoader(gradleApiLoader, actionFilteredClasspathLoader));
 
-        return new VisitableURLClassLoader(actionAndGradleApiLoader, ClasspathUtil.getClasspath(actionClass.getClassLoader()));
+        return new VisitableURLClassLoader("worker-loader", actionAndGradleApiLoader, ClasspathUtil.getClasspath(actionClass.getClassLoader()));
     }
 
     private Callable<?> transferWorkerIntoWorkerClassloader(ActionExecutionSpec spec, ClassLoader workerClassLoader) throws IOException, ClassNotFoundException {

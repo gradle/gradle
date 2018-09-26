@@ -82,7 +82,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
     }
 
     public MixInLegacyTypesClassLoader(ClassLoader parent, ClassPath classPath, LegacyTypesSupport legacyTypesSupport) {
-        super(parent, classPath);
+        super("legacy-mixin-loader", parent, classPath);
         this.legacyTypesSupport = legacyTypesSupport;
     }
 
