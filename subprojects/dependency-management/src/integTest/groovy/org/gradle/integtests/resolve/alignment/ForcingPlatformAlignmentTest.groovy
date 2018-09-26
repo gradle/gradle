@@ -274,6 +274,81 @@ include 'other'
         succeeds ':checkDeps'
     }
 
+    @RequiredFeatures([
+        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
+   ])
+    def 'forced platform turning selector state to force after being selected and deselected'() {
+        repository {
+            ['1.0', '2.0'].each {
+                path "webapp:$it -> xml:$it"
+                path "org:other:$it"
+            }
+            'root:root:1.0' {
+                dependsOn('org:webapp:1.0')
+                dependsOn('org:other:1.0')
+            }
+        }
+        def bomDep = mavenHttpRepo.module('org', 'xml', '2.0')
+        mavenHttpRepo.module('bom', 'bom', '1.0').dependencyConstraint(bomDep).hasPackaging('pom').publish()
+
+        given:
+        buildFile << """
+            configurations {
+                conf.resolutionStrategy.force 'org:other:1.0'
+            }
+            dependencies {
+                conf platform("bom:bom:1.0")
+                conf "root:root:1.0"
+            }
+        """
+
+        and:
+        "align the 'org' group only"()
+
+        when:
+        repositoryInteractions {
+            group('org') {
+                ['webapp', 'xml', 'other'].each { mod ->
+                    module(mod) {
+                        ['1.0', '2.0'].each { v ->
+                            version(v) {
+                                allowAll()
+                            }
+                        }
+                    }
+                }
+            }
+            'bom:bom:1.0' {
+                allowAll()
+            }
+            'root:root:1.0' {
+                allowAll()
+            }
+        }
+
+        succeeds ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("bom:bom:1.0") {
+                    configuration = 'platform-runtime'
+                    edgeFromConstraint("org:xml:2.0", "org:xml:1.0")
+                }
+                module("root:root:1.0") {
+                    module('org:webapp:1.0') {
+                        module('org:xml:1.0')
+                    }
+                    module('org:other:1.0') {
+                        forced()
+                    }
+                }
+            }
+        }
+
+
+    }
+
     @Unroll
     def "can force a virtual platform version by forcing the platform itself via a dependency"() {
         repository {
