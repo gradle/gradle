@@ -170,9 +170,12 @@ in the next major Gradle version (Gradle 6.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
 
-### StartParameter.interactive flag
+### StartParameter properties
 
-The `interactive` flag is deprecated and will be removed in Gradle 6.0.
+The following properties are deprecated and will be removed in Gradle 6.0.
+
+- `interactive`
+- `recompileScripts`
 
 ### Removing tasks from TaskContainer
 
@@ -440,6 +443,7 @@ If you need to defer evaluation, please use `afterEvaluate {}`.
 ### Removal of deprecated CLI options
 
 - Removed `--no-search-upward` (`-u`) option.
+- Removed `--recompile-scripts` option.
 
 ### Implicit imports for internal classes have been removed
 
