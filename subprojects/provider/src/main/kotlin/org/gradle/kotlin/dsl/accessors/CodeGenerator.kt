@@ -33,70 +33,44 @@ fun ProjectSchema<TypeAccessibility>.forEachAccessor(action: (String) -> Unit) {
 
 internal
 fun ProjectSchema<TypeAccessibility>.extensionAccessors(): Sequence<String> = sequence {
-
-    val seen = SeenAccessorSpecs()
-
-    extensions.asSequence().mapNotNull(::typedAccessorSpec).forEach { spec ->
-        extensionAccessorFor(spec)?.let { extensionAccessor ->
-            yield(extensionAccessor)
-            seen.add(spec)
-        }
-    }
-
-    conventions.asSequence().mapNotNull(::typedAccessorSpec).filterNot(seen::hasConflict).forEach { spec ->
-        conventionAccessorFor(spec)?.let {
-            yield(it)
-            seen.add(spec)
-        }
-    }
-
-    tasks.asSequence().mapNotNull(::typedAccessorSpec).filterNot(seen::hasConflict).forEach { spec ->
-        existingTaskAccessorFor(spec)?.let {
-            yield(it)
-            seen.add(spec)
-        }
-    }
-
-    containerElements.asSequence().mapNotNull(::typedAccessorSpec).filterNot(seen::hasConflict).forEach { spec ->
-        existingContainerElementAccessorFor(spec)?.let {
-            yield(it)
-        }
+    AccessorScope().run {
+        yieldAll(uniqueAccessorsFor(extensions).map(::extensionAccessor))
+        yieldAll(uniqueAccessorsFor(conventions).map(::conventionAccessor))
+        yieldAll(uniqueAccessorsFor(tasks).map(::existingTaskAccessor))
+        yieldAll(uniqueAccessorsFor(containerElements).map(::existingContainerElementAccessor))
     }
 }
 
 
 internal
-fun <T> ProjectSchema<T>.configurationAccessors(): Sequence<String> = sequence {
-    configurations.map(::accessorNameSpec).forEach { spec ->
-        configurationAccessorFor(spec)?.let {
-            yield(it)
-        }
-    }
-}
+fun <T> ProjectSchema<T>.configurationAccessors(): Sequence<String> =
+    configurations
+        .asSequence()
+        .filter(::isLegalAccessorName)
+        .map(::accessorNameSpec)
+        .map(::configurationAccessor)
 
 
 private
-data class SeenAccessorSpecs(
+data class AccessorScope(
     private val targetTypesByName: HashMap<AccessorNameSpec, HashSet<TypeAccessibility.Accessible>> = hashMapOf()
 ) {
-
-    fun add(accessorSpec: TypedAccessorSpec) =
-        setFor(accessorSpec.name).add(accessorSpec.targetTypeAccess)
-
-    fun hasConflict(accessorSpec: TypedAccessorSpec) =
-        targetTypesByName[accessorSpec.name]?.let { targetTypes ->
-            accessorSpec.targetTypeAccess in targetTypes
-        } ?: false
+    fun uniqueAccessorsFor(entries: Iterable<ProjectSchemaEntry<TypeAccessibility>>): Sequence<TypedAccessorSpec> =
+        entries.asSequence().mapNotNull(::typedAccessorSpec).filter(::add)
 
     private
-    fun setFor(accessorNameSpec: AccessorNameSpec): HashSet<TypeAccessibility.Accessible> =
+    fun add(accessorSpec: TypedAccessorSpec) =
+        targetTypesOf(accessorSpec.name).add(accessorSpec.targetTypeAccess)
+
+    private
+    fun targetTypesOf(accessorNameSpec: AccessorNameSpec): HashSet<TypeAccessibility.Accessible> =
         targetTypesByName.computeIfAbsent(accessorNameSpec) { hashSetOf() }
 }
 
 
 private
-fun extensionAccessorFor(spec: TypedAccessorSpec): String? = spec.run {
-    codeForAccessor(name) {
+fun extensionAccessor(spec: TypedAccessorSpec): String = spec.run {
+    codeForAccessor {
         when (typeAccess) {
             is TypeAccessibility.Accessible -> accessibleExtensionAccessorFor(targetTypeAccess.type, name, typeAccess.type)
             is TypeAccessibility.Inaccessible -> inaccessibleExtensionAccessorFor(targetTypeAccess.type, name, typeAccess)
@@ -148,8 +122,8 @@ fun inaccessibleExtensionAccessorFor(targetType: String, name: AccessorNameSpec,
 
 
 private
-fun conventionAccessorFor(spec: TypedAccessorSpec): String? = spec.run {
-    codeForAccessor(name) {
+fun conventionAccessor(spec: TypedAccessorSpec): String = spec.run {
+    codeForAccessor {
         when (typeAccess) {
             is TypeAccessibility.Accessible -> accessibleConventionAccessorFor(targetTypeAccess.type, name, typeAccess.type)
             is TypeAccessibility.Inaccessible -> inaccessibleConventionAccessorFor(targetTypeAccess.type, name, typeAccess)
@@ -201,8 +175,8 @@ fun inaccessibleConventionAccessorFor(targetType: String, name: AccessorNameSpec
 
 
 private
-fun existingTaskAccessorFor(spec: TypedAccessorSpec): String? = spec.run {
-    codeForAccessor(name) {
+fun existingTaskAccessor(spec: TypedAccessorSpec): String = spec.run {
+    codeForAccessor {
         when (typeAccess) {
             is TypeAccessibility.Accessible -> accessibleExistingTaskAccessorFor(name, typeAccess.type)
             is TypeAccessibility.Inaccessible -> inaccessibleExistingTaskAccessorFor(name, typeAccess)
@@ -240,8 +214,8 @@ fun inaccessibleExistingTaskAccessorFor(name: AccessorNameSpec, typeAccess: Type
 
 
 private
-fun existingContainerElementAccessorFor(spec: TypedAccessorSpec): String? = spec.run {
-    codeForAccessor(name) {
+fun existingContainerElementAccessor(spec: TypedAccessorSpec): String = spec.run {
+    codeForAccessor {
         when (typeAccess) {
             is TypeAccessibility.Accessible -> accessibleExistingContainerElementAccessorFor(targetTypeAccess.type, name, typeAccess.type)
             is TypeAccessibility.Inaccessible -> inaccessibleExistingContainerElementAccessorFor(targetTypeAccess.type, name, typeAccess)
@@ -279,8 +253,8 @@ fun inaccessibleExistingContainerElementAccessorFor(targetType: String, name: Ac
 
 
 private
-fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
-    codeForAccessor(name) {
+fun configurationAccessor(name: AccessorNameSpec): String = name.run {
+    codeForAccessor {
         """
             /**
              * Adds a dependency to the '$original' configuration.
@@ -451,7 +425,7 @@ fun accessorNameSpec(originalName: String) =
 
 private
 fun typedAccessorSpec(schemaEntry: ProjectSchemaEntry<TypeAccessibility>) =
-    schemaEntry.target.run {
+    schemaEntry.takeIf { isLegalAccessorName(it.name) }?.target?.run {
         when (this) {
             is TypeAccessibility.Accessible ->
                 TypedAccessorSpec(this, accessorNameSpec(schemaEntry.name), schemaEntry.type)
@@ -469,9 +443,8 @@ fun documentInaccessibilityReasons(name: AccessorNameSpec, typeAccess: TypeAcces
 
 
 private
-inline fun codeForAccessor(name: AccessorNameSpec, code: () -> String): String? =
-    if (isLegalAccessorName(name.kotlinIdentifier)) code().replaceIndent()
-    else null
+inline fun codeForAccessor(code: () -> String): String =
+    code().replaceIndent()
 
 
 internal
