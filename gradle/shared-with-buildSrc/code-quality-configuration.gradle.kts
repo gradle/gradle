@@ -112,7 +112,7 @@ open class CodeNarcRule : ComponentMetadataRule {
                 removeAll { it.group == "org.codehaus.groovy" }
                 add("org.gradle.groovy:groovy-all") {
                     // TODO This must match the version number in dependencies.gradle
-                    version { prefer(groovy.lang.GroovySystem.getVersion() + "-0.8-SNAPSHOT") }
+                    version { prefer("0.9-" + groovy.lang.GroovySystem.getVersion()) }
                     because("We use groovy-all everywhere")
                 }
             }
