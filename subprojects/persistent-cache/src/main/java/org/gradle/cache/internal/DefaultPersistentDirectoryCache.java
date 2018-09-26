@@ -18,7 +18,6 @@ package org.gradle.cache.internal;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheValidator;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
@@ -41,12 +40,9 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
 
     private final Properties properties = new Properties();
     private final Action<? super PersistentCache> initAction;
-    private final CacheValidator validator;
-    private boolean didRebuild;
 
-    public DefaultPersistentDirectoryCache(File dir, String displayName, CacheValidator validator, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initAction, CleanupAction cleanupAction, FileLockManager lockManager, ExecutorFactory executorFactory, ProgressLoggerFactory progressLoggerFactory) {
+    public DefaultPersistentDirectoryCache(File dir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initAction, CleanupAction cleanupAction, FileLockManager lockManager, ExecutorFactory executorFactory, ProgressLoggerFactory progressLoggerFactory) {
         super(dir, displayName, lockTarget, lockOptions, cleanupAction, lockManager, executorFactory, progressLoggerFactory);
-        this.validator = validator;
         this.initAction = initAction;
         this.properties.putAll(properties);
     }
@@ -62,13 +58,6 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
 
     private class Initializer implements CacheInitializationAction {
         public boolean requiresInitialization(FileLock lock) {
-            if (!didRebuild) {
-                if (validator!=null && !validator.isValid()) {
-                    LOGGER.debug("Invalidating {} as cache validator return false.", DefaultPersistentDirectoryCache.this);
-                    return true;
-                }
-            }
-
             if (!lock.getUnlockedCleanly()) {
                 if (lock.getState().canDetectChanges() && !lock.getState().isInInitialState()) {
                     LOGGER.warn("Invalidating {} as it was not closed cleanly.", DefaultPersistentDirectoryCache.this);
@@ -109,7 +98,6 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
                 initAction.execute(DefaultPersistentDirectoryCache.this);
             }
             GUtil.saveProperties(properties, propertiesFile);
-            didRebuild = true;
         }
     }
 }

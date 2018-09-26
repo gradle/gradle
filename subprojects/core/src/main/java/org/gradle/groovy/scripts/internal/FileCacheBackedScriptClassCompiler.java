@@ -22,7 +22,6 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.cache.CacheRepository;
-import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.UncheckedException;
@@ -57,16 +56,14 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private final ScriptCompilationHandler scriptCompilationHandler;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final CacheRepository cacheRepository;
-    private final CacheValidator validator;
     private final ScriptSourceHasher hasher;
     private final ClassLoaderCache classLoaderCache;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
 
-    public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, CacheValidator validator, ScriptCompilationHandler scriptCompilationHandler,
+    public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, ScriptCompilationHandler scriptCompilationHandler,
                                               ProgressLoggerFactory progressLoggerFactory, ScriptSourceHasher hasher, ClassLoaderCache classLoaderCache,
                                               ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         this.cacheRepository = cacheRepository;
-        this.validator = validator;
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.progressLoggerFactory = progressLoggerFactory;
         this.hasher = hasher;
@@ -104,7 +101,6 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         // For 2, if the script changes, a different cache is used. If the classpath changes, the cache is invalidated, but classes are remapped to 1. anyway so never directly used
         PersistentCache remappedClassesCache = cacheRepository.cache("scripts-remapped/" + source.getClassName() + "/" + sourceHash + "/" + classpathHash)
             .withDisplayName(dslId + " remapped class cache for " + sourceHash)
-            .withValidator(validator)
             .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new RemapBuildScriptsAction<M, T>(remapped, classpathHash, sourceHash, dslId, classLoader, operation, verifier, scriptBaseClass),
                 "Compiling script into cache",
                 "Compiling " + source.getFileName() + " into local compilation cache"))
@@ -418,7 +414,6 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
 
         public void execute(final PersistentCache remappedClassesCache) {
             final PersistentCache cache = cacheRepository.cache("scripts/" + sourceHash + "/" + dslId + "/" + classpathHash)
-                .withValidator(validator)
                 .withDisplayName(dslId + " generic class cache for " + source.getDisplayName())
                 .withInitializer(new ProgressReportingInitializer(
                     progressLoggerFactory,
