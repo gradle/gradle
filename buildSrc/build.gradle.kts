@@ -71,6 +71,10 @@ subprojects {
             tasks.named("check").configure { dependsOn(validateTaskProperties) }
         }
     }
+
+    tasks.withType<ValidateTaskProperties> {
+        failOnWarning = true
+    }
 }
 
 allprojects {
