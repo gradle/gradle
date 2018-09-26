@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.testing.worker;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.tasks.testing.JULRedirector;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -80,7 +79,6 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             }
 
             if (remoteProcessor == null) {
-                JULRedirector.checkDeprecatedProperty(options);
                 completion = currentWorkerLease.startChild();
                 try {
                     remoteProcessor = forkProcess();

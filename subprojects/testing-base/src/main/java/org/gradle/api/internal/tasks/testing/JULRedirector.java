@@ -16,11 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import com.google.common.annotations.VisibleForTesting;
-import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.api.internal.tasks.testing.processors.DefaultStandardOutputRedirector;
-import org.gradle.process.JavaForkOptions;
-import org.gradle.util.SingleMessageLogger;
+import org.gradle.internal.logging.StandardOutputCapture;
 
 import java.io.IOException;
 import java.util.logging.ConsoleHandler;
@@ -31,8 +28,6 @@ import java.util.logging.Logger;
  * Some hackery to get JUL output redirected to test output
  */
 public class JULRedirector extends DefaultStandardOutputRedirector {
-    @VisibleForTesting
-    public static final String READ_LOGGING_CONFIG_FILE_PROPERTY = "org.gradle.readLoggingConfigFile";
     private boolean reset;
 
     @Override
@@ -40,28 +35,13 @@ public class JULRedirector extends DefaultStandardOutputRedirector {
         super.start();
         if (!reset) {
             LogManager.getLogManager().reset();
-            if (shouldReadLoggingConfigFile()) {
-                try {
-                    LogManager.getLogManager().readConfiguration();
-                } catch (IOException error) {
-                    Logger.getLogger("").addHandler(new ConsoleHandler());
-                }
-            } else {
+            try {
+                LogManager.getLogManager().readConfiguration();
+            } catch (IOException error) {
                 Logger.getLogger("").addHandler(new ConsoleHandler());
             }
             reset = true;
         }
         return this;
-    }
-
-    private boolean shouldReadLoggingConfigFile() {
-        return System.getProperty(READ_LOGGING_CONFIG_FILE_PROPERTY, "true").equals("true");
-    }
-
-    public static void checkDeprecatedProperty(JavaForkOptions options) {
-        if ("false".equals(options.getSystemProperties().get(READ_LOGGING_CONFIG_FILE_PROPERTY))) {
-            SingleMessageLogger.nagUserOfDiscontinuedProperty(READ_LOGGING_CONFIG_FILE_PROPERTY,
-                "Change your test to work with your java.util.logging configuration file settings.");
-        }
     }
 }
