@@ -325,11 +325,11 @@ This is not the case anymore as the `source` filed is now declared as `private`.
 - `BasePluginConvention` is now abstract.
 - `ProjectReportsPluginConvention` is now abstract.
 
-### System properties `test.single` and `test.debug` have been removed
+### Removed system properties
 
-The `test.single` filter mechanism has been removed. You must select tests from the command-line with [`--tests`](userguide/java_testing.html#simple_name_pattern).
-
-The `test.debug` mechanism to enable debugging of JVM tests from the command-line has been removed.  You must use [`--debug-jvm`](userguide/java_testing.html#sec:debugging_java_tests) to enable debugging of test execution.
+- The `test.single` filter mechanism has been removed. You must select tests from the command-line with [`--tests`](userguide/java_testing.html#simple_name_pattern).
+- The `test.debug` mechanism to enable debugging of JVM tests from the command-line has been removed. You must use [`--debug-jvm`](userguide/java_testing.html#sec:debugging_java_tests) to enable debugging of test execution.
+- The `org.gradle.readLoggingConfigFile` system property no longer does anything — please update affected tests to work with your `java.util.logging` settings.
 
 ### Replacing built-in tasks
 
