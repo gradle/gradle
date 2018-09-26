@@ -58,8 +58,5 @@ tasks.register("largeJavaProjectWithBuildScanPlugin", JvmProjectGeneratorTask) {
 //                println "project \${project.path} applies 'script-plugin${scriptPluginId}.gradle'"
             """
         }
-
-        // copy test categories
-
     }
 }

@@ -95,6 +95,7 @@ class BuildScanPluginPerformanceTest extends Specification {
             invocation {
                 args(*jobArgs)
                 tasksToRun(*tasks)
+                useDaemon()
                 gradleOpts(*opts)
                 if (withFailure) {
                     expectFailure()
@@ -112,6 +113,7 @@ class BuildScanPluginPerformanceTest extends Specification {
                 args(*jobArgs)
                 args("--scan", "-DenableScan=true", "-Dscan.dump")
                 tasksToRun(*tasks)
+                useDaemon()
                 gradleOpts(*opts)
                 if (withFailure) {
                     expectFailure()
