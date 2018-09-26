@@ -44,6 +44,7 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.ASM6
 import org.objectweb.asm.Type
 
+import java.io.InputStream
 import java.io.File
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
@@ -175,16 +176,22 @@ class GradleApiParameterNamesTransform @Inject constructor(
             && gradleApiMetadata.spec.isSatisfiedBy(RelativePath.parse(true, name))
 
     private
-    fun JarFile.transformJarEntry(entry: JarEntry, outputJar: ZipOutputStream) {
+    fun JarFile.transformJarEntry(entry: JarEntry, zipOutputStream: ZipOutputStream) {
         getInputStream(entry).buffered().use { input ->
-            val reader = ClassReader(input)
-            val writer = ClassWriter(0)
-            val visitor = ParameterNamesClassVisitor(writer, gradleApiMetadata.parameterNamesSupplier)
-            reader.accept(visitor, 0)
-            outputJar.putNextEntry(JarEntry(entry.name))
-            outputJar.write(writer.toByteArray())
-            outputJar.closeEntry()
+            zipOutputStream.run {
+                putNextEntry(JarEntry(entry.name))
+                write(transformClass(input))
+                closeEntry()
+            }
         }
+    }
+
+    private
+    fun transformClass(input: InputStream): ByteArray {
+        val writer = ClassWriter(0)
+        val transformer = ParameterNamesClassVisitor(writer, gradleApiMetadata.parameterNamesSupplier)
+        ClassReader(input).accept(transformer, 0)
+        return writer.toByteArray()
     }
 
     private
