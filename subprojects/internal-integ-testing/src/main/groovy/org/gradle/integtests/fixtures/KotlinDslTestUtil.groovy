@@ -25,7 +25,7 @@ class KotlinDslTestUtil {
 
     static String getKotlinDslBuildSrcScript() {
         """
-            plugins { `kotlin-dsl` }
+            plugins { `kotlin-dsl-base` }
 
             allprojects {
                 repositories {
